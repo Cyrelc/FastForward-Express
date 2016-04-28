@@ -11,6 +11,48 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+Controller actions:
+index
+create
+store
+show
+edit
+update
+destroy
+*/
+
+/*
+    Note: All authentication middleware also occurs in controllers.
+    It is redundant here.
+*/
+
+// Authenticated views
+Route::group(
+        ['middleware' => 'auth'],
+        function() {
+            Route::get('/', function() {
+                return view('welcome');
+            });
+
+            Route::resource('/bills', 'BillController',
+                    ['only' => 'index']);
+
+            Route::resource('/customers', 'CustomerController',
+                    ['only' => 'index']);
+
+            Route::resource('/drivers', 'DriverController',
+                    ['only' => 'index']);
+
+            Route::get('/logout', 'Auth\AuthController@getLogout');
+        }
+);
+
+//Guest views
+Route::group(
+        ['middleware' => 'guest'],
+        function() {
+            Route::get('/login', 'Auth\AuthController@getLogin');
+            Route::post('/login', 'Auth\AuthController@postLogin');
+        }
+);
