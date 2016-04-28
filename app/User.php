@@ -2,17 +2,18 @@
 
 namespace App;
 
+use App\Role;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable {
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'role_id'
     ];
 
     /**
@@ -23,4 +24,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function role() {
+        return $this->belongsTo('App\Role', 'role_id', 'id');
+    }
+
+    public function allowedTo($perm = null) {
+        if (is_null($perm)) return false;
+        return $this->role->permissions->contains('name', $perm);
+    }
 }
