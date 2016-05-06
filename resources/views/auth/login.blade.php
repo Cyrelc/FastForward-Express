@@ -1,23 +1,39 @@
-<!-- resources/views/auth/login.blade.php -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel='stylesheet' type='text/css' href='/css/login.css' />
+    </head>
+    <body>
+        <div id='container'>
+            <div id='loginapp'>
+                <form id='loginform' method='POST' action='/login'>
+                    {!! csrf_field() !!}
 
-<form method="POST" action="/auth/login">
-    {!! csrf_field() !!}
-
-    <div>
-        Email
-        <input type="email" name="email" value="{{ old('email') }}">
-    </div>
-
-    <div>
-        Password
-        <input type="password" name="password" id="password">
-    </div>
-
-    <div>
-        <input type="checkbox" name="remember"> Remember Me
-    </div>
-
-    <div>
-        <button type="submit">Login</button>
-    </div>
-</form>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class='ident'>
+                                    <span>Email</span>
+                                </td>
+                                <td class='input'>
+                                    <input type='email' name='email' value='{{ old('email') }}'>
+                                </td>
+                            </tr><tr>
+                                <td class='ident'>
+                                    <span>Password</span>
+                                </td>
+                                <td class='input'>
+                                    <input type='password' name='password' id='password' size='35'>
+                                </td>
+                            </tr><tr>
+                                <td colspan='2' class='submit'>
+                                    <button type='submit'>Login</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
