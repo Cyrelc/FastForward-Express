@@ -1,0 +1,63 @@
+html, body {
+    height: 100%;
+}
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    display: table;
+    font-weight: 100;
+}
+
+#container {
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
+}
+
+
+#loginapp {
+    background-image: url(/images/headerimg.png);
+    width: 960px;
+    height: 145px;
+    font-size: 34px;
+    text-align: center;
+    display: inline-block;
+}
+
+#loginapp > #loginform {
+    float: right;
+    width: 400px;
+    height: 100%;
+    margin-bottom: 0px;
+}
+
+#loginapp > #loginform > table {
+    width: 100%;
+    height: calc(100% - 1em);
+    margin-top: 1em;
+    font-size: 24px;
+}
+
+#loginapp > #loginform > table > tbody > tr > td.ident {
+    text-align: left;
+}
+
+#loginapp > #loginform > table > tbody > tr > td.input {
+    text-align: right;
+}
+
+#loginapp > #loginform > table > tbody > tr > td.submit {
+    text-align: center;
+}
+
+#loginapp > #loginform > table > tbody > tr > td.submit > button {
+    font-size: 80%;
+}
+
+#loginapp > #loginform > table > tbody > tr > td.input > input {
+    margin-left: 1em;
+    margin-right: 0.5em;
+    width: calc(100% - 1.5em);
+    font-size: 18px;
+}
