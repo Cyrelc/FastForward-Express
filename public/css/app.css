@@ -1,0 +1,54 @@
+html, body {
+	height: 100%;
+}
+
+table#mainWindow {
+	width: 100%;
+	min-height: 100%;
+}
+
+td#navAndFilter {
+	width: 20%;
+	border-right: 3px solid;
+}
+
+#navBar, #advFilter {
+	min-height: 200px;
+	border-bottom: 3px solid;
+}
+
+.navButton {
+	width: 100%;
+	padding: 0px;
+	height: 20px;
+}
+
+#details {
+	vertical-align: top;
+	padding-top: 10px;
+	height: 20px;
+}
+
+td#detailsAndContent {
+	width: 80%;
+	vertical-align: top;
+	padding-top: 10px;
+	padding-left: 10px;
+}
+
+#content {
+	vertical-align: top;
+	padding-top: 10px;
+	min-height: 80%;
+}
+
+#menu {
+	float: right;
+	padding-right: 20px;
+}
+
+#FFELogo {
+	background-image: url(/images/headerimg.png);
+	background-repeat: no-repeat;
+	height: 145px;
+}
