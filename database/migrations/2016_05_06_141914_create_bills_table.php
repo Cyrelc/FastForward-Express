@@ -15,7 +15,7 @@ class CreateBillsTable extends Migration {
             $table->foreign('ref_id')
                     ->references('id')->on('ref_type');
             $table->timestamp('manifest')->nullable();
-            $table->integer('payment_id')->unsigned()->default(-1);
+            $table->integer('payment_id')->unsigned()->default(0);
             $table->foreign('payment_id')
                     ->references('id')->on('payment_type');
             $table->float('amount');
