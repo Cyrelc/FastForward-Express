@@ -44,6 +44,7 @@ td#detailsAndContent {
 
 td#menuBar {
 	height: 145px;
+	border-bottom: 2px solid #333;
 }
 
 #content {
@@ -53,10 +54,12 @@ td#menuBar {
 }
 
 ul#menu {
-	position: relative;
-	float: right;
-	top: 100px;
-	padding-right: 20px;
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	margin-bottom: 0px;
+	padding-right: 1em;
+	padding-left: 1em;
 	list-style-type: none;
 	background-color: #333;
 }
@@ -81,5 +84,6 @@ ul#menu li a:hover {
 #FFELogo {
 	background-image: url(/images/headerimg.png);
 	background-repeat: no-repeat;
+	position: relative;
 	height: 145px;
 }
