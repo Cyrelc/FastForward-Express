@@ -33,7 +33,6 @@ class BillSeeder extends Seeder {
         Bill::create(array(
                 'number' => 3,
                 'date' => date('Y-m-d H:i:s'),
-                'ref_id' => rand(1, ReferenceType::count()),
                 'payment_id' => rand(1, PaymentType::count()),
                 'amount' => rand(1, 100) / rand(1, 5),
                 'int_amount' => rand(1, 100) / rand(1, 5),
