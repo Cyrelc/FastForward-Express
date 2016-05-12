@@ -12,4 +12,16 @@ class Bill extends Model {
         'payment_id', 'amount', 'int_amount', 'driver_amount',
         'taxes'
     ];
+
+    public function paymentType() {
+        return $this->hasOne('App\PaymentType', 'id', 'payment_id');
+    }
+
+    public function hasReference() {
+        return !!($this->ref_id);
+    }
+
+    public function referenceType() {
+        return $this->hasOne('App\ReferenceType', 'id', 'ref_id');
+    }
 }
