@@ -32,6 +32,7 @@ td#navAndFilter {
 
 #details {
 	vertical-align: top;
+	display: none;
 	padding-top: 10px;
 	height: 20px;
 }
