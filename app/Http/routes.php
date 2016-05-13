@@ -36,7 +36,8 @@ Route::group(
             });
 
             Route::resource('/bills', 'BillController',
-                    ['only' => 'index']);
+                    ['only' => ['index', 'create', 'edit', 'store']]
+            );
 
             Route::resource('/customers', 'CustomerController',
                     ['only' => 'index']);

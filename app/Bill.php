@@ -21,6 +21,10 @@ class Bill extends Model {
         return !!($this->ref_id);
     }
 
+    public function hasManifested() {
+        return !!($this->manifest);
+    }
+
     public function referenceType() {
         return $this->hasOne('App\ReferenceType', 'id', 'ref_id');
     }
