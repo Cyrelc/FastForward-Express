@@ -10,6 +10,26 @@ html, body {
     text-align: center;
 }
 
+.error {
+    width: 100%;
+    background-color: red;
+    color: black;
+    font-style: bold;
+    font-size: 140%;
+}
+
+.success {
+    width: 100%;
+    background-color: green;
+    color: black;
+    font-style: bold;
+    font-size: 140%;
+}
+
+.hidden {
+    display: none;
+}
+
 div {
     display: inline-block;
 }
