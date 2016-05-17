@@ -24,13 +24,13 @@
                         <div id='FFELogo'>
                             <button id='logout' onclick='location.href="/logout"'>Log out</button>
                             <ul id='menu'>
-                                <li><a href='\bills'>Bills</a></li>
-                                <li><a href='\'>Invoices</a></li>
-                                <li><a href='\customers'>Customers</a></li>
-                                <li><a href='\drivers'>Drivers</a></li>
-                                <li><a href='\'>Dispatch</a></li>
-                                <li><a href='\'>New Delivery</a></li>
-                                <li><a href='\'>Administration</a></li>
+                                <li><a href='/bills'>Bills</a></li>
+                                <li><a href='/invoices'>Invoices</a></li>
+                                <li><a href='/customers'>Customers</a></li>
+                                <li><a href='/drivers'>Drivers</a></li>
+                                <li><a href='/dispatch'>Dispatch</a></li>
+                                <li><a href='/new-delivery'>New Delivery</a></li>
+                                <li><a href='/administration'>Administration</a></li>
                             </ul>
                         </div>
                     </div>
