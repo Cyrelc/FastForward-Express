@@ -39,9 +39,7 @@
             <tr>
                 <td id='navAndFilter'>
                     <div id='navBar'>
-                        <ul>
-
-                        </ul>
+                        @yield('navBar')
                     </div>
                     <div id='advFilter'>
                         @yield('advFilter')
