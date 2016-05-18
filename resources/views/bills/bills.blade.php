@@ -25,9 +25,9 @@
 @section ('navBar')
 
 <table>
-	<button class='navButton'>Create New Bill</button>
-	<button class='navButton'>Edit Bill</button>
-	<button class='navButton'>Eat IceCream</button>
+	<button class='navButton btn-primary'>Create New Bill</button>
+	<button class='navButton btn-primary'>Edit Bill</button>
+	<button class='navButton btn-primary'>Eat IceCream</button>
 </table>
 
 @endsection
