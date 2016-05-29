@@ -5,7 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateRefTypeTable extends Migration {
     public function up() {
-        Schema::create('ref_type', function(Blueprint $table) {
+        Schema::create('ref_types', function(Blueprint $table) {
             $table->increments('id');
             $table->string('name')->unique();
             $table->timestamps();
@@ -13,7 +13,7 @@ class CreateRefTypeTable extends Migration {
     }
 
     public function down() {
-        Schema::dropIfExists('ref_type');
+        Schema::dropIfExists('ref_types');
     }
 }
 
