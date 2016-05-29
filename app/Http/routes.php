@@ -46,6 +46,9 @@ Route::group(
                     ['only' => 'index']);
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
+
+            //API
+            Route::post('/bills/get', 'BillController@getBills');
         }
 );
 
