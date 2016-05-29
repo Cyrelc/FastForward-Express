@@ -14,4 +14,19 @@ class CustomerController extends Controller {
     public function index() {
         return view('customers.customers');
     }
+
+    public function getCustomers(Request $req) {
+        $input = $req->all();
+        $maxcount = isset($input['max_count']) ?
+                $input['max_count'] :
+                env('DEFAULT_CUSTOMER_COUNT', 10000);
+
+        $customers = Customer::all()->sortBy('company_name')
+                ->slice(0, $maxcount)->values()->all();
+
+        return [
+            'success' => true,
+            'customers' => $customers
+        ];
+    }
 }
