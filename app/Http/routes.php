@@ -49,6 +49,7 @@ Route::group(
 
             //API
             Route::post('/bills/get', 'BillController@getBills');
+            Route::post('/customers/get', 'CustomerController@getCustomers');
         }
 );
 
