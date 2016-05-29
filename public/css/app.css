@@ -17,6 +17,8 @@ table#mainWindow {
 td#navAndFilter {
 	width: 20%;
 	border-right: 3px solid;
+	min-width: 20%;
+	display: none;
 }
 
 #navBar {
@@ -36,7 +38,6 @@ td#navAndFilter {
 
 #details {
 	vertical-align: top;
-	display: none;
 	padding-top: 10px;
 	height: 20px;
 }
