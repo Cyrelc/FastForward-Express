@@ -124,4 +124,22 @@ class BillController extends Controller {
                 'bill' => $bill
         ));
     }
+
+    public function getBills(Request $req) {
+        $input = $req->all();
+        $startDate = isset($input['start_date']) ?
+                $input['start_date'] :
+                date('Y-m-d G:i:s', strtotime('-' . env('DEFAULT_BILL_AGE', '6 month')));
+        $maxcount = isset($input['max_count']) ?
+                $input['max_count'] :
+                env('DEFAULT_BILL_COUNT', 10000);
+
+        $bills = Bill::where('date', '>', $startDate)->get()
+            ->sortBy('number')->reverse()->slice(0, $maxcount)->values()->all();
+
+        return [
+            'success' => true,
+            'bills' => $bills
+        ];
+    }
 }
