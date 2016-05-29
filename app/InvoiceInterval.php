@@ -5,7 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 
 class InvoiceInterval extends Model {
-    protected $table = 'invoice_interval';
+    protected $table = 'invoice_intervals';
 
     protected $fillable = [
         'name', 'num_days', 'num_months'

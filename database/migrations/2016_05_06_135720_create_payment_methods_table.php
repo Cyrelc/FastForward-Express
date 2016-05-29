@@ -5,7 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreatePaymentMethodsTable extends Migration {
     public function up() {
-        Schema::create('payment_type', function(Blueprint $table) {
+        Schema::create('payment_types', function(Blueprint $table) {
             $table->increments('id');
             $table->string('name');
             $table->timestamps();
@@ -13,6 +13,6 @@ class CreatePaymentMethodsTable extends Migration {
     }
 
     public function down() {
-        Schema::dropIfExists('payment_type');
+        Schema::dropIfExists('payment_types');
     }
 }
