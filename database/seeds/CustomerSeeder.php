@@ -33,7 +33,7 @@ class CustomerSeeder extends Seeder {
                             ($faker->boolean(50) ? $faker->phoneNumber : null)
                     ]),
                     'email' => 'FFE-COMPANY-' . $i . '@mailinator.com',
-                    'parent_id' => ($faker->boolean(50) && ($i > 0)) ?
+                    'parent_id' => ($faker->boolean(50) && ($i > 1)) ?
                             $faker->numberBetween(1, $i - 1) : null,
                     'rate_type_id' => $faker->numberBetween(1, $numRates),
                     'invoice_interval_id' => $faker->numberBetween(1, $numInvoice),
