@@ -15,8 +15,7 @@ class CustomerController extends Controller {
         return view('customers.customers');
     }
 
-    public function getCustomers(Request $req) {
-        $input = $req->all();
+    public function getCustomersInt($input) {
         $maxcount = isset($input['max_count']) ?
                 $input['max_count'] :
                 env('DEFAULT_CUSTOMER_COUNT', 10000);
@@ -28,5 +27,9 @@ class CustomerController extends Controller {
             'success' => true,
             'customers' => $customers
         ];
+    }
+
+    public function getCustomers(Request $req) {
+        return getCustomersInt($req->all());
     }
 }
