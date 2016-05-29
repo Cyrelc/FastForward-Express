@@ -125,7 +125,7 @@ class BillController extends Controller {
         ));
     }
 
-    public function getBillsInt($input) {
+    public static function getBillsInt($input) {
         $startDate = isset($input['start_date']) ?
                 $input['start_date'] :
                 date('Y-m-d G:i:s', strtotime('-' . env('DEFAULT_BILL_AGE', '6 month')));
@@ -143,6 +143,6 @@ class BillController extends Controller {
     }
 
     public function getBills(Request $req) {
-        return getBillsInt($req->all());
+        return BillController::getBillsInt($req->all());
     }
 }

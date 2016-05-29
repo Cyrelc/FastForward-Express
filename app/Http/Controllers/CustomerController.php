@@ -15,12 +15,12 @@ class CustomerController extends Controller {
         return view('customers.customers');
     }
 
-    public function getCustomersInt($input) {
+    public static function getCustomersInt($input) {
         $maxcount = isset($input['max_count']) ?
                 $input['max_count'] :
                 env('DEFAULT_CUSTOMER_COUNT', 10000);
 
-        $customers = Customer::all()->sortBy('company_name')
+        $customers = \App\Customer::all()->sortBy('company_name')
                 ->slice(0, $maxcount)->values()->all();
 
         return [
@@ -30,6 +30,6 @@ class CustomerController extends Controller {
     }
 
     public function getCustomers(Request $req) {
-        return getCustomersInt($req->all());
+        return CustomerController::getCustomersInt($req->all());
     }
 }
