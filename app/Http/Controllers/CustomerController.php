@@ -20,7 +20,9 @@ class CustomerController extends Controller {
                 $input['max_count'] :
                 env('DEFAULT_CUSTOMER_COUNT', 10000);
 
-        $customers = \App\Customer::all()->sortBy('company_name')
+        $customers = Controller::filter(new \App\Customer, $input);
+
+        $customers = $customers->sortBy('company_name')
                 ->slice(0, $maxcount)->values()->all();
 
         return [
