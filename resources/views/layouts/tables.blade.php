@@ -16,22 +16,31 @@
 	        dom: 'lf<"columnVis"B>rtip',
 	        buttons: [
 	            'colvis'
-	        ]
+	        ],
+	        'order': [0, 'asc'],
 	    });
 
 	$('#table tbody').on('click', 'td.details-control', function() {
 		var tr = $(this).closest('tr');
 		var rowClass = tr.class;
 		var row = table.row(tr);
+		var numCols = $('#table').dataTable().fnSettings().aoColumns.length;
 		if (row.child.isShown()) {
 			row.child.hide();
 			tr.removeClass('shown');
 		} else {
-			row.child(childRow()).show();
+			row.child(childRow(row.data()[numCols-1])).show();
 			tr.addClass('shown');
 		}
 	});
 });
+
+</script>
+
+<script type="text/javascript">
+	function edit(className){
+		$(className).prop('readonly', false);
+	}
 
 </script>
 
@@ -41,6 +50,8 @@
 
 <link rel='stylesheet' type='text/css' href='/DataTables/media/css/jquery.dataTables.min.css'>
 <link rel='stylesheet' type='text/css' href='/DataTables/extensions/Buttons/css/buttons.dataTables.min.css'>
+
+<link rel='stylesheet' type='text/css' href='/css/tables.css' />
  
 @endsection
 
@@ -52,15 +63,19 @@
 			@foreach($columns as $column)
 				<td>{{ $column }}</td>
 			@endforeach
+				<td class='hidden'></td>
 		</tr>
 	</thead>
 
 	<tbody>
+		@foreach($bills as $bill)
 		<tr>
-			@foreach($columns as $column)
-				<td class='details-control'>{{ $column }} goes here </td>
+			@foreach($variables as $variable)
+				<td class='details-control'>{{$bill[$variable]}}</td>
 			@endforeach
+				<td class='hidden'>{{$bill}}</td>
 		</tr>
+		@endforeach
 	</tbody>
 </table>
 

@@ -12,11 +12,11 @@ class ModifyBillsAddForeignsTable extends Migration {
 
             $table->integer('driver_pickup_id')->unsigned()->default(0);
             $table->foreign('driver_pickup_id')
-                    ->references('id')->on('driver');
+                    ->references('id')->on('drivers');
 
             $table->integer('driver_dropoff_id')->unsigned()->default(0);
             $table->foreign('driver_dropoff_id')
-                    ->references('id')->on('driver');
+                    ->references('id')->on('drivers');
 
             $table->float('pickup_amount')->default(0);
             $table->float('dropoff_amount')->default(0);
