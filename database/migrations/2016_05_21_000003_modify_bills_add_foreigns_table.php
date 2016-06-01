@@ -8,7 +8,7 @@ class ModifyBillsAddForeignsTable extends Migration {
         Schema::table('bills', function($table) {
             $table->integer('customer_id')->unsigned()->default(0);
             $table->foreign('customer_id')
-                    ->references('id')->on('customer');
+                    ->references('id')->on('customers');
 
             $table->integer('driver_pickup_id')->unsigned()->default(0);
             $table->foreign('driver_pickup_id')

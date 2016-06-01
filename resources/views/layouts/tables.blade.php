@@ -40,6 +40,7 @@
 <script type="text/javascript">
 	function edit(className){
 		$(className).prop('readonly', false);
+		$(className + '.save-button').removeClass('hidden');
 	}
 
 </script>
@@ -68,12 +69,12 @@
 	</thead>
 
 	<tbody>
-		@foreach($bills as $bill)
+		@foreach($contents as $content)
 		<tr>
 			@foreach($variables as $variable)
-				<td class='details-control'>{{$bill[$variable]}}</td>
+				<td class='details-control'>{{$content[$variable]}}</td>
 			@endforeach
-				<td class='hidden'>{{$bill}}</td>
+				<td class='hidden'>{{$content}}</td>
 		</tr>
 		@endforeach
 	</tbody>
