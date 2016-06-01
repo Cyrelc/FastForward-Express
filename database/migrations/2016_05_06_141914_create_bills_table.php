@@ -13,11 +13,11 @@ class CreateBillsTable extends Migration {
             // REM: Customer foreign
             $table->integer('ref_id')->unsigned()->nullable();
             $table->foreign('ref_id')
-                    ->references('id')->on('ref_type');
+                    ->references('id')->on('ref_types');
             $table->timestamp('manifest')->nullable();
             $table->integer('payment_id')->unsigned()->default(0);
             $table->foreign('payment_id')
-                    ->references('id')->on('payment_type');
+                    ->references('id')->on('payment_types');
             $table->float('amount');
             $table->float('int_amount');
             $table->float('driver_amount');
