@@ -7,9 +7,9 @@
 
 	$columns = ['Number', 'Date', 'Description', 'Customer', 'Amount', 'Taxes', 'Driver (pickup)', 'Driver (delivery)'];
 	$variables = ['number', 'date', 'description', 'customer_id', 'amount', 'taxes', 'driver_pickup_id', 'driver_dropoff_id'];
-	$bills = BillController::getBillsInt(['start_date'=>'2013-01-01 00:00:00']);
-	if ($bills['success']){
-		$bills = $bills['bills'];
+	$contents = BillController::getBillsInt(['start_date'=>'2013-01-01 00:00:00']);
+	if ($contents['success']){
+		$contents = $contents['bills'];
 	}
 ?>
 
@@ -29,7 +29,7 @@
 						"<td>" +
 							"<button class='edit-button' onclick=" + "edit('." + thisBill + "')" + "><i class='fa fa-edit'></i></button>" +
 							"<button class='delete-button'><a href=''><i class='fa fa-trash'></i></a></button>" +
-							"<button class='save'><a href=''><i class='fa fa-save'></i></a></button>" +
+							"<button class='save-button hidden " + thisBill + "'><a href=''><i class='fa fa-save'></i></a></button>" +
 						"</td>" +
 						"<td></td>" +
 						"<td></td>" +
@@ -66,7 +66,7 @@
 						"<td></td>" +
 					"</tr>" +
 				"</table>" +
-				"Description:" + data.details;
+				"Description:" + data.description;
 	}
 
 </script>
@@ -76,10 +76,8 @@
 @endsection
 
 @section ('navBar')
-
-<table>
-	<button class='navButton btn-primary fa'><i class='fa-icon-plus'></i>Create New Bill</button>
-	<button class='navButton btn-primary'>Edit Bill</button>
-</table>
-
+<ul>
+	<li><button class='navButton btn-primary fa'><i class='fa-icon-plus'></i>Create New Bill</button></li>
+	<li><button class='navButton btn-primary'>Edit Bill</button></li>
+</ul>
 @endsection
