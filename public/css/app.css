@@ -18,7 +18,7 @@ td#navAndFilter {
 	border-right: 3px solid;
 	display: block;
 	vertical-align: top;
-	width: 200px;
+	width: 250px;
 }
 
 #navBar {
@@ -32,7 +32,6 @@ td#navAndFilter {
 }
 
 #advFilter{
-	min-height: 200px;
 	border-bottom: 3px solid;
 }
 
