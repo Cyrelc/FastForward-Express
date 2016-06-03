@@ -1,0 +1,68 @@
+@extends ('layouts.tables')
+
+@section ('variables')
+
+<?php 
+	use \app\Http\Controllers\CustomerController;
+
+	$columns = ['ID', 'Parent ID', 'Name', 'Address','Contact'];
+	$variables = ['id', 'id', 'company_name', 'address','contact_name'];
+	$contents = CustomerController::getCustomersInt(['start_date'=>'2013-01-01 00:00:00']);
+	if ($contents['success']){
+		$contents = $contents['customers'];
+	}
+?>
+
+@endsection
+
+@section ('script')
+
+<script type='text/javascript'>
+
+	function childRow(details) {
+		var data = JSON.parse(details);
+
+		var thisCust = 'editCust' + data.number;
+
+		return "<table>" +
+					"<tr>" +
+						"<td>" +
+							"<button class='edit-button' onclick=" + "edit('." + thisCust + "')" + "><i class='fa fa-edit'></i></button>" +
+							"<button class='delete-button'><a href=''><i class='fa fa-trash'></i></a></button>" +
+							"<button class='save-button hidden " + thisCust + "'><a href=''><i class='fa fa-save'></i></a></button>" +
+						"</td>" +
+					"</tr>" +
+					"<tr>" +
+						"<td>" + "<label>Customer #  " + data.id + "</label>" + "</td>" +
+						"<td>" + "<label>Full Name<br>" + "<input class'=" + thisCust + "' readonly value=" + data.company_name + " />" + "</td>" +
+					"</tr>" +
+					"<tr>" +
+						"<td colspan='100%'>" + "<label>Address:  </label>" + "<input style='width:100%' class='" + thisCust + "' readonly value=" + data.address + " />" + "</td>" +
+					"</tr>" +
+					"<tr>" +
+						"<td>" + "<label>Primary Contact</label>" + "</td>" +
+						"<td>" + "<label>Name: " + "<br>" + "<input class='" + thisCust + "' readonly value=" + data.contact_name + " />" + "</td>" +
+						"<td>" + "<label>Phone: " + "<br>" + "<input class='" + thisCust + "' readonly value=" + data.phone_nums + " />" + "</td>" +
+						"<td>" + "<label>Email: " + "<br>" + "<input class='" + thisCust + "' readonly value=" + data.email + " />" + "</td>" +
+ 					"</tr>" +
+					"<tr>" +
+						"<td>" + "<label>Rate Type</label>" + "<br>" + "<select class='" + thisCust + "' readonly value=" + data.rate_type_id + " />" + "</td>" +
+						"<td>" + "<label>Invoice Interval</label>" +"<br>" + "<select class='" + thisCust +"' readonly value=" + data.invoice_interval_id + "/>" + "</td>" +
+					"</tr>" +
+				"</table>"
+	}
+
+</script>
+
+@parent
+
+@endsection
+
+@section ('navBar')
+
+<table>
+	<button class='navButton btn-primary fa'><i class='fa-icon-plus'></i>Create New Customer</button>
+	<button class='navButton btn-primary'>Edit Customer</button>
+</table>
+
+@endsection
