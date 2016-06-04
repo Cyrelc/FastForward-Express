@@ -76,8 +76,8 @@
 @endsection
 
 @section ('navBar')
-<ul>
-	<li><button class='navButton btn-primary fa'><i class='fa-icon-plus'></i>Create New Bill</button></li>
-	<li><button class='navButton btn-primary'>Edit Bill</button></li>
+<ul class='nav nav-pills nav-stacked'>
+	<li><a href=""><i class='fa fa-plus'></i> Create New Bill</a></li>
+	<li><a href=""><i class='fa fa-edit'></i> Edit Bill</a></li>
 </ul>
 @endsection
