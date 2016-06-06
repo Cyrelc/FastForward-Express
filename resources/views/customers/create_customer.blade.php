@@ -5,7 +5,7 @@
 <script type="text/javascript">
 	
 $(document).ready(function() {
-	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt').change(function() {
+	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').change(function() {
 		if(this.checked){
 			$('tr#' + this.id).fadeIn();
 		}
@@ -17,6 +17,7 @@ $(document).ready(function() {
 
 function showSecondaryContact() {
 	$('.secondaryContact').prop('hidden', false);
+	$('#secondaryContact-button').prop('hidden', true);
 }
 
 // function validateForm() {
@@ -73,7 +74,7 @@ function showSecondaryContact() {
 				<td><input type='' name=''></td>
 			</tr>
 			<tr>
-				<td><button type='button' onclick="showSecondaryContact();">Show Secondary Contact</button></td>
+				<td><button id='secondaryContact-button' type='button' onclick="showSecondaryContact();">Show Secondary Contact</button></td>
 			</tr>
 			<tr class='secondaryContact' hidden>
 				<td><label>Secondary Contact: </label></td>
@@ -92,6 +93,33 @@ function showSecondaryContact() {
 				<td><label>Secondary Email Address:</label></td>
 				<td><input type='' name=''></td>
 			</tr>
+			<tr>
+				<td><label>Rate Type:</label></td>
+				<td><select></select></td>
+				<td><label>Invoice Interval:</label></td>
+				<td><select></select></td>
+			</tr>
+			<tr id='giveDiscount' hidden>
+				<td><label>Discount:</label></td>
+				<td><input min=0 max=100 type='number' name=''></td>
+			</tr>
+			<tr id='giveCommission' hidden>
+				<td><label>Commission ID:</label></td>
+				<td><input min=0 type='number' name=''></td>
+				<td><label>Commission %</label></td>
+				<td><input min=0 max=100 type='number' name=''></td>
+			</tr>
+			<tr id='giveDriverCommission' hidden>
+				<td><label>Driver Commission ID:</label></td>
+				<td><input min=0 type='number' name=''></td>
+				<td><label>Driver Commission %:</label></td>
+				<td><input min=0 max=100 type='number' name=''></td>
+			</tr>
+			<tr id='useCustomField' hidden>
+				<td><label>Custom Field Name:</label></td>
+				<td><input type='' name=''></td>
+				<td><label><input type='checkbox' name=''>Sortable?</label></td>
+			</tr>
 		</tbody>
 	</table>
 </form>
@@ -99,9 +127,9 @@ function showSecondaryContact() {
 
 @section ('navBar')
 <ul class='nav nav-pills nav-stacked'>
-	<li><a href="">Save</a></li>
-	<li><a href="">Save and New</a></li>
-	<li><a href="">Cancel</a></li>
+	<li class='navButton'><a href="">Save</a></li>
+	<li class='navButton'><a href="">Save and New</a></li>
+	<li class='navButton'><a href="">Cancel</a></li>
 </ul>
 @endsection
 
@@ -111,6 +139,7 @@ function showSecondaryContact() {
 	<label><input type='checkbox' id='giveDiscount' value=''> Give Discount</input></label>
 	<label><input type='checkbox' id='giveCommission' value=''> Give Commission</input></label>
 	<label><input type='checkbox' id='giveDriverCommission' value=''> Give Driver Commission</input></label>
+	<label><input type='checkbox' id='useCustomField' name='' value=''>Use Custom Field</label>
 	<label><input type='checkbox' id='balanceOwingInterest' value=''> Charge Interest on Balance Owing</input></label>
 	<label><input type='checkbox' id='gstExempt' value=''> GST Exempt</input></label>
 @endsection
