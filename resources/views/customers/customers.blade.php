@@ -24,7 +24,7 @@
 
 		var thisCust = 'editCust' + data.number;
 
-		return "<table>" +
+		return "<table style='width:80%;'>" +
 					"<tr>" +
 						"<td>" +
 							"<button class='edit-button' onclick=" + "edit('." + thisCust + "')" + "><i class='fa fa-edit'></i></button>" +
@@ -35,6 +35,8 @@
 					"<tr>" +
 						"<td>" + "<label>Customer #  " + data.id + "</label>" + "</td>" +
 						"<td>" + "<label>Full Name<br>" + "<input class'=" + thisCust + "' readonly value=" + data.company_name + " />" + "</td>" +
+						"<td></td>" +
+						"<td></td>" +						
 					"</tr>" +
 					"<tr>" +
 						"<td colspan='100%'>" + "<label>Address:  </label>" + "<input style='width:100%' class='" + thisCust + "' readonly value=" + data.address + " />" + "</td>" +
@@ -48,6 +50,8 @@
 					"<tr>" +
 						"<td>" + "<label>Rate Type</label>" + "<br>" + "<select class='" + thisCust + "' readonly value=" + data.rate_type_id + " />" + "</td>" +
 						"<td>" + "<label>Invoice Interval</label>" +"<br>" + "<select class='" + thisCust +"' readonly value=" + data.invoice_interval_id + "/>" + "</td>" +
+						"<td></td>" +
+						"<td></td>" +
 					"</tr>" +
 				"</table>"
 	}
@@ -59,10 +63,8 @@
 @endsection
 
 @section ('navBar')
-
-<table>
-	<button class='navButton btn-primary fa'><i class='fa-icon-plus'></i>Create New Customer</button>
-	<button class='navButton btn-primary'>Edit Customer</button>
-</table>
-
+<ul class='nav nav-pills nav-stacked'>
+	<li class="navButton"><a href="">New Customer</a></li>	
+	<li class="navButton"><a href="">Edit Customer</a></li>
+</ul>
 @endsection
