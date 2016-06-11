@@ -2,14 +2,14 @@
 
 @section ('variables')
 
-<?php 
+<?php
 	use \app\Http\Controllers\DriverController;
 
 	$columns = ;
 	$variables = ;
 	$contents = ;
 	if ($contents['success']){
-		$contents = $contents['drivers'];
+		$contents = $contents['data'];
 	}
 ?>
 

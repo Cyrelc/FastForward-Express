@@ -14,6 +14,12 @@ use App\ReferenceType;
 class BillController extends Controller {
     public function __construct() {
         $this->middleware('auth');
+
+        //API STUFF
+        $this->sortBy = 'number';
+        $this->maxCount = env('DEFAULT_BILL_COUNT', $this->maxCount);
+        $this->itemAge = env('DEFAULT_BILL_AGE', '6 month')
+        $this->class = new \App\Bill;
     }
 
     protected function validator(array $data) {
@@ -123,30 +129,5 @@ class BillController extends Controller {
                 'action' => '/bills',
                 'bill' => $bill
         ));
-    }
-
-    public static function getBillsInt($input) {
-        $startDate = strtotime(isset($input['start_date']) ?
-                $input['start_date'] :
-                date('Y-m-d G:i:s', strtotime('-' . env('DEFAULT_BILL_AGE', '6 month'))));
-
-        $maxcount = isset($input['max_count']) ?
-                $input['max_count'] :
-                env('DEFAULT_BILL_COUNT', 10000);
-
-        $bills = Controller::filter(new \App\Bill, $input);
-
-        $bills = $bills->filter(function($bill) use($startDate) {
-            return strtotime($bill->date) > $startDate;
-        })->sortBy('number')->reverse()->slice(0, $maxcount)->values()->all();
-
-        return [
-            'success' => true,
-            'bills' => $bills
-        ];
-    }
-
-    public function getBills(Request $req) {
-        return BillController::getBillsInt($req->all());
     }
 }
