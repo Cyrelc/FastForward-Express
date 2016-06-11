@@ -77,7 +77,7 @@
 
 @section ('navBar')
 <ul class='nav nav-pills nav-stacked'>
-	<li><a href=""><i class='fa fa-plus'></i> Create New Bill</a></li>
-	<li><a href=""><i class='fa fa-edit'></i> Edit Bill</a></li>
+	<li class='navButton'><a href=""><i class='fa fa-plus'></i> Create New Bill</a></li>
+	<li class='navButton'><a href=""><i class='fa fa-edit'></i> Edit Bill</a></li>
 </ul>
 @endsection

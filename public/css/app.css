@@ -26,6 +26,7 @@ td#navAndFilter {
 }
 
 .navButton {
+	background-color: lightblue;
 	width: 100%;
 	padding: 0px;
 	height: 35px;
