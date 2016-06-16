@@ -28,4 +28,8 @@ class Bill extends Model {
     public function referenceType() {
         return $this->hasOne('App\ReferenceType', 'id', 'ref_id');
     }
+
+    public function invoice() {
+        return $this->hasOne('App\Invoice');
+    }
 }
