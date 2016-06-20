@@ -3,14 +3,16 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class ModifyBillsAddInvoice extends Migration {
+class ModifyBillsUseInteger extends Migration {
     public function up() {
         Schema::table('bills', function($table) {
             //Use integer in cents, as it's more precise.
-            $table->dropColumn([
+            $table->dropColumn(array(
                 'amount', 'int_amount',
                 'driver_amount', 'taxes'
-            ]);
+            ));
+        });
+        Schema::table('bills', function($table) {
             $table->integer('amount');
             $table->integer('int_amount');
             $table->integer('driver_amount');
