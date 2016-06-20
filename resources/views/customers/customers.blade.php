@@ -2,14 +2,14 @@
 
 @section ('variables')
 
-<?php 
-	use \app\Http\Controllers\CustomerController;
+<?php
+	use CustomerController;
 
 	$columns = ['ID', 'Parent ID', 'Name', 'Address','Contact'];
 	$variables = ['id', 'id', 'company_name', 'address','contact_name'];
-	$contents = CustomerController::getCustomersInt(['start_date'=>'2013-01-01 00:00:00']);
+	$contents = (new \app\Http\Controllers\CustomerController)->getData(['start_date'=>'2013-01-01 00:00:00']);
 	if ($contents['success']){
-		$contents = $contents['customers'];
+		$contents = $contents['data'];
 	}
 ?>
 
@@ -36,7 +36,7 @@
 						"<td>" + "<label>Customer #  " + data.id + "</label>" + "</td>" +
 						"<td>" + "<label>Full Name<br>" + "<input class'=" + thisCust + "' readonly value=" + data.company_name + " />" + "</td>" +
 						"<td></td>" +
-						"<td></td>" +						
+						"<td></td>" +
 					"</tr>" +
 					"<tr>" +
 						"<td colspan='100%'>" + "<label>Address:  </label>" + "<input style='width:100%' class='" + thisCust + "' readonly value=" + data.address + " />" + "</td>" +
@@ -64,7 +64,7 @@
 
 @section ('navBar')
 <ul class='nav nav-pills nav-stacked'>
-	<li class="navButton"><a href="">New Customer</a></li>	
+	<li class="navButton"><a href="">New Customer</a></li>
 	<li class="navButton"><a href="">Edit Customer</a></li>
 </ul>
 @endsection

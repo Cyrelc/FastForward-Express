@@ -2,14 +2,14 @@
 
 @section ('variables')
 
-<?php 
+<?php
 	use \app\Http\Controllers\InvoiceController;
 
 	$columns = ;
 	$variables = ;
 	$contents = ;
 	if ($contents['success']){
-		$contents = $contents['invoices'];
+		$contents = $contents['data'];
 	}
 ?>
 

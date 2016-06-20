@@ -17,8 +17,8 @@ class BillSeeder extends Seeder {
         $numCust = Customer::count() - 1;
         $numDriv = Driver::count() - 1;
 
-        for($i = 0; $i < 20; ++$i) {
-            $cost = $faker->numberBetween(10, 500);
+        for($i = 0; $i < 200; ++$i) {
+            $cost = $faker->numberBetween(1000, 50000);
             $int = $faker->boolean(20) ?
                         $faker->numberBetween(0, $cost - 1) : 0;
 
@@ -44,7 +44,7 @@ class BillSeeder extends Seeder {
                 'driver_dropoff_id' => $dropoff->id,
                 'dropoff_amount' => $dropoff->per_dropoff * $cost,
                 'driver_comm' => $customer->hasDriverCommission() ?
-                        $customer->getDriverComm->per_comm * $cost: 0
+                        $customer->getDriverComm->per_comm * $cost: 0,
             ));
         }
     }

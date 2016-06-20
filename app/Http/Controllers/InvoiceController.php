@@ -11,13 +11,13 @@ class CustomerController extends Controller {
         $this->middleware('auth');
 
         //API STUFF
-        $this->sortBy = 'company_name';
-        $this->maxCount = env('DEFAULT_CUSTOMER_COUNT', $this->maxCount);
-        $this->itemAge = env('DEFAULT_CUSTOMER_AGE', '6 month');
-        $this->class = new \App\Customer;
+        $this->sortBy = 'number';
+        $this->maxCount = env('DEFAULT_INVOICE_COUNT', $this->maxCount);
+        $this->itemAge = env('DEFAULT_INVOICE_AGE', '6 month');
+        $this->class = new \App\Invoice;
     }
 
     public function index() {
-        return view('customers.customers');
+        return view('invoices.invoices');
     }
 }
