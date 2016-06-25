@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 
-class CustomerController extends Controller {
+class InvoiceController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 

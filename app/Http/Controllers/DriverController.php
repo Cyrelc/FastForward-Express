@@ -20,4 +20,8 @@ class DriverController extends Controller {
     protected function genFilterData($input) {
         return null;
     }
+
+    public function index() {
+        return view('drivers.drivers');
+    }
 }

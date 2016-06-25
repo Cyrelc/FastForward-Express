@@ -5,9 +5,9 @@
 <?php
 	use \app\Http\Controllers\InvoiceController;
 
-	$columns = ;
-	$variables = ;
-	$contents = ;
+	$columns = [];
+	$variables = [];
+	$contents = array('success' => false);
 	if ($contents['success']){
 		$contents = $contents['data'];
 	}
