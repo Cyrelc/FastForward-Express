@@ -3,8 +3,6 @@
 @section ('variables')
 
 <?php
-	use CustomerController;
-
 	$columns = ['ID', 'Parent ID', 'Name', 'Address','Contact'];
 	$variables = ['id', 'id', 'company_name', 'address','contact_name'];
 	$contents = (new \app\Http\Controllers\CustomerController)->getData(['start_date'=>'2013-01-01 00:00:00']);

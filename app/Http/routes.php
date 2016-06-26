@@ -39,6 +39,9 @@ Route::group(
                     ['only' => ['index', 'create', 'edit', 'store']]
             );
 
+            Route::resource('/invoices', 'InvoiceController',
+                    ['only' => 'index']);
+
             Route::resource('/customers', 'CustomerController',
                     ['only' => 'index']);
 
@@ -48,8 +51,8 @@ Route::group(
             Route::get('/logout', 'Auth\AuthController@getLogout');
 
             //API
-            Route::post('/bills/get', 'BillController@getBills');
-            Route::post('/customers/get', 'CustomerController@getCustomers');
+            Route::post('/bills/get', 'BillController@getData');
+            Route::post('/customers/get', 'CustomerController@getData');
         }
 );
 

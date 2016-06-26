@@ -18,7 +18,7 @@ class BillController extends Controller {
         //API STUFF
         $this->sortBy = 'number';
         $this->maxCount = env('DEFAULT_BILL_COUNT', $this->maxCount);
-        $this->itemAge = env('DEFAULT_BILL_AGE', '6 month')
+        $this->itemAge = env('DEFAULT_BILL_AGE', '6 month');
         $this->class = new \App\Bill;
     }
 
