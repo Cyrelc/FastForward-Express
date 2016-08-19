@@ -42,7 +42,7 @@ Route::group(
             Route::resource('/invoices', 'InvoiceController',
                     ['only' => 'index']);
 
-            Route::resource('/customers', 'CustomerController',
+            Route::resource('/customers', 'AccountController',
                     ['only' => 'index']);
 
             Route::resource('/drivers', 'DriverController',
@@ -52,7 +52,8 @@ Route::group(
 
             //API
             Route::post('/bills/get', 'BillController@getData');
-            Route::post('/customers/get', 'CustomerController@getData');
+            Route::resource('/customers', 'AccountController',
+                ['only' => ['index', 'create', 'edit', 'store']]);
         }
 );
 
