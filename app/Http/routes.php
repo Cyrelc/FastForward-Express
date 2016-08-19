@@ -42,8 +42,8 @@ Route::group(
             Route::resource('/invoices', 'InvoiceController',
                     ['only' => 'index']);
 
-            Route::resource('/customers', 'AccountController',
-                    ['only' => ['index', 'create', 'edit', 'store']]);
+            Route::resource('/customers', 'CustomerController',
+                    ['only' => 'index']);
 
             Route::resource('/drivers', 'DriverController',
                     ['only' => 'index']);
@@ -52,7 +52,7 @@ Route::group(
 
             //API
             Route::post('/bills/get', 'BillController@getData');
-            Route::post('/accounts/get', 'AccountController@getData');
+            Route::post('/customers/get', 'CustomerController@getData');
         }
 );
 
@@ -64,7 +64,3 @@ Route::group(
             Route::post('/login', 'Auth\AuthController@postLogin');
         }
 );
-
-Route::auth();
-
-Route::get('/home', 'HomeController@index');
