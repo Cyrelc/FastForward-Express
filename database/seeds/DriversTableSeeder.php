@@ -75,7 +75,8 @@ class DriversTableSeeder extends Seeder
             $cbid = DB::table('driver_chargebacks')->insertGetId([
                 "chargeback_id" => 1,
                 "driver_id" => $d->driver_id,
-                "charge_date" => $faker->dateTimeThisMonth
+                "charge_date" => $faker->dateTimeThisMonth,
+                'amount' => rand(1000, 50000) / 100
             ]);
 
             DB::table('chargeback_modifications')->insert([
@@ -89,7 +90,8 @@ class DriversTableSeeder extends Seeder
                 $cbid = DB::table('driver_chargebacks')->insertGetId([
                     "chargeback_id" => 2,
                     "driver_id" => $d->driver_id,
-                    "charge_date" => $faker->dateTimeThisMonth
+                    "charge_date" => $faker->dateTimeThisMonth,
+                    'amount' => rand(1000, 50000) / 100
                 ]);
 
                 DB::table('chargeback_modifications')->insert([
@@ -104,7 +106,8 @@ class DriversTableSeeder extends Seeder
                 $cbid = DB::table('driver_chargebacks')->insertGetId([
                     "chargeback_id" => 3,
                     "driver_id" => $d->driver_id,
-                    "charge_date" => $faker->dateTimeThisMonth
+                    "charge_date" => $faker->dateTimeThisMonth,
+                    'amount' => rand(1000, 50000) / 100
                 ]);
 
                 DB::table('chargeback_modifications')->insert([
