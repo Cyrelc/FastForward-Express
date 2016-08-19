@@ -4,8 +4,8 @@
 
 <?php
 	$columns = ['ID', 'Parent ID', 'Name', 'Address','Contact'];
-	$variables = ['id', 'id', 'company_name', 'address','contact_name'];
-	$contents = (new \app\Http\Controllers\CustomerController)->getData(['start_date'=>'2013-01-01 00:00:00']);
+	$variables = ['account_id', 'id', 'name', 'address','contact_name'];
+	$contents = (new \app\Http\Controllers\AccountController)->getData(['start_date'=>'2013-01-01 00:00:00']);
 	if ($contents['success']){
 		$contents = $contents['data'];
 	}

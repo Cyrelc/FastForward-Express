@@ -4,18 +4,22 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder {
     public function run() {
-        $this->call(PermissionSeeder::class);
-        $this->call(RoleSeeder::class);
-        $this->call(PaymentMethodSeeder::class);
-        $this->call(ReferenceTypeSeeder::class);
-        $this->call(RateTypeSeeder::class);
-        $this->call(InvoiceIntervalSeeder::class);
+        //Static values
+        $this->call(RolesTableSeeder::class);
+        $this->call(SeveritiesTableSeeder::class);
+        $this->call(ReferenceTypesTableSeeder::class);
+        $this->call(RateTypesTableSeeder::class);
+        $this->call(ExpiriesTableSeeder::class);
+        $this->call(ChargebacksTableSeeder::class);
+        $this->call(PaymentMethodsTableSeeder::class);
 
-        $this->call(UserSeeder::class);
+        $this->call(UsersTableSeeder::class);
 
-        $this->call(DriverSeeder::class);
-        $this->call(CustomerSeeder::class);
-
-        $this->call(BillSeeder::class);
+        $this->call(DriversTableSeeder::class);
+        $this->call(AccountsTableSeeder::class);
+        $this->call(DriverCommisionsTableSeeder::class);
+        $this->call(InterlinersTableSeeder::class);
+        $this->call(BillsTableSeeder::class);
+        $this->call(ManifestsTableSeeder::class);
     }
 }

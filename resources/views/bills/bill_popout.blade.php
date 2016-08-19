@@ -1,3 +1,5 @@
+<?php
+
 @extends('layouts.popout')
 
 @section('title', 'Bill ' . $source)

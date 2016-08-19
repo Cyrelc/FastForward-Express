@@ -7,12 +7,16 @@
 $(document).ready(function() {
 	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').change(function() {
 		if(this.checked){
-			$('tr#' + this.id).fadeIn();
+		    $('#' + $(this).attr('data-div')).fadeIn();
 		}
-		else{
-			$('tr#' + this.id).fadeOut();
+		else {
+		    $('#' + $(this).attr('data-div')).fadeOut();
 		}
-	}).change();
+	});
+
+	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').each(function (i, e) {
+	    $("#" + $(this).attr('data-div')).css('display', 'none');
+	});
 })
 
 function showSecondaryContact() {
@@ -26,120 +30,194 @@ function showSecondaryContact() {
 
 </script>
 
+<style type="text/css">
+    input, select, textarea {
+        max-width: 280px;
+    }
+
+    .default-hidden {
+        display: none;
+    }
+
+    .form-section {
+        margin: 20px 0 0 0;
+    }
+
+    .form-section h4 {
+        margin-bottom: 15px;
+    }
+
+    .form-section input {
+        margin-bottom: 10px;
+    }
+</style>
+
 @parent
 
 @endsection
 
-@section ('content')
-<form>
-	<table class='newCustomer'>
-		<thead>
-		</thead>
-		<tbody>
-			<tr id='subLocation' hidden>
-				<td><label>Parent Location: </label></td>
-				<td><select class='' name=''></td>
-			</tr>
-			<tr>
-				<td><label>Company Name: </label></td>
-				<td><input type='' name=''/></td>
-			</tr>
-			<tr>
-				<td><label>Delivery Address: </label></td>
-				<td><input type='' name=''></td>
-				<td><label>Postal Code: </label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr id='separateBillingAddr' hidden>
-				<td><label>Billing Address: </label></td>
-				<td><input type='' name=''></td>
-				<td><label>Postal Code: </label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr>
-				<td><label>Primary Contact: </label></td>
-			</tr>
-			<tr>
-				<td><label>Name:</label>
-				<td><input type='' name=''></td>
-				<td><label>Primary Phone #: </label></td>
-				<td><input type='' name=''></input></td>
-				<td><label>Secondary Phone #: </label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr>
-				<td><label>Primary Email Address: </label></td>
-				<td><input type='' name=''></td>
-				<td><label>Secondary Email Address:</label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr>
-				<td><button id='secondaryContact-button' type='button' onclick="showSecondaryContact();">Show Secondary Contact</button></td>
-			</tr>
-			<tr class='secondaryContact' hidden>
-				<td><label>Secondary Contact: </label></td>
-			</tr>
-			<tr class='secondaryContact' hidden>
-				<td><label>Name:</label>
-				<td><input type='' name=''></td>
-				<td><label>Primary Phone #: </label></td>
-				<td><input type='' name=''></input></td>
-				<td><label>Secondary Phone #: </label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr class='secondaryContact' hidden>
-				<td><label>Primary Email Address: </label></td>
-				<td><input type='' name=''></td>
-				<td><label>Secondary Email Address:</label></td>
-				<td><input type='' name=''></td>
-			</tr>
-			<tr>
-				<td><label>Rate Type:</label></td>
-				<td><select></select></td>
-				<td><label>Invoice Interval:</label></td>
-				<td><select></select></td>
-			</tr>
-			<tr id='giveDiscount' hidden>
-				<td><label>Discount:</label></td>
-				<td><input min=0 max=100 type='number' name=''></td>
-			</tr>
-			<tr id='giveCommission' hidden>
-				<td><label>Commission ID:</label></td>
-				<td><input min=0 type='number' name=''></td>
-				<td><label>Commission %</label></td>
-				<td><input min=0 max=100 type='number' name=''></td>
-			</tr>
-			<tr id='giveDriverCommission' hidden>
-				<td><label>Driver Commission ID:</label></td>
-				<td><input min=0 type='number' name=''></td>
-				<td><label>Driver Commission %:</label></td>
-				<td><input min=0 max=100 type='number' name=''></td>
-			</tr>
-			<tr id='useCustomField' hidden>
-				<td><label>Custom Field Name:</label></td>
-				<td><input type='' name=''></td>
-				<td><label><input type='checkbox' name=''>Sortable?</label></td>
-			</tr>
-		</tbody>
-	</table>
+@section ('content')  
+<h2>New Customer</h2>
+             
+<form>	
+    <div class="well">
+        <div class="form-group clearfix">
+            <div class="col-lg-2" id="parentLocationDiv">
+                <input type="text" class="form-control" name="" placeholder="Parent Company" />
+            </div>
+
+            <div class="col-lg-10">
+                <input type='text' class="form-control" name="" placeholder="Company Name" />
+            </div>
+        </div>
+
+        <div class="form-group clearfix form-section">
+            <h4>Delivery Address</h4>
+
+            <div class="col-lg-12 clearfix">
+                <input type='text' class='form-control' name='street' placeholder="Address Line 1" />
+            </div>
+
+            <div class="col-lg-12 clearfix">
+                <input type='text' class='form-control' name='street2' placeholder="Address Line 2" />
+            </div>
+
+            <div class="col-lg-12 clearfix">
+                <input type='text' class='form-control' name='city' placeholder="City" />
+            </div>
+
+            <div class="clearfix">
+                <div class="col-lg-4">
+                    <input type='text' class='form-control' name='zip_postal' placeholder="Postal/Zip Code" />
+                </div>
+
+                <div class="col-lg-2">
+                    <input type='text' class='form-control' name='state_province' placeholder="Province/State" />
+                </div>
+            </div>
+
+            <div class="col-lg-12 clearfix">
+                <input type='text' class='form-control' name='country' placeholder="Country" />
+            </div>
+
+            <div class="form-group clearfix" id="billingAddressDiv">
+                <label>Billing Address: </label>
+                <input type='text' name='' />
+                <label>Postal Code: </label>
+                <input type='text' name='' />
+            </div>
+        </div>
+
+        <label>Primary Contact: </label>
+
+
+        <label>Name:</label>
+        <input type='text' name='' />
+        <label>Primary Phone #: </label>
+        <input type='text' name='' />
+        <label>Secondary Phone #: </label>
+        <input type='text' name='' />
+
+
+        <label>Primary Email Address: </label>
+        <input type='text' name='' />
+        <label>Secondary Email Address:</label>
+        <input type='text' name='' />
+
+
+        <button id='secondaryContact-button' type='button' onclick="showSecondaryContact();">Show Secondary Contact</button>
+
+        <label>Secondary Contact: </label>
+
+        <label>Name:</label>
+        <input type='text' name='' />
+        <label>Primary Phone #: </label>
+        <input type='text' name='' />
+        <label>Secondary Phone #: </label>
+        <input type='text' name='' />
+
+        <label>Primary Email Address: </label>
+        <input type='text' name='' />
+        <label>Secondary Email Address:</label>
+        <input type='text' name='' />
+
+
+        <label>Rate Type:</label>
+        <select></select>
+        <label>Invoice Interval:</label>
+        <select></select>
+
+        <div class="form-group clearfix" id="discountDiv">
+            <label class="col-lg-2">Discount:</label>
+            <div class="col-lg-10">
+                <input min=0 max=100 type='number' name='' />
+            </div>
+        </div>
+
+        <div class="form-group clearfix" id="commissionDiv">
+            <label>Commission ID:</label>
+            <input min=0 type='number' name='' />
+            <label>Commission %</label>
+            <input min=0 max=100 type='number' name='' />
+        </div>
+
+        <div class="form-group clearfix" id="driverCommissionDiv">
+            <label>Driver Commission ID:</label>
+            <input min=0 type='number' name='' />
+            <label>Driver Commission %:</label>
+            <input min=0 max=100 type='number' name='' />
+        </div>
+
+        <div class="form-group clearfix" id="customDiv">
+            <label>Custom Field Name:</label>
+            <input type='text' name='' />
+            <label>
+                <input type='checkbox' name='' />Sortable?
+            </label>
+        </div>
+    </div>
 </form>
 @endsection
 
 @section ('navBar')
 <ul class='nav nav-pills nav-stacked'>
-	<li class='navButton'><a href="">Save</a></li>
-	<li class='navButton'><a href="">Save and New</a></li>
-	<li class='navButton'><a href="">Cancel</a></li>
+	<li class='navButton'><a href=""><i class="fa fa-save"></i> Save</a></li>
+	<li class='navButton'><a href=""><i class="fa fa-plus-square-o"></i> Save and New</a></li>
+	<li class='navButton'><a href=""><i class="fa fa-ban"></i> Cancel</a></li>
 </ul>
 @endsection
 
 @section ('advFilter')
-	<label><input type='checkbox' id='subLocation' value=''> Is Sub-Location</input></label>
-	<label><input type='checkbox' id='separateBillingAddr' value=''> Use Separate Billing Address</input></label>
-	<label><input type='checkbox' id='giveDiscount' value=''> Give Discount</input></label>
-	<label><input type='checkbox' id='giveCommission' value=''> Give Commission</input></label>
-	<label><input type='checkbox' id='giveDriverCommission' value=''> Give Driver Commission</input></label>
-	<label><input type='checkbox' id='useCustomField' name='' value=''>Use Custom Field</label>
-	<label><input type='checkbox' id='balanceOwingInterest' value=''> Charge Interest on Balance Owing</input></label>
-	<label><input type='checkbox' id='gstExempt' value=''> GST Exempt</input></label>
+
+    <div class="checkbox">
+	    <label><input type='checkbox' id='subLocation' value='' data-div="parentLocationDiv" /> Is Sub-Location</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='separateBillingAddr' value='' data-div="billingAddressDiv" /> Use Separate Billing Address</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='giveDiscount' value='' data-div="discountDiv" /> Give Discount</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='giveCommission' value='' data-div="commissionDiv" /> Give Commission</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='giveDriverCommission' value='' data-div="driverCommissionDiv" /> Give Driver Commission</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='useCustomField' name='' value='' data-div="customDiv"/>Use Custom Field</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='balanceOwingInterest' value='' /> Charge Interest on Balance Owing</label>
+    </div>
+
+    <div class="checkbox">
+        <label><input type='checkbox' id='gstExempt' value='' /> GST Exempt</label>
+    </div>                        
 @endsection
