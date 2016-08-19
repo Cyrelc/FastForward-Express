@@ -16,6 +16,7 @@ class BillsTableSeeder extends Seeder
                 "account_id" => rand(1, 3),
                 "driver_id" => rand(1, 4),
                 "is_manifested" => false,
+                "is_invoiced" => false,
                 "bill_number" => $i
             ]);
         }

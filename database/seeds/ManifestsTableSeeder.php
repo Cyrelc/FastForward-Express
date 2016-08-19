@@ -48,6 +48,8 @@ class ManifestsTableSeeder extends Seeder
 					"account_id" => $accountId,
 					"driver_id" => $driverId,
 					"bill_number" => $i . "-" . $j,
+                    "is_manifested" => false,
+                    "is_invoiced" => true
 				];
 
                 $weight = rand(0,2);
@@ -60,6 +62,7 @@ class ManifestsTableSeeder extends Seeder
                 } else if ($weight == 1) {
                     $bill["is_invoiced"] = true;
                     $bill["invoice_id"] = $iid;
+
                 } else if ($weight == 2){
                     $bill["is_manifested"] = true;
 					$bill["manifest_id"] = $mid;
