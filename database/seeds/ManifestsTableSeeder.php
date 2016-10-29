@@ -52,20 +52,29 @@ class ManifestsTableSeeder extends Seeder
                     "is_invoiced" => true
 				];
 
-                $weight = rand(0,2);
+                $weight = rand(0,3);
 
-                if ($weight == 0) {
-                    $bill["is_invoiced"] = true;
-                    $bill["invoice_id"] = $iid;
-                    $bill["is_manifested"] = true;
-					$bill["manifest_id"] = $mid;
-                } else if ($weight == 1) {
-                    $bill["is_invoiced"] = true;
-                    $bill["invoice_id"] = $iid;
-
-                } else if ($weight == 2){
-                    $bill["is_manifested"] = true;
-					$bill["manifest_id"] = $mid;
+                switch($weight) {
+                    case 0:
+                        $bill["is_invoiced"] = true;
+                        $bill["invoice_id"] = $iid;
+                        $bill["is_manifested"] = true;
+                        $bill["manifest_id"] = $mid;
+                        break;
+                    case 1:
+                        $bill["is_invoiced"] = true;
+                        $bill["invoice_id"] = $iid;
+                        $bill["is_manifested"] = false;
+                        break;
+                    case 2:
+                        $bill["is_invoiced"] = false;
+                        $bill["is_manifested"] = true;
+                        $bill["manifest_id"] = $mid;
+                        break;
+                    case 3:
+                        $bill["is_invoiced"] = false;
+                        $bill["is_manifested"] = false;
+                        break;
                 }
 
 				$invoiceTotal += factory(App\Bill::class)->create($bill)->amount * 1.05;
