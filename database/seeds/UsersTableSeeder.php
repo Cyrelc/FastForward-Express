@@ -18,7 +18,8 @@ class UsersTableSeeder extends Seeder
         for($i=0; $i<2; $i++){
             DB::table('user_roles')->insert([
                 'user_id' => factory(App\User::class)->create([
-                    "username" => $usernames[$i]
+                    "username" => $usernames[$i],
+                    "email" => $usernames[$i]
                 ])->user_id,
                 'role_id' => 1
             ]);
