@@ -14,35 +14,27 @@ table#mainWindow {
 	min-height: 100%;
 }
 
-td#navAndFilter {
+td#advFilter {
 	border-right: 3px solid;
 	display: block;
 	vertical-align: top;
 	width: 250px;
 }
 
-#navBar {
-	border-bottom: 3px solid;
-}
-
-.navButton {
-	background-color: lightblue;
-	width: 100%;
-	padding: 0px;
-	height: 35px;
-}
-
 #advFilter{
 	border-bottom: 3px solid;
 }
 
-#details {
-	vertical-align: top;
-	padding-top: 10px;
-	height: 20px;
+
+.dropdown:hover .dropdown-menu {
+display: block;
 }
 
-td#detailsAndContent {
+#menu{
+	float: right;
+}
+
+td#content {
 	width: 100%;
 	vertical-align: top;
 	padding-top: 10px;
@@ -59,34 +51,6 @@ td#menuBar {
 	padding-top: 10px;
 	padding-right: 20px;
 	min-height: 80%;
-}
-
-ul#menu {
-	position: absolute;
-	bottom: 0px;
-	right: 0px;
-	margin-bottom: 0px;
-	padding-right: 1em;
-	padding-left: 1em;
-	list-style-type: none;
-	background-color: #333;
-}
-
-ul#menu li {
-	display: inline;
-	float: left;
-}
-
-ul#menu li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
-
-ul#menu li a:hover {
-    background-color: #111;
 }
 
 #FFELogo {

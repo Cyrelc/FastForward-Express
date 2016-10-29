@@ -19,47 +19,57 @@
 <table id='mainWindow'>
     <tbody>
         <tr>
-            <td id='menuBar' colspan='2'>
-                <div id='menuBar'>
-                    <div id='FFELogo'>
-                        <button id='logout' onclick='location.href="/logout"'>Log out</button>
-                        <ul id='menu'>
-                            <li>
-                                <a href='/bills'>Bills</a>
-                            </li>
-                            <li>
-                                <a href='/invoices'>Invoices</a>
-                            </li>
-                            <li>
-                                <a href='/customers'>Customers</a>
-                            </li>
-                            <li>
-                                <a href='/drivers'>Drivers</a>
-                            </li>
-                            <li>
-                                <a href='/dispatch'>Dispatch</a>
-                            </li>
-                            <li>
-                                <a href='/new-delivery'>New Delivery</a>
-                            </li>
-                            <li>
-                                <a href='/administration'>Administration</a>
-                            </li>
+            <div id='FFELogo'>
+        <nav id="menu" class="navbar navbar-inverse">
+            <div class="container-fluid">
+                <div class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/bills">Bills</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/bills/create">Create New Bill</a></li>
                         </ul>
-                    </div>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/invoices/create">Create New Invoice</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/customers">Customers</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/customers/create">Create New Customer</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/drivers">Drivers</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/customers/create">Create New Driver</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" disabled>
+                        <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
+                    </li>                    
+                    <li class="dropdown" disabled>
+                        <a class="dropdown-toggle" data-toggle="dropdown">New Delivery</a>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/customers/create">Log Out</a></li>
+                        </ul>
+                    </li>
                 </div>
-            </td>
+            </div>
+        </nav>
         </tr>
         <tr>
-            <td id='navAndFilter'>
-                <div id='navBar'>
-                    @yield('navBar')
-                </div>
+            <td id='advFilter'>
                 <div id='advFilter'>
                     @yield('advFilter')
                 </div>
             </td>
-            <td id='detailsAndContent'>
+            <td id='content'>
                 <div id='content'>
                     @yield('content')
                 </div>
