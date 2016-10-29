@@ -39,7 +39,7 @@ class Controller extends BaseController {
     protected function genFilterData($input) {
         return strtotime(isset($input['start_date']) ?
                 $input['start_date'] :
-                date('Y-m-d G:i:s', strtotime('-' . $itemAge)));
+                date('Y-m-d G:i:s', strtotime('-' . $this->$itemAge)));
     }
 
     public function getData($inp = array()) {
