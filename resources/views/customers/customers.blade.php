@@ -59,10 +59,3 @@
 @parent
 
 @endsection
-
-@section ('navBar')
-<ul class='nav nav-pills nav-stacked'>
-	<li class="navButton"><a href="">New Customer</a></li>
-	<li class="navButton"><a href="">Edit Customer</a></li>
-</ul>
-@endsection
