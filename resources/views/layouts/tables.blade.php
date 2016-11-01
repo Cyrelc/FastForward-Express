@@ -70,12 +70,12 @@
 
 	<tbody>
 		@foreach($contents as $content)
-		<tr>
-			@foreach($variables as $variable)
-				<td class='details-control'>{{$content[$variable]}}</td>
+			<tr>
+ 			@foreach($variables as $variable)
+				<td class='details-control'>{{$content->$variable}}</td>
 			@endforeach
-				<td class='hidden'>{{$content}}</td>
-		</tr>
+				<td class='hidden'>{{json_encode($content)}}</td>
+			</tr>
 		@endforeach
 	</tbody>
 </table>
