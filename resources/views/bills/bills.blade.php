@@ -4,11 +4,7 @@
 
 <?php
 	$columns = ['Number', 'Date', 'Description', 'Customer', 'Amount', 'Taxes', 'Driver (pickup)', 'Driver (delivery)'];
-	$variables = ['bill_number', 'date', 'description', 'customer_id', 'amount', 'taxes', 'driver_pickup_id', 'driver_dropoff_id'];
-	$contents = (new \app\Http\Controllers\BillController)->getData(['start_date'=>'2013-01-01 00:00:00']);
-	if ($contents['success']){
-		$contents = $contents['data'];
-	}
+	$variables = ['bill_number', 'date', 'description', 'account_number', 'amount', 'taxes', 'first_name', 'last_name'];
 ?>
 
 @endsection

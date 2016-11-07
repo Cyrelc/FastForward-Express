@@ -2,8 +2,9 @@
 
 @section ('script')
 
+<script type='text/javascript' src='public/dist/jquery.validate.js'></script>
+
 <script type="text/javascript">
-	
 $(document).ready(function() {
 	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').change(function() {
 		if(this.checked){
@@ -19,16 +20,27 @@ $(document).ready(function() {
 	});
 })
 
+	$('#advFilter input[type="checkbox"]').each(function(i,j) { 
+		if(j.checked){
+			$('tr#' + j.id).fadeIn();
+		}
+		else{
+			$('tr#' + j.id).fadeOut();
+		}
+	});
+});
+
 function showSecondaryContact() {
 	$('.secondaryContact').prop('hidden', false);
 	$('#secondaryContact-button').prop('hidden', true);
 }
-
-// function validateForm() {
-
-// }
-
 </script>
+
+@parent
+
+@endsection
+
+@section ('style')
 
 <style type="text/css">
     input, select, textarea {
@@ -51,8 +63,6 @@ function showSecondaryContact() {
         margin-bottom: 10px;
     }
 </style>
-
-@parent
 
 @endsection
 
@@ -176,6 +186,7 @@ function showSecondaryContact() {
             </label>
         </div>
     </div>
+
 </form>
 @endsection
 

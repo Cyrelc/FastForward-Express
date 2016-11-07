@@ -37,7 +37,14 @@ class BillController extends Controller {
     }
 
     public function index() {
-        return view('bills.bills');
+        $bills = \DB::table('bills')
+            ->join('accounts', 'bills.account_id', '=', 'accounts.account_id')
+            ->join('drivers', 'bills.driver_id', '=', 'drivers.driver_id')
+            ->join('contacts', 'drivers.contact_id', '=', 'contacts.contact_id')
+            ->select('bills.*', 'accounts.*', 'drivers.*', 'contacts.*')
+            ->get();
+
+        return view('bills.bills')->with(['contents'=>$bills]);
     }
 
     public function store(Request $req) {
