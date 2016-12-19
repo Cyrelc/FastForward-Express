@@ -126,7 +126,7 @@ function showSecondaryContact() {
                         <input type='text' class='form-control' name='last_name1' placeholder='Last Name' />
                     </div>
                     <div class='col-lg-6 clearfix'>
-                        <input type='tel' pattern="[0-9]{10}" class='form-control1' name='secondary_phone' placeholder='Secondary Phone' />
+                        <input type='tel' class='form-control' name='secondary_phone1' placeholder='Secondary Phone' />
                     </div>
                     <div class='col-lg-6 clearfix'>
                         <input type='email' class='form-control' name='primary_email1' placeholder='Primary Email' />

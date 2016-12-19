@@ -63,18 +63,14 @@
             </div>
         </nav>
         </tr>
-        <tr>
-            <td id='advFilter'>
-                <div id='advFilter'>
+        <div class="row">
+            <div id="advFilter" class="col-lg-2">
                     @yield('advFilter')
-                </div>
-            </td>
-            <td id='content'>
-                <div id='content'>
-                    @yield('content')
-                </div>
-            </td>
-        </tr>
+            </div>
+            <div id='content' class="col-lg-10">
+                @yield('content')
+            </div>
+        </div>
     </tbody>
 </table>
 @stop
