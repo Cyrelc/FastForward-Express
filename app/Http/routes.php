@@ -38,22 +38,23 @@ Route::group(
             Route::resource('/bills', 'BillController',
                     ['only' => ['index', 'create', 'edit', 'store']]
             );
+            Route::post('/bills/get', 'BillController@getData');
 
-            Route::resource('/invoices', 'InvoiceController',
-                    ['only' => 'index']);
-
-            Route::resource('/customers', 'AccountController',
-                    ['only' => 'index']);
+            Route::get('/customers', 'AccountController@index');
+            Route::get('/customers/create', 'AccountController@create');
+            Route::post('/customers/store', 'AccountController@store');
 
             Route::resource('/drivers', 'DriverController',
+                    ['only' => 'index']);
+
+            Route::resource('/invoices', 'InvoiceController',
                     ['only' => 'index']);
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 
             //API
-            Route::post('/bills/get', 'BillController@getData');
-            Route::resource('/customers', 'AccountController',
-                ['only' => ['index', 'create', 'edit', 'store']]);
+            // Route::resource('/customers', 'AccountController',
+            //     ['only' => ['index', 'create', 'edit', 'store']]);
         }
 );
 
