@@ -12,7 +12,8 @@
 
 @yield('script')
 
-    @yield('style')
+@yield('style')
+
 @stop
 
 @section('body')
@@ -33,6 +34,7 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
                         <ul class="dropdown-menu">
                             <li><a href="/invoices/create">Create New Invoice</a></li>
+                            <li><a href="/invoices/manage_cycles">Manage Invoice Cycles</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">

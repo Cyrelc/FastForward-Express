@@ -30,10 +30,9 @@ class AccountController extends Controller {
     public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
-        return view('customers.create_customer', array(
-                'source' => 'Create',
-                'action' => '/accounts'
-        ));
+        $parents = Account::where('is_master', 'true')->pluck('name', 'account_id');
+
+        return view('customers.create_customer', compact('parents'));
     }
 
     public function edit($id) {
