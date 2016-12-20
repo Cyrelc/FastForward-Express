@@ -3,6 +3,10 @@ html, body {
 	min-width: 672px;
 }
 
+.bottom15 {
+	padding-bottom:15px;
+}
+
 .row-eq-height {
 	display: -webkit-box;
 	display: -webkit-flex;

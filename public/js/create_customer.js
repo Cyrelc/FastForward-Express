@@ -28,10 +28,10 @@ function validate(){
 	var warnings = document.getElementById('errors');
 	check1 = document.getElementById('subLocation');
 	check2 = document.getElementById('parent_account_id');
-	// if (check1.checked == true && check2.value);
-
-	// if (errors == "")
-	// 	return true;
+	if (check1.checked == true && check2.value == 0);
+		errors = "Please select a valid Parent Company\n";
+	if (errors == "")
+	 	return true;
 	warnings.textContent = errors;
 	return true;
 }

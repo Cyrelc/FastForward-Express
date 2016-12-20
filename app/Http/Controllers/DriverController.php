@@ -17,6 +17,10 @@ class DriverController extends Controller {
         $this->class = new \App\Driver;
     }
 
+    public function create(){
+        return view('drivers.create_driver');
+    }
+
     protected function genFilterData($input) {
         return null;
     }

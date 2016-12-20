@@ -11,25 +11,6 @@
 @section ('style')
 
 <style type="text/css">
-    input, select, textarea {
-        max-width: 280px;
-    }
-
-    .default-hidden {
-        display: none;
-    }
-
-    .form-section {
-        margin: 20px 0 0 0;
-    }
-
-    .form-section h4 {
-        margin-bottom: 15px;
-    }
-
-    .form-section input {
-        margin-bottom: 10px;
-    }
 </style>
 
 @endsection
@@ -38,30 +19,30 @@
 <h2>New Customer</h2>
 <form onsubmit="return validate()" method="POST" action="/customers/store">
 <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <div class="well form-group" style="overflow: hidden">
+    <div class="well" style="overflow: hidden">
         <!--Basic Information Panel-->
         <div class="row">
             <div class="panel panel-default col-lg-12">
                 <div class="panel-body clearfix">
                     <!-- errors go here if submission fails -->
                     <p id='errors'></p>
-                    <div id="parentLocation" class="col-lg-12 clearfix form-group" >
-                        <select id="parent_account_id" class='form-control'>
+                    <div id="parentLocation" class="bottom15 col-lg-12 clearfix" >
+                        <select id="parent_account_id" class='form-control col-lg-4'>
                             <option value="0" selected disabled>Select Parent Company</option>
                             @foreach ($parents as $parent)
-                                <option value={{$parent->account_id}}>{{$parent->name}}</option> 
+                                <option value={{$parent->account_id}}>{{$parent->name}}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-lg-4 clearfix form-group">
+                    <div class="col-lg-4 clearfix bottom15">
                         <input type='text' class="form-control" name="name" placeholder="Company Name" required/>
                     </div>
-                    <div class="col-lg-4 clearfix form-group">
+                    <div class="col-lg-4 clearfix bottom15">
                         <select class='form-control' name="rate_id" disabled required>
                             <option value="-1" selected disabled>Select Rate</option>
                         </select>
                     </div>
-                    <div class="col-lg-4 clearfix form-group">
+                    <div class="col-lg-4 clearfix bottom15">
                         <select class='form-control' name="invoice_interval" disabled required>
                             <option value="-1" selected disabled>Select Invoice Interval</option>
                             <option value="weekly" >Weekly</option>
@@ -69,18 +50,18 @@
                             <option value="montly">Monthly</option>
                         </select>
                     </div>
-                    <div class="col-lg-4 clearfix" id="discountDiv">
+                    <div class="col-lg-4 clearfix bottom15" id="discountDiv">
                         <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" />
                     </div>
-                    <div class="col-lg-4 clearfix" id="commissionDiv">
+                    <div class="col-lg-4 clearfix bottom15" id="commissionDiv">
                         <div class="col-lg-8 clearfix">
                             <input class='form-control' type='text' name='commission_employee_id' placeholder="Driver" />
                         </div>
-                        <div class="col-lg-4 clearfix">
+                        <div class="col-lg-4 clearfix bottom15">
                             <input class='form-control' min=0 max=100 type='number' name='commission_percent' placeholder="Commission %"/>
                         </div>
                     </div>
-                    <div class="col-lg-4 clearfix" id="customDiv">
+                    <div class="col-lg-4 clearfix bottom15" id="customDiv">
                         <span><input type='text' class="form-control" name='custom_tracker' placeholder="Custom Div Name" /></span>
                         <span><label><input type='checkbox' class="form-control clearfix" name='custom_tracker_sortable' />Sortable?</label></span>
                     </div>
@@ -94,17 +75,17 @@
                     <h3 class='panel-title'>Primary Contact</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
-                        <div class="col-lg-6 clearfix">
+                    <div class="clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='first_name1' placeholder='First Name' />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='last_name1' placeholder='Last Name' />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type="tel" class='form-control' name='primary_phone1' placeholder='Primary Phone' />
                         </div>
-                        <div class='col-lg-6 clearfix'>
+                        <div class='col-lg-6 clearfix bottom15'>
                             <input type='tel' class='form-control' name='secondary_phone1' placeholder='Secondary Phone' />
                         </div>
                         <div class='col-lg-6 clearfix'>
@@ -122,18 +103,18 @@
                     <h3 class='panel-title'>Secondary Contact</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
-                        <div class="col-lg-6 clearfix">
+                    <div class="clearfix form-section">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='first_name2' placeholder='First Name' />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='last_name2' placeholder='Last Name' />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type="tel" class='form-control' name='primary_phone2' placeholder='Primary Phone' />
                         </div>
-                        <div class='col-lg-6 clearfix'>
-                            <input type='tel' pattern="[0-9]{10}" class='form-control2' name='secondary_phone' placeholder='Secondary Phone' />
+                        <div class='col-lg-6 clearfix bottom15'>
+                            <input class="form-control" name='secondary_phone2' placeholder='Secondary Phone' />
                         </div>
                         <div class='col-lg-6 clearfix'>
                             <input type='email' class='form-control' name='primary_email2' placeholder='Primary Email' />
@@ -152,17 +133,17 @@
                     <h3 class="panel-title">Delivery Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
+                    <div class="form-group clearfix bottom15">
                         <div class="col-lg-6 clearfix">
                             <input type='text' class='form-control' name='street_delivery' placeholder="Address Line 1" />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='zip_postal_delivery' placeholder="Postal/Zip Code" />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='street2_delivery' placeholder="Address Line 2" />
                         </div>
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='state_province_delivery' placeholder="Province/State" />
                         </div>
                         <div class="col-lg-6 clearfix">
@@ -181,16 +162,16 @@
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix form-section">
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='street_billing' placeholder="Address Line 1" />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='zip_postal_billing' placeholder="Postal/Zip Code" />
                         </div>
-                        <div class="col-lg-6 clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='street2_billing' placeholder="Address Line 2" />
                         </div>
-                        <div class="col-lg-6">
+                        <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='state_province_billing' placeholder="Province/State" />
                         </div>
                         <div class="col-lg-6 clearfix">

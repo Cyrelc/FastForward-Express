@@ -44,8 +44,8 @@ Route::group(
             Route::get('/customers/create', 'AccountController@create');
             Route::post('/customers/store', 'AccountController@store');
 
-            Route::resource('/drivers', 'DriverController',
-                    ['only' => 'index']);
+            Route::get('/drivers', 'DriverController@index');
+            Route::get('/drivers/create', 'DriverController@create');
 
             Route::resource('/invoices', 'InvoiceController',
                     ['only' => 'index']);

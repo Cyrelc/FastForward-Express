@@ -24,7 +24,7 @@ class AccountController extends Controller {
     }
 
     public function index() {
-        $contents;
+        $contents = Account::all();
 
         return view('customers.customers', compact('contents'));
     }
