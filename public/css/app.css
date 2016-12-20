@@ -3,6 +3,17 @@ html, body {
 	min-width: 672px;
 }
 
+.bottom15 {
+	padding-bottom:15px;
+}
+
+.row-eq-height {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+}
+
 button#logout {
 	position: absolute;
 	right: 10px;
@@ -14,17 +25,9 @@ table#mainWindow {
 	min-height: 100%;
 }
 
-td#advFilter {
-	border-right: 3px solid;
-	display: block;
-	vertical-align: top;
-	width: 250px;
+#advFilter {
+	background-color: ;
 }
-
-#advFilter{
-	border-bottom: 3px solid;
-}
-
 
 .dropdown:hover .dropdown-menu {
 display: block;

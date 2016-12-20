@@ -12,27 +12,28 @@
 
 @yield('script')
 
-    @yield('style')
+@yield('style')
+
 @stop
 
 @section('body')
-<table id='mainWindow'>
-    <tbody>
-        <tr>
-            <div id='FFELogo'>
+<div class="row">
+    <div class="col-lg-12">
+        <div id='FFELogo'>
         <nav id="menu" class="navbar navbar-inverse">
             <div class="container-fluid">
                 <div class="nav navbar-nav">
-                    <li class="dropdown">
+                    <li class="dropdown" disabled>
                         <a class="dropdown-toggle" data-toggle="dropdown" href="/bills">Bills</a>
                         <ul class="dropdown-menu">
                             <li><a href="/bills/create">Create New Bill</a></li>
                         </ul>
                     </li>
-                    <li class="dropdown">
+                    <li class="dropdown" disabled>
                         <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
                         <ul class="dropdown-menu">
                             <li><a href="/invoices/create">Create New Invoice</a></li>
+                            <li><a href="/invoices/manage_cycles">Manage Invoice Cycles</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">
@@ -44,7 +45,7 @@
                     <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="/drivers">Drivers</a>
                         <ul class="dropdown-menu">
-                            <li><a href="/customers/create">Create New Driver</a></li>
+                            <li><a href="/drivers/create">Create New Driver</a></li>
                         </ul>
                     </li>
                     <li class="dropdown" disabled>
@@ -62,19 +63,16 @@
                 </div>
             </div>
         </nav>
-        </tr>
-        <tr>
-            <td id='advFilter'>
-                <div id='advFilter'>
+    </div>
+</div>
+        <div class="row">
+            <div id="advFilter" class="col-lg-2">
                     @yield('advFilter')
-                </div>
-            </td>
-            <td id='content'>
-                <div id='content'>
-                    @yield('content')
-                </div>
-            </td>
-        </tr>
+            </div>
+            <div id='content' class="col-lg-10">
+                @yield('content')
+            </div>
+        </div>
     </tbody>
 </table>
 @stop

@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use App\Account;
+use App\Contact;
+use App\PhoneNumber;
+use App\EmailAddress;
+use App\Address;
+use App\AccountContact;
 
 class AccountController extends Controller {
     public function __construct() {
@@ -18,86 +24,17 @@ class AccountController extends Controller {
     }
 
     public function index() {
-        return view('customers.customers');
-    }
+        $contents = Account::all();
 
-    public function store(Request $req) {
-        //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
-
-
-        $values = $req->all();
-        //Nicely handle the error below / Insert a new reference into the table?
-        if ($values['reference'] != '')
-            //Be able to create new reference types here?
-            $values['ref_id'] = ReferenceType::where('name', '=', $values['reference'])->firstOrFail()->id;
-
-        $val = $this->validator($values);
-
-        if ($val->fails())
-            return json_encode(array(
-                    'success' => false,
-                    'errors' => $val->errors()->all()
-            ));
-
-        if ($values['orig_bill'] == -1 || $values['orig_bill'] != $values['number']) {
-            // Create new bill / Change bill number
-            if (!$values['force'] && Bill::where('number', '=', $values['number'])->first()) {
-                //Bill exists already
-
-                return json_encode(array(
-                        'success' => false,
-                        'errors' => array('Bill number ' . $values['number'] . ' already exists, submit again to overwrite.'),
-                        'setforced' => true
-                ));
-            } else if ($values['force']) {
-                $bill = Bill::where('number', '=', $values['number'])->first();
-                if ($bill)
-                    $bill->delete();
-            }
-            Bill::create(array(
-                'number'        => $values['number'],
-                'date'          => $values['date'],
-                'description'   => $values['description'],
-                'ref_id'        => isset($values['ref_id']) ? $values['ref_id'] : null,
-                'payment_id'    => $values['payment_id'],
-                'amount'        => $values['amount'],
-                'int_amount'    => $values['int_amount'],
-                'driver_amount' => $values['driver_amount'],
-                'taxes'         => $values['amount'] * env('TAX_RATE', 0.05),
-            ))->save();
-
-            return json_encode(array(
-                    'success' => true
-            ));
-        } else {
-            // Edit existing bill
-            $bill = Bill::where('number', '=', $values['number'])->firstOrFail();
-            //Nice error handling?
-
-            $bill->date = $values['date'];
-            $bill->description = $values['date'];
-            $bill->ref_id = isset($values['ref_id']) ? $values['ref_id'] : null;
-            $bill->payment_id = $values['payment_id'];
-            $bill->amount = $values['amount'];
-            $bill->int_amount = $values['int_amount'];
-            $bill->driver_amount = $values['driver_amount'];
-            $bill->taxes = $values['amount'] * env('TAX_RATE', 0.05);
-
-            $bill->save();
-
-            return json_encode(array(
-                    'success' => true
-            ));
-        }
+        return view('customers.customers', compact('contents'));
     }
 
     public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
-        return view('customers.create_customer', array(
-                'source' => 'Create',
-                'action' => '/accounts'
-        ));
+        $parents = Account::where('is_master', 'true')->pluck('name', 'account_id');
+
+        return view('customers.create_customer', compact('parents'));
     }
 
     public function edit($id) {
@@ -110,5 +47,35 @@ class AccountController extends Controller {
                 'action' => '/bills',
                 'bill' => $bill
         ));
+    }
+
+    public function store(Request $req, Account $acct) {
+        //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
+        $account = new Account();
+        /*
+        //foreach contact
+        $contact = new Contact();
+        $phone1 = new PhoneNumber();
+        //if phone2 is valid
+        $email1 = new EmailAdress();
+        //if email 2 is valid
+
+        //if Contact does not already exist
+        $contact->first_name = $req->first_name1;
+        $contact->last_name = $req->last_name1;
+        $phone1->phone_number = $req->primary_phone1;
+
+        //submit contact, emails, and phone #s
+        $relation = new ContactEmailAddress();
+        //set relation(s)
+        //submit
+        $relation = new ContactPhoneNumber();
+        //set relation(s)
+        //submit
+        */
+
+        $account->name = $req->name;
+        $account->rate_type_id = $req->rate_type_id;
+        return $req;
     }
 }
