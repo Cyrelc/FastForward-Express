@@ -2,39 +2,7 @@
 
 @section ('script')
 
-<script type='text/javascript' src='public/dist/jquery.validate.js'></script>
-
-<script type="text/javascript">
-$(document).ready(function() {
-	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').change(function() {
-		if(this.checked){
-		    $('#' + $(this).attr('data-div')).fadeIn();
-		}
-		else {
-		    $('#' + $(this).attr('data-div')).fadeOut();
-		}
-	});
-
-	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField').each(function (i, e) {
-	    $("#" + $(this).attr('data-div')).css('display', 'none');
-	});
-})
-
-	$('#advFilter input[type="checkbox"]').each(function(i,j) { 
-		if(j.checked){
-			$('tr#' + j.id).fadeIn();
-		}
-		else{
-			$('tr#' + j.id).fadeOut();
-		}
-	});
-});
-
-function showSecondaryContact() {
-	$('.secondaryContact').prop('hidden', false);
-	$('#secondaryContact-button').prop('hidden', true);
-}
-</script>
+<script type='text/javascript' src='/js/create_customer.js'></script>
 
 @parent
 
@@ -43,192 +11,211 @@ function showSecondaryContact() {
 @section ('style')
 
 <style type="text/css">
-    input, select, textarea {
-        max-width: 280px;
-    }
-
-    .default-hidden {
-        display: none;
-    }
-
-    .form-section {
-        margin: 20px 0 0 0;
-    }
-
-    .form-section h4 {
-        margin-bottom: 15px;
-    }
-
-    .form-section input {
-        margin-bottom: 10px;
-    }
 </style>
 
 @endsection
 
 @section ('content')  
 <h2>New Customer</h2>
-             
-<form>	
-    <div class="well">
-        <div class="form-group clearfix">
-            <div class="col-lg-2" id="parentLocationDiv">
-                <input type="text" class="form-control" name="" placeholder="Parent Company" />
-            </div>
-
-            <div class="col-lg-10">
-                <input type='text' class="form-control" name="" placeholder="Company Name" />
-            </div>
-        </div>
-
-        <div class="form-group clearfix form-section">
-            <h4>Delivery Address</h4>
-
-            <div class="col-lg-12 clearfix">
-                <input type='text' class='form-control' name='street' placeholder="Address Line 1" />
-            </div>
-
-            <div class="col-lg-12 clearfix">
-                <input type='text' class='form-control' name='street2' placeholder="Address Line 2" />
-            </div>
-
-            <div class="col-lg-12 clearfix">
-                <input type='text' class='form-control' name='city' placeholder="City" />
-            </div>
-
-            <div class="clearfix">
-                <div class="col-lg-4">
-                    <input type='text' class='form-control' name='zip_postal' placeholder="Postal/Zip Code" />
+<form onsubmit="return validate()" method="POST" action="/customers/store">
+<input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <div class="well" style="overflow: hidden">
+        <!--Basic Information Panel-->
+        <div class="row">
+            <div class="panel panel-default col-lg-12">
+                <div class="panel-body clearfix">
+                    <!-- errors go here if submission fails -->
+                    <p id='errors'></p>
+                    <div id="parentLocation" class="bottom15 col-lg-12 clearfix" >
+                        <select id="parent_account_id" class='form-control col-lg-4'>
+                            <option value="0" selected disabled>Select Parent Company</option>
+                            @foreach ($parents as $parent)
+                                <option value={{$parent->account_id}}>{{$parent->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15">
+                        <input type='text' class="form-control" name="name" placeholder="Company Name" required/>
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15">
+                        <select class='form-control' name="rate_id" disabled required>
+                            <option value="-1" selected disabled>Select Rate</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15">
+                        <select class='form-control' name="invoice_interval" disabled required>
+                            <option value="-1" selected disabled>Select Invoice Interval</option>
+                            <option value="weekly" >Weekly</option>
+                            <option value="bi-monthly">Twice a Month</option>
+                            <option value="montly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15" id="discountDiv">
+                        <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" />
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15" id="commissionDiv">
+                        <div class="col-lg-8 clearfix">
+                            <input class='form-control' type='text' name='commission_employee_id' placeholder="Driver" />
+                        </div>
+                        <div class="col-lg-4 clearfix bottom15">
+                            <input class='form-control' min=0 max=100 type='number' name='commission_percent' placeholder="Commission %"/>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 clearfix bottom15" id="customDiv">
+                        <span><input type='text' class="form-control" name='custom_tracker' placeholder="Custom Div Name" /></span>
+                        <span><label><input type='checkbox' class="form-control clearfix" name='custom_tracker_sortable' />Sortable?</label></span>
+                    </div>
                 </div>
-
-                <div class="col-lg-2">
-                    <input type='text' class='form-control' name='state_province' placeholder="Province/State" />
+            </div>
+        </div>
+        <!--Primary Contact Panel -->
+        <div class="row row-eq-height">
+            <div class='col-lg-6 panel panel-default'>
+                <div class="col-lg-12 panel-heading">
+                    <h3 class='panel-title'>Primary Contact</h3>
+                </div>
+                <div class="col-lg-12 panel-body">
+                    <div class="clearfix">
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='first_name1' placeholder='First Name' />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='last_name1' placeholder='Last Name' />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type="tel" class='form-control' name='primary_phone1' placeholder='Primary Phone' />
+                        </div>
+                        <div class='col-lg-6 clearfix bottom15'>
+                            <input type='tel' class='form-control' name='secondary_phone1' placeholder='Secondary Phone' />
+                        </div>
+                        <div class='col-lg-6 clearfix'>
+                            <input type='email' class='form-control' name='primary_email1' placeholder='Primary Email' />
+                        </div>
+                        <div class='col-lg-6 clearfix'>
+                            <input type='email' class='form-control' name='secondary_email1' placeholder='Secondary Email' />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--Secondary Contact Panel -->
+            <div class='col-lg-6 panel panel-default'>
+                <div class="col-lg-12 panel-heading">
+                    <h3 class='panel-title'>Secondary Contact</h3>
+                </div>
+                <div class="col-lg-12 panel-body">
+                    <div class="clearfix form-section">
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='first_name2' placeholder='First Name' />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='last_name2' placeholder='Last Name' />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type="tel" class='form-control' name='primary_phone2' placeholder='Primary Phone' />
+                        </div>
+                        <div class='col-lg-6 clearfix bottom15'>
+                            <input class="form-control" name='secondary_phone2' placeholder='Secondary Phone' />
+                        </div>
+                        <div class='col-lg-6 clearfix'>
+                            <input type='email' class='form-control' name='primary_email2' placeholder='Primary Email' />
+                        </div>
+                        <div class='col-lg-6 clearfix'>
+                            <input type='email' class='form-control' name='secondary_email2' placeholder='SecondaryEmail' />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Delivery address panel -->
+        <div class="row row-eq-height">
+            <div class="col-lg-6 panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Delivery Address</h3>
+                </div>
+                <div class="col-lg-12 panel-body">
+                    <div class="form-group clearfix bottom15">
+                        <div class="col-lg-6 clearfix">
+                            <input type='text' class='form-control' name='street_delivery' placeholder="Address Line 1" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='zip_postal_delivery' placeholder="Postal/Zip Code" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='street2_delivery' placeholder="Address Line 2" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='state_province_delivery' placeholder="Province/State" />
+                        </div>
+                        <div class="col-lg-6 clearfix">
+                            <input type='text' class='form-control' name='city_delivery' placeholder="City" />
+                        </div>
+                        <div class="col-lg-6 clearfix">
+                            <input type='text' class='form-control' name='country_delivery' placeholder="Country" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-lg-12 clearfix">
-                <input type='text' class='form-control' name='country' placeholder="Country" />
+            <div class="col-lg-6 panel panel-default">
+                <div class="col-lg-12 panel-heading">
+                    <span><h3 class="panel-title">Billing Address</h3></span>
+                </div>
+                <div class="col-lg-12 panel-body">
+                    <div class="form-group clearfix form-section">
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='street_billing' placeholder="Address Line 1" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='zip_postal_billing' placeholder="Postal/Zip Code" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='street2_billing' placeholder="Address Line 2" />
+                        </div>
+                        <div class="col-lg-6 clearfix bottom15">
+                            <input type='text' class='form-control' name='state_province_billing' placeholder="Province/State" />
+                        </div>
+                        <div class="col-lg-6 clearfix">
+                            <input type='text' class='form-control' name='city_billing' placeholder="City" />
+                        </div>
+                        <div class="col-lg-6 clearfix">
+                            <input type='text' class='form-control' name='country_billing' placeholder="Country" />
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="form-group clearfix" id="billingAddressDiv">
-                <label>Billing Address: </label>
-                <input type='text' name='' />
-                <label>Postal Code: </label>
-                <input type='text' name='' />
-            </div>
-        </div>
-
-        <label>Primary Contact: </label>
-
-
-        <label>Name:</label>
-        <input type='text' name='' />
-        <label>Primary Phone #: </label>
-        <input type='text' name='' />
-        <label>Secondary Phone #: </label>
-        <input type='text' name='' />
-
-
-        <label>Primary Email Address: </label>
-        <input type='text' name='' />
-        <label>Secondary Email Address:</label>
-        <input type='text' name='' />
-
-
-        <button id='secondaryContact-button' type='button' onclick="showSecondaryContact();">Show Secondary Contact</button>
-
-        <label>Secondary Contact: </label>
-
-        <label>Name:</label>
-        <input type='text' name='' />
-        <label>Primary Phone #: </label>
-        <input type='text' name='' />
-        <label>Secondary Phone #: </label>
-        <input type='text' name='' />
-
-        <label>Primary Email Address: </label>
-        <input type='text' name='' />
-        <label>Secondary Email Address:</label>
-        <input type='text' name='' />
-
-
-        <label>Rate Type:</label>
-        <select></select>
-        <label>Invoice Interval:</label>
-        <select></select>
-
-        <div class="form-group clearfix" id="discountDiv">
-            <label class="col-lg-2">Discount:</label>
-            <div class="col-lg-10">
-                <input min=0 max=100 type='number' name='' />
-            </div>
-        </div>
-
-        <div class="form-group clearfix" id="commissionDiv">
-            <label>Commission ID:</label>
-            <input min=0 type='number' name='' />
-            <label>Commission %</label>
-            <input min=0 max=100 type='number' name='' />
-        </div>
-
-        <div class="form-group clearfix" id="driverCommissionDiv">
-            <label>Driver Commission ID:</label>
-            <input min=0 type='number' name='' />
-            <label>Driver Commission %:</label>
-            <input min=0 max=100 type='number' name='' />
-        </div>
-
-        <div class="form-group clearfix" id="customDiv">
-            <label>Custom Field Name:</label>
-            <input type='text' name='' />
-            <label>
-                <input type='checkbox' name='' />Sortable?
-            </label>
         </div>
     </div>
-
+    <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
 </form>
 @endsection
 
-@section ('navBar')
-<ul class='nav nav-pills nav-stacked'>
-	<li class='navButton'><a href=""><i class="fa fa-save"></i> Save</a></li>
-	<li class='navButton'><a href=""><i class="fa fa-plus-square-o"></i> Save and New</a></li>
-	<li class='navButton'><a href=""><i class="fa fa-ban"></i> Cancel</a></li>
-</ul>
-@endsection
-
 @section ('advFilter')
-
+<div class="well form-group clearfix">
+    <h3>Options</h3>
+    <hr>
     <div class="checkbox">
-	    <label><input type='checkbox' id='subLocation' value='' data-div="parentLocationDiv" /> Is Sub-Location</label>
+        <label><input id="subLocation" type="checkbox" value="" name="subLocationCheckBox" data-div="parentLocation" />Is Sub-Location</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='separateBillingAddr' value='' data-div="billingAddressDiv" /> Use Separate Billing Address</label>
+        <label><input id="giveDiscount" type="checkbox" value="" data-div="discountDiv" />Give Discount</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='giveDiscount' value='' data-div="discountDiv" /> Give Discount</label>
+        <label><input id="giveCommission" type="checkbox" value="" data-div="commissionDiv" />Give Commission</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='giveCommission' value='' data-div="commissionDiv" /> Give Commission</label>
+        <label><input id="giveDriverCommission" type="checkbox" value="" data-div="driverCommissionDiv" />Give Driver Commission</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='giveDriverCommission' value='' data-div="driverCommissionDiv" /> Give Driver Commission</label>
+        <label><input id="useCustomField" type="checkbox" value="" data-div="customDiv" />Use Custom Field</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='useCustomField' name='' value='' data-div="customDiv"/>Use Custom Field</label>
+        <label><input id="balanceOwingInterest" type="checkbox" value="" />Charge Interest on Balance Owing</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='balanceOwingInterest' value='' /> Charge Interest on Balance Owing</label>
+        <label><input id="gstExempt" type="checkbox" value="">Is GST Exempt</label>
     </div>
-
     <div class="checkbox">
-        <label><input type='checkbox' id='gstExempt' value='' /> GST Exempt</label>
-    </div>                        
+        <label><input id="canBeParent" type="checkbox" value="">Can be Parent</label>
+    </div>
+</div>
 @endsection
