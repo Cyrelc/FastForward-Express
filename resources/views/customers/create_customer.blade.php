@@ -46,8 +46,8 @@
                     <!-- errors go here if submission fails -->
                     <p id='errors'></p>
                     <div id="parentLocation" class="col-lg-12 clearfix form-group" >
-                        <select id="parent_account_ID" class='form-control'>
-                            <option value="-1" selected disabled>Select Parent Company</option>
+                        <select id="parent_account_id" class='form-control'>
+                            <option value="0" selected disabled>Select Parent Company</option>
                             @foreach ($parents as $parent)
                                 <option value={{$parent->account_id}}>{{$parent->name}}</option> 
                             @endforeach
@@ -57,13 +57,16 @@
                         <input type='text' class="form-control" name="name" placeholder="Company Name" required/>
                     </div>
                     <div class="col-lg-4 clearfix form-group">
-                        <select class='form-control' disabled required>
+                        <select class='form-control' name="rate_id" disabled required>
                             <option value="-1" selected disabled>Select Rate</option>
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix form-group">
-                        <select class='form-control' disabled required>
+                        <select class='form-control' name="invoice_interval" disabled required>
                             <option value="-1" selected disabled>Select Invoice Interval</option>
+                            <option value="weekly" >Weekly</option>
+                            <option value="bi-monthly">Twice a Month</option>
+                            <option value="montly">Monthly</option>
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix" id="discountDiv">
@@ -71,15 +74,15 @@
                     </div>
                     <div class="col-lg-4 clearfix" id="commissionDiv">
                         <div class="col-lg-8 clearfix">
-                            <input class='form-control' type='text' name='' placeholder="Driver" />
+                            <input class='form-control' type='text' name='commission_employee_id' placeholder="Driver" />
                         </div>
                         <div class="col-lg-4 clearfix">
-                            <input class='form-control' min=0 max=100 type='number' name='' placeholder="Commission %"/>
+                            <input class='form-control' min=0 max=100 type='number' name='commission_percent' placeholder="Commission %"/>
                         </div>
                     </div>
                     <div class="col-lg-4 clearfix" id="customDiv">
-                        <span><input type='text' class="form-control" name='' placeholder="Custom Div Name" /></span>
-                        <span><label><input type='checkbox' class="form-control clearfix" name='' />Sortable?</label></span>
+                        <span><input type='text' class="form-control" name='custom_tracker' placeholder="Custom Div Name" /></span>
+                        <span><label><input type='checkbox' class="form-control clearfix" name='custom_tracker_sortable' />Sortable?</label></span>
                     </div>
                 </div>
             </div>
@@ -121,22 +124,22 @@
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix form-section">
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='first_name' placeholder='First Name' />
+                            <input type='text' class='form-control' name='first_name2' placeholder='First Name' />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='last_name' placeholder='Last Name' />
+                            <input type='text' class='form-control' name='last_name2' placeholder='Last Name' />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type="tel" class='form-control' name='primary_phone' placeholder='Primary Phone' />
+                            <input type="tel" class='form-control' name='primary_phone2' placeholder='Primary Phone' />
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='tel' pattern="[0-9]{10}" class='form-control' name='secondary_phone' placeholder='Secondary Phone' />
+                            <input type='tel' pattern="[0-9]{10}" class='form-control2' name='secondary_phone' placeholder='Secondary Phone' />
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='primary_email' placeholder='Primary Email' />
+                            <input type='email' class='form-control' name='primary_email2' placeholder='Primary Email' />
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='secondary_email' placeholder='SecondaryEmail' />
+                            <input type='email' class='form-control' name='secondary_email2' placeholder='SecondaryEmail' />
                         </div>
                     </div>
                 </div>
@@ -151,22 +154,22 @@
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix form-section">
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='street' placeholder="Address Line 1" />
+                            <input type='text' class='form-control' name='street_delivery' placeholder="Address Line 1" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='zip_postal' placeholder="Postal/Zip Code" />
+                            <input type='text' class='form-control' name='zip_postal_delivery' placeholder="Postal/Zip Code" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='street2' placeholder="Address Line 2" />
+                            <input type='text' class='form-control' name='street2_delivery' placeholder="Address Line 2" />
                         </div>
                         <div class="col-lg-6">
-                            <input type='text' class='form-control' name='state_province' placeholder="Province/State" />
+                            <input type='text' class='form-control' name='state_province_delivery' placeholder="Province/State" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='city' placeholder="City" />
+                            <input type='text' class='form-control' name='city_delivery' placeholder="City" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='country' placeholder="Country" />
+                            <input type='text' class='form-control' name='country_delivery' placeholder="Country" />
                         </div>
                     </div>
                 </div>
@@ -179,22 +182,22 @@
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix form-section">
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='street' placeholder="Address Line 1" />
+                            <input type='text' class='form-control' name='street_billing' placeholder="Address Line 1" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='zip_postal' placeholder="Postal/Zip Code" />
+                            <input type='text' class='form-control' name='zip_postal_billing' placeholder="Postal/Zip Code" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='street2' placeholder="Address Line 2" />
+                            <input type='text' class='form-control' name='street2_billing' placeholder="Address Line 2" />
                         </div>
                         <div class="col-lg-6">
-                            <input type='text' class='form-control' name='state_province' placeholder="Province/State" />
+                            <input type='text' class='form-control' name='state_province_billing' placeholder="Province/State" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='city' placeholder="City" />
+                            <input type='text' class='form-control' name='city_billing' placeholder="City" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='country' placeholder="Country" />
+                            <input type='text' class='form-control' name='country_billing' placeholder="Country" />
                         </div>
                     </div>
                 </div>

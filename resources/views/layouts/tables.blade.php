@@ -18,6 +18,7 @@
 	            'colvis'
 	        ],
 	        'order': [0, 'asc'],
+	        'pageLength' : 50
 	    });
 
 	$('#table tbody').on('click', 'td.details-control', function() {
@@ -57,8 +58,7 @@
 @endsection
 
 @section ('content')
-
-<table id='table' class='display'>
+<table id='table' >
 	<thead class='header'>
 		<tr>
 			@foreach($columns as $column)
@@ -79,5 +79,4 @@
 		@endforeach
 	</tbody>
 </table>
-
 @endsection

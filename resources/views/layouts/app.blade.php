@@ -17,10 +17,9 @@
 @stop
 
 @section('body')
-<table id='mainWindow'>
-    <tbody>
-        <tr>
-            <div id='FFELogo'>
+<div class="row">
+    <div class="col-lg-12">
+        <div id='FFELogo'>
         <nav id="menu" class="navbar navbar-inverse">
             <div class="container-fluid">
                 <div class="nav navbar-nav">
@@ -64,7 +63,8 @@
                 </div>
             </div>
         </nav>
-        </tr>
+    </div>
+</div>
         <div class="row">
             <div id="advFilter" class="col-lg-2">
                     @yield('advFilter')

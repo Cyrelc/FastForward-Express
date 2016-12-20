@@ -24,7 +24,9 @@ class AccountController extends Controller {
     }
 
     public function index() {
-        return view('customers.customers');
+        $contents;
+
+        return view('customers.customers', compact('contents'));
     }
 
     public function create() {
