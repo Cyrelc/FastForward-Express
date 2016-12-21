@@ -2,6 +2,7 @@
 
 @section ('script')
 
+<script type='text/javascript' src='/js/validation.js'></script>
 <script type='text/javascript' src='/js/create_customer.js'></script>
 
 @parent
@@ -11,6 +12,9 @@
 @section ('style')
 
 <style type="text/css">
+#errors {
+    color: red;
+}
 </style>
 
 @endsection
@@ -25,28 +29,28 @@
             <div class="panel panel-default col-lg-12">
                 <div class="panel-body clearfix">
                     <!-- errors go here if submission fails -->
-                    <p id='errors'></p>
+                    <pre id='errors' class='hidden'></pre>
                     <div id="parentLocation" class="bottom15 col-lg-12 clearfix" >
-                        <select id="parent_account_id" class='form-control col-lg-4'>
-                            <option value="0" selected disabled>Select Parent Company</option>
+                        <select id="parent_account_id" class='form-control col-lg-4' name="parent_account_id">
+                            <option value="-1" selected disabled>Select Parent Company</option>
                             @foreach ($parents as $parent)
                                 <option value={{$parent->account_id}}>{{$parent->name}}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
-                        <input type='text' class="form-control" name="name" placeholder="Company Name" required/>
+                        <input type='text' class="form-control" name="name" placeholder="Company Name" />
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
-                        <select class='form-control' name="rate_id" disabled required>
-                            <option value="-1" selected disabled>Select Rate</option>
+                        <select class='form-control' name="rate_id" disabled >
+                            <option value="-1" selected disabled>Select Rate (coming soon!)</option>
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
-                        <select class='form-control' name="invoice_interval" disabled required>
+                        <select class='form-control' name="invoice_interval" >
                             <option value="-1" selected disabled>Select Invoice Interval</option>
                             <option value="weekly" >Weekly</option>
-                            <option value="bi-monthly">Twice a Month</option>
+                            <option value="semi-monthly">Twice a Month</option>
                             <option value="montly">Monthly</option>
                         </select>
                     </div>
@@ -55,7 +59,7 @@
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="commissionDiv">
                         <div class="col-lg-8 clearfix">
-                            <input class='form-control' type='text' name='commission_employee_id' placeholder="Driver" />
+                            <input class='form-control' type='text' name='commission_employee_id' placeholder="Employee" />
                         </div>
                         <div class="col-lg-4 clearfix bottom15">
                             <input class='form-control' min=0 max=100 type='number' name='commission_percent' placeholder="Commission %"/>
