@@ -10,6 +10,9 @@
 <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css' rel='stylesheet' />
 <link rel='stylesheet' type='text/css' href='/css/app.css' />
 
+<!--Global Scripts-->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
 @yield('script')
 
 @yield('style')
@@ -33,7 +36,6 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
                         <ul class="dropdown-menu">
                             <li><a href="/invoices/create">Create New Invoice</a></li>
-                            <li><a href="/invoices/manage_cycles">Manage Invoice Cycles</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">
