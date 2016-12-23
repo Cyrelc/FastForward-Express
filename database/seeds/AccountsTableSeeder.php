@@ -13,8 +13,15 @@ class AccountsTableSeeder extends Seeder
     {
         for($i = 0; $i < rand(5, 40); $i++) {
             
-            $ad = factory(App\Address::class)->create();
+            $sad = factory(App\Address::class)->create();
+
+            if (rand(0, 3) == 1) {
+                $bad = $sad;
+            } else {
+                $bad = factory(App\Address::class)->create();
+            }
             
+
             $a = factory(App\Account::class)
                 ->create([
                     "user_id" => function(){
@@ -30,7 +37,8 @@ class AccountsTableSeeder extends Seeder
                     "account_number" => $i,
                     "stripe_id" => $i,
                     "is_master" => true,
-                    "address_id" => $ad->address_id
+                    "billing_address_id" => $bad->address_id,
+                    "shipping_address_id" => $sad->address_id,
             ]);
 
             for ($j = 0; $j < rand(1, 3); $j++) {
@@ -46,8 +54,13 @@ class AccountsTableSeeder extends Seeder
             
             if ($i % 7 == 0) {
                 for($k = 0; $k < rand(1, 5); $k++){
-                    $adr = factory(App\Address::class)->create();
-                    echo $i;
+                    $sadr = factory(App\Address::class)->create();
+                    if (rand(0, 3) == 1) {
+                        $badr = $sadr;
+                    } else {
+                        $badr = $bad;
+                    }
+
                     factory(App\Account::class)
                         ->create([
                             "user_id" => function(){
@@ -63,7 +76,8 @@ class AccountsTableSeeder extends Seeder
                             "account_number" => $i . '-' . $k . '-sub',
                             "stripe_id" => $i . '-' . $k . '-sub',
                             "is_master" => false,
-                            "address_id" => $adr->address_id
+                            "billing_address_id" => $badr->address_id,
+                            "shipping_address_id" => $sadr->address_id
                     ]);
                 }
             }
