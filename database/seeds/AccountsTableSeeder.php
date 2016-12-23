@@ -12,23 +12,27 @@ class AccountsTableSeeder extends Seeder
     public function run()
     {
         for($i = 0; $i < rand(5, 40); $i++) {
-            $a = factory(App\Account::class)
-            ->create([
-                "user_id" => function(){
-                    $uid = factory(App\User::class)->create()->user_id;
-
-                    DB::table("user_roles")->insert([
-                        "user_id" => $uid,
-                        "role_id" => 3
-                    ]);
-
-                    return $uid;
-                },
-                "account_number" => $i,
-                "stripe_id" => $i,
-                "is_master" => true
-            ]);
             
+            $ad = factory(App\Address::class)->create();
+            
+            $a = factory(App\Account::class)
+                ->create([
+                    "user_id" => function(){
+                        $uid = factory(App\User::class)->create()->user_id;
+
+                        DB::table("user_roles")->insert([
+                            "user_id" => $uid,
+                            "role_id" => 3
+                        ]);
+
+                        return $uid;
+                    },
+                    "account_number" => $i,
+                    "stripe_id" => $i,
+                    "is_master" => true,
+                    "address_id" => $ad->address_id
+            ]);
+
             for ($j = 0; $j < rand(1, 3); $j++) {
                 $primary = false;
                 if ($j == 0) $primary = true;
@@ -39,26 +43,29 @@ class AccountsTableSeeder extends Seeder
                     "is_primary" => $primary
                 ]);
             }
+            
+            if ($i % 7 == 0) {
+                for($k = 0; $k < rand(1, 5); $k++){
+                    $adr = factory(App\Address::class)->create();
+                    echo $i;
+                    factory(App\Account::class)
+                        ->create([
+                            "user_id" => function(){
+                                $uid = factory(App\User::class)->create()->user_id;
 
-            if (rand(0, 10) < 9) continue;
+                                DB::table("user_roles")->insert([
+                                    "user_id" => $uid,
+                                    "role_id" => 3
+                                ]);
 
-            for ($k = 0; $k < rand(0, 5); $k++) {
-                factory(App\Account::class)
-                    ->create([
-                        "user_id" => function(){
-                            $uid = factory(App\User::class)->create()->user_id;
-
-                            DB::table("user_roles")->insert([
-                                "user_id" => $uid,
-                                "role_id" => 3
-                            ]);
-
-                            return $uid;
-                        },
-                        "account_number" => $i . '-' . $k,
-                        "stripe_id" => $i . '-' . $k,
-                        "is_master" => false
+                                return $uid;
+                            },
+                            "account_number" => $i . '-' . $k . '-sub',
+                            "stripe_id" => $i . '-' . $k . '-sub',
+                            "is_master" => false,
+                            "address_id" => $adr->address_id
                     ]);
+                }
             }
         }
     }

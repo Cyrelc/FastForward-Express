@@ -25,7 +25,6 @@ class CreateDriversTable extends Migration
 			$table->decimal('delivery_commission');
 
 			$table->unique('driver_number');
-			$table->unique('stripe_id');
 			$table->foreign('contact_id')->references('contact_id')->on('contacts');
 			$table->foreign('user_id')->references('user_id')->on('users');
         });
