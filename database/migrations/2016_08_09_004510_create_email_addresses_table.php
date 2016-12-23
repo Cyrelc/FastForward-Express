@@ -16,6 +16,10 @@ class CreateEmailAddressesTable extends Migration
             $table->increments('email_address_id');
             $table->string('type');
             $table->string('address');
+            $table->boolean('is_primary');
+            $table->unsignedInteger('contact_id');
+
+            $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });
     }
 

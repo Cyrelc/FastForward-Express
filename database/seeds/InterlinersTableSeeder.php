@@ -11,8 +11,6 @@ class InterlinersTableSeeder extends Seeder
      */
     public function run()
     {
-        for($i = 0; $i < 10; $i++) {
-            factory(App\Interliner::class)->create();
-        }
+        factory(App\Interliner::class, 10)->create();
     }
 }

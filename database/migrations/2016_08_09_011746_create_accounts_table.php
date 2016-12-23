@@ -26,7 +26,6 @@ class CreateAccountsTable extends Migration
             $table->boolean('send_bills');
             $table->boolean('is_master');
 
-			$table->unique('stripe_id');
 			$table->unique('account_number');
 			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');
 			$table->foreign('address_id')->references('address_id')->on('addresses');

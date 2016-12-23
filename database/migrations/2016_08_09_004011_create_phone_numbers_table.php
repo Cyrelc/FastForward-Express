@@ -16,6 +16,10 @@ class CreatePhoneNumbersTable extends Migration
             $table->increments('phone_number_id');
             $table->string('type');
             $table->string('phone_number');
+            $table->boolean('is_primary');
+            $table->unsignedInteger('contact_id');
+            
+            $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });
     }
 
