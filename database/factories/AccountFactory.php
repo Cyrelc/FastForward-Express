@@ -11,7 +11,6 @@ $factory->define(App\Account::class, function (Faker\Generator $faker) {
         "invoice_interval" => "monthly",
         "name" => $faker->company,
         "start_date" => $faker->dateTimeThisYear,
-        "send_bills" => $sendBills,
-        "address_id" => factory(App\Address::class)->create()->address_id
+        "send_bills" => $sendBills
     ];
 });
