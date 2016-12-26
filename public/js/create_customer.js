@@ -23,6 +23,7 @@ $('#advFilter input[type="checkbox"]').each(function(i,j) {
 });
 
 function validate() {
+	return true;
 	var errors = {string: "\0"};
 	var check = ['name', 'primary-first-name', 'primary-last-name', 'primary-phone1', 'delivery-street', 'delivery-zip-postal', 'delivery-city', 'delivery-state-province', 'delivery-country'];
 
@@ -34,19 +35,19 @@ function validate() {
 		notBlank(check[i], errors);
 	}
 
-	if ($('#secondary-contact').is(':checked')) {
-		var check = ['secondary-first-name', 'secondary-last-name', 'secondary-phone1'];
-		for (var i = 0; i < check.length; i++) {
-			notBlank(check[i], errors);
-		}
-	}
+	// if ($('#secondary-contact').is(':checked')) {
+	// 	var check = ['secondary-first-name', 'secondary-last-name', 'secondary-phone1'];
+	// 	for (var i = 0; i < check.length; i++) {
+	// 		notBlank(check[i], errors);
+	// 	}
+	// }
 
-	if ($('#billing-address').is(':checked')) {
-		var check = ['billing-street', 'billing-zip-postal', 'billing-city', 'billing-state-province', 'billing-country'];
-		for (var i = 0; i < check.length; i++) {
-			notBlank(check[i], errors);
-		}
-	}
+	// if ($('#billing-address').is(':checked')) {
+	// 	var check = ['billing-street', 'billing-zip-postal', 'billing-city', 'billing-state-province', 'billing-country'];
+	// 	for (var i = 0; i < check.length; i++) {
+	// 		notBlank(check[i], errors);
+	// 	}
+	// }
 
 //validate Parent Company ID
 	if ($('#sub-location').is(':checked') && $('#parent-account-id').find(":selected").val() < 0) {

@@ -168,7 +168,7 @@
                     <h3 class="panel-title"><input type='checkbox' id='billing-address' onclick="enableBody(this.id, 'billing-body')" />Billing Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
+                    <div class="form-group clearfix">
                         <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control billing-body' name='billing-street' placeholder="Address Line 1" disabled/>
                         </div>

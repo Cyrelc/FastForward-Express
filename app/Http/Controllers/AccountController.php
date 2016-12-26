@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use DB;
 
 use App\Http\Requests;
 use App\Account;
@@ -52,45 +53,34 @@ class AccountController extends Controller {
     public function store(Request $req, Account $acct) {
         //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
         $account = new Account();
-        $shipping = new Address();
-        $contact = new Contact();
 
-        $account->rate_type_id = 0;
-        $account->parent_account_id = $req->parent_account_id;
-        //address stuff
-        $account->account_number = $req->account_number;
-        $account->invoice_interval = $req->invoice_interval;
-        //$account->stripe_id = new stripeID;
-        $account->name = $req->name;
-        // $account->start_date = date_timestamp_get();
-        $account->send_bills = true;
-        $account->is_master = false;
-        
+        $delivery = ['street'=>$req->input('delivery-street'),
+                     'street2'=>$req->input('delivery-street2'),
+                     'city'=>$req->input('delivery-city'),
+                     'zip_postal'=>$req->input('delivery-zip-postal'),
+                     'state_province'=>$req->input('delivery-state-province'),
+                     'country'=>$req->input('delivery-country')];
+        $delivery_id = DB::table('addresses')->insertGetId($delivery,'address_id');
 
-        /*
-        //foreach contact
-        $contact = new Contact();
-        $phone1 = new PhoneNumber();
-        //if phone2 is valid
-        $email1 = new EmailAdress();
-        //if email 2 is valid
+        $primary_contact = ['first_name'=>$req->input(''),
+                           'last_name'=>$req->input('')];
+        $primary_id = DB::table('contacts')->insertGetId($primary_contact. 'contact_id');
 
-        //if Contact does not already exist
-        $contact->first_name = $req->first_name1;
-        $contact->last_name = $req->last_name1;
-        $phone1->phone_number = $req->primary_phone1;
+        $primary_phone_1 = [//'type'=>$req->input('primary-phone1-type'),
+                            'phone_number'=>$req->input('primary-phone1'),
+                            'is_primary'=>false,
+                            'contact_id'=>$primary_id];
 
-        //submit contact, emails, and phone #s
-        $relation = new ContactEmailAddress();
-        //set relation(s)
-        //submit
-        $relation = new ContactPhoneNumber();
-        //set relation(s)
-        //submit
-        */
+        if ($req->input('billing-street') != null) {
+            $billing = ['street'=>$req->input('billing-street'),
+                        'street2'=>$req->input('billing-street2'),
+                        'city'=>$req->input('billing-city'),
+                        'zip_postal'=>$req->input('billing-zip-postal'),
+                        'state_province'=>$req->input('billing-state-province'),
+                        'country'=>$req->input('billing-country')];
+            $billing_id = DB::table('addresses')->insertGetId($billing, 'address_id');
+        }
 
-        $account->name = $req->name;
-        $account->rate_type_id = $req->rate_type_id;
-        return $req;
+
     }
 }
