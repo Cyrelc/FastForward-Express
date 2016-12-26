@@ -32,7 +32,7 @@ class AccountController extends Controller {
     public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
-        $parents = Account::where('is_master', 'true')->pluck('name', 'account_id');
+        $parents =  []; //Account::where('is_master', 'true')->pluck('name', 'account_id');
 
         return view('customers.create_customer', compact('parents'));
     }
@@ -52,6 +52,21 @@ class AccountController extends Controller {
     public function store(Request $req, Account $acct) {
         //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
         $account = new Account();
+        $shipping = new Address();
+        $contact = new Contact();
+
+        $account->rate_type_id = 0;
+        $account->parent_account_id = $req->parent_account_id;
+        //address stuff
+        $account->account_number = $req->account_number;
+        $account->invoice_interval = $req->invoice_interval;
+        //$account->stripe_id = new stripeID;
+        $account->name = $req->name;
+        // $account->start_date = date_timestamp_get();
+        $account->send_bills = true;
+        $account->is_master = false;
+        
+
         /*
         //foreach contact
         $contact = new Contact();

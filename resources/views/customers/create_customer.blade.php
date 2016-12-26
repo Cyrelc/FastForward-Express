@@ -65,6 +65,9 @@
                             <input class='form-control' min=0 max=100 type='number' name='commission_percent' placeholder="Commission %"/>
                         </div>
                     </div>
+                    <div class="col-lg-4 clearfix bottom15" id="old_account">
+                        <input class='form-control' type='number' name='account_number' placeholder="Previous Account Number" />
+                    </div>
                     <div class="col-lg-4 clearfix bottom15" id="customDiv">
                         <span><input type='text' class="form-control" name='custom_tracker' placeholder="Custom Div Name" /></span>
                         <span><label><input type='checkbox' class="form-control clearfix" name='custom_tracker_sortable' />Sortable?</label></span>
@@ -104,27 +107,27 @@
             <!--Secondary Contact Panel -->
             <div class='col-lg-6 panel panel-default'>
                 <div class="col-lg-12 panel-heading">
-                    <h3 class='panel-title'>Secondary Contact</h3>
+                    <h3 class='panel-title'><input type="checkbox" id="secondary_contact" onclick="enableBody(this.id, 'sec_con_body')">Secondary Contact</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="clearfix form-section">
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='first_name2' placeholder='First Name' />
+                            <input type='text' class='form-control sec_con_body' name='first_name2' placeholder='First Name' disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='last_name2' placeholder='Last Name' />
+                            <input type='text' class='form-control sec_con_body' name='last_name2' placeholder='Last Name' disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" class='form-control' name='primary_phone2' placeholder='Primary Phone' />
+                            <input type="tel" class='form-control sec_con_body' name='primary_phone2' placeholder='Primary Phone' disabled/>
                         </div>
                         <div class='col-lg-6 clearfix bottom15'>
-                            <input class="form-control" name='secondary_phone2' placeholder='Secondary Phone' />
+                            <input class="form-control sec_con_body" name='secondary_phone2' placeholder='Secondary Phone' disabled/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='primary_email2' placeholder='Primary Email' />
+                            <input type='email' class='form-control sec_con_body' name='primary_email2' placeholder='Primary Email' disabled/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='secondary_email2' placeholder='SecondaryEmail' />
+                            <input type='email' class='form-control sec_con_body' name='secondary_email2' placeholder='SecondaryEmail' disabled/>
                         </div>
                     </div>
                 </div>
@@ -159,30 +162,30 @@
                     </div>
                 </div>
             </div>
-
+            <!-- Billing address panel -->
             <div class="col-lg-6 panel panel-default">
                 <div class="col-lg-12 panel-heading">
-                    <span><h3 class="panel-title">Billing Address</h3></span>
+                    <h3 class="panel-title"><input type='checkbox' id='billing_address' onclick="enableBody(this.id, 'billing_body')" />Billing Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
+                    <div id="billing_body" class="form-group clearfix form-section">
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='street_billing' placeholder="Address Line 1" />
+                            <input type='text' class='form-control billing_body' name='street_billing' placeholder="Address Line 1" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='zip_postal_billing' placeholder="Postal/Zip Code" />
+                            <input type='text' class='form-control billing_body' name='zip_postal_billing' placeholder="Postal/Zip Code" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='street2_billing' placeholder="Address Line 2" />
+                            <input type='text' class='form-control billing_body' name='street2_billing' placeholder="Address Line 2" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='state_province_billing' placeholder="Province/State" />
+                            <input type='text' class='form-control billing_body' name='state_province_billing' placeholder="Province/State" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='city_billing' placeholder="City" />
+                            <input type='text' class='form-control billing_body' name='city_billing' placeholder="City" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='country_billing' placeholder="Country" />
+                            <input type='text' class='form-control billing_body' name='country_billing' placeholder="Country" disabled/>
                         </div>
                     </div>
                 </div>
@@ -220,6 +223,9 @@
     </div>
     <div class="checkbox">
         <label><input id="canBeParent" type="checkbox" value="">Can be Parent</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="existing_account" type="checkbox" name="" value="" data-div="old_account">Previous Account</label>
     </div>
 </div>
 @endsection
