@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField, #existing_account').change(function() {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
 		}
@@ -8,7 +8,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('#subLocation, #separateBillingAddr, #giveDiscount, #giveCommission, #giveDriverCommission, #balanceOwingInterest, #gstExempt, #useCustomField, #existing_account').each(function (i, e) {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
 });
@@ -24,7 +24,7 @@ $('#advFilter input[type="checkbox"]').each(function(i,j) {
 
 function validate() {
 	var errors = {string: "\0"};
-	var check = ['name', 'first_name1', 'last_name1', 'primary_phone1', 'street_delivery', 'zip_postal_delivery', 'city_delivery', 'state_province_delivery', 'country_delivery'];
+	var check = ['name', 'primary-first-name', 'primary-last-name', 'primary-phone1', 'delivery-street', 'delivery-zip-postal', 'delivery-city', 'delivery-state-province', 'delivery-country'];
 
 	for (var i = 0; i < check.length; i++) {
 		$('[name="'+check[i]+'"]').parent().removeClass('has-error');
@@ -34,45 +34,45 @@ function validate() {
 		notBlank(check[i], errors);
 	}
 
-	if ($('#secondary_contact').is(':checked')) {
-		var check = ['first_name2', 'last_name2', 'primary_phone2'];
+	if ($('#secondary-contact').is(':checked')) {
+		var check = ['secondary-first-name', 'secondary-last-name', 'secondary-phone1'];
 		for (var i = 0; i < check.length; i++) {
 			notBlank(check[i], errors);
 		}
 	}
 
-	if ($('#billing_address').is(':checked')) {
-		var check = ['street_billing', 'zip_postal_billing', 'city_billing', 'state_province_billing', 'country_billing'];
+	if ($('#billing-address').is(':checked')) {
+		var check = ['billing-street', 'billing-zip-postal', 'billing-city', 'billing-state-province', 'billing-country'];
 		for (var i = 0; i < check.length; i++) {
 			notBlank(check[i], errors);
 		}
 	}
 
 //validate Parent Company ID
-	if ($('#subLocation').is(':checked') && $('#parent_account_id').find(":selected").val() < 0) {
+	if ($('#sub-location').is(':checked') && $('#parent-account-id').find(":selected").val() < 0) {
 		errors.string += "Please select a valid Parent Account\n";
-		$('#parent_account_id').parent().addClass('has-error');
+		$('#parent-account-id').parent().addClass('has-error');
 	}
 
-	if ($('#giveDiscount').is(':checked') && $('[name="discount"]').val().length == 0) {
+	if ($('#give-discount').is(':checked') && $('[name="discount"]').val().length == 0) {
 		errors.string += "Discount field cannot be empty\n";
 		$('[name="discount"]').parent().addClass('has-error');
 	}
 
-	if ($('#giveCommission').is(':checked') && ($('[name="commission_employee_id"]').val().length == 0 || $('[name="commission_percent"]').val().length == 0)) {
+	if ($('#give-commission').is(':checked') && ($('[name="commission-employee-id"]').val().length == 0 || $('[name="commission-percent"]').val().length == 0)) {
 		errors.string += "Both commission employee and amount must not be empty\n";
-		$('[name="commission_employee_id"]').parent().addClass('has-error');
-		$('[name="commission_percent"]').parent().addClass('has-error');
+		$('[name="commission-employee-id"]').parent().addClass('has-error');
+		$('[name="commission-percent"]').parent().addClass('has-error');
 	}
 
-	if ($('[name="invoice_interval"]').find(':selected').val() < 0) {
+	if ($('[name="invoice-interval"]').find(':selected').val() < 0) {
 		errors.string += "Invalid invoice interval\n";
-		$('[name="invoice_interval"]').parent().addClass('has-error');
+		$('[name="invoice-interval"]').parent().addClass('has-error');
 	}
 
-	if ($('[name="existing_account"]').is(':checked') && $('[name="account_number"]').val().length == 0) {
+	if ($('[name="existing-account"]').is(':checked') && $('[name="account-number"]').val().length == 0) {
 		errors.string += "Account number cannot be empty\n";
-		$('[name="account_number"]').parent().addClass('has-error');
+		$('[name="account-number"]').parent().addClass('has-error');
 	}
 
 	if (errors.string.length == 0) {

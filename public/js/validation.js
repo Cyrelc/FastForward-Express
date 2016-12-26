@@ -32,7 +32,7 @@ function validatePhone(name, errors) {
 	return true;
 }
 
-function validateName(name, modifiers){
+function validateName(name, modifiers) {
 	//for each modifier in modifiers
 	//switch statement, base case to succeed in case incorrect modifier is passed.
 }
