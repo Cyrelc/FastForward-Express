@@ -3,7 +3,7 @@
 @section ('script')
 
 <script type='text/javascript' src='/js/validation.js'></script>
-<script type='text/javascript' src='/js/create_customer.js'></script>
+<script type='text/javascript' src='/js/create_account.js'></script>
 
 @parent
 
@@ -20,8 +20,8 @@
 @endsection
 
 @section ('content')  
-<h2>New Customer</h2>
-<form onsubmit="return validate()" method="POST" action="/customers/store">
+<h2>New Account</h2>
+<form onsubmit="return validate()" method="POST" action="/accounts/store">
 <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <div class="well" style="overflow: hidden">
         <!--Basic Information Panel-->
@@ -34,7 +34,7 @@
                         <select id="parent-account-id" class='form-control col-lg-4' name="parent-account-id">
                             <option value="-1" selected disabled>Select Parent Company</option>
                             @foreach ($parents as $parent)
-                                <option value={{$parent->account-id}}>{{$parent->name}}</option>
+                                <option value='{{$parent->account-id}}'>{{$parent->name}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -165,7 +165,7 @@
             <!-- Billing address panel -->
             <div class="col-lg-6 panel panel-default">
                 <div class="col-lg-12 panel-heading">
-                    <h3 class="panel-title"><input type='checkbox' id='billing-address' onclick="enableBody(this.id, 'billing-body')" />Billing Address</h3>
+                    <h3 class="panel-title"><input type='checkbox' id='billing-address' name='billing-address' onclick="enableBody(this.id, 'billing-body')" />Billing Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix">
@@ -219,7 +219,7 @@
         <label><input id="gst-exempt" type="checkbox" value="">Is GST Exempt</label>
     </div>
     <div class="checkbox">
-        <label><input id="can-be-parent" type="checkbox" value="">Can be Parent</label>
+        <label><input id="can-be-parent" type="checkbox" name='can-be-parent' value="">Can be Parent</label>
     </div>
     <div class="checkbox">
         <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account">Previous Account</label>
