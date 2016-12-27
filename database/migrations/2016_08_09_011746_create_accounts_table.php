@@ -20,7 +20,7 @@ class CreateAccountsTable extends Migration
             $table->unsignedInteger('shipping_address_id');
             $table->string('account_number')->nullable();
             $table->string('invoice_interval');
-            $table->string('stripe_id');
+            $table->string('stripe_id')->nullable();
             $table->string('name');
             $table->timestamp('start_date');
             $table->boolean('send_bills');

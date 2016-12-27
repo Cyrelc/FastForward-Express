@@ -55,7 +55,8 @@ class AccountController extends Controller {
 
         //BEGIN primary Contact
         $primary_contact = ['first_name'=>$req->input('primary-first-name'),
-                           'last_name'=>$req->input('primary-last-name')];
+                           'last_name'=>$req->input('primary-last-name'),
+                           'address_id'=>null];
         $primary_id = DB::table('contacts')->insertGetId($primary_contact, 'contact_id');
 
         $primary_phone1 = [//'type'=>$req->input('primary-phone1-type'),
@@ -84,10 +85,12 @@ class AccountController extends Controller {
             DB::table('email_addresses')->insert($primary_email2);
         }
         //END primary contact
+        $secondary_id = null;
         //BEGIN secondary contact
         if ($req->input('secondary-first-name') != null) {
             $secondary_contact = ['first_name'=>$req->input('secondary-first-name'),
-                                  'last_name'=>$req->input('secondary-last-name')];
+                                  'last_name'=>$req->input('secondary-last-name'),
+                                  'address_id'=>null];
             $secondary_id = DB::table('contacts')->insertGetId($secondary_contact, 'contact_id');
 
             $secondary_phone1 = [//'type'=>$req->input('secondary-phone1-type'),
@@ -157,8 +160,19 @@ class AccountController extends Controller {
                     'start_date'=>time(),
                     'send_bills'=>true,
                     'is_master'=>false,];
-        if ($req->input(''))
-        DB::table('accounts')->insert($account);
+        $account_id = DB::table('accounts')->insertGetId($account, 'account_id');
+
+        $primary_account_link = ['account_id'=>$account_id,
+                                 'contact_id'=>$primary_id,
+                                 'is_primary'=>true];
+        DB::table('account_contacts')->insert($primary_account_link);
+
+        if ($secondary_id != null) {
+            $secondary_account_link = ['account_id'=>$account_id,
+                                       'contact_id'=>$secondary_id,
+                                       'is_primary'=>false];
+            DB::table('account_contacts')->insert($secondary_account_link);
+        }
         //END account
         return redirect()->action('AccountController@create');
     }

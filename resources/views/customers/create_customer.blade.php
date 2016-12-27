@@ -107,7 +107,7 @@
             <!--Secondary Contact Panel -->
             <div class='col-lg-6 panel panel-default'>
                 <div class="col-lg-12 panel-heading">
-                    <h3 class='panel-title'><input type="checkbox" id="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')">Secondary Contact</h3>
+                    <h3 class='panel-title'><input type="checkbox" id="secondary-contact" name="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')">Secondary Contact</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="clearfix form-section">
