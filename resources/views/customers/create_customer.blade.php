@@ -49,9 +49,9 @@
                     <div class="col-lg-4 clearfix bottom15">
                         <select class='form-control' name="invoice-interval" >
                             <option value="-1" selected disabled>Select Invoice Interval</option>
-                            <option value="weekly" >Weekly</option>
+                            <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
-                            <option value="montly">Monthly</option>
+                            <option value="monthly">Monthly</option>
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="discount-div">

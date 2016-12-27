@@ -14,6 +14,7 @@ function enableBody(me, bodyName) {
 		$('.' + bodyName).prop('disabled', false);
 	}
 	else {
+		$('.' + bodyName).val('');
 		$('.' + bodyName).prop('disabled', 'disabled');
 	}
 };
