@@ -27,7 +27,7 @@ class AccountController extends Controller {
     public function index() {
         $contents = Account::all();
 
-        return view('customers.customers', compact('contents'));
+        return view('accounts.accounts', compact('contents'));
     }
 
     public function create() {
@@ -35,7 +35,7 @@ class AccountController extends Controller {
         //Check permissions
         $parents =  []; //Account::where('is_master', 'true')->pluck('name', 'account_id');
 
-        return view('customers.create_customer', compact('parents'));
+        return view('accounts.create_account', compact('parents'));
     }
 
     public function edit($id) {
