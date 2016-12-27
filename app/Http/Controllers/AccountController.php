@@ -27,7 +27,7 @@ class AccountController extends Controller {
     public function index() {
         $contents = Account::all();
 
-        return view('customers.customers', compact('contents'));
+        return view('accounts.accounts', compact('contents'));
     }
 
     public function create() {
@@ -35,7 +35,7 @@ class AccountController extends Controller {
         //Check permissions
         $parents =  []; //Account::where('is_master', 'true')->pluck('name', 'account_id');
 
-        return view('customers.create_customer', compact('parents'));
+        return view('accounts.create_account', compact('parents'));
     }
 
     public function edit($id) {
@@ -87,7 +87,7 @@ class AccountController extends Controller {
         //END primary contact
         $secondary_id = null;
         //BEGIN secondary contact
-        if ($req->input('secondary-first-name') != null) {
+        if ($req->input('secondary-contact') == 'on') {
             $secondary_contact = ['first_name'=>$req->input('secondary-first-name'),
                                   'last_name'=>$req->input('secondary-last-name'),
                                   'address_id'=>null];
@@ -153,8 +153,7 @@ class AccountController extends Controller {
                     'billing_address_id'=>$billing_id,
                     'shipping_address_id'=>$delivery_id,
                     'account_number'=>$old_acct,
-                    // 'invoice_interval'=>$req->input('invoice-interval'),
-                    'invoice_interval'=>-1,
+                    'invoice_interval'=>$req->input('invoice-interval'),
                     'stripe_id'=>40,
                     'name'=>$req->input('name'),
                     'start_date'=>time(),

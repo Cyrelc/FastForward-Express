@@ -35,14 +35,14 @@ Route::group(
                 return view('welcome');
             });
 
+            Route::get('/accounts', 'AccountController@index');
+            Route::get('/accounts/create', 'AccountController@create');
+            Route::post('/accounts/store', 'AccountController@store');
+
             Route::resource('/bills', 'BillController',
                     ['only' => ['index', 'create', 'edit', 'store']]
             );
             Route::post('/bills/get', 'BillController@getData');
-
-            Route::get('/customers', 'AccountController@index');
-            Route::get('/customers/create', 'AccountController@create');
-            Route::post('/customers/store', 'AccountController@store');
 
             Route::get('/drivers', 'DriverController@index');
             Route::get('/drivers/create', 'DriverController@create');

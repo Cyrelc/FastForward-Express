@@ -39,9 +39,9 @@
                         </ul>
                     </li>
                     <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/customers">Customers</a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/accounts">Accounts</a>
                         <ul class="dropdown-menu">
-                            <li><a href="/customers/create">Create New Customer</a></li>
+                            <li><a href="/accounts/create">Create New Account</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">
