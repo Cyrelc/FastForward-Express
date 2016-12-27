@@ -16,7 +16,7 @@ class CreateContactsTable extends Migration
             $table->increments('contact_id');
             $table->string('first_name');
             $table->string('last_name');
-            $table->unsignedInteger('address_id');
+            $table->unsignedInteger('address_id')->nullable();
             
             $table->foreign('address_id')->references('address_id')->on('addresses');
         });

@@ -24,16 +24,16 @@ class AccountsTableSeeder extends Seeder
 
             $a = factory(App\Account::class)
                 ->create([
-                    "user_id" => function(){
-                        $uid = factory(App\User::class)->create()->user_id;
+                    // "user_id" => function(){
+                    //     $uid = factory(App\User::class)->create()->user_id;
 
-                        DB::table("user_roles")->insert([
-                            "user_id" => $uid,
-                            "role_id" => 3
-                        ]);
+                    //     DB::table("user_roles")->insert([
+                    //         "user_id" => $uid,
+                    //         "role_id" => 3
+                    //     ]);
 
-                        return $uid;
-                    },
+                    //     return $uid;
+                    // },
                     "account_number" => $i,
                     "stripe_id" => $i,
                     "is_master" => true,
@@ -63,16 +63,16 @@ class AccountsTableSeeder extends Seeder
 
                     factory(App\Account::class)
                         ->create([
-                            "user_id" => function(){
-                                $uid = factory(App\User::class)->create()->user_id;
+                            // "user_id" => function(){
+                            //     $uid = factory(App\User::class)->create()->user_id;
 
-                                DB::table("user_roles")->insert([
-                                    "user_id" => $uid,
-                                    "role_id" => 3
-                                ]);
+                            //     DB::table("user_roles")->insert([
+                            //         "user_id" => $uid,
+                            //         "role_id" => 3
+                            //     ]);
 
-                                return $uid;
-                            },
+                            //     return $uid;
+                            // },
                             "account_number" => $i . '-' . $k . '-sub',
                             "stripe_id" => $i . '-' . $k . '-sub',
                             "is_master" => false,

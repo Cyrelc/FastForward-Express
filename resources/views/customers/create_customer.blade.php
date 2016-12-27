@@ -49,9 +49,9 @@
                     <div class="col-lg-4 clearfix bottom15">
                         <select class='form-control' name="invoice-interval" >
                             <option value="-1" selected disabled>Select Invoice Interval</option>
-                            <option value="weekly" >Weekly</option>
+                            <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
-                            <option value="montly">Monthly</option>
+                            <option value="monthly">Monthly</option>
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="discount-div">
@@ -107,7 +107,7 @@
             <!--Secondary Contact Panel -->
             <div class='col-lg-6 panel panel-default'>
                 <div class="col-lg-12 panel-heading">
-                    <h3 class='panel-title'><input type="checkbox" id="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')">Secondary Contact</h3>
+                    <h3 class='panel-title'><input type="checkbox" id="secondary-contact" name="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')">Secondary Contact</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="clearfix form-section">
@@ -168,7 +168,7 @@
                     <h3 class="panel-title"><input type='checkbox' id='billing-address' onclick="enableBody(this.id, 'billing-body')" />Billing Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group clearfix form-section">
+                    <div class="form-group clearfix">
                         <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control billing-body' name='billing-street' placeholder="Address Line 1" disabled/>
                         </div>

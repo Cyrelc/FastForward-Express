@@ -26,9 +26,7 @@ function validate() {
 	var errors = {string: "\0"};
 	var check = ['name', 'primary-first-name', 'primary-last-name', 'primary-phone1', 'delivery-street', 'delivery-zip-postal', 'delivery-city', 'delivery-state-province', 'delivery-country'];
 
-	for (var i = 0; i < check.length; i++) {
-		$('[name="'+check[i]+'"]').parent().removeClass('has-error');
-	}
+	$(':input').parent().removeClass('has-error');
 
 	for (var i = 0; i < check.length; i++) {
 		notBlank(check[i], errors);
@@ -75,7 +73,7 @@ function validate() {
 		$('[name="account-number"]').parent().addClass('has-error');
 	}
 
-	if (errors.string.length == 0) {
+	if (errors.string == "\0") {
 		return true;
 	}
 	$('#errors').removeClass('hidden');
