@@ -58,25 +58,27 @@
 @endsection
 
 @section ('content')
-<table id='table' >
-	<thead class='header'>
-		<tr>
-			@foreach($columns as $column)
-				<td>{{ $column }}</td>
-			@endforeach
-				<td class='hidden'></td>
-		</tr>
-	</thead>
-
-	<tbody>
-		@foreach($contents as $content)
+<div class='right25'>
+	<table id='table' >
+		<thead class='header'>
 			<tr>
- 			@foreach($variables as $variable)
-				<td class='details-control'>{{$content->$variable}}</td>
-			@endforeach
-				<td class='hidden'>{{json_encode($content)}}</td>
+				@foreach($columns as $column)
+					<td>{{ $column }}</td>
+				@endforeach
+					<td class='hidden'></td>
 			</tr>
-		@endforeach
-	</tbody>
-</table>
+		</thead>
+
+		<tbody>
+			@foreach($contents as $content)
+				<tr>
+	 			@foreach($variables as $variable)
+					<td class='details-control'>{{$content->$variable}}</td>
+				@endforeach
+					<td class='hidden'>{{json_encode($content)}}</td>
+				</tr>
+			@endforeach
+		</tbody>
+	</table>
+</div>
 @endsection
