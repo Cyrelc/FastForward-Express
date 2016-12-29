@@ -6,12 +6,13 @@ use Illuminate\Http\Request;
 use DB;
 
 use App\Http\Requests;
-use App\Account;
 use App\Contact;
 use App\PhoneNumber;
 use App\EmailAddress;
 use App\Address;
 use App\AccountContact;
+
+use App\Http\Models\Account;
 
 class AccountController extends Controller {
     public function __construct() {
@@ -25,11 +26,8 @@ class AccountController extends Controller {
     }
 
     public function index() {
-    $contents = DB::select('select account_id, name, rate_type_id, parent_account_id, billing_address_id, shipping_address_id, account_number, invoice_interval, stripe_id, start_date, send_bills, is_master, shipping_street, shipping_street2, shipping_city, shipping_zip_postal, shipping_state_province, shipping_country, street as billing_street, street2 as billing_street2, city as billing_city, zip_postal as billing_zip_postal, state_province as billing_state_province, country as billing_country
-                            from (select account_id, name, rate_type_id, parent_account_id, billing_address_id, shipping_address_id, account_number, invoice_interval, stripe_id, start_date, send_bills, is_master, street as shipping_street, street2 as shipping_street2, city as shipping_city, zip_postal as shipping_zip_postal, state_province as shipping_state_province, country as shipping_country
-                                from accounts
-                                inner join addresses on accounts.shipping_address_id = addresses.address_id) as temp
-                            left join addresses on temp.billing_address_id = addresses.address_id');
+        $factory = new Account\AccountModelFactory();
+        $contents = $factory->List();
 
         return view('accounts.accounts', compact('contents'));
     }
@@ -58,6 +56,9 @@ class AccountController extends Controller {
         //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
 
         //BEGIN primary Contact
+        $rules = array();
+        $val = new Validator();
+
         $primary_contact = ['first_name'=>$req->input('primary-first-name'),
                            'last_name'=>$req->input('primary-last-name'),
                            'address_id'=>null];
