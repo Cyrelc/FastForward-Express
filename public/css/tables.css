@@ -1,3 +1,23 @@
 .buttons-colvis{
 	margin-left: 20px;
 }
+
+.right25 {
+	margin-right:25px;
+}
+
+#table tr.odd {
+	background-color: aliceblue;
+}
+
+#table tr.even {
+	background-color: lavender;
+}
+
+#table tr.odd:hover {
+	background-color: lightgoldenrodyellow;
+}
+
+#table tr.even:hover {
+	background-color: lightgoldenrodyellow
+}
