@@ -3,8 +3,8 @@
 @section ('variables')
 
 <?php
-	$columns = ['ID', 'Parent ID', 'Name', 'Address','Contact'];
-	$variables = ['account_id', 'id', 'name', 'address','contact_name'];
+	$columns = ['ID', 'Parent ID', 'Name', 'Shipping Street', 'Shipping City', 'Shipping Province', 'Invoice Interval', 'Start Date'];
+	$variables = ['account_id', 'parent_account_id', 'name', 'shipping_street', 'shipping_city', 'shipping_state_province', 'invoice_interval', 'start_date'];
 //	$contents = (new \app\Http\Controllers\AccountController)->getData(['start_date'=>'2013-01-01 00:00:00']);
 //	if ($contents['success']){
 //		$contents = $contents['data'];
