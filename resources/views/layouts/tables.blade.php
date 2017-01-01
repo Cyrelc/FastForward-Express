@@ -85,28 +85,31 @@
 <?php 
 	function getValue($con, $var) {
 		if (is_array($var)) {
-            $var1 = $var[0];
-            $var2 = $var[1];
+			switch(count($var)) {
+				case 2:
+				    $var0 = $var[0];
+				    $var1 = $var[1];
 
-            if (is_array($var2)) {
-				$var3 = $var2[0];
-				$var4 = $var2[1];
+				    return $con->$var0->$var1;
+				    break;
 
-				if (is_array($var4)) {
-                    $var5 = $var4[0];
-                    $var6 = $var4[1];
+				case 3:
+                    $var0 = $var[0];
+                    $var1 = $var[1];
+                    $var2 = $var[2];
 
-                    if (is_array($var6)) {
-                        //TODO, if needed: 4 layers
-					} else {
-                        return $con->$var1->$var2->$var3->$var4->$var5->$var6;
-					}
-				} else {
-				    return $con->$var1->$var2->$var3->$var4;
-				}
-            } else {
-				return $con->$var1->$var2;
-            }
+                    return $con->$var0->$var1->$var2;
+				    break;
+
+				case 4:
+                    $var0 = $var[0];
+                    $var1 = $var[1];
+                    $var2 = $var[2];
+                    $var3 = $var[3];
+
+                    return $con->$var0->$var1->$var2->$var3;
+				    break;
+			}
 		} else {
             return $con->$var;
 		}
