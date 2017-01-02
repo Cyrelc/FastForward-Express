@@ -41,4 +41,15 @@
 			return $model;
 		}
 
+		public function GetById($id) {
+            $acctsRepo = new Repos\AccountRepo();
+            $addrRepo = new Repos\AddressRepo();
+
+            $model = new AccountViewModel();
+            $a = $acctsRepo->GetById($id);
+            $model->account = $a;
+            $model->contacts = $a->contacts()->get();
+
+            return $model;
+        }
 	}

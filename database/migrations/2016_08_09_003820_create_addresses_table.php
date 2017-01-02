@@ -21,6 +21,9 @@ class CreateAddressesTable extends Migration
             $table->string('state_province');
             $table->string('country');
             $table->boolean('is_primary');
+            $table->unsignedInteger('contact_id')->nullable();
+
+            $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });
     }
 
