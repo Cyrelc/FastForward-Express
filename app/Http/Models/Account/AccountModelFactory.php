@@ -7,13 +7,13 @@
 
 	class AccountModelFactory {
 
-		public function List() {
+		public function ListAll() {
 			$model = new AccountsModel();
 
 			$acctsRepo = new Repos\AccountRepo();
 			$addrRepo = new Repos\AddressRepo();
 
-			$accounts = $acctsRepo->List();
+			$accounts = $acctsRepo->ListAll();
 
 			$avms = array();
 
@@ -23,8 +23,7 @@
 				$avm->account = $a;
 				$addr = $addrRepo->GetById($a->shipping_address_id);
 				$avm->address = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
-				//TODO: Get contacts
-				$avm->contacts = array();
+				$avm->contacts = $a->contacts()->get();
 
 				array_push($avms, $avm);
 			}

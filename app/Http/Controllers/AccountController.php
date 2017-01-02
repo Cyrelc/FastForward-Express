@@ -27,7 +27,7 @@ class AccountController extends Controller {
 
     public function index() {
         $factory = new Account\AccountModelFactory();
-        $contents = $factory->List();
+        $contents = $factory->ListAll();
 
         return view('accounts.accounts', compact('contents'));
     }

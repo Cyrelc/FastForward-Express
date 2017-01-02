@@ -5,7 +5,7 @@
 
 	class AccountRepo {
 
-		public function List() {
+		public function ListAll() {
 			$accounts = Account::All();
 
 			return $accounts;
