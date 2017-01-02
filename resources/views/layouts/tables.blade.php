@@ -72,9 +72,9 @@
 		<tbody>
 			@foreach($contents as $content)
 				<tr>
-	 			@foreach($variables as $variable)
-					<td class='details-control'>{{$content->$variable}}</td>
-				@endforeach
+					@foreach($variables as $variable)
+						<td class='details-control'>{{getValue($content, $variable)}}</td>
+					@endforeach
 					<td class='hidden'>{{json_encode($content)}}</td>
 				</tr>
 			@endforeach
@@ -82,3 +82,36 @@
 	</table>
 </div>
 @endsection
+<?php 
+	function getValue($con, $var) {
+		if (is_array($var)) {
+			switch(count($var)) {
+				case 2:
+				    $var0 = $var[0];
+				    $var1 = $var[1];
+
+				    return $con->$var0->$var1;
+				    break;
+
+				case 3:
+                    $var0 = $var[0];
+                    $var1 = $var[1];
+                    $var2 = $var[2];
+
+                    return $con->$var0->$var1->$var2;
+				    break;
+
+				case 4:
+                    $var0 = $var[0];
+                    $var1 = $var[1];
+                    $var2 = $var[2];
+                    $var3 = $var[3];
+
+                    return $con->$var0->$var1->$var2->$var3;
+				    break;
+			}
+		} else {
+            return $con->$var;
+		}
+	}
+?>

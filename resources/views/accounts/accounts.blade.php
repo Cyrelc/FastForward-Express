@@ -3,12 +3,9 @@
 @section ('variables')
 
 <?php
-	$columns = ['ID', 'Parent ID', 'Name', 'Shipping Street', 'Shipping City', 'Shipping Province', 'Invoice Interval', 'Start Date'];
-	$variables = ['account_id', 'parent_account_id', 'name', 'shipping_street', 'shipping_city', 'shipping_state_province', 'invoice_interval', 'start_date'];
-//	$contents = (new \app\Http\Controllers\AccountController)->getData(['start_date'=>'2013-01-01 00:00:00']);
-//	if ($contents['success']){
-//		$contents = $contents['data'];
-//	}
+	$contents = $contents->accounts;
+	$columns = ['ID', 'Parent ID', 'Name', 'Address', 'Invoice Interval', 'Start Date'];
+	$variables = [['account', 'account_id'], ['account', 'parent_account_id'], ['account', 'name'], 'address'];//, 'id', 'name', 'address','contact_name'];
 ?>
 
 @endsection

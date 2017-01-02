@@ -4,6 +4,20 @@
 
 <script type='text/javascript' src='/js/validation.js'></script>
 <script type='text/javascript' src='/js/create_account.js'></script>
+<script type='text/javascript'>
+    $(document).ready(function(){
+        //On failed validation, redisplay form correctly
+        @if(old('secondary-contact') == 'on')
+            $('#secondary-contact').prop('checked', 'true');
+            enableBody('secondary-contact', 'sec-con-body');
+        @endif
+
+        @if(old('billing-address') == 'on')
+            $('#billing-address').prop('checked', 'true');
+            enableBody('billing-address', 'billing-body');
+        @endif
+    });
+</script>
 
 @parent
 
@@ -29,6 +43,20 @@
             <div class="panel panel-default col-lg-12">
                 <div class="panel-body clearfix">
                     <!-- errors go here if submission fails -->
+                    @if(!empty($errors) && $errors->count() > 0)
+                        <br />
+                        <div class="col-lg-12">
+                            <div class="alert alert-danger">
+                                <p>The following errors occurred on submit:</p>
+
+                                <ul>
+                                    @foreach($errors->all() as $message)
+                                        <li>{{  $message }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @endif
                     <pre id='errors' class='hidden'></pre>
                     <div id="parent-location" class="bottom15 col-lg-12 clearfix" >
                         <select id="parent-account-id" class='form-control col-lg-4' name="parent-account-id">
@@ -39,7 +67,7 @@
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
-                        <input type='text' class="form-control" name="name" placeholder="Company Name" />
+                        <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{old('name')}}" />
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
                         <select class='form-control' name="rate-id" disabled >
@@ -84,22 +112,22 @@
                 <div class="col-lg-12 panel-body">
                     <div class="clearfix">
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='primary-first-name' placeholder='First Name' />
+                            <input type='text' class='form-control' name='primary-first-name' placeholder='First Name' value="{{old('primary-first-name')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='primary-last-name' placeholder='Last Name' />
+                            <input type='text' class='form-control' name='primary-last-name' placeholder='Last Name' value="{{old('primary-last-name')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" class='form-control' name='primary-phone1' placeholder='Primary Phone' />
+                            <input type="tel" class='form-control' name='primary-phone1' placeholder='Primary Phone' value="{{old('primary-phone1')}}"/>
                         </div>
                         <div class='col-lg-6 clearfix bottom15'>
-                            <input type='tel' class='form-control' name='primary-phone2' placeholder='Secondary Phone' />
+                            <input type='tel' class='form-control' name='primary-phone2' placeholder='Secondary Phone' value="{{old('primary-phone2')}}"/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='primary-email1' placeholder='Primary Email' />
+                            <input type='email' class='form-control' name='primary-email1' placeholder='Primary Email' value="{{old('primary-email1')}}"/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control' name='primary-email2' placeholder='Secondary Email' />
+                            <input type='email' class='form-control' name='primary-email2' placeholder='Secondary Email' value="{{old('primary-email2')}}"/>
                         </div>
                     </div>
                 </div>
@@ -107,27 +135,31 @@
             <!--Secondary Contact Panel -->
             <div class='col-lg-6 panel panel-default'>
                 <div class="col-lg-12 panel-heading">
-                    <h3 class='panel-title'><input type="checkbox" id="secondary-contact" name="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')">Secondary Contact</h3>
+                    <h3 class='panel-title'>
+                        <label style="font-weight: normal;">
+                            <input type="checkbox" id="secondary-contact" name="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')"> Secondary Contact
+                        </label>
+                    </h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="clearfix form-section">
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control sec-con-body' name='secondary-first-name' placeholder='First Name' disabled/>
+                            <input type='text' class='form-control sec-con-body' name='secondary-first-name' placeholder='First Name' value="{{old('secondary-first-name')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control sec-con-body' name='secondary-last-name' placeholder='Last Name' disabled/>
+                            <input type='text' class='form-control sec-con-body' name='secondary-last-name' placeholder='Last Name' value="{{old('secondary-last-name')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" class='form-control sec-con-body' name='secondary-phone1' placeholder='Primary Phone' disabled/>
+                            <input type="tel" class='form-control sec-con-body' name='secondary-phone1' placeholder='Primary Phone' value="{{old('secondary-phone1')}}" disabled/>
                         </div>
                         <div class='col-lg-6 clearfix bottom15'>
-                            <input class="form-control sec-con-body" name='secondary-phone2' placeholder='Secondary Phone' disabled/>
+                            <input class="form-control sec-con-body" name='secondary-phone2' placeholder='Secondary Phone' value="{{old('secondary-phone2')}}" disabled/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control sec-con-body' name='secondary-email1' placeholder='Primary Email' disabled/>
+                            <input type='email' class='form-control sec-con-body' name='secondary-email1' placeholder='Primary Email' value="{{old('secondary-email1')}}" disabled/>
                         </div>
                         <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control sec-con-body' name='secondary-email2' placeholder='Secondary Email' disabled/>
+                            <input type='email' class='form-control sec-con-body' name='secondary-email2' placeholder='Secondary Email' value="{{old('secondary-email2')}}" disabled/>
                         </div>
                     </div>
                 </div>
@@ -142,22 +174,22 @@
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix bottom15">
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='delivery-street' placeholder="Address Line 1" />
+                            <input type='text' class='form-control' name='delivery-street' placeholder="Address Line 1"  value="{{old('delivery-street')}}"/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='delivery-zip-postal' placeholder="Postal/Zip Code" />
+                            <input type='text' class='form-control' name='delivery-zip-postal' placeholder="Postal/Zip Code"  value="{{old('delivery-zip-postal')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='delivery-street2' placeholder="Address Line 2" />
+                            <input type='text' class='form-control' name='delivery-street2' placeholder="Address Line 2" value="{{old('delivery-street2')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='delivery-state-province' placeholder="Province/State" />
+                            <input type='text' class='form-control' name='delivery-state-province' placeholder="Province/State" value="{{old('delivery-state-province')}}" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='delivery-city' placeholder="City" />
+                            <input type='text' class='form-control' name='delivery-city' placeholder="City" value="{{old('delivery-city')}}" />
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control' name='delivery-country' placeholder="Country" />
+                            <input type='text' class='form-control' name='delivery-country' placeholder="Country" value="{{old('delivery-country')}}" />
                         </div>
                     </div>
                 </div>
@@ -165,27 +197,31 @@
             <!-- Billing address panel -->
             <div class="col-lg-6 panel panel-default">
                 <div class="col-lg-12 panel-heading">
-                    <h3 class="panel-title"><input type='checkbox' id='billing-address' name='billing-address' onclick="enableBody(this.id, 'billing-body')" />Billing Address</h3>
+                    <h3 class="panel-title">
+                        <label style="font-weight: normal;">
+                            <input type='checkbox' id='billing-address' name='billing-address' onclick="enableBody(this.id, 'billing-body')" /> Billing Address
+                        </label>
+                    </h3>
                 </div>
                 <div class="col-lg-12 panel-body">
                     <div class="form-group clearfix">
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control billing-body' name='billing-street' placeholder="Address Line 1" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-street' placeholder="Address Line 1" value="{{old('billing-street')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control billing-body' name='billing-zip-postal' placeholder="Postal/Zip Code" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-zip-postal' placeholder="Postal/Zip Code" value="{{old('billing-zip-postal')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control billing-body' name='billing-street2' placeholder="Address Line 2" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-street2' placeholder="Address Line 2" value="{{old('billing-street2')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control billing-body' name='billing-state-province' placeholder="Province/State" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-state-province' placeholder="Province/State" value="{{old('billing-state-province')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control billing-body' name='billing-city' placeholder="City" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-city' placeholder="City" value="{{old('billing-city')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix">
-                            <input type='text' class='form-control billing-body' name='billing-country' placeholder="Country" disabled/>
+                            <input type='text' class='form-control billing-body' name='billing-country' placeholder="Country" value="{{old('billing-country')}}" disabled/>
                         </div>
                     </div>
                 </div>
