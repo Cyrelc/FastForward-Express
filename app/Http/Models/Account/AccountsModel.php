@@ -3,6 +3,8 @@
 
 	class AccountsModel {
 		public $accounts;
-
+        public $success;
+        public $friendlyMessage;
+		public $errorMessage;
 	}
 	
