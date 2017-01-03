@@ -11,26 +11,26 @@ class ContactsTableSeeder extends Seeder
      */
     public function run()
     {
-        factory(App\Address::class, 10)->create()->each(function($a){
-            factory(App\Contact::class)->create([
-                    'address_id' => $a->address_id
-                ])->each(function($c){
+        factory(App\Contact::class, 10)->create()->each(function($c){
 
-                    for ($i = 0; $i <= 3; $i++){
-                        factory(App\PhoneNumber::class)->create([
-                            'contact_id' => $c->contact_id,
-                            'is_primary' => $i == 0
-                        ]);
-                    }
+            factory(App\Address::class)->create([
+               'contact_id' => $c->contact_id
+            ]);
 
-                    for ($i = 0; $i <= 3; $i++){
-                        factory(App\EmailAddress::class)->create([
-                            'contact_id' => $c->contact_id,
-                            'is_primary' => $i == 0
-                        ]);
-                    }
-                }
-            );
-        });
+            for ($i = 0; $i <= 3; $i++){
+                factory(App\PhoneNumber::class)->create([
+                    'contact_id' => $c->contact_id,
+                    'is_primary' => $i == 0
+                ]);
+            }
+
+            for ($i = 0; $i <= 3; $i++){
+                factory(App\EmailAddress::class)->create([
+                    'contact_id' => $c->contact_id,
+                    'is_primary' => $i == 0
+                ]);
+            }
+            }
+        );
     }
 }
