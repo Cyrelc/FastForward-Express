@@ -10,6 +10,12 @@ class AddressRepo {
         return $ad;
     }
 
+    public function GetByContactId($id) {
+        $ad = Address::where('contact_id', '=', $id)->first();
+
+        return $ad;
+    }
+
     public function Insert($address) {
         $new = new Address;
 

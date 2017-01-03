@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use App\Http\Repos;
+use App\Http\Models\Driver;
 
 class DriverController extends Controller {
     public function __construct() {
@@ -17,15 +19,18 @@ class DriverController extends Controller {
         $this->class = new \App\Driver;
     }
 
+    public function index() {
+        $factory = new Driver\DriverModelFactory();
+        $contents = $factory->ListAll();
+
+        return view('drivers.drivers', compact('contents'));
+    }
+
     public function create(){
         return view('drivers.create_driver');
     }
 
     protected function genFilterData($input) {
         return null;
-    }
-
-    public function index() {
-        return view('drivers.drivers');
     }
 }

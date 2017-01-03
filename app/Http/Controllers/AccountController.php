@@ -5,12 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use DB;
 
-use App\Contact;
-use App\PhoneNumber;
-use App\EmailAddress;
-use App\Address;
-use App\AccountContact;
-
 use App\Http\Repos;
 use App\Http\Models\Account;
 
