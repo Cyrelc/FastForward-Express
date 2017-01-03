@@ -10,12 +10,20 @@ class PhoneNumberRepo {
         return $pn;
     }
 
-    public function Edit($pn) {
-        $old = GetByid($pn->phone_number_id);
+    public function Insert($pn) {
+        $new = new PhoneNumber;
 
-        $old->type = $pn->type;
-        $old->phone_number = $pn->phone_number;
-        $old->is_primary = $pn->is_primary;
+        $new = $new->create($pn);
+
+        return $new;
+    }
+
+    public function Edit($pn) {
+        $old = GetByid($pn['phone_number_id']);
+
+        $old->type = $pn['type'];
+        $old->phone_number = $pn['phone_number'];
+        $old->is_primary = $pn['is_primary'];
 
         $old->save();
     }

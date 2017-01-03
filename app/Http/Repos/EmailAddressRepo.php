@@ -10,11 +10,19 @@ class EmailAddressRepo {
         return $ad;
     }
 
-    public function Edit($addr) {
-        $old = Address::where('email_address_id', '=', $addr->email_address_id)->first();
+    public function Insert($ea) {
+        $new = new EmailAddress;
 
-        $old->email_address_id = $addr->email_address_id;
-        $old->is_primary = $addr->is_primary;
+        $new = $new->create($ea);
+
+        return $new;
+    }
+
+    public function Edit($address) {
+        $old = GetById($address['email_address_id'])->first();
+
+        $old->email_address_id = $address['email_address_id'];
+        $old->is_primary = $address['is_primary'];
 
         $old->save();
     }

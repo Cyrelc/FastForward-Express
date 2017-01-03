@@ -17,11 +17,20 @@ class ContactRepo {
         return $contact;
     }
 
-    public function Edit($contact) {
-        $old = GetById($contact->contact_id);
+    public function Insert($contact) {
+        $new = new Contact;
 
-        $old->first_name = $contact->first_name;
-        $old->last_name = $contact->last_name;
+        $new = $new->create($contact);
+
+        return $new;
+    }
+
+
+    public function Edit($contact) {
+        $old = GetById($contact['contact_id']);
+
+        $old->first_name = $contact['first_name'];
+        $old->last_name = $contact['last_name'];
 
         $old->save();
     }

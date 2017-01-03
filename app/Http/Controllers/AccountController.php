@@ -123,90 +123,120 @@ class AccountController extends Controller {
 
         $this->validate($req, $validationRules, $validationMessages);
 
-        //BEGIN primary Contact
-        $primary_contact = ['first_name'=>$req->input('primary-first-name'),
-            'last_name'=>$req->input('primary-last-name'),
-            'address_id'=>null];
-        $primary_id = DB::table('contacts')->insertGetId($primary_contact, 'contact_id');
+        $contactRepo = new Repos\ContactRepo();
+        $addressRepo = new Repos\AddressRepo();
+        $emailAddressRepo = new Repos\EmailAddressRepo();
+        $accountRepo = new Repos\AccountRepo();
+        $pnRepo = new Repos\PhoneNumberRepo();
 
-        $primary_phone1 = ['phone_number'=>$req->input('primary-phone1'),
+        //BEGIN primary Contact
+        $primary_contact = [
+            'first_name'=>$req->input('primary-first-name'),
+            'last_name'=>$req->input('primary-last-name')
+        ];
+        $primary_id = $contactRepo->Insert($primary_contact)->contact_id;
+
+        $primary_phone1 = [
+            'phone_number'=>$req->input('primary-phone1'),
             'is_primary'=>true,
-            'contact_id'=>$primary_id];
-        DB::table('phone_numbers')->insert($primary_phone1);
+            'contact_id'=>$primary_id
+        ];
+        $pnRepo->Insert($primary_phone1);
 
         if ($req->input('primary-phone2') != null) {
-            $primary_phone2 = ['phone_number'=>$req->input('primary-phone2'),
+            $primary_phone2 = [
+                'phone_number'=>$req->input('primary-phone2'),
                 'is_primary'=>false,
-                'contact_id'=>$primary_id];
-            DB::table('phone_numbers')->insert($primary_phone2);
+                'contact_id'=>$primary_id
+            ];
+            $pnRepo->Insert($primary_phone2);
         }
 
         if ($req->input('primary-email1') != null) {
-            $primary_email1 = ['email'=>$req->input('primary-email1'),
-                'contact_id'=>$primary_id];
-            DB::table('email_addresses')->insert($primary_email1);
+            $primary_email1 = [
+                'email'=>$req->input('primary-email1'),
+                'contact_id'=>$primary_id
+            ];
+            $emailAddressRepo->Insert($primary_email1);
         }
 
         if ($req->input('primary-email2') != null) {
-            $primary_email2 = ['email'=>$req->input('primary-email2'),
-                'contact_id'=>$primary_id];
-            DB::table('email_addresses')->insert($primary_email2);
+            $primary_email2 = [
+                'email'=>$req->input('primary-email2'),
+                'contact_id'=>$primary_id
+            ];
+            $emailAddressRepo->Insert($primary_email2);
         }
         //END primary contact
         $secondary_id = null;
         //BEGIN secondary contact
         if ($req->input('secondary-contact') == 'on') {
-            $secondary_contact = ['first_name'=>$req->input('secondary-first-name'),
+            $secondary_contact = [
+                'first_name'=>$req->input('secondary-first-name'),
                 'last_name'=>$req->input('secondary-last-name'),
-                'address_id'=>null];
-            $secondary_id = DB::table('contacts')->insertGetId($secondary_contact, 'contact_id');
+            ];
+            $secondary_id = $contactRepo->Insert($secondary_contact)->contact_id;
 
-            $secondary_phone1 = [//'type'=>$req->input('secondary-phone1-type'),
+            $secondary_phone1 = [
                 'phone_number'=>$req->input('secondary-phone1'),
-                'is_primary'=>false,
-                'contact_id'=>$secondary_id];
-            DB::table('phone_numbers')->insert($secondary_phone1);
+                'is_primary'=>true,
+                'contact_id'=>$secondary_id
+            ];
+            $pnRepo->Insert($secondary_phone1);
 
             if ($req->input('secondary-phone2') != null) {
-                $secondary_phone2 = [//'type'=>$req->input(''),
+                $secondary_phone2 = [
                     'phone_number'=>$req->input('secondary-phone2'),
                     'is_primary'=>false,
-                    'contact_id'=>$secondary_id];
-                DB::table('phone_numbers')->insert($secondary_phone2);
+                    'contact_id'=>$secondary_id
+                ];
+                $pnRepo->Insert($secondary_phone2);
             }
 
             if ($req->input('secondary-email1') != null) {
-                $secondary_email1 = ['email'=>$req->input('secondary-email1'),
-                    'contact_id'=>$secondary_id];
-                DB::table('email_addresses')->insert($secondary_email1);
+                $secondary_email1 = [
+                    'email'=>$req->input('secondary-email1'),
+                    'is_primary'=>true,
+                    'contact_id'=>$secondary_id
+                ];
+                $emailAddressRepo->Insert($secondary_email1);
             }
 
             if ($req->input('secondary-email2') != null) {
-                $secondary_email2 = ['email'=>$req->input('secondary-email2'),
-                    'contact_id'=>$secondary_id];
-                DB::table('email_addresses')->insert($secondary_email2);
+                $secondary_email2 = [
+                    'email'=>$req->input('secondary-email2'),
+                    'is_primary'=>false,
+                    'contact_id'=>$secondary_id
+                ];
+                $emailAddressRepo->Insert($secondary_email2);
             }
         }
         //END secondary contact
         //BEGIN delivery address
-        $delivery = ['street'=>$req->input('delivery-street'),
+        $delivery = [
+            'street'=>$req->input('delivery-street'),
             'street2'=>$req->input('delivery-street2'),
             'city'=>$req->input('delivery-city'),
             'zip_postal'=>$req->input('delivery-zip-postal'),
             'state_province'=>$req->input('delivery-state-province'),
-            'country'=>$req->input('delivery-country')];
-        $delivery_id = DB::table('addresses')->insertGetId($delivery,'address_id');
+            'country'=>$req->input('delivery-country'),
+            'is_primary'=>true
+        ];
+        $delivery_id = $addressRepo->Insert($delivery)->address_id;
         //END delivery address
         //BEGIN billing address
         $billing_id = null;
         if ($req->input('billing-address') == 'on') {
-            $billing = ['street'=>$req->input('billing-street'),
+            $billing = [
+                'street'=>$req->input('billing-street'),
                 'street2'=>$req->input('billing-street2'),
                 'city'=>$req->input('billing-city'),
                 'zip_postal'=>$req->input('billing-zip-postal'),
                 'state_province'=>$req->input('billing-state-province'),
-                'country'=>$req->input('billing-country')];
-            $billing_id = DB::table('addresses')->insertGetId($billing, 'address_id');
+                'country'=>$req->input('billing-country'),
+                'is_primary'=>false
+            ];
+            $billing_id = $addressRepo->Insert($billing)->address_id;
         }
         //END billing address
         //BEGIN account
@@ -215,7 +245,7 @@ class AccountController extends Controller {
             $old_acct = $req->input('account-number');
         }
 
-        $account = [//'rate_type_id'=>$req->input('rate-id'),
+        $account = [
             'rate_type_id'=>1,
             'parent_account_id'=>$req->input('parent-account-id'),
             'billing_address_id'=>$billing_id,
@@ -226,20 +256,11 @@ class AccountController extends Controller {
             'name'=>$req->input('name'),
             'start_date'=>time(),
             'send_bills'=>true,
-            'is_master'=>false,];
-        $account_id = DB::table('accounts')->insertGetId($account, 'account_id');
+            'is_master'=>true
+        ];
 
-        $primary_account_link = ['account_id'=>$account_id,
-            'contact_id'=>$primary_id,
-            'is_primary'=>true];
-        DB::table('account_contacts')->insert($primary_account_link);
+        $accountRepo->Insert($account, $primary_id, $secondary_id)->account_id;
 
-        if ($secondary_id != null) {
-            $secondary_account_link = ['account_id'=>$account_id,
-                'contact_id'=>$secondary_id,
-                'is_primary'=>false];
-            DB::table('account_contacts')->insert($secondary_account_link);
-        }
         //END account
         return redirect()->action('AccountController@create');
     }
