@@ -5,7 +5,7 @@
 <?php
 	$contents = $contents->accounts;
 	$columns = ['ID', 'Parent ID', 'Name', 'Address', 'Invoice Interval', 'Start Date'];
-	$variables = [['account', 'account_id'], ['account', 'parent_account_id'], ['account', 'name'], 'address'];//, 'id', 'name', 'address','contact_name'];
+	$variables = [['account', 'account_id'], ['account', 'parent_account_id'], ['account', 'name'], 'address', ['account', 'invoice_interval'], ['account', 'start_date']];
 ?>
 
 @endsection
