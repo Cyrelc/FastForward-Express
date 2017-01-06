@@ -11,7 +11,6 @@
 <link rel='stylesheet' type='text/css' href='/css/app.css' />
 
 <!--Global Scripts-->
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 @yield('script')
 
@@ -65,6 +64,7 @@
                 </div>
             </div>
         </nav>
+
     </div>
 </div>
         <div class="row">
