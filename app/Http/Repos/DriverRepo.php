@@ -3,7 +3,7 @@ namespace App\Http\Repos;
 
 use App\Driver;
 
-class DriversRepo {
+class DriverRepo {
 
     public function ListAll() {
         $drivers = Driver::All();

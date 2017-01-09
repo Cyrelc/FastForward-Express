@@ -1,23 +1,16 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Jack
- * Date: 03-Jan-17
- * Time: 1:16 PM
- */
-
 namespace app\Http\Models\Driver;
 
 use App\Http\Repos;
-use app\Http\Models\Driver;
+use App\Http\Models\Driver;
 
 class DriverModelFactory
 {
     public function ListAll() {
-        $model = new DriversModel();
+        $model = new Driver\DriversModel();
 
         try {
-            $driversRepo = new Repos\DriversRepo();
+            $driversRepo = new Repos\DriverRepo();
             $addrRepo = new Repos\AddressRepo();
             $contactRepo = new Repos\ContactRepo();
             $pnRepo = new Repos\PhoneNumberRepo();

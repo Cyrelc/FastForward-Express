@@ -1,12 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Jack
- * Date: 03-Jan-17
- * Time: 1:16 PM
- */
-
-namespace app\Http\Models\Driver;
+namespace App\Http\Models\Driver;
 
 
 class DriversModel
