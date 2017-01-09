@@ -35,9 +35,36 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
             $province = "Nunavut";
     }
 
+    $suffix = " St. ";
+
+    if (rand(0,1) == 0) {
+        $suffix = " Ave. ";
+    }
+
+    $direction = rand(0, 3);
+    switch($direction) {
+        case 0:
+            $suffix = $suffix . 'NE';
+            break;
+
+        case 1:
+            $suffix = $suffix . 'SE';
+            break;
+
+        case 2:
+            $suffix = $suffix . 'SW';
+            break;
+
+        case 3:
+            $suffix = $suffix . 'NW';
+            break;
+    }
+
+    if (rand(0,4) == 3)
+        $suffix . ' APT ' . rand(100, 420);
 
     return [
-        'street' => $faker->address,
+        'street' => rand(100, 99999) . rand(1, 250) . $suffix,
         'street2' => "",
         'city' => $faker->city,
         'zip_postal' => $faker->postcode,
