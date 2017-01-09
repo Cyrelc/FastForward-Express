@@ -10,12 +10,6 @@ class PhoneNumberRepo {
         return $pn;
     }
 
-    public function GetByContactId($id) {
-        $pn = PhoneNumber::where('contact_id', '=', $id)->first();
-
-        return $pn;
-    }
-
     public function Insert($pn) {
         $new = new PhoneNumber;
 
