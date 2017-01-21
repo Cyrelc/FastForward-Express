@@ -42,7 +42,7 @@ function phoneInput(id) {
 function zipInput(id){
     new Cleave("#" + id, {
         blocks: [3, 3],
-        delimiter: '-',
+        delimiter: ' ',
         uppercase: true
     });
 }

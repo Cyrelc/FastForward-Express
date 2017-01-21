@@ -37,9 +37,9 @@ class AccountController extends Controller {
     }
 
     public function store(Request $req) {
+        dd($req->all());
         //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
         //return $req;
-
         $validationRules = [
             'name' => 'required',
             'primary-first-name' => 'required',
@@ -75,26 +75,32 @@ class AccountController extends Controller {
             'delivery-country.required' => 'Delivery Country is required.'
         ];
 
-        if ($req->input('secondary-contact') == 'on') {
-            $validationRules = array_merge($validationRules, [
-                'secondary-first-name' => 'required',
-                'secondary-last-name' => 'required',
-                'secondary-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                'secondary-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                'secondary-email1' => 'required|email',
-                'secondary-email2' => 'email'
-            ]);
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 6) == "sc-id-") {
+                $id = substr($key, 6);
+                $fName = $req->input('sc-' . $id . '-first-name');
+                $lName = $req->input('sc-' . $id . '-last-name');
 
-            $validationMessages = array_merge($validationMessages, [
-                'secondary-first-name.required' => 'Secondary Contact First Name is required.',
-                'secondary-last-name.required' => 'Secondary Contact Last Name is required.',
-                'secondary-phone1.required' => 'Secondary Contact Primary Phone Number is required.',
-                'secondary-phone1.regex' => 'Secondary Contact Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                'secondary-phone2.regex' => 'Secondary Contact Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                'secondary-email1.required' => 'Secondary Contact Primary Email is required.',
-                'secondary-email1.email' => 'Secondary Contact Primary Email must be an email.',
-                'secondary-email2.email' => 'Secondary Contact Secondary Email must be an email.',
-            ]);
+                $validationRules = array_merge($validationRules, [
+                    'sc-' . $id .'-first-name' => 'required',
+                    'sc-' . $id . '-last-name' => 'required',
+                    'sc-' . $id . '-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+                    'sc-' . $id . '-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+                    'sc-' . $id . '-email1' => 'required|email',
+                    'sc-' . $id .'-email2' => 'email'
+                ]);
+
+                $validationMessages = array_merge($validationMessages, [
+                    'sc-' . $id .'-first-name.required' => 'Secondary Contact First Name is required.',
+                    'sc-' . $id .'-last-name.required' => 'Secondary Contact Last Name is required.',
+                    'sc-' . $id .'-phone1.required' => $fName . ' ' . $lName . ' Primary Phone Number is required.',
+                    'sc-' . $id .'-phone1.regex' => $fName . ' ' . $lName . ' Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
+                    'sc-' . $id .'-phone2.regex' => $fName . ' ' . $lName . ' Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
+                    'sc-' . $id .'-email1.required' => $fName . ' ' . $lName . ' Primary Email is required.',
+                    'sc-' . $id .'-email1.email' => $fName . ' ' . $lName . ' Primary Email must be an email.',
+                    'sc-' . $id .'-email2.email' => $fName . ' ' . $lName . ' Secondary Email must be an email.',
+                ]);
+            }
         }
 
         if ($req->input('billing-address') == 'on') {
@@ -194,45 +200,54 @@ class AccountController extends Controller {
         //END primary contact
         $secondary_id = null;
         //BEGIN secondary contact
-        if ($req->input('secondary-contact') == 'on') {
-            $secondary_contact = [
-                'first_name'=>$req->input('secondary-first-name'),
-                'last_name'=>$req->input('secondary-last-name'),
-            ];
-            $secondary_id = $contactRepo->Insert($secondary_contact)->contact_id;
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 6) == "sc-id-") {
+                $fName = $req->input('sc-' . $id . '-first-name');
+                $lName = $req->input('sc-' . $id . '-last-name');
+                $ppn = $req->input('sc-' . $id . '-phone1');
+                $spn = $req->input('sc-' . $id . '-phone2');
+                $em = $req->input('sc-' . $id . '-email');
+                $em2 = $req->input('sc-' . $id . '-email2');
 
-            $secondary_phone1 = [
-                'phone_number'=>$req->input('secondary-phone1'),
-                'is_primary'=>true,
-                'contact_id'=>$secondary_id
-            ];
-            $pnRepo->Insert($secondary_phone1);
-
-            if ($req->input('secondary-phone2') != null) {
-                $secondary_phone2 = [
-                    'phone_number'=>$req->input('secondary-phone2'),
-                    'is_primary'=>false,
-                    'contact_id'=>$secondary_id
+                $secondary_contact = [
+                    'first_name'=>$fName,
+                    'last_name'=>$lName,
                 ];
-                $pnRepo->Insert($secondary_phone2);
-            }
+                $secondary_id = $contactRepo->Insert($secondary_contact)->contact_id;
 
-            if ($req->input('secondary-email1') != null) {
-                $secondary_email1 = [
-                    'email'=>$req->input('secondary-email1'),
+                $secondary_phone1 = [
+                    'phone_number'=>$ppn,
                     'is_primary'=>true,
                     'contact_id'=>$secondary_id
                 ];
-                $emailAddressRepo->Insert($secondary_email1);
-            }
+                $pnRepo->Insert($secondary_phone1);
 
-            if ($req->input('secondary-email2') != null) {
-                $secondary_email2 = [
-                    'email'=>$req->input('secondary-email2'),
-                    'is_primary'=>false,
-                    'contact_id'=>$secondary_id
-                ];
-                $emailAddressRepo->Insert($secondary_email2);
+                if ($spn != null) {
+                    $secondary_phone2 = [
+                        'phone_number'=>$spn,
+                        'is_primary'=>false,
+                        'contact_id'=>$secondary_id
+                    ];
+                    $pnRepo->Insert($secondary_phone2);
+                }
+
+                if ($em != null) {
+                    $secondary_email1 = [
+                        'email'=>$em,
+                        'is_primary'=>true,
+                        'contact_id'=>$secondary_id
+                    ];
+                    $emailAddressRepo->Insert($secondary_email1);
+                }
+
+                if ($em2 != null) {
+                    $secondary_email2 = [
+                        'email'=>$em2,
+                        'is_primary'=>false,
+                        'contact_id'=>$secondary_id
+                    ];
+                    $emailAddressRepo->Insert($secondary_email2);
+                }
             }
         }
         //END secondary contact
@@ -271,7 +286,7 @@ class AccountController extends Controller {
 
         $account = [
             'rate_type_id'=>1,
-            'parent_account_id'=>$req->input('parent-account-id'),
+            'parent_account_id'=>$req->input('parent-account-id') == '' ? null : $req->input('parent-account-id'),
             'billing_address_id'=>$billing_id,
             'shipping_address_id'=>$delivery_id,
             'account_number'=>$old_acct,

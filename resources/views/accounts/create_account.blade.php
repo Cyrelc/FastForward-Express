@@ -24,13 +24,6 @@
             }
         });
 
-        $("#secondary-contact").change(function(){
-            if ($("#secondary-contact").prop('checked'))
-                $("input[name='hasSecondaryContact']").val('true');
-            else
-                $("input[name='hasSecondaryContact']").val('');
-        });
-
         $("#billing-address").change(function(){
             if ($("#billing-address").prop('checked'))
                 $("input[name='hasBillingAddress']").val('true');
@@ -46,6 +39,27 @@
         phoneInput("secondary-phone2");
         zipInput("delivery-zip");
         zipInput("billing-zip");
+
+        <!--Reconstruct all secondary contacts-->
+        <?php
+            use Illuminate\Support\Facades\Input;
+            $oldValues = Input::old();
+
+            foreach($oldValues as $key=>$value) {
+                if (substr($key, 0, 6) == "sc-id-") {
+                    $id = substr($key, 6);
+                    $fName = old('sc-' . $id . '-first-name');
+                    $lName = old('sc-' . $id . '-last-name');
+                    $ppn = old('sc-' . $id . '-phone1');
+                    $spn = old('sc-' . $id . '-phone2');
+                    $em = old('sc-' . $id . '-email1');
+                    $em2 = old('sc-' . $id . '-email2');
+
+                    echo "newTabPill($id, '$fName', '$lName');\r\n";
+                    echo "newTabBody($id, '$fName', '$lName', '$ppn', '$spn', '$em', '$em2');";
+                }
+            }
+        ?>
     });
 </script>
 
@@ -188,33 +202,49 @@
                 </div>
             </div>
             <!--Secondary Contact Panel -->
-            <div class='col-lg-6 panel panel-default'>
-                <div class="col-lg-12 panel-heading">
-                    <h3 class='panel-title'>
-                        <label style="font-weight: normal;">
-                            <input type="checkbox" id="secondary-contact" name="secondary-contact" onclick="enableBody(this.id, 'sec-con-body')"> Secondary Contact
-                        </label>
-                    </h3>
-                </div>
-                <div class="col-lg-12 panel-body">
-                    <div class="clearfix form-section">
-                        <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control sec-con-body' name='secondary-first-name' placeholder='First Name' value="{{old('secondary-first-name')}}" disabled/>
+            <div class='col-lg-6 panel panel-default' id="secondary-contacts">
+
+                <ul id="sc-contact-tabs" class="nav nav-pills" role="tablist">
+                    <li role="presentation" class="active"><a href="#additional-contacts" aria-controls="home" role="tab" data-toggle="tab">Additional Contacts</a></li>
+                    <li role="presentation"><a href="#new-sc-contact" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-plus-circle"></i> Add New</a></li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content" id="sc-contact-bodies">
+                    <div role="tabpanel" class="tab-pane active" id="additional-contacts">
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="new-sc-contact">
+                        <div class="col-lg-11">
+                            <div class="clearfix form-section">
+                                <div class="col-lg-6 clearfix bottom15">
+                                    <input type='text' class='form-control sec-con-body' id='secondary-first-name' placeholder='First Name'/>
+                                </div>
+                                <div class="col-lg-6 clearfix bottom15">
+                                    <input type='text' class='form-control sec-con-body' id='secondary-last-name' placeholder='Last Name'/>
+                                </div>
+                                <div class="col-lg-6 clearfix bottom15">
+                                    <input type="tel" id="secondary-phone1" class='form-control sec-con-body' id='secondary-phone1' placeholder='Primary Phone'/>
+                                </div>
+                                <div class='col-lg-6 clearfix bottom15'>
+                                    <input class="form-control sec-con-body" id="secondary-phone2" id='secondary-phone2' placeholder='Secondary Phone'/>
+                                </div>
+                                <div class='col-lg-6 clearfix'>
+                                    <input type='email' class='form-control sec-con-body' id='secondary-email1' placeholder='Primary Email'/>
+                                </div>
+                                <div class='col-lg-6 clearfix'>
+                                    <input type='email' class='form-control sec-con-body' id='secondary-email2' placeholder='Secondary Email'/>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control sec-con-body' name='secondary-last-name' placeholder='Last Name' value="{{old('secondary-last-name')}}" disabled/>
-                        </div>
-                        <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" id="secondary-phone1" class='form-control sec-con-body' name='secondary-phone1' placeholder='Primary Phone' value="{{old('secondary-phone1')}}" disabled/>
-                        </div>
-                        <div class='col-lg-6 clearfix bottom15'>
-                            <input class="form-control sec-con-body" id="secondary-phone2" name='secondary-phone2' placeholder='Secondary Phone' value="{{old('secondary-phone2')}}" disabled/>
-                        </div>
-                        <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control sec-con-body' name='secondary-email1' placeholder='Primary Email' value="{{old('secondary-email1')}}" disabled/>
-                        </div>
-                        <div class='col-lg-6 clearfix'>
-                            <input type='email' class='form-control sec-con-body' name='secondary-email2' placeholder='Secondary Email' value="{{old('secondary-email2')}}" disabled/>
+                        <div class="col-lg-1">
+                            <ul class="nav nav-pills">
+                                <li title="save">
+                                    <a href="javascript:saveScContact()"><i class="fa fa-save"></i></a>
+                                </li>
+                                <li title="delete">
+                                    <a href="javascript:clearScForm()"><i class="fa fa-trash"></i></a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
