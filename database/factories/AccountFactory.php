@@ -11,6 +11,10 @@ $factory->define(App\Account::class, function (Faker\Generator $faker) {
         "invoice_interval" => "monthly",
         "name" => $faker->company,
         "start_date" => $faker->dateTimeThisYear,
-        "send_bills" => $sendBills
+        "send_bills" => $sendBills,
+        "gst_exempt" => rand(0,10) == 1 ? false : true,
+        "charge_interest" => rand(0,10) == 1 ? false : true,
+        "can_be_parent" => rand(0,3) == 1 ? true : false,
+        "custom_field" => rand(0, 10) == 1 ? $faker->text(10) : null
     ];
 });

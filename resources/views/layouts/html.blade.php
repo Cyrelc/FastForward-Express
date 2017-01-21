@@ -13,7 +13,7 @@
         </title>
 
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js'> </script>
-
+        <script src="{{URL::to('/')}}/js/utils.js"></script>
         @yield('head')
     </head>
 

@@ -30,9 +30,10 @@ class AccountController extends Controller {
     public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
-        $parents =  []; //Account::where('is_master', 'true')->pluck('name', 'account_id');
+        $amf = new Account\AccountModelFactory();
+        $model = $amf->GetCreateModel();
 
-        return view('accounts.create_account', compact('parents'));
+        return view('accounts.create_account', compact('model'));
     }
 
     public function store(Request $req) {
@@ -113,6 +114,35 @@ class AccountController extends Controller {
                 'billing-state-province.required' => 'Billing Province is required.',
                 'billing-country.required' => 'Billing Country is required.'
             ]);
+        }
+
+        if ($req->input('isSubLocation') == 'true') {
+            $validationRules = array_merge($validationRules, ['parent-account-id' => 'required']);
+            $validationMessages = array_merge($validationMessages, ['parent-account-id.required' => 'A Parent Account is required.']);
+        }
+
+        if ($req->input('shouldGiveDiscount') == 'true') {
+            $validationRules = array_merge($validationRules, ['discount' => 'required|numeric']);
+            $validationMessages = array_merge($validationMessages, [
+                'discount.required' => 'A Discount value is required.',
+                'discount.numeric' => 'Discount must be a number.'
+            ]);
+        }
+
+        if ($req->input('shouldGiveCommission') == 'true') {
+            $validationRules = array_merge($validationRules, [
+                'commission-employee-id' => 'required',
+                'commission-percent' => 'required|numeric']);
+            $validationMessages = array_merge($validationMessages, [
+                'commission-employee-id' => 'A Commission Driver is required.',
+                'commission-percent.required' => 'A Commission % value is required.',
+                'commission-percent.numeric' => 'Commission % must be a number.'
+            ]);
+        }
+
+        if ($req->input('useCustomField') == 'true') {
+            $validationRules = array_merge($validationRules, ['custom-tracker' => 'required']);
+            $validationMessages = array_merge($validationMessages, ['custom-tracker.required' => 'Tracking Field Name is required.']);
         }
 
         $this->validate($req, $validationRules, $validationMessages);
@@ -250,8 +280,26 @@ class AccountController extends Controller {
             'name'=>$req->input('name'),
             'start_date'=>time(),
             'send_bills'=>true,
-            'is_master'=>true
+            'is_master'=>true,
+            'charge_interest'=>$req->input('shouldChargeInterest') == "true",
+            "gst_exempt"=>$req->input('isGstExempt') == "true",
+            "canBeParent"=>$req->input('canBeParent') == "true"
         ];
+
+        if ($req->input('hasPreviousAccount') == 'true')
+            $accountNumber = $req->input('account-num');
+        else
+            $accountNumber = null;
+
+        if ($req->input('useCustomField') == 'true')
+            $customField = $req->input('custom-tracker');
+        else
+            $customField = null;
+
+        $account = array_merge($account, [
+            'custom_field' => $customField,
+            'account_number' => $accountNumber
+        ]);
 
         $accountRepo->Insert($account, $primary_id, $secondary_id)->account_id;
 
@@ -274,10 +322,13 @@ class AccountController extends Controller {
             'primary-first-name' => 'required',
             'primary-last-name' => 'required',
             //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
+            'primary-phone1-id' => 'required',
             'primary-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
             'primary-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+            'primary-email1-id' => 'required',
             'primary-email1' => 'required|email',
             'primary-email2' => 'email',
+            'delivery-id' => 'required',
             'delivery-street' => 'required',
             'delivery-city' => 'required',
             //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
@@ -373,7 +424,7 @@ class AccountController extends Controller {
             'is_primary'=>true];
         $pnRepo->Edit($primary_phone1);
 
-        if ($req->input('primary-phone2') != null) {
+        if ($req->has('primary-phone2') && strlen($req->input('primary-phone')) > 0) {
             if ($req->input('primary-phone2-id') != null)
                 $pnRepo->Delete($req->input('primary-phone2-id'));
         } else {
@@ -384,7 +435,7 @@ class AccountController extends Controller {
             $pnRepo->Edit($primary_phone2);
         }
 
-        if ($req->input('primary-email1') == null) {
+        if ($req->has('primary-email1') && $req->has('primary-email1')) {
             if ($req->input('primary-email1-id') != null)
                 $emailAddressRepo->Delete($req->input('primary-email1-id'));
         } else {

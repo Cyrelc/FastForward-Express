@@ -1,9 +1,10 @@
 $(document).ready(function() {
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
+		    $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
 		}
 		else {
+            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('false');
 		    $('#' + $(this).attr('data-div')).fadeOut();
 		}
 	});
@@ -11,6 +12,8 @@ $(document).ready(function() {
 	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
+
+
 });
 
 $('#advFilter input[type="checkbox"]').each(function(i,j) {
