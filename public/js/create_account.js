@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
 		    $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');

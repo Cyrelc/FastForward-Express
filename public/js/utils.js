@@ -46,3 +46,21 @@ function zipInput(id){
         uppercase: true
     });
 }
+
+function dateInput(id) {
+    $('#' + id).datetimepicker({
+        format: 'dddd, MMMM Do YYYY'
+    });
+
+    $('#' + id + ' input').focus(function(e){
+        $('#' + id).data("DateTimePicker").show();
+    });
+}
+
+function comboInput(id, placeholderText) {
+    $("#" + id).combobox({
+        appendId: '-cb'
+    });
+
+    $("#" + id + "-cb").attr('placeholder', placeholderText);
+}

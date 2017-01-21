@@ -4,18 +4,48 @@
 
 <script type='text/javascript' src='/js/validation.js'></script>
 <script type='text/javascript' src='/js/create_account.js'></script>
+<script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
+<script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
+<script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript'>
-    $(document).ready(function(){
+    $(document).ready(function() {
         //On failed validation, redisplay form correctly
-        @if(old('secondary-contact') == 'on')
-            $('#secondary-contact').prop('checked', 'true');
-            enableBody('secondary-contact', 'sec-con-body');
-        @endif
+        $("input[data-checkbox-id]").each(function(i,e){
+            var value = $(e).val() == 'true';
+            if (value) {
+                var me = $(e).attr('data-me');
+                var cbid = "#" +$(e).attr('data-checkbox-id');
+                if (me) {
+                    var body = $(e).attr('data-body');
+                    $(cbid).prop('checked', true);
+                    enableBody(me, body);
+                } else
+                    $(cbid).click();
+            }
+        });
 
-        @if(old('billing-address') == 'on')
-            $('#billing-address').prop('checked', 'true');
-            enableBody('billing-address', 'billing-body');
-        @endif
+        $("#secondary-contact").change(function(){
+            if ($("#secondary-contact").prop('checked'))
+                $("input[name='hasSecondaryContact']").val('true');
+            else
+                $("input[name='hasSecondaryContact']").val('');
+        });
+
+        $("#billing-address").change(function(){
+            if ($("#billing-address").prop('checked'))
+                $("input[name='hasBillingAddress']").val('true');
+            else
+                $("input[name='hasBillingAddress']").val('');
+        });
+
+        comboInput('parent-account-id', 'Select a Parent Account');
+        comboInput('driver,select', 'Select a Driver');
+        phoneInput("primary-phone1");
+        phoneInput("primary-phone2");
+        phoneInput("secondary-phone1");
+        phoneInput("secondary-phone2");
+        zipInput("delivery-zip");
+        zipInput("billing-zip");
     });
 </script>
 
@@ -24,10 +54,15 @@
 @endsection
 
 @section ('style')
-
+<link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
 <style type="text/css">
 #errors {
     color: red;
+}
+
+.split-50 {
+    width: 50%;
+    float: left;
 }
 </style>
 
@@ -35,8 +70,19 @@
 
 @section ('content')  
 <h2>New Account</h2>
-<form onsubmit="return validate()" method="POST" action="/accounts/store">
+<form method="POST" action="/accounts/store">
 <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{old('isSubLocation')}}"/>
+    <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{old('shouldGiveDiscount')}}"/>
+    <input type="hidden" data-checkbox-id="give-commission" name="shouldGiveCommission" value="{{old('shouldGiveCommission')}}"/>
+    <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{old('shouldChargeInterest')}}"/>
+    <input type="hidden" data-checkbox-id="gst-exempt" name="isGstExempt" value="{{old('isGstExempt')}}"/>
+    <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{old('useCustomField')}}"/>
+    <input type="hidden" data-checkbox-id="can-be-parent" name="canBeParent" value="{{old('canBeParent')}}"/>
+    <input type="hidden" data-checkbox-id="existing-account" name="hasPreviousAccount" value="{{old('hasPreviousAccount')}}"/>
+    <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{old('hasBillingAddress')}}"/>
+    <input type="hidden" data-me="secondary-contact" data-body="sec-con-body" data-checkbox-id="secondary-contact" name="hasSecondaryContact" value="{{old('hasSecondaryContact')}}"/>
+
     <div class="well" style="overflow: hidden">
         <!--Basic Information Panel-->
         <div class="row">
@@ -59,10 +105,10 @@
                     @endif
                     <pre id='errors' class='hidden'></pre>
                     <div id="parent-location" class="bottom15 col-lg-12 clearfix" >
-                        <select id="parent-account-id" class='form-control col-lg-4' name="parent-account-id">
-                            <option value="-1" selected disabled>Select Parent Company</option>
-                            @foreach ($parents as $parent)
-                                <option value='{{$parent->account-id}}'>{{$parent->name}}</option>
+                        <select id="parent-account-id" class='form-control' name="parent-account-id">
+                            <option></option>
+                            @foreach ($model->accounts as $parent)
+                                <option value='{{$parent->account_id}}'>{{$parent->name}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -75,7 +121,7 @@
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15">
-                        <select class='form-control' name="invoice-interval" >
+                        <select class='form-control' name="invoice-interval" value="{{old('invoice-interval')}}">
                             <option value="-1" selected disabled>Select Invoice Interval</option>
                             <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
@@ -83,22 +129,31 @@
                         </select>
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="discount-div">
-                        <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" />
+                        <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{old('discount')}}" />
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="commission-div">
-                        <div class="col-lg-8 clearfix">
-                            <input class='form-control' type='text' name='commission-employee-id' placeholder="Employee" />
+                        <div class="split-50">
+                            <div class="input-group">
+                                <select id="driver-select" class="form-control" type='text' name='commission-employee-id' value="{{old('commission-employee-id')}}">
+                                    <option></option>
+                                    @foreach($model->drivers as $d)
+                                        <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-lg-4 clearfix bottom15">
-                            <input class='form-control' min=0 max=100 type='number' name='commission-percent' placeholder="Commission %"/>
+                        <div class="split-50">
+                            <input class='form-control' min=0 max=100 type='number' name='commission-percent' placeholder="Commission %" value="{{old('commission-percent')}}"/>
                         </div>
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="old-account">
                         <input class='form-control' type='number' name='account-num' placeholder="Previous Account Number" />
                     </div>
                     <div class="col-lg-4 clearfix bottom15" id="custom-div">
-                        <span><input type='text' class="form-control" name='custom-tracker' placeholder="Custom Div Name" /></span>
-                        <span><label><input type='checkbox' class="form-control clearfix" name='custom-tracker-sortable' />Sortable?</label></span>
+                        <div class="input-group">
+                            <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" />
+                            <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' /> Sortable?</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -118,10 +173,10 @@
                             <input type='text' class='form-control' name='primary-last-name' placeholder='Last Name' value="{{old('primary-last-name')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" class='form-control' name='primary-phone1' placeholder='Primary Phone' value="{{old('primary-phone1')}}"/>
+                            <input type="tel" id="primary-phone1" class='form-control' name='primary-phone1' placeholder='Primary Phone' value="{{old('primary-phone1')}}"/>
                         </div>
                         <div class='col-lg-6 clearfix bottom15'>
-                            <input type='tel' class='form-control' name='primary-phone2' placeholder='Secondary Phone' value="{{old('primary-phone2')}}"/>
+                            <input type='tel' id="primary-phone2" class='form-control' name='primary-phone2' placeholder='Secondary Phone' value="{{old('primary-phone2')}}"/>
                         </div>
                         <div class='col-lg-6 clearfix'>
                             <input type='email' class='form-control' name='primary-email1' placeholder='Primary Email' value="{{old('primary-email1')}}"/>
@@ -150,10 +205,10 @@
                             <input type='text' class='form-control sec-con-body' name='secondary-last-name' placeholder='Last Name' value="{{old('secondary-last-name')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type="tel" class='form-control sec-con-body' name='secondary-phone1' placeholder='Primary Phone' value="{{old('secondary-phone1')}}" disabled/>
+                            <input type="tel" id="secondary-phone1" class='form-control sec-con-body' name='secondary-phone1' placeholder='Primary Phone' value="{{old('secondary-phone1')}}" disabled/>
                         </div>
                         <div class='col-lg-6 clearfix bottom15'>
-                            <input class="form-control sec-con-body" name='secondary-phone2' placeholder='Secondary Phone' value="{{old('secondary-phone2')}}" disabled/>
+                            <input class="form-control sec-con-body" id="secondary-phone2" name='secondary-phone2' placeholder='Secondary Phone' value="{{old('secondary-phone2')}}" disabled/>
                         </div>
                         <div class='col-lg-6 clearfix'>
                             <input type='email' class='form-control sec-con-body' name='secondary-email1' placeholder='Primary Email' value="{{old('secondary-email1')}}" disabled/>
@@ -177,7 +232,7 @@
                             <input type='text' class='form-control' name='delivery-street' placeholder="Address Line 1"  value="{{old('delivery-street')}}"/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control' name='delivery-zip-postal' placeholder="Postal/Zip Code"  value="{{old('delivery-zip-postal')}}" />
+                            <input type='text' id="delivery-zip" class='form-control' name='delivery-zip-postal' placeholder="Postal/Zip Code"  value="{{old('delivery-zip-postal')}}" />
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control' name='delivery-street2' placeholder="Address Line 2" value="{{old('delivery-street2')}}" />
@@ -209,7 +264,7 @@
                             <input type='text' class='form-control billing-body' name='billing-street' placeholder="Address Line 1" value="{{old('billing-street')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
-                            <input type='text' class='form-control billing-body' name='billing-zip-postal' placeholder="Postal/Zip Code" value="{{old('billing-zip-postal')}}" disabled/>
+                            <input type='text' id="billing-zip" class='form-control billing-body' name='billing-zip-postal' placeholder="Postal/Zip Code" value="{{old('billing-zip-postal')}}" disabled/>
                         </div>
                         <div class="col-lg-6 clearfix bottom15">
                             <input type='text' class='form-control billing-body' name='billing-street2' placeholder="Address Line 2" value="{{old('billing-street2')}}" disabled/>
@@ -237,28 +292,28 @@
     <h3>Options</h3>
     <hr>
     <div class="checkbox">
-        <label><input id="sub-location" type="checkbox" value="" name="sub-location" data-div="parent-location" />Is Sub-Location</label>
+        <label><input id="sub-location" type="checkbox" value="" name="sub-location" data-div="parent-location" data-hidden-name="isSubLocation" />Is Sub-Location</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-discount" type="checkbox" value="" data-div="discount-div" />Give Discount</label>
+        <label><input id="give-discount" type="checkbox" value="" data-div="discount-div" data-hidden-name="shouldGiveDiscount" />Give Discount</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-commission" type="checkbox" value="" data-div="commission-div" />Give Commission</label>
+        <label><input id="give-commission" type="checkbox" value="" data-div="commission-div" data-hidden-name="shouldGiveCommission" />Give Commission</label>
     </div>
     <div class="checkbox">
-        <label><input id="use-custom-field" type="checkbox" value="" data-div="custom-div" />Use Custom Field</label>
+        <label><input id="use-custom-field" type="checkbox" value="" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
     </div>
     <div class="checkbox">
-        <label><input id="charge-interest" type="checkbox" value="" />Charge Interest on Balance Owing</label>
+        <label><input id="charge-interest" type="checkbox" value="" data-hidden-name="shouldChargeInterest" />Charge Interest on Balance Owing</label>
     </div>
     <div class="checkbox">
-        <label><input id="gst-exempt" type="checkbox" value="">Is GST Exempt</label>
+        <label><input id="gst-exempt" type="checkbox" value="" data-hidden-name="isGstExempt">Is GST Exempt</label>
     </div>
     <div class="checkbox">
-        <label><input id="can-be-parent" type="checkbox" name='can-be-parent' value="">Can be Parent</label>
+        <label><input id="can-be-parent" type="checkbox" name='can-be-parent' value="" data-hidden-name="canBeParent">Can be Parent</label>
     </div>
     <div class="checkbox">
-        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account">Previous Account</label>
+        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
     </div>
 </div>
 @endsection
