@@ -52,4 +52,15 @@
 
             return $model;
         }
+
+        public function GetCreateModel() {
+		    $model = new AccountCreateModel();
+		    $acctRepo = new Repos\AccountRepo();
+		    $driversRepo = new Repos\DriverRepo();
+
+		    $model->accounts = $acctRepo->ListParents();
+		    $model->drivers = $driversRepo->ListAll();
+
+		    return $model;
+        }
 	}

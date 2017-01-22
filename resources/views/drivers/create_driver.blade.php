@@ -8,76 +8,29 @@
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 
 <script type="text/javascript">
-	function numberFilter(e) {
-        // Allow: backspace, delete, tab, escape, enter
-        if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110]) !== -1 ||
-            // Allow: Ctrl+A
-            (e.keyCode == 65 && e.ctrlKey === true) ||
-            // Allow: Ctrl+C
-            (e.keyCode == 67 && e.ctrlKey === true) ||
-            // Allow: Ctrl+X
-            (e.keyCode == 88 && e.ctrlKey === true) ||
-            // Allow: home, end, left, right
-            (e.keyCode >= 35 && e.keyCode <= 39)) {
-            // let it happen, don't do anything
-            return;
-        }
-        // Ensure that it is a number and stop the keypress
-        if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-            e.preventDefault();
-        }
-	}
-
     $(document).ready(function(){
-        $('#license-picker').datetimepicker({
-            format: 'dddd, MMMM Do YYYY'
-        });
-
-        $('#lp-picker').datetimepicker({
-            format: 'dddd, MMMM Do YYYY'
-        });
-
-        $('#insurance-picker').datetimepicker({
-            format: 'dddd, MMMM Do YYYY'
-        });
-
-        $('#dob-picker').datetimepicker({
-            format: 'dddd, MMMM Do YYYY'
-        });
-
-        $('#startdate-picker').datetimepicker({
-            format: 'dddd, MMMM Do YYYY'
-        });
-
-		$('#license-picker input').focus(function(e){
-			$('#license-picker ').data("DateTimePicker").show();
-		});
-
-        $('#lp-picker input').focus(function(e){
-            $('#lp-picker ').data("DateTimePicker").show();
-        });
-
-        $('#insurance-picker input').focus(function(e){
-            $('#insurance-picker ').data("DateTimePicker").show();
-        });
-
-        $('#dob-picker input').focus(function(e){
-            $('#dob-picker ').data("DateTimePicker").show();
-        });
-
-        $('#startdate-picker input').focus(function(e){
-            $('#startdate-picker ').data("DateTimePicker").show();
-        });
+        dateInput('license-picker');
+        dateInput('lp-picker');
+        dateInput('insurance-picker');
+        dateInput('dob-picker');
+        dateInput('startdate-picker');
+		phoneInput('ppn');
+		phoneInput('spn');
+		phoneInput('pager-pn');
+		phoneInput('epn');
+		phoneInput('espn');
+		zipInput('zip');
+		zipInput('ezip');
 
 		$("#dln").keydown(function(e){numberFilter(e);});
 		$("#sin").keydown(function(e){numberFilter(e);});
 
-        var dlCleave = new Cleave('#dln', {
+        new Cleave('#dln', {
             delimiter: '-',
 			blocks: [6, 3]
 		});
 
-        var dlCleave = new Cleave('#sin', {
+        new Cleave('#sin', {
             delimiter: ' ',
             blocks: [3, 3, 3]
         });
@@ -89,10 +42,6 @@
 			}
 		@endif
 	});
-
-// function validateForm() {
-
-// }
 
 </script>
 
@@ -149,13 +98,13 @@
 								<input type="text" name="email_address2" class="form-control" placeholder="Secondary Email Address" value="{{old('email_address2')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="primary_phone" class="form-control" placeholder="Primary Phone Number" value="{{old('primary_phone')}}" />
+								<input id="ppn" type="text" name="primary_phone" class="form-control" placeholder="Primary Phone Number" value="{{old('primary_phone')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="secondary_phone" class="form-control" placeholder="Secondary Phone Number" value="{{old('secondary_phone')}}" />
+								<input id="spn" type="text" name="secondary_phone" class="form-control" placeholder="Secondary Phone Number" value="{{old('secondary_phone')}}" />
 							</div>
 							<div class="col-lg-6 clearfix">
-								<input type="text" name="pager_number" class="form-control" placeholder="Pager Number" value="{{old('pager_number')}}" />
+								<input id="pager-pn" type="text" name="pager_number" class="form-control" placeholder="Pager Number" value="{{old('pager_number')}}" />
 							</div>
 						</div>
 					</div>
@@ -175,7 +124,7 @@
 								<input type="text" name="address2" class="form-control" placeholder="Address 2" value="{{old('address2')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="postal_code" class="form-control" placeholder="Postal Code" value="{{old('postal_code')}}" />
+								<input id="zip" type="text" name="postal_code" class="form-control" placeholder="Postal Code" value="{{old('postal_code')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
 								<input type="text" name="city" class="form-control" placeholder="City" value="{{old('city')}}" />
@@ -212,10 +161,10 @@
 								<input type="text" name="emerg_email_address2" class="form-control" placeholder="Secondary Email Address" value="{{old('emerg_email_address2')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="emerg_primary_phone" class="form-control" placeholder="Primary Phone Number" value="{{old('emerg_primary_phone')}}" />
+								<input id="epn" type="text" name="emerg_primary_phone" class="form-control" placeholder="Primary Phone Number" value="{{old('emerg_primary_phone')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="emerg_secondary_phone" class="form-control" placeholder="Secondary Phone Number" value="{{old('emerg_secondary_phone')}}" />
+								<input id="espn" type="text" name="emerg_secondary_phone" class="form-control" placeholder="Secondary Phone Number" value="{{old('emerg_secondary_phone')}}" />
 							</div>
 						</div>
 					</div>
@@ -235,7 +184,7 @@
 								<input type="text" name="emerg_address2" class="form-control" placeholder="Address 2" value="{{old('emerg_address2')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
-								<input type="text" name="emerg_postal_code" class="form-control" placeholder="Postal Code" value="{{old('emerg_postal_code')}}" />
+								<input id="ezip" type="text" name="emerg_postal_code" class="form-control" placeholder="Postal Code" value="{{old('emerg_postal_code')}}" />
 							</div>
 							<div class="col-lg-6 clearfix bottom15">
 								<input type="text" name="emerg_city" class="form-control" placeholder="City" value="{{old('emerg_city')}}" />

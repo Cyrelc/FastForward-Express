@@ -17,7 +17,16 @@ class DriversTableSeeder extends Seeder
             "cus_8ynZkXhBHTXkux",
             "cus_8zAePKdfiC1QMW",
             "cus_8zAe2sRM0d1jC6",
-            "cus_8zAepil5YN3cXY"
+            "cus_8zAepil5YN3cXY",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
         );
 
         $driver_numbers = array(
@@ -25,9 +34,18 @@ class DriversTableSeeder extends Seeder
             "0000002",
             "0000003",
             "0000004",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
         );
 
-        for($i = 0; $i < 4; $i++) {
+        for($i = 0; $i < 12; $i++) {
             $d = factory(App\Driver::class)->create([
                 "contact_id" => factory(App\Contact::class)->create()->contact_id,
                 "user_id" => function(){

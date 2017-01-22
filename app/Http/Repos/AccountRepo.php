@@ -11,6 +11,11 @@ class AccountRepo {
         return $accounts;
     }
 
+    public function ListParents() {
+        $accounts = Account::where('is_master', '=', true)->get();
+
+        return $accounts;
+    }
 
     public function GetById($id) {
         $account = Account::where('account_id', '=', $id)->first();

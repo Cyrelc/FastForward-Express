@@ -25,6 +25,10 @@ class CreateAccountsTable extends Migration
             $table->timestamp('start_date');
             $table->boolean('send_bills');
             $table->boolean('is_master');
+            $table->boolean('gst_exempt');
+            $table->boolean('charge_interest');
+            $table->boolean('can_be_parent');
+            $table->string('custom_field')->nullable();
 
 			$table->unique('account_number');
 			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');
