@@ -23,13 +23,15 @@ class AccountRepo {
         return $account;
     }
 
-    public function Insert($acct, $primaryId, $secondaryId) {
+    public function Insert($acct, $primaryId, $secondaryIds) {
         $new = new Account;
 
         $new = $new->create($acct);
 
         $new->contacts()->attach($primaryId);
-        $new->contacts()->attach($secondaryId);
+
+        foreach($secondaryIds as $secondaryId)
+            $new->contacts()->attach($secondaryId);
 
         return $new;
     }

@@ -37,7 +37,6 @@ class AccountController extends Controller {
     }
 
     public function store(Request $req) {
-        dd($req->all());
         //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
         //return $req;
         $validationRules = [
@@ -198,7 +197,7 @@ class AccountController extends Controller {
             $emailAddressRepo->Insert($primary_email2);
         }
         //END primary contact
-        $secondary_id = null;
+        $secondary_ids = array();
         //BEGIN secondary contact
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 6) == "sc-id-") {
@@ -214,6 +213,7 @@ class AccountController extends Controller {
                     'last_name'=>$lName,
                 ];
                 $secondary_id = $contactRepo->Insert($secondary_contact)->contact_id;
+                $secondary_ids = array_push($secondary_ids, $secondary_id);
 
                 $secondary_phone1 = [
                     'phone_number'=>$ppn,
