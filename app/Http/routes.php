@@ -57,6 +57,8 @@ Route::group(
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 
+            Route::post('/contactus', 'HomeController@ContactUs');
+
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

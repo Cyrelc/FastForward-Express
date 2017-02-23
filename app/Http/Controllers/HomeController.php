@@ -26,4 +26,23 @@ class HomeController extends Controller
     {
         return view('home');
     }
+
+    public function contactUs(Request $req){
+
+        try {
+            \Mail::send('emails.feedback', array('title' => $req->input('title'), 'text' => $req->input('text'), 'type' => $req->input('type')), function($m) use($req) {
+                $m->from('fastforwardexpressfeedback@gmail.com', 'FastForward Express Feedback');
+                $m->to(env('MAIL_USERNAME'))->subject('Feedback from FFE: ' . $req->input('type'));
+            });
+
+            return response()->json([
+                'success' => true
+            ]);
+        } catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }
