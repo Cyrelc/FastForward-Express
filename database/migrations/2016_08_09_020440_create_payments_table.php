@@ -17,7 +17,7 @@ class CreatePaymentsTable extends Migration
             $table->unsignedInteger('invoice_id');
             $table->unsignedInteger('payment_method_id');
             $table->float('amount');
-            $table->timestamp('date');
+            $table->date('date');
             $table->string('comment')->nullable();
 
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');

@@ -17,8 +17,8 @@ class CreateExpiriesTable extends Migration
             $table->string('description');
             $table->smallInteger('grace');
             $table->unsignedInteger('severity_id');
-            $table->boolean('mandatory');
-            $table->boolean('should_notify');
+            $table->boolean('mandatory')->default(false);
+            $table->boolean('should_notify')->default(true);
             $table->string('notification_type');
 
 			$table->foreign('severity_id')->references('severity_id')->on('severities');

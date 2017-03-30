@@ -15,7 +15,7 @@ class CreateAccountContactsTable extends Migration
         Schema::create('account_contacts', function (Blueprint $table) {
             $table->unsignedInteger('account_id');
             $table->unsignedInteger('contact_id');
-            $table->boolean('is_primary');
+            $table->boolean('is_primary')->default(true);
 
 			$table->foreign('account_id')->references('account_id')->on('accounts');
 			$table->foreign('contact_id')->references('contact_id')->on('contacts');

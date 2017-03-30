@@ -15,8 +15,8 @@ class CreateManifestsTable extends Migration
         Schema::create('manifests', function (Blueprint $table) {
             $table->increments('manifest_id');
             $table->unsignedInteger('driver_id');
-            $table->timestamp('start_date');
-            $table->timestamp('end_date');
+            $table->date('start_date');
+            $table->date('end_date');
 
 			$table->foreign('driver_id')->references('driver_id')->on('drivers');
         });

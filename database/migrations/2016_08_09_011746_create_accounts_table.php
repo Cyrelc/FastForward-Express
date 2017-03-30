@@ -22,12 +22,12 @@ class CreateAccountsTable extends Migration
             $table->string('invoice_interval');
             $table->string('stripe_id')->nullable();
             $table->string('name');
-            $table->timestamp('start_date');
-            $table->boolean('send_bills');
-            $table->boolean('is_master');
-            $table->boolean('gst_exempt');
-            $table->boolean('charge_interest');
-            $table->boolean('can_be_parent');
+            $table->date('start_date');
+            $table->boolean('send_bills')->default(false);
+            $table->boolean('is_master')->default(true);
+            $table->boolean('gst_exempt')->default(false);
+            $table->boolean('charge_interest')->default(true);
+            $table->boolean('can_be_parent')->default(true);
             $table->string('custom_field')->nullable();
 
 			$table->unique('account_number');
