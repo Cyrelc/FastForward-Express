@@ -40,6 +40,7 @@ Route::group(
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/edit', 'AccountController@edit');
             Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
+            Route::post('/accounts/get', 'AccountController@get');
 
             Route::resource('/bills', 'BillController',
                     ['only' => ['index', 'create', 'edit', 'store']]
@@ -73,3 +74,7 @@ Route::group(
             Route::post('/login', 'Auth\AuthController@postLogin');
         }
 );
+
+Route::auth();
+
+Route::get('/home', 'HomeController@index');

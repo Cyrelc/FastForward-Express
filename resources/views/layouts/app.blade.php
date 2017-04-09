@@ -15,42 +15,47 @@
         <nav id="menu" class="navbar navbar-inverse">
             <div class="container-fluid">
                 <div class="nav navbar-nav">
-                    <li class="dropdown" disabled>
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/bills">Bills</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/bills/create">Create New Bill</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown" disabled>
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/invoices/create">Create New Invoice</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/accounts">Accounts</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/accounts/create">Create New Account</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/drivers">Drivers</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/drivers/create">Create New Driver</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown" disabled>
-                        <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
-                    </li>                    
-                    <li class="dropdown" disabled>
-                        <a class="dropdown-toggle" data-toggle="dropdown">New Delivery</a>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
-                        <ul class="dropdown-menu">
-                            <li><a href="/customers/create">Log Out</a></li>
-                        </ul>
-                    </li>
+                    @if (Auth::guest())
+                        <li><a href="/login">Log In <i class="fa fa-sign-in"></i></a></li>
+                    @else
+                        <li class="dropdown" disabled>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="/bills">Bills</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/bills/create">Create New Bill</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" disabled>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/invoices/create">Create New Invoice</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="/accounts">Accounts</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/accounts/create">Create New Account</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="/drivers">Drivers</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/drivers/create">Create New Driver</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" disabled>
+                            <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
+                        </li>
+                        <li class="dropdown" disabled>
+                            <a class="dropdown-toggle" data-toggle="dropdown">New Delivery</a>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/logout">Log Out</a></li>
+                                </ul>
+                        </li>
+                    @endif
+
                     <li>
                         <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile-o"></i></a>
                     </li>

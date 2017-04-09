@@ -26,7 +26,7 @@ class AuthController extends Controller
     protected $loginPath = '/login';
 
     public function __construct() {
-        $this->middleware($this->guestMiddleware(), ['except' => 'getLogout']);
+        $this->middleware('guest', ['except' => ['logout', 'getLogout']]);
     }
 
     /**

@@ -13,9 +13,10 @@ class UsersTableSeeder extends Seeder
     {
         $usernames = [
             "ffe-admin@mailinator.com",
-            "ffe-admin2@mailinator.com"
+            "ffe-admin2@mailinator.com",
+            "jack.schaible@hotmail.com"
         ];
-        for($i=0; $i<2; $i++){
+        for($i=0; $i<3; $i++){
             DB::table('user_roles')->insert([
                 'user_id' => factory(App\User::class)->create([
                     "email" => $usernames[$i]
