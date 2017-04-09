@@ -20,7 +20,7 @@ class CreateAddressesTable extends Migration
             $table->string('zip_postal');
             $table->string('state_province');
             $table->string('country');
-            $table->boolean('is_primary');
+            $table->boolean('is_primary')->default(true);
             $table->unsignedInteger('contact_id')->nullable();
 
             $table->foreign('contact_id')->references('contact_id')->on('contacts');

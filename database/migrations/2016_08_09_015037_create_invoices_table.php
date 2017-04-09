@@ -16,9 +16,9 @@ class CreateInvoicesTable extends Migration
             $table->increments('invoice_id');
             $table->unsignedInteger('account_id');
             $table->string('invoice_number');
-            $table->timestamp('date');
-            $table->boolean('is_printed');
-            $table->timestamp('print_date');
+            $table->date('date');
+            $table->boolean('is_printed')->default(false);
+            $table->date('print_date');
             $table->smallInteger('zone');
             $table->string('comment');
 
