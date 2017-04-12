@@ -29,6 +29,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('charge_interest')->default(true);
             $table->boolean('can_be_parent')->default(true);
             $table->string('custom_field')->nullable();
+            $table->boolean('active')->default(true);
 
 			$table->unique('account_number');
 			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');

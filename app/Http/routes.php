@@ -38,9 +38,9 @@ Route::group(
             Route::get('/accounts', 'AccountController@index');
             Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');
-            Route::get('/accounts/edit', 'AccountController@edit');
+            Route::get('/accounts/edit/{id}', 'AccountController@edit');
+            Route::post('/accounts/action', 'AccountController@action');
             Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
-            Route::post('/accounts/get', 'AccountController@get');
 
             Route::resource('/bills', 'BillController',
                     ['only' => ['index', 'create', 'edit', 'store']]

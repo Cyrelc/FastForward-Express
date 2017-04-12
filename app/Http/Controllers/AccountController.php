@@ -27,6 +27,7 @@ class AccountController extends Controller {
         return view('accounts.accounts', compact('contents'));
     }
 
+
     public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
@@ -563,10 +564,44 @@ class AccountController extends Controller {
             'name'=>$req->input('name'),
             'start_date'=>time(),
             'send_bills'=>true,
-            'is_master'=>false,];
+            'is_master'=>false,
+            'active'=>true
+        ];
         $acctRepo->Edit($account);
 
         //END account
         return redirect()->action('AccountController@edit');
+    }
+
+    public function action (Request $req) {
+        try {
+            $id = $req->input('id');
+            if (!isset($id)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ID was not specified.'
+                ]);
+            }
+
+            $acctRepo = new Repos\AccountRepo();
+
+            $acct = $acctRepo->GetById($id);
+
+            if ($req->input('action') == 'deactivate')
+                $acct->active = false;
+            else if ($req->input('action') == 'activate')
+                $acct->active = true;
+
+            $acctRepo->Edit($acct);
+
+            return response()->json([
+                'success' => true
+            ]);
+        } catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

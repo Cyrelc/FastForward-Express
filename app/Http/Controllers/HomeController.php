@@ -28,7 +28,6 @@ class HomeController extends Controller
     }
 
     public function contactUs(Request $req){
-
         try {
             \Mail::send('emails.feedback', array('title' => $req->input('title'), 'text' => $req->input('text'), 'type' => $req->input('type')), function($m) use($req) {
                 $m->from('fastforwardexpressfeedback@gmail.com', 'FastForward Express Feedback');

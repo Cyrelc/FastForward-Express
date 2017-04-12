@@ -31,9 +31,10 @@
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/accounts">Accounts</a>
+                            <a class="dropdown-toggle" data-toggle="dropdown">Accounts</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/accounts/create">Create New Account</a></li>
+                                <li><a href="/accounts"><i class="fa fa-list"></i> List</a></li>
+                                <li><a href="/accounts/create"><i class="fa fa-plus-square-o"></i> New</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
