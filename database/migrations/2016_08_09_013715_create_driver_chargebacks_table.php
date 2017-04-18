@@ -16,7 +16,7 @@ class CreateDriverChargebacksTable extends Migration
             $table->increments('driver_chargeback_id');
             $table->unsignedInteger('driver_id');
             $table->unsignedInteger('chargeback_id');
-            $table->timestamp('charge_date');
+            $table->date('charge_date');
             $table->decimal('amount');
 
 			$table->foreign('chargeback_id')->references('chargeback_id')->on('chargebacks');

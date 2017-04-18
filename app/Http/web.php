@@ -38,8 +38,7 @@ Route::group(
             Route::get('/accounts', 'AccountController@index');
             Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');
-            Route::get('/accounts/edit/{id}', 'AccountController@edit');
-            Route::post('/accounts/action', 'AccountController@action');
+            Route::get('/accounts/edit', 'AccountController@edit');
             Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
 
             Route::resource('/bills', 'BillController',
@@ -74,7 +73,3 @@ Route::group(
             Route::post('/login', 'Auth\AuthController@postLogin');
         }
 );
-
-Route::auth();
-
-Route::get('/home', 'HomeController@index');

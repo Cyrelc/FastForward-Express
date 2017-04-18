@@ -26,7 +26,6 @@ table#mainWindow {
 }
 
 #advFilter {
-	background-color: ;
 }
 
 .dropdown:hover .dropdown-menu {
@@ -61,4 +60,45 @@ td#menuBar {
 	background-repeat: no-repeat;
 	position: relative;
 	height: 145px;
+}
+/*
+.hover-div {
+	display: none;
+}
+
+*:hover > .hover-div {
+	display: block;
+}*/
+
+.actions {
+	position: relative;
+}
+
+.hover-div {
+	position: absolute;
+	top: 10px;
+	display: none;
+}
+
+tr:hover .hover-div {
+	display: block;
+	cursor: default;
+}
+
+.hover-div a {
+	margin: 0 3px 0 0;
+}
+
+.hover-div i.fa-trash {
+	color: #a94442;
+}
+
+.hover-div i.fa-toggle-on {
+	color: #3c763d;
+}
+
+tr.disabled {
+	color: #aaa;
+	background-color: #ccc !important;
+	cursor: no-drop;
 }
