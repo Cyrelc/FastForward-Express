@@ -17,7 +17,7 @@
 			buttons: [
 				'colvis'
 			],
-			rowCallback: rowCb,
+			rowCallback: dtRowCallback,
 			'order': order,
 			'pageLength': 50,
 			'columnDefs': columnDefs

@@ -61,14 +61,6 @@ td#menuBar {
 	position: relative;
 	height: 145px;
 }
-/*
-.hover-div {
-	display: none;
-}
-
-*:hover > .hover-div {
-	display: block;
-}*/
 
 .actions {
 	position: relative;
@@ -101,4 +93,8 @@ tr.disabled {
 	color: #aaa;
 	background-color: #ccc !important;
 	cursor: no-drop;
+}
+
+a.dropdown-toggle {
+	cursor: pointer;
 }
