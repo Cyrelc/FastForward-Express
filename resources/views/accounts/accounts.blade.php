@@ -20,20 +20,20 @@
 		var columnDefs = [{"targets": [ 1 ], "visible": false, "searchable": true}];
         var order = [1, "desc"];
 
-		function rowCb(r, d) {
-		    var id = d[2];
-		    var name = d[4].replace("'", "\\'");
+		function dtRowCallback(row, data) {
+		    var id = data[2];
+		    var name = data[4].replace("'", "\\'");
 
             var editButton = '<a href="accounts/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
             var delButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'deactivate\')"><i class="fa fa-trash"></i></a>';
 			var activateButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'activate\')"><i class="fa fa-toggle-on"></i></a>';
 
-		    if (d[1] == 0) {
-		        $(r).addClass('disabled');
-		        $(r).attr('title', 'Deactivated');
-                $(r).find('.hover-div').html(editButton + activateButton);
+		    if (data[1] == 0) {
+		        $(row).addClass('disabled');
+		        $(row).attr('title', 'Deactivated');
+                $(row).find('.hover-div').html(editButton + activateButton);
 			} else
-                $(r).find('.hover-div').html(editButton + delButton);
+                $(row).find('.hover-div').html(editButton + delButton);
 		}
 	</script>
 @endsection
