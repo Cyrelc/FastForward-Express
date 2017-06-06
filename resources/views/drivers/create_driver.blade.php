@@ -210,7 +210,7 @@
 						<div class="col-lg-4 well">
 							<div class="input-group bottom15">
 								<span class="input-group-addon"><i class="fa fa-id-card-o"></i>&nbsp&nbspDrivers License Number</span>
-								<input type="text" id="dln" name="DLN" class="form-control dln" placeholder="Drivers License Number" value="{{old('DLN')}}" />
+								<input type="text" id="dln" name="DLN" class="form-control dln" placeholder="Drivers License Number" value="{{old('DLN')}}"/>
 							</div>
 							<div id="license_expiration" class="bottom15">
 								<div class='input-group date' id='license-picker'>
@@ -222,7 +222,7 @@
 						<div class="col-lg-4 well">
 							<div class="input-group bottom15">
 								<span class="input-group-addon"><i class="fa fa-car"></i>&nbsp&nbspLicense Plate</span>
-								<input type="text" id="lp" name="license_plate" class="form-control" placeholder="License Plate" value="{{old('license_plate')}}" />
+								<input type="text" id="lp" name="license_plate" class="form-control" placeholder="License Plate" value="{{old('license_plate')}}"/>
 							</div>
 							<div id="license_plate_expiration" class="bottom15">
 								<div class="input-group date" id="lp-picker">
@@ -234,7 +234,7 @@
 						<div class="col-lg-4 well">
 							<div class="input-group bottom15">
 								<span class="input-group-addon"><i class="fa fa-road"></i>&nbsp&nbspInsurance Number</span>
-								<input type="text" name="insurance" class="form-control" placeholder="Insurance Number" value="{{old('insurance')}}" />
+								<input type="text" name="insurance" class="form-control" placeholder="Insurance Number" value="{{old('insurance')}}"/>
 							</div>
 							<div id="insurance_expiration" class="bottom15">
 								<div class='input-group date' id='insurance-picker'>
@@ -244,30 +244,25 @@
 							</div>
 						</div>
 						<div class="col-lg-4 bottom15">
-							<input type="text" id="sin" name="SIN" class="form-control" placeholder="SIN" value="{{old('SIN')}}" />
+							<input type="text" id="sin" name="SIN" class="form-control" placeholder="SIN" value="{{old('SIN')}}"/>
 						</div>
 						<div class="col-lg-4 bottom15">
 							<div class='input-group date' id='dob-picker'>
 								<input type='text' name="DOB" class="form-control" placeholder="Date of Birth" value="{{old('DOB')}}"/>
-								<span class="input-group-addon">
-                    				<span class="glyphicon glyphicon-calendar"></span>
-                				</span>
+								<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
 							</div>
 						</div>
 
 						<div class="row">
-							<hr />
 							<div class="col-lg-4 bottom15">
 								<div class='input-group date' id='startdate-picker'>
 									<input type='text' name="startdate" class="form-control" placeholder="Start Date" value="{{old('DOB')}}"/>
-									<span class="input-group-addon">
-                        				<span class="glyphicon glyphicon-calendar"></span>
-                    				</span>
+									<span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
 								</div>
 							</div>
 							<div class="col-lg-4">
 								<label class="checkbox" style="padding-left: 23px;">
-									<input id='chkActive' type='checkbox' name="active" checked> Active
+									<input id='chkActive' type='checkbox' name="active" checked> Active </input>
 								</label>
 							</div>
 						</div>
