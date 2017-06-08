@@ -25,6 +25,9 @@
         <link rel='stylesheet' type='text/css' href='/css/app.css' />
 
         <!--Global Scripts-->
+        <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
+        <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
+
 
         @yield('head')
     </head>

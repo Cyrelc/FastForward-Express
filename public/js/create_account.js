@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
 		    $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
@@ -10,7 +10,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
 });
@@ -59,10 +59,16 @@ function validate() {
 		$('[name="discount"]').parent().addClass('has-error');
 	}
 
-	if ($('#give-commission').is(':checked') && ($('[name="commission-employee-id"]').val().length == 0 || $('[name="commission-percent"]').val().length == 0)) {
+	if ($('#give-driver-commission').is(':checked') && ($('[name="driver-commission-employee-id"]').val().length == 0 || $('[name="driver-commission-percent"]').val().length == 0)) {
 		errors.string += "Both commission employee and amount must not be empty\n";
-		$('[name="commission-employee-id"]').parent().addClass('has-error');
-		$('[name="commission-percent"]').parent().addClass('has-error');
+		$('[name="driver-commission-employee-id"]').parent().addClass('has-error');
+		$('[name="driver-commission-percent"]').parent().addClass('has-error');
+	}
+
+	if ($('#give-sales-commission').is(':checked') && ($('[name="sales-commission-employee-id"]').val().length == 0 || $('[name="sales-commission-percent"]').val().length == 0)) {
+		errors.string += "Both commission employee and amount must not be empty\n";
+		$('[name="sales-commission-employee-id"]').parent().addClass('has-error');
+		$('[name="sales-commission-percent"]').parent().addClass('has-error');
 	}
 
 	if ($('[name="invoice-interval"]').find(':selected').val() < 0) {
