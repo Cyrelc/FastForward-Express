@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
 		    $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
@@ -10,7 +10,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
+	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
 });
@@ -26,7 +26,7 @@ $('#advFilter input[type="checkbox"]').each(function(i,j) {
 
 function validate() {
 	var errors = {string: "\0"};
-	var check = ['name', 'primary-first-name', 'primary-last-name', 'primary-phone1', 'delivery-street', 'delivery-zip-postal', 'delivery-city', 'delivery-state-province', 'delivery-country'];
+	var check = ['name', 'contact-1-first-name', 'contact-1-last-name', 'contact-1-phone1', 'delivery-street', 'delivery-zip-postal', 'delivery-city', 'delivery-state-province', 'delivery-country'];
 
 	$(':input').parent().removeClass('has-error');
 
@@ -59,10 +59,16 @@ function validate() {
 		$('[name="discount"]').parent().addClass('has-error');
 	}
 
-	if ($('#give-commission').is(':checked') && ($('[name="commission-employee-id"]').val().length == 0 || $('[name="commission-percent"]').val().length == 0)) {
+	if ($('#give-driver-commission').is(':checked') && ($('[name="driver-commission-employee-id"]').val().length == 0 || $('[name="driver-commission-percent"]').val().length == 0)) {
 		errors.string += "Both commission employee and amount must not be empty\n";
-		$('[name="commission-employee-id"]').parent().addClass('has-error');
-		$('[name="commission-percent"]').parent().addClass('has-error');
+		$('[name="driver-commission-employee-id"]').parent().addClass('has-error');
+		$('[name="driver-commission-percent"]').parent().addClass('has-error');
+	}
+
+	if ($('#give-sales-commission').is(':checked') && ($('[name="sales-commission-employee-id"]').val().length == 0 || $('[name="sales-commission-percent"]').val().length == 0)) {
+		errors.string += "Both commission employee and amount must not be empty\n";
+		$('[name="sales-commission-employee-id"]').parent().addClass('has-error');
+		$('[name="sales-commission-percent"]').parent().addClass('has-error');
 	}
 
 	if ($('[name="invoice-interval"]').find(':selected').val() < 0) {
@@ -83,18 +89,18 @@ function validate() {
 	return false;
 }
 
-/*Multiple secondary contacts stuff*/
+/*Multiple contacts stuff*/
 function saveScContact() {
-    var fName = $("#secondary-first-name").val();
-    var lName = $("#secondary-last-name").val();
-    var sPpn = $("#secondary-phone1").val();
-    var sSpn = $("#secondary-phone2").val();
-    var sem = $("#secondary-email1").val();
-    var sem2 = $("#secondary-email2").val();
+    var fName = $("#first-name").val();
+    var lName = $("#last-name").val();
+    var sPpn = $("#phone1").val();
+    var sSpn = $("#phone2").val();
+    var sem = $("#email1").val();
+    var sem2 = $("#email2").val();
 
     var id = -1;
-    $("input[data-sc-contact-id='true']").each(function(i, e){
-        var newId = $(e).val();
+    $("input[data-contact-id='true']").each(function(index, element){
+        var newId = $(element).val();
 
         if (newId > id)
             id = newId;
@@ -105,40 +111,44 @@ function saveScContact() {
     if (id == -1)
         id = 1;
 
-    newTabPill(id, fName,lName);
-    newTabBody(id, fName, lName, sPpn, sSpn, sem, sem2);
+    if ((fName != "") || (lName != "") || (sPpn != "") || (sSpn != "") || (sem != "") || (sem2 != "")) {
+	    newTabPill(id, fName, lName);
+	    newTabBody(id, fName, lName, sPpn, sSpn, sem, sem2);
+    }
     clearScForm();
+    $("#first-name").focus();
+    return true;
 }
 
 function newTabPill(id, fName, lName) {
     var pill = "<li role='presentation'><a href='#" + id + "-panel' aria-controls='" + id + "' role='tab' data-toggle='tab'>" + fName + " " + lName + "</a></li>";
 
-    $("#sc-contact-tabs").append(pill);
+    $("#contact-tabs").append(pill);
 }
 
 function newTabBody(id, fName, lName, sPpn, sSpn, sem, sem2) {
     var body =
         '<div role="tabpanel" class="tab-pane" id="' + id + '-panel">' +
-			'<input type="hidden" name="sc-id-' + id + '" data-sc-contact-id="true" value="' + id +  '" />' +
-			'<div class="col-lg-11">' +
-				'<div class="clearfix form-section">' +
+			'<input type="hidden" name="contact-id-' + id + '" data-contact-id="true" value="' + id +  '" />' +
+			'<div class="col-lg-12" style="padding:15px;">' +
+				'<div class="clearfix form-section well" style="padding:15px;">' +
 					'<div class="col-lg-6 clearfix bottom15">' +
-						'<input type="text" class="form-control sec-con-body" name="sc-' + id + '-first-name" placeholder="First Name" value="' + fName + '"/>' +
-					'</div>' +
-					'<div class="col-lg-6 clearfix bottom15">' +
-						'<input type="text" class="form-control sec-con-body" name="sc-' + id + '-last-name" placeholder="Last Name" value="' + lName + '"/>' +
+						'<input type="text" class="form-control contact-body" name="contact-' + id + '-first-name" placeholder="First Name" value="' + fName + '"/>' +
 					'</div>' +
 					'<div class="col-lg-6 clearfix bottom15">' +
-						'<input type="tel" id="secondary-phone1" class="form-control sec-con-body" name="sc-' + id + '-phone1" placeholder="Primary Phone" value="' + sPpn + '"/>' +
+						'<input type="text" class="form-control contact-body" name="contact-' + id + '-last-name" placeholder="Last Name" value="' + lName + '"/>' +
 					'</div>' +
 					'<div class="col-lg-6 clearfix bottom15">' +
-						'<input class="form-control sec-con-body" id="secondary-phone2" name="sc-' + id + '-phone2" placeholder="Secondary Phone" value="' + sSpn + '"/>' +
+						'<input type="tel" id="phone1" class="form-control contact-body" name="contact-' + id + '-phone1" placeholder="Primary Phone" value="' + sPpn + '"/>' +
 					'</div>' +
-					'<div class="col-lg-6 clearfix">' +
-						'<input type="email" class="form-control sec-con-body" name="sc-' + id + '-email1" placeholder="Primary Email" value="' + sem + '"/>' +
+					'<div class="col-lg-6 clearfix bottom15">' +
+						'<input class="form-control contact-body" id="phone2" name="contact-' + id + '-phone2" placeholder="Secondary Phone" value="' + sSpn + '"/>' +
 					'</div>' +
-					'<div class="col-lg-6 clearfix">' +
-						'<input type="email" class="form-control sec-con-body" name="sc-' + id + '-email2" placeholder="Secondary Email" value="' + sem2 + '" />' +
+					'<div class="col-lg-6 clearfix bottom15">' +
+						'<input type="email" class="form-control contact-body" name="contact-' + id + '-email1" placeholder="Primary Email" value="' + sem + '"/>' +
+					'</div>' +
+					'<div class="col-lg-6 clearfix bottom15">' +
+						'<input type="email" class="form-control contact-body" name="contact-' + id + '-email2" placeholder="Secondary Email" value="' + sem2 + '" />' +
 					'</div>' +
 				'</div>' +
 			'</div>' +
@@ -151,20 +161,20 @@ function newTabBody(id, fName, lName, sPpn, sSpn, sem, sem2) {
 			'</div>' +
         '</div>';
 
-    $("#sc-contact-bodies").append(body);
+    $("#contact-bodies").append(body);
 }
 
 function clearScForm() {
-    $("#secondary-first-name").val('');
-    $("#secondary-last-name").val('');
-    $("#secondary-phone1").val('');
-    $("#secondary-phone2").val('');
-    $("#secondary-email1").val('');
-    $("#secondary-email2").val('');
+    $("#first-name").val('');
+    $("#last-name").val('');
+    $("#phone1").val('');
+    $("#phone2").val('');
+    $("#email1").val('');
+    $("#email2").val('');
 }
 
 function removeSc(id) {
-    var selector = "#sc-contact-tabs a[href='" + id + "-panel']";
-    $("#sc-contact-tabs a[href='#" + id + "-panel']").parent().remove();
+    var selector = "#contact-tabs a[href='" + id + "-panel']";
+    $("#contact-tabs a[href='#" + id + "-panel']").parent().remove();
     $("#" + id + '-panel').remove();
 }
