@@ -14,13 +14,13 @@
             var value = $(e).val() == 'true';
             if (value) {
                 var me = $(e).attr('data-me');
-                var cbid = "#" +$(e).attr('data-checkbox-id');
+                var check_box_id = "#" +$(e).attr('data-checkbox-id');
                 if (me) {
                     var body = $(e).attr('data-body');
-                    $(cbid).prop('checked', true);
+                    $(check_box_id).prop('checked', true);
                     enableBody(me, body);
                 } else
-                    $(cbid).click();
+                    $(check_box_id).click();
             }
         });
 
@@ -31,8 +31,8 @@
                 $("input[name='hasBillingAddress']").val('');
         });
 
-        dateInput('driver-depreciation_start');
-        dateInput('sales-depreciation-start');
+        dateInput('depreciate-1-start-date');
+        dateInput('depreciate-2-start-date');
         comboInput('parent-account-id', 'Select a Parent Account');
         comboInput('driver,select', 'Select a Driver');
         phoneInput("phone1");
@@ -85,16 +85,18 @@
 <h2>New Account</h2>
 <form onsubmit="saveScContact()" method="POST" action="/accounts/store">
 <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{old('isSubLocation')}}"/>
+    <input type="hidden" data-checkbox-id="sub-location" name="isSubLocation" value="{{old('isSubLocation')}}"/>
     <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDriverDiscount" value="{{old('shouldGiveDiscount')}}"/>
-    <input type="hidden" data-checkbox-id="give-driver-commission" name="shouldGiveDriverCommission" value="{{old('shouldGiveDriverCommission')}}"/>
-    <input type="hidden" data-checkbox-id="give-sales-commission" name="shouldGiveSalesCommission" value="{{old('shouldGiveSalesCommission')}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-1" name="shouldGiveDriverCommission" value="{{old('shouldGiveDriverCommission')}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-2" name="shouldGiveSalesCommission" value="{{old('shouldGiveSalesCommission')}}"/>
     <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{old('shouldChargeInterest')}}"/>
     <input type="hidden" data-checkbox-id="gst-exempt" name="isGstExempt" value="{{old('isGstExempt')}}"/>
     <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{old('useCustomField')}}"/>
     <input type="hidden" data-checkbox-id="can-be-parent" name="canBeParent" value="{{old('canBeParent')}}"/>
     <input type="hidden" data-checkbox-id="existing-account" name="hasPreviousAccount" value="{{old('hasPreviousAccount')}}"/>
-    <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{old('hasBillingAddress')}}"/>
+    <input type="hidden" data-checkbox-id="billing-address" name="hasBillingAddress" data-me="billing-address" value="{{old('hasBillingAddress')}}"/>
+    <input type="hidden" data-checkbox-id="has-invoice-comment" name="invoice-comment" value="{{old('invoice-comment')}}"/>
+    <input type="hidden" data-checkbox-id="has-fuel-surcharge" name="has-fuel-surcharge" value="{{old('has-fuel-surcharge')}}" />
 
     <div class="well" style="overflow: hidden">
         <!--Basic Information Panel-->
@@ -118,7 +120,7 @@
             <div class="panel panel-default col-lg-12">
                 <div class='panel-body'>
                     <div id="parent-location" class="bottom15 col-lg-12" >
-                        <select id="parent-account-id" class='form-control' name="parent-account-id">
+                        <select id="parent-account-id" class='form-control' name="parent-account-id" value="{{old('parent-account-id')}}">
                             <option></option>
                             @foreach ($model->accounts as $parent)
                                 <option value='{{$parent->account_id}}'>{{$parent->name}}</option>
@@ -135,19 +137,18 @@
                     </div>
                     <div class="col-lg-4 bottom15">
                         <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval" value="{{old('invoice-interval')}}">
+                            <option disabled></option>
                             <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
                             <option value="monthly">Monthly</option>
                         </select>
                     </div>
-                    <div class="col-lg-4 bottom15" id="discount-div">
-                        <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{old('discount')}}" />
-                    </div>
+                    <hr>
 <!-- Driver Commission -->
-                    <div class="col-lg-6 well bottom15" id="driver-commission-div">
-                        <h3 class="panel-title bottom15">Driver Commission</h3>
+                    <div class="col-lg-4 well bottom15" id="commission-1-div">
+                        <h3 class="panel-title bottom15">Commission 1</h3>
                         <div class="col-lg-6 bottom15">
-                            <select id="driver-select" class="form-control" type='text' name='driver-commission-employee-id' value="{{old('driver-commission-employee-id')}}">
+                            <select id="employee-1-select" class="form-control" type='text' name='commission-employee-1-id' value="{{old('commission-employee-1-id')}}">
                                 <option></option>
                                 @foreach($model->drivers as $d)
                                     <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
@@ -155,32 +156,32 @@
                             </select>
                         </div>
                         <div class="col-lg-6 bottom15">
-                            <input class='form-control' min=0 max=100 type='number' name='driver-commission-percent' placeholder="Commission %" value="{{old('driver-commission-percent')}}"/>
+                            <input class='form-control' min=0 max=100 type='number' name='commission-1-percent' placeholder="Commission %" value="{{old('commission-1-percent')}}"/>
                         </div>
                         <div><h5>Depreciation rules</h5></div>
                         <hr>
                         <span id="depreciate" class="col-lg-12 form-group">
                             <div class="input-group bottom15">
                                 <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='driver-depreciate-percentage' placeholder="Depreciation %" value="{{old('driver-depreciate-percentage')}}">
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percentage' placeholder="Depreciation %" value="{{old('depreciate-1-percentage')}}">
                                 <span class="input-group-addon"> % </span>
                             </div>
                             <div class="input-group bottom15">
                                 <span class="input-group-addon"> for </span>
-                                <input class="form-control" min=0 max=100 type='number' name='driver-depreciate-duration' placeholder="Depreciation duration" value="{{old('driver-depreciation-duration')}}"/>
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-duration' placeholder="Depreciation duration" value="{{old('depreciate-1-duration')}}"/>
                                 <span class="input-group-addon"> years </span>
                             </div>
                             <div class="input-group bottom15" id="driver-depreciation_start">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                <input id="driver-depreciation-start-date" type='text' name="driver-depreciation-start-date" class="form-control" placeholder="Depreciation start date" value="{{old('driver-depreciation-start-date')}}"/>
+                                <input type='text' id="depreciate-1-start-date" name="depreciate-1-start-date" class="form-control" placeholder="Depreciation start date" value="{{old('depreciate-1-start-date')}}"/>
                             </div>
                         </span>
                     </div>
 <!-- Salesman Commission -->
-                    <div class="col-lg-6 well bottom15" id="sales-commission-div">
-                        <h3 class="panel-title bottom15">Sales Commission</h3>
+                    <div class="col-lg-4 well bottom15" id="commission-2-div">
+                        <h3 class="panel-title bottom15">Commission 2</h3>
                         <div class="col-lg-6 bottom15">
-                            <select id="driver-select" class="form-control" type='text' name='sales-commission-employee-id' value="{{old('sales-commission-employee-id')}}">
+                            <select id="employee-2-select" class="form-control" type='text' name='commission-2-employee-id' value="{{old('commission-2-employee-id')}}">
                                 <option></option>
                                 @foreach($model->drivers as $d)
                                     <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
@@ -188,36 +189,46 @@
                             </select>
                         </div>
                         <div class="col-lg-6 bottom15">
-                            <input class='form-control' min=0 max=100 type='number' name='sales-commission-percent' placeholder="Commission %" value="{{old('sales-commission-percent')}}"/>
+                            <input class='form-control' min=0 max=100 type='number' name='commission-2-percent' placeholder="Commission %" value="{{old('commission-2-percent')}}"/>
                         </div>
                         <div><h5>Depreciation rules</h5></div>
                         <hr>
                         <span id="depreciate" class="col-lg-12 form-group">
                             <div class="input-group bottom15">
                                 <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='sales-depreciate-percentage' placeholder="Depreciation %" value="{{old('sales-depreciate-percentage')}}">
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{old('depreciate-2-percentage')}}">
                                 <span class="input-group-addon"> % </span>
                             </div>
                             <div class="input-group bottom15">
                                 <span class="input-group-addon"> for </span>
-                                <input class="form-control" min=0 max=100 type='number' name='sales-depreciate-duration' placeholder="Depreciation duration" value="{{old('sales-depreciation-duration')}}"/>
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-duration' placeholder="Depreciation duration" value="{{old('depreciate-2-duration')}}"/>
                                 <span class="input-group-addon"> years </span>
                             </div>
                             <div class="input-group bottom15" id="depreciation_start_date_1">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                <input id="sales-depreciation-start" type='text' name="sales-depreciation-start" class="form-control" placeholder="Depreciation start date" value="{{old('depreciation_start_date_1')}}"/>
+                                <input type='text' id="depreciate-2-start-date" name="depreciate-2-start-date" class="form-control" placeholder="Depreciation start date" value="{{old('depreciate-2-start-date')}}"/>
                             </div>
                         </span>
                     </div>
 <!-- End Commission -->
+                    <div class="col-lg-4 bottom15" id="fuel-surcharge">
+                        <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{old('fuel-surcharge')}}" />
+                    </div>
+                    <div class="col-lg-4 bottom15" id="discount-div">
+                        <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{old('discount')}}" />
+                    </div>
                     <div class="col-lg-4 bottom15" id="old-account">
-                        <input class='form-control' type='number' name='account-num' placeholder="Previous Account Number" />
+                        <input class='form-control' type='number' name='account-num' placeholder="Previous Account Number" value="{{old('account-num')}}"/>
                     </div>
                     <div class="col-lg-4 bottom15" id="custom-div">
                         <div class="input-group">
-                            <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" />
-                            <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' /> Sortable?</span>
+                            <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" value="{{old('custom-tracker')}}"/>
+                            <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' value="{{old('custom-tracker-sortable')}}"/> Sortable?</span>
                         </div>
+                    </div>
+                    <div class="col-lg-12 bottom15" id="invoice-comment">
+                        <label for="comment">Invoice Comment:</label>
+                        <textarea class="form-control" rows="5" name="comment" placeholder="This comment will appear on every invoice sent to the account">{{{Input::old('comment')}}}</textarea>
                     </div>
                 </div>
             </div>
@@ -352,10 +363,13 @@
         <label><input id="give-discount" type="checkbox" value="" data-div="discount-div" data-hidden-name="shouldGiveDiscount" />Give Discount</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-driver-commission" type="checkbox" value="" data-div="driver-commission-div" data-hidden-name="shouldGiveDriverCommission" />Driver Commission</label>
+        <label><input id="give-commission-1" type="checkbox" value="" data-div="commission-1-div" data-hidden-name="shouldGiveDriverCommission" />Commission 1</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-sales-commission" type="checkbox" value="" data-div="sales-commission-div" data-hidden-name="shouldGiveSalesCommission" />Sales Commission</label>
+        <label><input id="give-commission-2" type="checkbox" value="" data-div="commission-2-div" data-hidden-name="shouldGiveSalesCommission" />Commission 2</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="has-invoice-comment" type="checkbox" value="" data-div="invoice-comment" data-hidden-name="invoice-comment" /> Invoice Comment </label>
     </div>
     <div class="checkbox">
         <label><input id="use-custom-field" type="checkbox" value="" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
@@ -371,6 +385,9 @@
     </div>
     <div class="checkbox">
         <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="has-fuel-surcharge" type="checkbox" name="" value="" data-div="fuel-surcharge" data-hidden-name="has-fuel-surcharge">Charge Fuel Surcharge</label>
     </div>
 </div>
 @endsection

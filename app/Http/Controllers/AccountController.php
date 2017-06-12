@@ -38,7 +38,6 @@ class AccountController extends Controller {
     }
 
     public function store(Request $req) {
-        //Make sure the user has access to edit both: orig_bill and number (both are bill numbers, orig_bill will be the one to modify or -1 to create new)
         //return $req;
         $validationRules = [
             'name' => 'required',
@@ -291,6 +290,7 @@ class AccountController extends Controller {
             'invoice_interval'=>$req->input('invoice-interval'),
             'stripe_id'=>40,
             'name'=>$req->input('name'),
+            'invoice_comment'=>$req->input('comment'),
             'start_date'=>time(),
             'send_bills'=>true,
             'is_master'=>true,
@@ -309,9 +309,15 @@ class AccountController extends Controller {
         else
             $customField = null;
 
+        if ($req->input('has-fuel-surcharge') == 'true')
+            $fuelsurcharge = $req->input('fuel-surcharge');
+        else
+            $fuelsurcharge = null;
+
         $account = array_merge($account, [
             'custom_field' => $customField,
-            'account_number' => $accountNumber
+            'account_number' => $accountNumber,
+            'fuel_surcharge' => $fuelsurcharge
         ]);
 
         $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;

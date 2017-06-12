@@ -22,6 +22,7 @@ class CreateAccountsTable extends Migration
             $table->string('invoice_interval');
             $table->string('stripe_id')->nullable();
             $table->string('name');
+            $table->text('invoice_comment')->nullable();
             $table->date('start_date');
             $table->boolean('send_bills')->default(false);
             $table->boolean('is_master')->default(true);
