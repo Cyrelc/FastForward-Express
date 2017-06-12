@@ -1,5 +1,6 @@
 $(document).ready(function() {
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account').change(function() {
+	var checkboxes = '#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #has-invoice-comment, #has-fuel-surcharge, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account';
+	$(checkboxes).change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();
 		    $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
@@ -10,7 +11,7 @@ $(document).ready(function() {
 		}
 	});
 
-	$('#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #charge-interest, #gst-exempt, #use-custom-field, #existing-account').each(function (i, e) {
+	$(checkboxes).each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
 });
