@@ -309,9 +309,15 @@ class AccountController extends Controller {
         else
             $customField = null;
 
+        if ($req->input('has-fuel-surcharge') == 'true')
+            $fuelsurcharge = $req->input('fuel-surcharge');
+        else
+            $fuelsurcharge = null;
+
         $account = array_merge($account, [
             'custom_field' => $customField,
-            'account_number' => $accountNumber
+            'account_number' => $accountNumber,
+            'fuel_surcharge' => $fuelsurcharge
         ]);
 
         $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;
