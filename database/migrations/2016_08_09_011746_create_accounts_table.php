@@ -18,6 +18,7 @@ class CreateAccountsTable extends Migration
             $table->unsignedInteger('parent_account_id')->nullable();
             $table->unsignedInteger('billing_address_id')->nullable();
             $table->unsignedInteger('shipping_address_id');
+            $table->Integer('fuel_surcharge')->nullable();
             $table->string('account_number')->nullable();
             $table->string('invoice_interval');
             $table->string('stripe_id')->nullable();

@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Seeder;
 
-class DriverCommisionsTableSeeder extends Seeder
+class CommissionsTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -11,7 +11,7 @@ class DriverCommisionsTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('driver_commissions')->insert([
+        DB::table('commissions')->insert([
             "driver_id" => 1,
             "account_id" => 1,
             "commission" => 0.05
