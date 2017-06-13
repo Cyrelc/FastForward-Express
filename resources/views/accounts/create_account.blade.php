@@ -119,7 +119,7 @@
         <div class="row">
             <div class="panel panel-default col-lg-12">
                 <div class='panel-body'>
-                    <div id="parent-location" class="bottom15 col-lg-12" >
+                    <div id="parent-location" class="col-lg-12 bottom15 " >
                         <select id="parent-account-id" class='form-control' name="parent-account-id" value="{{old('parent-account-id')}}">
                             <option></option>
                             @foreach ($model->accounts as $parent)
@@ -135,9 +135,10 @@
                             <option value="-1" selected disabled>Select Rate (coming soon!)</option>
                         </select>
                     </div>
-                    <div class="col-lg-4 bottom15">
+                    <div class="col-lg-4 input-group bottom15">
+                        <span class="input-group-addon">Invoice Interval</span>
                         <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval" value="{{old('invoice-interval')}}">
-                            <option disabled></option>
+                            <option></option>
                             <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
                             <option value="monthly">Monthly</option>
@@ -211,18 +212,22 @@
                         </span>
                     </div>
 <!-- End Commission -->
-                    <div class="col-lg-4 bottom15" id="fuel-surcharge">
+                    <div class="col-lg-4 input-group bottom15" id="fuel-surcharge">
+                        <span class="input-group-addon">Fuel Surcharge:</span>
                         <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{old('fuel-surcharge')}}" />
                     </div>
-                    <div class="col-lg-4 bottom15" id="discount-div">
+                    <div class="col-lg-4 input-group bottom15" id="discount-div">
+                        <span class="input-group-addon">Discount:</span>
                         <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{old('discount')}}" />
                     </div>
-                    <div class="col-lg-4 bottom15" id="old-account">
+                    <div class="col-lg-4 input-group bottom15" id="old-account">
+                        <span class="input-group-addon">Previous Account #:</span>
                         <input class='form-control' type='number' name='account-num' placeholder="Previous Account Number" value="{{old('account-num')}}"/>
                     </div>
-                    <div class="col-lg-4 bottom15" id="custom-div">
+                    <div class="col-lg-4 input-group bottom15" id="custom-div">
                         <div class="input-group">
-                            <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" value="{{old('custom-tracker')}}"/>
+                            <span class="input-group-addon">Custom Tracker:</span>
+                            <input type='text' class="form-control" name='custom-tracker' placeholder="Custom Tracking Field Name" value="{{old('custom-tracker')}}"/>
                             <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' value="{{old('custom-tracker-sortable')}}"/> Sortable?</span>
                         </div>
                     </div>
@@ -354,7 +359,7 @@
 
 @section ('advFilter')
 <div class="well form-group">
-    <h3>Options</h3>
+    <h3>Additional Fields</h3>
     <hr>
     <div class="checkbox">
         <label><input id="sub-location" type="checkbox" value="" name="sub-location" data-div="parent-location" data-hidden-name="isSubLocation" />Is Sub-Location</label>
@@ -375,6 +380,14 @@
         <label><input id="use-custom-field" type="checkbox" value="" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
     </div>
     <div class="checkbox">
+        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="has-fuel-surcharge" type="checkbox" name="" value="" data-div="fuel-surcharge" data-hidden-name="has-fuel-surcharge">Charge Fuel Surcharge</label>
+    </div>
+    <h3>Options</h3>
+    <hr>
+    <div class="checkbox">
         <label><input id="charge-interest" type="checkbox" value="" data-hidden-name="shouldChargeInterest" />Charge Interest on Balance Owing</label>
     </div>
     <div class="checkbox">
@@ -382,12 +395,6 @@
     </div>
     <div class="checkbox">
         <label><input id="can-be-parent" type="checkbox" name='can-be-parent' value="" data-hidden-name="canBeParent">Can be Parent</label>
-    </div>
-    <div class="checkbox">
-        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
-    </div>
-    <div class="checkbox">
-        <label><input id="has-fuel-surcharge" type="checkbox" name="" value="" data-div="fuel-surcharge" data-hidden-name="has-fuel-surcharge">Charge Fuel Surcharge</label>
     </div>
 </div>
 @endsection
