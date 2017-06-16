@@ -24,7 +24,7 @@ class DriverModelFactory
 
                 $dvm->driver = $d;
                 $dvm->contact = $contactRepo->GetById($d->contact_id);
-                $dvm->address = $addrRepo->GetByContactId($d->contact_id);
+                $dvm->address = $addrRepo->ListByContactId($d->contact_id);
                 $dvm->phoneNumber = $pnRepo->GetById($d->contact_id);
 
                 array_push($dvms, $dvm);

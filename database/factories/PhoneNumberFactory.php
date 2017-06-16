@@ -11,8 +11,15 @@ $factory->define(App\PhoneNumber::class, function (Faker\Generator $faker) {
     else
         $t = "Fax";
 
-    return [
+    $pn = '7804' . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit;
+
+    $returnVal = [
         'type' => $t,
-        'phone_number' => $faker->phoneNumber,
+        'phone_number' => $pn,
     ];
+
+    if (rand(0,1) == 1) {
+        $returnVal["extension_number"] = $faker->randomDigit . $faker->randomDigit . $faker->randomDigit;
+    }
+    return $returnVal;
 });

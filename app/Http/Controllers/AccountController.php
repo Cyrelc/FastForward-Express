@@ -33,19 +33,27 @@ class AccountController extends Controller {
         //Check permissions
         $amf = new Account\AccountModelFactory();
         $model = $amf->GetCreateModel();
+        return view('accounts.account', compact('model'));
+    }
 
-        return view('accounts.create_account', compact('model'));
+    public function edit($id) {
+        //TODO: Handle manual validation fails
+        $factory = new Account\AccountModelFactory();
+        $model = $factory->GetModel($id);
+        dd($model);
+        return view('accounts.account', compact('model'));
     }
 
     public function store(Request $req) {
         //return $req;
+        $isEdit = false;
+        foreach($req->all() as $key=>$value) {
+            if ($key == 'account-id')
+                $isEdit = true;
+        }
+
         $validationRules = [
             'name' => 'required',
-            'contact-1-first-name' => 'required',
-            'contact-1-last-name' => 'required',
-            //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
-            'contact-1-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'contact-1-email1' => 'required|email',
             'delivery-street' => 'required',
             'delivery-city' => 'required',
             //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
@@ -56,10 +64,6 @@ class AccountController extends Controller {
 
         $validationMessages = [
             'name.required' => 'Company Name is required.',
-            'contact-1-first-name.required' => 'Primary Contact First Name is required.',
-            'contact-1-last-name.required' => 'Primary Contact Last Name is required.',
-            'contact-1-phone1.required' => 'Primary Contact Primary Phone Number is required.',
-            'contact-1-email1.required' => 'Primary Contact Primary Email is required.',
             'delivery-street.required' => 'Delivery Address Street is required.',
             'delivery-city.required' => 'Delivery Address City is required.',
             'delivery-zip-postal.required' => 'Delivery Address Postal Code is required.',
@@ -68,32 +72,54 @@ class AccountController extends Controller {
             'delivery-country.required' => 'Delivery Country is required.'
         ];
 
+        $contacts = 0;
+        $contactsToDelete = [];
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0,15)  == "contact-delete-") {
+                array_push($contactsToDelete, $req->input($key));
+            }
+        }
+
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 11) == "contact-id-") {
-                $id = substr($key, 11);
-                $fName = $req->input('contact-' . $id . '-first-name');
-                $lName = $req->input('contact-' . $id . '-last-name');
+                $contactId = substr($key, 11);
+
+                //Skip validation for any deleted contacts, and don't increase the contact count
+                if (in_array($contactId, $contactsToDelete))
+                    continue;
+
+                $contacts++;
+                $fName = $req->input('contact-' . $contactId . '-first-name');
+                $lName = $req->input('contact-' . $contactId . '-last-name');
 
                 $validationRules = array_merge($validationRules, [
-                    'contact-' . $id .'-first-name' => 'required',
-                    'contact-' . $id . '-last-name' => 'required',
-                    'contact-' . $id . '-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                    'contact-' . $id . '-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                    'contact-' . $id . '-email1' => 'required|email',
-                    'contact-' . $id .'-email2' => 'email'
+                    'contact-' . $contactId .'-first-name' => 'required',
+                    'contact-' . $contactId . '-last-name' => 'required',
+                    //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
+                    'contact-' . $contactId . '-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+                    'contact-' . $contactId . '-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+                    'contact-' . $contactId . '-email1' => 'required|email',
+                    'contact-' . $contactId .'-email2' => 'email'
                 ]);
 
                 $validationMessages = array_merge($validationMessages, [
-                    'contact-' . $id .'-first-name.required' => 'Secondary Contact First Name is required.',
-                    'contact-' . $id .'-last-name.required' => 'Secondary Contact Last Name is required.',
-                    'contact-' . $id .'-phone1.required' => $fName . ' ' . $lName . ' Primary Phone Number is required.',
-                    'contact-' . $id .'-phone1.regex' => $fName . ' ' . $lName . ' Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                    'contact-' . $id .'-phone2.regex' => $fName . ' ' . $lName . ' Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                    'contact-' . $id .'-email1.required' => $fName . ' ' . $lName . ' Primary Email is required.',
-                    'contact-' . $id .'-email1.email' => $fName . ' ' . $lName . ' Primary Email must be an email.',
-                    'contact-' . $id .'-email2.email' => $fName . ' ' . $lName . ' Secondary Email must be an email.',
+                    'contact-' . $contactId .'-first-name.required' => 'Secondary Contact First Name is required.',
+                    'contact-' . $contactId .'-last-name.required' => 'Secondary Contact Last Name is required.',
+                    'contact-' . $contactId .'-phone1.required' => $fName . ' ' . $lName . ' Primary Phone Number is required.',
+                    'contact-' . $contactId .'-phone1.regex' => $fName . ' ' . $lName . ' Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
+                    'contact-' . $contactId .'-phone2.regex' => $fName . ' ' . $lName . ' Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
+                    'contact-' . $contactId .'-email1.required' => $fName . ' ' . $lName . ' Primary Email is required.',
+                    'contact-' . $contactId .'-email1.email' => $fName . ' ' . $lName . ' Primary Email must be an email.',
+                    'contact-' . $contactId .'-email2.email' => $fName . ' ' . $lName . ' Secondary Email must be an email.',
                 ]);
             }
+        }
+
+        if ($contacts == 0) {
+            //Manually fail validation
+            $rules['Contacts'] = 'required';
+            $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+            if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
         }
 
         if ($req->input('billing-address') == 'on') {
@@ -152,102 +178,201 @@ class AccountController extends Controller {
         $accountRepo = new Repos\AccountRepo();
         $pnRepo = new Repos\PhoneNumberRepo();
 
+        //Create array of all actions to be taken with contacts
         $secondary_ids = array();
-        $primary_id;
+        $contactActions = [];
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 15) == "contact-action-") {
+                $ids = $req->input($key);
+                $type = substr($key, 15);
+
+                if (!is_array($ids))
+                    $ids = [$ids];
+
+                foreach ($ids as $contactId) {
+                    if (array_key_exists($contactId, $contactActions))
+                        array_push($contactActions[$contactId], $type);
+                    else
+                        $contactActions[$contactId] = [$type];
+                }
+            }
+        }
+
         //BEGIN contacts
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 11) == "contact-id-") {
-                $id = substr($key, 11);
-                $fName = $req->input('contact-' . $id . '-first-name');
-                $lName = $req->input('contact-' . $id . '-last-name');
-                $ppn = $req->input('contact-' . $id . '-phone1');
-                $spn = $req->input('contact-' . $id . '-phone2');
-                $em = $req->input('contact-' . $id . '-email');
-                $em2 = $req->input('contact-' . $id . '-email2');
-                if($id = '1') {
-                    //BEGIN primary Contact
-                    $primary_contact = [
-                        'first_name'=>$fName,
-                        'last_name'=>$lName
-                    ];
-                    $primary_id = $contactRepo->Insert($primary_contact)->contact_id;
+                $contactId = substr($key, 11);
 
-                    $primary_phone1 = [
-                        'phone_number'=>$ppn,
-                        'is_primary'=>true,
-                        'contact_id'=>$primary_id
-                    ];
-                    $pnRepo->Insert($primary_phone1);
+                $actions = $contactActions[$contactId];
 
+                $primaryAction = "";
+                if (in_array('delete', $actions))
+                    $primaryAction = 'delete';
+                else if (in_array('update', $actions))
+                    $primaryAction = 'update';
+                else if (in_array('new', $actions))
+                    $primaryAction = 'new';
+
+                //What do we do with this contact? Return fail
+                if ($primaryAction == "") {
+                    $rules['Contact-Action' . $contactId] = 'required';
+                    $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+                    if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+                }
+
+                if ($primaryAction == "delete") {
+                    //Deleting contact, delete and don't do anything else
+
+                    //Check that another contact is being added as primary
+                    $isAnotherPrimary = false;
+                    foreach($contactActions as $actions) {
+                        foreach($actions as $action) {
+                            if ($action == "change-primary")
+                                $isAnotherPrimary = true;
+                        }
+                    }
+
+                    if (!$isAnotherPrimary) {
+                        //Manually fail validation
+                        $rules['PrimaryContact'] = 'required';
+                        $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+                        if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+                    }
+
+                    $contactRepo->Delete($contactId);
+                    continue;
+                }
+
+                $fName = $req->input('contact-' . $contactId . '-first-name');
+                $lName = $req->input('contact-' . $contactId . '-last-name');
+                $ppn = $req->input('contact-' . $contactId . '-phone1');
+                $spn = $req->input('contact-' . $contactId . '-phone2');
+                $em = $req->input('contact-' . $contactId . '-email1');
+                $em2 = $req->input('contact-' . $contactId . '-email2');
+
+                $contact = [
+                    'first_name'=>$fName,
+                    'last_name'=>$lName
+                ];
+
+                $primary_id = null;
+
+                if ($primaryAction == "new") {
+                    $primary_id = $contactRepo->Insert($contact)->contact_id;
+                    $contactId = $primary_id;
+                }
+                else if ($primaryAction == "update") {
+                    $contact["contact_id"] = $contactId;
+                    $contactRepo->Update($contact);
+                }
+
+                $phone1 = [
+                    'phone_number'=>$ppn,
+                    'is_primary'=>true,
+                    'contact_id'=>$contactId
+                ];
+
+                $email1 = [
+                    'email'=>$em,
+                    'contact_id'=>$contactId,
+                    'is_primary'=>true
+                ];
+
+                if ($primaryAction == "new") {
+                    $pnRepo->Insert($phone1);
+                    $emailAddressRepo->Insert($email1);
+                }
+                else if ($primaryAction == "update") {
+                    $phone1["phone_number_id"] = $req->input('contact-' . $contactId . '-phone1-id');
+                    $pnRepo->Update($phone1);
+
+                    $email1["email_address_id"] = $req->input('contact-' . $contactId . '-email1-id');
+                    $emailAddressRepo->Update($email1);
+                }
+
+                if ($primaryAction == "new") {
+                    //New phone numbers on new account
                     if ($req->input('primary-phone2') != null) {
                         $primary_phone2 = [
-                            'phone_number'=>$spn,
-                            'is_primary'=>false,
-                            'contact_id'=>$primary_id
+                            'phone_number' => $spn,
+                            'is_primary' => false,
+                            'contact_id' => $contactId
                         ];
                         $pnRepo->Insert($primary_phone2);
                     }
 
-                    if ($req->input('primary-email1') != null) {
-                        $primary_email1 = [
-                            'email'=>$em,
-                            'contact_id'=>$primary_id
-                        ];
-                        $emailAddressRepo->Insert($primary_email1);
-                    }
-
                     if ($req->input('primary-email2') != null) {
                         $primary_email2 = [
-                            'email'=>$em2,
-                            'contact_id'=>$primary_id
+                            'email' => $em2,
+                            'contact_id' => $contactId
                         ];
                         $emailAddressRepo->Insert($primary_email2);
                     }
                 } else {
-                    $secondary_contact = [
-                        'first_name'=>$fName,
-                        'last_name'=>$lName,
-                    ];
-                    $secondary_id = $contactRepo->Insert($secondary_contact)->contact_id;
-                    $secondary_ids = array_push($secondary_ids, $secondary_id);
-
-                    $secondary_phone1 = [
-                        'phone_number'=>$ppn,
-                        'is_primary'=>true,
-                        'contact_id'=>$secondary_id
-                    ];
-                    $pnRepo->Insert($secondary_phone1);
-
-                    if ($spn != null) {
-                        $secondary_phone2 = [
-                            'phone_number'=>$spn,
-                            'is_primary'=>false,
-                            'contact_id'=>$secondary_id
+                    //New phone numbers on existing account
+                    if ($req->input('pn-action-add-' . $contactId) != null) {
+                        $primary_phone2 = [
+                            'phone_number' => $spn,
+                            'is_primary' => false,
+                            'contact_id' => $contactId
                         ];
-                        $pnRepo->Insert($secondary_phone2);
+                        $pnRepo->Insert($primary_phone2);
+                    }
+                    if ($req->input('em-action-add-' . $contactId) != null) {
+                        if ($req->input('primary-email2') != null) {
+                            $primary_email2 = [
+                                'email' => $em2,
+                                'contact_id' => $contactId
+                            ];
+                            $emailAddressRepo->Insert($primary_email2);
+                        }
                     }
 
-                    if ($em != null) {
-                        $secondary_email1 = [
-                            'email'=>$em,
-                            'is_primary'=>true,
-                            'contact_id'=>$secondary_id
+                    //Existing phone numbers on existing account
+                    if ($req->input('contact-' . $contactId . '-phone2-id') != null) {
+                        $primary_phone2 = [
+                            'phone_number_id' => $req->input('contact-' . $contactId . '-phone2-id'),
+                            'phone_number' => $spn,
+                            'is_primary' => false,
+                            'contact_id' => $contactId
                         ];
-                        $emailAddressRepo->Insert($secondary_email1);
+                        $pnRepo->Update($primary_phone2);
                     }
-
-                    if ($em2 != null) {
-                        $secondary_email2 = [
-                            'email'=>$em2,
-                            'is_primary'=>false,
-                            'contact_id'=>$secondary_id
-                        ];
-                        $emailAddressRepo->Insert($secondary_email2);
+                    if ($req->input('contact-' . $contactId . '-email2-id') != null) {
+                        if ($req->input('primary-email2') != null) {
+                            $email2 = [
+                                'email' => $em2,
+                                'is_primary' => false,
+                                'contact_id' => $contactId
+                            ];
+                            $emailAddressRepo->Update($email2);
+                        }
                     }
                 }
             }
         }
-        //END secondary contact
+
+        //Handle deletes of all secondary emails/pn's together
+        $pnsToDelete = $req->input('pn-action-delete');
+        $emsToDelete = $req->input('em-action-delete');
+
+        if ($pnsToDelete !== null) {
+            if(is_array($pnsToDelete))
+                foreach($pnsToDelete as $pn)
+                    $pnRepo->Delete($pn);
+            else
+                $pnRepo->Delete($pnsToDelete);
+        }
+
+        if ($emsToDelete !== null) {
+            if(is_array($emsToDelete))
+                foreach($emsToDelete as $em)
+                    $pnRepo->Delete($em);
+            else
+                $pnRepo->Delete($emsToDelete);
+        }
+
+        //END contacts
         //BEGIN delivery address
         $delivery = [
             'street'=>$req->input('delivery-street'),
@@ -258,10 +383,19 @@ class AccountController extends Controller {
             'country'=>$req->input('delivery-country'),
             'is_primary'=>true
         ];
-        $delivery_id = $addressRepo->Insert($delivery)->address_id;
+
+        $delivery_id = $req->input('delivery-id');
+
+        if ($delivery_id == null)
+            $delivery_id = $addressRepo->Insert($delivery)->address_id;
+        else {
+            $delivery["address_id"] = $delivery_id;
+            $addressRepo->Update($delivery);
+        }
+
         //END delivery address
         //BEGIN billing address
-        $billing_id = null;
+        $billing_id = $req->input('billing-id');
         if ($req->input('billing-address') == 'on') {
             $billing = [
                 'street'=>$req->input('billing-street'),
@@ -272,8 +406,16 @@ class AccountController extends Controller {
                 'country'=>$req->input('billing-country'),
                 'is_primary'=>false
             ];
-            $billing_id = $addressRepo->Insert($billing)->address_id;
-        }
+
+            if ($billing_id == null)
+                $billing_id = $addressRepo->Insert($billing)->address_id;
+            else {
+                $billing["address_id"] = $billing_id;
+                $addressRepo->Update($billing);
+            }
+        } else if ($billing_id != null)
+                $addressRepo->Delete($billing_id);
+
         //END billing address
         //BEGIN account
         $old_acct = null;
@@ -281,22 +423,28 @@ class AccountController extends Controller {
             $old_acct = $req->input('account-number');
         }
 
+        $hasParent = $req->input('parent-account-id') != null && strlen($req->input('parent-account-id')) > 0;
+        $getsDiscount = $req->input('discount') != null && $req->input('discount') > 0;
+
         $account = [
             'rate_type_id'=>1,
-            'parent_account_id'=>$req->input('parent-account-id') == '' ? null : $req->input('parent-account-id'),
             'billing_address_id'=>$billing_id,
             'shipping_address_id'=>$delivery_id,
             'account_number'=>$old_acct,
             'invoice_interval'=>$req->input('invoice-interval'),
+            'invoice_comment'=>$req->input('comment'),
             'stripe_id'=>40,
             'name'=>$req->input('name'),
-            'invoice_comment'=>$req->input('comment'),
             'start_date'=>time(),
-            'send_bills'=>true,
-            'is_master'=>true,
+            'send_bills'=>$req->input('send-bills') == "true",
+            'is_master'=>!$hasParent,
+            'parent_account_id'=>!$hasParent ? null : $req->input('parent-account-id'),
+            'gets_discount' => $getsDiscount,
+            'discount'=> $getsDiscount ? $req->input('discount') / 100 : 0,
+            'gst_exempt'=>$req->input('isGstExempt') == "true",
             'charge_interest'=>$req->input('shouldChargeInterest') == "true",
-            "gst_exempt"=>$req->input('isGstExempt') == "true",
-            "canBeParent"=>$req->input('canBeParent') == "true"
+            'can_be_parent'=>$req->input('canBeParent') == "true",
+            'active'=>true
         ];
 
         if ($req->input('hasPreviousAccount') == 'true')
@@ -308,272 +456,37 @@ class AccountController extends Controller {
             $customField = $req->input('custom-tracker');
         else
             $customField = null;
+        $account["uses_custom_field"] = $req->input('useCustomField') == "true";
+        $account['custom_field'] = $customField;
 
-        if ($req->input('has-fuel-surcharge') == 'true')
+        $fuelsurcharge = null;
+		if ($req->input('has-fuel-surcharge') == 'true') {
             $fuelsurcharge = $req->input('fuel-surcharge');
-        else
-            $fuelsurcharge = null;
+            $account['fuel_surcharge'] = $fuelsurcharge / 100;
+        }
 
-        $account = array_merge($account, [
-            'custom_field' => $customField,
-            'account_number' => $accountNumber,
-            'fuel_surcharge' => $fuelsurcharge
-        ]);
+        $accountId = $req->input('account-id');
+		$action = '';
+		$args = [];
+        if ($accountId == null) {
+            $accountId = $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;
+            $action = 'AccountController@create';
+        }
+        else {
+            $account["account_id"] = $accountId;
+            $accountRepo->Update($account);
+            $action = 'AccountController@edit';
+            $args = ['id' => $accountId];
+        }
 
-        $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;
+        //Handle change of primary
+        $newPrimaryId = $req->input('contact-action-change-primary');
+        if ($newPrimaryId != null)
+            $accountRepo->ChangePrimary($accountId, $newPrimaryId);
 
         //END account
-        return redirect()->action('AccountController@create');
-    }
 
-    public function edit($id) {
-        $factory = new Account\AccountModelFactory();
-        $model = $factory->GetById($id);
-
-        return view('account.edit_account', compact('model'));
-    }
-
-    public function submitEdit(Request $req) {
-        $validationRules = [
-            'account-id' => 'required',
-            'name' => 'required',
-            'primary-id' => 'required',
-            'primary-first-name' => 'required',
-            'primary-last-name' => 'required',
-            //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
-            'primary-phone1-id' => 'required',
-            'primary-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'primary-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'primary-email1-id' => 'required',
-            'primary-email1' => 'required|email',
-            'primary-email2' => 'email',
-            'delivery-id' => 'required',
-            'delivery-street' => 'required',
-            'delivery-city' => 'required',
-            //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
-            'delivery-zip-postal' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
-            'delivery-state-province' => 'required',
-            'delivery-country' => 'required'
-        ];
-
-        $validationMessages = [
-            'account-id.required' => 'Account ID is missing. Please contact support.',
-            'name.required' => 'Company Name is required.',
-            'primary-id.required' => 'Primary Contact ID is missing. Please contact support.',
-            'primary-first-name.required' => 'Primary Contact First Name is required.',
-            'primary-last-name.required' => 'Primary Contact Last Name is required.',
-            'primary-phone1.required' => 'Primary Contact Primary Phone Number is required.',
-            'primary-phone1.regex' => 'Primary Contact Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'primary-phone2.regex' => 'Primary Contact Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'primary-email1.required' => 'Primary Contact Primary Email is required.',
-            'primary-email1.email' => 'Primary Contact Primary Email must be an email.',
-            'primary-email2.email' => 'Primary Contact Secondary Email must be an email.',
-            'delivery-street.required' => 'Delivery Address Street is required.',
-            'delivery-city.required' => 'Delivery Address City is required.',
-            'delivery-zip-postal.required' => 'Delivery Address Postal Code is required.',
-            'delivery-zip-postal.regex' => 'Delivery Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
-            'delivery-state-province.required' => 'Delivery Province is required.',
-            'delivery-country.required' => 'Delivery Country is required.'
-        ];
-
-        if ($req->input('secondary-contact') == 'on') {
-            $validationRules = array_merge($validationRules, [
-                'secondary-id' => 'required',
-                'secondary-first-name' => 'required',
-                'secondary-last-name' => 'required',
-                'secondary-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                'secondary-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                'secondary-email1' => 'required|email',
-                'secondary-email2' => 'email'
-            ]);
-
-            $validationMessages = array_merge($validationMessages, [
-                'secondary-id.required' => 'Secondary Contact ID is missing. Please contact support.',
-                'secondary-first-name.required' => 'Secondary Contact First Name is required.',
-                'secondary-last-name.required' => 'Secondary Contact Last Name is required.',
-                'secondary-phone1.required' => 'Secondary Contact Primary Phone Number is required.',
-                'secondary-phone1.regex' => 'Secondary Contact Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                'secondary-phone2.regex' => 'Secondary Contact Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                'secondary-email1.required' => 'Secondary Contact Primary Email is required.',
-                'secondary-email1.email' => 'Secondary Contact Primary Email must be an email.',
-                'secondary-email2.email' => 'Secondary Contact Secondary Email must be an email.',
-            ]);
-        }
-
-        if ($req->input('billing-address') == 'on') {
-            $validationRules = array_merge($validationRules, [
-                'billing-id' => 'required',
-                'billing-street' => 'required',
-                'billing-city' => 'required',
-                'billing-zip-postal' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
-                'billing-state-province' => 'required',
-                'billing-country' => 'required'
-            ]);
-
-            $validationMessages = array_merge($validationMessages, [
-                'billing-id.required' => 'Billing Address ID is missing. Please contact support.',
-                'billing-street.required' => 'Billing Address Street is required.',
-                'billing-city.required' => 'Billing Address City is required.',
-                'billing-zip-postal.required' => 'Billing Address Postal Code is required.',
-                'billing-zip-postal.regex' => 'Billing Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
-                'billing-state-province.required' => 'Billing Province is required.',
-                'billing-country.required' => 'Billing Country is required.'
-            ]);
-        }
-
-        $this->validate($req, $validationRules, $validationMessages);
-
-        $contactRepo = new Repos\ContactRepo();
-        $addressRepo = new Repos\AddressRepo();
-        $acctRepo = new Repos\AccountRepo();
-        $pnRepo = new Repos\PhoneNumberRepo();
-        $emailAddressRepo = new Repos\EmailAddressRepo();
-
-        //BEGIN primary Contact
-
-        $primary_contact = [
-            'contact_id'=>$req->input('primary-id'),
-            'first_name'=>$req->input('primary-first-name'),
-            'last_name'=>$req->input('primary-last-name')];
-        $contactRepo->Edit($primary_contact);
-
-        $primary_phone1 = [
-            'phone_number_id'=>$req->input('primary-phone1-id'),
-            'phone_number'=>$req->input('primary-phone1'),
-            'is_primary'=>true];
-        $pnRepo->Edit($primary_phone1);
-
-        if ($req->has('primary-phone2') && strlen($req->input('primary-phone')) > 0) {
-            if ($req->input('primary-phone2-id') != null)
-                $pnRepo->Delete($req->input('primary-phone2-id'));
-        } else {
-            $primary_phone2 = [
-                'phone_number_id'=>$req->input('primary-phone2-id'),
-                'phone_number'=>$req->input('primary-phone2'),
-                'is_primary'=>false];
-            $pnRepo->Edit($primary_phone2);
-        }
-
-        if ($req->has('primary-email1') && $req->has('primary-email1')) {
-            if ($req->input('primary-email1-id') != null)
-                $emailAddressRepo->Delete($req->input('primary-email1-id'));
-        } else {
-            $primary_email1 = [
-                'email_address_id'=>$req->input('primary-email1-id'),
-                'email'=>$req->input('primary-email1')];
-            $emailAddressRepo->Edit($primary_email1);
-        }
-
-        if ($req->input('primary-email2') == null) {
-            if ($req->input('primary-email2-id') != null)
-                $emailAddressRepo->Delete($req->input('primary-email2-id'));
-        } else {
-            $primary_email2 = [
-                'email_address_id'=>$req->input('primary-email2-id'),
-                'email'=>$req->input('primary-email2')];
-            $emailAddressRepo->Edit($primary_email2);
-        }
-        //END primary contact
-        //BEGIN secondary contact
-        if ($req->input('secondary-contact') == 'on') {
-            $secondary_contact = [
-                'contact_id'=>$req->input('secondary-id'),
-                'first_name'=>$req->input('secondary-first-name'),
-                'last_name'=>$req->input('secondary-last-name')];
-            $contactRepo->Edit($secondary_contact);
-
-            $secondary_phone1 = [
-                'phone_number_id'=>$req->input('secondary-phone1-id'),
-                'phone_number'=>$req->input('secondary-phone1'),
-                'is_primary'=>true];
-            $pnRepo->Edit($secondary_phone1);
-
-            if ($req->input('secondary-phone2') == null) {
-                if ($req->input('secondary-phone1-id') != null)
-                    $pnRepo->Delete($req->input('secondary-phone1-id'));
-            } else {
-                $secondary_phone2 = [
-                    'phone_number_id'=>$req->input('secondary-phone2-id'),
-                    'phone_number'=>$req->input('secondary-phone2'),
-                    'is_primary'=>false];
-                $pnRepo->Edit($secondary_phone2);
-            }
-
-            if ($req->input('secondary-email1') == null) {
-                if ($req->input('secondary-email1-id') != null)
-                    $emailAddressRepo->Delete($req->input('secondary-email1-id'));
-            } else {
-                $secondary_email1 = [
-                    'email_address_id'=>$req->input('secondary-email1-id'),
-                    'email'=>$req->input('secondary-email1')];
-                $emailAddressRepo->Edit($secondary_email1);
-            }
-
-            if ($req->input('secondary-email2') == null) {
-                if ($req->input('secondary-email2-id') != null)
-                    $emailAddressRepo->Delete($req->input('secondary-email2-id'));
-            } else {
-                $secondary_email2 = [
-                    'email_address_id'=>$req->input('secondary-email2-id'),
-                    'email'=>$req->input('secondary-email2')];
-                $emailAddressRepo->Edit($secondary_email2);
-            }
-        } else {
-            if ($req->input('secondary-id') != null)
-                $contactRepo->Delete($req->input('secondary-id'));
-        }
-        //END secondary contact
-        //BEGIN delivery address
-        $delivery = [
-            'address_id'=>$req->input('delivery-id'),
-            'street'=>$req->input('delivery-street'),
-            'street2'=>$req->input('delivery-street2'),
-            'city'=>$req->input('delivery-city'),
-            'zip_postal'=>$req->input('delivery-zip-postal'),
-            'state_province'=>$req->input('delivery-state-province'),
-            'country'=>$req->input('delivery-country')];
-        $addressRepo->Edit($delivery);
-        //END delivery address
-        //BEGIN billing address
-        if ($req->input('billing-address') == 'on') {
-            $billing = [
-                'address_id'=>$req->input('billing-id'),
-                'street'=>$req->input('billing-street'),
-                'street2'=>$req->input('billing-street2'),
-                'city'=>$req->input('billing-city'),
-                'zip_postal'=>$req->input('billing-zip-postal'),
-                'state_province'=>$req->input('billing-state-province'),
-                'country'=>$req->input('billing-country')];
-            $addressRepo->Edit($billing);
-        } else {
-            if ($req->input('billing-id') != null)
-                $addressRepo->Delete($req->input('billing-id'));
-        }
-        //END billing address
-        //BEGIN account
-        $old_acct = null;
-        if ($req->input('account-number') != '') {
-            $old_acct = $req->input('account-number');
-        }
-
-        $account = [
-            'account_id'=>$req->input('account-id'),
-            'rate_type_id'=>1,
-            'parent_account_id'=>$req->input('parent-account-id'),
-            'account_number'=>$old_acct,
-            'invoice_interval'=>$req->input('invoice-interval'),
-            //TODO: Handle stripe id
-            'stripe_id'=>40,
-            'name'=>$req->input('name'),
-            'start_date'=>time(),
-            'send_bills'=>true,
-            'is_master'=>false,
-            'active'=>true
-        ];
-        $acctRepo->Edit($account);
-
-        //END account
-        return redirect()->action('AccountController@edit');
+        return redirect()->action($action, $args);
     }
 
     public function action (Request $req) {

@@ -5,6 +5,8 @@ $factory->define(App\Account::class, function (Faker\Generator $faker) {
     if (rand(0,1) == 0)
         $sendBills = true;
 
+    $customField = rand(0, 10);
+
     return [
         "rate_type_id" => rand(1,2),
         "account_number" => Carbon\Carbon::now()->timestamp,
@@ -15,6 +17,7 @@ $factory->define(App\Account::class, function (Faker\Generator $faker) {
         "gst_exempt" => rand(0,10) == 1 ? false : true,
         "charge_interest" => rand(0,10) == 1 ? false : true,
         "can_be_parent" => rand(0,3) == 1 ? true : false,
-        "custom_field" => rand(0, 10) == 1 ? $faker->text(10) : null
+        "uses_custom_field" => $customField == 1 ? true : false,
+        "custom_field" => $customField == 1 ? $faker->text(8) : null
     ];
 });

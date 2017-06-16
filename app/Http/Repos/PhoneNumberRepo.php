@@ -4,6 +4,12 @@ namespace App\Http\Repos;
 use App\PhoneNumber;
 
 class PhoneNumberRepo {
+    public function ListByContactId($cid) {
+        $pns = PhoneNumber::where('contact_id', '=', $cid)->get();
+
+        return $pns;
+    }
+
     public function GetById($id) {
         $pn = PhoneNumber::where('phone_number_id', '=', $id)->first();
 
@@ -18,19 +24,29 @@ class PhoneNumberRepo {
         return $new;
     }
 
-    public function Edit($pn) {
-        $old = GetByid($pn['phone_number_id']);
+    public function Update($pn) {
+        $old = $this->GetByid($pn['phone_number_id']);
 
-        $old->type = $pn['type'];
+        //We don't really deal with pn type right now
+        //$old->type = $pn['type'];
         $old->phone_number = $pn['phone_number'];
         $old->is_primary = $pn['is_primary'];
+        $old->contact_id = $pn['contact_id'];
 
         $old->save();
     }
 
     public function Delete($pnId) {
-        $pn = GetById($pnId);
+        $pn = $this->GetById($pnId);
 
         $pn->delete();
+    }
+
+    public function DeleteByContact($cid) {
+        $pns = $this->ListByContactId($cid);
+
+        foreach($pns as $pn) {
+            $this->Delete($pn);
+        }
     }
 }
