@@ -28,30 +28,21 @@ class AccountController extends Controller {
     }
 
 
-    public function create() {
+    public function create(Request $req) {
         //Check user settings and return popout or inline based on that
         //Check permissions
         $amf = new Account\AccountModelFactory();
-        $model = $amf->GetCreateModel();
+        $model = $amf->GetCreateModel($req);
         return view('accounts.account', compact('model'));
     }
 
-    public function edit($id) {
-        //TODO: Handle manual validation fails
+    public function edit(Request $req, $id) {
         $factory = new Account\AccountModelFactory();
-        $model = $factory->GetModel($id);
-        dd($model);
+        $model = $factory->GetEditModel($id, $req);
         return view('accounts.account', compact('model'));
     }
 
     public function store(Request $req) {
-        //return $req;
-        $isEdit = false;
-        foreach($req->all() as $key=>$value) {
-            if ($key == 'account-id')
-                $isEdit = true;
-        }
-
         $validationRules = [
             'name' => 'required',
             'delivery-street' => 'required',
@@ -59,7 +50,7 @@ class AccountController extends Controller {
             //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
             'delivery-zip-postal' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
             'delivery-state-province' => 'required',
-            'delivery-country' => 'required'
+            'delivery-country' => 'required',
         ];
 
         $validationMessages = [
@@ -69,7 +60,7 @@ class AccountController extends Controller {
             'delivery-zip-postal.required' => 'Delivery Address Postal Code is required.',
             'delivery-zip-postal.regex' => 'Delivery Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
             'delivery-state-province.required' => 'Delivery Province is required.',
-            'delivery-country.required' => 'Delivery Country is required.'
+            'delivery-country.required' => 'Delivery Country is required.',
         ];
 
         $contacts = 0;
@@ -154,14 +145,43 @@ class AccountController extends Controller {
             ]);
         }
 
-        if ($req->input('shouldGiveCommission') == 'true') {
+        if ($req->input('give-commission-1') == 'true') {
             $validationRules = array_merge($validationRules, [
-                'commission-employee-id' => 'required',
-                'commission-percent' => 'required|numeric']);
+                'commission-employee-1-id' => 'required',
+                'commission-1-percent' => 'required|numeric',
+                'depreciate-1-percentage' => 'required|numeric',
+                'depreciate-1-duration' => 'required|numeric',
+                'depreciate-1-start-date' => 'required'
+                ]);
             $validationMessages = array_merge($validationMessages, [
-                'commission-employee-id' => 'A Commission Driver is required.',
-                'commission-percent.required' => 'A Commission % value is required.',
-                'commission-percent.numeric' => 'Commission % must be a number.'
+                'commission-1-employee-id' => 'A Commission Driver is required.',
+                'commission-1-percent.required' => 'A Commission % value is required.',
+                'commission-1-percent.numeric' => 'Commission % must be a number.',
+                'depreciate-1-percentage.required' => 'A Deperciation % value is required.',
+                'depreciate-2-percentage.numeric' => 'Deperciation % must be a number.',
+                'depreciate-1-duration.required' => 'A Deperciation Duration value is required.',
+                'depreciate-1-duration.numeric' => 'Deperciation Duration must be a number.',
+                'depreciate-1-start-date.required' => 'Depreciation Start Date is required.'
+            ]);
+        }
+
+        if ($req->input('give-commission-2') == 'true') {
+            $validationRules = array_merge($validationRules, [
+                'commission-employee-2-id' => 'required',
+                'commission-2-percent' => 'required|numeric',
+                'depreciate-2-percentage' => 'required|numeric',
+                'depreciate-2-duration' => 'required|numeric',
+                'depreciate-2-start-date' => 'required'
+            ]);
+            $validationMessages = array_merge($validationMessages, [
+                'commission-2-employee-id' => 'A Commission Driver is required.',
+                'commission-2-percent.required' => 'A Commission % value is required.',
+                'commission-2-percent.numeric' => 'Commission % must be a number.',
+                'depreciate-2-percentage.required' => 'A Deperciation % value is required.',
+                'depreciate-2-percentage.numeric' => 'Deperciation % must be a number.',
+                'depreciate-2-duration.required' => 'A Deperciation Duration value is required.',
+                'depreciate-2-duration.numeric' => 'Deperciation Duration must be a number.',
+                'depreciate-2-start-date.required' => 'Depreciation Start Date is required.'
             ]);
         }
 
@@ -177,6 +197,7 @@ class AccountController extends Controller {
         $emailAddressRepo = new Repos\EmailAddressRepo();
         $accountRepo = new Repos\AccountRepo();
         $pnRepo = new Repos\PhoneNumberRepo();
+        $comRepo = new Repos\DriverCommissionRepo();
 
         //Create array of all actions to be taken with contacts
         $secondary_ids = array();
@@ -215,7 +236,7 @@ class AccountController extends Controller {
 
                 //What do we do with this contact? Return fail
                 if ($primaryAction == "") {
-                    $rules['Contact-Action' . $contactId] = 'required';
+                    $rules['Contact-Action'] = 'required';
                     $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
                     if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
                 }
@@ -246,7 +267,9 @@ class AccountController extends Controller {
                 $fName = $req->input('contact-' . $contactId . '-first-name');
                 $lName = $req->input('contact-' . $contactId . '-last-name');
                 $ppn = $req->input('contact-' . $contactId . '-phone1');
+                $ppnExt = $req->input('contact-' . $contactId . '-phone1-ext');
                 $spn = $req->input('contact-' . $contactId . '-phone2');
+                $spnExt = $req->input('contact-' . $contactId . '-phone2-ext');
                 $em = $req->input('contact-' . $contactId . '-email1');
                 $em2 = $req->input('contact-' . $contactId . '-email2');
 
@@ -268,6 +291,7 @@ class AccountController extends Controller {
 
                 $phone1 = [
                     'phone_number'=>$ppn,
+                    'extension_number'=>$ppnExt,
                     'is_primary'=>true,
                     'contact_id'=>$contactId
                 ];
@@ -279,44 +303,25 @@ class AccountController extends Controller {
                 ];
 
                 if ($primaryAction == "new") {
+                    //New phone numbers on new account
                     $pnRepo->Insert($phone1);
                     $emailAddressRepo->Insert($email1);
-                }
-                else if ($primaryAction == "update") {
+                } else if ($primaryAction == "update") {
+                    //New phone numbers on existing account
                     $phone1["phone_number_id"] = $req->input('contact-' . $contactId . '-phone1-id');
                     $pnRepo->Update($phone1);
 
                     $email1["email_address_id"] = $req->input('contact-' . $contactId . '-email1-id');
                     $emailAddressRepo->Update($email1);
-                }
 
-                if ($primaryAction == "new") {
-                    //New phone numbers on new account
-                    if ($req->input('primary-phone2') != null) {
-                        $primary_phone2 = [
-                            'phone_number' => $spn,
-                            'is_primary' => false,
-                            'contact_id' => $contactId
-                        ];
-                        $pnRepo->Insert($primary_phone2);
-                    }
-
-                    if ($req->input('primary-email2') != null) {
-                        $primary_email2 = [
-                            'email' => $em2,
-                            'contact_id' => $contactId
-                        ];
-                        $emailAddressRepo->Insert($primary_email2);
-                    }
-                } else {
-                    //New phone numbers on existing account
                     if ($req->input('pn-action-add-' . $contactId) != null) {
-                        $primary_phone2 = [
+                        $phone2 = [
                             'phone_number' => $spn,
+                            'extension_number' => $spnExt,
                             'is_primary' => false,
                             'contact_id' => $contactId
                         ];
-                        $pnRepo->Insert($primary_phone2);
+                        $pnRepo->Insert($phone2);
                     }
                     if ($req->input('em-action-add-' . $contactId) != null) {
                         if ($req->input('primary-email2') != null) {
@@ -330,13 +335,14 @@ class AccountController extends Controller {
 
                     //Existing phone numbers on existing account
                     if ($req->input('contact-' . $contactId . '-phone2-id') != null) {
-                        $primary_phone2 = [
+                        $phone2 = [
                             'phone_number_id' => $req->input('contact-' . $contactId . '-phone2-id'),
                             'phone_number' => $spn,
+                            'extension_number' => $spnExt,
                             'is_primary' => false,
                             'contact_id' => $contactId
                         ];
-                        $pnRepo->Update($primary_phone2);
+                        $pnRepo->Update($phone2);
                     }
                     if ($req->input('contact-' . $contactId . '-email2-id') != null) {
                         if ($req->input('primary-email2') != null) {
@@ -435,7 +441,7 @@ class AccountController extends Controller {
             'invoice_comment'=>$req->input('comment'),
             'stripe_id'=>40,
             'name'=>$req->input('name'),
-            'start_date'=>time(),
+            'start_date'=>strtotime($req->input('start-date')),
             'send_bills'=>$req->input('send-bills') == "true",
             'is_master'=>!$hasParent,
             'parent_account_id'=>!$hasParent ? null : $req->input('parent-account-id'),
@@ -446,11 +452,6 @@ class AccountController extends Controller {
             'can_be_parent'=>$req->input('canBeParent') == "true",
             'active'=>true
         ];
-
-        if ($req->input('hasPreviousAccount') == 'true')
-            $accountNumber = $req->input('account-num');
-        else
-            $accountNumber = null;
 
         if ($req->input('useCustomField') == 'true')
             $customField = $req->input('custom-tracker');
@@ -463,12 +464,13 @@ class AccountController extends Controller {
 		if ($req->input('has-fuel-surcharge') == 'true') {
             $fuelsurcharge = $req->input('fuel-surcharge');
             $account['fuel_surcharge'] = $fuelsurcharge / 100;
-        }
+        } else
+            $account['fuel_surcharge'] = 0;
 
         $accountId = $req->input('account-id');
-		$action = '';
+		$isNew = $accountId == null;
 		$args = [];
-        if ($accountId == null) {
+        if ($isNew) {
             $accountId = $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;
             $action = 'AccountController@create';
         }
@@ -483,6 +485,57 @@ class AccountController extends Controller {
         $newPrimaryId = $req->input('contact-action-change-primary');
         if ($newPrimaryId != null)
             $accountRepo->ChangePrimary($accountId, $newPrimaryId);
+
+        //Commission
+        $commission1 = $commission2 = null;
+
+        if ($req->input('give-commission-1') == 'true') {
+            $commission1 = [
+                'commission_id' => $req->input('commission-1-id'),
+                'account_id' => $accountId,
+                'driver_id' => $req->input('commission-employee-1-id'),
+                'commission' => $req->input('commission-1-percent'),
+                'depreciation_amount' => $req->input('commission-1-percent'),
+                'years' => $req->input('commission-1-duration'),
+                'start_date' => $req->input('commission-1-start-date')
+            ];
+        }
+
+        if ($req->input('give-commission-2') == 'true') {
+            $commission2 = [
+                'commission_id' => $req->input('commission-2-id'),
+                'account_id' => $accountId,
+                'driver_id' => $req->input('commission-employee-2-id'),
+                'commission' => $req->input('commission-2-percent'),
+                'depreciation_amount' => $req->input('commission-2-percent'),
+                'years' => $req->input('commission-2-duration'),
+                'start_date' => $req->input('commission-2-start-date')
+            ];
+        }
+
+        if ($isNew) {
+            if ($commission1 !== null)
+                $comRepo->Insert($commission1);
+
+            if ($commission2 !== null)
+                $comRepo->Insert($commission2);
+        } else {
+            if ($req->input('give-commission-1') == 'true') {
+                if ($commission1->commission_id == null)
+                    $comRepo->Insert($commission1);
+                else
+                    $comRepo->Update($commission1);
+            } else if ($commission1 != null)
+                $comRepo->Delete($commission1->commission_id);
+
+            if ($req->input('give-commission-2') == 'true') {
+                if ($commission2->commission_id == null)
+                    $comRepo->Insert($commission2);
+                else
+                    $comRepo->Update($commission2);
+            } else if ($commission2 != null)
+                $comRepo->Delete($commission2->commission_id);
+        }
 
         //END account
 

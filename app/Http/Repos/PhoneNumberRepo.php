@@ -46,7 +46,7 @@ class PhoneNumberRepo {
         $pns = $this->ListByContactId($cid);
 
         foreach($pns as $pn) {
-            $this->Delete($pn);
+            $this->delete($pn);
         }
     }
 }

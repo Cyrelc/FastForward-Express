@@ -155,44 +155,8 @@ function newTabBody(id, fName, lName, ppnId, ppn, ppnExt, spnId, spn, spnExt, em
     if(!isPrimary)
 		makePrimaryButton = '<li title="Make Primary"><a onclick="makePrimary(this); return false;"><i class="fa fa-star"></i></a></li>';
 
-    var hasSpn = hasEm2 = false;
-
-    var spnEl;
-    if (spnId) {
-    	spnEl =
-			'<div class="input-group">' +
-				'<input type="hidden" name="contact-' + id + '-phone2-id" value="' + spnId + '" />' +
-				'<input type="tel" id="contact-' + id + '-phone2" class="form-control" name="contact-' + id + '-phone2" placeholder="Primary Phone" value="' + spn + '"/>' +
-				'<span class="input-group-addon">Ext.</span>' +
-				'<input type="text" id="contact-' + id + '-phone2-ext" class="form-control" name="contact-' + id + '-phone2-ext" placeholder="Extension" value="' + spnExt + '"/>' +
-				'<span class="input-group-btn"><button type="button" onclick="deleteInputs(this, \'pn\', \'' + spnId + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>' +
-			'</div>';
-	} else {
-        spnEl =
-            '<div class="input-group">' +
-				'<input disabled type="tel" id="contact-' + id + '-phone2" class="form-control" name="contact-' + id + '-phone2" placeholder="Primary Phone" value="' + spn + '"/>' +
-				'<span class="input-group-addon">Ext.</span>' +
-				'<input disabled type="text" id="contact-' + id + '-phone2-ext" class="form-control" name="contact-' + id + '-phone2-ext" placeholder="Extension" value="' + spnExt + '"/>' +
-				'<span class="input-group-btn"><button type="button" onclick="enableField(this, \'pn\')" class="btn btn-success"><i class="fa fa-plus-square-o"></i></button></span>' +
-            '</div>';
-	}
-
-	var em2El;
-    if (em2Id) {
-        em2El =
-			'<div class="input-group">' +
-				'<input type="hidden" name="contact-' + id + '-email2-id" value="' + em2Id + '" />' +
-				'<input type="email" class="form-control" name="contact-' + id + '-email2" placeholder="Secondary Email" value="' + em2 + '" />' +
-            	'<span class="input-group-btn"><button type="button" onclick="deleteInputs(this, \'em\', \'' + em2Id + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>' +
-			'</div>';
-    } else {
-        em2El =
-            '<div class="input-group">' +
-				'<input type="hidden" name="contact-' + id + '-email2-id" value="' + em2Id + '" />' +
-				'<input type="email" class="form-control" name="contact-' + id + '-email2" placeholder="Secondary Email" value="' + em2 + '" />' +
-				'<span class="input-group-btn"><button type="button" onclick="enableField(this, \'em\')" class="btn btn-success"><i class="fa fa-plus-square-o"></i></button></span>' +
-            '</div>';
-	}
+    var spnEl = tabBodyPhone(id, spnId, spn, spnExt);
+    var em2El = tabBodyEmail(id, em2Id, em2);
 
     var body =
         '<div role="tabpanel" class="tab-pane" id="' + id + '-panel">' +
@@ -249,6 +213,79 @@ function newTabBody(id, fName, lName, ppnId, ppn, ppnExt, spnId, spn, spnExt, em
     	$("#" + id + '-panel').append('<input type="hidden" name="contact-action-update[]" value="' + id + '" />');
 }
 
+function tabBodyPhone(id, spnId, spn, spnExt) {
+    var spnEl;
+    var spnField = '';
+    var spnBtn = '';
+
+    //Pseudo-new
+    if (spnId === -2) {
+        spnField = '<input type="hidden" name="pn-action-add-' + id + '" value="add" />';
+        spnBtn = '<span class="input-group-btn"><button type="button" data-new="true" onclick="deleteInputs(this, \'pn\', \'' + spnId + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>';
+    } else {
+    	//Update
+        if (spnId && spn) {
+            spnField = '<input type="hidden" name="contact-' + id + '-phone2-id" value="' + spnId + '" />';
+            spnBtn = '<span class="input-group-btn"><button type="button" onclick="deleteInputs(this, \'pn\', \'' + spnId + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>';
+        }
+    }
+
+    if (spnId) {
+        spnEl =
+            '<div class="input-group">' +
+            spnField +
+            '<input type="tel" id="contact-' + id + '-phone2" class="form-control" name="contact-' + id + '-phone2" placeholder="Primary Phone" value="' + spn + '"/>' +
+            '<span class="input-group-addon">Ext.</span>' +
+            '<input type="text" id="contact-' + id + '-phone2-ext" class="form-control" name="contact-' + id + '-phone2-ext" placeholder="Extension" value="' + spnExt + '"/>' +
+            spnBtn +
+            '</div>';
+    } else {
+        spnEl =
+            '<div class="input-group">' +
+            '<input disabled type="tel" id="contact-' + id + '-phone2" class="form-control" name="contact-' + id + '-phone2" placeholder="Primary Phone" value=""/>' +
+            '<span class="input-group-addon">Ext.</span>' +
+            '<input disabled type="text" id="contact-' + id + '-phone2-ext" class="form-control" name="contact-' + id + '-phone2-ext" placeholder="Extension" value=""/>' +
+            '<span class="input-group-btn"><button type="button" onclick="enableField(this, \'pn\', ' + id + ')" class="btn btn-success"><i class="fa fa-plus-square-o"></i></button></span>' +
+            '</div>';
+    }
+
+    return spnEl;
+}
+
+function tabBodyEmail(id, em2Id, em2) {
+	var em2El;
+    var emField = '';
+    var emBtn = '';
+	console.log(id + " " + em2Id + " " + em2);
+    if (em2Id === -2) {
+        emField = '<input type="hidden" name="em-action-add-' + id + '" value="add" />';
+        emBtn = '<span class="input-group-btn"><button type="button" data-new="true" onclick="deleteInputs(this, \'em\', \'' + spnId + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>';
+    } else {
+        //Update
+        if (em2Id && em2) {
+            emField = '<input type="hidden" name="contact-' + id + '-email2-id" value="' + em2Id + '" />';
+            emBtn = '<span class="input-group-btn"><button type="button" onclick="deleteInputs(this, \'em\', \'' + em2Id + '\')" class="btn btn-danger"><i class="fa fa-trash"></i></button></span>';
+        }
+    }
+
+    if (em2Id) {
+        em2El =
+            '<div class="input-group">' +
+            emField +
+            '<input type="email" class="form-control" name="contact-' + id + '-email2" placeholder="Secondary Email" value="' + em2 + '" />' +
+            emBtn +
+            '</div>';
+    } else {
+        em2El =
+            '<div class="input-group">' +
+            '<input type="email" disabled class="form-control" name="contact-' + id + '-email2" placeholder="Secondary Email" value="' + em2 + '" />' +
+            '<span class="input-group-btn"><button type="button" onclick="enableField(this, \'em\', ' + id + ')" class="btn btn-success"><i class="fa fa-plus-square-o"></i></button></span>' +
+            '</div>';
+    }
+
+    return em2El;
+}
+
 function clearScForm() {
     $("#first-name").val('');
     $("#last-name").val('');
@@ -281,8 +318,12 @@ function deleteInputs(element, type, id) {
         $(input).attr('disabled', 'disabled');
     });
 
-    $(element).parent().parent().append('<input type="hidden" name="' + type + '-action-delete[]" value="' + id + '" />');
-    $(element).removeClass('btn-danger').addClass('btn-success').attr('onclick', 'enableField(this, "' + type + '")');
+    if ($(element).attr('data-new') && $(element).attr('data-new') === 'true')
+        $(element).removeAttr('data-new');
+	else
+    	$(element).parent().parent().append('<input type="hidden" name="' + type + '-action-delete[]" value="' + id + '" />');
+
+    $(element).removeClass('btn-danger').addClass('btn-success').attr('onclick', 'enableField(this, "' + type + '", "' + id + '")');
     $(element).children('i').removeClass('fa-trash').addClass('fa-plus-square-o');
 }
 
@@ -291,5 +332,18 @@ function enableField(element, type, contactId) {
         $(input).removeAttr('disabled');
     });
     $(element).parent().parent().append('<input type="hidden" name="' + type + '-action-add-' + contactId + '" value="add" />');
-    $(element).parent().remove();
+
+    $(element).removeClass('btn-success').addClass('btn-danger').attr('onclick', 'deleteInputs(this, "' + type + '", "")');
+    $(element).children('i').removeClass('fa-plus-square-o').addClass('fa-trash');
+    $(element).attr('data-new', 'true');
+}
+
+function addDeleted(id) {
+    $("#contact-bodies").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
+}
+
+function deleteSecondary(code, id, contactId) {
+	var type = code === 'pn' ? "phone2" : "email2";
+
+	deleteInput($('input[name="contact-' + contactId + '-' + type + '-id"]').parent().find('button'), code, id);
 }

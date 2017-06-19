@@ -44,7 +44,7 @@ class EmailAddressRepo {
         $eAddrs = $this->ListByContactId($cid);
 
         foreach($eAddrs as $eAddr) {
-            $this->Delete($eAddr);
+            $this->delete($eAddr);
         }
     }
 }

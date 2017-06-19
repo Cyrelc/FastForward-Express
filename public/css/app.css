@@ -98,3 +98,8 @@ tr.disabled {
 a.dropdown-toggle {
 	cursor: pointer;
 }
+
+.col-nopadding {
+	padding-left: 0;
+	padding-right: 0;
+}

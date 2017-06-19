@@ -72,7 +72,6 @@ class AccountRepo {
     }
 
     public function ChangePrimary($accountId, $contactId) {
-        //dd($contactId);
         //Manually do this cause Laravel sucks, ensure parameters are valid
         if ($accountId == null || !is_numeric($accountId) || $accountId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
         \DB::update('update account_contacts set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1');

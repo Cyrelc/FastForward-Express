@@ -44,62 +44,44 @@
 <!--Reconstruct all contacts-->
         @php
             if(isset($model->account->account_id)) {
-                //Construct primary contact
-                $c = $model->primaryContact;
-                $id = $c->contact_id;
-                $fName = addslashes($c->first_name);
-                $lName = addslashes($c->last_name);
-                $ppnId = $c->primaryPhone->phone_number_id;
-                $ppn = $c->primaryPhone->phone_number;
-                $ppnExt = $c->primaryPhone->extension_number;
-                $emId = $c->primaryEmail->email_address_id;
-                $em = $c->primaryEmail->email;
-
-                $spnId = $spn = $spnExt = $em2Id = $em2 = null;
-
-                if (isset($c->secondaryPhone)) {
-                    $spnId = $c->secondaryPhone->phone_number_id;
-                    $spn = $c->secondaryPhone->phone_number;
-                    $spnExt = $c->secondaryPhone->extension_number;
-                }
-
-                if (isset($c->secondaryEmail)) {
-                    $em2Id = $c->secondaryEmail->email_address_id;
-                    $em2 = $c->secondaryEmail->email;
-                }
-
-                echo sprintf("
-                    newTabPill(%u, '%s', '%s', %s);
-                    newTabBody(%u, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s);",
-                    $id, $fName, $lName, 'true', $id, $fName, $lName, $ppnId, $ppn, $ppnExt, $spnId, $spn, $spnExt, $emId, $em, $em2Id, $em2, 'true', 'false');
-
                 foreach($model->account->contacts as $c) {
                     $id = $c->contact_id;
-                    $fName = addslashes($c->first_name);
-                    $lName = addslashes($c->last_name);
-                    $ppnId = $c->primaryPhone->phone_number_id;
-                    $ppn = $c->primaryPhone->phone_number;
-                    $ppnExt = $c->primaryPhone->extension_number;
-                    $emId = $c->primaryEmail->email_address_id;
-                    $em = $c->primaryEmail->email;
+                    if (isset($c->delete) && $c->delete === true) {
+                        echo 'addDeleted("' . $id . '");';
+                    } else {
+                        $fName = addslashes($c->first_name);
+                        $lName = addslashes($c->last_name);
+                        $ppnId = $c->primaryPhone->phone_number_id;
+                        $ppn = $c->primaryPhone->phone_number;
+                        $ppnExt = $c->primaryPhone->extension_number;
+                        $emId = $c->primaryEmail->email_address_id;
+                        $em = $c->primaryEmail->email;
 
-                    $spnId = $spn = $spnExt = $em2Id = $em2 = null;
+                        $spnId = $spn = $spnExt = $em2Id = $em2 = null;
+                        if (isset($c->secondaryPhone)) {
+                            if ($c->secondaryPhone->is_new === true)
+                                $spnId = -2;
+                            else
+                                $spnId = $c->secondaryPhone->phone_number_id;
 
-                    if (isset($c->secondaryPhone)) {
-                        $spnId = $c->secondaryPhone->phone_number_id;
-                        $spn = $c->secondaryPhone->phone_number;
-                        $spnExt = $c->secondaryPhone->extension_number;
+                            $spn = $c->secondaryPhone->phone_number;
+                            $spnExt = $c->secondaryPhone->extension_number;
+                        }
+
+                        if (isset($c->secondaryEmail)) {
+                            if ($c->secondaryEmail->is_new === true)
+                                $em2Id = -2;
+                            else
+                                $em2Id = $c->secondaryEmail->email_address_id;
+
+                            $em2 = $c->secondaryEmail->email;
+                        }
+
+                        echo sprintf("
+                            newTabPill(%u, '%s', '%s', %s);
+                            newTabBody(%u, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s);",
+                            $id, $fName, $lName, $c->is_primary == '1' ? 'true' : 'false', $id, $fName, $lName, $ppnId, $ppn, $ppnExt, $spnId, $spn, $spnExt, $emId, $em, $em2Id, $em2, $c->is_primary == '1' ? 'true' : 'false', isset($c->is_new) ? $c->is_new ? 'true' : 'false' : 'false');
                     }
-
-                    if (isset($c->secondaryEmail)) {
-                        $em2Id = $c->secondaryEmail->email_address_id;
-                        $em2 = $c->secondaryEmail->email;
-                    }
-
-                    echo sprintf("
-                        newTabPill(%u, '%s', '%s', %s);
-                        newTabBody(%u, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s);",
-                        $id, $fName, $lName, 'false', $id, $fName, $lName, $ppnId, $ppn, $ppnExt, $spnId, $spn, $spnExt, $emId, $em, $em2Id, $em2, 'false', 'false');
                 }
             }
             //Enable the billing address fields if there's a billing address
@@ -140,8 +122,8 @@
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->is_master ? "false" : "true") : "false" }}"/>
     <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->gets_discount == 1 ? "true" : "false"}}"/>
-    <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{count($model->commissions) > 0 ? "true" : "false"}}"/>
-    <input type="hidden" data-checkbox-id="give-commission-2" name="should-give-commission-2" value="{{count($model->commissions) > 1 ? "true" : "false"}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{$model->give_commission_1 ? "true" : "false"}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-2" name="should-give-commission-2" value="{{$model->give_commission_2 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{$model->account->charge_interest == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="gst-exempt" name="isGstExempt" value="{{$model->account->gst_exempt == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{$model->account->uses_custom_field == 1 ? "true" : "false"}}"/>
@@ -163,7 +145,16 @@
                         <p>The following errors occurred on submit:</p>
                         <ul>
                             @foreach($errors->all() as $message)
-                                <li>{{ $message }}</li>
+                                <!--Custom Messages-->
+                                @if ($message === "The contacts field is required.")
+                                    <li>At least one contact must be provided and marked as primary.</li>
+                                @elseif ($message === "The contact- action field is required.")
+                                    <li>An error has occurred. Please contact us and provide the following message: <pre>Contact Action not submitted.</pre></li>
+                                @elseif($message === "The primary contact field is required.")
+                                        <li>At least one contact must be selected as primary.</li>
+                                @else
+                                    <li>{{ $message }}</li>
+                                @endif
                             @endforeach
                         </ul>
                     </div>
@@ -173,10 +164,14 @@
             <div class="panel panel-default col-lg-12">
                 <div class='panel-body'>
                     <div id="parent-location" class="bottom15 col-lg-12" >
-                        <select id="parent-account-id" class='form-control' name="parent-account-id">
+                        <select id="parent-account-id" class='form-control' name="parent-account-id" data-id="-1">
                             <option></option>
                             @foreach ($model->accounts as $parent)
-                                <option value='{{$parent->account_id}}'>{{$parent->name}}</option>
+                                @if (isset($model->account->account_id) && $model->account->parent_account_id == $parent->account_id)
+                                    <option selected value='{{$parent->account_id}}'>{{$parent->name}}</option>
+                                @else
+                                    <option value='{{$parent->account_id}}'>{{$parent->name}}</option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
@@ -209,7 +204,7 @@
                         <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge * 100}}" />
                     </div>
                     <div class="col-lg-4 bottom15" id="old-account">
-                        <input class='form-control' type='number' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
+                        <input class='form-control' type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
                     </div>
                     <div class="col-lg-4 bottom15" id="custom-div">
                         <div class="input-group">
@@ -229,82 +224,90 @@
                         </div>
                     </div>
 <!-- Commission 1 -->
-                    <div class="col-lg-4 bottom15" id="commission-1-div">
-                        <div class="well">
-                            <h3 class="panel-title bottom15">Commission 1</h3>
-                            <div class="col-lg-6 bottom15">
-                                <select id="employee-1-select" class="form-control" type='text' name='commission-employee-1-id' ">
-                                    <option></option>
-                                    @foreach($model->drivers as $d)
-                                        @if (count($model->commissions) > 0 && $d->driver_id == $model->commissions[0]->driver_id)
-                                            <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                        @else
-                                            <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-6 bottom15">
-                                <div class="input-group">
-                                    <input class='form-control' min=0 max=100 type='number' name='commission-1-percent' placeholder="Commission %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->commission * 100 : "" }}"/>
-                                    <span class="input-group-addon">%</span>
+                    <div class="col-lg-12 col-nopadding">
+                        <div class="col-lg-4 bottom15" id="commission-1-div" data-hide="true">
+                            <div class="well">
+                                <h3 class="panel-title bottom15">Commission 1</h3>
+                                @if (count($model->commissions) > 0)
+                                    <input type="hidden" name="commission-1-id" value="{{$model->commissions[0]->commission_id}}" />
+                                @endif
+                                <div class="col-lg-6 bottom15">
+                                    <select id="employee-1-select" class="form-control" name='commission-employee-1-id'>
+                                        <option></option>
+                                        @foreach($model->drivers as $d)
+                                            @if (count($model->commissions) > 0 && $d->driver_id == $model->commissions[0]->driver_id)
+                                                <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                            @else
+                                                <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </div>
-                            <h5>Depreciation rules</h5>
-                            <hr>
-                            <div class="input-group bottom15">
-                                <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->depreciation_amount * 100 : "" }}">
-                                <span class="input-group-addon"> % </span>
-                            </div>
-                            <div class="input-group bottom15">
-                                <span class="input-group-addon"> for </span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[0]->years : "" }}"/>
-                                <span class="input-group-addon"> years </span>
-                            </div>
-                            <div class="input-group bottom15" id="driver-depreciation_start">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                <input type='text' id="depreciate-1-start-date" name="depreciate-1-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[0]->start_date) : "" }}"/>
+                                <div class="col-lg-6 bottom15">
+                                    <div class="input-group">
+                                        <input class='form-control' min=0 max=100 type='number' name='commission-1-percent' placeholder="Commission %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->commission * 100 : "" }}"/>
+                                        <span class="input-group-addon">%</span>
+                                    </div>
+                                </div>
+                                <h5>Depreciation rules</h5>
+                                <hr>
+                                <div class="input-group bottom15">
+                                    <span class="input-group-addon">Depreciate by</span>
+                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->depreciation_amount * 100 : "" }}">
+                                    <span class="input-group-addon"> % </span>
+                                </div>
+                                <div class="input-group bottom15">
+                                    <span class="input-group-addon"> for </span>
+                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-1-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[0]->years : "" }}"/>
+                                    <span class="input-group-addon"> years </span>
+                                </div>
+                                <div class="input-group bottom15" id="driver-depreciation_start">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
+                                    <input type='text' id="depreciate-1-start-date" name="depreciate-1-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[0]->start_date) : "" }}"/>
+                                </div>
                             </div>
                         </div>
-                    </div>
-<!-- Commission 2 -->
-                    <div class="col-lg-4 bottom15" id="commission-2-div">
-                        <div class="well">
-                            <h3 class="panel-title bottom15">Commission 2</h3>
-                            <div class="col-lg-6 bottom15">
-                                <select id="employee-2-select" class="form-control" type='text' name='commission-2-employee-id' value="{{count($model->commissions) > 1 ? $model->commissions[1]->driver_id : "" }}">
-                                    <option></option>
-                                    @foreach($model->drivers as $d)
-                                        @if (count($model->commissions) > 1 && $d->driver_id == $model->commissions[1]->driver_id)
-                                            <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                        @else
-                                            <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-lg-6 bottom15">
-                                <div class="input-group">
-                                    <input class='form-control' min=0 max=100 type='number' name='commission-2-percent' placeholder="Commission %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->commission * 100 : "" }}"/>
-                                    <span class="input-group-addon">%</span>
+        <!-- Commission 2 -->
+                        <div class="col-lg-4 bottom15" id="commission-2-div" data-hide="true">
+                            <div class="well">
+                                <h3 class="panel-title bottom15">Commission 2</h3>
+                                @if (count($model->commissions) > 1)
+                                    <input type="hidden" name="commission-2-id" value="{{$model->commissions[1]->commission_id}}" />
+                                @endif
+                                <div class="col-lg-6 bottom15">
+                                    <select id="employee-2-select" class="form-control" name='commission-2-employee-id'>
+                                        <option></option>
+                                        @foreach($model->drivers as $d)
+                                            @if (count($model->commissions) > 1 && $d->driver_id == $model->commissions[1]->driver_id)
+                                                <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                            @else
+                                                <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </div>
-                            <h5>Depreciation rules</h5>
-                            <hr>
-                            <div class="input-group bottom15">
-                                <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->depreciation_amount * 100 : "" }}">
-                                <span class="input-group-addon"> % </span>
-                            </div>
-                            <div class="input-group bottom15">
-                                <span class="input-group-addon"> for </span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[1]->years : "" }}"/>
-                                <span class="input-group-addon"> years </span>
-                            </div>
-                            <div class="input-group bottom15" id="depreciation_start_date_1">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                <input type='text' id="depreciate-2-start-date" name="depreciate-2-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[1]->start_date) : "" }}"/>
+                                <div class="col-lg-6 bottom15">
+                                    <div class="input-group">
+                                        <input class='form-control' min=0 max=100 type='number' name='commission-2-percent' placeholder="Commission %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->commission * 100 : "" }}"/>
+                                        <span class="input-group-addon">%</span>
+                                    </div>
+                                </div>
+                                <h5>Depreciation rules</h5>
+                                <hr>
+                                <div class="input-group bottom15">
+                                    <span class="input-group-addon">Depreciate by</span>
+                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->depreciation_amount * 100 : "" }}">
+                                    <span class="input-group-addon"> % </span>
+                                </div>
+                                <div class="input-group bottom15">
+                                    <span class="input-group-addon"> for </span>
+                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-2-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[1]->years : "" }}"/>
+                                    <span class="input-group-addon"> years </span>
+                                </div>
+                                <div class="input-group bottom15" id="depreciation_start_date_1">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
+                                    <input type='text' id="depreciate-2-start-date" name="depreciate-2-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[1]->start_date) : "" }}"/>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -8,7 +8,6 @@ class AccountFormModel
     public $parentAccount;
     public $accounts;
     public $drivers;
-    public $primaryContact;
     public $commissions;
     public $deliveryAddress;
 }
