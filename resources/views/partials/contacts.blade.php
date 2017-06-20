@@ -59,7 +59,7 @@
     <!-- Contact Tab panes -->
     <div class="col-lg-10">
         <div class="tab-content" id="contact-bodies">
-            <div role="tabpanel" class="tab-pane active" id="new-contact">
+            <div role="tabpanel" class="tab-pane" id="new-contact">
                 @include('partials.contact')
             </div>
         </div>

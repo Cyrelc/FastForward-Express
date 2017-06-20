@@ -46,25 +46,31 @@ function makePrimary(element) {
 
 function newTabPill(id, fName, lName, isPrimary) {
     var star = "";
+    var cssClass = "";
 
-    if (isPrimary)
+    if (isPrimary) {
         star = "<i class='fa fa-star'></i> ";
+        cssClass = "active";
+    }
 
-    var pill = "<li role='presentation'><a data-id='" + id + "' href='#" + id + "-panel' aria-controls='" + id + "' role='tab' data-toggle='tab'>" + star + fName + " " + lName + "</a></li>";
+    var pill = "<li class='" + cssClass + "' role='presentation'><a data-id='" + id + "' href='#" + id + "-panel' aria-controls='" + id + "' role='tab' data-toggle='tab'>" + star + fName + " " + lName + "</a></li>";
 
     $("#contact-tabs").append(pill);
 }
 
 function newTabBody(id, fName, lName, ppnId, ppn, ppnExt, spnId, spn, spnExt, emId, em, em2Id, em2, isPrimary, isNew) {
     var makePrimaryButton = "";
+    var cssClass="tab-pane";
     if(!isPrimary)
         makePrimaryButton = '<li title="Make Primary"><a onclick="makePrimary(this); return false;"><i class="fa fa-star"></i></a></li>';
+    else
+        cssClass += " active";
 
     var spnEl = tabBodyPhone(id, spnId, spn, spnExt);
     var em2El = tabBodyEmail(id, em2Id, em2);
 
     var body =
-        '<div role="tabpanel" class="tab-pane" id="' + id + '-panel">' +
+        '<div role="tabpanel" class="' + cssClass + '" id="' + id + '-panel">' +
         '<input type="hidden" name="contact-id-' + id + '" data-contact-id="true" value="' + id +  '" />' +
         '<div class="col-lg-12" style="padding:15px;">' +
         '<div class="clearfix form-section well" style="padding:15px;">' +
@@ -241,6 +247,7 @@ function enableField(element, type, contactId) {
     $(element).removeClass('btn-success').addClass('btn-danger').attr('onclick', 'deleteInputs(this, "' + type + '", "")');
     $(element).children('i').removeClass('fa-plus-square-o').addClass('fa-trash');
     $(element).attr('data-new', 'true');
+    $(element).parent().parent().children('input[type="email"], input[type="tel"]').first().focus();
 }
 
 function addDeleted(id) {
