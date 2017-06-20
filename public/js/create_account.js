@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	var checkboxes = '#sub-location, #separate-billing-addr, #give-discount, #give-driver-commission, #give-sales-commission, #has-invoice-comment, #has-fuel-surcharge, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account';
+	var checkboxes = '#sub-location, #separate-billing-addr, #give-discount, #give-commission-2, #give-commission-1, #has-invoice-comment, #has-fuel-surcharge, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account';
 	$(checkboxes).change(function() {
 		if(this.checked){
 		    $('#' + $(this).attr('data-div')).fadeIn();

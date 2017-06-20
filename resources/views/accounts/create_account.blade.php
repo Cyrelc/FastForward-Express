@@ -87,8 +87,8 @@
 <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" data-checkbox-id="sub-location" name="isSubLocation" value="{{old('isSubLocation')}}"/>
     <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDriverDiscount" value="{{old('shouldGiveDiscount')}}"/>
-    <input type="hidden" data-checkbox-id="give-commission-1" name="shouldGiveDriverCommission" value="{{old('shouldGiveDriverCommission')}}"/>
-    <input type="hidden" data-checkbox-id="give-commission-2" name="shouldGiveSalesCommission" value="{{old('shouldGiveSalesCommission')}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-1" name="giveCommission1" value="{{old('giveCommission1')}}"/>
+    <input type="hidden" data-checkbox-id="give-commission-2" name="giveCommission2" value="{{old('giveCommission2')}}"/>
     <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{old('shouldChargeInterest')}}"/>
     <input type="hidden" data-checkbox-id="gst-exempt" name="isGstExempt" value="{{old('isGstExempt')}}"/>
     <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{old('useCustomField')}}"/>
@@ -119,7 +119,7 @@
         <div class="row">
             <div class="panel panel-default col-lg-12">
                 <div class='panel-body'>
-                    <div id="parent-location" class="bottom15 col-lg-12" >
+                    <div id="parent-location" class="col-lg-12 bottom15 " >
                         <select id="parent-account-id" class='form-control' name="parent-account-id" value="{{old('parent-account-id')}}">
                             <option></option>
                             @foreach ($model->accounts as $parent)
@@ -135,20 +135,21 @@
                             <option value="-1" selected disabled>Select Rate (coming soon!)</option>
                         </select>
                     </div>
-                    <div class="col-lg-4 bottom15">
+                    <div class="col-lg-4 input-group bottom15">
+                        <span class="input-group-addon">Invoice Interval</span>
                         <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval" value="{{old('invoice-interval')}}">
-                            <option disabled></option>
+                            <option></option>
                             <option value="weekly">Weekly</option>
                             <option value="semi-monthly">Twice a Month</option>
                             <option value="monthly">Monthly</option>
                         </select>
                     </div>
                     <hr>
-<!-- Driver Commission -->
+<!-- Commission 1 -->
                     <div class="col-lg-4 well bottom15" id="commission-1-div">
                         <h3 class="panel-title bottom15">Commission 1</h3>
                         <div class="col-lg-6 bottom15">
-                            <select id="employee-1-select" class="form-control" type='text' name='commission-employee-1-id' value="{{old('commission-employee-1-id')}}">
+                            <select id="employee-1-select" class="form-control" type='text' name='commission-1-employee-id' value="{{old('commission-1-employee-id')}}">
                                 <option></option>
                                 @foreach($model->drivers as $d)
                                     <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
@@ -163,7 +164,7 @@
                         <span id="depreciate" class="col-lg-12 form-group">
                             <div class="input-group bottom15">
                                 <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percentage' placeholder="Depreciation %" value="{{old('depreciate-1-percentage')}}">
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percent' placeholder="Depreciation %" value="{{old('depreciate-1-percent')}}">
                                 <span class="input-group-addon"> % </span>
                             </div>
                             <div class="input-group bottom15">
@@ -177,7 +178,7 @@
                             </div>
                         </span>
                     </div>
-<!-- Salesman Commission -->
+<!-- Commission 2 -->
                     <div class="col-lg-4 well bottom15" id="commission-2-div">
                         <h3 class="panel-title bottom15">Commission 2</h3>
                         <div class="col-lg-6 bottom15">
@@ -196,7 +197,7 @@
                         <span id="depreciate" class="col-lg-12 form-group">
                             <div class="input-group bottom15">
                                 <span class="input-group-addon">Depreciate by</span>
-                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{old('depreciate-2-percentage')}}">
+                                <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{old('depreciate-2-percent')}}">
                                 <span class="input-group-addon"> % </span>
                             </div>
                             <div class="input-group bottom15">
@@ -211,18 +212,22 @@
                         </span>
                     </div>
 <!-- End Commission -->
-                    <div class="col-lg-4 bottom15" id="fuel-surcharge">
+                    <div class="col-lg-4 input-group bottom15" id="fuel-surcharge">
+                        <span class="input-group-addon">Fuel Surcharge:</span>
                         <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{old('fuel-surcharge')}}" />
                     </div>
-                    <div class="col-lg-4 bottom15" id="discount-div">
+                    <div class="col-lg-4 input-group bottom15" id="discount-div">
+                        <span class="input-group-addon">Discount:</span>
                         <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{old('discount')}}" />
                     </div>
-                    <div class="col-lg-4 bottom15" id="old-account">
+                    <div class="col-lg-4 input-group bottom15" id="old-account">
+                        <span class="input-group-addon">Previous Account #:</span>
                         <input class='form-control' type='number' name='account-num' placeholder="Previous Account Number" value="{{old('account-num')}}"/>
                     </div>
-                    <div class="col-lg-4 bottom15" id="custom-div">
+                    <div class="col-lg-4 input-group bottom15" id="custom-div">
                         <div class="input-group">
-                            <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" value="{{old('custom-tracker')}}"/>
+                            <span class="input-group-addon">Custom Tracker:</span>
+                            <input type='text' class="form-control" name='custom-tracker' placeholder="Custom Tracking Field Name" value="{{old('custom-tracker')}}"/>
                             <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' value="{{old('custom-tracker-sortable')}}"/> Sortable?</span>
                         </div>
                     </div>
@@ -354,7 +359,7 @@
 
 @section ('advFilter')
 <div class="well form-group">
-    <h3>Options</h3>
+    <h3>Additional Fields</h3>
     <hr>
     <div class="checkbox">
         <label><input id="sub-location" type="checkbox" value="" name="sub-location" data-div="parent-location" data-hidden-name="isSubLocation" />Is Sub-Location</label>
@@ -363,10 +368,10 @@
         <label><input id="give-discount" type="checkbox" value="" data-div="discount-div" data-hidden-name="shouldGiveDiscount" />Give Discount</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-commission-1" type="checkbox" value="" data-div="commission-1-div" data-hidden-name="shouldGiveDriverCommission" />Commission 1</label>
+        <label><input id="give-commission-1" type="checkbox" value="" data-div="commission-1-div" data-hidden-name="giveCommission1" />Commission 1</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-commission-2" type="checkbox" value="" data-div="commission-2-div" data-hidden-name="shouldGiveSalesCommission" />Commission 2</label>
+        <label><input id="give-commission-2" type="checkbox" value="" data-div="commission-2-div" data-hidden-name="giveCommission2" />Commission 2</label>
     </div>
     <div class="checkbox">
         <label><input id="has-invoice-comment" type="checkbox" value="" data-div="invoice-comment" data-hidden-name="invoice-comment" /> Invoice Comment </label>
@@ -375,6 +380,14 @@
         <label><input id="use-custom-field" type="checkbox" value="" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
     </div>
     <div class="checkbox">
+        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="has-fuel-surcharge" type="checkbox" name="" value="" data-div="fuel-surcharge" data-hidden-name="has-fuel-surcharge">Charge Fuel Surcharge</label>
+    </div>
+    <h3>Options</h3>
+    <hr>
+    <div class="checkbox">
         <label><input id="charge-interest" type="checkbox" value="" data-hidden-name="shouldChargeInterest" />Charge Interest on Balance Owing</label>
     </div>
     <div class="checkbox">
@@ -382,12 +395,6 @@
     </div>
     <div class="checkbox">
         <label><input id="can-be-parent" type="checkbox" name='can-be-parent' value="" data-hidden-name="canBeParent">Can be Parent</label>
-    </div>
-    <div class="checkbox">
-        <label><input id="existing-account" type="checkbox" name="" value="" data-div="old-account" data-hidden-name="hasPreviousAccount">Previous Account</label>
-    </div>
-    <div class="checkbox">
-        <label><input id="has-fuel-surcharge" type="checkbox" name="" value="" data-div="fuel-surcharge" data-hidden-name="has-fuel-surcharge">Charge Fuel Surcharge</label>
     </div>
 </div>
 @endsection
