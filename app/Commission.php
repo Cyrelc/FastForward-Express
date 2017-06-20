@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DriverCommission extends Model
+class Commission extends Model
 {
     public $timestamps = false;
 }

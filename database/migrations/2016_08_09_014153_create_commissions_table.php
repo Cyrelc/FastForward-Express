@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateDriverCommissionsTable extends Migration
+class CreateCommissionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,8 +12,8 @@ class CreateDriverCommissionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('driver_commissions', function (Blueprint $table) {
-            $table->increments('commission_id');
+		Schema::create('commissions', function (Blueprint $table) {
+			$table->increments('commission_id');
             $table->unsignedInteger('driver_id');
             $table->unsignedInteger('account_id');
             $table->decimal('commission');
@@ -33,6 +33,6 @@ class CreateDriverCommissionsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('driver_commissions');
+        Schema::drop('commissions');
     }
 }

@@ -145,44 +145,27 @@ class AccountController extends Controller {
             ]);
         }
 
-        if ($req->input('give-commission-1') == 'true') {
-            $validationRules = array_merge($validationRules, [
-                'commission-employee-1-id' => 'required',
-                'commission-1-percent' => 'required|numeric',
-                'depreciate-1-percentage' => 'required|numeric',
-                'depreciate-1-duration' => 'required|numeric',
-                'depreciate-1-start-date' => 'required'
+        for ($i = 1; $i < 3; $i++) {
+            if ($req->input('give-commission-' . $i) == 'true') {
+                $validationRules = array_merge($validationRules, [
+                    'commission-' . $i . '-employee-id' => 'required',
+                    'commission-' . $i . '-percent' => 'required|numeric']);
+                $validationMessages = array_merge($validationMessages, [
+                    'commission-' . $i . '-employee-id' => 'A Commission Driver is required.',
+                    'commission-' . $i . '-percent.required' => 'A Commission % value is required.',
+                    'commission-' . $i . '-percent.numeric' => 'Commission % must be a number.'
                 ]);
-            $validationMessages = array_merge($validationMessages, [
-                'commission-1-employee-id' => 'A Commission Driver is required.',
-                'commission-1-percent.required' => 'A Commission % value is required.',
-                'commission-1-percent.numeric' => 'Commission % must be a number.',
-                'depreciate-1-percentage.required' => 'A Deperciation % value is required.',
-                'depreciate-2-percentage.numeric' => 'Deperciation % must be a number.',
-                'depreciate-1-duration.required' => 'A Deperciation Duration value is required.',
-                'depreciate-1-duration.numeric' => 'Deperciation Duration must be a number.',
-                'depreciate-1-start-date.required' => 'Depreciation Start Date is required.'
-            ]);
-        }
-
-        if ($req->input('give-commission-2') == 'true') {
-            $validationRules = array_merge($validationRules, [
-                'commission-employee-2-id' => 'required',
-                'commission-2-percent' => 'required|numeric',
-                'depreciate-2-percentage' => 'required|numeric',
-                'depreciate-2-duration' => 'required|numeric',
-                'depreciate-2-start-date' => 'required'
-            ]);
-            $validationMessages = array_merge($validationMessages, [
-                'commission-2-employee-id' => 'A Commission Driver is required.',
-                'commission-2-percent.required' => 'A Commission % value is required.',
-                'commission-2-percent.numeric' => 'Commission % must be a number.',
-                'depreciate-2-percentage.required' => 'A Deperciation % value is required.',
-                'depreciate-2-percentage.numeric' => 'Deperciation % must be a number.',
-                'depreciate-2-duration.required' => 'A Deperciation Duration value is required.',
-                'depreciate-2-duration.numeric' => 'Deperciation Duration must be a number.',
-                'depreciate-2-start-date.required' => 'Depreciation Start Date is required.'
-            ]);
+                if ($req->input('depreciate-' . $i . '-percent') != '' || $req->input('depreciate-' . $i . '-duration') != '' || $req->input('depreciate-' . $i . '-start-date') != '') {
+                    $validationRules = array_merge($validationRules,[
+                        'depreciate-' . $i . '-percent' => 'required',
+                        'depreciate-' . $i . '-duration' => 'required',
+                        'depreciate-' . $i . '-start-date' => 'required']);
+                    $validationMessages = array_merge($validationMessages, [
+                        'depreciate-' . $i . '-percent' => 'Commission depreciation percentage cannot be blank',
+                        'depreciate-' . $i . '-duration' => 'Commission depreciation duration cannot be blank',
+                        'depreciate-' . $i . '-start-date' => 'Commission depreciation start date cannot be blank']);
+                }
+            }
         }
 
         if ($req->input('useCustomField') == 'true') {
