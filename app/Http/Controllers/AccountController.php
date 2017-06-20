@@ -180,7 +180,7 @@ class AccountController extends Controller {
         $emailAddressRepo = new Repos\EmailAddressRepo();
         $accountRepo = new Repos\AccountRepo();
         $pnRepo = new Repos\PhoneNumberRepo();
-        $comRepo = new Repos\DriverCommissionRepo();
+        $comRepo = new Repos\CommissionRepo();
 
         //Create array of all actions to be taken with contacts
         $secondary_ids = array();

@@ -88,7 +88,7 @@
             $pnRepo = new Repos\PhoneNumberRepo();
             $emRepo = new Repos\EmailAddressRepo();
             $addRepo = new Repos\AddressRepo();
-            $dcRepo = new Repos\DriverCommissionRepo();
+            $dcRepo = new Repos\CommissionRepo();
 
             $model->account = $acctRepo->GetById($id);
             $model->account->start_date = strtotime($model->account->start_date);

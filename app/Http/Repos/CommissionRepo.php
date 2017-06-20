@@ -1,23 +1,23 @@
 <?php
     namespace App\Http\Repos;
 
-    use App\DriverCommission;
+    use App\Commission;
 
-    class DriverCommissionRepo {
+    class CommissionRepo {
         public function ListByAccount($accountId) {
-            $commissions = DriverCommission::where('account_id', '=', $accountId)->get();
+            $commissions = Commission::where('account_id', '=', $accountId)->get();
 
             return $commissions;
         }
 
         public function GetById($commissionId) {
-            $commission = DriverCommission::where('commission_id', '=', $commissionId)
+            $commission = Commission::where('commission_id', '=', $commissionId)
                 ->get();
             return $commission;
         }
 
         public function Insert($commission) {
-            $new = new DriverCommission;
+            $new = new Commission;
 
             $new = $new->create($commission);
 
