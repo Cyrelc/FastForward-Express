@@ -16,6 +16,7 @@ class CreatePhoneNumbersTable extends Migration
             $table->increments('phone_number_id');
             $table->string('type');
             $table->string('phone_number');
+            $table->string('extension_number');
             $table->boolean('is_primary')->default(true);
             $table->unsignedInteger('contact_id');
             

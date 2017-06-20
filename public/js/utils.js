@@ -20,17 +20,10 @@ function numberFilter(e) {
 
 function phoneInput(id) {
     new Cleave('#' + id, {
-        delimiters: [') ', '-'],
-        blocks: [4, 3, 4]
+        delimiters: ['(', ')', ' ', '-'],
+        blocks: [0, 3, 0, 3, 4]
     });
-
     $("#" + id).keydown(function(e){numberFilter(e);});
-
-    $("#" + id).focus(function(e){
-        if (!$("#" + id).val()) {
-            $("#" + id).val("(");
-        }
-    });
 
     $("#" + id).focusout(function(e){
         if ($("#" + id).val() == '('){

@@ -2,6 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Driver;
+use App\DriverCommission;
 
 class DriverRepo {
 
@@ -12,9 +13,15 @@ class DriverRepo {
     }
 
     public function GetById($id) {
-        $driver = Contact::where('driver_id', '=', $id)->first();
+        $driver = Driver::where('driver_id', '=', $id)->first();
 
         return $driver;
+    }
+
+    public function GetCommissionByAccount($accountId) {
+        $commission = DriverCommission::where('account_id', '=', $accountId)->first();
+
+        return $commission;
     }
 
     public function Insert($driver) {

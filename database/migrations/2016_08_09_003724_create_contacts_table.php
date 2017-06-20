@@ -16,6 +16,7 @@ class CreateContactsTable extends Migration
             $table->increments('contact_id');
             $table->string('first_name');
             $table->string('last_name');
+            $table->boolean('enabled')->default(true);
         });
     }
 

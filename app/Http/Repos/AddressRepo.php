@@ -4,14 +4,14 @@ namespace App\Http\Repos;
 use App\Address;
 
 class AddressRepo {
-    public function GetById($id) {
-        $ad = Address::where('address_id', '=', $id)->first();
+    public function ListByContactId($id) {
+        $ad = Address::where('contact_id', '=', $id)->first();
 
         return $ad;
     }
 
-    public function GetByContactId($id) {
-        $ad = Address::where('contact_id', '=', $id)->first();
+    public function GetById($id) {
+        $ad = Address::where('address_id', '=', $id)->first();
 
         return $ad;
     }
@@ -35,8 +35,8 @@ class AddressRepo {
         return $new;
     }
 
-    public function Edit($address) {
-        $old = GetById($address['address_id']);
+    public function Update($address) {
+        $old = $this->GetById($address['address_id']);
 
         $old->street = $address['street'];
         $old->street2 = $address['street2'];
@@ -44,14 +44,21 @@ class AddressRepo {
         $old->zip_postal = $address['zip_postal'];
         $old->state_province = $address['state_province'];
         $old->country = $address['country'];
-        $old->is_primary = $address['is_primary'];
 
         $old->save();
     }
 
     public function Delete($aId){
-        $address = GetById($aId);
+        $address = $this->GetById($aId);
 
         $address->delete();
+    }
+
+    public function DeleteByContact($cid) {
+        $addrs = $this->ListByContactId($cid);
+
+        foreach($addrs as $addr) {
+            $this->Delete($addr);
+        }
     }
 }

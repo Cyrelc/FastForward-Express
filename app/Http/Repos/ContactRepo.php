@@ -26,19 +26,27 @@ class ContactRepo {
     }
 
 
-    public function Edit($contact) {
-        $old = GetById($contact['contact_id']);
+    public function Update($contact) {
+        $old = $this->GetById($contact["contact_id"]);
 
-        $old->first_name = $contact['first_name'];
-        $old->last_name = $contact['last_name'];
+        $old->first_name = $contact["first_name"];
+        $old->last_name = $contact["last_name"];
 
         $old->save();
     }
 
     public function Delete($cid) {
-        $contact = GetById($cid);
+        $contact = $this->GetById($cid);
+
+        $pnRepo = new PhoneNumberRepo();
+        $addrRepo = new AddressRepo();
+        $emailRepo = new EmailAddressRepo();
 
         $contact->account()->detach();
+        $pnRepo->DeleteByContact($cid);
+        $addrRepo->DeleteByContact($cid);
+        $emailRepo->DeleteByContact($cid);
+
         $contact->delete();
     }
 }
