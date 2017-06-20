@@ -64,6 +64,8 @@
             $model->deliveryAddress = new \App\Address();
             $model->account->start_date = date("U");
             $model->commissions = [];
+            $model->give_commission_1 = false;
+            $model->give_commission_2 = false;
 
             $model->invoice_intervals = [
                 "weekly",
