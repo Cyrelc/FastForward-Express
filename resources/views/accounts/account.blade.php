@@ -31,59 +31,11 @@
                 $("input[name='hasBillingAddress']").val('');
         });
 
-        dateInput('depreciate-1-start-date');
-        dateInput('depreciate-2-start-date');
         dateInput('start-date');
         comboInput('parent-account-id', 'Select a Parent Account');
         comboInput('driver,select', 'Select a Driver');
-        phoneInput("phone1");
-        phoneInput("phone2");
-        zipInput("delivery-zip");
-        zipInput("billing-zip");
 
-<!--Reconstruct all contacts-->
         @php
-            if(isset($model->account->account_id)) {
-                foreach($model->account->contacts as $c) {
-                    $id = $c->contact_id;
-                    if (isset($c->delete) && $c->delete === true) {
-                        echo 'addDeleted("' . $id . '");';
-                    } else {
-                        $fName = addslashes($c->first_name);
-                        $lName = addslashes($c->last_name);
-                        $ppnId = $c->primaryPhone->phone_number_id;
-                        $ppn = $c->primaryPhone->phone_number;
-                        $ppnExt = $c->primaryPhone->extension_number;
-                        $emId = $c->primaryEmail->email_address_id;
-                        $em = $c->primaryEmail->email;
-
-                        $spnId = $spn = $spnExt = $em2Id = $em2 = null;
-                        if (isset($c->secondaryPhone)) {
-                            if ($c->secondaryPhone->is_new === true)
-                                $spnId = -2;
-                            else
-                                $spnId = $c->secondaryPhone->phone_number_id;
-
-                            $spn = $c->secondaryPhone->phone_number;
-                            $spnExt = $c->secondaryPhone->extension_number;
-                        }
-
-                        if (isset($c->secondaryEmail)) {
-                            if ($c->secondaryEmail->is_new === true)
-                                $em2Id = -2;
-                            else
-                                $em2Id = $c->secondaryEmail->email_address_id;
-
-                            $em2 = $c->secondaryEmail->email;
-                        }
-
-                        echo sprintf("
-                            newTabPill(%u, '%s', '%s', %s);
-                            newTabBody(%u, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s);",
-                            $id, $fName, $lName, $c->is_primary == '1' ? 'true' : 'false', $id, $fName, $lName, $ppnId, $ppn, $ppnExt, $spnId, $spn, $spnExt, $emId, $em, $em2Id, $em2, $c->is_primary == '1' ? 'true' : 'false', isset($c->is_new) ? $c->is_new ? 'true' : 'false' : 'false');
-                    }
-                }
-            }
             //Enable the billing address fields if there's a billing address
             if (isset($model->billingAddress))
                 echo '$("#billing-address").prop("checked", true);
@@ -225,91 +177,19 @@
                     </div>
 <!-- Commission 1 -->
                     <div class="col-lg-12 col-nopadding">
-                        <div class="col-lg-4 bottom15" id="commission-1-div" data-hide="true">
-                            <div class="well">
-                                <h3 class="panel-title bottom15">Commission 1</h3>
-                                @if (count($model->commissions) > 0)
-                                    <input type="hidden" name="commission-1-id" value="{{$model->commissions[0]->commission_id}}" />
-                                @endif
-                                <div class="col-lg-6 bottom15">
-                                    <select id="employee-1-select" class="form-control" name='commission-employee-1-id'>
-                                        <option></option>
-                                        @foreach($model->drivers as $d)
-                                            @if (count($model->commissions) > 0 && $d->driver_id == $model->commissions[0]->driver_id)
-                                                <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                            @else
-                                                <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                            @endif
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-lg-6 bottom15">
-                                    <div class="input-group">
-                                        <input class='form-control' min=0 max=100 type='number' name='commission-1-percent' placeholder="Commission %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->commission * 100 : "" }}"/>
-                                        <span class="input-group-addon">%</span>
-                                    </div>
-                                </div>
-                                <h5>Depreciation rules</h5>
-                                <hr>
-                                <div class="input-group bottom15">
-                                    <span class="input-group-addon">Depreciate by</span>
-                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-1-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 0 ? $model->commissions[0]->depreciation_amount * 100 : "" }}">
-                                    <span class="input-group-addon"> % </span>
-                                </div>
-                                <div class="input-group bottom15">
-                                    <span class="input-group-addon"> for </span>
-                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-1-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[0]->years : "" }}"/>
-                                    <span class="input-group-addon"> years </span>
-                                </div>
-                                <div class="input-group bottom15" id="driver-depreciation_start">
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                    <input type='text' id="depreciate-1-start-date" name="depreciate-1-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[0]->start_date) : "" }}"/>
-                                </div>
-                            </div>
-                        </div>
-        <!-- Commission 2 -->
-                        <div class="col-lg-4 bottom15" id="commission-2-div" data-hide="true">
-                            <div class="well">
-                                <h3 class="panel-title bottom15">Commission 2</h3>
-                                @if (count($model->commissions) > 1)
-                                    <input type="hidden" name="commission-2-id" value="{{$model->commissions[1]->commission_id}}" />
-                                @endif
-                                <div class="col-lg-6 bottom15">
-                                    <select id="employee-2-select" class="form-control" name='commission-2-employee-id'>
-                                        <option></option>
-                                        @foreach($model->drivers as $d)
-                                            @if (count($model->commissions) > 1 && $d->driver_id == $model->commissions[1]->driver_id)
-                                                <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                            @else
-                                                <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
-                                            @endif
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-lg-6 bottom15">
-                                    <div class="input-group">
-                                        <input class='form-control' min=0 max=100 type='number' name='commission-2-percent' placeholder="Commission %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->commission * 100 : "" }}"/>
-                                        <span class="input-group-addon">%</span>
-                                    </div>
-                                </div>
-                                <h5>Depreciation rules</h5>
-                                <hr>
-                                <div class="input-group bottom15">
-                                    <span class="input-group-addon">Depreciate by</span>
-                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-2-percentage' placeholder="Depreciation %" value="{{count($model->commissions) > 1 ? $model->commissions[1]->depreciation_amount * 100 : "" }}">
-                                    <span class="input-group-addon"> % </span>
-                                </div>
-                                <div class="input-group bottom15">
-                                    <span class="input-group-addon"> for </span>
-                                    <input class="form-control" min=0 max=100 type='number' name='depreciate-2-duration' placeholder="Depreciation duration" value="{{count($model->commissions) > 0 ? $model->commissions[1]->years : "" }}"/>
-                                    <span class="input-group-addon"> years </span>
-                                </div>
-                                <div class="input-group bottom15" id="depreciation_start_date_1">
-                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i> starting </span>
-                                    <input type='text' id="depreciate-2-start-date" name="depreciate-2-start-date" class="form-control" placeholder="Depreciation start date" value="{{count($model->commissions) > 0 ? date("l, F d Y", $model->commissions[1]->start_date) : "" }}"/>
-                                </div>
-                            </div>
-                        </div>
+                    @include('partials.commission', [
+                        'commission' => count($model->commissions) > 1 ? $model->commissions[0] : null,
+                        'prefix' => 'commission-1',
+                        'drivers' => $model->drivers,
+                        'title' => 'Commission 1'
+                    ])
+                        <!-- Commission 2 -->
+                        @include('partials.commission', [
+                            'commission' => count($model->commissions) > 2 ? $model->commissions[1] : null,
+                            'prefix' => 'commission-2',
+                            'drivers' => $model->drivers,
+                            'title' => 'Commission 2'
+                        ])
                     </div>
 <!-- End Commission -->
                     <div class="col-lg-12 bottom15" id="invoice-comment">
@@ -326,27 +206,7 @@
                     <h3 class="panel-title">Delivery Address</h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group bottom15">
-                        <input type="hidden" name="delivery-id" value="{{$model->deliveryAddress->address_id}}" />
-                        <div class="col-lg-6">
-                            <input type='text' class='form-control' name='delivery-street' placeholder="Address Line 1"  value="{{$model->deliveryAddress->street}}"/>
-                        </div>
-                        <div class="col-lg-6 bottom15">
-                            <input type='text' id="delivery-zip" class='form-control' name='delivery-zip-postal' placeholder="Postal/Zip Code"  value="{{$model->deliveryAddress->zip_postal}}" />
-                        </div>
-                        <div class="col-lg-6 bottom15">
-                            <input type='text' class='form-control' name='delivery-street2' placeholder="Address Line 2" value="{{$model->deliveryAddress->street2}}" />
-                        </div>
-                        <div class="col-lg-6 bottom15">
-                            <input type='text' class='form-control' name='delivery-state-province' placeholder="Province/State" value="{{$model->deliveryAddress->state_province}}" />
-                        </div>
-                        <div class="col-lg-6">
-                            <input type='text' class='form-control' name='delivery-city' placeholder="City" value="{{$model->deliveryAddress->city}}" />
-                        </div>
-                        <div class="col-lg-6">
-                            <input type='text' class='form-control' name='delivery-country' placeholder="Country" value="{{$model->deliveryAddress->country}}" />
-                        </div>
-                    </div>
+                    @include('partials.address', ['prefix' => 'delivery', 'address' => $model->deliveryAddress])
                 </div>
             </div>
 <!-- Billing address panel -->
@@ -359,91 +219,12 @@
                     </h3>
                 </div>
                 <div class="col-lg-12 panel-body">
-                    <div class="form-group">
-                        <div class="form-group bottom15">
-                            <input type="hidden" name="billing-id" value="{{isset($model->billingAddress) ? $model->billingAddress->address_id : ""}}" />
-                            <div class="col-lg-6">
-                                <input type='text' class='form-control' name='billing-street' placeholder="Address Line 1"  value="{{isset($model->billingAddress) ? $model->billingAddress->street : ""}}"/>
-                            </div>
-                            <div class="col-lg-6 bottom15">
-                                <input type='text' id="billing-zip" class='form-control' name='billing-zip-postal' placeholder="Postal/Zip Code"  value="{{isset($model->billingAddress) ? $model->billingAddress->zip_postal : ""}}" />
-                            </div>
-                            <div class="col-lg-6 bottom15">
-                                <input type='text' class='form-control' name='billing-street2' placeholder="Address Line 2" value="{{isset($model->billingAddress) ? $model->billingAddress->street2 : ""}}" />
-                            </div>
-                            <div class="col-lg-6 bottom15">
-                                <input type='text' class='form-control' name='billing-state-province' placeholder="Province/State" value="{{isset($model->billingAddress) ? $model->billingAddress->state_province : ""}}" />
-                            </div>
-                            <div class="col-lg-6">
-                                <input type='text' class='form-control' name='billing-city' placeholder="City" value="{{isset($model->billingAddress) ? $model->billingAddress->city : ""}}" />
-                            </div>
-                            <div class="col-lg-6">
-                                <input type='text' class='form-control' name='billing-country' placeholder="Country" value="{{isset($model->billingAddress) ? $model->billingAddress->country : ""}}" />
-                            </div>
-                        </div>
-                    </div>
+                    @include('partials.address', ['prefix' => 'billing', 'address' => isset($model->billingAddress) ? $model->billingAddress : null])
                 </div>
             </div>
         </div>
         <!-- Contact Panel -->
-        <div class='col-lg-12 panel panel-default' id="contacts">
-            <div class='col-lg-12 panel-heading bottom15'>
-                <h3 class='panel-title'>Contacts</h3>
-            </div>
-
-            <div class='col-lg-2'>
-                <ul id="contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist" style="list-style-type:none; padding-top:15px;">
-                    <li><a href="#new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
-                </ul>
-            </div>
-            <!-- Contact Tab panes -->
-            <div class="col-lg-10">
-                <div class="tab-content" id="contact-bodies">
-                    <div role="tabpanel" class="tab-pane active" id="new-contact">
-                        <div class="col-lg-12" style="padding:15px;">
-                            <div class="clearfix form-section well" style="padding:15px;">
-                                <div class="col-lg-6 bottom15">
-                                    <input type='text' class='form-control contact-body' id='first-name' placeholder='First Name'/>
-                                </div>
-                                <div class="col-lg-6 bottom15">
-                                    <input type='text' class='form-control contact-body' id='last-name' placeholder='Last Name'/>
-                                </div>
-                                <div class="col-lg-6 bottom15">
-                                    <div class="input-group">
-                                        <input type="tel" id="phone1" class='form-control contact-body' placeholder='Primary Phone'/>
-                                        <span class="input-group-addon">Ext.</span>
-                                        <input type="tel" id="phone1-ext" class='form-control contact-body' placeholder='Extension'/>
-                                    </div>
-                                </div>
-                                <div class='col-lg-6 bottom15'>
-                                    <div class="input-group">
-                                        <input type="tel" id="phone2" class='form-control contact-body' placeholder='Secondary Phone'/>
-                                        <span class="input-group-addon">Ext.</span>
-                                        <input type="tel" id="phone2-ext" class='form-control contact-body' placeholder='Extension'/>
-                                    </div>
-                                </div>
-                                <div class='col-lg-6'>
-                                    <input type='email' class='form-control contact-body' id='email1' placeholder='Primary Email'/>
-                                </div>
-                                <div class='col-lg-6'>
-                                    <input type='email' class='form-control contact-body' id='email2' placeholder='Secondary Email'/>
-                                </div>
-                                <div class="text-center">
-                                    <ul class="nav nav-pills">
-                                        <li class="text-center" title="Save">
-                                            <a href="javascript:saveScContact()"><i class="fa fa-save"></i></a>
-                                        </li>
-                                        <li title="Delete">
-                                            <a href="javascript:clearScForm()"><i class="fa fa-trash"></i></a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('partials.contacts', ['contacts' => $model->account->contacts])
     </div>
     <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
 </div>
