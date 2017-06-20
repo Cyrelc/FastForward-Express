@@ -168,7 +168,6 @@
                     }
                 }
             }
-
             $model = $this->MergeOld($model, $request);
             return $model;
         }
@@ -271,7 +270,8 @@
             //Contacts
             $newContacts = [];
             $deleteContacts = [];
-            $primary = $req->old('contact-action-change-primary');
+
+            $primary = $req->old('contact-action-change-primary') === null ? -1 : $req->old('contact-action-change-primary');
 
             if ($req->old('contact-action-add') !== null) {
                 $newContacts = $req->old('contact-action-add');
@@ -308,10 +308,12 @@
                 else
                     $model->account->contacts[$i]->delete = false;
 
-                if ($contactId == $primary)
-                    $model->account->contacts[$i]->is_primary = true;
-                else
-                    $model->account->contacts[$i]->is_primary = false;
+                if ($primary !== -1) {
+                    if ($contactId == $primary)
+                        $model->account->contacts[$i]->is_primary = true;
+                    else
+                        $model->account->contacts[$i]->is_primary = false;
+                }
 
                 if ($req->old("contact-" . $contactId . "-first-name") !== null)
                     $model->account->contacts[$i]->first_name = $req->old("contact-" . $contactId . "-first-name");
