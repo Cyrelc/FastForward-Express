@@ -20,7 +20,7 @@ class CommissionsTableSeeder extends Seeder
             "start_date" => new Carbon\Carbon('first day of last month'),
         ]);
 
-        DB::table('driver_commissions')->insert([
+        DB::table('commissions')->insert([
             "driver_id" => 2,
             "account_id" => 1,
             "commission" => 0.07,
