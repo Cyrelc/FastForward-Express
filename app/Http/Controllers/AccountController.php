@@ -488,7 +488,7 @@ class AccountController extends Controller {
             $commission2 = [
                 'commission_id' => $req->input('commission-2-id'),
                 'account_id' => $accountId,
-                'driver_id' => $req->input('commission-employee-2-id'),
+                'driver_id' => $req->input('commission-2-employee-id'),
                 'commission' => $req->input('commission-2-percent'),
                 'depreciation_amount' => $req->input('commission-2-depreciation-percent'),
                 'years' => $req->input('commission-2-depreciation-duration'),
