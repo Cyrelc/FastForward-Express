@@ -168,7 +168,6 @@
                     }
                 }
             }
-
             $model = $this->MergeOld($model, $request);
             return $model;
         }
@@ -271,7 +270,8 @@
             //Contacts
             $newContacts = [];
             $deleteContacts = [];
-            $primary = $req->old('contact-action-change-primary');
+
+            $primary = $req->old('contact-action-change-primary') === null ? -1 : $req->old('contact-action-change-primary');
 
             if ($req->old('contact-action-add') !== null) {
                 $newContacts = $req->old('contact-action-add');
@@ -308,10 +308,12 @@
                 else
                     $model->account->contacts[$i]->delete = false;
 
-                if ($contactId == $primary)
-                    $model->account->contacts[$i]->is_primary = true;
-                else
-                    $model->account->contacts[$i]->is_primary = false;
+                if ($primary !== -1) {
+                    if ($contactId == $primary)
+                        $model->account->contacts[$i]->is_primary = true;
+                    else
+                        $model->account->contacts[$i]->is_primary = false;
+                }
 
                 if ($req->old("contact-" . $contactId . "-first-name") !== null)
                     $model->account->contacts[$i]->first_name = $req->old("contact-" . $contactId . "-first-name");
@@ -373,16 +375,16 @@
                     if ($req->old('should-give-commission-1') === "true") {
                         $com = new \App\DriverCommission();
 
-                        if ($req->old('commission-employee-1-id') !== null)
-                            $com["driver_id"] = $req->old('commission-employee-1-id');
+                        if ($req->old('commission-1-employee-id') !== null)
+                            $com["driver_id"] = $req->old('commission-1-employee-id');
                         if ($req->old('commission-1-percent') !== null)
                             $com["commission"] = $req->old('commission-1-percent') / 100;
-                        if ($req->old('depreciate-1-percentage') !== null)
-                            $com["depreciation_amount"] = $req->old('depreciate-1-percentage') / 100;
-                        if ($req->old('depreciate-1-duration') !== null)
-                            $com["years"] = $req->old('depreciate-1-duration');
-                        if ($req->old('depreciate-1-start-date') !== null)
-                            $com["start_date"] = strtotime($req->old('depreciate-1-start-date'));
+                        if ($req->old('commission-1-depreciate-percentage') !== null)
+                            $com["depreciation_amount"] = $req->old('commission-1-depreciate-percentage') / 100;
+                        if ($req->old('commission-1-depreciate-duration') !== null)
+                            $com["years"] = $req->old('commission-1-depreciate-duration');
+                        if ($req->old('commission-1-depreciate-start-date') !== null)
+                            $com["start_date"] = strtotime($req->old('commission-1-depreciate-start-date'));
 
                         $model->commissions[0] = $com;
                     }
@@ -390,16 +392,17 @@
                     if ($req->old('should-give-commission-2') === "true") {
                         $com = new \App\DriverCommission();
 
-                        if ($req->old('commission-employee-2-id') !== null)
-                            $com["driver_id"] = $req->old('commission-employee-2-id');
+                        if ($req->old('commission-2-employee-id') !== null)
+                            $com["driver_id"] = $req->old('commission-2-employee-id');
                         if ($req->old('commission-2-percent') !== null)
                             $com["commission"] = $req->old('commission-2-percent') / 100;
-                        if ($req->old('depreciate-2-percentage') !== null)
-                            $com["depreciation_amount"] = $req->old('depreciate-2-percentage') / 100;
-                        if ($req->old('depreciate-2-duration') !== null)
-                            $com["years"] = $req->old('depreciate-2-duration');
-                        if ($req->old('depreciate-2-start-date') !== null)
-                            $com["start_date"] = strtotime($req->old('depreciate-2-start-date'));
+                        if ($req->old('commission-2-depreciate-percentage') !== null)
+                            $com["depreciation_amount"] = $req->old('commission-2-depreciate-percentage') / 100;
+                        if ($req->old('commission-2-depreciate-duration') !== null)
+                            $com["years"] = $req->old('commission-2-depreciate-duration');
+                        if ($req->old('commission-2-depreciate-start-date') !== null)
+                            $com["start_date"] = strtotime($req->old('commission-2-depreciate-start-date'));
+
 
                         $model->commissions[1] = $com;
                     }
@@ -408,32 +411,33 @@
                     if ($model->give_commission_1) {
                         $com = $model->commissions[0];
 
-                        if ($req->old('commission-employee-1-id') !== null)
-                            $com["driver_id"] = $req->old('commission-employee-1-id');
+                        if ($req->old('commission-1-employee-id') !== null)
+                            $com["driver_id"] = $req->old('commission-1-employee-id');
                         if ($req->old('commission-1-percent') !== null)
                             $com["commission"] = $req->old('commission-1-percent') / 100;
-                        if ($req->old('depreciate-1-percentage') !== null)
-                            $com["depreciation_amount"] = $req->old('depreciate-1-percentage') / 100;
-                        if ($req->old('depreciate-1-duration') !== null)
-                            $com["years"] = $req->old('depreciate-1-duration');
-                        if ($req->old('depreciate-1-start-date') !== null)
-                            $com["start_date"] = strtotime($req->old('depreciate-1-start-date'));
+                        if ($req->old('commission-1-depreciate-percentage') !== null)
+                            $com["depreciation_amount"] = $req->old('commission-1-depreciate-percentage') / 100;
+                        if ($req->old('commission-1-depreciate-duration') !== null)
+                            $com["years"] = $req->old('commission-1-depreciate-duration');
+                        if ($req->old('commission-1-depreciate-start-date') !== null)
+                            $com["start_date"] = strtotime($req->old('commission-1-depreciate-start-date'));
 
                         $model->commissions[0] = $com;
                     }
 
                     if ($model->give_commission_2) {
                         $com = $model->commissions[1];
-                        if ($req->old('commission-employee-2-id') !== null)
-                            $com["driver_id"] = $req->old('commission-employee-2-id');
+
+                        if ($req->old('commission-2-employee-id') !== null)
+                            $com["driver_id"] = $req->old('commission-2-employee-id');
                         if ($req->old('commission-2-percent') !== null)
                             $com["commission"] = $req->old('commission-2-percent') / 100;
-                        if ($req->old('depreciate-2-percentage') !== null)
-                            $com["depreciation_amount"] = $req->old('depreciate-2-percentage') / 100;
-                        if ($req->old('depreciate-2-duration') !== null)
-                            $com["years"] = $req->old('depreciate-2-duration');
-                        if ($req->old('depreciate-2-start-date') !== null)
-                            $com["start_date"] = strtotime($req->old('depreciate-2-start-date'));
+                        if ($req->old('commission-2-depreciate-percentage') !== null)
+                            $com["depreciation_amount"] = $req->old('commission-2-depreciate-percentage') / 100;
+                        if ($req->old('commission-2-depreciate-duration') !== null)
+                            $com["years"] = $req->old('commission-2-depreciate-duration');
+                        if ($req->old('commission-2-depreciate-start-date') !== null)
+                            $com["start_date"] = strtotime($req->old('commission-2-depreciate-start-date'));
 
                         $model->commissions[1] = $com;
                     }

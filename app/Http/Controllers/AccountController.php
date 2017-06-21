@@ -476,11 +476,11 @@ class AccountController extends Controller {
             $commission1 = [
                 'commission_id' => $req->input('commission-1-id'),
                 'account_id' => $accountId,
-                'driver_id' => $req->input('commission-employee-1-id'),
+                'driver_id' => $req->input('commission-1-employee-id'),
                 'commission' => $req->input('commission-1-percent'),
-                'depreciation_amount' => $req->input('commission-1-percent'),
-                'years' => $req->input('commission-1-duration'),
-                'start_date' => $req->input('commission-1-start-date')
+                'depreciation_amount' => $req->input('commission-1-depreciation-percent'),
+                'years' => $req->input('commission-1-depreciation-duration'),
+                'start_date' => $req->input('commission-1-depreciation-start-date')
             ];
         }
 
@@ -488,11 +488,11 @@ class AccountController extends Controller {
             $commission2 = [
                 'commission_id' => $req->input('commission-2-id'),
                 'account_id' => $accountId,
-                'driver_id' => $req->input('commission-employee-2-id'),
+                'driver_id' => $req->input('commission-2-employee-id'),
                 'commission' => $req->input('commission-2-percent'),
-                'depreciation_amount' => $req->input('commission-2-percent'),
-                'years' => $req->input('commission-2-duration'),
-                'start_date' => $req->input('commission-2-start-date')
+                'depreciation_amount' => $req->input('commission-2-depreciation-percent'),
+                'years' => $req->input('commission-2-depreciation-duration'),
+                'start_date' => $req->input('commission-2-depreciation-start-date')
             ];
         }
 
