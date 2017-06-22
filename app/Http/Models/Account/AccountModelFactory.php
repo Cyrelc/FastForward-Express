@@ -26,6 +26,9 @@
                     $avm->address = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
                     $avm->contacts = $a->contacts()->get();
 
+                    if (isset($avm->account->parent_account_id))
+                        $avm->account->parent_account = $acctsRepo->GetById($avm->account->parent_account_id)->name;
+
                     array_push($avms, $avm);
                 }
 
