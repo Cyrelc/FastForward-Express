@@ -19,6 +19,13 @@ function enableBody(me, bodyName) {
 	}
 };
 
+function switchDiv(element, id) {
+	if ($(element).is(':checked'))
+		$("#" + id + " input").removeAttr('disabled');
+	else
+        $("#" + id + " input").attr('disabled', 'disabled');
+}
+
 function validatePhone(name, errors) {
 	$contents = $('[name="'+name+'"]').val();
 	if ($contents.length != 10) {

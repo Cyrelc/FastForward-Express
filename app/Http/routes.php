@@ -41,6 +41,7 @@ Route::group(
             Route::get('/accounts/edit/{id}', 'AccountController@edit');
             Route::post('/accounts/action', 'AccountController@action');
             Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
+            Route::post('/accounts/is_unique', 'AccountController@is_unique');
 
             Route::resource('/bills', 'BillController',
                     ['only' => ['index', 'create', 'edit', 'store']]

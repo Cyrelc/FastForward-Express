@@ -27,7 +27,6 @@ class AccountController extends Controller {
         return view('accounts.accounts', compact('contents'));
     }
 
-
     public function create(Request $req) {
         //Check user settings and return popout or inline based on that
         //Check permissions
@@ -44,6 +43,9 @@ class AccountController extends Controller {
 
     public function store(Request $req) {
         $validationRules = [
+            'account-number' => [
+                'required'
+                ],
             'name' => 'required',
             'delivery-street' => 'required',
             'delivery-city' => 'required',
@@ -54,6 +56,8 @@ class AccountController extends Controller {
         ];
 
         $validationMessages = [
+            'account-number.required' => 'Account Number is required',
+            'account-number.unique' => 'Account Number must be unique',
             'name.required' => 'Company Name is required.',
             'delivery-street.required' => 'Delivery Address Street is required.',
             'delivery-city.required' => 'Delivery Address City is required.',
@@ -62,6 +66,15 @@ class AccountController extends Controller {
             'delivery-state-province.required' => 'Delivery Province is required.',
             'delivery-country.required' => 'Delivery Country is required.',
         ];
+
+        $accountRepo = new Repos\AccountRepo();
+        if ($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0) {
+            $account = $accountRepo->GetById($req->input('account-id'));
+
+            if ($account->account_number !== $req->input('account-number')) {
+                array_push($validationRules['account-number'], 'unique:accounts,account_number');
+            }
+        }
 
         $contacts = 0;
         $contactsToDelete = [];
@@ -178,7 +191,6 @@ class AccountController extends Controller {
         $contactRepo = new Repos\ContactRepo();
         $addressRepo = new Repos\AddressRepo();
         $emailAddressRepo = new Repos\EmailAddressRepo();
-        $accountRepo = new Repos\AccountRepo();
         $pnRepo = new Repos\PhoneNumberRepo();
         $comRepo = new Repos\CommissionRepo();
 
@@ -548,6 +560,31 @@ class AccountController extends Controller {
 
             return response()->json([
                 'success' => true
+            ]);
+        } catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function is_unique(Request $req) {
+        try {
+            $number = $req->input('number');
+            if (!isset($number) || strlen($number) <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Account Number was not specified.'
+                ]);
+            }
+
+            $acctRepo = new Repos\AccountRepo();
+            $unique = $acctRepo->IsUnique($number);
+
+            return response()->json([
+                'success' => true,
+                'accounts' => $unique
             ]);
         } catch(Exception $e){
             return response()->json([
