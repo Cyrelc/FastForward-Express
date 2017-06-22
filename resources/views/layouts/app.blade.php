@@ -38,9 +38,10 @@
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/drivers">Drivers</a>
+                            <a class="dropdown-toggle" data-toggle="dropdown">Drivers</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/drivers/create">Create New Driver</a></li>
+                                <li><a href="/drivers"><i class="fa fa-list"></i> List</a></li>
+                                <li><a href="/drivers/create"><i class="fa fa-plus-square-o"></i> New</a></li>
                             </ul>
                         </li>
                         <li class="dropdown" disabled>

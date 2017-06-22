@@ -13,7 +13,6 @@
 			'id_col' => 1,
 			'name_col' => 3
 		];
-
 	?>
 
 	<script type="text/javascript">

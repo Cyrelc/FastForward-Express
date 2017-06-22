@@ -8,4 +8,8 @@ class Bill extends Model
 {
     public $primaryKey = "bill_id";
     public $timestamps = false;
+
+    public function Driver() {
+        return $this->belongsTo('App\Driver');
+    }
 }

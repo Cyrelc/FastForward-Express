@@ -2,31 +2,42 @@
 
 @section ('variables')
 
-<?php
-	use \app\Http\Controllers\DriverController;
-
-	$columns = [];
-	$variables = [];
-	$contents = array('success' => false);
-	if ($contents['success']){
-		$contents = $contents['data'];
-	}
-?>
+@php
+	$contents = $contents->drivers;
+	$columns = ['Active', 'Driver Number', 'Name', 'Insurance Exp.', 'License Exp.', 'Bills This Month'];
+	$variables = [['driver', 'active'], ['driver', 'driver_number'], ['contact', 'name'], ['driver', 'insurance_expiration'], ['driver', 'license_expiration'], 'bills'];
+	$tableConfig = [
+		'table' => 'driver',
+		'editPath' => 'drivers/edit/',
+		'actionPath' => 'drivers/action',
+		'id_col' => 1,
+		'name_col' => 3
+	];
+@endphp
 
 @endsection
 
 @section ('script')
 
 <script type='text/javascript'>
+    var columnDefs = [{"targets": [ 1 ], "visible": false, "searchable": true}];
+    var order = [1, "desc"];
 
-	function childRow(details) {
-		var data = JSON.parse(details);
+    function dtRowCallback(row, data) {
+        var id = data[1];
+        var name = data[3].replace("'", "\\'");
 
-		var thisDriver = 'editDriver' + data.number;
+        var editButton = '<a href="drivers/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
+        var delButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'deactivate\')"><i class="fa fa-trash"></i></a>';
+        var activateButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'activate\')"><i class="fa fa-toggle-on"></i></a>';
 
-		return "<table>" +
-				"</table>";
-	}
+        if (data[1] == 0) {
+            $(row).addClass('disabled');
+            $(row).attr('title', 'Deactivated');
+            $(row).find('.hover-div').html(editButton + activateButton);
+        } else
+            $(row).find('.hover-div').html(editButton + delButton);
+    }
 
 </script>
 

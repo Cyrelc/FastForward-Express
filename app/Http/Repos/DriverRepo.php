@@ -33,10 +33,21 @@ class DriverRepo {
     }
 
 
-    public function Edit($driver) {
-        $old = GetById($driver['driver_id']);
+    public function Update($driver) {
+        $old = $this->GetById($driver['driver_id']);
 
-        //TODO: Fields
+        $old->driver_number = $driver['driver_number'];
+        $old->drivers_license_number = $driver['drivers_license_number'];
+        $old->license_expiration = $driver['license_expiration'];
+        $old->license_plate_number = $driver['license_plate_number'];
+        $old->license_plate_expiration = $driver['license_plate_expiration'];
+        $old->insurance_number = $driver['insurance_number'];
+        $old->insurance_expiration = $driver['insurance_expiration'];
+        $old->sin = $driver['sin'];
+        $old->dob = $driver['dob'];
+        $old->active = $driver['active'];
+        $old->pickup_commission = $driver['pickup_commission'];
+        $old->delivery_commission = $driver['delivery_commission'];
 
         $old->save();
     }

@@ -53,6 +53,7 @@ Route::group(
             Route::post('/drivers/store', 'DriverController@store');
             Route::get('/drivers/edit', 'DriverController@edit');
             Route::post('/drivers/submitEdit', 'DriverController@submitEdit');
+            Route::post('/drivers/action', 'DriverController@action');
 
             Route::resource('/invoices', 'InvoiceController',
                     ['only' => 'index']);
