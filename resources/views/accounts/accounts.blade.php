@@ -4,8 +4,8 @@
 
 	<?php
 		$contents = $contents->accounts;
-		$columns = ['Active', 'ID', 'Parent ID', 'Name', 'Address'];//, 'Invoice Interval', 'Start Date'];
-		$variables = [['account', 'active'], ['account', 'account_id'], ['account', 'parent_account_id'], ['account', 'name'], 'address'];//, 'id', 'name', 'address','contact_name'];
+		$columns = ['Active', 'DBID', 'ID', 'Parent', 'Name', 'Address'];//, 'Invoice Interval', 'Start Date'];
+		$variables = [['account', 'active'], ['account', 'account_id'], ['account', 'account_number'], ['account', 'parent_account'], ['account', 'name'], 'address'];//, 'id', 'name', 'address','contact_name'];
 		$tableConfig = [
 			'table' => 'account',
 			'editPath' => 'accounts/edit/',
@@ -13,11 +13,10 @@
 			'id_col' => 1,
 			'name_col' => 3
 		];
-
 	?>
 
 	<script type="text/javascript">
-		var columnDefs = [{"targets": [ 1 ], "visible": false, "searchable": true}];
+		var columnDefs = [{"targets": [ 1, 2 ], "visible": false, "searchable": true}];
         var order = [1, "desc"];
 
 		function dtRowCallback(row, data) {

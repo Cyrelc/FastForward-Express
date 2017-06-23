@@ -8,6 +8,7 @@ use App\Http\Repos;
 use App\Http\Models\Driver;
 
 class DriverController extends Controller {
+
     public function __construct() {
         $this->middleware('auth');
 
@@ -291,6 +292,38 @@ class DriverController extends Controller {
 
     public function submitEdit() {
         return redirect()->action('DriverController@edit');
+    }
+
+    public function action (Request $req) {
+        try {
+            $id = $req->input('id');
+            if (!isset($id)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ID was not specified.'
+                ]);
+            }
+
+            $driverRepo = new Repos\DriverRepo();
+
+            $driver = $driverRepo->GetById($id);
+
+            if ($req->input('action') == 'deactivate')
+                $driver->active = false;
+            else if ($req->input('action') == 'activate')
+                $driver->active = true;
+
+            $driverRepo->Update($driver);
+
+            return response()->json([
+                'success' => true
+            ]);
+        } catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     protected function genFilterData($input) {

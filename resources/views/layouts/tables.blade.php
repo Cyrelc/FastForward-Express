@@ -23,22 +23,6 @@
 			'columnDefs': columnDefs
 		});
 
-		/* Child rows code
-		$('#table tbody').on('click', 'td.details-control', function() {
-		    return;
-			var tr = $(this).closest('tr');
-			var rowClass = tr.class;
-			var row = table.row(tr);
-			var numCols = $('#table').dataTable().fnSettings().aoColumns.length;
-			if (row.child.isShown()) {
-				row.child.hide();
-				tr.removeClass('shown');
-			} else {
-				row.child(childRow(row.data()[numCols-1])).show();
-				tr.addClass('shown');
-			}
-		});*/
-
         $("#mdActionConfirm").on('hidden.bs.modal', function(){
             $("#divError").hide();
             $("#divSuccess").hide();

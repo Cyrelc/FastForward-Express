@@ -74,7 +74,12 @@ class AccountRepo {
     public function ChangePrimary($accountId, $contactId) {
         //Manually do this cause Laravel sucks, ensure parameters are valid
         if ($accountId == null || !is_numeric($accountId) || $accountId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
-        \DB::update('update account_contacts set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1');
-        \DB::update('update account_contacts set is_primary = 1 where account_id = ' . $accountId . ' and contact_id = ' . $contactId);
+        \DB::update('update account_contacts set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1;');
+        \DB::update('update account_contacts set is_primary = 1 where account_id = ' . $accountId . ' and contact_id = ' . $contactId . ';');
+    }
+
+    public function IsUnique($accountNumber) {
+        $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
+        return $result;
     }
 }
