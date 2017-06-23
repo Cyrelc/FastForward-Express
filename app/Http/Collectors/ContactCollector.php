@@ -127,6 +127,7 @@ class ContactCollector {
 
     public function CollectEmail($req, $prefix, $isPrimary, $contactId) {
         return [
+            'email_address_id'=>$req->input($prefix . ($isPrimary ? '-email1-' : '-email2-') . 'id'),
             'email'=>$req->input($prefix . ($isPrimary ? '-email1' : '-email2')),
             'contact_id'=>$contactId,
             'is_primary'=>$isPrimary

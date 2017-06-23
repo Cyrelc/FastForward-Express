@@ -255,13 +255,15 @@ class AccountController extends Controller {
         if ($req->input('billing-address') == 'on') {
             $billing = $addrCollector->Collect($req, 'billing', false);
 
-            if ($billing_id == null)
+            if ($billing_id == null || $billing_id == '')
                 $billing_id = $addressRepo->Insert($billing)->address_id;
             else
                 $addressRepo->Update($billing);
-        } else if ($billing_id != null)
+        } else if ($billing_id != null || $billing_id != '')
                 $addressRepo->Delete($billing_id);
 
+        if ($billing_id == '')
+            $billing_id = null;
         //END billing address
         //BEGIN account
         $acctCollector = new \App\Http\Collectors\AccountCollector();
@@ -290,13 +292,11 @@ class AccountController extends Controller {
         $commissionCollector = new \App\Http\Collectors\CommissionCollector();
         $commission1 = $commission2 = null;
 
-        if ($req->input('give-commission-1') == 'true') {
+        if ($req->input('give-commission-1') == 'true')
             $commission1 = $commissionCollector->Collect($req, 'commission-1', $accountId);
-        }
 
-        if ($req->input('give-commission-2') == 'true') {
+        if ($req->input('give-commission-2') == 'true')
             $commission2 = $commissionCollector->Collect($req, 'commission-2', $accountId);
-        }
 
         if ($isNew) {
             if ($commission1 !== null)

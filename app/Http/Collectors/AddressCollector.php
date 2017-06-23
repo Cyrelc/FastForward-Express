@@ -3,7 +3,6 @@ namespace App\Http\Collectors;
 
 class AddressCollector {
     public function Collect($req, $prefix, $isPrimary) {
-
         return [
             'address_id'=>$req->input($prefix . '-id'),
             'street'=>$req->input($prefix . '-street'),

@@ -10,7 +10,7 @@
         <input type='text' {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street' placeholder="Address Line 1"  value="{{isset($address) ? $address->street : ''}}"/>
     </div>
     <div class="col-lg-6 bottom15">
-        <input type='text' id="{{$prefix}}-zip" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-zip-postal' placeholder="Postal/Zip Code"  value="{{isset($address) === null ? $address->zip_postal : ''}}" />
+        <input type='text' id="{{$prefix}}-zip" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-zip-postal' placeholder="Postal/Zip Code"  value="{{isset($address) ? $address->zip_postal : ''}}" />
     </div>
     <div class="col-lg-6 bottom15">
         <input type='text' {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street2' placeholder="Address Line 2" value="{{isset($address) ? $address->street2 : ''}}" />
