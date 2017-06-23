@@ -60,7 +60,7 @@
     <div class="col-lg-10">
         <div class="tab-content" id="contact-bodies">
             <div role="tabpanel" class="tab-pane" id="new-contact">
-                @include('partials.contact')
+                @include('partials.contact', ['multi' => true])
             </div>
         </div>
     </div>
