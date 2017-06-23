@@ -18,22 +18,22 @@ class AddressCollector {
 
     public function Remerge($req, $model, $prefix, $propertyName) {
         if ($req->old($prefix . "-street") !== null)
-            $model[$propertyName]->street = $req->old($prefix . "-street");
+            $model->$propertyName->street = $req->old($prefix . "-street");
 
         if ($req->old($prefix . "-street2") !== null)
-            $model[$propertyName]->street2 = $req->old($prefix . "-street2");
+            $model->$propertyName->street2 = $req->old($prefix . "-street2");
 
         if ($req->old($prefix . "-city") !== null)
-            $model[$propertyName]->city = $req->old($prefix . "-city");
+            $model->$propertyName->city = $req->old($prefix . "-city");
 
         if ($req->old($prefix . "-zip-postal") !== null)
-            $model[$propertyName]->zip_postal = $req->old($prefix . "-zip-postal");
+            $model->$propertyName->zip_postal = $req->old($prefix . "-zip-postal");
 
         if ($req->old($prefix . "-state-province") !== null)
-            $model[$propertyName]->state_province = $req->old($prefix . "-state-province");
+            $model->$propertyName->state_province = $req->old($prefix . "-state-province");
 
         if ($req->old($prefix . "-country") !== null)
-            $model[$propertyName]->country = $req->old($prefix . "-country");
+            $model->$propertyName->country = $req->old($prefix . "-country");
 
         return $model;
     }

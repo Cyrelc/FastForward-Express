@@ -1,7 +1,7 @@
 <?php
 namespace app\Http\Validation;
 
-class AccountsValidationRules {
+class AccountValidationRules {
     public function GetValidationRules($validateAccountNumberUnique, $accountId, $accountNumber, $isSubLocation, $giveDiscount, $customField) {
         $rules = [
             'account-number' => ['required'],
@@ -15,7 +15,7 @@ class AccountsValidationRules {
         ];
 
         if ($validateAccountNumberUnique) {
-            $accountRepo = new App\Http\Repos\AccountRepo();
+            $accountRepo = new \App\Http\Repos\AccountRepo();
             $account = $accountRepo->GetById($accountId);
 
             if ($account->account_number !== $accountNumber) {

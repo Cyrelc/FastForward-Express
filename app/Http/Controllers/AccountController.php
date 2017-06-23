@@ -43,7 +43,8 @@ class AccountController extends Controller {
 
     public function store(Request $req) {
         $partialsRules = new \App\Http\Validation\PartialsValidationRules();
-        $accountsRules = new \App\Http\Validation\AccountsValidationRules();
+        $accountsRules = new \App\Http\Validation\AccountValidationRules();
+
         $acctRules = $accountsRules->GetValidationRules($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0,
             $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation') == 'true', $req->input('shouldGiveDiscount') == 'true',
             $req->input('useCustomField') == 'true');
