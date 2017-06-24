@@ -46,21 +46,23 @@
     });
 </script>
 
-<div class='col-lg-12 panel panel-default' id="contacts">
-    <div class='col-lg-12 panel-heading bottom15'>
-        <h3 class='panel-title'>Contacts</h3>
-    </div>
+<div class="row">
+    <div class='col-lg-12 panel panel-default' id="contacts">
+        <div class='col-lg-12 panel-heading bottom15'>
+            <h3 class='panel-title'>{{$title}}</h3>
+        </div>
 
-    <div class='col-lg-2'>
-        <ul id="contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist" style="list-style-type:none; padding-top:15px;">
-            <li><a href="#new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
-        </ul>
-    </div>
-    <!-- Contact Tab panes -->
-    <div class="col-lg-10">
-        <div class="tab-content" id="contact-bodies">
-            <div role="tabpanel" class="tab-pane" id="new-contact">
-                @include('partials.contact', ['multi' => true])
+        <div class='col-lg-2'>
+            <ul id="contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist" style="list-style-type:none; padding-top:15px;">
+                <li><a href="#new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
+            </ul>
+        </div>
+        <!-- Contact Tab panes -->
+        <div class="col-lg-10">
+            <div class="tab-content" id="contact-bodies">
+                <div role="tabpanel" class="tab-pane" id="new-contact">
+                    @include('partials.contact', ['multi' => true])
+                </div>
             </div>
         </div>
     </div>

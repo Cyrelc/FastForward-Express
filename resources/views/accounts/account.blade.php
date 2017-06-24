@@ -285,7 +285,7 @@
         </div>
 
         <!-- Contacts Panel -->
-        @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false])
+        @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'title' => 'Contacts'])
     </div>
     <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
 </div>
