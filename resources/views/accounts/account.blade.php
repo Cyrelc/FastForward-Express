@@ -149,8 +149,12 @@
                     </div>
                 </div>
             @endif
-        <div class="row">
-            <div class="panel panel-default col-lg-12">
+
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Basic Info</h3>
+                </div>
                 <div class='panel-body'>
                     <!-- Parent Account -->
                     <div id="parent-location" class="bottom15 col-lg-12" >
@@ -260,25 +264,27 @@
         </div>
 
         <!-- Addresses -->
-        <div class="row row-eq-height">
-            <div class="col-lg-6 panel panel-default">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">Delivery Address</h3>
                 </div>
-                <div class="col-lg-12 panel-body">
+                <div class="panel-body">
                     @include('partials.address', ['prefix' => 'delivery', 'address' => $model->deliveryAddress, 'enabled' => true])
                 </div>
             </div>
+        </div>
 
-            <div class="col-lg-6 panel panel-default">
-                <div class="col-lg-12 panel-heading">
+        <div class="col-lg-6">
+            <div class="panel panel-default">
+                <div class="panel-heading" style="height: 39px;">
                     <h3 class="panel-title">
                         <label style="font-weight: normal;">
                             <input type='checkbox' id='billing-address' name='billing-address' onclick="switchDiv(this, 'billing-div')" /> Billing Address
                         </label>
                     </h3>
                 </div>
-                <div class="col-lg-12 panel-body">
+                <div class="panel-body">
                     @include('partials.address', ['prefix' => 'billing', 'address' => $model->billingAddress, 'enabled' => isset($model->billingAddress->address_id)])
                 </div>
             </div>
