@@ -160,7 +160,15 @@ class AccountController extends Controller {
                     //Deleting contact, delete and don't do anything else
 
                     //Check that another contact is being added as primary
-                    if ($req->input('contact-action-change-primary') === $contactId) {
+                    $isAnotherPrimary = false;
+                    foreach($contactActions as $actions) {
+                        foreach($actions as $action) {
+                            if ($action == "change-primary")
+                                $isAnotherPrimary = true;
+                        }
+                    }
+
+                    if (!$isAnotherPrimary) {
                         //Manually fail validation
                         $rules['PrimaryContact'] = 'required';
                         $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
