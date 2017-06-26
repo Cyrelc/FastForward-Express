@@ -160,15 +160,7 @@ class AccountController extends Controller {
                     //Deleting contact, delete and don't do anything else
 
                     //Check that another contact is being added as primary
-                    $isAnotherPrimary = false;
-                    foreach($contactActions as $actions) {
-                        foreach($actions as $action) {
-                            if ($action == "change-primary")
-                                $isAnotherPrimary = true;
-                        }
-                    }
-
-                    if (!$isAnotherPrimary) {
+                    if ($req->input('contact-action-change-primary') === $contactId) {
                         //Manually fail validation
                         $rules['PrimaryContact'] = 'required';
                         $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
@@ -179,7 +171,7 @@ class AccountController extends Controller {
                     continue;
                 }
 
-                $contact = $contactCollector->Collect($req, 'contact-' , $contactId);
+                $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
 
                 if ($primaryAction == "new") {
                     $primary_id = $contactRepo->Insert($contact)->contact_id;
@@ -190,11 +182,11 @@ class AccountController extends Controller {
                     $contactRepo->Update($contact);
                 }
 
-                $phone1 = $contactCollector->CollectPhoneNumber($req, 'contact-' . $contactId . '-phone1', true, $contactId);
-                $phone2 = $contactCollector->CollectPhoneNumber($req, 'contact-' . $contactId, false, $contactId);
-                $email1 = $contactCollector->CollectEmail($req, 'contact-' . $contactId, true, $contactId);
-                $email2 = $email1 = $contactCollector->CollectEmail($req, 'contact-' . $contactId, false, $contactId);
-
+                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true);
+                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false);
+                $email1 = $contactCollector->CollectEmail($req, $contactId, true);
+                $email2 = $contactCollector->CollectEmail($req, $contactId, false);
+                //dd($req);
                 if ($primaryAction == "new") {
                     //New phone numbers on new account
                     $pnRepo->Insert($phone1);

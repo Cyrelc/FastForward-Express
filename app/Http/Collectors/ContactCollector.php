@@ -115,9 +115,11 @@ class ContactCollector {
         return $model;
     }
 
-    public function CollectPhoneNumber($req, $prefix, $isPrimary, $contactId) {
+    public function CollectPhoneNumber($req, $contactId, $isPrimary) {
+        $prefix = 'contact-' . $contactId . ($isPrimary ? '-phone1' : '-phone2');
+
         return [
-            'phone_number_id' => $req->input('contact-' . $contactId . ($isPrimary ? '-phone1' : '-phone2') . '-id'),
+            'phone_number_id' => $req->input($prefix . '-id'),
             'phone_number' => $req->input($prefix),
             'extension_number' => $req->input($prefix . '-ext'),
             'is_primary' => $isPrimary,
@@ -125,10 +127,12 @@ class ContactCollector {
         ];
     }
 
-    public function CollectEmail($req, $prefix, $isPrimary, $contactId) {
+    public function CollectEmail($req, $contactId, $isPrimary) {
+        $prefix = 'contact-' . $contactId . ($isPrimary ? '-email1' : '-email2');
+
         return [
-            'email_address_id'=>$req->input($prefix . ($isPrimary ? '-email1-' : '-email2-') . 'id'),
-            'email'=>$req->input($prefix . ($isPrimary ? '-email1' : '-email2')),
+            'email_address_id'=>$req->input($prefix . '-id'),
+            'email'=>$req->input($prefix),
             'contact_id'=>$contactId,
             'is_primary'=>$isPrimary
         ];

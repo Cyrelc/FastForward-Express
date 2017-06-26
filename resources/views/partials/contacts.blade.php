@@ -35,33 +35,47 @@
 
                         $em2 = $c->secondaryEmail->email;
                     }
-
-                    echo sprintf("
-                        newTabPill(%u, '%s', '%s', %s);
-                        newTabBody(%u, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s, %s);",
-                        $id, $fName, $lName, $c->is_primary == '1' ? 'true' : 'false', $id, $fName, $lName, $ppnId, $ppn, $ppnExt, $spnId, $spn, $spnExt, $emId, $em, $em2Id, $em2, $c->is_primary == '1' ? 'true' : 'false', isset($c->is_new) ? $c->is_new ? 'true' : 'false' : 'false');
                 }
             }
         @endphp
     });
 </script>
 
-<div class='col-lg-12 panel panel-default' id="contacts">
-    <div class='col-lg-12 panel-heading bottom15'>
-        <h3 class='panel-title'>Contacts</h3>
-    </div>
+    <div class='col-lg-12'>
+        <div class="panel panel-default" id="{{$prefix}}-contacts">
+            <div class='panel-heading'>
+                <h3 class='panel-title'>{{$title}}</h3>
+            </div>
 
-    <div class='col-lg-2'>
-        <ul id="contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist" style="list-style-type:none; padding-top:15px;">
-            <li><a href="#new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
-        </ul>
-    </div>
-    <!-- Contact Tab panes -->
-    <div class="col-lg-10">
-        <div class="tab-content" id="contact-bodies">
-            <div role="tabpanel" class="tab-pane" id="new-contact">
-                @include('partials.contact', ['multi' => true])
+            <div class="panel-body">
+                <div class='col-lg-2'>
+                    <ul id="{{$prefix}}-contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist">
+                        <li><a href="#{{$prefix}}-new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
+
+                        @foreach($contacts as $c)
+                            <li class="{{ $c->is_primary == '1' ? 'active' : '' }}" role='presentation'><a data-id='{{ $c->contact_id  }}' href='#{{ $c->contact_id }}-panel' aria-controls='{{ $c->contact_id }}' role='tab' data-toggle='tab'>{!! $c->is_primary == '1' ? '<i class="fa fa-star"></i>' : '' !!} {{ $c->first_name }} {{ $c->last_name }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <!-- Contact Tab panes -->
+                <div class="col-lg-10">
+                    <div class="tab-content" id="{{$prefix}}-contact-bodies">
+                        <div role="tabpanel" class="tab-pane" id="{{$prefix}}-new-contact">
+                            @include('partials.contact', ['multi' => true, 'prefix' => $prefix, 'showAddress' => true])
+                        </div>
+
+                        @foreach($contacts as $c)
+                            <div role="tabpanel" class="tab-pane {{$c->is_primary == '1' ? 'active' : ''}}" id="{{$c->contact_id}}-panel">
+                                @include('partials.contact', ['multi' => true, 'prefix' => 'contact-' . $c->contact_id, 'contact' => $c, 'showAddress' => false])
+
+                                @if ($c->is_primary === true)
+                                    <input type="hidden" name="contact-action-change-primary" value="{{$c->contact_id}}" />
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
