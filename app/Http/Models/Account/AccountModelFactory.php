@@ -65,6 +65,7 @@
 		    $model->drivers = $driversRepo->ListAll();
             $model->account = new \App\Account();
             $model->deliveryAddress = new \App\Address();
+            $model->billingAddress = new \App\Address();
             $model->account->start_date = date("U");
             $model->commissions = [];
             $model->give_commission_1 = false;

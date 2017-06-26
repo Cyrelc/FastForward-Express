@@ -37,7 +37,7 @@
 
         @php
             //Enable the billing address fields if there's a billing address
-            if (isset($model->billingAddress))
+            if (isset($model->billingAddress) && isset($model->billingAddress->address_id))
                 echo '$("#billing-address").prop("checked", true);
                     enableBody("billing-address", "billing-body");';
         @endphp
@@ -107,7 +107,7 @@
     @else
         <h2>New Account</h2>
     @endif
-<form onsubmit="saveScContact()" method="POST" action="/accounts/store">
+<form method="POST" action="/accounts/store">
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->is_master ? "false" : "true") : "false" }}"/>
@@ -118,7 +118,7 @@
     <input type="hidden" data-checkbox-id="gst-exempt" name="isGstExempt" value="{{$model->account->gst_exempt == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{$model->account->uses_custom_field == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="can-be-parent" name="canBeParent" value="{{$model->account->can_be_parent == 1 ? "true" : "false"}}"/>
-    <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{isset($model->billingAddress->address_id) ? "true" : "false"}}"/>
+    <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{isset($model->billingAddress->address_id) ? "true" : "false" }}"/>
     <input type="hidden" data-checkbox-id="has-invoice-comment" name="invoice-comment" value="{{strlen($model->account->invoice_comment) > 0 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="has-fuel-surcharge" name="has-fuel-surcharge" value="{{$model->account->fuel_surcharge == 0 ? "false" : "true"}}" />
     <input type="hidden" data-checkbox-id="send-bills" name="send-bills" value="{{$model->account->send_bills == 0 ? "false" : "true"}}" />
