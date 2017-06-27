@@ -4,6 +4,8 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
     $r = rand(0, 100);
     $province = '';
     $p1 = 0;
+    $city = '';
+    $s = rand(0, 10);
 
     if ($r > 62) {
         $province = "Ontario";
@@ -11,41 +13,114 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
         $p1 = 79;
         while($p1==79)
             $p1 = rand(75, 80);
+
+        if ($s < 6)
+            $city = 'Toronto';
+        else if ($s < 9)
+            $city = 'Ottowa';
+        else
+            $city = 'Mississauga';
     }
     else if ($r > 39) {
-        $province = "Quebec";
+        $province = "Québec";
         //Quebec postals start with GHJ
         $p1 = 73;
         while($p1==73)
             $p1 = rand(71, 74);
+
+        if($s < 5)
+            $city = 'Montreal';
+        else if ($s < 9)
+            $city = 'Québec City';
+        else
+            $city = 'Laval';
     }
     else if ($r > 26) {
         $province = "British Columbia";
         $p1 = 86;
+
+        if($s < 5)
+            $city = 'Vancouver';
+        else if ($s < 9)
+            $city = 'Surrey';
+        else
+            $city = 'Burnaby';
     }
     else if ($r > 16) {
         $province = "Alberta";
         $p1 = 84;
+
+        $c = rand(0, 20);
+
+        if($c < 5)
+            $city = 'Edmonton';
+        else if ($c < 9)
+            $city = 'Calgary';
+        else if ($c < 12)
+            $city = 'Red Deer';
+        else if ($c < 14)
+            $city = 'St. Albert';
+        else if ($c < 16)
+            $city = 'Spruce Grove';
+        else if ($c < 18)
+            $city = 'Sherwood Park';
+        else if ($c < 20)
+            $city = 'Fort Saskatchewan';
     }
     else if ($r > 13) {
         $province = "Saskatchewan";
         $p1 = 83;
+
+        if($s < 5)
+            $city = 'Saskatoon';
+        else if ($s < 9)
+            $city = 'Regina';
+        else
+            $city = 'Prince Albert';
     }
     else if ($r > 10) {
         $province = "Manitoba";
         $p1 = 82;
+
+        if($s < 5)
+            $city = 'Winnipeg';
+        else if ($s < 9)
+            $city = 'Brandon';
+        else
+            $city = 'Steinbach';
     }
     else if ($r > 7) {
         $province = "Nova Scotia";
         $p1 = 66;
+
+        if($s < 5)
+            $city = 'Halifax';
+        else if ($s < 9)
+            $city = 'Cape Breton';
+        else
+            $city = 'Kings';
     }
     else if ($r > 5) {
         $province = "New Brunswick";
         $p1 = 69;
+
+        if($s < 5)
+            $city = 'Moncton';
+        else if ($s < 9)
+            $city = 'Saint John';
+        else
+            $city = 'Fredericton';
     }
     else if ($r > 3) {
         $province = "Newfoundland";
         $p1 = 65;
+
+        if($s < 5)
+            $city = 'St. John\'s';
+        else if ($s < 9)
+            $city = 'Conception Bay South';
+        else
+            $city = 'Mount Pearl';
     }
     else {
         $r = rand(0, 3);
@@ -53,18 +128,46 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
         if ($r == 0) {
             $province = "Prince Edward Island";
             $p1 = 67;
+
+            if($s < 5)
+                $city = 'Charlottetown';
+            else if ($s < 9)
+                $city = 'Summerside';
+            else
+                $city = 'Stratford';
         }
         else if ($r == 1) {
             $province = "Northwest Territories";
             $p1 = 88;
+
+            if($s < 5)
+                $city = 'Yellowknife';
+            else if ($s < 9)
+                $city = 'Hay River';
+            else
+                $city = 'Inuvik';
         }
         else if ($r == 2) {
             $province = "Yukon Territories";
             $p1 = 89;
+
+            if($s < 5)
+                $city = 'Whitehorse';
+            else if ($s < 9)
+                $city = 'Dawson';
+            else
+                $city = 'Watson Lake';
         }
         else if ($r == 3) {
             $province = "Nunavut";
             $p1 = 88;
+
+            if($s < 5)
+                $city = 'Iqaluit';
+            else if ($s < 9)
+                $city = 'Arviat';
+            else
+                $city = 'Rankin Inlet';
         }
     }
 
@@ -115,7 +218,7 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
     return [
         'street' => $street . ' ' . rand(1, 250) . $suffix,
         'street2' => "",
-        'city' => $faker->city,
+        'city' => $city,
         'zip_postal' => $postal,
         'state_province' => $province,
         'country' => "Canada"
