@@ -18,13 +18,13 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('account_id');
             $table->unsignedInteger('reference_id');
-            $table->unsignedInteger('driver_id');
+            $table->unsignedInteger('pickup_driver_id');
+            $table->unsignedInteger('delivery_driver_id');
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('bill_number');
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
-            $table->decimal('taxes');
             $table->boolean('is_manifested')->default(false);
             $table->boolean('is_invoiced')->default(false);
             $table->decimal('interliner_amount')->nullable();
