@@ -43,10 +43,8 @@ Route::group(
             Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
             Route::post('/accounts/is_unique', 'AccountController@is_unique');
 
-            Route::resource('/bills', 'BillController',
-                    ['only' => ['index', 'create', 'edit', 'store']]
-            );
-            Route::post('/bills/get', 'BillController@getData');
+            Route::post('/bills', 'BillController@index');
+            Route::post('/bills/create', 'BillController@create');
 
             Route::get('/drivers', 'DriverController@index');
             Route::get('/drivers/create', 'DriverController@create');
