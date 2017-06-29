@@ -34,7 +34,8 @@ class CreateBillsTable extends Migration
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
 			$table->foreign('account_id')->references('account_id')->on('accounts');
 			$table->foreign('reference_id')->references('reference_id')->on('references');
-			$table->foreign('driver_id')->references('driver_id')->on('drivers');
+			$table->foreign('pickup_driver_id')->references('driver_id')->on('drivers');
+            $table->foreign('delivery_driver_id')->references('driver_id')->on('drivers');
 			$table->foreign('interliner_id')->references('interliner_id')->on('interliners');
         });
     }

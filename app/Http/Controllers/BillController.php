@@ -3,13 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use DB;
 
-use Validator;
-use Redirect;
-
-use App\Http\Requests;
-use App\Bill;
-use App\ReferenceType;
+use App\Http\Repos;
+use App\Http\Models\Bill;
 
 class BillController extends Controller {
     public function __construct() {
@@ -30,10 +27,9 @@ class BillController extends Controller {
     }
 
     public function create(Request $req) {
-        //Check user settings and return popout or inline based on that
-        //Check permissions
-        $bmf = new Bill\BillModelFactory();
-        $model = $amf->GetCreateModel($req);
+        // Check permissions
+        $bill_model_factory = new Bill\BillModelFactory();
+        $model = $bill_model_factory->GetCreateModel($req);
         return view('bills.bill', compact('model'));
     }
 
