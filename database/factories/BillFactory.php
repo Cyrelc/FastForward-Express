@@ -10,8 +10,8 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
     $amount = rand(10000, 500000)/100;
 
     $result = [
-            "pickup_driver_id" => rand(0, 3),
-            "delivery_driver_id" => rand(0, 3),
+            "pickup_driver_id" => rand(1, 4),
+            "delivery_driver_id" => rand(1, 4),
             "description" => $descriptions[rand(0,3)],
             "date" => $faker->dateTimeThisMonth,
             "amount" => $amount,
