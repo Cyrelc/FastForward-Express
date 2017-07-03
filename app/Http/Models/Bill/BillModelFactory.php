@@ -45,9 +45,11 @@
 			$model = new BillFormModel();
 		    $acctRepo = new Repos\AccountRepo();
 		    $driversRepo = new Repos\DriverRepo();
+		    $interlinersRepo = new Repos\InterlinerRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
 		    $model->drivers = $driversRepo->ListAll();
+		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
 		    
 		    return $model;

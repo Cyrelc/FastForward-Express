@@ -6,6 +6,7 @@ class BillFormModel {
     public $bill;
     public $accounts;
     public $drivers;
+    public $interliners;
 }
 
 ?>
