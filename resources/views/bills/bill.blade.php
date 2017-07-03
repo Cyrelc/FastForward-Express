@@ -48,7 +48,7 @@
         <hr>
 <!--form-->
         <div class="col-lg-12 bottom15">
-            <div class="col-lg-06 input-group">
+            <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
                 <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->delivery_date)}}"/>
                 <span class="input-group-addon">
@@ -64,7 +64,7 @@
         		<div id="account" class="col-lg-12 bottom15">
                     <div class="input-group">
                         <span class="input-group-addon">Account: </span>
-                        <select id="account-id" class='form-control' name="account-id" data-id="-1">
+                        <select id="account_id" class='form-control' name="account_id" data-id="-1">
                             <option></option>
                             @foreach ($model->accounts as $account)
                                 @if (isset($model->bill->account_id) && $model->bill->account_id == $account->account_id)

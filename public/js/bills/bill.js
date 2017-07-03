@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
-    dateInput('delivery-date');
-    comboInput('account-id', 'Select an Account');
+    dateInput('delivery_date');
+    comboInput('account_id', 'Select an Account');
     comboInput('pickup_driver_id', 'Select a Pickup Driver');
     comboInput('delivery_driver_id', 'Select a Delivery Driver');
     comboInput('interliner_id', 'Select an Interliner (optional)');
