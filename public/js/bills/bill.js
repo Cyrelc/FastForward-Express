@@ -6,6 +6,13 @@ $(document).ready(function() {
     comboInput('delivery_driver_id', 'Select a Delivery Driver');
     comboInput('interliner_id', 'Select an Interliner (optional)');
 
+    $('#account_id').change(function(){
+    	if ($(this).attr('data-reference-field-name') != undefined) {
+	    	document.getElementById("reference_field_name").innerHTML = ($("option:selected", this).attr('data-reference-field-name'));;
+	    	document.getElementById("reference_field").removeAttribute("hidden");
+	    }
+    });
+
 	$("#pickup_driver_id").change(function(){
 		$("#pickup_driver_commission").val($("option:selected", this).attr('data-driver-commission')*100);
 		// TODO - make the second field auto match the first one, if the second field was previously undefined

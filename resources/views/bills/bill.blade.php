@@ -47,7 +47,8 @@
 		</div>
         <hr>
 <!--form-->
-        <div class="col-lg-12 bottom15">
+<!-- delivery date -->
+        <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
                 <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->delivery_date)}}"/>
@@ -56,19 +57,26 @@
                 </span>
             </div>
         </div>
+<!-- bill number -->
+        <div class="col-lg-4 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Waybill Number: </span>
+                <input id="bill_number" name="bill_number" type="text" class="form-control" value="{{$model->bill->bill_number}}" />
+            </div>
+        </div>
         <div class="col-lg-12 panel panel-default">
             <div class="panel-heading">
             </div>
             <div class="panel-body">
 <!-- Account selection-->
-        		<div id="account" class="col-lg-12 bottom15">
+        		<div id="account" class="col-lg-4 bottom15">
                     <div class="input-group">
                         <span class="input-group-addon">Account: </span>
                         <select id="account_id" class='form-control' name="account_id" data-id="-1">
                             <option></option>
                             @foreach ($model->accounts as $account)
                                 @if (isset($model->bill->account_id) && $model->bill->account_id == $account->account_id)
-                                    <option selected value='{{$account->account_id}}'>{{$account->name}}</option>
+                                    <option selected value='{{$account->account_id}}' data-reference-field-name="{{$account->custom_field}}">{{$account->name}}</option>
                                 @else
                                     <option value='{{$account->account_id}}'>{{$account->name}}</option>
                                 @endif
@@ -76,6 +84,20 @@
                         </select>
                     </div>
         		</div>
+<!-- custom tracker -->
+                <div hidden class="col-lg-4 bottom15" id="reference_field">
+                    <div class="input-group">
+                        <span id="reference_field_name" class="input-group-addon"></span>
+                        <input disabled id="reference_id" name="reference_id" class="form-control" type="text" value="Coming soon!" value="{{$model->bill->reference_id}}" />
+                    </div>
+                </div>
+<!-- Amount -->
+                <div class="col-lg-4 bottom15">
+                    <div class="input-group">
+                        <span class="input-group-addon">$ </span>
+                        <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
+                    </div>
+                </div>
 <!-- Pickup Driver -->
                 <div class="col-lg-8 bottom15">
                     <div class="input-group">
@@ -143,6 +165,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-lg-12 bottom15">
+            <label for="description">Description: </label>
+            <textarea class="form-control" rows="5" name="description" placeholder="Any details pertaining to this bill">{{$model->bill->description}}</textarea>
         </div>
         <div class='text-center'>
             <button type='submit' class='btn btn-primary'>Submit</button>
