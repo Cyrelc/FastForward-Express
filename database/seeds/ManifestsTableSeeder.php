@@ -46,8 +46,7 @@ class ManifestsTableSeeder extends Seeder
 
                 $bill = [
 					"account_id" => $accountId,
-					"pickup_driver_id" => rand(1, 4),
-					"delivery_driver_id" => rand(1, 4),
+					"driver_id" => $driverId,
 					"bill_number" => $i . "-" . $j,
                     "is_manifested" => false,
                     "is_invoiced" => true
