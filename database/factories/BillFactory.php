@@ -10,11 +10,11 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
     $amount = rand(10000, 500000)/100;
 
     $result = [
-            "driver_id" => rand(0, 3),
+            "pickup_driver_id" => rand(1, 4),
+            "delivery_driver_id" => rand(1, 4),
             "description" => $descriptions[rand(0,3)],
             "date" => $faker->dateTimeThisMonth,
             "amount" => $amount,
-            "taxes"=> $amount * 0.05,
             "reference_id" => DB::table("references")->insertGetId([
                 "reference_type_id" => rand(1, 4),
                 "reference_value" => "1A2B3C4D5E6F"

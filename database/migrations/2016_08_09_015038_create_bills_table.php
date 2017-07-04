@@ -18,13 +18,17 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('account_id');
             $table->unsignedInteger('reference_id');
+            // JACK WHY CAN'T I DELETE THIS LINE!!!
             $table->unsignedInteger('driver_id');
+            $table->unsignedInteger('pickup_driver_id');
+            $table->unsignedInteger('delivery_driver_id');
+            $table->unsignedInteger('pickup_driver_percentage');
+            $table->unsignedInteger('delivery_driver_percentage');
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('bill_number');
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
-            $table->decimal('taxes');
             $table->boolean('is_manifested')->default(false);
             $table->boolean('is_invoiced')->default(false);
             $table->decimal('interliner_amount')->nullable();
@@ -34,7 +38,8 @@ class CreateBillsTable extends Migration
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
 			$table->foreign('account_id')->references('account_id')->on('accounts');
 			$table->foreign('reference_id')->references('reference_id')->on('references');
-			$table->foreign('driver_id')->references('driver_id')->on('drivers');
+			$table->foreign('pickup_driver_id')->references('driver_id')->on('drivers');
+            $table->foreign('delivery_driver_id')->references('driver_id')->on('drivers');
 			$table->foreign('interliner_id')->references('interliner_id')->on('interliners');
         });
     }
