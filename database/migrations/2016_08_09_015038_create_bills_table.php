@@ -18,8 +18,6 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('account_id');
             $table->unsignedInteger('reference_id');
-            // JACK WHY CAN'T I DELETE THIS LINE!!!
-            $table->unsignedInteger('driver_id');
             $table->unsignedInteger('pickup_driver_id');
             $table->unsignedInteger('delivery_driver_id');
             $table->unsignedInteger('pickup_driver_percentage');
