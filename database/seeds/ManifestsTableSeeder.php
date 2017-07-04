@@ -13,11 +13,10 @@ class ManifestsTableSeeder extends Seeder
     {
         $faker = Faker\Factory::create();
         for($i = 0; $i < rand(3, 8); $i++) {
-			$driverId = rand(1, 4);
 			$accountId = rand(1, 3);
 
             $mid = DB::table('manifests')->insertGetId([
-                "driver_id" => $driverId,
+                "account_id" => $accountId,
                 "start_date" => new Carbon\Carbon('first day of last month'),
 				"end_date" => new Carbon\Carbon('last day of last month')
             ]);
@@ -46,7 +45,8 @@ class ManifestsTableSeeder extends Seeder
 
                 $bill = [
 					"account_id" => $accountId,
-					"driver_id" => $driverId,
+					"pickup_driver_id" => rand(1, 4),
+					"delivery_driver_id" => rand(1, 4),
 					"bill_number" => $i . "-" . $j,
                     "is_manifested" => false,
                     "is_invoiced" => true

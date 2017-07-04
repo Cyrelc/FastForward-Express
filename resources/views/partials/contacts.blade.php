@@ -50,7 +50,7 @@
             <div class="panel-body">
                 <div class='col-lg-2'>
                     <ul id="{{$prefix}}-contact-tabs" class="tab nav nav-pills nav-stacked bottom15" role="tablist">
-                        <li><a href="#{{$prefix}}-new-contact" aria-controls="profile" role="tab" data-toggle="tab" class="active"><i class="fa fa-plus-circle"></i> Add New</a></li>
+                        <li class="{{ (isset($contacts) && count($contacts) > 0) ? '' : 'active' }}"><a href="#{{$prefix}}-new-contact" aria-controls="profile" role="tab" data-toggle="tab"><i class="fa fa-plus-circle"></i> Add New</a></li>
 
                         @foreach($contacts as $c)
                             <li class="{{ $c->is_primary == '1' ? 'active' : '' }}" role='presentation'><a data-id='{{ $c->contact_id  }}' href='#{{ $c->contact_id }}-panel' aria-controls='{{ $c->contact_id }}' role='tab' data-toggle='tab'>{!! $c->is_primary == '1' ? '<i class="fa fa-star"></i>' : '' !!} {{ $c->first_name }} {{ $c->last_name }}</a></li>
@@ -61,7 +61,7 @@
                 <!-- Contact Tab panes -->
                 <div class="col-lg-10">
                     <div class="tab-content" id="{{$prefix}}-contact-bodies">
-                        <div role="tabpanel" class="tab-pane" id="{{$prefix}}-new-contact">
+                        <div role="tabpanel" class="tab-pane {{ (isset($contacts) && count($contacts) > 0) ? '' : 'active' }}" id="{{$prefix}}-new-contact">
                             @include('partials.contact', ['multi' => true, 'prefix' => $prefix, 'showAddress' => true])
                         </div>
 
