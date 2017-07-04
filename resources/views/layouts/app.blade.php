@@ -19,9 +19,10 @@
                         <li><a href="/login">Log In <i class="fa fa-sign-in"></i></a></li>
                     @else
                         <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/bills">Bills</a>
+                            <a class="dropdown-toggle" data-toggle="dropdown">Bills</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/bills/create">Create New Bill</a></li>
+                                <li><a href="/bills"><i class="fa fa-list"></i> List</li>
+                                <li><a href="/bills/create"><i class="fa fa-plus-square-o"></i> New</a></li>
                             </ul>
                         </li>
                         <li class="dropdown" disabled>
