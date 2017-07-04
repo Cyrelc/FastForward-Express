@@ -8,7 +8,9 @@ $(document).ready(function() {
 
     $('#account_id').change(function(){
     	if ($(this).attr('data-reference-field-name') != undefined) {
-	    	document.getElementById("reference_field_name").innerHTML = ($("option:selected", this).attr('data-reference-field-name'));;
+    		$("#account").removeClass('col-lg-8');
+    		$("#account").addClass('col-lg-4');
+	    	document.getElementById("reference_field_name").innerHTML = ($("option:selected", this).attr('data-reference-field-name'));
 	    	document.getElementById("reference_field").removeAttribute("hidden");
 	    }
     });

@@ -10,6 +10,11 @@
 @parent
 @endsection
 
+@section('style')
+<link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
+@parent
+@endsection
+
 @section ('content')
     @if (isset($model->bill->bill_id))
         <h2>Edit Bill</h2>
@@ -48,7 +53,7 @@
         <hr>
 <!--form-->
 <!-- delivery date -->
-        <div class="col-lg-4 bottom15">
+        <div class="col-lg-6 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
                 <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->delivery_date)}}"/>
@@ -58,7 +63,7 @@
             </div>
         </div>
 <!-- bill number -->
-        <div class="col-lg-4 bottom15">
+        <div class="col-lg-6 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Waybill Number: </span>
                 <input id="bill_number" name="bill_number" type="text" class="form-control" value="{{$model->bill->bill_number}}" />
@@ -69,7 +74,7 @@
             </div>
             <div class="panel-body">
 <!-- Account selection-->
-        		<div id="account" class="col-lg-4 bottom15">
+        		<div id="account" class="col-lg-8 bottom15">
                     <div class="input-group">
                         <span class="input-group-addon">Account: </span>
                         <select id="account_id" class='form-control' name="account_id" data-id="-1">
@@ -165,10 +170,10 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-12 bottom15">
-            <label for="description">Description: </label>
-            <textarea class="form-control" rows="5" name="description" placeholder="Any details pertaining to this bill">{{$model->bill->description}}</textarea>
+            <div class="col-lg-12 bottom15">
+                <label for="description">Description: </label>
+                <textarea class="form-control" rows="5" name="description" placeholder="Any details pertaining to this bill">{{$model->bill->description}}</textarea>
+            </div>
         </div>
         <div class='text-center'>
             <button type='submit' class='btn btn-primary'>Submit</button>
