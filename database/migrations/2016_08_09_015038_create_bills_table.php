@@ -16,6 +16,7 @@ class CreateBillsTable extends Migration
             $table->increments('bill_id');
             $table->unsignedInteger('manifest_id')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
+            $table->unsignedInteger('charge_account_id')->nullable();
             $table->unsignedInteger('from_account_id')->nullable();
             $table->unsignedInteger('to_account_id')->nullable();
             $table->unsignedInteger('from_address_id')->nullable();
@@ -37,6 +38,7 @@ class CreateBillsTable extends Migration
 			$table->unique('bill_number');
 			$table->foreign('manifest_id')->references('manifest_id')->on('manifests');
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
+			$table->foreign('charge_account_id')->references('account_id')->on('accounts');
 			$table->foreign('from_account_id')->references('account_id')->on('accounts');
 			$table->foreign('to_account_id')->references('account_id')->on('accounts');
 			$table->foreign('from_address_id')->references('address_id')->on('addresses');
