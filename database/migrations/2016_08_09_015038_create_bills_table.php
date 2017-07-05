@@ -16,7 +16,11 @@ class CreateBillsTable extends Migration
             $table->increments('bill_id');
             $table->unsignedInteger('manifest_id')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
-            $table->unsignedInteger('account_id');
+            $table->unsignedInteger('charge_account_id')->nullable();
+            $table->unsignedInteger('from_account_id')->nullable();
+            $table->unsignedInteger('to_account_id')->nullable();
+            $table->unsignedInteger('from_address_id')->nullable();
+            $table->unsignedInteger('to_address_id')->nullable();
             $table->unsignedInteger('reference_id');
             $table->unsignedInteger('pickup_driver_id');
             $table->unsignedInteger('delivery_driver_id');
@@ -34,7 +38,11 @@ class CreateBillsTable extends Migration
 			$table->unique('bill_number');
 			$table->foreign('manifest_id')->references('manifest_id')->on('manifests');
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
-			$table->foreign('account_id')->references('account_id')->on('accounts');
+			$table->foreign('charge_account_id')->references('account_id')->on('accounts');
+			$table->foreign('from_account_id')->references('account_id')->on('accounts');
+			$table->foreign('to_account_id')->references('account_id')->on('accounts');
+			$table->foreign('from_address_id')->references('address_id')->on('addresses');
+			$table->foreign('to_address_id')->references('address_id')->on('addresses');
 			$table->foreign('reference_id')->references('reference_id')->on('references');
 			$table->foreign('pickup_driver_id')->references('driver_id')->on('drivers');
             $table->foreign('delivery_driver_id')->references('driver_id')->on('drivers');

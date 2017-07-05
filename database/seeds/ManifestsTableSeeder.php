@@ -12,13 +12,11 @@ class ManifestsTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker\Factory::create();
-        for($i = 0; $i < rand(3, 8); $i++) {
-			$accountId = rand(1, 3);
-
+        $billNumber = 102;
+        for($i = 0; $i < 20; $i++) {
             $mid = DB::table('manifests')->insertGetId([
-                "account_id" => $accountId,
                 "start_date" => new Carbon\Carbon('first day of last month'),
-				"end_date" => new Carbon\Carbon('last day of last month')
+                "end_date" => new Carbon\Carbon('last day of last month')
             ]);
 
             DB::table('manifest_modifications')->insert([
@@ -40,18 +38,29 @@ class ManifestsTableSeeder extends Seeder
             ]);
 
             $invoiceTotal = 0;
-
+            $driverId = rand(1, 12);
 			for($j = 11; $j < rand(15, 80); $j++) {
 
-                $bill = [
-					"account_id" => $accountId,
-					"pickup_driver_id" => rand(1, 4),
-					"delivery_driver_id" => rand(1, 4),
-					"bill_number" => $i . "-" . $j,
-                    "is_manifested" => false,
-                    "is_invoiced" => true
-				];
+                $scenario = rand(0, 10);
+                //Driver picked up and delivered bill
+                if ($scenario > 5)
+                    $bill = [
+                        "pickup_driver_id" => $driverId,
+                        "delivery_driver_id" => $driverId,
+                    ];
+                else if ($scenario < 8) //Driver picked up bill
+                    $bill = [
+                        "pickup_driver_id" => $driverId,
+                        "delivery_driver_id" => rand(1, 12),
+                    ];
+                else //Driver delivered bill
+                    $bill = [
+                        "pickup_driver_id" => rand(1, 12),
+                        "delivery_driver_id" => $driverId,
+                    ];
 
+                $bill["bill_number"] = $billNumber;
+                $billNumber++;
                 $weight = rand(0,3);
 
                 switch($weight) {

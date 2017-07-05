@@ -13,7 +13,7 @@ class AccountsTableSeeder extends Seeder
     {
         $faker = Faker\Factory::create();
 
-        for($i = 0; $i <= rand(15, 50); $i++) {
+        for($i = 0; $i <= 40; $i++) {
             $sad = factory(App\Address::class)->create();
 
             if (rand(0, 3) == 1) {
