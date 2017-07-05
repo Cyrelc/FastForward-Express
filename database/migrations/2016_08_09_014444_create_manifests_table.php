@@ -14,11 +14,11 @@ class CreateManifestsTable extends Migration
     {
         Schema::create('manifests', function (Blueprint $table) {
             $table->increments('manifest_id');
-            $table->unsignedInteger('account_id');
+            $table->unsignedInteger('driver_id')->nullable();
             $table->date('start_date');
             $table->date('end_date');
 
-			$table->foreign('account_id')->references('account_id')->on('accounts');
+            $table->foreign('driver_id')->references('driver_id')->on('drivers');
         });
     }
 
