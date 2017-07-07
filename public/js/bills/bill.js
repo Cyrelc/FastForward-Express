@@ -34,7 +34,7 @@ $(document).ready(function() {
 //display custom field if present for the account.
 
     $('#pickup_account_id, #delivery_account_id, #charge_account_id').change(function(){
-    	if ($(this).attr('data-reference-field-name') != undefined) {
+    	if ($(this).attr('data-reference-field-name')) {
     		$(this).parent('div').parent('div').removeClass('col-lg-12');
     		$(this).parent('div').parent('div').addClass('col-lg-6');
     		$('#' + $(this).attr('data-reference')).removeClass('hidden');
@@ -51,7 +51,7 @@ $(document).ready(function() {
 	$("#pickup_driver_id").change(function(){
 		$("#pickup_driver_commission").val($("option:selected", this).attr('data-driver-commission')*100);
 		//TODO - auto-populate delivery driver information if currently blank.
-		if ($("#delivery_driver_id").val() == undefined) {
+		if (!$("#delivery_driver_id").val()) {
 			$("#delivery_driver_id").find('option[value="' + $('#pickup_driver_id').val() + '"]').attr('selected','selected');
 		}
 	});
