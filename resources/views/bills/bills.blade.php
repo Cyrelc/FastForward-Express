@@ -5,7 +5,7 @@
 <?php
 	$contents = $contents->bills;
 	$columns = ['ID', 'Waybill', 'Date', 'Description', 'Account', 'Amount', 'Pickup Driver', 'Delivery Driver'];
-	$variables = [['bill','bill_id'], ['bill','bill_number'], ['bill', 'date'], ['bill', 'description'], ['account', 'name'], ['bill', 'amount'],['bill','pickup_driver_name'], ['bill','delivery_driver_name']];
+	$variables = [['bill','bill_id'], ['bill','bill_number'], ['bill', 'date'], ['bill', 'description'], ['account', 'name'], ['bill', 'amount'],'pickup_driver_name', 'delivery_driver_name'];
 	$tableConfig = [
 		'table' => 'bills',
 		'editPath' => 'bills/edit/',
