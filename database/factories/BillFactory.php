@@ -9,17 +9,19 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
     ];
     $amount = rand(10000, 500000)/100;
 
-    $result = [
-            "pickup_driver_id" => rand(1, 4),
-            "delivery_driver_id" => rand(1, 4),
-            "description" => $descriptions[rand(0,3)],
-            "date" => $faker->dateTimeThisMonth,
-            "amount" => $amount,
-            "reference_id" => DB::table("references")->insertGetId([
-                "reference_type_id" => rand(1, 4),
-                "reference_value" => "1A2B3C4D5E6F"
-            ])
-        ];
+    $cash = rand(0, 4);
+        $result = [
+        "charge_account_id" => $cash == 0 ? null : rand(1, 40),
+        "pickup_driver_id" => rand(1, 4),
+        "delivery_driver_id" => rand(1, 4),
+        "description" => $descriptions[rand(0,3)],
+        "date" => $faker->dateTimeThisMonth,
+        "amount" => $amount,
+        "reference_id" => DB::table("references")->insertGetId([
+            "reference_type_id" => rand(1, 4),
+            "reference_value" => "1A2B3C4D5E6F"
+        ])
+    ];
 
 
     if (rand(0,2) == 0) {
