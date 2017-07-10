@@ -38,12 +38,15 @@ class AccountController extends Controller {
     public function edit(Request $req, $id) {
         $factory = new Account\AccountModelFactory();
         $model = $factory->GetEditModel($id, $req);
+        //dd($model->account->contacts);
         return view('accounts.account', compact('model'));
     }
 
     public function store(Request $req) {
         $partialsRules = new \App\Http\Validation\PartialsValidationRules();
         $accountsRules = new \App\Http\Validation\AccountValidationRules();
+        $contactCollector = new \App\Http\Collectors\ContactCollector();
+        $contactsCollector = new \App\Http\Collectors\ContactsCollector();
 
         $acctRules = $accountsRules->GetValidationRules($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0,
             $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation') == 'true', $req->input('shouldGiveDiscount') == 'true',
@@ -56,33 +59,13 @@ class AccountController extends Controller {
         $validationRules = array_merge($validationRules, $addrRules['rules']);
         $validationMessages = array_merge($validationMessages, $addrRules['messages']);
 
-        $contacts = 0;
-        $contactsToDelete = [];
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0,15)  == "contact-delete-") {
-                array_push($contactsToDelete, $req->input($key));
-            }
-        }
+        $contactsToDelete = $contactsCollector->GetDeletions($req);
 
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0, 11) == "contact-id-") {
-                $contactId = substr($key, 11);
+        $contactsVal = $partialsRules->GetContactsValidationRules($req, $contactsToDelete, false);
+        $validationRules = array_merge($validationRules, $contactsVal['rules']);
+        $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
 
-                //Skip validation for any deleted contacts, and don't increase the contact count
-                if (in_array($contactId, $contactsToDelete))
-                    continue;
-
-                $contacts++;
-                $fName = $req->input('contact-' . $contactId . '-first-name');
-                $lName = $req->input('contact-' . $contactId . '-last-name');
-
-                $contactValidationRules = $partialsRules->GetContactValidationRules('contact-' . $contactId, 'Contact ' . $fName . ' ' . $lName);
-                $validationRules = array_merge($validationRules, $contactValidationRules['rules']);
-                $validationMessages = array_merge($validationMessages, $contactValidationRules['messages']);
-            }
-        }
-
-        if ($contacts == 0) {
+        if ($contactsVal['contact_count'] == 0) {
             //Manually fail validation
             $rules['Contacts'] = 'required';
             $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
@@ -109,32 +92,15 @@ class AccountController extends Controller {
         $contactRepo = new Repos\ContactRepo();
         $addressRepo = new Repos\AddressRepo();
         $emailAddressRepo = new Repos\EmailAddressRepo();
-        $pnRepo = new Repos\PhoneNumberRepo();
-        $comRepo = new Repos\CommissionRepo();
+        $phoneNumberRepo = new Repos\PhoneNumberRepo();
+        $commissionRepo = new Repos\CommissionRepo();
 
         //Create array of all actions to be taken with contacts
-        $secondary_ids = array();
-        $contactActions = [];
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0, 15) == "contact-action-") {
-                $ids = $req->input($key);
-                $type = substr($key, 15);
-
-                if (!is_array($ids))
-                    $ids = [$ids];
-
-                foreach ($ids as $contactId) {
-                    if (array_key_exists($contactId, $contactActions))
-                        array_push($contactActions[$contactId], $type);
-                    else
-                        $contactActions[$contactId] = [$type];
-                }
-            }
-        }
+        $contactIds = array();
+        $contactActions = $contactsCollector->GetActions($req);
 
         //BEGIN contacts
         $primary_id = null;
-        $contactCollector = new \App\Http\Collectors\ContactCollector();
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 11) == "contact-id-") {
                 $contactId = substr($key, 11);
@@ -186,24 +152,30 @@ class AccountController extends Controller {
                 $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false);
                 $email1 = $contactCollector->CollectEmail($req, $contactId, true);
                 $email2 = $contactCollector->CollectEmail($req, $contactId, false);
-                //dd($req);
+
                 if ($primaryAction == "new") {
                     //New phone numbers on new account
-                    $pnRepo->Insert($phone1);
+                    $phoneNumberRepo->Insert($phone1);
                     $emailAddressRepo->Insert($email1);
+
+                    if ($phone2['phone_number'] !== null && strlen($phone2['phone_number']) > 0)
+                        $phoneNumberRepo->Insert($phone2);
+
+                    if ($email2['email'] !== null && strlen($email2['email']) > 0)
+                        $emailAddressRepo->Insert($email2);
                 } else if ($primaryAction == "update") {
                     //New phone numbers on existing account
-                    $pnRepo->Update($phone1);
+                    $phoneNumberRepo->Update($phone1);
                     $emailAddressRepo->Update($email1);
 
                     if ($req->input('pn-action-add-' . $contactId) != null)
-                        $pnRepo->Insert($phone2);
+                        $phoneNumberRepo->Insert($phone2);
                     if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
                         $emailAddressRepo->Insert($email2);
 
                     //Existing phone numbers on existing account
                     if ($req->input('contact-' . $contactId . '-phone2-id') != null)
-                        $pnRepo->Update($phone2);
+                        $phoneNumberRepo->Update($phone2);
                     if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
                             $emailAddressRepo->Update($email2);
                 }
@@ -217,17 +189,17 @@ class AccountController extends Controller {
         if ($pnsToDelete !== null) {
             if(is_array($pnsToDelete))
                 foreach($pnsToDelete as $pn)
-                    $pnRepo->Delete($pn);
+                    $phoneNumberRepo->Delete($pn);
             else
-                $pnRepo->Delete($pnsToDelete);
+                $phoneNumberRepo->Delete($pnsToDelete);
         }
 
         if ($emsToDelete !== null) {
             if(is_array($emsToDelete))
                 foreach($emsToDelete as $em)
-                    $pnRepo->Delete($em);
+                    $emailAddressRepo->Delete($em);
             else
-                $pnRepo->Delete($emsToDelete);
+                $emailAddressRepo->Delete($emsToDelete);
         }
         //END contacts
 
@@ -265,7 +237,7 @@ class AccountController extends Controller {
 		$isNew = $accountId == null;
 		$args = [];
         if ($isNew) {
-            $accountId = $accountRepo->Insert($account, $primary_id, $secondary_ids)->account_id;
+            $accountId = $accountRepo->Insert($account, $primary_id, $contactIds)->account_id;
             $action = 'AccountController@create';
         }
         else {
@@ -292,26 +264,26 @@ class AccountController extends Controller {
 
         if ($isNew) {
             if ($commission1 !== null)
-                $comRepo->Insert($commission1);
+                $commissionRepo->Insert($commission1);
 
             if ($commission2 !== null)
-                $comRepo->Insert($commission2);
+                $commissionRepo->Insert($commission2);
         } else {
             if ($req->input('give-commission-1') == 'true') {
                 if ($commission1->commission_id == null)
-                    $comRepo->Insert($commission1);
+                    $commissionRepo->Insert($commission1);
                 else
-                    $comRepo->Update($commission1);
+                    $commissionRepo->Update($commission1);
             } else if ($commission1 != null)
-                $comRepo->Delete($commission1->commission_id);
+                $commissionRepo->Delete($commission1->commission_id);
 
             if ($req->input('give-commission-2') == 'true') {
                 if ($commission2->commission_id == null)
-                    $comRepo->Insert($commission2);
+                    $commissionRepo->Insert($commission2);
                 else
-                    $comRepo->Update($commission2);
+                    $commissionRepo->Update($commission2);
             } else if ($commission2 != null)
-                $comRepo->Delete($commission2->commission_id);
+                $commissionRepo->Delete($commission2->commission_id);
         }
 
         //END account
