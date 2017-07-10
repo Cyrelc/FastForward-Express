@@ -50,7 +50,7 @@ Route::group(
             Route::get('/drivers', 'DriverController@index');
             Route::get('/drivers/create', 'DriverController@create');
             Route::post('/drivers/store', 'DriverController@store');
-            Route::get('/drivers/edit', 'DriverController@edit');
+            Route::get('/drivers/edit/{id}', 'DriverController@edit');
             Route::post('/drivers/submitEdit', 'DriverController@submitEdit');
             Route::post('/drivers/action', 'DriverController@action');
 
