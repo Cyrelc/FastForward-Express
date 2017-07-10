@@ -71,7 +71,7 @@
 
 		}
 
-		public function MergeOld() {
+		public function MergeOld($model, $req) {
 
 		}
 	}
