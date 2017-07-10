@@ -9,40 +9,32 @@ use App\Http\Requests;
 class PartialsController extends Controller
 {
     public function GetContact(Request $req) {
+        $collector = new \App\Http\Collectors\ContactCollector();
 
-        $contact = new \App\Contact();
+        $contact = $collector->ToObject(
+        $collector->Collect($req, 'new'),
+        $collector->CollectPhoneNumber($req, 0, true),
+        $collector->CollectEmail($req, 0, true),
+        $collector->CollectPhoneNumber($req, 0, false),
+        $collector->CollectEmail($req, 0, false));
 
-        $contact->contact_id = $req->input('contact-id');
-        $contact->first_name = $req->input('first-name');
-        $contact->last_name = $req->input('last-name');
+        $contact->contact_id = $req->input('new-contact-id');
 
-        $pn = new \App\PhoneNumber();
-        $pn->phone_number_id = -2;
-        $pn->phone_number = $req->input('phone-number');
-        $pn->extension_number = $req->input('phone-number-ext');
-        $contact->primaryPhone = $pn;
-
-        $em = new \App\EmailAddress();
-        $em->email_address_id = -2;
-        $em->email = $req->input('email');
-        $contact->primaryEmail =$em;
-
-        $pn = new \App\PhoneNumber();
-        $pn->phone_number_id = -2;
-        $pn->phone_number = $req->input('secondary-phone-number');
-        $pn->extension_number = $req->input('secondary-phone-number-ext');
-        $contact->secondaryPhone = $pn;
-
-        $em = new \App\EmailAddress();
-        $em->email_address_id = -2;
-        $em->email = $req->input('secondary-email');
-        $contact->secondaryEmail = $em;
-
+        $showAddress = $req->input('include-address') !== null && $req->input('include-address') == 'true';
         $model = [
-            'prefix' => 'contact-' . $req->input('contact-id'),
-            'show_address' => false,
-            'contact' => $contact
+            'prefix' => 'contact-' . $req->input('new-contact-id'),
+            'show_address' => $showAddress,
+            'contact' => $contact,
+            'multi' => 'true',
+            'multi_div_prefix' => $req->input('multi-contact-prefix')
         ];
+
+        $model['contact']->is_new = 'true';
+
+        if($showAddress) {
+            $addrCollector = new \App\Http\Collectors\AddressCollector();
+            $model['contact']->address = $addrCollector->ToObject($addrCollector->Collect($req, 'new', true));
+        }
 
         return view('partials.contact', $model);
     }

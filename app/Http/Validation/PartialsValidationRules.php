@@ -23,6 +23,42 @@ class PartialsValidationRules {
         ];
     }
 
+    public function GetContactsValidationRules($req, $contactsToDelete, $validateAddress) {
+        $validationRules = [];
+        $validationMessages = [];
+        $contacts = 0;
+
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 11) == "contact-id-") {
+                $contactId = substr($key, 11);
+
+                //Skip validation for any deleted contacts, and don't increase the contact count
+                if (in_array($contactId, $contactsToDelete))
+                    continue;
+
+                $contacts++;
+                $fName = $req->input('contact-' . $contactId . '-first-name');
+                $lName = $req->input('contact-' . $contactId . '-last-name');
+
+                $contactValidationRules = $this->GetContactValidationRules('contact-' . $contactId, 'Contact ' . $fName . ' ' . $lName);
+                $validationRules = array_merge($validationRules, $contactValidationRules['rules']);
+                $validationMessages = array_merge($validationMessages, $contactValidationRules['messages']);
+
+                if ($validateAddress) {
+                    $addrValidation = $this->GetAddressValidationRules('contact-' . $contactId . '-address', 'Contact');
+                    $validationRules = array_merge($validationRules, $addrValidation['rules']);
+                    $validationMessages = array_merge($validationMessages, $addrValidation['messages']);
+                }
+            }
+        }
+
+        return [
+            'rules' => $validationRules,
+            'messages' => $validationMessages,
+            'contact_count' => $contacts
+        ];
+    }
+
     public function GetContactValidationRules($prefix, $prefix_name) {
         return [
             'rules' => [

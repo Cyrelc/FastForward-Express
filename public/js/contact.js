@@ -1,4 +1,4 @@
-function saveScContact(prefix, includeAddress) {
+function saveScContact(multiPrefix, prefix, includeAddress) {
     var fName = $("#" + prefix + "-first-name").val();
     var lName = $("#" + prefix + "-last-name").val();
     var sPpn = $("#" + prefix + "-phone1").val();
@@ -7,6 +7,22 @@ function saveScContact(prefix, includeAddress) {
     var sSpnExt = $("#" + prefix + "-phone2-ext").val();
     var sem = $("#" + prefix + "-email1").val();
     var sem2 = $("#" + prefix + "-email2").val();
+
+    var street;
+    var street2;
+    var city;
+    var province;
+    var postal;
+    var country;
+
+    if (includeAddress) {
+        street = $("#" + prefix + '-address-street').val();
+        street2 = $("#" + prefix + '-address-street2').val();
+        city = $("#" + prefix + '-address-city').val();
+        province = $("#" + prefix + '-address-province').val();
+        postal = $("#" + prefix + '-address-zip').val();
+        country = $("#" + prefix + '-address-country').val();
+    }
 
     var id = -1;
     $("input[data-contact-id='true']").each(function(index, element){
@@ -26,26 +42,43 @@ function saveScContact(prefix, includeAddress) {
     if (!fName || !lName || !sPpn || !sem)
         return;
 
+    if (includeAddress)
+        if (!street || !city || !province || !postal || !country)
+            return;
+
+    var data = {
+        'new-contact-id': id,
+        'new-first-name': fName,
+        'new-last-name': lName,
+        'contact-0-phone1': sPpn,
+        'contact-0-ext': sPpnExt,
+        'contact-0-phone2': sSpn,
+        'contact-0-phone2-ext': sSpnExt,
+        'contact-0-email1': sem,
+        'contact-0-email2': sem2,
+        'prefix' : 'contact',
+        'multi-div-prefix' : multiPrefix,
+        'include-address' : includeAddress
+    };
+
+    if (includeAddress) {
+        data['new-street'] = street;
+        data['new-street2'] = street2;
+        data['new-city'] = city;
+        data['new-state-province'] = province;
+        data['new-zip-postal'] = postal;
+        data['new-country'] = country;
+    }
+
     $.ajax({
         url: '/partials/getcontact',
         type: 'POST',
-        data: {
-            'contact-id': id,
-            'first-name': fName,
-            'last-name': lName,
-            'phone-number': sPpn,
-            'phone-number-ext': sPpnExt,
-            'secondary-phone-number': sSpn,
-            'secondary-phone-number-ext': sSpnExt,
-            'email': sem,
-            'secondary-email': sem2,
-            'prefix' : 'contact'
-        },
+        data: data,
         success:function(result) {
-            $("#" + prefix + "-contact-tabs li").removeClass('active');
-            $("#" + prefix + "-contact-bodies div.tab-pane").removeClass('active');
-            $("#" + prefix + "-contact-tabs").append('<li class="active" role="presentation"><a data-id="' + id + '" href="#' + id + '"-panel" role="tab" data-toggle="tab">' + (isPrimary ? '<i class="fa fa-star"></i>' : '') + ' ' + fName + ' ' + lName + '</a></li>');
-            $("#" + prefix + "-contact-bodies").append(
+            $("#" + multiPrefix + "-contact-tabs li").removeClass('active');
+            $("#" + multiPrefix + "-contact-bodies div.tab-pane").removeClass('active');
+            $("#" + multiPrefix + "-contact-tabs").append('<li id="' + id + '-li" data-isPrimary="' + isPrimary + '" class="active" role="presentation"><a data-id="' + id + '" href="#' + id + '-panel" role="tab" data-toggle="tab">' + (isPrimary ? '<i class="fa fa-star"></i>' : '') + ' ' + fName + ' ' + lName + '</a></li>');
+            $("#" + multiPrefix + "-contact-bodies").append(
                 '<div role="tabpanel" class="tab-pane active" id="' + id + '"-panel">' +
                     result +
                 '</div>');
@@ -76,10 +109,19 @@ function clearScForm(prefix, includeAddress) {
     $("#" + prefix + "-email1").val('');
     $("#" + prefix + "-email2").val('');
 
-
+    if (includeAddress) {
+        $("#" + prefix + '-address-street').val('');
+        $("#" + prefix + '-address-street2').val('');
+        $("#" + prefix + '-address-city').val('');
+        $("#" + prefix + '-address-province').val('');
+        $("#" + prefix + '-address-zip').val('');
+        $("#" + prefix + '-address-country').val('');
+    }
 }
 
-function removeSc(id, isNew, isPrimary) {
+function removeSc(id) {
+    var isNew = id === -2;
+    var isPrimary = $("#" + id + "-li").attr('data-isPrimary') === "true";
     $("#contact-tabs a[data-id='" + id + "']").parent().remove();
     $("#" + id + '-panel').remove();
 
