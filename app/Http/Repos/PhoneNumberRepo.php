@@ -16,6 +16,13 @@ class PhoneNumberRepo {
         return $pn;
     }
 
+    public function GetPagerByDriverContact($id) {
+        $pn = PhoneNumber::where('contact_id', '=', $id)
+            ->where('type', '=', 'Pager')->first();
+
+        return $pn;
+    }
+
     public function Insert($pn) {
         $new = new PhoneNumber;
 

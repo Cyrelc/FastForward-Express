@@ -107,7 +107,7 @@
     @else
         <h2>New Account</h2>
     @endif
-<form method="POST" action="/accounts/store">
+<form method="POST" action="/accounts/store" onsubmit="saveScContact('sc', false)">
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->is_master ? "false" : "true") : "false" }}"/>

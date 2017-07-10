@@ -1,5 +1,5 @@
 <?php
-namespace app\Http\Validation;
+namespace App\Http\Validation;
 
 class AccountValidationRules {
     public function GetValidationRules($validateAccountNumberUnique, $accountId, $accountNumber, $isSubLocation, $giveDiscount, $customField) {

@@ -11,12 +11,6 @@ class DriverController extends Controller {
 
     public function __construct() {
         $this->middleware('auth');
-
-        //API STUFF
-        $this->sortBy = 'name';
-        $this->maxCount = env('DEFAULT_DRIVER_COUNT', $this->maxCount);
-        $this->itemAge = env('DEFAULT_DRIVER_AGE', '1 month');
-        $this->class = new \App\Driver;
     }
 
     public function index() {
@@ -26,272 +20,254 @@ class DriverController extends Controller {
         return view('drivers.drivers', compact('contents'));
     }
 
-    public function create(){
+    public function create(Request $req) {
+        $factory = new Driver\DriverModelFactory();
+        $model = $factory->GetCreateModel($req);
 
-        return view('drivers.create_driver');
+        return view('drivers.driver', compact('model'));
+    }
+
+    public function edit(Request $req, $id) {
+        $factory = new Driver\DriverModelFactory();
+        $model = $factory->GetEditModel($req, $id);
+
+        return view('drivers.driver', compact('model'));
     }
 
     public function store(Request $req) {
-        $validationRules = [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email_address' => 'required|email',
-            'email_address2' => 'email',
-            //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
-            'primary_phone' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'secondary_phone' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'pager_number' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'address1' => 'required',
-            //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
-            'postal_code' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
-            'city' => 'required',
-            'province' => 'required',
-            'country' => 'required',
+        //TODO: Testing, remove
+        /*$rules['TestFail'] = 'required';
+        $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+        if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+*/
+        $driverRules = (new \App\Http\Validation\DriverValidationRules())->GetValidationRules();
+        $partialsRules = new \App\Http\Validation\PartialsValidationRules();
 
-            'emerg_first_name' => 'required',
-            'emerg_last_name' => 'required',
-            'emerg_email_address' => 'required|email',
-            'emerg_email_address2' => 'email',
-            'emerg_primary_phone' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'emerg_secondary_phone' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            'emerg_address1' => 'required',
-            'emerg_postal_code' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
-            'emerg_city' => 'required',
-            'emerg_province' => 'required',
-            'emerg_country' => 'required',
+        $contactValidator = new \App\Http\Validation\PartialsValidationRules();
 
-            'DLN' => 'required',
-            'license_plate' => ['required', 'regex:/([A-Z]{3}-[0-9]{4})|([B-WY][A-Z]{2}-[0-9]{3})|([1-9]-[0-9]{5})|([B-DF-HJ-NP-TV-XZ]-[0-9]{5})|([0-9]{2}-[A-Z][0-9]{3})/'],
-            'insurance' => 'required',
-            'license_expiration' => 'required|date',
-            'license_plate_expiration' => 'required|date',
-            'insurance_expiration' => 'required|date',
-            'SIN' => ['required', 'regex:/[0-9]{3} [0-9]{3} [0-9]{3}/'],
-            'startdate' => 'required|date',
-            'DOB' => 'required|date'
-        ];
+        $contactCollector = new \App\Http\Collectors\ContactCollector();
+        $contactsCollector = new \App\Http\Collectors\ContactsCollector();
 
-        $validationMessages = [
-            'first_name.required' => 'First Name is required.',
-            'last_name.required' => 'Last Name is required.',
-            'email_address.required' => 'Email Address is required.',
-            'email_address.email' => 'Email address must be in the form "someone@example.com"',
-            'email_address2.email' => 'Secondary Email Address must be in the form "someone@example.com"',
-            'primary_phone.required' => "Primary Phone Number is required.",
-            'primary_phone.regex' => 'Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'secondary_phone.regex' => 'Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'pager_number.required' => 'Pager Number is required.',
-            'pager_number.regex' => 'Pager Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'address1.required' => 'Home Address is required.',
-            'postal_code.required' => 'Home Address Postal Code is required.',
-            'postal_code.regex' => 'Home Address Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
-            'city.required' => 'Home Address City is required.',
-            'province.required' => 'Home Address Province is required.',
-            'country.required' => 'Home Address Country is required.',
+        $driverId = $req->input('driver-id');
+        $isEdit = $driverId !== null && $driverId > 0;
 
-            'emerg_first_name.required' => 'Emergency Contact First Name is required.',
-            'emerg_last_name.required' => 'Emergency Contact Last Name is required.',
-            'emerg_email_address.required' => 'Emergency Contact Email is required',
-            'emerg_email_address.email' => 'Emergency Contact Email must be in the format "someone@example.com"',
-            'emerg_email_address2.email' => 'Emergency Contact Secondary Email must be in the format "someone@example.com"',
-            'emerg_primary_phone.required' => 'Emergency Contact Primary Phone Number is required.',
-            'emerg_primary_phone.regex' => 'Emergency Contact Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'emerg_secondary_phone.regex' => 'Emergency Contact Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-            'emerg_address1.required' => 'Emergency Contact Address is required.',
-            'emerg_postal_code.required' => 'Emergency Contact Address Postal Code is required.',
-            'emerg_postal_code.regex' => 'Emergency Contact Address Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
-            'emerg_city.required' => 'Emergency Contact Address City is required.',
-            'emerg_province.required' => 'Emergency Contact Address Province is required.',
-            'emerg_country.required' => 'Emergency Contact Address Country is required.',
+        $validationRules = [];
+        $validationMessages = [];
 
-            'DLN.required' => 'Driver License Number is required.',
-            'license_plate.required' => 'License Plate is required.',
-            'license_plate.regex' => 'License Plate must be in the format "AAA-####", "AAA-###", "#-#####", "A-#####", or "##-A###"',
-            'insurance.required' => 'Insurance Number is required.',
-            'license_expiration.required' => 'Drivers License Expiration Date is required.',
-            'license_expiration.date' => 'Drivers License Expiration Date must be a date.',
-            'license_plate_expiration.required' => 'License Plate Expiration Date is required.',
-            'license_plate_expiration.date' => 'License Plate Expiration Date must be a date.',
-            'insurance_expiration.required' => 'Insurance Expiration Date is required.',
-            'insurance_expiration.date' => 'Insurance Expiration Date must be a date.',
-            'SIN.required' => 'SIN is required.',
-            'SIN.regex' => 'SIN must be in the format "### ### ###"',
-            'startdate.required' => 'Start Date is required.',
-            'startdate.date' => 'Start Date must be a date.',
-            'DOB.required' => 'Date of Birth is required.',
-            'DOB.date' => 'Date of Birth must be a date.',
-        ];
+        $validationRules = array_merge($validationRules, $driverRules['rules']);
+        $validationMessages = array_merge($validationMessages, $driverRules['messages']);
+
+        $contactRules = $contactValidator->GetContactValidationRules('contact', 'Contact');
+        $validationRules = array_merge($validationRules, $contactRules['rules']);
+        $validationMessages = array_merge($validationMessages, $contactRules['messages']);
+
+        $contactsToDelete = $contactsCollector->GetDeletions($req);
+
+        $contactsVal = $partialsRules->GetContactsValidationRules($req, $contactsToDelete, true);
+        $validationRules = array_merge($validationRules, $contactsVal['rules']);
+        $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
+
+        if ($contactsVal['contact_count'] < 1) {
+            //Manually fail validation
+            $rules['Contacts'] = 'required';
+            $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+            if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+        }
 
         $this->validate($req, $validationRules, $validationMessages);
 
-        $user = [
-            'username' => substr($req->input('first_name'), 0, 1) . $req->input('last_name'),
-            'email' => $req->input('email_address'),
-        ];
-
-        $contact = [
-            'first_name' => $req->input('first_name'),
-            'last_name' => $req->input('last_name'),
-            'is_primary' => true
-        ];
-
-        $eContact = [
-            'first_name' => $req->input('emerg_first_name'),
-            'last_name' => $req->input('emerg_last_name'),
-            'is_primary' => true
-        ];
+        $userCollector = new \App\Http\Collectors\UserCollector();
+        $addressCollector = new \App\Http\Collectors\AddressCollector();
 
         $userRepo = new Repos\UserRepo();
-        $pnRepo = new Repos\PhoneNumberRepo();
-        $eAddrRepo = new Repos\EmailAddressRepo();
-        $addrRepo = new Repos\AddressRepo();
+        $phoneNumberRepo = new Repos\PhoneNumberRepo();
+        $emailAddressRepo = new Repos\EmailAddressRepo();
+        $addressRepo = new Repos\AddressRepo();
         $contactRepo = new Repos\ContactRepo();
         $driverRepo = new Repos\DriverRepo();
 
+        $user = $userCollector->CollectDriver($req, 'contact');
+        $contact = $contactCollector->Collect($req, 'contact');
+        $contact['contact_id'] = $req->input('id-for-contact');
+        $user['user_id'] = $req->input('user-id');
+
         //Contact Info/User
-        $userId = $userRepo->Insert($user, 'Driver')->user_id;
-        $contactId = $contactRepo->Insert($contact)->contact_id;
-
-        $primaryPhone = [
-            'type' => 'primary',
-            'phone_number' => $req->input('primary_phone'),
-            'is_primary' => true,
-            'contact_id' => $contactId
-        ];
-        $pnRepo->Insert($primaryPhone);
-
-        if ($req->has('secondary_phone') && strlen($req->input('secondary_phone')) > 0) {
-            $secondaryPhone = [
-                'type' => 'secondary',
-                'phone_number' => $req->input('secondary_phone'),
-                'is_primary' => false,
-                'contact_id' => $contactId
-            ];
-            $pnRepo->Insert($secondaryPhone);
+        if($isEdit) {
+            $userId = $userRepo->Update($user, ['Driver'])->user_id;
+            $contactId = $contactRepo->Update($contact)->contact_id;
+        } else {
+            $userId = $userRepo->Insert($user, 'Driver')->user_id;
+            $contactId = $contactRepo->Insert($contact)->contact_id;
         }
 
-        $pager = [
-            'type' => 'pager',
-            'phone_number' => $req->input('pager_number'),
-            'is_primary' => false,
-            'contact_id' => $contactId
-        ];
-        $pnRepo->Insert($pager);
+        $driverCollector = new \App\Http\Collectors\DriverCollector();
 
-        $emailAddress = [
-            'type' => 'primary',
-            'email' => $req->input('email_address'),
-            'is_primary' => true,
-            'contact_id' => $contactId
-        ];
-        $eAddrRepo->Insert($emailAddress);
+        $phone1 = $contactCollector->CollectPhoneNumberSingle($req, 'contact-phone1', $contactId, true);
+        $phone2 = $contactCollector->CollectPhoneNumberSingle($req, 'contact-phone2', $contactId, false);
+        $email1 = $contactCollector->CollectEmailSingle($req, 'contact-email1', $contactId, true);
+        $email2 = $contactCollector->CollectEmailSingle($req, 'contact-email2', $contactId, false);
+        $pager = $driverCollector->CollectPager($req, $contactId);
+        $address = $addressCollector->Collect($req, 'contact-address', true);
+        $address['contact_id'] = $contactId;
+        $driver = $driverCollector->Collect($req, $contactId, $userId);
 
-        if ($req->has('email_address2') && strlen($req->input('email_address2')) > 0) {
-            $emailAddress2 = [
-                'type' => 'primary',
-                'email' => $req->input('email_address2'),
-                'is_primary' => false,
-                'contact_id' => $contactId
-            ];
-            $eAddrRepo->Insert($emailAddress2);
+        if ($isEdit) {
+            $driverRepo->Update($driver);
+            $phoneNumberRepo->Update($phone1);
+            $emailAddressRepo->Update($email1);
+            $addressRepo->Update($address);
+
+            if ($req->input('pn-action-add-' . $contactId) != null)
+                $phoneNumberRepo->Insert($phone2);
+            if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
+                $emailAddressRepo->Insert($email2);
+
+            //Existing phone numbers on existing account
+            if ($req->input('contact-' . $contactId . '-phone2-id') != null)
+                $phoneNumberRepo->Update($phone2);
+            if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
+                $emailAddressRepo->Update($email2);
+            if ($req->input('contact-' . $contactId . '-pager-id') != null)
+                $phoneNumberRepo->Update($pager);
+        } else {
+            $phoneNumberRepo->Insert($phone1);
+            $emailAddressRepo->Insert($email1);
+            $addressRepo->Insert($address);
+
+            if ($phone2['phone_number'] !== null && strlen($phone2['phone_number']) > 0)
+                $phoneNumberRepo->Insert($phone2);
+
+            if ($pager['phone_number'] !== null && strlen($pager['phone_number']) > 0)
+                $phoneNumberRepo->Insert($pager);
+
+            if ($email2['email'] !== null && strlen($email2['email']) > 0)
+                $emailAddressRepo->Insert($email2);
         }
 
-        $addr = [
-            'street' => $req->input('address1'),
-            'street2' => $req->input('address2'),
-            'city' => $req->input('city'),
-            'zip_postal' => $req->input('postal_code'),
-            'state_province' => $req->input('province'),
-            'country' => $req->input('country'),
-            'is_primary' => true,
-            'contact_id' => $contactId
-        ];
-        $addrRepo->Insert($addr);
+        //Handle deletes of all secondary emails/pn's together
+        $phoneNumbersToDelete = $req->input('pn-action-delete');
+        $emailsToDelete = $req->input('em-action-delete');
+
+        if ($phoneNumbersToDelete !== null) {
+            if(is_array($phoneNumbersToDelete))
+                foreach($phoneNumbersToDelete as $phoneNumber)
+                    $phoneNumberRepo->Delete($phoneNumber);
+            else
+                $phoneNumberRepo->Delete($phoneNumbersToDelete);
+        }
+
+        if ($emailsToDelete !== null) {
+            if(is_array($emailsToDelete))
+                foreach($emailsToDelete as $email)
+                    $emailAddressRepo->Delete($email);
+            else
+                $emailAddressRepo->Delete($emailsToDelete);
+        }
 
         //Emergency Contact
-        $eContactId = $contactRepo->Insert($eContact)->contact_id;
+        //BEGIN contacts
+        $primary_id = null;
+        $contactActions = $contactsCollector->GetActions($req);
+        $emergencyContactIds = [];
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 11) == "contact-id-") {
+                $contactId = substr($key, 11);
+                $actions = $contactActions[$contactId];
 
-        $ePrimaryPhone = [
-            'type' => 'primary',
-            'phone_number' => $req->input('emerg_primary_phone'),
-            'is_primary' => true,
-            'contact_id' => $eContactId
-        ];
-        $pnRepo->Insert($ePrimaryPhone);
+                $primaryAction = "";
+                if (in_array('delete', $actions))
+                    $primaryAction = 'delete';
+                else if (in_array('update', $actions))
+                    $primaryAction = 'update';
+                else if (in_array('new', $actions))
+                    $primaryAction = 'new';
 
-        if ($req->has('emerg_secondary_phone') && strlen($req->input('emerg_secondary_phone')) > 0) {
-            $eSecondaryPhone = [
-                'type' => 'secondary',
-                'phone_number' => $req->input('emerg_secondary_phone'),
-                'is_primary' => false,
-                'contact_id' => $eContactId
-            ];
-            $pnRepo->Insert($eSecondaryPhone);
+                //What do we do with this contact? Return fail
+                if ($primaryAction == "") {
+                    $rules['Contact-Action'] = 'required';
+                    $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+                    if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+                }
+
+                if ($primaryAction == "delete") {
+                    //Deleting contact, delete and don't do anything else
+                    $contactRepo->Delete($contactId);
+                    continue;
+                }
+
+                $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
+                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true);
+                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false);
+                $email1 = $contactCollector->CollectEmail($req, $contactId, true);
+                $email2 = $contactCollector->CollectEmail($req, $contactId, false);
+                $address = $addressCollector->Collect($req, 'contact-' . $contactId . '-address', true);
+
+                if ($primaryAction == "new")
+                    $contactId = $contactRepo->Insert($contact)->contact_id;
+                else if ($primaryAction == "update") {
+                    $contact["contact_id"] = $contactId;
+                    $contactRepo->Update($contact);
+                }
+
+                $address['contact_id'] = $contactId;
+                $phone1['contact_id'] = $contactId;
+                $phone2['contact_id'] = $contactId;
+                $email1['contact_id'] = $contactId;
+                $email2['contact_id'] = $contactId;
+                array_push($emergencyContactIds, $contactId);
+
+                if ($primaryAction == "new") {
+                    //New phone numbers on new account
+                    $phoneNumberRepo->Insert($phone1);
+                    $emailAddressRepo->Insert($email1);
+                    $addressRepo->Insert($address);
+                } else if ($primaryAction == "update") {
+                    //New phone numbers on existing account
+                    $phoneNumberRepo->Update($phone1);
+                    $emailAddressRepo->Update($email1);
+                    $addressRepo->Update($address);
+
+                    if ($req->input('pn-action-add-' . $contactId) != null)
+                        $phoneNumberRepo->Insert($phone2);
+                    if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
+                        $emailAddressRepo->Insert($email2);
+
+                    //Existing phone numbers on existing account
+                    if ($req->input('contact-' . $contactId . '-phone2-id') != null)
+                        $phoneNumberRepo->Update($phone2);
+                    if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
+                        $emailAddressRepo->Update($email2);
+                }
+            }
         }
 
-        $eEmailAddress = [
-            'type' => 'primary',
-            'email' => $req->input('emerg_email_address'),
-            'is_primary' => true,
-            'contact_id' => $eContactId
-        ];
-        $eAddrRepo->Insert($eEmailAddress);
+        //Handle deletes of all secondary emails/pn's together
+        $phoneNumbersToDelete = $req->input('pn-action-delete');
+        $emailsToDelete = $req->input('em-action-delete');
 
-        if ($req->has('emerg_email_address2') && strlen($req->input('emerg_email_address2')) > 0) {
-            $eEmailAddress2 = [
-                'type' => 'primary',
-                'email' => $req->input('emerg_email_address2'),
-                'is_primary' => false,
-                'contact_id' => $eContactId
-            ];
-            $eAddrRepo->Insert($eEmailAddress2);
+        if ($phoneNumbersToDelete !== null) {
+            if(is_array($phoneNumbersToDelete))
+                foreach($phoneNumbersToDelete as $phoneNumber)
+                    $phoneNumberRepo->Delete($phoneNumber);
+            else
+                $phoneNumberRepo->Delete($phoneNumbersToDelete);
         }
 
-        $eAddr = [
-            'street' => $req->input('address1'),
-            'street2' => $req->input('address2'),
-            'city' => $req->input('city'),
-            'zip_postal' => $req->input('postal_code'),
-            'state_province' => $req->input('province'),
-            'country' => $req->input('country'),
-            'is_primary' => true,
-            'contact_id' => $eContactId
-        ];
-        $addrRepo->Insert($eAddr);
+        if ($emailsToDelete !== null) {
+            if(is_array($emailsToDelete))
+                foreach($emailsToDelete as $email)
+                    $phoneNumberRepo->Delete($email);
+            else
+                $phoneNumberRepo->Delete($emailsToDelete);
+        }
+        //END contacts
 
-        $driver = [
-            'contact_id' => $contactId,
-            'user_id' => $userId,
-            'driver_number' => null,
-            'stripe_id' => null,
-            'start_date' => new \DateTime($req->input('startdate')),
-            'drivers_license_number' => $req->input('DLN'),
-            'license_expiration' => new \DateTime($req->input('license_expiration')),
-            'license_plate_number' => $req->input('license_plate'),
-            'license_plate_expiration' => new \DateTime($req->input('license_plate_expiration')),
-            'insurance_number' => $req->input('insurance'),
-            'insurance_expiration' => new \DateTime($req->input('insurance_expiration')),
-            'sin' => $req->input('SIN'),
-            'dob' => new \DateTime($req->input('DOB')),
-            'active' => $req->input('active') == 'on',
-            'pickup_commission' => 0.15,
-            'delivery_commission' => 0.15,
-        ];
-        $driverRepo->Insert($driver);
-
-        return redirect()->action('DriverController@create');
-    }
-
-    public function edit($id) {
-        $repo = new Repos\DriversRepo();
-
-        $model = $repo->GetById($id);
-
-        return view('drivers.edit_driver', compact('model'));
-    }
-
-    public function submitEdit() {
-        return redirect()->action('DriverController@edit');
+        if ($isEdit)
+            return redirect()->action('DriverController@edit',['driver_id'=>$driver['driver_id']]);
+        else {
+            $driverRepo->Insert($driver, $emergencyContactIds);
+            return redirect()->action('DriverController@create');
+        }
     }
 
     public function action (Request $req) {

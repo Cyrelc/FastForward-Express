@@ -4,8 +4,10 @@ namespace App\Http\Repos;
 use App\Address;
 
 class AddressRepo {
-    public function ListByContactId($id) {
-        $ad = Address::where('contact_id', '=', $id)->first();
+    public function GetByContactId($id) {
+        $ad = Address::where('contact_id', '=', $id)
+            ->where('is_primary', '=', 1)
+            ->first();
 
         return $ad;
     }
@@ -55,7 +57,7 @@ class AddressRepo {
     }
 
     public function DeleteByContact($cid) {
-        $addrs = $this->ListByContactId($cid);
+        $addrs = $this->GetByContactId($cid);
 
         foreach($addrs as $addr) {
             $this->Delete($addr);

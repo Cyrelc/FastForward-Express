@@ -3,6 +3,7 @@
 	namespace App\Http\Models\Account;
 
 	use App\Http\Repos;
+	use App\Http\Models;
 	use App\Http\Models\Account;
 
 	class AccountModelFactory {
@@ -89,10 +90,9 @@
 
             $acctRepo = new Repos\AccountRepo();
             $driversRepo = new Repos\DriverRepo();
-            $pnRepo = new Repos\PhoneNumberRepo();
-            $emRepo = new Repos\EmailAddressRepo();
             $addRepo = new Repos\AddressRepo();
             $dcRepo = new Repos\CommissionRepo();
+            $contactsModelFactory = new Models\Partials\ContactsModelFactory();
 
             $model->account = $acctRepo->GetById($id);
             $model->account->start_date = strtotime($model->account->start_date);
@@ -121,57 +121,8 @@
             $model->accounts = $acctRepo->ListParents();
             $model->drivers = $driversRepo->ListAll();
 
-            //Find the primary contact, remove primary contact from list of all contacts
-            $accountContacts = $acctRepo->ListAccountContacts($id);
-            $primary = -1;
+            $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
 
-            //Find primary contact
-            foreach($accountContacts as $ac)
-            {
-                if ($ac->is_primary == 1)
-                    $primary = $ac->contact_id;
-            }
-
-            for($i = 0; $i < count($model->account->contacts); $i++) {
-                if ($model->account->contacts[$i]->contact_id == $primary)
-                    $model->account->contacts[$i]->is_primary = true;
-                else
-                    $model->account->contacts[$i]->is_primary = false;
-
-                $primaryPhones = $pnRepo->ListByContactId($model->account->contacts[$i]->contact_id);
-                foreach($primaryPhones as $pp){
-                    if ($pp["is_primary"])
-                        $model->account->contacts[$i]->primaryPhone = $pp;
-                    else
-                        $model->account->contacts[$i]->secondaryPhone = $pp;
-                }
-
-                $primaryEmails = $emRepo->ListByContactId($model->account->contacts[$i]->contact_id);
-                foreach($primaryEmails as $pe){
-                    if ($pe["is_primary"])
-                        $model->account->contacts[$i]->primaryEmail = $pe;
-                    else
-                        $model->account->contacts[$i]->secondaryEmail = $pe;
-                }
-
-                for($i = 0; $i < count($model->account->contacts); $i++) {
-                    $pns = $pnRepo->ListByContactId($model->account->contacts[$i]->contact_id);
-                    foreach($pns as $pp){
-                        if ($pp["is_primary"])
-                            $model->account->contacts[$i]->primaryPhone = $pp;
-                        else
-                            $model->account->contacts[$i]->secondaryPhone = $pp;
-                    }
-
-                    $primaryEmails = $emRepo->ListByContactId($model->account->contacts[$i]->contact_id);
-                    foreach($primaryEmails as $pe){
-                        if ($pe["is_primary"])
-                            $model->account->contacts[$i]->primaryEmail = $pe;
-                        else
-                            $model->account->contacts[$i]->secondaryEmail = $pe;
-                    }
-                }
-            }
             $model = $this->MergeOld($model, $request);
             return $model;
         }
@@ -186,16 +137,16 @@
 		    $model = $acctCollector->Remerge($req, $model);
 
 		    //Delivery Address
-            $model = $addrCollector->Remerge($req, $model, 'delivery', 'deliveryAddress');
+            $model->deliveryAddress = $addrCollector->Remerge($req, $model->deliveryAddress, 'delivery');
 
             //Billing address
             if ($req->old("billing-street") !== null || $req->old("billing-street2") !== null || $req->old("billing-city") !== null ||
                 $req->old("billing-zip-postal") !== null || $req->old("billing-state-province") !== null || $req->old("billing-country") !== null)
                 $model->billingAddress = new \App\Address();
-            $model = $addrCollector->Remerge($req, $model, 'billing', 'billingAddress');
+            $model->billingAddress = $addrCollector->Remerge($req, $model->billingAddress, 'billing');
 
             //Contacts
-            $model = $contactCollector->Remerge($req, $model);
+            $model->account->contacts = $contactCollector->Remerge($req, $model->account->contacts, false);
 
             //Commissions
             $model = $commissionCollector->Remerge($req, $model);

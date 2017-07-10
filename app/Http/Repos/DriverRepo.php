@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\Driver;
 use App\DriverCommission;
+use App\DriverEmergencyContact;
 
 class DriverRepo {
 
@@ -18,20 +19,15 @@ class DriverRepo {
         return $driver;
     }
 
-    public function GetCommissionByAccount($accountId) {
-        $commission = DriverCommission::where('account_id', '=', $accountId)->first();
-
-        return $commission;
-    }
-
-    public function Insert($driver) {
+    public function Insert($driver, $emergencyContactIds) {
         $new = new Driver;
-
         $new = $new->create($driver);
+
+        foreach($emergencyContactIds as $id)
+            $new->contacts()->attach($id);
 
         return $new;
     }
-
 
     public function Update($driver) {
         $old = $this->GetById($driver['driver_id']);
@@ -50,5 +46,17 @@ class DriverRepo {
         $old->delivery_commission = $driver['delivery_commission'];
 
         $old->save();
+    }
+
+    public function GetCommissionByAccount($accountId) {
+        $commission = DriverCommission::where('account_id', '=', $accountId)->first();
+
+        return $commission;
+    }
+
+    public function ListEmergencyContacts($driverId) {
+        $eContacts = DriverEmergencyContact::where('driver_id', '=', $driverId)->get();
+
+        return $eContacts;
     }
 }

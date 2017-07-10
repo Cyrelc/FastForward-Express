@@ -1,15 +1,45 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jacks
- * Date: 6/28/2017
- * Time: 9:16 AM
- */
-
 namespace app\Http\Validation;
 
 
-class DriverValidationRules
-{
-
+class DriverValidationRules {
+    public function GetValidationRules() {
+        return [
+            'rules' =>[
+                'pager_number' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+                'DLN' => 'required',
+                'license_plate' => ['required', 'regex:/([A-Z]{3}-[0-9]{4})|([B-WY][A-Z]{2}-[0-9]{3})|([1-9]-[0-9]{5})|([B-DF-HJ-NP-TV-XZ]-[0-9]{5})|([0-9]{2}-[A-Z][0-9]{3})/'],
+                'insurance' => 'required',
+                'license_expiration' => 'required|date',
+                'license_plate_expiration' => 'required|date',
+                'insurance_expiration' => 'required|date',
+                'SIN' => ['regex:/[0-9]{3} [0-9]{3} [0-9]{3}/'],
+                'startdate' => 'required|date',
+                'DOB' => 'required|date',
+                'pickup-commission' => 'required|numeric',
+                'delivery-commission' => 'required|numeric'
+            ],
+            'messages' => [
+                'DLN.required' => 'Driver License Number is required.',
+                'license_plate.required' => 'License Plate is required.',
+                'license_plate.regex' => 'License Plate must be in the format "AAA-####", "AAA-###", "#-#####", "A-#####", or "##-A###"',
+                'insurance.required' => 'Insurance Number is required.',
+                'license_expiration.required' => 'Drivers License Expiration Date is required.',
+                'license_expiration.date' => 'Drivers License Expiration Date must be a date.',
+                'license_plate_expiration.required' => 'License Plate Expiration Date is required.',
+                'license_plate_expiration.date' => 'License Plate Expiration Date must be a date.',
+                'insurance_expiration.required' => 'Insurance Expiration Date is required.',
+                'insurance_expiration.date' => 'Insurance Expiration Date must be a date.',
+                'SIN.regex' => 'SIN must be in the format "### ### ###"',
+                'startdate.required' => 'Start Date is required.',
+                'startdate.date' => 'Start Date must be a date.',
+                'DOB.required' => 'Date of Birth is required.',
+                'DOB.date' => 'Date of Birth must be a date.',
+                'pickup-commission.required' => 'Pickup Commission is required.',
+                'pickup-commission.numeric' => 'Pickup Commission must be a number.',
+                'delivery-commission.required' => 'Pickup Commission is required.',
+                'delivery-commission.numeric' => 'Pickup Commission must be a number.',
+            ]
+        ];
+    }
 }

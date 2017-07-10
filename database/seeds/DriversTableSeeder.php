@@ -135,6 +135,39 @@ class DriversTableSeeder extends Seeder
                     "driver_chargeback_id" => $cbid
                 ]);
             }
+
+            for($j = 0; $j <= rand(2, 5); $j++) {
+                $cid = factory(App\Contact::class)->create()->contact_id;
+
+                for($pns = 0; $pns < 2; $pns++) {
+                    $isPrimary = false;
+                    if ($pns == 0)
+                        $isPrimary = true;
+
+                    factory(App\PhoneNumber::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
+                }
+
+                for($ems = 0; $ems < 2; $ems++) {
+                    $isPrimary = false;
+                    if ($ems == 0)
+                        $isPrimary = true;
+
+                    factory(App\EmailAddress::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
+                }
+
+                for($adds = 0; $adds < 2; $adds++) {
+                    $isPrimary = false;
+                    if ($adds == 0)
+                        $isPrimary = true;
+
+                    factory(App\Address::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
+                }
+
+                DB::table('driver_emergency_contacts')->insert([
+                    "contact_id" => $cid,
+                    "driver_id" => $d->driver_id,
+                ]);
+            }
         }
     }
 }

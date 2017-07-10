@@ -33,6 +33,8 @@ class ContactRepo {
         $old->last_name = $contact["last_name"];
 
         $old->save();
+
+        return $old;
     }
 
     public function Delete($cid) {
@@ -42,7 +44,8 @@ class ContactRepo {
         $addrRepo = new AddressRepo();
         $emailRepo = new EmailAddressRepo();
 
-        $contact->account()->detach();
+        $contact->accounts()->detach();
+        $contact->drivers()->detach();
         $pnRepo->DeleteByContact($cid);
         $addrRepo->DeleteByContact($cid);
         $emailRepo->DeleteByContact($cid);

@@ -15,26 +15,38 @@ class AddressCollector {
         ];
     }
 
-    public function Remerge($req, $model, $prefix, $propertyName) {
+    public function Remerge($req, $address, $prefix) {
         if ($req->old($prefix . "-street") !== null)
-            $model->$propertyName->street = $req->old($prefix . "-street");
+            $address->street = $req->old($prefix . "-street");
 
         if ($req->old($prefix . "-street2") !== null)
-            $model->$propertyName->street2 = $req->old($prefix . "-street2");
+            $address->street2 = $req->old($prefix . "-street2");
 
         if ($req->old($prefix . "-city") !== null)
-            $model->$propertyName->city = $req->old($prefix . "-city");
+            $address->city = $req->old($prefix . "-city");
 
         if ($req->old($prefix . "-zip-postal") !== null)
-            $model->$propertyName->zip_postal = $req->old($prefix . "-zip-postal");
+            $address->zip_postal = $req->old($prefix . "-zip-postal");
 
         if ($req->old($prefix . "-state-province") !== null)
-            $model->$propertyName->state_province = $req->old($prefix . "-state-province");
+            $address->state_province = $req->old($prefix . "-state-province");
 
         if ($req->old($prefix . "-country") !== null)
-            $model->$propertyName->country = $req->old($prefix . "-country");
+            $address->country = $req->old($prefix . "-country");
 
-        return $model;
+        return $address;
     }
 
+    public function ToObject($array) {
+        $addr = new \App\Address();
+
+        $addr->street = $array['street'];
+        $addr->street2 = $array['street2'];
+        $addr->city = $array['city'];
+        $addr->zip_postal = $array['zip_postal'];
+        $addr->state_province = $array['state_province'];
+        $addr->country = $array['country'];
+
+        return $addr;
+    }
 }

@@ -4,8 +4,8 @@
 
 @php
 	$contents = $contents->drivers;
-	$columns = ['Active', 'Driver Number', 'Name', 'Insurance Exp.', 'License Exp.', 'Bills This Month'];
-	$variables = [['driver', 'active'], ['driver', 'driver_number'], ['contact', 'name'], ['driver', 'insurance_expiration'], ['driver', 'license_expiration'], 'bills'];
+	$columns = ['ID', 'Active', 'Driver Number', 'Name', 'Insurance Exp.', 'License Exp.', 'Bills This Month'];
+	$variables = [['driver', 'driver_id'], ['driver', 'active'], ['driver', 'driver_number'], ['contact', 'name'], ['driver', 'insurance_expiration'], ['driver', 'license_expiration'], 'bills'];
 	$tableConfig = [
 		'table' => 'driver',
 		'editPath' => 'drivers/edit/',
@@ -20,10 +20,11 @@
 @section ('script')
 
 <script type='text/javascript'>
-    var columnDefs = [{"targets": [ 1 ], "visible": false, "searchable": true}];
+    var columnDefs = [{"targets": [ 1, 2 ], "visible": false, "searchable": true}];
     var order = [1, "desc"];
 
     function dtRowCallback(row, data) {
+        console.log(data);
         var id = data[1];
         var name = data[3].replace("'", "\\'");
 
