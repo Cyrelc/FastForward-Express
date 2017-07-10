@@ -12,6 +12,9 @@
 
 			try {
 				$billsRepo = new Repos\BillRepo();
+				$accountsRepo = new Repos\AccountRepo();
+				$driversRepo = new Repos\DriverRepo();
+				$contactsRepo = new Repos\ContactRepo();
 
 				$bills = $billsRepo->ListAll();
 
@@ -21,6 +24,15 @@
 					$bill_view_model = new BillViewModel();
 
 					$bill_view_model->bill = $bill;
+					$bill_view_model->account = $accountsRepo->GetById($bill->account_id);
+
+					$bill_view_model->pickup_driver = $driversRepo->GetById($bill->pickup_driver_id);
+					$pickup_driver_contact = $contactsRepo->GetById($bill_view_model->pickup_driver->contact_id);
+					$bill_view_model->pickup_driver_name = $pickup_driver_contact->first_name . ' ' . $pickup_driver_contact->last_name;
+
+					$bill_view_model->delivery_driver = $driversRepo->GetById($bill->delivery_driver_id);
+					$delivery_driver_contact = $contactsRepo->GetById($bill_view_model->delivery_driver->contact_id);
+					$bill_view_model->delivery_driver_name = $delivery_driver_contact->first_name . ' ' . $delivery_driver_contact->last_name;
 
 					array_push($bill_view_models, $bill_view_model);
 				}
