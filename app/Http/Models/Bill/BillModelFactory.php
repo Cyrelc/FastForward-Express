@@ -24,7 +24,11 @@
 					$bill_view_model = new BillViewModel();
 
 					$bill_view_model->bill = $bill;
-					$bill_view_model->account = $accountsRepo->GetById($bill->account_id);
+					$bill_view_model->account = $accountsRepo->GetById($bill->charge_account_id);
+					if ($bill_view_model->account === null) {
+                        $bill_view_model->account = new \App\Account();
+                        $bill_view_model->account->name = "Cash";
+                    }
 
 					$bill_view_model->pickup_driver = $driversRepo->GetById($bill->pickup_driver_id);
 					$pickup_driver_contact = $contactsRepo->GetById($bill_view_model->pickup_driver->contact_id);
