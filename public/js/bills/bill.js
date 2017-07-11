@@ -14,22 +14,33 @@ $(document).ready(function() {
 			$('input[name=pickup_use]:radio').attr('disabled', 'disabled');
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#charge_delivery_account').prop('checked')) {
 			$('#delivery_use_account').click();
 			$('input[name=delivery_use]:radio').attr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#charge_other_account').prop('checked')) {
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').removeClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#pre_paid').prop('checked')) {
+			$('#select_charge').removeClass('col-lg-12');
+			$('#select_charge').addClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').removeClass('hidden');
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
 		}
 	});
-
 
 //display custom field if present for the account.
 

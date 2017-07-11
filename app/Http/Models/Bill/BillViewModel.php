@@ -8,4 +8,5 @@ class BillViewModel {
 	public $pickup_driver_name;
 	public $delivery_driver;
 	public $delivery_driver_name;
+	public $payment_types;
 }

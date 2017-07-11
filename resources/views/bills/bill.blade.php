@@ -82,11 +82,26 @@
             </div>
         </div>
 <!-- Charge -->
-        <div class="col-lg-12 bottom15">
+        <div id="select_charge" class="col-lg-12 bottom15">
             <label><input id="charge_pickup_account" type="radio" name="charge_selection">  Charge Pickup Account</label>
             <label><input id="charge_delivery_account" type="radio" name="charge_selection">  Charge Delivery Account</label>
             <label><input id="charge_other_account" type="radio" name="charge_selection">  Charge Other Account</label>
-            <label><input id="pre_paid" type="radio" name="charge_selection">  Pre-Paid (do not invoice)</label>
+            <label><input id="pre_paid" type="radio" name="charge_selection">  Pre-Paid (Auto-Invoice)</label>
+        </div>
+        <div class="col-lg-4 hidden bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Payment Type:</span>
+                <select id="payment_type" class="form-control" name="payment_type">
+                    <option></option>
+                    @foreach($model->payment_types as $payment_type)
+                        @if (isset($model->bill->payment_type) && $payment_type == $model->bill->payment_type)
+                            <option selected value="{{$payment_type}}">{{$payment_type}}</option>
+                        @else
+                            <option value="{{$payment_type}}">{{$payment_type}}</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
         </div>
 <!-- charge account -->
         <div id="charge_account" class="col-lg-12 hidden bottom15">
