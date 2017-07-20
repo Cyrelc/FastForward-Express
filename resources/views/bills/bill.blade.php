@@ -13,10 +13,6 @@
 @section('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
 
-.disabled {
-    pointer-events:none;
-}
-
 @parent
 @endsection
 
@@ -57,6 +53,10 @@
 		</div>
         <hr>
 <!--form-->
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <input hidden type='text' id="selected_charge" name="selected_charge" />
+    <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->bill->pickup_use_submission}}' />
+    <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->bill->delivery_use_submission}}' />
 <!-- delivery date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -299,13 +299,13 @@
     <h4>On Submit</h4>
     <hr>
     <div class="checkbox">
-        <label><input id="keep_account" type="checkbox" name="keep_account" />Keep Account</label>
+        <label><input disabled id="keep_account" type="checkbox" name="keep_account" />Keep Account</label>
     </div>
     <div class="checkbox">
-        <label><input id="keep_pickup_driver" type="checkbox" name="keep_pickup_driver" />Keep Pickup Driver</label>
+        <label><input disabled id="keep_pickup_driver" type="checkbox" name="keep_pickup_driver" />Keep Pickup Driver</label>
     </div>
     <div class="checkbox">
-        <label><input id="keep_delivery_driver" type="checkbox" name="keep_delivery_driver" />Keep Delivery Driver</label>
+        <label><input disabled id="keep_delivery_driver" type="checkbox" name="keep_delivery_driver" />Keep Delivery Driver</label>
     </div>
 </div>
 @endsection
