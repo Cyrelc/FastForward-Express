@@ -67,6 +67,8 @@
 		    $model->drivers = $driversRepo->ListAll();
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
+		    $model->bill->pickup_use_submission = "account";
+		    $model->bill->delivery_use_submission = "account";
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
 		    
 		    return $model;
