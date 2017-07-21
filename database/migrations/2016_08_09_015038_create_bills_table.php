@@ -17,8 +17,8 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('manifest_id')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('charge_account_id')->nullable();
-            $table->unsignedInteger('from_account_id')->nullable();
-            $table->unsignedInteger('to_account_id')->nullable();
+            $table->unsignedInteger('pickup_account_id')->nullable();
+            $table->unsignedInteger('delivery_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id');
             $table->unsignedInteger('delivery_address_id');
             $table->string('charge_reference_value')->nullable();
