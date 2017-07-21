@@ -54,7 +54,7 @@
         <hr>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input hidden type='text' id="selected_charge" name="selected_charge" />
+    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" />
     <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->bill->pickup_use_submission}}' />
     <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->bill->delivery_use_submission}}' />
 <!-- delivery date -->
