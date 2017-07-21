@@ -11,25 +11,40 @@ $(document).ready(function() {
 	$('input[name=charge_selection]:radio').change(function(){
 		if ($('#charge_pickup_account').prop('checked')) {
 			$('#pickup_use_account').click();
+			$('#selected_charge').val('pickup_account');
 			$('input[name=pickup_use]:radio').attr('disabled', 'disabled');
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#charge_delivery_account').prop('checked')) {
 			$('#delivery_use_account').click();
+			$('#selected_charge').val('delivery_account');
 			$('input[name=delivery_use]:radio').attr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#charge_other_account').prop('checked')) {
+			$('#selected_charge').val('other_account');
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').removeClass('hidden');
+			$('#select_charge').addClass('col-lg-12');
+			$('#select_charge').removeClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').addClass('hidden');
 		} else if ($('#pre_paid').prop('checked')) {
+			$('#selected_charge').val('pre-paid');
+			$('#select_charge').removeClass('col-lg-12');
+			$('#select_charge').addClass('col-lg-8');
+			$('#payment_type').parent('div').parent('div').removeClass('hidden');
 			$('input[name=delivery_use]:radio').removeAttr('disabled', 'disabled');
 			$('input[name=pickup_use]:radio').removeAttr('disabled', 'disabled');
 			$('#charge_account').addClass('hidden');
 		}
 	});
-
 
 //display custom field if present for the account.
 
@@ -66,9 +81,11 @@ $(document).ready(function() {
 		if ($("#pickup_use_account").prop('checked')){
 			$("#pickup_account").removeClass('hidden');
 			$("#pickup_address").addClass('hidden');
+			$("#pickup_use_submission").val('account');
 		} else {
 			$("#pickup_address").removeClass('hidden');
 			$('#pickup_account').addClass('hidden');
+			$('#pickup_use_submission').val('address');
 		}
 	});
 
@@ -76,9 +93,11 @@ $(document).ready(function() {
 		if ($("#delivery_use_account").prop('checked')){
 			$("#delivery_account").removeClass('hidden');
 			$("#delivery_address").addClass('hidden');
+			$('#delivery_use_submission').val('account');
 		} else {
 			$("#delivery_address").removeClass('hidden');
 			$('#delivery_account').addClass('hidden');
+			$('#delivery_use_submission').val('address');
 		}
 	});
 

@@ -40,6 +40,16 @@ class BillController extends Controller {
     }
 
     public function store(Request $req) {
+        $billValidation = new \App\Http\Validation\BillValidationRules();
+        $temp = $billValidation->GetValidationRules($req);
+
+        $validationRules = $temp['rules'];
+        $validationMessages = $temp['messages'];
+
+        $this->validate($req, $validationRules, $validationMessages);
+
+        
+
         return;
     }
 }
