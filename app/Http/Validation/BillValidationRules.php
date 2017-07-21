@@ -8,19 +8,28 @@ class BillValidationRules {
     				'amount' => 'required|numeric',
     				'selected_charge' => 'required',
     				'pickup_use_submission' => 'required',
-    				'delivery_use_submission' => 'required',
-    				'delivery_driver_id' => 'required',
-    				'pickup_driver_commission' => 'required|numeric|'
-    				'pickup_driver_id' => 'required'];
+    				'pickup_driver_id' => 'required',
+                    'pickup_driver_commission' => 'required|numeric|between:0,100',
+                    'delivery_use_submission' => 'required',
+                    'delivery_driver_id' => 'required',
+                    'delivery_driver_commission' => 'required|numeric|between:0,100'];
 
-    	$messages = ['delivery_date.required' => 'Bill date is required',
+    	$messages = ['delivery_date.required' => 'Delivery date is required',
+                    'delivery_date.date' => 'Delivery date is in an incorrect format',
     				'bill_number.required' => 'Waybill number can not be empty', 
-    				'amount.required' => "Bill amount can not be empty", 'amount.numeric' => 'Bill amount must be a numeric value',
-    				'selected_charge.required'=>'You must select a payment method or account to charge',
+    				'amount.required' => "Bill amount can not be empty", 
+                    'amount.numeric' => 'Bill amount must be a numeric value',
+    				'selected_charge.required' => 'You must select a payment method or account to charge',
     				'pickup_use_submission.required' => 'You must select whether to use an account or address for pickup',
-    				'delivery_use_submission.required' => 'You must select whether to use an account or address for delivery',
-    				'delivery_driver_id.required' => 'Delivery Driver can not be empty',
-    				'pickup_driver_id.required' => 'Pickup Driver can not be empty'];
+    				'pickup_driver_id.required' => 'Pickup driver can not be empty',
+                    'pickup_driver_commission.required' => 'Pickup driver commission can not be empty',
+                    'pickup_driver_commission.numeric' => 'Pickup driver commission must be a numeric value',
+                    'pickup_driver_commission.between' => 'Pickup driver commission must be between 0% and 100%',
+                    'delivery_use_submission.required' => 'You must select whether to use an account or address for delivery',
+                    'delivery_driver_id.required' => 'Delivery driver can not be empty',
+                    'delivery_driver_commission.required' => 'Delivery driver commission can not be empty',
+                    'delivery_driver_commission.numeric' => 'Delivery driver commission must be a numeric value',
+                    'delivery_driver_commission.between' => 'Delivery driver commission must be between 0% and 100%'];
 
     	switch($req->selected_charge) {
     		case "pickup_account":
@@ -45,7 +54,7 @@ class BillValidationRules {
 		switch($req->pickup_use_submission) {
 			case "account":
 				$rules = array_merge($rules, ['pickup_account_id' => 'required']);
-				$messages = array_merge($messages, ['pickup_account_id' => 'Pickup account can not be blank']);
+				$messages = array_merge($messages, ['pickup_account_id.required' => 'Pickup account can not be blank']);
 				break;
 			case "address":
 		        $partialsRules = new \App\Http\Validation\PartialsValidationRules();
