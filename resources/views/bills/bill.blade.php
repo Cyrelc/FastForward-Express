@@ -120,7 +120,7 @@
                     </select>
                 </div>
             </div>
-    <!-- custom tracker -->
+<!-- custom tracker -->
             <div id='charge_reference' class="col-lg-6 hidden bottom15" id="charge_reference">
                 <div class="input-group">
                     <span id="charge_reference_name" class="input-group-addon"></span>

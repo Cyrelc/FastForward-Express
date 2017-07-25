@@ -4,7 +4,7 @@ namespace App\Http\Validation;
 class BillValidationRules {
     public function GetValidationRules($req) {
     	$rules = [	'delivery_date' => 'required|date',
-    				'bill_number'=> 'required',
+    				'bill_number'=> 'required|unique:bills',
     				'amount' => 'required|numeric',
     				'charge_selection_submission' => 'required',
     				'pickup_use_submission' => 'required',
@@ -61,17 +61,20 @@ class BillValidationRules {
 		        $pickupAddress = $partialsRules->GetAddressValidationRules('pickup', 'Pickup');
 		        $rules = array_merge($rules, $pickupAddress['rules']);
 		        $messages = array_merge($messages, $pickupAddress['messages']);
+                break;
 		}
 
 		switch($req->delivery_use_submission) {
 			case "account":
 				$rules = array_merge($rules, ['delivery_account_id' => 'required']);
 				$messages = array_merge($rules, ['delivery_account_id.required' => 'Delivery Account can not be blank']);
+                break;
 			case "address":
 				$partialsRules = new \App\Http\Validation\PartialsValidationRules();
 				$deliveryAddress = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
 				$rules = array_merge($rules, $deliveryAddress['rules']);
 				$messages = array_merge($messages, $deliveryAddress['messages']);
+                break;
 		}
 
     	return ['rules' => $rules, 'messages' => $messages];
