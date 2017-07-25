@@ -51,7 +51,6 @@ class AddressCollector {
     }
 
     public function ToArray($object, $is_primary) {
-        echo $object->street;
         return [
             'street' => $object->street,
             'street2' => $object->street2,
