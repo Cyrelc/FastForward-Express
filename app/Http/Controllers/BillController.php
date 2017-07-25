@@ -72,30 +72,28 @@ class BillController extends Controller {
 
         switch ($req->pickup_use_submission) {
             case "account":
-            //get account
                 $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
-            //get address from delivery ID on account
                 $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
-            //attempt to insert the address a second time, with a new Id
-//                $pickupAddressId = $addrRepo->Insert($pickupAddress);
-$pickupAddressId = null;
+                $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)['id'];
+                echo 'pickup_address_id is equal to ' . $pickupAddressId;
                 break;
             case "address":
                 $pickupAddress = $addrCollector->Collect($req,'pickup',false);
-                $pickupAddressId = $addrRepo->Insert($pickupAddress);
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)->id;
                 break;
         }
 
         switch ($req->delivery_use_submission) {
             case "account":
                 $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
-                $deliveryAddress = $addrRepo->GetById($deliveryAccount->delivery_address_id);
-//                $deliveryAddressId = $addrRepo->Insert($deliveryAddress);
-$deliveryAddressId = null;
+                $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
+                $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)['id'];
                 break;
             case "address":
                 $deliveryAddress = $addrCollector->Collect($req,'delivery',false);
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress);
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->id;
                 break;
         }
 
