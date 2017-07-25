@@ -48,8 +48,58 @@ class BillController extends Controller {
 
         $this->validate($req, $validationRules, $validationMessages);
 
-        
+        $acctRepo = new Repos\AccountRepo();
+        $billRepo = new Repos\BillRepo();
+        $addrRepo = new Repos\AddressRepo();
+        $addrCollector = new \App\Http\Collectors\AddressCollector();
+        $billCollector = new \App\Http\Collectors\BillCollector();
 
-        return;
+
+        switch ($req->charge_selection_submission) {
+            case "pickup_account":
+                $chargeAccountId = $req->pickup_account_id;
+                break;
+            case "delivery_account":
+                $chargeAccountId = $req->delivery_account_id;
+                break;
+            case "other_account" :
+                $chargeAccountId = $req->other_account_id;
+                break;
+            case "pre-paid":
+                $chargeAccountId = null;
+                break;
+        }
+
+        switch ($req->pickup_use_submission) {
+            case "account":
+                $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
+                $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
+                $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)['id'];
+                echo 'pickup_address_id is equal to ' . $pickupAddressId;
+                break;
+            case "address":
+                $pickupAddress = $addrCollector->Collect($req,'pickup',false);
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)->id;
+                break;
+        }
+
+        switch ($req->delivery_use_submission) {
+            case "account":
+                $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
+                $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
+                $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)['id'];
+                break;
+            case "address":
+                $deliveryAddress = $addrCollector->Collect($req,'delivery',false);
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->id;
+                break;
+        }
+
+        $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
+        $billRepo->Insert($bill);
+
+        return redirect()->action('BillController@create');
     }
 }

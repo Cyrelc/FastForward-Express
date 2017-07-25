@@ -49,4 +49,16 @@ class AddressCollector {
 
         return $addr;
     }
+
+    public function ToArray($object, $is_primary) {
+        return [
+            'street' => $object->street,
+            'street2' => $object->street2,
+            'city' => $object->city,
+            'zip_postal' => $object->zip_postal,
+            'state_province' => $object->state_province,
+            'country' => $object->country,
+            'is_primary' => $is_primary
+        ];
+    }
 }

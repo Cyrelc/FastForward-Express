@@ -54,7 +54,7 @@
         <hr>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input hidden type='text' id="selected_charge" name="selected_charge" />
+    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" />
     <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->bill->pickup_use_submission}}' />
     <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->bill->delivery_use_submission}}' />
 <!-- delivery date -->
@@ -120,7 +120,7 @@
                     </select>
                 </div>
             </div>
-    <!-- custom tracker -->
+<!-- custom tracker -->
             <div id='charge_reference' class="col-lg-6 hidden bottom15" id="charge_reference">
                 <div class="input-group">
                     <span id="charge_reference_name" class="input-group-addon"></span>

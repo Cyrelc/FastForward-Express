@@ -4,9 +4,9 @@ namespace App\Http\Validation;
 class BillValidationRules {
     public function GetValidationRules($req) {
     	$rules = [	'delivery_date' => 'required|date',
-    				'bill_number'=> 'required',
+    				'bill_number'=> 'required|unique:bills',
     				'amount' => 'required|numeric',
-    				'selected_charge' => 'required',
+    				'charge_selection_submission' => 'required',
     				'pickup_use_submission' => 'required',
     				'pickup_driver_id' => 'required',
                     'pickup_driver_commission' => 'required|numeric|between:0,100',
@@ -19,7 +19,7 @@ class BillValidationRules {
     				'bill_number.required' => 'Waybill number can not be empty', 
     				'amount.required' => "Bill amount can not be empty", 
                     'amount.numeric' => 'Bill amount must be a numeric value',
-    				'selected_charge.required' => 'You must select a payment method or account to charge',
+    				'charge_selection_submission.required' => 'You must select a payment method or account to charge',
     				'pickup_use_submission.required' => 'You must select whether to use an account or address for pickup',
     				'pickup_driver_id.required' => 'Pickup driver can not be empty',
                     'pickup_driver_commission.required' => 'Pickup driver commission can not be empty',
@@ -31,7 +31,7 @@ class BillValidationRules {
                     'delivery_driver_commission.numeric' => 'Delivery driver commission must be a numeric value',
                     'delivery_driver_commission.between' => 'Delivery driver commission must be between 0% and 100%'];
 
-    	switch($req->selected_charge) {
+    	switch($req->charge_selection_submission) {
     		case "pickup_account":
     			$rules = array_merge($rules, ['pickup_account_id' => 'required']);
     			$messages = array_merge($messages, ['pickup_account_id.required' => 'Pickup account can not be blank']);
@@ -61,17 +61,20 @@ class BillValidationRules {
 		        $pickupAddress = $partialsRules->GetAddressValidationRules('pickup', 'Pickup');
 		        $rules = array_merge($rules, $pickupAddress['rules']);
 		        $messages = array_merge($messages, $pickupAddress['messages']);
+                break;
 		}
 
 		switch($req->delivery_use_submission) {
 			case "account":
 				$rules = array_merge($rules, ['delivery_account_id' => 'required']);
 				$messages = array_merge($rules, ['delivery_account_id.required' => 'Delivery Account can not be blank']);
+                break;
 			case "address":
 				$partialsRules = new \App\Http\Validation\PartialsValidationRules();
 				$deliveryAddress = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
 				$rules = array_merge($rules, $deliveryAddress['rules']);
 				$messages = array_merge($messages, $deliveryAddress['messages']);
+                break;
 		}
 
     	return ['rules' => $rules, 'messages' => $messages];
