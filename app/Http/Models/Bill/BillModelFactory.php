@@ -75,8 +75,36 @@
 		    return $model;
 		}
 
-		public function GetEditModel() {
+		public function GetEditModel($id, $request) {
+			$model = new BillFormModel();
 
+			$acctRepo = new Repos\AccountRepo();
+			$driversRepo = new Repos\DriverRepo();
+			$interlinersRepo = new Repos\InterlinerRepo();
+			$billRepo = new Repos\BillRepo();
+
+			$model->bill = $billRepo->GetById($id);
+            $model->bill->date = strtotime($model->bill->date);
+
+            if (!isset($model->bill->charge_account_id)) {
+            	$model->bill->charge_selection_submission = 'pre-paid';
+            } else if ($model->bill->charge_account_id == $model->bill->delivery_account_id) {
+            	$model->bill->charge_selection_submission = 'charge_pickup_account';
+            } else if ($model->bill->charge_account_id == $model->bill->delivery_account_id) {
+            	$model->bill->charge_selection_submission = 'charge_delivery_account';
+            } else {
+            	$model->bill->charge_selection_submission = 'charge_other_account';
+            }
+
+            //to-do add this field to DB and make live
+            $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
+            $model->bill->payment_type = 'Cheque';
+
+			$model->accounts = $acctRepo->ListAll();
+			$model->drivers = $driversRepo->ListAll();
+			$model->interliners = $interlinersRepo->ListAll();
+
+			return $model;
 		}
 
 		public function MergeOld($model, $req) {

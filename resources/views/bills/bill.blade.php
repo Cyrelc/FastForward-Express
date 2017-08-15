@@ -17,6 +17,7 @@
 @endsection
 
 @section ('content')
+
     @if (isset($model->bill->bill_id))
         <h2>Edit Bill</h2>
     @else
@@ -43,7 +44,7 @@
 
 <!--predetermined information -->
 		<div hidden class="col-lg-4 bottom15">
-			<h4>Bill number: {{$model->bill->id}} </h4>
+			<h4>Bill number: {{$model->bill->bill_id}} </h4>
 		</div>
 		<div hidden class="col-lg-4 bottom15">
 			<h4>Invoice number: {{$model->bill->invoice_id}} </h4>
@@ -54,7 +55,7 @@
         <hr>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" />
+    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->bill->charge_selection_submission}}'/>
     <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->bill->pickup_use_submission}}' />
     <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->bill->delivery_use_submission}}' />
 <!-- delivery date -->
@@ -83,7 +84,7 @@
         </div>
 <!-- Charge -->
         <div id="select_charge" class="col-lg-12 bottom15">
-            <label><input id="charge_pickup_account" type="radio" name="charge_selection">  Charge Pickup Account</label>
+            <label><input id="charge_pickup_account" type="radio" name="charge_selection" >  Charge Pickup Account</label>
             <label><input id="charge_delivery_account" type="radio" name="charge_selection">  Charge Delivery Account</label>
             <label><input id="charge_other_account" type="radio" name="charge_selection">  Charge Other Account</label>
             <label><input id="pre_paid" type="radio" name="charge_selection">  Pre-Paid (Auto-Invoice)</label>

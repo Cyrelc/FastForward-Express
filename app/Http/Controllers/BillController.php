@@ -76,7 +76,6 @@ class BillController extends Controller {
                 $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
                 $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
                 $pickupAddressId = $addrRepo->Insert($pickupAddress)['id'];
-                echo 'pickup_address_id is equal to ' . $pickupAddressId;
                 break;
             case "address":
                 $pickupAddress = $addrCollector->Collect($req,'pickup',false);

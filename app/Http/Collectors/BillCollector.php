@@ -38,7 +38,7 @@ class BillCollector {
 			'interliner_amount' => $req->interliner_amount,
 			'bill_number' => $req->bill_number,
 			'description' => $req->description,
-			'date' => $req->delivery_date,
+			'date' => strtotime($req->input('delivery_date')),
 			'amount' => $req->amount
 		];
 	}
