@@ -75,11 +75,11 @@ class BillController extends Controller {
                 $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
                 $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
                 $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
-                $pickupAddressId = $addrRepo->Insert($pickupAddress)['id'];
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
                 break;
             case "address":
                 $pickupAddress = $addrCollector->Collect($req,'pickup',false);
-                $pickupAddressId = $addrRepo->Insert($pickupAddress)->id;
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
                 break;
         }
 
@@ -88,11 +88,11 @@ class BillController extends Controller {
                 $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
                 $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
                 $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)['id'];
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
                 break;
             case "address":
                 $deliveryAddress = $addrCollector->Collect($req,'delivery',false);
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->id;
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
                 break;
         }
 

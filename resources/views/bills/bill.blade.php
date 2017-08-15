@@ -43,19 +43,19 @@
         @endif
 
 <!--predetermined information -->
-		<div hidden class="col-lg-4 bottom15">
+		<div class="col-lg-4 bottom15">
 			<h4>Bill number: {{$model->bill->bill_id}} </h4>
 		</div>
-		<div hidden class="col-lg-4 bottom15">
+		<div class="col-lg-4 bottom15">
 			<h4>Invoice number: {{$model->bill->invoice_id}} </h4>
 		</div>
-		<div hidden class="col-lg-4 bottom15">
+		<div class="col-lg-4 bottom15">
 			<h4>Manifest number: {{$model->bill->manifest_id}}</h4>
 		</div>
         <hr>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->bill->charge_selection_submission}}'/>
+    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->charge_selection_submission}}'/>
     <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->bill->pickup_use_submission}}' />
     <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->bill->delivery_use_submission}}' />
 <!-- delivery date -->
@@ -95,7 +95,7 @@
                 <select id="payment_type" class="form-control" name="payment_type">
                     <option></option>
                     @foreach($model->payment_types as $payment_type)
-                        @if (isset($model->bill->payment_type) && $payment_type == $model->bill->payment_type)
+                        @if (isset($model->bill->payment_type) && $payment_type == $model->payment_type)
                             <option selected value="{{$payment_type}}">{{$payment_type}}</option>
                         @else
                             <option value="{{$payment_type}}">{{$payment_type}}</option>
@@ -112,7 +112,7 @@
                     <select id="charge_account_id" class="form-control" name="charge_account_id" data-reference="charge_reference">
                         <option></option>
                         @foreach($model->accounts as $a)
-                            @if (isset($model->bill->charge_account) && $a->account_id == $model->bill->charge_account)
+                            @if (isset($model->bill->charge_account) && $a->account_id == $model->bill->charge_account_id)
                                 <option selected value="{{$a->account_id}}">{{$a->name}}</option>
                             @else
                                 <option value="{{$a->account_id}}">{{$a->name}}</option>
@@ -183,7 +183,7 @@
                 </div>
                 <div class="col-lg-4 bottom15">
                     <div class="input-group">
-                        <input id="pickup_driver_commission" class="form-control" type="number" min="0" max="100" name="pickup_driver_commission" value="{{$model->bill->pickup_driver_commission}}"/>
+                        <input id="pickup_driver_commission" class="form-control" type="number" min="0" max="100" name="pickup_driver_commission" value="{{$model->bill->pickup_driver_percentage}}"/>
                         <span class="input-group-addon">%</span>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                             <select id="pickup_account_id" class="form-control" name="pickup_account_id" data-reference="pickup_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
-                                    @if (isset($model->bill->pickup_account) && $a->account_id == $model->bill->pickup_account)
+                                    @if (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id)
                                         <option selected value="{{$a->account_id}}">{{$a->name}}</option>
                                     @else
                                         <option value="{{$a->account_id}}">{{$a->name}}</option>
@@ -214,7 +214,7 @@
                 </div>
 <!--pickup address -->
                 <div id="pickup_address" class="col-lg-12 hidden">
-                    @include('partials.address', ['prefix' => 'pickup', 'address' => $model->bill->pickupAddress, 'enabled' => true])
+                    @include('partials.address', ['prefix' => 'pickup', 'address' => $model->pickupAddress, 'enabled' => true])
                 </div>
             </div>
         </div>
@@ -248,7 +248,7 @@
                 </div>
                 <div class="col-lg-4 bottom15">
                     <div class="input-group">
-                        <input id="delivery_driver_commission" class="form-control" type="number" min="0" max="100" name="delivery_driver_commission" value="{{$model->bill->delivery_driver_commission}}" />
+                        <input id="delivery_driver_commission" class="form-control" type="number" min="0" max="100" name="delivery_driver_commission" value="{{$model->bill->delivery_driver_percentage}}" />
                         <span class="input-group-addon">%</span>
                     </div>
                 </div>
@@ -260,7 +260,7 @@
                             <select id="delivery_account_id" class="form-control" name="delivery_account_id" data-reference="delivery_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
-                                    @if (isset($model->bill->delivery_account) && $a->account_id == $model->bill->delivery_account)
+                                    @if (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id)
                                         <option selected value="{{$a->account_id}}">{{$a->name}}</option>
                                     @else
                                         <option value="{{$a->account_id}}">{{$a->name}}</option>
@@ -279,7 +279,7 @@
                 </div>
 <!-- delivery address -->
                 <div id="delivery_address" class="col-lg-12 hidden">
-                    @include('partials.address', ['prefix' => 'delivery', 'address' => $model->bill->deliveryAddress, 'enabled' => true])
+                    @include('partials.address', ['prefix' => 'delivery', 'address' => $model->deliveryAddress, 'enabled' => true])
                 </div>
             </div>
         </div>

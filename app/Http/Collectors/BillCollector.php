@@ -9,15 +9,19 @@ class BillCollector {
 		switch ($req->pickup_use_submission) {
 			case 'account':
 				$pickup_account = $req->pickup_account_id;
+				break;
 			case 'address':
 				$pickup_account = null;
+				break;
 		}
 
 		switch ($req->delivery_use_submission) {
 			case 'account':
 				$delivery_account = $req->delivery_account_id;
+				break;
 			case 'address':
 				$delivery_account = null;
+				break;
 		}
 
 		return [

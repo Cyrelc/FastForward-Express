@@ -67,6 +67,9 @@
 		    $model->drivers = $driversRepo->ListAll();
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
+		    $model->pickupAddress = new \App\Address();
+		    $model->deliveryAddress = new \App\Address();
+		    $model->charge_selection_submission = null;
             $model->bill->delivery_date = date("U");
 		    $model->bill->pickup_use_submission = "account";
 		    $model->bill->delivery_use_submission = "account";
@@ -79,26 +82,30 @@
 			$model = new BillFormModel();
 
 			$acctRepo = new Repos\AccountRepo();
+			$addrRepo = new Repos\AddressRepo();
 			$driversRepo = new Repos\DriverRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$billRepo = new Repos\BillRepo();
 
 			$model->bill = $billRepo->GetById($id);
-            $model->bill->date = strtotime($model->bill->date);
+            // $model->bill->date = strtotime($model->bill->date);
 
             if (!isset($model->bill->charge_account_id)) {
-            	$model->bill->charge_selection_submission = 'pre-paid';
+            	$model->charge_selection_submission = 'pre-paid';
             } else if ($model->bill->charge_account_id == $model->bill->delivery_account_id) {
-            	$model->bill->charge_selection_submission = 'charge_pickup_account';
+            	$model->charge_selection_submission = 'charge_pickup_account';
             } else if ($model->bill->charge_account_id == $model->bill->delivery_account_id) {
-            	$model->bill->charge_selection_submission = 'charge_delivery_account';
+            	$model->charge_selection_submission = 'charge_delivery_account';
             } else {
-            	$model->bill->charge_selection_submission = 'charge_other_account';
+            	$model->charge_selection_submission = 'charge_other_account';
             }
 
-            //to-do add this field to DB and make live
+            $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
+            $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
+
+            //to-do add this field to table
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
-            $model->bill->payment_type = 'Cheque';
+            $model->payment_type = 'Cheque';
 
 			$model->accounts = $acctRepo->ListAll();
 			$model->drivers = $driversRepo->ListAll();

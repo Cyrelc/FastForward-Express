@@ -17,8 +17,8 @@ class BillValidationRules {
     	$messages = ['delivery_date.required' => 'Delivery date is required',
                     'delivery_date.date' => 'Delivery date is in an incorrect format',
     				'bill_number.required' => 'Waybill number can not be empty', 
-                    'bill_number.unique' => 'Provided waybill number is not unique. Please try again.'
-    				'amount.required' => "Bill amount can not be empty", 
+                    'bill_number.unique' => 'Provided waybill number is not unique. Please try again.',
+    				'amount.required' => 'Bill amount can not be empty',
                     'amount.numeric' => 'Bill amount must be a numeric value',
     				'charge_selection_submission.required' => 'You must select a payment method or account to charge',
     				'pickup_use_submission.required' => 'You must select whether to use an account or address for pickup',
