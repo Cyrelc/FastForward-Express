@@ -54,6 +54,7 @@
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
                                 <ul class="dropdown-menu">
+                                    <li><a href="/appsettings">Global Config</a></li>
                                     <li><a href="/logout">Log Out</a></li>
                                 </ul>
                         </li>
