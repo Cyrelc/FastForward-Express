@@ -54,7 +54,6 @@ class BillController extends Controller {
         $addrCollector = new \App\Http\Collectors\AddressCollector();
         $billCollector = new \App\Http\Collectors\BillCollector();
 
-
         switch ($req->charge_selection_submission) {
             case "pickup_account":
                 $chargeAccountId = $req->pickup_account_id;
@@ -63,7 +62,7 @@ class BillController extends Controller {
                 $chargeAccountId = $req->delivery_account_id;
                 break;
             case "other_account" :
-                $chargeAccountId = $req->other_account_id;
+                $chargeAccountId = $req->charge_account_id;
                 break;
             case "pre-paid":
                 $chargeAccountId = null;

@@ -84,10 +84,10 @@
         </div>
 <!-- Charge -->
         <div id="select_charge" class="col-lg-12 bottom15">
-            <label><input id="charge_pickup_account" type="radio" name="charge_selection" >  Charge Pickup Account</label>
-            <label><input id="charge_delivery_account" type="radio" name="charge_selection">  Charge Delivery Account</label>
-            <label><input id="charge_other_account" type="radio" name="charge_selection">  Charge Other Account</label>
-            <label><input id="pre_paid" type="radio" name="charge_selection">  Pre-Paid (Auto-Invoice)</label>
+            <label><input id="charge_pickup_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pickup_account' ? 'checked' : ''}} />  Charge Pickup Account</label>
+            <label><input id="charge_delivery_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'delivery_account' ? 'checked' : ''}} />  Charge Delivery Account</label>
+            <label><input id="charge_other_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'other_account' ? 'checked' : ''}}/>  Charge Other Account</label>
+            <label><input id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
         </div>
         <div class="col-lg-4 hidden bottom15">
             <div class="input-group">
@@ -105,7 +105,7 @@
             </div>
         </div>
 <!-- charge account -->
-        <div id="charge_account" class="col-lg-12 hidden bottom15">
+        <div id="charge_account" class="col-lg-12 {{$model->charge_selection_submission == 'other_account' ? '' : 'hidden'}} bottom15">
             <div class="col-lg-12 bottom15">
                 <div class="input-group">
                     <span class="input-group-addon">Charge Account: </span>
@@ -160,8 +160,8 @@
                     <h4>Pickup</h4>
                 </div>
                 <div id="pickup_use_div" class="col-lg-6 btn-group bottom15" data-toggle="buttons">
-                    <label class="radio-inline"><input id="pickup_use_account" type="radio" name="pickup_use" checked="checked">  Use Account</label>
-                    <label class="radio-inline"><input id="pickup_use_address" type="radio" name="pickup_use">  Use Address</label>
+                    <label class="radio-inline"><input id="pickup_use_account" type="radio" name="pickup_use" {{$model->pickup_use == "account" ? 'checked' : ''}} />  Use Account</label>
+                    <label class="radio-inline"><input id="pickup_use_address" type="radio" name="pickup_use" {{$model->pickup_use == "address" ? 'checked' : ''}} />  Use Address</label>
                 </div>
             </div>
 <!--pickup driver-->
@@ -188,7 +188,7 @@
                     </div>
                 </div>
 <!-- pickup account -->
-                <div id="pickup_account" class="col-lg-12 bottom15 clearfix">
+                <div id="pickup_account" class="col-lg-12 bottom15 {{$model->pickup_use == 'address' ? 'hidden' : ''}} clearfix">
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Pickup Account: </span>
@@ -213,7 +213,7 @@
                     </div>
                 </div>
 <!--pickup address -->
-                <div id="pickup_address" class="col-lg-12 hidden">
+                <div id="pickup_address" class="col-lg-12 {{$model->pickup_use == "account" ? 'hidden' : ''}}">
                     @include('partials.address', ['prefix' => 'pickup', 'address' => $model->pickupAddress, 'enabled' => true])
                 </div>
             </div>
@@ -225,8 +225,8 @@
                     <h4>Delivery</h4>
                 </div>
                 <div class="col-lg-6 btn-group bottom15" data-toggle="buttons">
-                    <label class="radio-inline"><input id="delivery_use_account" type="radio" name="delivery_use" checked>  Use Account</label>
-                    <label class="radio-inline"><input id="delivery_use_address" type="radio" name="delivery_use">  Use Address</label>
+                    <label class="radio-inline"><input id="delivery_use_account" type="radio" name="delivery_use" {{$model->delivery_use == "account" ? 'checked' : ''}} />  Use Account</label>
+                    <label class="radio-inline"><input id="delivery_use_address" type="radio" name="delivery_use" {{$model->delivery_use == "address" ? 'checked' : ''}} />  Use Address</label>
                 </div>
             </div>
 <!-- delivery driver -->
@@ -253,7 +253,7 @@
                     </div>
                 </div>
 <!-- delivery account -->
-                <div id="delivery_account" class="col-lg-12 bottom15">
+                <div id="delivery_account" class="col-lg-12 {{$model->delivery_use == 'address' ? 'hidden' : ''}} bottom15">
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Delivery Account: </span>
@@ -278,7 +278,7 @@
                     </div>
                 </div>
 <!-- delivery address -->
-                <div id="delivery_address" class="col-lg-12 hidden">
+                <div id="delivery_address" class="col-lg-12 {{$model->delivery_use == "account" ? 'hidden' : ''}}">
                     @include('partials.address', ['prefix' => 'delivery', 'address' => $model->deliveryAddress, 'enabled' => true])
                 </div>
             </div>

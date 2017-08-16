@@ -23,7 +23,4 @@ class Bill extends Model
     						'date',
     						'description'];
 
-    public function Driver() {
-        return $this->belongsTo('App\Driver');
-    }
 }
