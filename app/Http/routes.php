@@ -45,6 +45,7 @@ Route::group(
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
+            Route::get('/bills/edit/{id}','BillController@edit');
             Route::post('/bills/store', 'BillController@store');
 
             Route::get('/drivers', 'DriverController@index');
@@ -62,6 +63,8 @@ Route::group(
             Route::get('/logout', 'Auth\AuthController@getLogout');
 
             Route::post('/contactus', 'HomeController@ContactUs');
+
+            Route::get('/appsettings', 'HomeController@AppSettings');
 
             //API
             // Route::resource('/customers', 'AccountController',

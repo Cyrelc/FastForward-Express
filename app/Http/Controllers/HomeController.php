@@ -44,4 +44,9 @@ class HomeController extends Controller
             ]);
         }
     }
+
+    public function AppSettings() {
+        return view('admin.adminSettings');
+    }
+
 }

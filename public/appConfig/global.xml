@@ -1,0 +1,7 @@
+<GST_percent>5</GST_percent>
+<fuel_surcharge_percent>2</fuel_surcharge_percent>
+<invoice_intervals>
+	<interval>Weekly</interval>
+	<interval>Twice Monthly</interval>
+	<interval>Monthly</interval>
+</invoice_intervals>

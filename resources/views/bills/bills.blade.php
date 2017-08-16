@@ -20,7 +20,7 @@
         var order = [1, "desc"];
 
 		function dtRowCallback(row, data) {
-		    var id = data[2];
+		    var id = data[1];
 		    var name = data[4].replace("'", "\\'");
 
             var editButton = '<a href="bills/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
