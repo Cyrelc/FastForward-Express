@@ -114,6 +114,7 @@
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
+            $model->bill->date = strtotime($model->bill->date);
 
             //to-do add this field to table
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];

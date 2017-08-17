@@ -62,7 +62,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
-                <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->delivery_date)}}"/>
+                <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
