@@ -87,7 +87,7 @@
             <label><input id="charge_pickup_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pickup_account' ? 'checked' : ''}} />  Charge Pickup Account</label>
             <label><input id="charge_delivery_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'delivery_account' ? 'checked' : ''}} />  Charge Delivery Account</label>
             <label><input id="charge_other_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'other_account' ? 'checked' : ''}}/>  Charge Other Account</label>
-            <label><input id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
+            <label><input disabled id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
         </div>
         <div class="col-lg-4 hidden bottom15">
             <div class="input-group">
@@ -300,7 +300,19 @@
     <h4>On Submit</h4>
     <hr>
     <div class="checkbox">
-        <label><input disabled id="keep_account" type="checkbox" name="keep_account" />Keep Account</label>
+        <label><input disabled id="keep_date" type="checkbox" name="keep_date" />Keep Date</label>
+    </div>
+    <div class="checkbox">
+        <label><input disabled id="keep_charge_selection" type="checkbox" name="keep_charge_selection" />Keep Charge Selection</label>
+    </div>
+    <div class="checkbox">
+        <label><input disabled id="keep_charge_account" type="checkbox" name="keep_charge_account" />Keep Charge Account</label>
+    </div>
+    <div class="checkbox">
+        <label><input disabled id="keep_pickup_account" type="checkbox" name="keep_pickup_account" />Keep Pickup Account</label>
+    </div>
+    <div class="checkbox">
+        <label><input disabled id="keep_delivery_account" type="checkbox" name="keep_delivery_account" />Keep Delivery Account</label>
     </div>
     <div class="checkbox">
         <label><input disabled id="keep_pickup_driver" type="checkbox" name="keep_pickup_driver" />Keep Pickup Driver</label>
