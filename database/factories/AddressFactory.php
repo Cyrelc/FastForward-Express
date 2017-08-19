@@ -216,6 +216,7 @@ $factory->define(App\Address::class, function (Faker\Generator $faker) {
     $street = rand(100, 250) . rand(10, 50);
 
     return [
+        'name' => $faker->company,
         'street' => $street . ' ' . rand(1, 250) . $suffix,
         'street2' => "",
         'city' => $city,

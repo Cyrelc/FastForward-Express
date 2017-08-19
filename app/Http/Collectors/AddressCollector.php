@@ -4,6 +4,7 @@ namespace App\Http\Collectors;
 class AddressCollector {
     public function Collect($req, $prefix, $isPrimary) {
         return [
+            'name'=>$req->input($prefix . '-name'),
             'address_id'=>$req->input($prefix . '-id'),
             'street'=>$req->input($prefix . '-street'),
             'street2'=>$req->input($prefix . '-street2'),
@@ -16,6 +17,9 @@ class AddressCollector {
     }
 
     public function Remerge($req, $address, $prefix) {
+        if ($req->old($prefix . "-name") !== null)
+            $address->name = $req->old($prefix . "-name");
+
         if ($req->old($prefix . "-street") !== null)
             $address->street = $req->old($prefix . "-street");
 
@@ -40,6 +44,7 @@ class AddressCollector {
     public function ToObject($array) {
         $addr = new \App\Address();
 
+        $addr->name = $array['name'];
         $addr->street = $array['street'];
         $addr->street2 = $array['street2'];
         $addr->city = $array['city'];
@@ -52,6 +57,7 @@ class AddressCollector {
 
     public function ToArray($object, $is_primary) {
         return [
+            'name' => $object->name,
             'street' => $object->street,
             'street2' => $object->street2,
             'city' => $object->city,

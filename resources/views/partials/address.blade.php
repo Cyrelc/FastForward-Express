@@ -8,6 +8,11 @@
     <!--Address ID-->
     <input type="hidden" name="{{$prefix}}-id" value="{{isset($address) ? $address->address_id : ''}}" />
 
+    <!--Name-->
+    <div class="col-lg-12 bottom15">
+        <input type='text' id="{{$prefix}}-name" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-name' placeholder="Address Name" value="{{isset($address) ? $address->name : ''}}" />
+    </div>
+
     <!--Steet-->
     <div class="col-lg-6">
         <input type='text' id="{{$prefix}}-street" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street' placeholder="Address Line 1"  value="{{isset($address) ? $address->street : ''}}"/>
