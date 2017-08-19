@@ -4,7 +4,7 @@ namespace App\Http\Validation;
 class BillValidationRules {
     public function GetValidationRules($req) {
     	$rules = [	'delivery_date' => 'required|date',
-    				'bill_number'=> 'required|unique:bills',
+    				'bill_number' => 'required|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
     				'amount' => 'required|numeric',
     				'charge_selection_submission' => 'required',
     				'pickup_use_submission' => 'required',

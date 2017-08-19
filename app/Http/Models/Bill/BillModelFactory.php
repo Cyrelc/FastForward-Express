@@ -67,6 +67,7 @@
 		    $model->drivers = $driversRepo->ListAll();
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
+
 		    $model->pickupAddress = new \App\Address();
 		    $model->deliveryAddress = new \App\Address();
 		    $model->pickup_use = "account";
@@ -75,6 +76,7 @@
             $model->bill->delivery_date = date("U");
 		    $model->bill->pickup_use_submission = "account";
 		    $model->bill->delivery_use_submission = "account";
+		    $model->use_interliner = 'false';
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
 		    
 		    return $model;
@@ -111,6 +113,11 @@
             	$model->delivery_use = "account";
             else
             	$model->delivery_use = "address";
+
+            if (isset($model->bill->interliner_id))
+            	$model->use_interliner = "true";
+            else
+            	$model->use_interliner = "false";
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);

@@ -24,7 +24,19 @@ class BillCollector {
 				break;
 		}
 
+		switch ($req->use_interliner) {
+			case 'true':
+				$interliner_id = $req->interliner_id;
+				$interliner_amount = $req->interliner_amount;
+				break;
+			case 'false':
+				$interliner_id = null;
+				$interliner_amount = null;
+				break;
+		}
+
 		return [
+			'bill_id' => $req->bill_id,
 			'charge_account_id' => $chargeAccountId,
 			'other_account_id' => $req->other_account_id,
 			'pickup_account_id' => $pickup_account,
@@ -38,8 +50,8 @@ class BillCollector {
 			'delivery_driver_id' => $req->delivery_driver_id,
 			'pickup_driver_percentage' => $req->pickup_driver_commission,
 			'delivery_driver_percentage' => $req->delivery_driver_commission,
-			'interliner_id' => $req->interliner_id,
-			'interliner_amount' => $req->interliner_amount,
+			'interliner_id' => $interliner_id,
+			'interliner_amount' => $interliner_amount,
 			'bill_number' => $req->bill_number,
 			'description' => $req->description,
 			'date' => (new \DateTime($req->input('delivery_date')))->format('Y-m-d'),

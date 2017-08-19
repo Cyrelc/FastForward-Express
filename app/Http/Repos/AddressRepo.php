@@ -50,6 +50,8 @@ class AddressRepo {
         $old->country = $address['country'];
 
         $old->save();
+
+        return $old;
     }
 
     public function Delete($aId){

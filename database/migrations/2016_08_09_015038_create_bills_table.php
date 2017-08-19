@@ -30,13 +30,13 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_driver_percentage');
             $table->unsignedInteger('delivery_driver_percentage');
             $table->unsignedInteger('interliner_id')->nullable();
+            $table->decimal('interliner_amount')->nullable();
             $table->string('bill_number');
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
             $table->boolean('is_manifested')->default(false);
             $table->boolean('is_invoiced')->default(false);
-            $table->decimal('interliner_amount')->nullable();
 
 			$table->unique('bill_number');
 			$table->foreign('manifest_id')->references('manifest_id')->on('manifests');

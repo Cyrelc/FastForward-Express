@@ -23,8 +23,8 @@ class BillRepo {
     	$new->charge_account_id = $bill['charge_account_id'];
     	$new->pickup_account_id = $bill['pickup_account_id'];
     	$new->delivery_account_id = $bill['delivery_account_id'];
-    	$new->from_address_id = $bill['pickup_address_id'];
-    	$new->to_address_id = $bill['delivery_address_id'];
+    	$new->pickup_address_id = $bill['pickup_address_id'];
+    	$new->delivery_address_id = $bill['delivery_address_id'];
     	$new->charge_reference_value = $bill['charge_reference_value'];
     	$new->pickup_reference_value = $bill['pickup_reference_value'];
     	$new->delivery_reference_value = $bill['delivery_reference_value'];
@@ -42,6 +42,33 @@ class BillRepo {
     	$new = $new->create($bill);
 
     	return $new;
+    }
+
+    public function Update($bill) {
+        $old = $this->GetById($bill['bill_id']);
+
+        $old->charge_account_id = $bill['charge_account_id'];
+        $old->pickup_account_id = $bill['pickup_account_id'];
+        $old->delivery_account_id = $bill['delivery_account_id'];
+        $old->pickup_address_id = $bill['pickup_address_id'];
+        $old->delivery_address_id = $bill['delivery_address_id'];
+        $old->charge_reference_value = $bill['charge_reference_value'];
+        $old->pickup_reference_value = $bill['pickup_reference_value'];
+        $old->delivery_reference_value = $bill['delivery_reference_value'];
+        $old->pickup_driver_id = $bill['pickup_driver_id'];
+        $old->delivery_driver_id = $bill['delivery_driver_id'];
+        $old->pickup_driver_percentage = $bill['pickup_driver_percentage'];
+        $old->delivery_driver_percentage = $bill['delivery_driver_percentage'];
+        $old->interliner_id = $bill['interliner_id'];
+        $old->interliner_amount = $bill['interliner_amount'];
+        $old->bill_number = $bill['bill_number'];
+        $old->description = $bill['description'];
+        $old->date = $bill['date'];
+        $old->amount = $bill['amount'];
+
+        $old->save();
+
+        return $old;
     }
 
     public function CountByDriver($driverId) {
