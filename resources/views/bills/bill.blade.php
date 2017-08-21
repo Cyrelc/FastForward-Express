@@ -331,6 +331,7 @@
     <div class="checkbox">
         <label><input disabled id="keep_delivery_driver" type="checkbox" name="keep_delivery_driver" />Keep Delivery Driver</label>
     </div>
+    <hr>
     <div class="checkbox">
         <label><input disabled id="use_interliner" type="checkbox" name="use_interliner" />Use Interliner</label>
     </div>

@@ -30,8 +30,8 @@ class BillRepo {
     	$new->delivery_reference_value = $bill['delivery_reference_value'];
     	$new->pickup_driver_id = $bill['pickup_driver_id'];
     	$new->delivery_driver_id = $bill['delivery_driver_id'];
-    	$new->pickup_driver_percentage = $bill['pickup_driver_percentage'];
-    	$new->delivery_driver_percentage = $bill['delivery_driver_percentage'];
+    	$new->pickup_driver_commission = $bill['pickup_driver_commission'];
+    	$new->delivery_driver_commission = $bill['delivery_driver_commission'];
     	$new->interliner_id = $bill['interliner_id'];
     	$new->interliner_amount = $bill['interliner_amount'];
     	$new->bill_number = $bill['bill_number'];
@@ -57,8 +57,8 @@ class BillRepo {
         $old->delivery_reference_value = $bill['delivery_reference_value'];
         $old->pickup_driver_id = $bill['pickup_driver_id'];
         $old->delivery_driver_id = $bill['delivery_driver_id'];
-        $old->pickup_driver_percentage = $bill['pickup_driver_percentage'];
-        $old->delivery_driver_percentage = $bill['delivery_driver_percentage'];
+        $old->pickup_driver_commission = $bill['pickup_driver_commission'];
+        $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
         $old->interliner_amount = $bill['interliner_amount'];
         $old->bill_number = $bill['bill_number'];

@@ -27,8 +27,8 @@ class CreateBillsTable extends Migration
             $table->string('delivery_reference_value')->nullable();
             $table->unsignedInteger('pickup_driver_id');
             $table->unsignedInteger('delivery_driver_id');
-            $table->unsignedInteger('pickup_driver_percentage');
-            $table->unsignedInteger('delivery_driver_percentage');
+            $table->unsignedInteger('pickup_driver_commission');
+            $table->unsignedInteger('delivery_driver_commission');
             $table->unsignedInteger('interliner_id')->nullable();
             $table->decimal('interliner_amount')->nullable();
             $table->string('bill_number');
