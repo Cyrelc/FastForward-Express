@@ -57,7 +57,7 @@
 
 		}
 
-		public function GetCreateModel() {
+		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 		    $acctRepo = new Repos\AccountRepo();
 		    $driversRepo = new Repos\DriverRepo();
@@ -70,19 +70,19 @@
 
 		    $model->pickupAddress = new \App\Address();
 		    $model->deliveryAddress = new \App\Address();
-		    $model->pickup_use = "account";
-		    $model->delivery_use = "account";
 		    $model->charge_selection_submission = null;
-            $model->bill->delivery_date = date("U");
-		    $model->bill->pickup_use_submission = "account";
-		    $model->bill->delivery_use_submission = "account";
+            $model->bill->date = date("U");
+		    $model->pickup_use_submission = "account";
+		    $model->delivery_use_submission = "account";
 		    $model->use_interliner = 'false';
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
 		    
+			$model = $this->MergeOld($model, $req);
+
 		    return $model;
 		}
 
-		public function GetEditModel($id, $request) {
+		public function GetEditModel($id, $req) {
 			$model = new BillFormModel();
 
 			$acctRepo = new Repos\AccountRepo();
@@ -105,14 +105,14 @@
             }
 
             if (isset($model->bill->pickup_account_id))
-            	$model->pickup_use = "account";
+            	$model->pickup_use_submission = "account";
             else 
-            	$model->pickup_use = "address";
+            	$model->pickup_use_submission = "address";
 
             if (isset($model->bill->delivery_account_id))
-            	$model->delivery_use = "account";
+            	$model->delivery_use_submission = "account";
             else
-            	$model->delivery_use = "address";
+            	$model->delivery_use_submission = "address";
 
             if (isset($model->bill->interliner_id))
             	$model->use_interliner = "true";
@@ -131,11 +131,28 @@
 			$model->drivers = $driversRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();
 
+			$model = $this->MergeOld($model, $req);
+
 			return $model;
 		}
 
 		public function MergeOld($model, $req) {
+		    $addrCollector = new \App\Http\Collectors\AddressCollector();
+		    $billCollector = new \App\Http\Collectors\BillCollector();
 
+			$model->pickupAddress = $addrCollector->ReMerge($req, $model->pickupAddress, 'pickup');
+			$model->deliveryAddress = $addrCollector->ReMerge($req, $model->deliveryAddress, 'delivery');
+
+			$model->bill = $billCollector->ReMerge($req, $model->bill);
+
+			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner');
+
+			foreach ($modelVars as $modelVar) {
+				if($req->old($modelVar) !== null)
+					$model->{$modelVar} = $req->old($modelVar);
+			}
+
+			return $model;
 		}
 	}
 ?>

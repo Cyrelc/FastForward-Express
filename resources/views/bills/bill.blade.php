@@ -43,7 +43,7 @@
         @endif
 
 <!--predetermined information -->
-    <div class="col-lg-12">
+    <div hidden class="col-lg-12">
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <h4 class="input-group-addon"> Bill Number: </h4>
@@ -66,14 +66,14 @@
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->charge_selection_submission}}'/>
-    <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use}}' />
-    <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use}}' />
+    <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
+    <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
     <input hidden type='hidden' id='use_interliner' name='use_interliner' value='{{$model->use_interliner}}' />
 <!-- delivery date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
-                <input type='text' id="delivery_date" class="form-control" name='delivery_date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->date)}}"/>
+                <input type='text' id="date" class="form-control" name='date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -171,8 +171,8 @@
                     <h4>Pickup</h4>
                 </div>
                 <div id="pickup_use_div" class="col-lg-6 btn-group bottom15" data-toggle="buttons">
-                    <label class="radio-inline"><input id="pickup_use_account" type="radio" name="pickup_use" {{$model->pickup_use == "account" ? 'checked' : ''}} {{$model->charge_selection_submission == "pickup_account" ? 'disabled' : ''}} />  Use Account</label>
-                    <label class="radio-inline"><input id="pickup_use_address" type="radio" name="pickup_use" {{$model->pickup_use == "address" ? 'checked' : ''}} {{$model->charge_selection_submission == "pickup_account" ? 'disabled' : ''}}/>  Use Address</label>
+                    <label class="radio-inline"><input id="pickup_use_account" type="radio" name="pickup_use" {{$model->pickup_use_submission == "account" ? 'checked' : ''}} {{$model->charge_selection_submission == "pickup_account" ? 'disabled' : ''}} />  Use Account</label>
+                    <label class="radio-inline"><input id="pickup_use_address" type="radio" name="pickup_use" {{$model->pickup_use_submission == "address" ? 'checked' : ''}} {{$model->charge_selection_submission == "pickup_account" ? 'disabled' : ''}}/>  Use Address</label>
                 </div>
             </div>
 <!--pickup driver-->
@@ -194,12 +194,12 @@
                 </div>
                 <div class="col-lg-4 bottom15">
                     <div class="input-group">
-                        <input id="pickup_driver_commission" class="form-control" type="number" min="0" max="100" name="pickup_driver_commission" value="{{$model->bill->pickup_driver_percentage}}"/>
+                        <input id="pickup_driver_commission" class="form-control" type="number" min="0" max="100" name="pickup_driver_commission" value="{{$model->bill->pickup_driver_commission}}"/>
                         <span class="input-group-addon">%</span>
                     </div>
                 </div>
 <!-- pickup account -->
-                <div id="pickup_account" class="col-lg-12 bottom15 {{$model->pickup_use == 'address' ? 'hidden' : ''}} clearfix">
+                <div id="pickup_account" class="col-lg-12 bottom15 {{$model->pickup_use_submission == 'address' ? 'hidden' : ''}} clearfix">
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Pickup Account: </span>
@@ -224,7 +224,7 @@
                     </div>
                 </div>
 <!--pickup address -->
-                <div id="pickup_address" class="col-lg-12 {{$model->pickup_use == "account" ? 'hidden' : ''}}" >
+                <div id="pickup_address" class="col-lg-12 {{$model->pickup_use_submission == "account" ? 'hidden' : ''}}" >
                     @include('partials.address', ['prefix' => 'pickup', 'address' => $model->pickupAddress, 'enabled' => true])
                 </div>
             </div>
@@ -236,8 +236,8 @@
                     <h4>Delivery</h4>
                 </div>
                 <div class="col-lg-6 btn-group bottom15" data-toggle="buttons">
-                    <label class="radio-inline"><input id="delivery_use_account" type="radio" name="delivery_use" {{$model->delivery_use == "account" ? 'checked' : ''}} {{$model->charge_selection_submission == "delivery_account" ? 'disabled' : ''}} />  Use Account</label>
-                    <label class="radio-inline"><input id="delivery_use_address" type="radio" name="delivery_use" {{$model->delivery_use == "address" ? 'checked' : ''}} {{$model->charge_selection_submission == "delivery_account" ? 'disabled' : ''}} />  Use Address</label>
+                    <label class="radio-inline"><input id="delivery_use_account" type="radio" name="delivery_use" {{$model->delivery_use_submission == "account" ? 'checked' : ''}} {{$model->charge_selection_submission == "delivery_account" ? 'disabled' : ''}} />  Use Account</label>
+                    <label class="radio-inline"><input id="delivery_use_address" type="radio" name="delivery_use" {{$model->delivery_use_submission == "address" ? 'checked' : ''}} {{$model->charge_selection_submission == "delivery_account" ? 'disabled' : ''}} />  Use Address</label>
                 </div>
             </div>
 <!-- delivery driver -->
@@ -259,12 +259,12 @@
                 </div>
                 <div class="col-lg-4 bottom15">
                     <div class="input-group">
-                        <input id="delivery_driver_commission" class="form-control" type="number" min="0" max="100" name="delivery_driver_commission" value="{{$model->bill->delivery_driver_percentage}}" />
+                        <input id="delivery_driver_commission" class="form-control" type="number" min="0" max="100" name="delivery_driver_commission" value="{{$model->bill->delivery_driver_commission}}" />
                         <span class="input-group-addon">%</span>
                     </div>
                 </div>
 <!-- delivery account -->
-                <div id="delivery_account" class="col-lg-12 {{$model->delivery_use == 'address' ? 'hidden' : ''}} bottom15">
+                <div id="delivery_account" class="col-lg-12 {{$model->delivery_use_submission == 'address' ? 'hidden' : ''}} bottom15">
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Delivery Account: </span>
@@ -289,7 +289,7 @@
                     </div>
                 </div>
 <!-- delivery address -->
-                <div id="delivery_address" class="col-lg-12 {{$model->delivery_use == "account" ? 'hidden' : ''}}">
+                <div id="delivery_address" class="col-lg-12 {{$model->delivery_use_submission == "account" ? 'hidden' : ''}}">
                     @include('partials.address', ['prefix' => 'delivery', 'address' => $model->deliveryAddress, 'enabled' => true])
                 </div>
             </div>

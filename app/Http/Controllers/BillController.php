@@ -109,7 +109,4 @@ class BillController extends Controller {
         }
     }
 
-    public function update(Request $req) {
-
-    }
 }
