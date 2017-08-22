@@ -55,6 +55,8 @@ Route::group(
             Route::post('/drivers/submitEdit', 'DriverController@submitEdit');
             Route::post('/drivers/action', 'DriverController@action');
 
+            Route::get('/invoices/generate','InvoiceController@create');
+
             Route::post('/partials/getcontact', 'PartialsController@GetContact');
 
             Route::resource('/invoices', 'InvoiceController',

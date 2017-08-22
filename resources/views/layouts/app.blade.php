@@ -28,7 +28,7 @@
                         <li class="dropdown" disabled>
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/invoices/create">Create New Invoice</a></li>
+                                <li><a href="/invoices/generate">Generate Invoices</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">
