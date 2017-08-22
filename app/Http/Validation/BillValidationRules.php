@@ -3,8 +3,8 @@ namespace App\Http\Validation;
 
 class BillValidationRules {
     public function GetValidationRules($req) {
-    	$rules = [	'delivery_date' => 'required|date',
-    				'bill_number'=> 'required|unique:bills',
+    	$rules = [	'date' => 'required|date',
+    				'bill_number' => 'required|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
     				'amount' => 'required|numeric',
     				'charge_selection_submission' => 'required',
     				'pickup_use_submission' => 'required',
@@ -14,8 +14,8 @@ class BillValidationRules {
                     'delivery_driver_id' => 'required',
                     'delivery_driver_commission' => 'required|numeric|between:0,100'];
 
-    	$messages = ['delivery_date.required' => 'Delivery date is required',
-                    'delivery_date.date' => 'Delivery date is in an incorrect format',
+    	$messages = ['date.required' => 'Delivery date is required',
+                    'date.date' => 'Delivery date is in an incorrect format',
     				'bill_number.required' => 'Waybill number can not be empty', 
                     'bill_number.unique' => 'Provided waybill number is not unique. Please try again.',
     				'amount.required' => 'Bill amount can not be empty',

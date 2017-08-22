@@ -17,7 +17,7 @@ class AccountCollector {
             'invoice_comment'=>$req->input('comment'),
             'stripe_id'=>40,
             'name'=>$req->input('name'),
-            'start_date'=>strtotime($req->input('start-date')),
+            'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
             'send_bills'=>$req->input('send-bills') == "true",
             'is_master'=>!$hasParent,
             'parent_account_id'=>!$hasParent ? null : $req->input('parent-account-id'),

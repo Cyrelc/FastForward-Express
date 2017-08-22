@@ -74,30 +74,39 @@ class BillController extends Controller {
                 $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
                 $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
                 $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
-                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
                 break;
             case "address":
                 $pickupAddress = $addrCollector->Collect($req,'pickup',false);
-                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
                 break;
         }
+        if ($req->bill_id)
+            $pickupAddressId = $addrRepo->Update($pickupAddress)->address_id;
+        else
+            $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
 
         switch ($req->delivery_use_submission) {
             case "account":
                 $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
                 $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
                 $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
                 break;
             case "address":
                 $deliveryAddress = $addrCollector->Collect($req,'delivery',false);
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
                 break;
         }
+        if ($req->bill_id)
+            $deliveryAddressId = $addrRepo->Update($deliveryAddress)->address_id;
+        else
+            $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
 
         $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
-        $billRepo->Insert($bill);
-
-        return redirect()->action('BillController@create');
+        if ($req->bill_id) {
+            $billRepo->Update($bill);
+            return redirect()->action('BillController@index');
+        } else {
+            $billRepo->Insert($bill);
+            return redirect()->action('BillController@create');
+        }
     }
+
 }

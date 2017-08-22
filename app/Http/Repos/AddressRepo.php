@@ -21,6 +21,7 @@ class AddressRepo {
     public function Insert($address) {
         $new = new Address;
 
+        $new->name = $address['name'];
         $new->street = $address['street'];
         $new->street2 = $address['street2'];
         $new->city = $address['city'];
@@ -40,6 +41,7 @@ class AddressRepo {
     public function Update($address) {
         $old = $this->GetById($address['address_id']);
 
+        $old->name = $address['name'];
         $old->street = $address['street'];
         $old->street2 = $address['street2'];
         $old->city = $address['city'];
@@ -48,6 +50,8 @@ class AddressRepo {
         $old->country = $address['country'];
 
         $old->save();
+
+        return $old;
     }
 
     public function Delete($aId){
