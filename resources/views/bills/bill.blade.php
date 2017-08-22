@@ -6,6 +6,7 @@
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/bills/bill.js'></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
 
 @parent
 @endsection
@@ -17,6 +18,37 @@
 @endsection
 
 @section ('content')
+    <script>
+        $(document).ready(function(){
+            //TODO: Remove, for testing only
+            $("#keep-options input").each(function(i,e) {
+                $(e).removeAttr('disabled');
+
+                $(e).click(function() {
+                    var keeps = {};
+
+                    $("#keep-options input").each(function(index, element) {
+                        keeps[$(element).attr('id')] = $(element).is(":checked");
+                    });
+
+                    debugger;
+                    window.storageService.setValue('bills-keep-options', keeps, 'local');
+                });
+            });
+
+            var keeps = window.storageService.getValue('bills-keep-options', 'local');
+
+            if (keeps) {
+                for (var key in keeps) {
+                    if (keeps.hasOwnProperty(key)) {
+
+                        if (keeps[key] === true)
+                            $("#" + key).prop('checked', 'true');
+                    }
+                }
+            }
+        });
+    </script>
 
     @if (isset($model->bill->bill_id))
         <h2>Edit Bill</h2>
@@ -307,7 +339,7 @@
 @endsection
 
 @section ('advFilter')
-<div class="well form-group">
+<div class="well form-group" id="keep-options">
     <h4>On Submit</h4>
     <hr>
     <div class="checkbox">
