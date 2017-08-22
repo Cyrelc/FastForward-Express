@@ -65,10 +65,10 @@
     </div>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input hidden type='text' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->charge_selection_submission}}'/>
-    <input hidden type='text' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
-    <input hidden type='text' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
-    <input hidden type='hidden' id='use_interliner' name='use_interliner' value='{{$model->use_interliner}}' />
+    <input type='hidden' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->charge_selection_submission}}'/>
+    <input type='hidden' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
+    <input type='hidden' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
+    <input type='hidden' id='use_interliner' name='use_interliner' data-checkbox-id="use-interliner" value='{{$model->use_interliner}}' />
 <!-- delivery date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -141,7 +141,7 @@
             </div>
         </div>
 <!-- Interliner -->
-        <div id="interliner" hidden>
+        <div id="interliner">
             <div class="col-lg-8 bottom15">
                 <div class="input-group">
                     <span class="input-group-addon">Interliner: </span>
@@ -333,7 +333,7 @@
     </div>
     <hr>
     <div class="checkbox">
-        <label><input disabled id="use_interliner" type="checkbox" name="use_interliner" />Use Interliner</label>
+        <label><input id="use-interliner" type="checkbox" name="use-interliner" data-hidden-name="use_interliner" data-div="interliner" />Use Interliner</label>
     </div>
 </div>
 @endsection

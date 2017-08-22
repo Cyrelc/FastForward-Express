@@ -3,7 +3,7 @@
 	namespace App\Http\Models\Bill;
 
 	use App\Http\Repos;
-	use App\Http\Models\Account;
+	use App\Http\Models\Bill;
 
 	class BillModelFactory{
 

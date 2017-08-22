@@ -1,5 +1,35 @@
 $(document).ready(function() {
 
+    $checkboxes = '#use-interliner';
+	$($checkboxes).change(function() {
+		if(this.checked){
+            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
+            $('#' + $(this).attr('data-div')).fadeIn();
+		}
+		else {
+            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('false');
+		    $('#' + $(this).attr('data-div')).fadeOut();
+		}
+	});
+
+	$($checkboxes).each(function (i, e) {
+	    $("#" + $(this).attr('data-div')).css('display', 'none');
+	});
+
+    $("input[data-checkbox-id]").each(function(i,e) {
+        var value = $(e).val() == 'true';
+        if (value) {
+            var me = $(e).attr('data-me');
+            var check_box_id = "#" +$(e).attr('data-checkbox-id');
+            if (me) {
+                var body = $(e).attr('data-body');
+                $(check_box_id).prop('checked', true);
+                enableBody(me, body);
+            } else
+                $(check_box_id).click();
+        }
+    });
+
     dateInput('date');
     comboInput('account_id', 'Select an Account');
     comboInput('pickup_driver_id', 'Select a Pickup Driver');
