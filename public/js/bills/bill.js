@@ -101,5 +101,4 @@ $(document).ready(function() {
 		}
 	});
 
-
 });
