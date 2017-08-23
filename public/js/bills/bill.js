@@ -79,14 +79,10 @@ $(document).ready(function() {
 //display custom field if present for the account.
 
     $('#pickup_account_id, #delivery_account_id, #charge_account_id').change(function(){
-    	if ($(this).attr('data-reference-field-name')) {
-    		$(this).parent('div').parent('div').removeClass('col-lg-12');
-    		$(this).parent('div').parent('div').addClass('col-lg-6');
+    	if ($('option:selected', this).attr('data-reference-field-name')) {
     		$('#' + $(this).attr('data-reference')).removeClass('hidden');
 	    	document.getElementById($(this).attr('data-reference') + '_name').innerHTML = ($("option:selected", this).attr('data-reference-field-name'));
 	    } else {
-	    	$(this).parent('div').parent('div').removeClass('col-lg-6');
-	    	$(this).parent('div').parent('div').addClass('col-lg-12');
     		$('#' + $(this).attr('data-reference')).addClass('hidden');
 	    }
     });

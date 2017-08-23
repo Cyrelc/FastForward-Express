@@ -124,19 +124,19 @@
                         <option></option>
                         @foreach($model->accounts as $a)
                             @if (isset($model->bill->charge_account_id) && $a->account_id == $model->bill->charge_account_id)
-                                <option selected value="{{$a->account_id}}">{{$a->name}}</option>
+                                <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                             @else
-                                <option value="{{$a->account_id}}">{{$a->name}}</option>
+                                <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                             @endif
                         @endforeach
                     </select>
                 </div>
             </div>
 <!-- custom tracker -->
-            <div id='charge_reference' class="col-lg-6 hidden bottom15" id="charge_reference">
+            <div id='charge_reference' class="col-lg-12 {{$model->bill->charge_reference_value == '' ? 'hidden' : ''}} bottom15" id="charge_reference">
                 <div class="input-group">
-                    <span id="charge_reference_name" class="input-group-addon"></span>
-                    <input disabled id="charge_reference_val" name="charge_reference_val" class="form-control" type="text" value="Coming soon!" value="{{$model->bill->charge_reference_val}}" />
+                    <span id="charge_reference_name" class="input-group-addon" >{{$model->charge_reference_name}}</span>
+                    <input id="charge_reference_value" name="charge_reference_value" class="form-control" type="text" value="{{$model->bill->charge_reference_value}}" />
                 </div>
             </div>
         </div>
@@ -199,7 +199,7 @@
                     </div>
                 </div>
 <!-- pickup account -->
-                <div id="pickup_account" class="col-lg-12 bottom15 {{$model->pickup_use_submission == 'address' ? 'hidden' : ''}} clearfix">
+                <div id="pickup_account" class="col-lg-12 {{$model->pickup_use_submission == 'address' ? 'hidden' : ''}} bottom15 clearfix">
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Pickup Account: </span>
@@ -207,19 +207,19 @@
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id)
-                                        <option selected value="{{$a->account_id}}">{{$a->name}}</option>
+                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                                     @else
-                                        <option value="{{$a->account_id}}">{{$a->name}}</option>
+                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                                     @endif
                                 @endforeach
                             </select>
                         </div>
                     </div>
 <!-- custom tracker -->
-                    <div id='pickup_reference' class="col-lg-6 hidden bottom15" name="pickup_reference">
+                    <div id='pickup_reference' class="col-lg-12 {{$model->bill->pickup_reference_value == '' ? 'hidden' : ''}} bottom15" name="pickup_reference">
                         <div class="input-group">
-                            <span id="pickup_reference_name" class="input-group-addon"></span>
-                            <input disabled id="pickup_reference_val" name="pickup_reference_val" class="form-control" type="text" value="Coming soon!" value="{{$model->bill->pickup_reference_val}}" />
+                            <span id="pickup_reference_name" class="input-group-addon" >{{$model->pickup_reference_name}}</span>
+                            <input id="pickup_reference_value" name="pickup_reference_value" class="form-control" type="text" value="{{$model->bill->pickup_reference_value}}" />
                         </div>
                     </div>
                 </div>
@@ -272,19 +272,19 @@
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id)
-                                        <option selected value="{{$a->account_id}}">{{$a->name}}</option>
+                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                                     @else
-                                        <option value="{{$a->account_id}}">{{$a->name}}</option>
+                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
                                     @endif
                                 @endforeach
                             </select>
                         </div>
                     </div>
 <!-- custom tracker -->
-                    <div id='delivery_reference' class="col-lg-6 hidden bottom15" name="delivery_reference">
+                    <div id='delivery_reference' class="col-lg-12 {{$model->bill->delivery_reference_value == '' ? 'hidden' : ''}} bottom15" name="delivery_reference">
                         <div class="input-group">
-                            <span id="delivery_reference_name" class="input-group-addon"></span>
-                            <input disabled id="delivery_reference_val" name="delivery_reference_val" class="form-control" type="text" value="Coming soon!" value="{{$model->bill->delivery_reference_val}}" />
+                            <span id="delivery_reference_name" class="input-group-addon" >{{$model->delivery_reference_name}}</span>
+                            <input id="delivery_reference_value" name="delivery_reference_value" class="form-control" type="text" value="{{$model->bill->delivery_reference_value}}" />
                         </div>
                     </div>
                 </div>
