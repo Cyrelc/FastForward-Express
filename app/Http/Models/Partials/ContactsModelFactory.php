@@ -19,10 +19,10 @@ class ContactsModelFactory {
         for($i = 0; $i < count($joinTableContacts); $i++) {
             array_push($contacts, $contactFactory->GetEditModel($joinTableContacts[$i]->contact_id, $getAddress));
 
-            if (($contacts[$i])->contact_id == $primary)
-                ($contacts[$i])->is_primary = true;
+            if ($contacts[$i]->contact_id == $primary)
+                $contacts[$i]->is_primary = true;
             else
-                ($contacts[$i])->is_primary = false;
+                $contacts[$i]->is_primary = false;
         }
 
         return $contacts;
