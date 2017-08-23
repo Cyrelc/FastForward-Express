@@ -82,4 +82,9 @@ class AccountRepo {
         $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
         return $result;
     }
+
+    public function AddContact($accountId, $contactId) {
+        $account = $this->GetById($accountId);
+        $account->contacts()->attach($contactId);
+    }
 }

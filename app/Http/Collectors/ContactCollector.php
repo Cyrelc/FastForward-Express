@@ -12,18 +12,18 @@ class ContactCollector {
         ];
     }
 
-    public function CollectPhoneNumber($req, $contactId, $isPrimary) {
+    public function CollectPhoneNumber($req, $contactId, $isPrimary, $newId=null) {
         $prefix = 'contact-' . $contactId . ($isPrimary ? '-phone1' : '-phone2');
-        return $this->CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary);
+        return $this->CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId);
     }
 
-    public function CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary) {
+    public function CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId) {
         return [
             'phone_number_id' => $req->input($prefix . '-id'),
             'phone_number' => $req->input($prefix),
             'extension_number' => $req->input($prefix . '-ext'),
             'is_primary' => $isPrimary,
-            'contact_id' => $contactId
+            'contact_id' => isset($newId) ? $newId : $contactId
         ];
     }
 

@@ -99,6 +99,7 @@ class AccountController extends Controller {
         $contactIds = array();
         $contactActions = $contactsCollector->GetActions($req);
 
+        $accountId = $req->input('account-id');
         //BEGIN contacts
         $primary_id = null;
         foreach($req->all() as $key=>$value) {
@@ -138,20 +139,28 @@ class AccountController extends Controller {
                 }
 
                 $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
+                $newId = null;
 
                 if ($primaryAction == "new") {
                     $primary_id = $contactRepo->Insert($contact)->contact_id;
-                    $contactId = $primary_id;
+                    $newId = $primary_id;
+
+                    if ($accountId !== null) {
+                        $accountRepo->AddContact($accountId, $newId);
+                    }
                 }
                 else if ($primaryAction == "update") {
                     $contact["contact_id"] = $contactId;
                     $contactRepo->Update($contact);
                 }
 
-                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true);
-                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false);
+                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true, $newId);
+                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false, $newId);
                 $email1 = $contactCollector->CollectEmail($req, $contactId, true);
                 $email2 = $contactCollector->CollectEmail($req, $contactId, false);
+
+                if (isset($newId))
+                    $contactId = $newId;
 
                 if ($primaryAction == "new") {
                     //New phone numbers on new account
@@ -233,7 +242,6 @@ class AccountController extends Controller {
         $acctCollector = new \App\Http\Collectors\AccountCollector();
         $account = $acctCollector->Collect($req, $billing_id, $delivery_id);
 
-        $accountId = $req->input('account-id');
 		$isNew = $accountId == null;
 		$args = [];
         if ($isNew) {
