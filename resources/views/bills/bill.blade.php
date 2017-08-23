@@ -149,7 +149,7 @@
         </div>
 <!-- charge account -->
         <div id="charge_account" class="col-lg-12 {{$model->charge_selection_submission == 'other_account' ? '' : 'hidden'}} bottom15">
-            <div class="col-lg-12 bottom15">
+            <div class="col-lg-6 bottom15">
                 <div class="input-group">
                     <span class="input-group-addon">Charge Account: </span>
                     <select id="charge_account_id" class="form-control" name="charge_account_id" data-reference="charge_reference">
@@ -165,7 +165,7 @@
                 </div>
             </div>
 <!-- custom tracker -->
-            <div id='charge_reference' class="col-lg-12 {{$model->bill->charge_reference_value == '' ? 'hidden' : ''}} bottom15" id="charge_reference">
+            <div id='charge_reference' class="col-lg-6 {{$model->bill->charge_reference_value == '' ? 'hidden' : ''}} bottom15" id="charge_reference">
                 <div class="input-group">
                     <span id="charge_reference_name" class="input-group-addon" >{{$model->charge_reference_name}}</span>
                     <input id="charge_reference_value" name="charge_reference_value" class="form-control" type="text" value="{{$model->bill->charge_reference_value}}" />
