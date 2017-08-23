@@ -1,5 +1,35 @@
 $(document).ready(function() {
 
+    $checkboxes = '#use-interliner';
+	$($checkboxes).change(function() {
+		if(this.checked){
+            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
+            $('#' + $(this).attr('data-div')).fadeIn();
+		}
+		else {
+            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('false');
+		    $('#' + $(this).attr('data-div')).fadeOut();
+		}
+	});
+
+	$($checkboxes).each(function (i, e) {
+	    $("#" + $(this).attr('data-div')).css('display', 'none');
+	});
+
+    $("input[data-checkbox-id]").each(function(i,e) {
+        var value = $(e).val() == 'true';
+        if (value) {
+            var me = $(e).attr('data-me');
+            var check_box_id = "#" +$(e).attr('data-checkbox-id');
+            if (me) {
+                var body = $(e).attr('data-body');
+                $(check_box_id).prop('checked', true);
+                enableBody(me, body);
+            } else
+                $(check_box_id).click();
+        }
+    });
+
     dateInput('date');
     comboInput('account_id', 'Select an Account');
     comboInput('pickup_driver_id', 'Select a Pickup Driver');
@@ -49,14 +79,10 @@ $(document).ready(function() {
 //display custom field if present for the account.
 
     $('#pickup_account_id, #delivery_account_id, #charge_account_id').change(function(){
-    	if ($(this).attr('data-reference-field-name')) {
-    		$(this).parent('div').parent('div').removeClass('col-lg-12');
-    		$(this).parent('div').parent('div').addClass('col-lg-6');
+    	if ($('option:selected', this).attr('data-reference-field-name')) {
     		$('#' + $(this).attr('data-reference')).removeClass('hidden');
 	    	document.getElementById($(this).attr('data-reference') + '_name').innerHTML = ($("option:selected", this).attr('data-reference-field-name'));
 	    } else {
-	    	$(this).parent('div').parent('div').removeClass('col-lg-6');
-	    	$(this).parent('div').parent('div').addClass('col-lg-12');
     		$('#' + $(this).attr('data-reference')).addClass('hidden');
 	    }
     });

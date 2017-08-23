@@ -3,7 +3,7 @@
 	namespace App\Http\Models\Bill;
 
 	use App\Http\Repos;
-	use App\Http\Models\Account;
+	use App\Http\Models\Bill;
 
 	class BillModelFactory{
 
@@ -122,6 +122,13 @@
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
             $model->bill->date = strtotime($model->bill->date);
+
+            if($model->bill->charge_account_id !== null)
+                $model->charge_reference_name = $acctRepo->GetById($model->bill->charge_account_id)->custom_field;
+            if($model->bill->pickup_account_id !== null)
+            	$model->pickup_reference_name = $acctRepo->GetById($model->bill->pickup_account_id)->custom_field;
+            if($model->bill->delivery_account_id !== null)
+            	$model->delivery_reference_name = $acctRepo->GetById($model->bill->delivery_account_id)->custom_field;
 
             //to-do add this field to table
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
