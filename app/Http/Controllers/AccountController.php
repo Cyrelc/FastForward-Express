@@ -110,8 +110,7 @@ class AccountController extends Controller {
                 $contactId = substr($key, 11);
 
                 $actions = $contactActions[$contactId];
-                if ($contactId == 283)
-                    dd($contactActions);
+
                 $primaryAction = "";
                 if (in_array('delete', $actions))
                     $primaryAction = 'delete';

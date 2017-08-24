@@ -37,7 +37,7 @@ class EmailAddressRepo {
     public function Delete($id) {
         $addr = $this->GetById($id);
 
-        if (!Isset($addr)) return;
+        if (!isset($addr)) return;
 
         $addr->delete();
     }

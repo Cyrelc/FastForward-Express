@@ -130,8 +130,7 @@ function removeSc(id) {
     $("#" + id + '-panel').remove();
 
     if (!isNew)
-        $("[id$=contact-bodies]")
-            .append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
+        $("[id$=contact-bodies]").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
 
     //Promote next contact in list to primary contact
     if (isPrimary) {
