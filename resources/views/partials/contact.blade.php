@@ -11,8 +11,8 @@
         <div class="col-lg-12">
     @endif
 @php //if(isset($multi) && $multi=='true' && isset($contact))dd($contact); @endphp
-    @if(isset($contact) && $contact->contact_id > 0)
-        @if(isset($multi) && $multi)
+    @if(isset($contact) && $contact->contact_id !== 0)
+        @if(isset($multi) && $multi=="true")
             <input type="hidden" name="contact-id-{{$contact->contact_id}}" />
         @else
             <input type="hidden" name="id-for-{{$prefix}}" value="{{$contact->contact_id}}" />
@@ -20,8 +20,14 @@
 
         @if (isset($contact->is_new) && $contact->is_new == 'true')
             <input type="hidden" name="contact-action-new[]" value="{{$contact->contact_id}}" />
+            @if(isset($multi) && $multi=="true")
+                <input type="hidden" name="contact-id-{{$contact->contact_id}}" />
+            @endif
         @else
             <input type="hidden" name="contact-action-update[]" value="{{$contact->contact_id}}" />
+            @if(isset($multi) && $multi=="true")
+                <input type="hidden" name="contact-id-{{$contact->contact_id}}" />
+            @endif
         @endif
     @endif
 
@@ -65,8 +71,8 @@
                     <a href="javascript:saveScContact('{{$multi_div_prefix}}', '{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-save"></i></a>
                 </li>
                 <li title="Delete">
-                    @if (isset($model->contact_id))
-                        <a href="javascript:removeSc('{{$model->contact_id}}')"><i class="fa fa-trash"></i></a>
+                    @if (isset($contact) && isset($contact->contact_id))
+                        <a href="javascript:removeSc('{{$contact->contact_id}}')"><i class="fa fa-trash"></i></a>
                     @else
                         <a href="javascript:clearScForm('{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-trash"></i></a>
                     @endif
@@ -74,7 +80,7 @@
 
                 @if(isset($contact) && (!isset($contact->is_primary) || $contact->is_primary === false))
                     <li title="Make Primary">
-                        <a href="javascript:makePrimary(this)"><i class="fa fa-star"></i></a>
+                        <a href="#" onclick="makePrimary(this)"><i class="fa fa-star"></i></a>
                     </li>
                 @endif
             </ul>

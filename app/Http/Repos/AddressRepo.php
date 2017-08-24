@@ -63,6 +63,8 @@ class AddressRepo {
     public function DeleteByContact($cid) {
         $addrs = $this->GetByContactId($cid);
 
+        if (!isset($addrs)) return;
+
         foreach($addrs as $addr) {
             $this->Delete($addr);
         }

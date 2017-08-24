@@ -37,14 +37,18 @@ class EmailAddressRepo {
     public function Delete($id) {
         $addr = $this->GetById($id);
 
+        if (!Isset($addr)) return;
+
         $addr->delete();
     }
 
     public function DeleteByContact($cid) {
         $eAddrs = $this->ListByContactId($cid);
 
+        if (!isset($eAddrs)) return;
+
         foreach($eAddrs as $eAddr) {
-            $this->delete($eAddr);
+            $this->delete($eAddr->email_address_id);
         }
     }
 }
