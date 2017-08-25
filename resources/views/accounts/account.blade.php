@@ -2,11 +2,11 @@
 
 @section ('script')
 
+    <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
+    <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
-<script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
-<script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
 <script type='text/javascript'>
     $(document).ready(function() {
         //On failed validation, redisplay form correctly

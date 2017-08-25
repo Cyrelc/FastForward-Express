@@ -4,13 +4,7 @@ namespace App\Http\Collectors;
 
 class ContactsCollector {
     public function GetDeletions($req) {
-        $contactsToDelete = [];
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0,15)  == "contact-delete-") {
-                array_push($contactsToDelete, $req->input($key));
-            }
-        }
-
+        $contactsToDelete = $req->input('contact-action-delete');
         return $contactsToDelete;
     }
 

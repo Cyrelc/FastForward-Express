@@ -24,7 +24,7 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
         country = $("#" + prefix + '-address-country').val();
     }
 
-    var id = -1;
+    var id = 0;
     $("input[data-contact-id='true']").each(function(index, element){
         var newId = $(element).val();
 
@@ -91,8 +91,9 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
 }
 
 function makePrimary(element) {
+    debugger;
     var idToMakePrimary = $(element).parent().parent().parent().parent().parent().find('input[data-contact-id="true"]').val();
-    $("#contact-tabs a").each(function(index, el) {
+    $("[id$='contact-tabs'] a").each(function(index, el) {
         $(el).children('i.fa-star').remove();
     });
 
@@ -117,16 +118,19 @@ function clearScForm(prefix, includeAddress) {
         $("#" + prefix + '-address-zip').val('');
         $("#" + prefix + '-address-country').val('');
     }
+
+    var id = prefix.substring(8, prefix.length - 8);
+    removeSc(id);
 }
 
 function removeSc(id) {
     var isNew = id === -2;
     var isPrimary = $("#" + id + "-li").attr('data-isPrimary') === "true";
-    $("#contact-tabs a[data-id='" + id + "']").parent().remove();
+    $("[id$=contact-tabs] a[data-id='" + id + "']").parent().remove();
     $("#" + id + '-panel').remove();
 
     if (!isNew)
-        $("#contact-bodies").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
+        $("[id$=contact-bodies]").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
 
     //Promote next contact in list to primary contact
     if (isPrimary) {

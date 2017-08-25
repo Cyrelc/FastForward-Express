@@ -27,22 +27,25 @@ class ContactCollector {
         ];
     }
 
-    public function CollectEmail($req, $contactId, $isPrimary) {
+    public function CollectEmail($req, $contactId, $isPrimary, $newId = null) {
         $prefix = 'contact-' . $contactId . ($isPrimary ? '-email1' : '-email2');
 
-        return $this->CollectEmailSingle($req, $prefix, $contactId, $isPrimary);
+        return $this->CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId);
     }
 
-    public function CollectEmailSingle($req, $prefix, $contactId, $isPrimary) {
+    public function CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId) {
         return [
             'email_address_id'=>$req->input($prefix . '-id'),
             'email'=>$req->input($prefix),
-            'contact_id'=>$contactId,
+            'contact_id'=>isset($newId) ? $newId : $contactId,
             'is_primary'=>$isPrimary
         ];
     }
 
     public function Remerge($req, $contacts, $includeAddress) {
+        if (!is_array($contacts))
+            $contacts = [];
+
         $newContacts = [];
         $deleteContacts = [];
 
@@ -139,6 +142,7 @@ class ContactCollector {
         for($i = 0; $i < count($newContacts); $i++) {
             $contact = new \App\Contact();
             $contact->is_new = 'true';
+            //dd($contacts);
 
             array_push($contacts, $this->RemergeContact($req, $contact, $newContacts[$i], 'contact-' . $newContacts[$i], $includeAddress));
         }

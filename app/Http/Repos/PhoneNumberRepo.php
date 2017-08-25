@@ -46,6 +46,8 @@ class PhoneNumberRepo {
     public function Delete($pnId) {
         $pn = $this->GetById($pnId);
 
+        if (!isset($pn)) return;
+
         $pn->delete();
     }
 
@@ -53,7 +55,7 @@ class PhoneNumberRepo {
         $pns = $this->ListByContactId($cid);
 
         foreach($pns as $pn) {
-            $this->delete($pn);
+            $this->delete($pn->phone_number_id);
         }
     }
 }

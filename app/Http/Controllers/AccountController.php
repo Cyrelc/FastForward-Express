@@ -7,6 +7,8 @@ use DB;
 
 use App\Http\Repos;
 use App\Http\Models\Account;
+use \App\Http\Validation\Utils;
+
 
 class AccountController extends Controller {
 
@@ -102,6 +104,7 @@ class AccountController extends Controller {
         $accountId = $req->input('account-id');
         //BEGIN contacts
         $primary_id = null;
+
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 11) == "contact-id-") {
                 $contactId = substr($key, 11);
@@ -145,7 +148,7 @@ class AccountController extends Controller {
                     $primary_id = $contactRepo->Insert($contact)->contact_id;
                     $newId = $primary_id;
 
-                    if ($accountId !== null) {
+                    if (Utils::HasValue($accountId)) {
                         $accountRepo->AddContact($accountId, $newId);
                     }
                 }
@@ -156,8 +159,8 @@ class AccountController extends Controller {
 
                 $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true, $newId);
                 $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false, $newId);
-                $email1 = $contactCollector->CollectEmail($req, $contactId, true);
-                $email2 = $contactCollector->CollectEmail($req, $contactId, false);
+                $email1 = $contactCollector->CollectEmail($req, $contactId, true, $newId);
+                $email2 = $contactCollector->CollectEmail($req, $contactId, false, $newId);
 
                 if (isset($newId))
                     $contactId = $newId;
@@ -209,6 +212,10 @@ class AccountController extends Controller {
                     $emailAddressRepo->Delete($em);
             else
                 $emailAddressRepo->Delete($emsToDelete);
+        }
+
+        foreach($contactsToDelete as $delete_id) {
+            $contactRepo->Delete($delete_id);
         }
         //END contacts
 
