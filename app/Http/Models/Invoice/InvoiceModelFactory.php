@@ -16,4 +16,21 @@
 
 			return $model;
 		}
+
+		public function GetLayoutModel($req, $id) {
+			$model = new Invoice\InvoiceLayoutModel();
+
+			$acctRepo = new Repos\AccountRepo();
+
+			$model->account = $acctRepo->GetById($id);
+			$parent_id = $model->account->parent_account_id;
+
+			while(isset($parent_id)) {
+				$parent_name = $acctRepo->GetById($parent_id)->name;
+				array_push($model->parents, $parent_name);
+				$parent_id = $acctRepo->GetById($parent_id)->parent_account_id;
+			}
+
+			return $model;
+		}
 	}
