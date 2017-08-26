@@ -14,7 +14,6 @@ class AccountCollector {
             'shipping_address_id'=>$delivery_id,
             'account_number'=>$req->input('account-number'),
             'invoice_interval'=>$req->input('invoice-interval'),
-            'invoice_comment'=>$req->input('comment'),
             'stripe_id'=>40,
             'name'=>$req->input('name'),
             'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
@@ -45,9 +44,6 @@ class AccountCollector {
 
         if ($req->old("invoice-interval") !== null)
             $model->account->invoice_interval = $req->old("invoice-interval");
-
-        if ($req->old("comment") !== null)
-            $model->account->invoice_comment = $req->old("comment");
 
         if ($req->old("start-date") !== null)
             $model->account->start_date = strtotime($req->old("start-date"));

@@ -119,7 +119,6 @@
     <input type="hidden" data-checkbox-id="use-custom-field" name="useCustomField" value="{{$model->account->uses_custom_field == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="can-be-parent" name="canBeParent" value="{{$model->account->can_be_parent == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{isset($model->billingAddress->address_id) ? "true" : "false" }}"/>
-    <input type="hidden" data-checkbox-id="has-invoice-comment" name="invoice-comment" value="{{strlen($model->account->invoice_comment) > 0 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="has-fuel-surcharge" name="has-fuel-surcharge" value="{{$model->account->fuel_surcharge == 0 ? "false" : "true"}}" />
     <input type="hidden" data-checkbox-id="send-bills" name="send-bills" value="{{$model->account->send_bills == 0 ? "false" : "true"}}" />
     <div class="well">
@@ -253,12 +252,6 @@
                                 'title' => 'Commission 2'
                             ])
                         </div>
-
-                        <!--Invoice Comment-->
-                        <div class="col-lg-12 bottom15" id="invoice-comment">
-                            <label for="comment">Invoice Comment:</label>
-                            <textarea class="form-control" rows="5" name="comment" placeholder="This comment will appear on every invoice sent to the account">{{$model->account->invoice_comment}}</textarea>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -313,9 +306,6 @@
     </div>
     <div class="checkbox">
         <label><input id="give-commission-2" type="checkbox" data-div="commission-2-div" data-hidden-name="should-give-commission-2" />Commission 2</label>
-    </div>
-	<div class="checkbox">
-        <label><input id="has-invoice-comment" type="checkbox" value="" data-div="invoice-comment" data-hidden-name="invoice-comment" /> Invoice Comment </label>
     </div>
     <div class="checkbox">
         <label><input id="use-custom-field" type="checkbox" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
