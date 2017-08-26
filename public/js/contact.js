@@ -79,7 +79,7 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
             $("#" + multiPrefix + "-contact-bodies div.tab-pane").removeClass('active');
             $("#" + multiPrefix + "-contact-tabs").append('<li id="' + id + '-li" data-isPrimary="' + isPrimary + '" class="active" role="presentation"><a data-id="' + id + '" href="#' + id + '-panel" role="tab" data-toggle="tab">' + (isPrimary ? '<i class="fa fa-star"></i>' : '') + ' ' + fName + ' ' + lName + '</a></li>');
             $("#" + multiPrefix + "-contact-bodies").append(
-                '<div role="tabpanel" class="tab-pane active" id="' + id + '"-panel">' +
+                '<div role="tabpanel" class="tab-pane active" id="' + id + '-panel">' +
                     result +
                 '</div>');
         }
@@ -133,7 +133,7 @@ function clearScForm(prefix, includeAddress) {
 }
 
 function removeSc(id) {
-    var isNew = id === -2;
+    var isNew = $("#" +  id + "-panel").html().indexOf('contact-action-new[]' > -1);
     var isPrimary = $("#" + id + "-li").attr('data-isPrimary') === "true";
     $("[id$=contact-tabs] a[data-id='" + id + "']").parent().remove();
     $("#" + id + '-panel').remove();

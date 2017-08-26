@@ -10,7 +10,7 @@
     @else
         <div class="col-lg-12">
     @endif
-@php //if(isset($multi) && $multi=='true' && isset($contact))dd($contact); @endphp
+
     @if(isset($contact) && $contact->contact_id !== 0)
         @if(isset($multi) && $multi=="true")
             <input type="hidden" name="contact-id-{{$contact->contact_id}}" />

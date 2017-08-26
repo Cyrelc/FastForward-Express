@@ -24,15 +24,13 @@ class AccountRepo {
         return $account;
     }
 
-    public function Insert($acct, $primaryId, $secondaryIds) {
+    public function Insert($acct, $contactIds) {
         $new = new Account;
 
         $new = $new->create($acct);
 
-        $new->contacts()->attach($primaryId);
-
-        foreach($secondaryIds as $secondaryId)
-            $new->contacts()->attach($secondaryId);
+        foreach($contactIds as $contactId)
+            $new->contacts()->attach($contactId);
 
         return $new;
     }
@@ -45,7 +43,6 @@ class AccountRepo {
         $old->shipping_address_id = $acct["shipping_address_id"];
         $old->account_number = $acct["account_number"];
         $old->invoice_interval = $acct["invoice_interval"];
-        $old->invoice_comment = $acct["invoice_comment"];
         $old->stripe_id = $acct["stripe_id"];
         $old->name = $acct["name"];
         $old->start_date = $acct["start_date"];

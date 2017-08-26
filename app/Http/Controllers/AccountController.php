@@ -104,7 +104,8 @@ class AccountController extends Controller {
         $accountId = $req->input('account-id');
         //BEGIN contacts
         $primary_id = null;
-
+        $newPrimaryId = $req->input('contact-action-change-primary');
+        
         foreach($req->all() as $key=>$value) {
             if (substr($key, 0, 11) == "contact-id-") {
                 $contactId = substr($key, 11);
@@ -145,12 +146,16 @@ class AccountController extends Controller {
                 $newId = null;
 
                 if ($primaryAction == "new") {
-                    $primary_id = $contactRepo->Insert($contact)->contact_id;
-                    $newId = $primary_id;
+                    $newId = $contactRepo->Insert($contact)->contact_id;
 
                     if (Utils::HasValue($accountId)) {
                         $accountRepo->AddContact($accountId, $newId);
+                    } else {
+                        if ($newPrimaryId == $contactId)
+                            $newPrimaryId = $newId;
                     }
+
+                    array_push($contactIds, $newId);
                 }
                 else if ($primaryAction == "update") {
                     $contact["contact_id"] = $contactId;
@@ -252,7 +257,7 @@ class AccountController extends Controller {
 		$isNew = $accountId == null;
 		$args = [];
         if ($isNew) {
-            $accountId = $accountRepo->Insert($account, $primary_id, $contactIds)->account_id;
+            $accountId = $accountRepo->Insert($account, $contactIds)->account_id;
             $action = 'AccountController@create';
         }
         else {
@@ -263,10 +268,11 @@ class AccountController extends Controller {
         }
 
         //Handle change of primary
-        $newPrimaryId = $req->input('contact-action-change-primary');
-        if ($newPrimaryId != null)
-            $accountRepo->ChangePrimary($accountId, $newPrimaryId);
-
+        if ($newPrimaryId != null) {
+            if (Utils::HasValue($accountId)) {
+                $accountRepo->ChangePrimary($accountId, $newPrimaryId);
+            }
+        }
         //Commission
         $commissionCollector = new \App\Http\Collectors\CommissionCollector();
         $commission1 = $commission2 = null;
