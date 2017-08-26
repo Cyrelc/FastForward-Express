@@ -4,6 +4,12 @@ namespace App\Http\Repos;
 use App\Address;
 
 class AddressRepo {
+
+    public function ListByContactId($id) {
+        $ad = Address::where('contact_id', '=', $id)->get();
+        return $ad;
+    }
+
     public function GetByContactId($id) {
         $ad = Address::where('contact_id', '=', $id)
             ->where('is_primary', '=', 1)
@@ -61,12 +67,11 @@ class AddressRepo {
     }
 
     public function DeleteByContact($cid) {
-        $addrs = $this->GetByContactId($cid);
-
+        $addrs = $this->ListByContactId($cid);
         if (!isset($addrs)) return;
 
         foreach($addrs as $addr) {
-            $this->Delete($addr);
+            $this->Delete($addr->address_id);
         }
     }
 }

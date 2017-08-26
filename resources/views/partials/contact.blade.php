@@ -80,7 +80,7 @@
 
                 @if(isset($contact) && (!isset($contact->is_primary) || $contact->is_primary === false))
                     <li title="Make Primary">
-                        <a href="#" onclick="makePrimary(this)"><i class="fa fa-star"></i></a>
+                        <a href="javascript:void(0);" onclick="makePrimary(this)"><i class="fa fa-star"></i></a>
                     </li>
                 @endif
             </ul>

@@ -33,7 +33,7 @@ class PartialsValidationRules {
                 $contactId = substr($key, 11);
 
                 //Skip validation for any deleted contacts, and don't increase the contact count
-                if (in_array($contactId, $contactsToDelete))
+                if ($contactsToDelete !== null && in_array($contactId, $contactsToDelete))
                     continue;
 
                 $contacts++;
