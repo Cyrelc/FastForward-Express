@@ -23,11 +23,11 @@
 
 	<div class='col-lg-6'>
 	    <ul class='list-group' id='sort_order_list'>
-	    	<li class='list-group-item'>Location<input type='checkbox' id='subtotal_location' name='subtotal_location' style="float:right"/></li>
-	    	<li class='list-group-item'>Date<input type='checkbox' id='subtotal_date' name='subtotal_date' style="float:right"/></li>
-	    	<li class='list-group-item'>Bill Number</li>
-	    	<li class='list-group-item'>Bill Text</li>
-	    	<li class='list-group-item'>{{$model->account->custom_field}}<input type='checkbox' id='subtotal_custom_field' name='subtotal_custom_field' style="float:right"/></li>
+	    	<li class='list-group-item' id="location">Location<label style="float:right">Subtotal?&nbsp&nbsp<input type='checkbox' name='subtotal_location'/></label></li>
+	    	<li class='list-group-item' id="date">Date<label style="float:right">Subtotal?&nbsp&nbsp<input type='checkbox' name='subtotal_date' style="float:right"/></label></li>
+	    	<li class='list-group-item' id="bill_number">Bill Number</li>
+	    	<li class='list-group-item' id="bill_text">Bill Text</li>
+	    	<li class='list-group-item' id="custom_field">{{$model->account->custom_field}}<label style="float:right">Subtotal?&nbsp&nbsp<input type='checkbox' name='subtotal_custom_field'/></label></li>
 	    </ul>
 	</div>
 
