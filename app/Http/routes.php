@@ -56,11 +56,9 @@ Route::group(
             Route::post('/drivers/action', 'DriverController@action');
 
             Route::get('/invoices/generate','InvoiceController@create');
+            Route::get('/invoices/layouts/{id}','InvoiceController@layouts');
 
             Route::post('/partials/getcontact', 'PartialsController@GetContact');
-
-            Route::resource('/invoices', 'InvoiceController',
-                    ['only' => 'index']);
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 

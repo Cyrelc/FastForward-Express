@@ -30,4 +30,10 @@ class InvoiceController extends Controller {
         $model = $invoice_model_factory->GetCreateModel($req);
         return view('invoices.create', compact('model'));
     }
+
+    public function layouts(Request $req, $id) {
+        $invoice_model_factory = new Invoice\InvoiceModelFactory();
+        $model = $invoice_model_factory->GetLayoutModel($req, $id);
+        return view('invoices.layouts', compact('model'));
+    }
 }
