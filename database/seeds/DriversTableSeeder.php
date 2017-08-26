@@ -46,8 +46,35 @@ class DriversTableSeeder extends Seeder
         );
 
         for($i = 0; $i < 12; $i++) {
+            $contactId = factory(App\Contact::class)->create()->contact_id;
+
+            factory(App\PhoneNumber::class)->create([
+                'contact_id'=>$contactId,
+                'is_primary'=>1
+            ]);
+
+            factory(App\PhoneNumber::class)->create([
+                'contact_id'=>$contactId,
+                'is_primary'=>0
+            ]);
+
+            factory(App\EmailAddress::class)->create([
+                'contact_id'=>$contactId,
+                'is_primary'=>1
+            ]);
+
+            factory(App\EmailAddress::class)->create([
+                'contact_id'=>$contactId,
+                'is_primary'=>0
+            ]);
+
+            factory(App\Address::class)->create([
+                'contact_id'=>$contactId,
+                'is_primary'=>1
+            ]);
+
             $d = factory(App\Driver::class)->create([
-                "contact_id" => factory(App\Contact::class)->create()->contact_id,
+                "contact_id" => $contactId,
                 "user_id" => function(){
                     $uid = factory(App\User::class)->create()->user_id;
 
