@@ -293,8 +293,7 @@
 
 @section ('advFilter')
 <div class="well form-group">
-    <h3>Options</h3>
-    <hr>
+    <h4>Additional Fields</h4>
     <div class="checkbox">
         <label><input id="sub-location" type="checkbox" name="sub-location" data-div="parent-location" data-hidden-name="isSubLocation" />Is Sub-Location</label>
     </div>
@@ -310,6 +309,8 @@
     <div class="checkbox">
         <label><input id="use-custom-field" type="checkbox" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>
     </div>
+    <hr>
+    <h4>Options</h4>
     <div class="checkbox">
         <label><input id="charge-interest" type="checkbox" data-hidden-name="shouldChargeInterest" />Charge Interest on Balance Owing</label>
     </div>
