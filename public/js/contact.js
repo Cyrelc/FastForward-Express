@@ -91,7 +91,6 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
 }
 
 function makePrimary(element) {
-    debugger;
     var idToMakePrimary = $(element).parent().parent().parent().parent().parent().find('input[data-contact-id="true"]').val();
     $("[id$='contact-tabs'] a").each(function(index, el) {
         $(el).children('i.fa-star').remove();
@@ -100,6 +99,15 @@ function makePrimary(element) {
     $("a[data-id='" + idToMakePrimary + "']").prepend('<i class="fa fa-star"></i> ')
     $('input[name="contact-action-change-primary"]').remove();
     $("#" + idToMakePrimary + "-panel").append('<input type="hidden" name="contact-action-change-primary" value="' + idToMakePrimary + '" />');
+
+    $("[id$='-contact-bodies'] div").each(function(index, element){
+        if ($(element).html().indexOf('fa-star') === -1)
+            $(element).find('.nav-pills').append('<li title="Make Primary"><a href="javascript:void(0);" onclick="makePrimary(this)"><i class="fa fa-star"></i></a></li>');
+    });
+
+    $(element).parent().parent().children('li[title="Make Primary"]').remove();
+
+    return false;
 }
 
 function clearScForm(prefix, includeAddress) {
@@ -120,6 +128,7 @@ function clearScForm(prefix, includeAddress) {
     }
 
     var id = prefix.substring(8, prefix.length - 8);
+    if (id.indexOf("new") > -1) return;
     removeSc(id);
 }
 

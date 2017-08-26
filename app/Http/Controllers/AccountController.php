@@ -214,9 +214,9 @@ class AccountController extends Controller {
                 $emailAddressRepo->Delete($emsToDelete);
         }
 
-        foreach($contactsToDelete as $delete_id) {
-            $contactRepo->Delete($delete_id);
-        }
+        if ($contactsToDelete !== null)
+            foreach($contactsToDelete as $delete_id)
+                $contactRepo->Delete($delete_id);
         //END contacts
 
         //BEGIN delivery address
