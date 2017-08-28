@@ -20,6 +20,8 @@ class AddressCollector {
     public function Collect($req, $contactId, $isPrimary, $newId = null) {
         if ($contactId === 'no-contact')
             $prefix = 'contact-address';
+        else if ($contactId === "new")
+            $prefix = "new";
         else
             $prefix = 'contact-' . $contactId . '-address';
 

@@ -19,8 +19,8 @@ class PartialsController extends Controller
         $collector->CollectEmail($req, 0, false));
 
         $contact->contact_id = $req->input('new-contact-id');
-
         $showAddress = $req->input('include-address') !== null && $req->input('include-address') == 'true';
+
         $model = [
             'prefix' => 'contact-' . $req->input('new-contact-id'),
             'show_address' => $showAddress,

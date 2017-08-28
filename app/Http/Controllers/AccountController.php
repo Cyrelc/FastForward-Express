@@ -200,7 +200,6 @@ class AccountController extends Controller {
                             $emailAddressRepo->Insert($email2);
                     } else if (Utils::HasValue($email2['email_address_id']))
                         $emailAddressRepo->Delete($email2['email_address_id']);
-                
                 }
             }
         }

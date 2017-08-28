@@ -133,7 +133,7 @@ class DriverController extends Controller {
                     $newId = $contactRepo->Insert($contact)->contact_id;
 
                     if ($isEdit) {
-                        $driverRepo->AddContact($driverId, $newId);
+                        $driverRepo->AddEmergencyContact($driverId, $newId);
                     } else {
                         if ($newPrimaryId == $contactId)
                             $newPrimaryId = $newId;
@@ -172,38 +172,23 @@ class DriverController extends Controller {
                     $emailAddressRepo->Update($email1);
                     $addressRepo->Update($address);
 
-                    if ($req->input('pn-action-add-' . $contactId) != null)
-                        $phoneNumberRepo->Insert($phone2);
-                    if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
-                        $emailAddressRepo->Insert($email2);
+                    if (Utils::HasValue($phone2['phone_number'])) {
+                        if (Utils::HasValue($phone2['phone_number_id']))
+                            $phoneNumberRepo->Update($phone2);
+                        else
+                            $phoneNumberRepo->Insert($phone2);
+                    } else if (Utils::HasValue($phone2['phone_number_id']))
+                        $phoneNumberRepo->Delete($phone2['phone_number_id']);
 
-                    //Existing phone numbers on existing account
-                    if ($req->input('contact-' . $contactId . '-phone2-id') != null)
-                        $phoneNumberRepo->Update($phone2);
-                    if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
-                        $emailAddressRepo->Update($email2);
+                    if (Utils::HasValue($email2['email'])) {
+                        if (Utils::HasValue($email2['email_address_id']))
+                            $emailAddressRepo->Update($email2);
+                        else
+                            $emailAddressRepo->Insert($email2);
+                    } else if (Utils::HasValue($email2['email_address_id']))
+                        $emailAddressRepo->Delete($email2['email_address_id']);
                 }
             }
-        }
-
-        //Handle deletes of all secondary emails/pn's together
-        $phoneNumbersToDelete = $req->input('pn-action-delete');
-        $emailsToDelete = $req->input('em-action-delete');
-
-        if ($phoneNumbersToDelete !== null) {
-            if(is_array($phoneNumbersToDelete))
-                foreach($phoneNumbersToDelete as $phoneNumber)
-                    $phoneNumberRepo->Delete($phoneNumber);
-            else
-                $phoneNumberRepo->Delete($phoneNumbersToDelete);
-        }
-
-        if ($emailsToDelete !== null) {
-            if(is_array($emailsToDelete))
-                foreach($emailsToDelete as $email)
-                    $phoneNumberRepo->Delete($email);
-            else
-                $phoneNumberRepo->Delete($emailsToDelete);
         }
 
         if ($contactsToDelete !== null)
