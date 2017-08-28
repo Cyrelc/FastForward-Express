@@ -139,7 +139,7 @@ class DriverController extends Controller {
                             $newPrimaryId = $newId;
                     }
 
-                    array_push($emergencyContactIds, $contactId);
+                    array_push($emergencyContactIds, $newId);
                 }
                 else if ($primaryAction == "update") {
                     $contact["contact_id"] = $contactId;
