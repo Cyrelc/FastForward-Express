@@ -94,7 +94,6 @@ class DriverModelFactory
         $model->driver->dob = strtotime($model->driver->dob);
 
         $model->emergency_contacts = $contactsFactory->GetEditModel($driverRepo->ListEmergencyContacts($model->driver->driver_id), true);
-        $model->emergency_contacts[0]->is_primary = true;
 
         $model = $this->MergeOld($model, $request);
         return $model;

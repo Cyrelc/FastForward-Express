@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Repos;
 use App\Http\Models\Driver;
+use \App\Http\Validation\Utils;
 
 class DriverController extends Controller {
 
@@ -35,11 +36,6 @@ class DriverController extends Controller {
     }
 
     public function store(Request $req) {
-        //TODO: Testing, remove
-        /*$rules['TestFail'] = 'required';
-        $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-        if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-*/
         $driverRules = (new \App\Http\Validation\DriverValidationRules())->GetValidationRules();
         $partialsRules = new \App\Http\Validation\PartialsValidationRules();
 
@@ -86,6 +82,120 @@ class DriverController extends Controller {
         $contactRepo = new Repos\ContactRepo();
         $driverRepo = new Repos\DriverRepo();
 
+        $emergencyContactIds = array();        
+        $contactActions = $contactsCollector->GetActions($req);
+        
+        //Emergency Contact
+        //BEGIN contacts
+        $primary_id = null;
+        $newPrimaryId = $req->input('contact-action-change-primary');
+
+        foreach($req->all() as $key=>$value) {
+            if (substr($key, 0, 11) == "contact-id-") {
+                $contactId = substr($key, 11);
+
+                $actions = $contactActions[$contactId];
+
+                $primaryAction = "";
+                if (in_array('delete', $actions))
+                    $primaryAction = 'delete';
+                else if (in_array('update', $actions))
+                    $primaryAction = 'update';
+                else if (in_array('new', $actions))
+                    $primaryAction = 'new';
+
+                //What do we do with this contact? Return fail
+                if ($primaryAction == "") {
+                    $rules['Contact-Action'] = 'required';
+                    $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+                    if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+                }
+
+                if ($primaryAction == "delete") {
+                    //Deleting contact, delete and don't do anything else
+
+                    //Check that another contact is being added as primary
+                    if ($req->input('contact-action-change-primary') === $contactId) {
+                        //Manually fail validation
+                        $rules['PrimaryContact'] = 'required';
+                        $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
+                        if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
+                    }
+
+                    $contactRepo->Delete($contactId);
+                    continue;
+                }
+
+                $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
+                $newId = null;
+
+                if ($primaryAction == "new") {
+                    $newId = $contactRepo->Insert($contact)->contact_id;
+
+                    if ($isEdit) {
+                        $driverRepo->AddEmergencyContact($driverId, $newId);
+                    } else {
+                        if ($newPrimaryId == $contactId)
+                            $newPrimaryId = $newId;
+                    }
+
+                    array_push($emergencyContactIds, $newId);
+                }
+                else if ($primaryAction == "update") {
+                    $contact["contact_id"] = $contactId;
+                    $contactRepo->Update($contact);
+                }
+
+                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true, $newId);
+                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false, $newId);
+                $email1 = $contactCollector->CollectEmail($req, $contactId, true, $newId);
+                $email2 = $contactCollector->CollectEmail($req, $contactId, false, $newId);
+                $address = $addressCollector->Collect($req, $contactId, true, $newId);
+
+                if (isset($newId))
+                    $contactId = $newId;
+
+                if ($primaryAction == "new") {
+                    //New phone numbers on new account
+                    $phoneNumberRepo->Insert($phone1);
+                    $emailAddressRepo->Insert($email1);
+                    $addressRepo->Insert($address);
+
+                    if (Utils::HasValue($phone2['phone_number']))
+                        $phoneNumberRepo->Insert($phone2);
+
+                    if (Utils::HasValue($email2['email']))
+                        $emailAddressRepo->Insert($email2);
+                } else if ($primaryAction == "update") {
+                    //New phone numbers on existing account
+                    $phoneNumberRepo->Update($phone1);
+                    $emailAddressRepo->Update($email1);
+                    $addressRepo->Update($address);
+
+                    if (Utils::HasValue($phone2['phone_number'])) {
+                        if (Utils::HasValue($phone2['phone_number_id']))
+                            $phoneNumberRepo->Update($phone2);
+                        else
+                            $phoneNumberRepo->Insert($phone2);
+                    } else if (Utils::HasValue($phone2['phone_number_id']))
+                        $phoneNumberRepo->Delete($phone2['phone_number_id']);
+
+                    if (Utils::HasValue($email2['email'])) {
+                        if (Utils::HasValue($email2['email_address_id']))
+                            $emailAddressRepo->Update($email2);
+                        else
+                            $emailAddressRepo->Insert($email2);
+                    } else if (Utils::HasValue($email2['email_address_id']))
+                        $emailAddressRepo->Delete($email2['email_address_id']);
+                }
+            }
+        }
+
+        if ($contactsToDelete !== null)
+            foreach($contactsToDelete as $delete_id)
+                $contactRepo->Delete($delete_id);
+        //END contacts
+
         $user = $userCollector->CollectDriver($req, 'contact');
         $contact = $contactCollector->Collect($req, 'contact');
         $contact['contact_id'] = $req->input('id-for-contact');
@@ -107,7 +217,7 @@ class DriverController extends Controller {
         $email1 = $contactCollector->CollectEmailSingle($req, 'contact-email1', $contactId, true);
         $email2 = $contactCollector->CollectEmailSingle($req, 'contact-email2', $contactId, false);
         $pager = $driverCollector->CollectPager($req, $contactId);
-        $address = $addressCollector->Collect($req, 'contact-address', true);
+        $address = $addressCollector->Collect($req, 'no-contact', true, $contactId);
         $address['contact_id'] = $contactId;
         $driver = $driverCollector->Collect($req, $contactId, $userId);
 
@@ -142,130 +252,20 @@ class DriverController extends Controller {
 
             if ($email2['email'] !== null && strlen($email2['email']) > 0)
                 $emailAddressRepo->Insert($email2);
+            
+                $driverId = $driverRepo->Insert($driver, $emergencyContactIds)->driver_id;
         }
 
-        //Handle deletes of all secondary emails/pn's together
-        $phoneNumbersToDelete = $req->input('pn-action-delete');
-        $emailsToDelete = $req->input('em-action-delete');
-
-        if ($phoneNumbersToDelete !== null) {
-            if(is_array($phoneNumbersToDelete))
-                foreach($phoneNumbersToDelete as $phoneNumber)
-                    $phoneNumberRepo->Delete($phoneNumber);
-            else
-                $phoneNumberRepo->Delete($phoneNumbersToDelete);
-        }
-
-        if ($emailsToDelete !== null) {
-            if(is_array($emailsToDelete))
-                foreach($emailsToDelete as $email)
-                    $emailAddressRepo->Delete($email);
-            else
-                $emailAddressRepo->Delete($emailsToDelete);
-        }
-
-        //Emergency Contact
-        //BEGIN contacts
-        $primary_id = null;
-        $contactActions = $contactsCollector->GetActions($req);
-        $emergencyContactIds = [];
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0, 11) == "contact-id-") {
-                $contactId = substr($key, 11);
-                $actions = $contactActions[$contactId];
-
-                $primaryAction = "";
-                if (in_array('delete', $actions))
-                    $primaryAction = 'delete';
-                else if (in_array('update', $actions))
-                    $primaryAction = 'update';
-                else if (in_array('new', $actions))
-                    $primaryAction = 'new';
-
-                //What do we do with this contact? Return fail
-                if ($primaryAction == "") {
-                    $rules['Contact-Action'] = 'required';
-                    $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-                    if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-                }
-
-                if ($primaryAction == "delete") {
-                    //Deleting contact, delete and don't do anything else
-                    $contactRepo->Delete($contactId);
-                    continue;
-                }
-
-                $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
-                $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true);
-                $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false);
-                $email1 = $contactCollector->CollectEmail($req, $contactId, true);
-                $email2 = $contactCollector->CollectEmail($req, $contactId, false);
-                $address = $addressCollector->Collect($req, 'contact-' . $contactId . '-address', true);
-
-                if ($primaryAction == "new")
-                    $contactId = $contactRepo->Insert($contact)->contact_id;
-                else if ($primaryAction == "update") {
-                    $contact["contact_id"] = $contactId;
-                    $contactRepo->Update($contact);
-                }
-
-                $address['contact_id'] = $contactId;
-                $phone1['contact_id'] = $contactId;
-                $phone2['contact_id'] = $contactId;
-                $email1['contact_id'] = $contactId;
-                $email2['contact_id'] = $contactId;
-                array_push($emergencyContactIds, $contactId);
-
-                if ($primaryAction == "new") {
-                    //New phone numbers on new account
-                    $phoneNumberRepo->Insert($phone1);
-                    $emailAddressRepo->Insert($email1);
-                    $addressRepo->Insert($address);
-                } else if ($primaryAction == "update") {
-                    //New phone numbers on existing account
-                    $phoneNumberRepo->Update($phone1);
-                    $emailAddressRepo->Update($email1);
-                    $addressRepo->Update($address);
-
-                    if ($req->input('pn-action-add-' . $contactId) != null)
-                        $phoneNumberRepo->Insert($phone2);
-                    if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
-                        $emailAddressRepo->Insert($email2);
-
-                    //Existing phone numbers on existing account
-                    if ($req->input('contact-' . $contactId . '-phone2-id') != null)
-                        $phoneNumberRepo->Update($phone2);
-                    if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
-                        $emailAddressRepo->Update($email2);
-                }
+        //Handle change of primary
+        if ($newPrimaryId != null) {
+            if (Utils::HasValue($driverId)) {
+                $driverRepo->ChangePrimary($driverId, $newPrimaryId);
             }
         }
-
-        //Handle deletes of all secondary emails/pn's together
-        $phoneNumbersToDelete = $req->input('pn-action-delete');
-        $emailsToDelete = $req->input('em-action-delete');
-
-        if ($phoneNumbersToDelete !== null) {
-            if(is_array($phoneNumbersToDelete))
-                foreach($phoneNumbersToDelete as $phoneNumber)
-                    $phoneNumberRepo->Delete($phoneNumber);
-            else
-                $phoneNumberRepo->Delete($phoneNumbersToDelete);
-        }
-
-        if ($emailsToDelete !== null) {
-            if(is_array($emailsToDelete))
-                foreach($emailsToDelete as $email)
-                    $phoneNumberRepo->Delete($email);
-            else
-                $phoneNumberRepo->Delete($emailsToDelete);
-        }
-        //END contacts
 
         if ($isEdit)
             return redirect()->action('DriverController@edit',['driver_id'=>$driver['driver_id']]);
         else {
-            $driverRepo->Insert($driver, $emergencyContactIds);
             return redirect()->action('DriverController@create');
         }
     }

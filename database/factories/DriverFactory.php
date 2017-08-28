@@ -3,7 +3,7 @@ $factory->define(App\Driver::class, function (Faker\Generator $faker) {
     $c = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
     $n = '0123456789';
     $plate = $c[rand(0, strlen($c) - 1)] . "-" . $n[rand(0, strlen($n) - 1)] . $n[rand(0, strlen($n) - 1)] . $n[rand(0, strlen($n) - 1)] . $n[rand(0, strlen($n) - 1)] . $n[rand(0, strlen($n) - 1)];
-    
+    //TODO: FIX -- can't start with A, E, I, O, U, Y
     return [
         "start_date" => $faker->dateTimeThisDecade(),
         "license_plate_number" => $plate,

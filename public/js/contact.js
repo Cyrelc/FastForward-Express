@@ -82,6 +82,9 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
                 '<div role="tabpanel" class="tab-pane active" id="' + id + '-panel">' +
                     result +
                 '</div>');
+
+            if(!$("[name='contact-action-change-primary']").length)
+                $("#" + id + "-panel").prepend('<input type="hidden" name="contact-action-change-primary" value="' + id + '" />');
         }
     });
 
@@ -133,13 +136,13 @@ function clearScForm(prefix, includeAddress) {
 }
 
 function removeSc(id) {
-    var isNew = $("#" +  id + "-panel").html().indexOf('contact-action-new[]' > -1);
-    var isPrimary = $("#" + id + "-li").attr('data-isPrimary') === "true";
+    var isNew = $("#" +  id + "-panel").html().indexOf('contact-action-new[]') > -1;
+    var isPrimary = $("[name='contact-action-change-primary']").val() == id;
     $("[id$=contact-tabs] a[data-id='" + id + "']").parent().remove();
     $("#" + id + '-panel').remove();
 
     if (!isNew)
-        $("[id$=contact-bodies]").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
+        $("[id$='contact-bodies']").append('<input type="hidden" name="contact-action-delete[]" value="' + id + '" />');
 
     //Promote next contact in list to primary contact
     if (isPrimary) {
