@@ -15,6 +15,7 @@ class DriverEmergencyContacts extends Migration
         Schema::create('driver_emergency_contacts', function (Blueprint $table) {
             $table->unsignedInteger('driver_id');
             $table->unsignedInteger('contact_id');
+            $table->boolean('is_primary');
 
             $table->foreign('driver_id')->references('driver_id')->on('drivers');
             $table->foreign('contact_id')->references('contact_id')->on('contacts');

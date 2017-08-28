@@ -193,6 +193,7 @@ class DriversTableSeeder extends Seeder
                 DB::table('driver_emergency_contacts')->insert([
                     "contact_id" => $cid,
                     "driver_id" => $d->driver_id,
+                    "is_primary" => $j === 0
                 ]);
             }
         }

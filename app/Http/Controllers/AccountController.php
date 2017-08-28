@@ -175,48 +175,34 @@ class AccountController extends Controller {
                     $phoneNumberRepo->Insert($phone1);
                     $emailAddressRepo->Insert($email1);
 
-                    if ($phone2['phone_number'] !== null && strlen($phone2['phone_number']) > 0)
+                    if (Utils::HasValue($phone2['phone_number']))
                         $phoneNumberRepo->Insert($phone2);
 
-                    if ($email2['email'] !== null && strlen($email2['email']) > 0)
+                    if (Utils::HasValue($email2['email']))
                         $emailAddressRepo->Insert($email2);
                 } else if ($primaryAction == "update") {
                     //New phone numbers on existing account
                     $phoneNumberRepo->Update($phone1);
                     $emailAddressRepo->Update($email1);
 
-                    if ($req->input('pn-action-add-' . $contactId) != null)
-                        $phoneNumberRepo->Insert($phone2);
-                    if ($req->input('em-action-add-' . $contactId) != null && $req->input('primary-email2') != null)
-                        $emailAddressRepo->Insert($email2);
+                    if (Utils::HasValue($phone2['phone_number'])) {
+                        if (Utils::HasValue($phone2['phone_number_id']))
+                            $phoneNumberRepo->Update($phone2);
+                        else
+                            $phoneNumberRepo->Insert($phone2);
+                    } else if (Utils::HasValue($phone2['phone_number_id']))
+                        $phoneNumberRepo->Delete($phone2['phone_number_id']);
 
-                    //Existing phone numbers on existing account
-                    if ($req->input('contact-' . $contactId . '-phone2-id') != null)
-                        $phoneNumberRepo->Update($phone2);
-                    if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
+                    if (Utils::HasValue($email2['email'])) {
+                        if (Utils::HasValue($email2['email_address_id']))
                             $emailAddressRepo->Update($email2);
+                        else
+                            $emailAddressRepo->Insert($email2);
+                    } else if (Utils::HasValue($email2['email_address_id']))
+                        $emailAddressRepo->Delete($email2['email_address_id']);
+                
                 }
             }
-        }
-
-        //Handle deletes of all secondary emails/pn's together
-        $pnsToDelete = $req->input('pn-action-delete');
-        $emsToDelete = $req->input('em-action-delete');
-
-        if ($pnsToDelete !== null) {
-            if(is_array($pnsToDelete))
-                foreach($pnsToDelete as $pn)
-                    $phoneNumberRepo->Delete($pn);
-            else
-                $phoneNumberRepo->Delete($pnsToDelete);
-        }
-
-        if ($emsToDelete !== null) {
-            if(is_array($emsToDelete))
-                foreach($emsToDelete as $em)
-                    $emailAddressRepo->Delete($em);
-            else
-                $emailAddressRepo->Delete($emsToDelete);
         }
 
         if ($contactsToDelete !== null)
@@ -226,7 +212,7 @@ class AccountController extends Controller {
 
         //BEGIN delivery address
         $addrCollector = new \App\Http\Collectors\AddressCollector();
-        $delivery = $addrCollector->Collect($req, 'delivery', true);
+        $delivery = $addrCollector->CollectForAccount($req, 'delivery');
         $delivery_id = $delivery["address_id"];
 
         if ($delivery_id == null)
@@ -238,7 +224,7 @@ class AccountController extends Controller {
         //BEGIN billing address
         $billing_id = $req->input('billing-id');
         if ($req->input('billing-address') == 'on') {
-            $billing = $addrCollector->Collect($req, 'billing', false);
+            $billing = $addrCollector->CollectForAccount($req, 'billing');
 
             if ($billing_id == null || $billing_id == '')
                 $billing_id = $addressRepo->Insert($billing)->address_id;

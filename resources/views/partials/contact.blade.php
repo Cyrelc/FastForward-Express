@@ -10,7 +10,6 @@
     @else
         <div class="col-lg-12">
     @endif
-
     @if(isset($contact) && $contact->contact_id !== 0)
         @if(isset($multi) && $multi=="true")
             <input type="hidden" name="contact-id-{{$contact->contact_id}}" />
@@ -67,9 +66,12 @@
     @if (isset($multi) && $multi)
         <div class="col-lg-12 text-center">
             <ul class="nav nav-pills">
-                <li class="text-center" title="Save">
-                    <a href="javascript:saveScContact('{{$multi_div_prefix}}', '{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-save"></i></a>
-                </li>
+                @if(!isset($contact) || $contact->contact_id === 0)
+                    <li class="text-center" title="Save">
+                        <a href="javascript:saveScContact('{{$multi_div_prefix}}', '{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-save"></i></a>
+                    </li>
+                @endif
+
                 <li title="Delete">
                     @if (isset($contact) && isset($contact->contact_id))
                         <a href="javascript:removeSc('{{$contact->contact_id}}')"><i class="fa fa-trash"></i></a>

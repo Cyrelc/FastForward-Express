@@ -2,7 +2,7 @@
 namespace App\Http\Collectors;
 
 class AddressCollector {
-    public function Collect($req, $prefix, $isPrimary) {
+    public function CollectForAccount($req, $prefix) {
         return [
             'address_id'=>$req->input($prefix . '-id'),
             'name'=>$req->input($prefix . '-name'),
@@ -12,7 +12,28 @@ class AddressCollector {
             'zip_postal'=>$req->input($prefix . '-zip-postal'),
             'state_province'=>$req->input($prefix . '-state-province'),
             'country'=>$req->input($prefix . '-country'),
-            'is_primary'=>$isPrimary
+            'is_primary'=>false,
+            'contact_id'=>null
+        ];
+    }
+    
+    public function Collect($req, $contactId, $isPrimary, $newId = null) {
+        if ($contactId === 'no-contact')
+            $prefix = 'contact-address';
+        else
+            $prefix = 'contact-' . $contactId . '-address';
+
+        return [
+            'address_id'=>$req->input($prefix . '-id'),
+            'name'=>$req->input($prefix . '-name'),
+            'street'=>$req->input($prefix . '-street'),
+            'street2'=>$req->input($prefix . '-street2'),
+            'city'=>$req->input($prefix . '-city'),
+            'zip_postal'=>$req->input($prefix . '-zip-postal'),
+            'state_province'=>$req->input($prefix . '-state-province'),
+            'country'=>$req->input($prefix . '-country'),
+            'is_primary'=>$isPrimary,
+            'contact_id'=>isset($newId) ? $newId : $contactId
         ];
     }
 

@@ -99,7 +99,7 @@
 			</div>
 
 			<!--Emergency Contacts-->
-			@include('partials.contacts', ['prefix' => 'ec', 'contacts' => $model->emergency_contacts, 'show_address' => true, 'title' =>'Emergency Contacts'])
+			@include('partials.contacts', ['contacts' => $model->emergency_contacts, 'show_address' => true, 'title' => 'Emergency Contacts', 'prefix' => 'sc'])
 
 			<!--Additional Info Panel-->
 			<div class="col-lg-12">

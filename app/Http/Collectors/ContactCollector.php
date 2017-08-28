@@ -12,12 +12,12 @@ class ContactCollector {
         ];
     }
 
-    public function CollectPhoneNumber($req, $contactId, $isPrimary, $newId=null) {
+    public function CollectPhoneNumber($req, $contactId, $isPrimary, $newId = null) {
         $prefix = 'contact-' . $contactId . ($isPrimary ? '-phone1' : '-phone2');
         return $this->CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId);
     }
 
-    public function CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId) {
+    public function CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId = null) {
         return [
             'phone_number_id' => $req->input($prefix . '-id'),
             'phone_number' => $req->input($prefix),
@@ -33,7 +33,7 @@ class ContactCollector {
         return $this->CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId);
     }
 
-    public function CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId) {
+    public function CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId = null) {
         return [
             'email_address_id'=>$req->input($prefix . '-id'),
             'email'=>$req->input($prefix),

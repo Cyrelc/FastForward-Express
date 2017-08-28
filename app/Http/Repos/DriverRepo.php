@@ -59,4 +59,16 @@ class DriverRepo {
 
         return $eContacts;
     }
+
+    public function AddEmergencyContact($driverId, $contactId) {
+        $driver = $this->GetById($driverId);
+        $driver->contacts()->attach($contactId);
+    }
+
+    public function ChangePrimary($driverId, $contactId) {
+        //Manually do this cause Laravel sucks, ensure parameters are valid
+        if ($driverId == null || !is_numeric($driverId) || $driverId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
+        \DB::update('update driver_emergency_contacts set is_primary = 0 where driver_id = ' . $driverId . ' and is_primary = 1;');
+        \DB::update('update driver_emergency_contacts set is_primary = 1 where driver_id = ' . $driverId . ' and contact_id = ' . $contactId . ';');
+    }
 }
