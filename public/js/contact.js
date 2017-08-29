@@ -83,8 +83,10 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
                     result +
                 '</div>');
 
-            if(!$("[name='contact-action-change-primary']").length)
+            if(!$("[name='contact-action-change-primary']").length) {
                 $("#" + id + "-panel").prepend('<input type="hidden" name="contact-action-change-primary" value="' + id + '" />');
+                $("#" + id + "-panel").find("i.fa-star").parent().remove();
+            }
         }
     });
 
