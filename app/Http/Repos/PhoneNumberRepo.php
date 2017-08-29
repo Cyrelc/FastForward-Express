@@ -27,7 +27,7 @@ class PhoneNumberRepo {
         $new = new PhoneNumber;
 
         $new = $new->create($pn);
-
+        
         return $new;
     }
 
@@ -37,6 +37,7 @@ class PhoneNumberRepo {
         //We don't really deal with pn type right now
         //$old->type = $pn['type'];
         $old->phone_number = $pn['phone_number'];
+        $old->extension_number = $pn['extension_number'];
         $old->is_primary = $pn['is_primary'];
         $old->contact_id = $pn['contact_id'];
 

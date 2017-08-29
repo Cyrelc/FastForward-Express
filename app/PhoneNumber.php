@@ -9,5 +9,5 @@ class PhoneNumber extends Model
     public $primaryKey = "phone_number_id";
     public $timestamps = false;
 
-    protected $fillable = ['phone_number', 'is_primary', 'type', 'contact_id'];
+    protected $fillable = ['phone_number', 'extension_number', 'is_primary', 'type', 'contact_id'];
 }
