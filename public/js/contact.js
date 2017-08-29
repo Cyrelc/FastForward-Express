@@ -117,7 +117,9 @@ function clearScForm(prefix, includeAddress) {
     $("#" + prefix + "-first-name").val('');
     $("#" + prefix + "-last-name").val('');
     $("#" + prefix + "-phone1").val('');
+    $("#" + prefix + "-phone1-ext").val('');
     $("#" + prefix + "-phone2").val('');
+    $("#" + prefix + "-phone2-ext").val('');
     $("#" + prefix + "-email1").val('');
     $("#" + prefix + "-email2").val('');
 
