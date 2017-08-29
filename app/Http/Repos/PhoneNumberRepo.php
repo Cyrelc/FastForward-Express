@@ -27,7 +27,6 @@ class PhoneNumberRepo {
         $new = new PhoneNumber;
 
         $new = $new->create($pn);
-        dd($new);
         
         return $new;
     }
