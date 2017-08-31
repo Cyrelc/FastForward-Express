@@ -16,6 +16,12 @@ class PhoneNumberRepo {
         return $pn;
     }
 
+    public function GetContactPrimaryPhone($contactId) {
+        $primaryPhone = PhoneNumber::where([['contact_id', '=', $contactId], ['is_primary', '=', 'true']])->first();
+
+        return $primaryPhone;
+    }
+
     public function GetPagerByDriverContact($id) {
         $pn = PhoneNumber::where('contact_id', '=', $id)
             ->where('type', '=', 'Pager')->first();

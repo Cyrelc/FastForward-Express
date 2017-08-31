@@ -75,6 +75,12 @@ class AccountRepo {
         return $accountContacts;
     }
 
+    public function GetAccountPrimaryContactId($accountId) {
+        $primaryContact = AccountContact::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
+
+        return $primaryContact;
+    }
+
     public function ChangePrimary($accountId, $contactId) {
         //Manually do this cause Laravel sucks, ensure parameters are valid
         if ($accountId == null || !is_numeric($accountId) || $accountId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
