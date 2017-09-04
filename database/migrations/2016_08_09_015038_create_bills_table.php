@@ -31,6 +31,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('delivery_driver_commission');
             $table->unsignedInteger('interliner_id')->nullable();
             $table->decimal('interliner_amount')->nullable();
+            $table->boolean('skip_invoicing');
             $table->string('bill_number');
             $table->string('description');
             $table->date('date');
