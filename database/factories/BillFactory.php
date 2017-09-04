@@ -23,6 +23,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         ])
     ];
 
+    $result["skip_invoicing"] = (rand(0, 3) == 0);
 
     if (rand(0,2) == 0) {
         $result["interliner_id"] = rand(1, 10);

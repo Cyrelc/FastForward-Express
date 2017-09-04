@@ -23,9 +23,11 @@ class Bill extends Model
     						'delivery_driver_commission',
                             'interliner_id',
                             'interliner_amount',
+                            'skip_invoicing',
     						'bill_number',
     						'amount',
     						'date',
-    						'description'];
+                            'description'
+                        ];
 
 }
