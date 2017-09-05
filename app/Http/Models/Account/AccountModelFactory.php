@@ -14,8 +14,6 @@
 			try {
                 $acctsRepo = new Repos\AccountRepo();
                 $addrRepo = new Repos\AddressRepo();
-                //dd($acctsRepo->ListAllWithUninvoicedBillsByInvoiceInterval('monthly', '2017-08-07', '2017-09-18'));
-                dd((new \App\Http\Repos\InvoiceRepo())->Create(2, '2017-08-07', '2017-09-18'));
                 $accounts = $acctsRepo->ListAll();
 
                 $avms = array();
