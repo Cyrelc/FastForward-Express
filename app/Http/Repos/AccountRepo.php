@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\Account;
 use App\AccountContact;
+use Illuminate\Support\Facades\DB;
 
 class AccountRepo {
 
@@ -14,6 +15,12 @@ class AccountRepo {
 
     public function ListParents() {
         $accounts = Account::where('can_be_parent', '=', true)->get();
+
+        return $accounts;
+    }
+
+    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date) {
+        $accounts = DB::select('SELECT a.account_id, a.name, count(b.bill_id) FROM bills b inner join accounts a on a.account_id = b.charge_account_id where a.invoice_interval = "' . $invoice_interval . '" and b.is_invoiced = 0 and b.date >= ' . $start_date . ' and b.date <= "' . $end_date . '" group by a.account_id');
 
         return $accounts;
     }

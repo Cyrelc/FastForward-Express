@@ -10,6 +10,10 @@ class InterlinerRepo {
 
         return $interliners;
     }
-}
 
-?>
+    public function GetById($id) {
+	    $interliner = Interliner::where('interliner_id', '=', $id)->first();
+
+	    return $interliner;
+    }
+}

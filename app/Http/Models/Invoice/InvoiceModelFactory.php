@@ -33,4 +33,22 @@
 
 			return $model;
 		}
+
+		public function GetGenerateModel($invoice_interval, $start_date, $end_date) {
+			$start_date = (new \DateTime($start_date))->format('Y-m-d');
+			$end_date = (new \DateTime($end_date))->format('Y-m-d');
+
+			$repo = new Repos\AccountRepo();
+			$model = new GenerateInvoiceViewModel();
+
+			try {
+				$model->accounts = $repo->ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date);
+			} catch (Exception $e) {
+				$model->friendlyMessage = 'Sorry, but an error has occurred. Please contact support.';
+			    $model->errorMessage = $e;
+			}
+
+			return $model;
+		}
+
 	}
