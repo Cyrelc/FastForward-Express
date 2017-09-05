@@ -12,7 +12,7 @@ class ManifestsTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker\Factory::create();
-        $billNumber = 102;
+        $billNumber = 1002;
         for($i = 0; $i < 20; $i++) {
             $mid = DB::table('manifests')->insertGetId([
                 "start_date" => new Carbon\Carbon('first day of last month'),
@@ -26,9 +26,7 @@ class ManifestsTableSeeder extends Seeder
                 ])->modification_id
             ]);
 
-            $iid = factory(App\Invoice::class)->create([
-                "invoice_number" => $i
-            ])->invoice_id;
+            $iid = factory(App\Invoice::class)->create()->invoice_id;
 
             DB::table('invoice_modifications')->insert([
                 "invoice_id" => $iid,
