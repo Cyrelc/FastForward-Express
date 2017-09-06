@@ -5,7 +5,7 @@
 	use App\Http\Repos;
 	use App\Http\Models;
 	use App\Http\Models\Account;
-use App\Http\Models\Invoice;
+
 	class AccountModelFactory {
 
 		public function ListAll() {
@@ -14,7 +14,6 @@ use App\Http\Models\Invoice;
 			try {
                 $acctsRepo = new Repos\AccountRepo();
                 $addrRepo = new Repos\AddressRepo();
-
                 $accounts = $acctsRepo->ListAll();
 
                 $avms = array();

@@ -15,7 +15,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         "pickup_driver_id" => rand(1, 4),
         "delivery_driver_id" => rand(1, 4),
         "description" => $descriptions[rand(0,3)],
-        "date" => $faker->dateTimeThisMonth,
+        "date" => $faker->dateTimeThisYear,
         "amount" => $amount,
         "reference_id" => DB::table("references")->insertGetId([
             "reference_type_id" => rand(1, 4),
