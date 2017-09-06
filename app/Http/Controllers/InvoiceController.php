@@ -28,7 +28,7 @@ class InvoiceController extends Controller {
         // Check permissions
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetCreateModel($req);
-        return view('invoices.create', compact('model'));
+        return view('invoices.invoice-generate', compact('model'));
     }
 
     public function layouts(Request $req, $id) {

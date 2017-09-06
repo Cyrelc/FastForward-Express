@@ -1,11 +1,8 @@
 @extends ('layouts.app')
 
 @section ('script')
-
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
-<script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
-<script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/bills/bill.js'></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/invoice-generate.js'></script>
 
 @parent
 @endsection
@@ -40,18 +37,21 @@
 
 <!--Invoice Interval-->
         <div class="col-lg-4 bottom15">
-            <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
-                @foreach ($model->invoice_intervals as $ii)
-                    <option value="{{$ii}}">{{ucfirst($ii)}}</option>
-                @endforeach
-            </select>
+            <div class="input-group">
+                <span class="input-group-addon">Invoice Interval: </span>
+                <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
+                    @foreach ($model->invoice_intervals as $ii)
+                        <option value="{{$ii}}">{{ucfirst($ii)}}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
 <!-- start date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Start Date: </span>
-                <input type='text' id="start_date" class="form-control" name='start_date' placeholder="Start Date" value="{{date("l, F d Y", $model->start_date)}}"/>
+                <input type='text' id="start_date" class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -62,16 +62,28 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">End Date: </span>
-                <input type='text' id="end_date" class="form-control" name='end_date' placeholder="End Date" value="{{date("l, F d Y", $model->end_date)}}"/>
+                <input type='text' id="end_date" class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
             </div>
         </div>
+        <div class='text-center'>
+            <button class='btn btn-info'>Update Account List</button>
+        </div>
+<!-- preview list -->
+        <div class="col-lg-12">
+            <hr>
+            <h5>The following accounts fit the chosen criteria, and have bills that are yet to be invoiced:</h5>
+        </div>
+        <div class="col-lg-12 bottom15">
+            <ul class='list-group' id='preview_list'>
+                <li class='list-group-item' style="color:red">Currently no accounts are selected to invoice</li>
+            </ul>
+        </div>
 
-<!-- sort by -->
-		<div>
-			
-		</div>
+        <div class='text-center'>
+            <button type='submit' class='btn btn-primary'>Submit</button>
+        </div>
     </div>
 @endsection
