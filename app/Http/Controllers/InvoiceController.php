@@ -24,7 +24,7 @@ class InvoiceController extends Controller {
         return view('invoices.invoices');
     }
 
-    public function create(Request $req) {
+    public function generate(Request $req) {
         // Check permissions
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetCreateModel($req);
@@ -43,5 +43,20 @@ class InvoiceController extends Controller {
         $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
         $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_interval, $start_date, $end_date);
         return $accounts;
+    }
+
+    public function store(Request $req) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+
+        $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
+        $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+
+        $accounts = array();
+        foreach($req->checkboxes as $account)
+            array_push($accounts, $account);
+
+        $invoiceRepo->create($accounts, $start_date, $end_date);
+
+        return redirect()->action('InvoiceController@index');
     }
 }

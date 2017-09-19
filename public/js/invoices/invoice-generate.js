@@ -17,12 +17,15 @@ function getAccountsToInvoice(){
     		if (results.length > 0) {
     			$('#preview_list_placeholder').addClass('hidden');
 
+    			$("#account_preview_table tbody").empty();
+    			$('#account_count').val(results.length);
+
 	    		for (i = 0; i < results.length; i++) {
 	    			var cur = results[i];
 
 	    			var row = $("<tr>");
 
-	    			row.append("<td><input type='checkbox' name='checkbox-account-" + cur.account_id + "' checked value='" + cur.account_id + "' /></td>");
+	    			row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' checked value='" + cur.account_id + "' /></td>");
 	    			row.append("<td>" + cur.name + "</td>");
 	    			row.append("<td>" + cur.bill_count + "</td>");
 

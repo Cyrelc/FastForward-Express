@@ -17,9 +17,10 @@
 
 <h2>Generate Invoices</h2>
 
-<form method="POST" action="/invoices/generate">
+<form method="POST" action="/invoices/store">
 
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="account_count" id="account_count">
 
 	<div class="clearfix well">
         <pre id='errors' class='hidden'></pre>
@@ -98,4 +99,5 @@
             <button type='submit' class='btn btn-primary'>Submit</button>
         </div>
     </div>
+</form>
 @endsection
