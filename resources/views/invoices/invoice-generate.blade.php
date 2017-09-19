@@ -19,6 +19,8 @@
 
 <form method="POST" action="/invoices/generate">
 
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
 	<div class="clearfix well">
         <pre id='errors' class='hidden'></pre>
         @if(!empty($errors) && $errors->count() > 0)
@@ -39,7 +41,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Invoice Interval: </span>
-                <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
+                <select class='form-control' id='invoice-interval' name="invoice-interval" placeholder="Select Invoice Interval">
                     @foreach ($model->invoice_intervals as $ii)
                         <option value="{{$ii}}">{{ucfirst($ii)}}</option>
                     @endforeach
@@ -69,7 +71,7 @@
             </div>
         </div>
         <div class='text-center'>
-            <button class='btn btn-info'>Update Account List</button>
+            <button type='button' class='btn btn-info' onclick="getAccountsToInvoice()" >Update Account List</button>
         </div>
 <!-- preview list -->
         <div class="col-lg-12">
@@ -77,9 +79,19 @@
             <h5>The following accounts fit the chosen criteria, and have bills that are yet to be invoiced:</h5>
         </div>
         <div class="col-lg-12 bottom15">
-            <ul class='list-group' id='preview_list'>
-                <li class='list-group-item' style="color:red">Currently no accounts are selected to invoice</li>
-            </ul>
+            <h5 id='preview_list_placeholder' style="color:red">Currently no accounts are selected to invoice</h5>
+
+            <table id="account_preview_table" name="account_preview_table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Invoice?</th>
+                        <th>Account Name</th>
+                        <th>Number of Bills Matched</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
 
         <div class='text-center'>

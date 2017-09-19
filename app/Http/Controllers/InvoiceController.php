@@ -36,4 +36,12 @@ class InvoiceController extends Controller {
         $model = $invoice_model_factory->GetLayoutModel($req, $id);
         return view('invoices.layouts', compact('model'));
     }
+
+    public function getAccountsToInvoice(Request $req) {
+        $acctRepo = new Repos\AccountRepo();
+        $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
+        $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_interval, $start_date, $end_date);
+        return $accounts;
+    }
 }

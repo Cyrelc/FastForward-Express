@@ -57,6 +57,7 @@ Route::group(
 
             Route::get('/invoices/generate','InvoiceController@create');
             Route::get('/invoices/layouts/{id}','InvoiceController@layouts');
+            Route::post('/invoices/getAccountsToInvoice','InvoiceController@getAccountsToInvoice');
 
             Route::post('/partials/getcontact', 'PartialsController@GetContact');
 
