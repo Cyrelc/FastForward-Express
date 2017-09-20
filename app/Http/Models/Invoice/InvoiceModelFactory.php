@@ -4,8 +4,68 @@
 
 	use App\Http\Repos;
 	use App\Http\Models\Invoice;
+	use App\Http\Models\Bill;
 
 	class InvoiceModelFactory{
+
+		public function ListAll() {
+			$model = new Invoice\InvoicesModel();
+
+			$invoiceRepo = new Repos\InvoiceRepo();
+			$accountRepo = new Repos\AccountRepo();
+			$billRepo = new Repos\BillRepo();
+			
+			$invoices = $invoiceRepo->ListAll();
+
+			$invoice_view_models = array();
+			foreach ($invoices as $invoice) {
+				$invoice_view_model = new InvoiceViewModel();
+
+				$invoice_view_model->invoice = $invoice;
+				$invoice_view_model->account = $accountRepo->GetById($invoice->account_id);
+				$invoice_view_model->bill_count = $billRepo->CountByInvoiceId($invoice->invoice_id);
+
+				array_push($invoice_view_models, $invoice_view_model);
+			}
+
+			$model->invoices = $invoice_view_models;
+			$model->success = true;
+
+			return $model;
+		}
+
+		public function GetById($id) {
+			$model = new InvoiceViewModel();
+
+			$invoiceRepo = new Repos\InvoiceRepo();
+			$accountRepo = new Repos\AccountRepo();
+			$addressRepo = new Repos\AddressRepo();
+			$billRepo = new Repos\BillRepo();
+
+			$model->invoice = $invoiceRepo->GetById($id);
+
+			$parent_id = $model->invoice->account_id;
+			while (!is_null($parent_id)) {
+				$parent = $accountRepo->GetById($parent_id);
+				array_push($model->parents, $parent);
+				$parent_id = $parent->parent_id;
+			}
+
+			$bills = $billRepo->GetByInvoiceId($id);
+			foreach ($bills as $bill) {
+				$bill_model = new Bill\BillViewModel();
+				$bill_model->bill = $bill;
+				$bill_model->pickup_address = $addressRepo->GetById($bill->pickup_address_id);
+				$bill_model->delivery_address = $addressRepo->GetById($bill->delivery_address_id);
+				array_push($model->bills, $bill_model);
+			}
+
+			$model->amount = $billRepo->GetInvoiceCost($id);
+			$model->tax = round($model->amount * .05, 2);
+			$model->total = $model->amount + $model->tax;
+
+			return $model;
+		}
 
 		public function GetCreateModel($req) {
 			$model = new Invoice\InvoiceFormModel();

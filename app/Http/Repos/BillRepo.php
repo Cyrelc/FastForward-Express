@@ -17,6 +17,23 @@ class BillRepo {
 	    return $bill;
     }
 
+    public function GetByInvoiceId($id) {
+        $bills = Bill::where('invoice_id', '=', $id)->get();
+
+        return $bills;
+    }
+
+    public function GetInvoiceCost($id) {
+        $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
+
+        $amount = 0;
+        foreach ($cost as $value) {
+            $amount += $value;
+        }
+
+        return $amount;
+    }
+
     public function Insert($bill) {
     	$new = new Bill;
 
@@ -69,6 +86,14 @@ class BillRepo {
         $old->save();
 
         return $old;
+    }
+
+    public function CountByInvoiceId($invoiceId) {
+        $bills = \DB::table("bills")->select(\DB::raw('count(bill_id) as bill_count'))
+            ->where('invoice_id', '=', $invoiceId)
+            ->get();
+
+        return $bills[0]->bill_count;
     }
 
     public function CountByDriver($driverId) {

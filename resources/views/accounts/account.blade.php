@@ -2,8 +2,8 @@
 
 @section ('script')
 
-    <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
-    <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
+<script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
+<script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
@@ -48,6 +48,8 @@
             console.log('cur ' + curr + ' new ' + newNum);
             if (!newNum) return;
             if (curr && curr == newNum ) return;
+
+            console.log('{{URL::to('/')}}/accounts/is_unique');
 
             $("#account_number_result").children('i').remove();
             $("#account_number_result").append('<i class="fa fa-spinner fa-spin text-info"></i>');

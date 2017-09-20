@@ -20,7 +20,7 @@ class AccountRepo {
     }
 
     public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date) {
-        $accounts = DB::select('SELECT a.account_id, a.name, count(b.bill_id) FROM bills b inner join accounts a on a.account_id = b.charge_account_id where a.invoice_interval = "' . $invoice_interval . '" and b.is_invoiced = 0 and b.date >= "' . $start_date . '" and b.date <= "' . $end_date . '" group by a.account_id');
+        $accounts = DB::select('SELECT a.account_id, a.name, count(b.bill_id) as bill_count FROM bills b inner join accounts a on a.account_id = b.charge_account_id where a.invoice_interval = "' . $invoice_interval . '" and b.is_invoiced = 0 and b.date >= "' . $start_date . '" and b.date <= "' . $end_date . '" group by a.account_id');
 
         return $accounts;
     }
@@ -73,6 +73,12 @@ class AccountRepo {
         $accountContacts = AccountContact::where('account_id', '=', $accountId)->get();
 
         return $accountContacts;
+    }
+
+    public function GetAccountPrimaryContactId($accountId) {
+        $primaryContact = AccountContact::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
+
+        return $primaryContact;
     }
 
     public function ChangePrimary($accountId, $contactId) {

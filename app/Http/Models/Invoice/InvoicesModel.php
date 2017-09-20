@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Models\Bill;
+namespace App\Http\Models\Invoice;
 
-class BillsModel {
-    public $bills;
+class InvoicesModel {
+    public $invoices;
     public $success;
     public $friendlyMessage;
     public $errorMessage;

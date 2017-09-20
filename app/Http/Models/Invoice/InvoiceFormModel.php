@@ -1,11 +1,12 @@
 <?php
-namespace app\Http\Models\Invoice;
 
+namespace App\Http\Models\Invoice;
 
 class InvoiceFormModel {
     public $invoice;
-    public $accounts;
+    public $success;
+    public $friendlyMessage;
+    public $errorMessage;
 }
 
 ?>
-

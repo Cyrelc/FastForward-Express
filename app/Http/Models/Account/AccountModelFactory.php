@@ -14,6 +14,9 @@
 			try {
                 $acctsRepo = new Repos\AccountRepo();
                 $addrRepo = new Repos\AddressRepo();
+                $contactRepo = new Repos\ContactRepo();
+                $phoneRepo = new Repos\PhoneNumberRepo();
+
                 $accounts = $acctsRepo->ListAll();
 
                 $avms = array();
@@ -23,11 +26,20 @@
 
                     $avm->account = $a;
                     $addr = $addrRepo->GetById($a->shipping_address_id);
-                    $avm->address = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
+                    $avm->shippingAddress = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
+                    if(isset($avm->account->billing_address_id)) {
+                        $addr = $addrRepo->GetById($a->billing_address_id);
+                        $avm->billingAddress = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
+                    }
                     $avm->contacts = $a->contacts()->get();
 
                     if (isset($avm->account->parent_account_id))
                         $avm->account->parent_account = $acctsRepo->GetById($avm->account->parent_account_id)->name;
+
+                    $primaryContact = $contactRepo->GetById($acctsRepo->GetAccountPrimaryContactId($a->account_id)->contact_id);
+                    $avm->primaryContact = $primaryContact->first_name . ' ' . $primaryContact->last_name;
+
+                    $avm->primaryPhone = $phoneRepo->GetContactPrimaryPhone($primaryContact->contact_id)->phone_number;
 
                     array_push($avms, $avm);
                 }
