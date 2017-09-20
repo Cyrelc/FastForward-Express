@@ -5,9 +5,12 @@ namespace app\Http\Models\Invoice;
 class InvoiceViewModel {
     public $invoice;
     public $account;
+    public $parents = array();
     public $bill_count;
-    public $first_bill_date;
-    public $last_bill_date;
+    public $bills = array();
+    public $amount;
+    public $tax;
+    public $total;
 }
 
 ?>

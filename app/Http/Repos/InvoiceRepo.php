@@ -5,10 +5,16 @@ use App\Bill;
 use App\Invoice;
 
 class InvoiceRepo {
-    public function ListAll(){
+    public function ListAll() {
         $invoices = Invoice::All();
 
         return $invoices;
+    }
+
+    public function GetById($id) {
+        $invoice = Invoice::where('invoice_id', '=', $id)->first();
+
+        return $invoice;
     }
 
     public function Create($account_ids, $start_date, $end_date) {

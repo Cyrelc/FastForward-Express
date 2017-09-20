@@ -7,7 +7,6 @@ class BillsModel {
     public $success;
     public $friendlyMessage;
     public $errorMessage;
-
 }
 
 ?>

@@ -26,6 +26,12 @@ class InvoiceController extends Controller {
         return view('invoices.invoices', compact('contents'));
     }
 
+    public function view(Request $req, $id) {
+        $invoice_model_factory = new Invoice\InvoiceModelFactory();
+        $model = $invoice_model_factory->GetById($id);
+        return view('invoices.invoice', compact('model'));
+    }
+
     public function generate(Request $req) {
         // Check permissions
         $invoice_model_factory = new Invoice\InvoiceModelFactory();

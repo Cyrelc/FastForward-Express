@@ -57,6 +57,7 @@ Route::group(
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices', 'InvoiceController@index');
+            Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');

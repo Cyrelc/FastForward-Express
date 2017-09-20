@@ -17,6 +17,23 @@ class BillRepo {
 	    return $bill;
     }
 
+    public function GetByInvoiceId($id) {
+        $bills = Bill::where('invoice_id', '=', $id)->get();
+
+        return $bills;
+    }
+
+    public function GetInvoiceCost($id) {
+        $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
+
+        $amount = 0;
+        foreach ($cost as $value) {
+            $amount += $value;
+        }
+
+        return $amount;
+    }
+
     public function Insert($bill) {
     	$new = new Bill;
 
