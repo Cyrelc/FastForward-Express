@@ -5,6 +5,12 @@ use App\Bill;
 use App\Invoice;
 
 class InvoiceRepo {
+    public function ListAll(){
+        $invoices = Invoice::All();
+
+        return $invoices;
+    }
+
     public function Create($account_ids, $start_date, $end_date) {
         $invoice_ids = [];
 

@@ -55,10 +55,11 @@ Route::group(
             Route::post('/drivers/submitEdit', 'DriverController@submitEdit');
             Route::post('/drivers/action', 'DriverController@action');
 
-            Route::get('/invoices/generate','InvoiceController@generate');
-            Route::post('/invoices/store','InvoiceController@store');
-            Route::get('/invoices/layouts/{id}','InvoiceController@layouts');
-            Route::post('/invoices/getAccountsToInvoice','InvoiceController@getAccountsToInvoice');
+            Route::get('/invoices/generate', 'InvoiceController@generate');
+            Route::get('/invoices', 'InvoiceController@index');
+            Route::post('/invoices/store', 'InvoiceController@store');
+            Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
+            Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
 
             Route::post('/partials/getcontact', 'PartialsController@GetContact');
 

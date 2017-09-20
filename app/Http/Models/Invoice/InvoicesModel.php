@@ -2,8 +2,8 @@
 
 namespace App\Http\Models\Invoice;
 
-class InvoiceFormModel {
-    public $invoice;
+class InvoicesModel {
+    public $invoices;
     public $success;
     public $friendlyMessage;
     public $errorMessage;

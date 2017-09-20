@@ -21,7 +21,9 @@ class InvoiceController extends Controller {
     }
 
     public function index() {
-        return view('invoices.invoices');
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $contents = $invoiceModelFactory->ListAll();
+        return view('invoices.invoices', compact('contents'));
     }
 
     public function generate(Request $req) {
