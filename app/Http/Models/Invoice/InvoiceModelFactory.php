@@ -61,7 +61,7 @@
 			}
 
 			$model->amount = $billRepo->GetInvoiceCost($id);
-			$model->tax = round($model->amount * .05, 2);
+			$model->tax = number_format(round($model->amount * .05, 2), 2, '.', '');
 			$model->total = $model->amount + $model->tax;
 
 			return $model;
