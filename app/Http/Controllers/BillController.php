@@ -76,7 +76,7 @@ class BillController extends Controller {
                 $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
                 break;
             case "address":
-                $pickupAddress = $addrCollector->Collect($req,'pickup',false);
+                $pickupAddress = $addrCollector->CollectForAccount($req, 'pickup', false);
                 break;
         }
         if ($req->bill_id)
@@ -91,7 +91,7 @@ class BillController extends Controller {
                 $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
                 break;
             case "address":
-                $deliveryAddress = $addrCollector->Collect($req,'delivery',false);
+                $deliveryAddress = $addrCollector->CollectForAccount($req, 'delivery', false);
                 break;
         }
         if ($req->bill_id)
