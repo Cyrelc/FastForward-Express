@@ -17,7 +17,7 @@ class PhoneNumberRepo {
     }
 
     public function GetContactPrimaryPhone($contactId) {
-        $primaryPhone = PhoneNumber::where([['contact_id', '=', $contactId], ['is_primary', '=', 'true']])->first();
+        $primaryPhone = PhoneNumber::where([['contact_id', '=', $contactId], ['is_primary', '=', true]])->first();
 
         return $primaryPhone;
     }
