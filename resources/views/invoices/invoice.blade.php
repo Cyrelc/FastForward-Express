@@ -24,10 +24,9 @@
 		<thead>
 			<tr>
 				<td>Bill Id</td>
-				<?php
-					if (!is_null($model->parents[0]->custom_field))
+				@if (!is_null($model->parents[0]->custom_field))
 						echo("<td>" . $model->parents[0]->custom_field . "</td>");
-				?>
+				@endif
 				<td> Date </td>
 				<td> Pickup </td>
 				<td> Delivery </td>
@@ -38,6 +37,9 @@
 			@foreach ($model->bills as $bill)
 				<tr>
 					<td> {{$bill->bill->bill_id}} </td>
+					@if (!is_null($model->parents[0]->custom_field))
+							echo("<td>" . $bill->bill->reference_id) . "</td>");
+					@endif
 					<td> {{$bill->bill->date}} </td>
 					<td> {{$bill->pickup_address->name}} </td>
 					<td> {{$bill->delivery_address->name}} </td>
