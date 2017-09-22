@@ -31,6 +31,7 @@ class Bill extends Model
                             'num_pieces',
                             'weight',
                             'height',
+                            'length',
                             'width',
                             'type',
                             'call_received',
