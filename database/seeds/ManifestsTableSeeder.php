@@ -59,28 +59,58 @@ class ManifestsTableSeeder extends Seeder
 
                 $bill["bill_number"] = $billNumber;
                 $billNumber++;
-                $weight = rand(0,3);
+                $weight = rand(0,2);
+
+                $manifestScenario = rand(0,2);
 
                 switch($weight) {
                     case 0:
                         $bill["is_invoiced"] = true;
                         $bill["invoice_id"] = $iid;
-                        $bill["is_manifested"] = true;
-                        $bill["manifest_id"] = $mid;
+                        
+                        if ($manifestScenario == 0) {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                        } else if ($manifestScenario == 1) {
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        } else {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        }
                         break;
                     case 1:
                         $bill["is_invoiced"] = true;
                         $bill["invoice_id"] = $iid;
-                        $bill["is_manifested"] = false;
                         break;
-                    case 2:
-                        $bill["is_invoiced"] = false;
-                        $bill["is_manifested"] = true;
-                        $bill["manifest_id"] = $mid;
-                        break;
-                    case 3:
-                        $bill["is_invoiced"] = false;
-                        $bill["is_manifested"] = false;
+                    case 2:                        
+                        if ($manifestScenario == 0) {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                        } else if ($manifestScenario == 1) {
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        } else {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        }
+                        
+                        if ($manifestScenario == 0) {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                        } else if ($manifestScenario == 1) {
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        } else {
+                            $bill["pickup_manifest_id"] = $mid;
+                            $bill["is_pickup_manifested"] = true;
+                            $bill["delivery_manifest_id"] = $mid;
+                            $bill["is_delivery_manifested"] = true;
+                        }
                         break;
                 }
 

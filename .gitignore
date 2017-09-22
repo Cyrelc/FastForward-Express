@@ -7,3 +7,4 @@ Homestead.json
 /.idea
 config/app.php
 config/database.php
+composer.lock

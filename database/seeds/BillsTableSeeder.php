@@ -23,7 +23,6 @@ class BillsTableSeeder extends Seeder
                     "delivery_account_id" => rand(1, 40),
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_manifested" => false,
                     "is_invoiced" => false,
                     "bill_number" => $i + 1
                 ];
@@ -43,7 +42,6 @@ class BillsTableSeeder extends Seeder
                     "delivery_address_id" => factory(App\Address::class)->create()->address_id,
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_manifested" => false,
                     "is_invoiced" => false,
                     "bill_number" => $i + 1
                 ];
@@ -61,7 +59,6 @@ class BillsTableSeeder extends Seeder
                     "delivery_account_id" => rand(1, 40),
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_manifested" => false,
                     "is_invoiced" => false,
                     "bill_number" => $i + 1
                 ];
@@ -79,7 +76,6 @@ class BillsTableSeeder extends Seeder
                     "delivery_address_id" => factory(App\Address::class)->create()->address_id,
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_manifested" => false,
                     "is_invoiced" => false,
                     "bill_number" => $i + 1
                 ];

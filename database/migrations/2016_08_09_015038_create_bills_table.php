@@ -14,7 +14,10 @@ class CreateBillsTable extends Migration
     {
         Schema::create('bills', function (Blueprint $table) {
             $table->increments('bill_id');
-            $table->unsignedInteger('manifest_id')->nullable();
+            $table->unsignedInteger('pickup_manifest_id')->nullable();
+            $table->boolean('is_pickup_manifested')->default(false);
+            $table->unsignedInteger('delivery_manifest_id')->nullable();
+            $table->boolean('is_delivery_manifested')->default(false);
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('charge_account_id')->nullable();
             $table->unsignedInteger('pickup_account_id')->nullable();
@@ -36,11 +39,11 @@ class CreateBillsTable extends Migration
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
-            $table->boolean('is_manifested')->default(false);
             $table->boolean('is_invoiced')->default(false);
 
 			$table->unique('bill_number');
-			$table->foreign('manifest_id')->references('manifest_id')->on('manifests');
+            $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
+            $table->foreign('delivery_manifest_id')->references('manifest_id')->on('manifests');
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
 			$table->foreign('charge_account_id')->references('account_id')->on('accounts');
 			$table->foreign('pickup_account_id')->references('account_id')->on('accounts');
