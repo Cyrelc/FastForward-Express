@@ -30,5 +30,33 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         $result["interliner_amount"] = $amount * (rand(0, 3) / 100);
     }
     
+    $hasDimensions = rand(0, 1) == 1;
+
+    if ($hasDimensions) {
+        $result["height"] = rand(100, 10000) / 1000;
+        $result["width"] = rand(100, 10000) / 1000;
+        $result["length"] = rand(100, 10000) / 1000;
+    }
+
+    $hasPieces = rand(0,1) == 1;
+
+    if ($hasPieces)
+        $result["num_pieces"] = rand(1, 10);
+
+    $result["type"] = $descriptions[rand(0, 3)];
+    
+    $hasDates = rand(0, 1) == 1;
+
+    if ($hasDates) {
+        $baseDate = $faker->dateTimeThisYear;
+        $result["call_received"] = $baseDate;
+        
+        date('Y-m-d H:i:s', strtotime('+1 day', $baseDate->getTimestamp()));      
+        $result["picked_up"] = $baseDate;
+
+        date('Y-m-d H:i:s', strtotime('+1 day', $baseDate->getTimestamp()));
+        $result["delivered"] = $baseDate;
+    }
+
     return $result;
 });
