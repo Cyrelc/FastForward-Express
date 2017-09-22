@@ -12,7 +12,6 @@ class CreateSelectionsTable extends Migration
      */
     public function up()
     {
-        // 
         Schema::create('selections', function (Blueprint $table) {
             $table->increments('selection_id');
             $table->string('name');
@@ -28,6 +27,6 @@ class CreateSelectionsTable extends Migration
      */
     public function down()
     {
-        //
+        Schema::drop('selections');
     }
 }
