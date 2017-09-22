@@ -68,9 +68,11 @@
 		}
 
 		public function GetCreateModel($req) {
+			$selectionsRepo = new Repos\SelectionsRepo();
+
 			$model = new Invoice\InvoiceFormModel();
 
-			$model->invoice_intervals = array('weekly', 'twice monthly', 'monthly');
+			$model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 			$model->start_date = date("U");
 			$model->end_date = date("U");
 
