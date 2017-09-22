@@ -34,6 +34,7 @@ class InvoiceRepo {
             ->where('date', '>=', $start_date)
             ->where('date', '<=', $end_date)
             ->where('is_invoiced', '=', 0)
+            ->where('skip_invoicing', '=', 0)
             ->get();
 
         $invoice = [
