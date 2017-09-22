@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder {
         $this->call(InterlinersTableSeeder::class);
         $this->call(BillsTableSeeder::class);
         $this->call(ManifestsTableSeeder::class);
+
+        $this->call(SelectionsTableSeeder::class);
     }
 }
