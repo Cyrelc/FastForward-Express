@@ -11,6 +11,7 @@
 @endsection
 
 @section ('content')
+<div class="col-lg-12">
 	<?php
 		for ($i = count($model->parents); $i > 0; $i--) {
 			echo("<h4>" . $model->parents[$i - 1]->name . "</h4>");
@@ -20,52 +21,48 @@
 	?>
 	<br>
 	<br>
-	<table style="width:100%">
+	<table style="width:90%">
 		<thead>
 			<tr>
-				<td>Bill Id</td>
-				<?php
-					if (!is_null($model->parents[0]->custom_field))
-						echo("<td>" . $model->parents[0]->custom_field . "</td>");
-				?>
 				<td> Date </td>
+				<td>Bill Number</td>
+				@if (!is_null($model->parents[0]->custom_field))
+					<td> {{$model->parents[0]->custom_field}} </td>
+				@endif
 				<td> Pickup </td>
 				<td> Delivery </td>
-				<td> Amount </td>
+				<td style='float:right'> Amount </td>
 			</tr>
 		</thead>
 		<tbody>
 			@foreach ($model->bills as $bill)
 				<tr>
-					<td> {{$bill->bill->bill_id}} </td>
 					<td> {{$bill->bill->date}} </td>
+					<td> {{$bill->bill->bill_number}} </td>
+					@if (!is_null($model->parents[0]->custom_field))
+						<td>{{$bill->bill->charge_reference_value}}</td>
+					@endif
 					<td> {{$bill->pickup_address->name}} </td>
 					<td> {{$bill->delivery_address->name}} </td>
-					<td> {{$bill->bill->amount}} </td>
+					<td style='float:right'> {{$bill->bill->amount}} </td>
 				</tr>
 			@endforeach
-			<tr></tr>
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td>Charge</td>
-				<td>{{$model->amount}}</td>
-			</tr>
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td>Tax</td>
-				<td>{{$model->tax}}</td>
-			</tr>
-			<tr>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td>Total</td>
-				<td>{{$model->total}}</td>
-			</tr>
+			<tr style="height:45px"></tr>
+			<?php
+				$amounts = array("Amount: $model->amount", "Tax: $model->tax", "Total: $model->total");
+				foreach($amounts as $amount) {
+					echo("<tr>");
+					$i = 4;
+					if (!is_null($model->parents[0]->custom_field))
+						$i = 5;
+					for ($i; $i > '0'; $i--) {
+						echo("<td></td>");
+					}
+					echo("<td style='float:right'>" . $amount . "</td>");
+					echo("</tr>");
+				}
+			?>
 		</tbody>
 	</table>
+</div>
 @endsection

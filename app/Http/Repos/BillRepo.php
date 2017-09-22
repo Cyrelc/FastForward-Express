@@ -31,7 +31,7 @@ class BillRepo {
             $amount += $value;
         }
 
-        return $amount;
+        return number_format(round($amount, 2), 2, '.', '');
     }
 
     public function Insert($bill) {

@@ -35,6 +35,11 @@ class BillCollector {
 				break;
 		}
 
+		if ($chargeAccountId == $req->pickup_account_id && !is_null($req->pickup_reference_value))
+			$req->charge_reference_value = $req->pickup_reference_value;
+		else if ($chargeAccountId == $req->delivery_account_id && !is_null($req->charge_reference_value))
+			$req->charge_reference_value = $req->delivery_reference_value;
+
 		return [
 			'bill_id' => $req->bill_id,
 			'charge_account_id' => $chargeAccountId,

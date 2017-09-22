@@ -22,7 +22,7 @@
 		    var id = data[1];
 		    var name = data[4].replace("'", "\\'");
 
-            var editButton = '<a href="invoices/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
+            var editButton = '<a href="invoices/view/' + id + '"><i class="fa fa-edit"></i></a>';
     		var delButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'deactivate\')"><i class="fa fa-trash"></i></a>';
 			var activateButton = '<a href="javascript:action(' + id + ', \'' + name +'\', \'activate\')"><i class="fa fa-toggle-on"></i></a>';
 
