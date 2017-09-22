@@ -72,6 +72,7 @@
 		    $model = new AccountFormModel();
 		    $acctRepo = new Repos\AccountRepo();
 		    $driversRepo = new Repos\DriverRepo();
+            $selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListParents();
 		    $model->drivers = $driversRepo->ListAll();
@@ -83,10 +84,7 @@
             $model->give_commission_1 = false;
             $model->give_commission_2 = false;
 
-            $model->invoice_intervals = [
-                "weekly",
-                "monthly"
-            ];
+            $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
             $model = $this->MergeOld($model, $request);
 		    return $model;

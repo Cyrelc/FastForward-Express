@@ -196,9 +196,9 @@
                             <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
                                 @foreach ($model->invoice_intervals as $ii)
                                     @if ($ii == $model->account->invoice_interval)
-                                        <option selected value="{{$ii}}">{{ucfirst($ii)}}</option>
+                                        <option selected value="{{$ii->value}}">{{$ii->name}}</option>
                                     @else
-                                        <option value="{{$ii}}">{{ucfirst($ii)}}</option>
+                                        <option value="{{$ii->value}}">{{$ii->name}}</option>
                                     @endif
                                 @endforeach
                             </select>

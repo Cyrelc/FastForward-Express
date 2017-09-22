@@ -44,7 +44,7 @@
                 <span class="input-group-addon">Invoice Interval: </span>
                 <select class='form-control' id='invoice-interval' name="invoice-interval" placeholder="Select Invoice Interval">
                     @foreach ($model->invoice_intervals as $ii)
-                        <option value="{{$ii}}">{{ucfirst($ii)}}</option>
+                        <option value="{{$ii->value}}">{{$ii->name}}</option>
                     @endforeach
                 </select>
             </div>
