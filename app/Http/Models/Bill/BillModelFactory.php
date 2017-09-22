@@ -75,6 +75,7 @@
 		    $model->pickup_use_submission = "account";
 		    $model->delivery_use_submission = "account";
 		    $model->use_interliner = 'false';
+		    $model->skip_invoicing = 'false';
             $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
 		    
 			$model = $this->MergeOld($model, $req);
@@ -119,6 +120,11 @@
             else
             	$model->use_interliner = "false";
 
+            if (isset($model->bill->skip_invoicing))
+            	$model->skip_invoicing = "true";
+            else
+            	$model->skip_invoicing = "false";
+
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
             $model->bill->date = strtotime($model->bill->date);
@@ -152,7 +158,7 @@
 
 			$model->bill = $billCollector->ReMerge($req, $model->bill);
 
-			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner');
+			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner', 'skip_invoicing');
 
 			foreach ($modelVars as $modelVar) {
 				if($req->old($modelVar) !== null)

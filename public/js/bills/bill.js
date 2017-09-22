@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-    $checkboxes = '#use-interliner';
+    $checkboxes = '#use-interliner, #skip-invoicing';
 	$($checkboxes).change(function() {
 		if(this.checked){
             $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');

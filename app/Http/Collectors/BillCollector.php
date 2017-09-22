@@ -35,6 +35,10 @@ class BillCollector {
 				break;
 		}
 
+		$skip_invoicing = false;
+		if ($req->skip_invoicing == 'true')
+			$skip_invoicing = true;
+
 		if ($chargeAccountId == $req->pickup_account_id && !is_null($req->pickup_reference_value))
 			$req->charge_reference_value = $req->pickup_reference_value;
 		else if ($chargeAccountId == $req->delivery_account_id && !is_null($req->charge_reference_value))
@@ -60,7 +64,8 @@ class BillCollector {
 			'bill_number' => $req->bill_number,
 			'description' => $req->description,
 			'date' => (new \DateTime($req->input('date')))->format('Y-m-d'),
-			'amount' => $req->amount
+			'amount' => $req->amount,
+			'skip_invoicing' => $skip_invoicing
 		];
 	}
 

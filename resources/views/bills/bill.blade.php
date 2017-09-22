@@ -50,11 +50,11 @@
         });
     </script>
 
-    @if (isset($model->bill->bill_id))
-        <h2>Edit Bill</h2>
-    @else
-        <h2>New Bill</h2>
-    @endif
+@if (isset($model->bill->bill_id))
+    <h2>Edit Bill</h2>
+@else
+    <h2>New Bill</h2>
+@endif
 
 <form method="POST" action="/bills/store">
 
@@ -101,6 +101,7 @@
     <input type='hidden' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
     <input type='hidden' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
     <input type='hidden' id='use_interliner' name='use_interliner' data-checkbox-id="use-interliner" value='{{$model->use_interliner}}' />
+    <input type='hidden' id='skip_invoicing' name='skip_invoicing' data-checkbox-id='skip-invoicing' value='{{$model->skip_invoicing}}' />
 <!-- delivery date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -366,6 +367,9 @@
     <hr>
     <div class="checkbox">
         <label><input id="use-interliner" type="checkbox" name="use-interliner" data-hidden-name="use_interliner" data-div="interliner" />Use Interliner</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="skip-invoicing" type="checkbox" name="skip-invoicing" data-hidden-name="skip_invoicing" />Skip Invoicing</label>
     </div>
 </div>
 @endsection

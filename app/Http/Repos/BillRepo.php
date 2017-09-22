@@ -37,28 +37,7 @@ class BillRepo {
     public function Insert($bill) {
     	$new = new Bill;
 
-    	$new->charge_account_id = $bill['charge_account_id'];
-    	$new->pickup_account_id = $bill['pickup_account_id'];
-    	$new->delivery_account_id = $bill['delivery_account_id'];
-    	$new->pickup_address_id = $bill['pickup_address_id'];
-    	$new->delivery_address_id = $bill['delivery_address_id'];
-    	$new->charge_reference_value = $bill['charge_reference_value'];
-    	$new->pickup_reference_value = $bill['pickup_reference_value'];
-    	$new->delivery_reference_value = $bill['delivery_reference_value'];
-    	$new->pickup_driver_id = $bill['pickup_driver_id'];
-    	$new->delivery_driver_id = $bill['delivery_driver_id'];
-    	$new->pickup_driver_commission = $bill['pickup_driver_commission'];
-    	$new->delivery_driver_commission = $bill['delivery_driver_commission'];
-    	$new->interliner_id = $bill['interliner_id'];
-    	$new->interliner_amount = $bill['interliner_amount'];
-    	$new->bill_number = $bill['bill_number'];
-    	$new->description = $bill['description'];
-    	$new->date = $bill['date'];
-    	$new->amount = $bill['amount'];
-
-    	$new = $new->create($bill);
-
-    	return $new;
+    	return ($new->create($bill));
     }
 
     public function Update($bill) {
@@ -78,6 +57,7 @@ class BillRepo {
         $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
         $old->interliner_amount = $bill['interliner_amount'];
+        $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
         $old->date = $bill['date'];
