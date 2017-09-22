@@ -27,7 +27,16 @@ class Bill extends Model
     						'bill_number',
     						'amount',
     						'date',
-                            'description'
+                            'description',
+                            'num_pieces',
+                            'weight',
+                            'height',
+                            'length',
+                            'width',
+                            'type',
+                            'call_received',
+                            'picked_up',
+                            'delivered'
                         ];
 
 }

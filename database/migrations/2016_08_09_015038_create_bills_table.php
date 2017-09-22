@@ -40,6 +40,15 @@ class CreateBillsTable extends Migration
             $table->date('date');
             $table->decimal('amount');
             $table->boolean('is_invoiced')->default(false);
+            $table->integer('num_pieces')->nullable();
+            $table->float('weight')->nullable();
+            $table->float('height')->nullable();
+            $table->float('width')->nullable();
+            $table->float('length')->nullable();
+            $table->string('type');
+            $table->datetime('call_received')->nullable();
+            $table->datetime('picked_up')->nullable();
+            $table->datetime('delivered')->nullable();
 
 			$table->unique('bill_number');
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
