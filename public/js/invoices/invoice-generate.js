@@ -12,7 +12,7 @@ function getAccountsToInvoice(){
     $.ajax({
     	type: "POST",
     	url: '/invoices/getAccountsToInvoice',
-    	data: {'start_date' : start_date, 'end_date' : end_date, 'invoice_interval' : 'monthly'}, //TODO replace invoice interval fill options
+    	data: {'start_date' : start_date, 'end_date' : end_date, 'invoice_interval' : invoice_interval}, //TODO replace invoice interval fill options
     	'success': function(results){
     		if (results.length > 0) {
     			$('#preview_list_placeholder').addClass('hidden');
