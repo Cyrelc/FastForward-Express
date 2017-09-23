@@ -62,6 +62,7 @@
 		    $acctRepo = new Repos\AccountRepo();
 		    $driversRepo = new Repos\DriverRepo();
 		    $interlinersRepo = new Repos\InterlinerRepo();
+		    $selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
 		    $model->drivers = $driversRepo->ListAll();
@@ -76,7 +77,8 @@
 		    $model->delivery_use_submission = "account";
 		    $model->use_interliner = 'false';
 		    $model->skip_invoicing = 'false';
-            $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
+		    $model->delivery_type = $selectionsRepo->GetSelectionsByType('delivery_type');
+            $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
 		    
 			$model = $this->MergeOld($model, $req);
 
@@ -137,7 +139,7 @@
             	$model->delivery_reference_name = $acctRepo->GetById($model->bill->delivery_account_id)->custom_field;
 
             //to-do add this field to table
-            $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
+            $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
             $model->payment_type = 'Cheque';
 
 			$model->accounts = $acctRepo->ListAll();

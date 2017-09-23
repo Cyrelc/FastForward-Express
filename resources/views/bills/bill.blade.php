@@ -119,6 +119,22 @@
                 <input id="bill_number" name="bill_number" type="text" class="form-control" value="{{$model->bill->bill_number}}" />
             </div>
         </div>
+<!-- delivery type -->
+        <div class="col-lg-4 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Delivery Type: </span>
+                <select id="delivery_type" class="form-control" name="delivery_type">
+                    <option></option>
+                    @foreach($model->delivery_type as $delivery_type)
+                        @if (isset($model->bill->delivery_type) && $delivery_type == $model->bill->delivery_type)
+                            <option selected value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
+                        @else
+                            <option value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+        </div>
 <!-- Amount -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">

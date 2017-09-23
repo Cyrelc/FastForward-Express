@@ -45,7 +45,7 @@ class CreateBillsTable extends Migration
             $table->float('height')->nullable();
             $table->float('width')->nullable();
             $table->float('length')->nullable();
-            $table->string('type');
+            $table->string('delivery_type');
             $table->datetime('call_received')->nullable();
             $table->datetime('picked_up')->nullable();
             $table->datetime('delivered')->nullable();

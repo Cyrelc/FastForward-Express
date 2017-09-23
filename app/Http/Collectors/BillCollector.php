@@ -65,12 +65,13 @@ class BillCollector {
 			'description' => $req->description,
 			'date' => (new \DateTime($req->input('date')))->format('Y-m-d'),
 			'amount' => $req->amount,
-			'skip_invoicing' => $skip_invoicing
+			'skip_invoicing' => $skip_invoicing,
+			'delivery_type' => $req->delivery_type
 		];
 	}
 
 	public function Remerge($req, $bill){
-		$billVars = array('charge_account_id', 'other_account_id', 'pickup_account_id', 'delivery_account_id', 'amount', 'bill_number', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'description');
+		$billVars = array('charge_account_id', 'other_account_id', 'pickup_account_id', 'delivery_account_id', 'amount', 'bill_number', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'description', 'delivery_type');
 
 		// dd($req->old['amount'] !== null);
 
