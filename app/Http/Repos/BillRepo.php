@@ -23,6 +23,12 @@ class BillRepo {
         return $bills;
     }
 
+    public function CheckIfInvoiced($id) {
+        $bill = Bill::where('bill_id', '=', $id)->first();
+        
+        return ($bill->is_invoiced);
+    }
+
     public function GetInvoiceCost($id) {
         $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
 

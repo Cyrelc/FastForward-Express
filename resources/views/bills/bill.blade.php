@@ -6,8 +6,8 @@
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/bills/bill.js'></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
-
+<!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
+ -->
 @parent
 @endsection
 
@@ -18,37 +18,6 @@
 @endsection
 
 @section ('content')
-    <script>
-        $(document).ready(function(){
-            //TODO: Remove, for testing only
-            $("#keep-options input").each(function(i,e) {
-                $(e).removeAttr('disabled');
-
-                $(e).click(function() {
-                    var keeps = {};
-
-                    $("#keep-options input").each(function(index, element) {
-                        keeps[$(element).attr('id')] = $(element).is(":checked");
-                    });
-
-                    debugger;
-                    window.storageService.setValue('bills-keep-options', keeps, 'local');
-                });
-            });
-
-            var keeps = window.storageService.getValue('bills-keep-options', 'local');
-
-            if (keeps) {
-                for (var key in keeps) {
-                    if (keeps.hasOwnProperty(key)) {
-
-                        if (keeps[key] === true)
-                            $("#" + key).prop('checked', 'true');
-                    }
-                }
-            }
-        });
-    </script>
 
 @if (isset($model->bill->bill_id))
     <h2>Edit Bill</h2>
@@ -125,8 +94,8 @@
                 <span class="input-group-addon">Delivery Type: </span>
                 <select id="delivery_type" class="form-control" name="delivery_type">
                     <option></option>
-                    @foreach($model->delivery_type as $delivery_type)
-                        @if (isset($model->bill->delivery_type) && $delivery_type == $model->bill->delivery_type)
+                    @foreach($model->delivery_types as $delivery_type)
+                        @if (isset($model->bill->delivery_type) && $delivery_type->value == $model->bill->delivery_type)
                             <option selected value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
                         @else
                             <option value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>

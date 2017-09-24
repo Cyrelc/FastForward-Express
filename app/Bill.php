@@ -33,7 +33,7 @@ class Bill extends Model
                             'height',
                             'length',
                             'width',
-                            'type',
+                            'delivery_type',
                             'call_received',
                             'picked_up',
                             'delivered'
