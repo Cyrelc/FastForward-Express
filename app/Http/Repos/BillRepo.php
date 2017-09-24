@@ -29,6 +29,17 @@ class BillRepo {
         return ($bill->is_invoiced);
     }
 
+    public function CheckIfManifested($id) {
+        $bill = Bill::where('bill_id', '=', $id)->first();
+
+        if($bill->is_pickup_manifested)
+            return true;
+        else if($bill->is_delivery_manifested)
+            return true;
+        else
+            return false;
+    }
+
     public function GetInvoiceCost($id) {
         $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
 

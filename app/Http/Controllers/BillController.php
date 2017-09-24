@@ -47,7 +47,7 @@ class BillController extends Controller {
     public function delete(Request $req, $id) {
         $billRepo = new Repos\BillRepo();
 
-        if ($billRepo->CheckIfInvoiced($id)) {
+        if ($billRepo->CheckIfInvoiced($id) || $billRepo->CheckIfManifested($id)) {
             return ('Unable to delete. Bill has already been invoiced');
         } else {
             $billRepo->Delete($id);
