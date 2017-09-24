@@ -88,6 +88,13 @@
                 <input id="bill_number" name="bill_number" type="text" class="form-control" value="{{$model->bill->bill_number}}" />
             </div>
         </div>
+<!-- Amount -->
+        <div class="col-lg-4 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Charge: $</span>
+                <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
+            </div>
+        </div>
 <!-- delivery type -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -104,11 +111,15 @@
                 </select>
             </div>
         </div>
-<!-- Amount -->
+<!-- number of pieces -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
-                <span class="input-group-addon">Charge: $</span>
-                <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
+                <span class="input-group-addon">Number of Pieces: </span>
+                @if(isset($model->bill->num_pieces))
+                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="{{$model->bill->num_pieces}}" />
+                @else
+                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="1" />
+                @endif
             </div>
         </div>
 <!-- Charge -->

@@ -4,8 +4,8 @@
 
 <?php
 	$contents = $contents->bills;
-	$columns = ['ID', 'Waybill', 'Date', 'Description', 'Account', 'Amount', 'Pickup Driver', 'Delivery Driver', 'Delivery Type'];
-	$variables = [['bill','bill_id'], ['bill','bill_number'], ['bill', 'date'], ['bill', 'description'], ['account', 'name'], ['bill', 'amount'],'pickup_driver_name', 'delivery_driver_name', ['bill','delivery_type']];
+	$columns = ['ID', 'Waybill', 'Date', 'Description', 'Account', 'Amount', 'Pickup Driver', 'Delivery Driver', 'Delivery Type', 'Package Count'];
+	$variables = [['bill','bill_id'], ['bill','bill_number'], ['bill', 'date'], ['bill', 'description'], ['account', 'name'], ['bill', 'amount'],'pickup_driver_name', 'delivery_driver_name', ['bill','delivery_type'],['bill', 'num_pieces']];
 	$tableConfig = [
 		'table' => 'bills',
 		'editPath' => 'bills/edit/',

@@ -66,7 +66,8 @@ class BillCollector {
 			'date' => (new \DateTime($req->input('date')))->format('Y-m-d'),
 			'amount' => $req->amount,
 			'skip_invoicing' => $skip_invoicing,
-			'delivery_type' => $req->delivery_type
+			'delivery_type' => $req->delivery_type,
+			'num_pieces' => $req->num_pieces
 		];
 	}
 
