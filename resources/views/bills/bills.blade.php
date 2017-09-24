@@ -19,15 +19,15 @@
 
 @section ('script')
 <script type="text/javascript">
-	var columnDefs = [];
+	var columnDefs = [{"sWidth":"30px","aTargets":[0]}];
     var order = [1, "desc"];
 
 	function dtRowCallback(row, data) {
 	    var id = data[1];
 	    var name = data[4].replace("'", "\\'");
 
-        var editButton = '<a href="bills/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
-		var delButton = '<button type="button" class="fa fa-trash" data-toggle="modal" data-target="#delete_modal" onclick="setDeleteId(' + id + ')"></button>';
+        var editButton = '<a class="btn btn-xs btn-default" href="bills/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
+		var delButton = '<button type="button" class="fa fa-trash btn btn-xs btn-danger" data-toggle="modal" data-target="#delete_modal" onclick="setDeleteId(' + id + ')"></button>';
 
 		if (data[1] == 0) {
 		    $(row).addClass('disabled');
