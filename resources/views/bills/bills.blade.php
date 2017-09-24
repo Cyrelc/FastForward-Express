@@ -15,6 +15,9 @@
 	];
 ?>
 
+@endsection
+
+@section ('script')
 <script type="text/javascript">
 	var columnDefs = [];
     var order = [1, "desc"];
@@ -24,7 +27,7 @@
 	    var name = data[4].replace("'", "\\'");
 
         var editButton = '<a href="bills/edit/' + id + '"><i onclick="edit(this)" class="fa fa-edit"></i></a>';
-		var delButton = '<a href="bills/delete/' + id + '"><i class="fa fa-trash"></i></a>';
+		var delButton = '<button type="button" class="fa fa-trash" data-toggle="modal" data-target="#delete_modal" onclick="setDeleteId(' + id + ')"></button>';
 
 		if (data[1] == 0) {
 		    $(row).addClass('disabled');
@@ -33,11 +36,36 @@
 		} else
 			$(row).find('.hover-div').html(editButton + delButton);
 	}
+
+	function setDeleteId(id){
+		$("#delete_button").attr('href', '/bills/delete/' + id);
+	}
 </script>
+
+@parent
 
 @endsection
 
-@section ('script')
+@section ('content')
+<!-- delete modal -->
+<div id="delete_modal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+<!-- delete modal content -->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Confirm Deletion of Bill</h4>
+			</div>
+			<div class="modal-body">
+				<p id="delete_message">Please confirm deletion of bill. This can not be undone.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<a id="delete_button" type="button" class="btn btn-danger" href="/bills/delete/&id&">Delete</a>
+			</div>
+		</div>
+	</div>
+</div>
 
 @parent
 
