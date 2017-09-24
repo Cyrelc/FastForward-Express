@@ -46,6 +46,13 @@ class BillRepo {
     	return ($new->create($bill));
     }
 
+    public function Delete($id) {
+        $bill = $this->GetById($id);
+
+        $bill->delete();
+        return;
+    }
+
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
 

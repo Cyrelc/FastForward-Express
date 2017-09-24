@@ -47,6 +47,7 @@ Route::group(
             Route::get('/bills/create', 'BillController@create');
             Route::get('/bills/edit/{id}','BillController@edit');
             Route::post('/bills/store', 'BillController@store');
+            Route::get('/bills/delete/{id}', 'BillController@delete');
 
             Route::get('/drivers', 'DriverController@index');
             Route::get('/drivers/create', 'DriverController@create');
