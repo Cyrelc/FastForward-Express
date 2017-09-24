@@ -171,7 +171,7 @@
                             </select>
                         </div>
 
-                        <!--Account Number-->
+<!--Account Number-->
                         <div class="col-lg-4 bottom15">
                             <div class="input-group">
                                 <input class='form-control' id="account_number" type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
@@ -179,19 +179,19 @@
                             </div>
                         </div>
 
-                        <!--Account Name-->
+<!--Account Name-->
                         <div class="col-lg-4 bottom15">
                             <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
                         </div>
 
-                        <!--Rate Type -->
+<!--Rate Type -->
                         <div class="col-lg-4 bottom15">
                             <select class='form-control' name="rate-id" disabled >
                                 <option value="-1" selected disabled>Select Rate (coming soon!)</option>
                             </select>
                         </div>
 
-                        <!--Invoice Interval-->
+<!--Invoice Interval-->
                         <div class="col-lg-4 bottom15">
                             <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
                                 @foreach ($model->invoice_intervals as $ii)
