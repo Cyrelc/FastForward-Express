@@ -39,6 +39,14 @@ class InvoiceController extends Controller {
         return view('invoices.invoice-generate', compact('model'));
     }
 
+    public function delete(Request $req, $id) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+
+        $invoiceRepo->delete($id);
+
+        return redirect()->action('InvoiceController@index');
+    }
+
     public function layouts(Request $req, $id) {
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetLayoutModel($req, $id);

@@ -29,6 +29,21 @@ class InvoiceRepo {
         return $invoice_ids;
     }
 
+    public function Delete($invoiceId) {
+        $bills = Bill::where('invoice_id', '=', $invoiceId)->get();
+        $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
+
+        foreach($bills as $bill) {
+            $bill->invoice_id = null;
+            $bill->is_invoiced = false;
+
+            $bill->save();
+        }
+
+        $invoice->delete();
+        return;
+    }
+
     public function GenerateInvoice($account_id, $start_date, $end_date) {
         $bills = Bill::where('charge_account_id', '=', $account_id)
             ->where('date', '>=', $start_date)

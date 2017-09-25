@@ -19,7 +19,7 @@
 
 @section ('script')
 <script type="text/javascript">
-	var columnDefs = [{"sWidth":"30px","aTargets":[0]}];
+	var columnDefs = [{"sWidth":"35px","aTargets":[0]}];
     var order = [1, "desc"];
 
 	function dtRowCallback(row, data) {
@@ -57,7 +57,7 @@
 				<h4 class="modal-title">Confirm Deletion of Bill</h4>
 			</div>
 			<div class="modal-body">
-				<p id="delete_message">Please confirm deletion of bill. This can not be undone.</p>
+				<p id="delete_message">Please confirm deletion of bill. This action can not be undone.</p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
