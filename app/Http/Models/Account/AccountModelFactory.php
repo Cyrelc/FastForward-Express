@@ -92,20 +92,18 @@
 
         public function GetEditModel($id, $request) {
             $model = new AccountFormModel();
-            $model->invoice_intervals = [
-                "weekly",
-                "monthly"
-            ];
 
             $acctRepo = new Repos\AccountRepo();
             $driversRepo = new Repos\DriverRepo();
             $addRepo = new Repos\AddressRepo();
             $dcRepo = new Repos\CommissionRepo();
+            $selectionsRepo = new Repos\SelectionsRepo();
+
             $contactsModelFactory = new Models\Partials\ContactsModelFactory();
 
             $model->account = $acctRepo->GetById($id);
             $model->account->start_date = strtotime($model->account->start_date);
-
+            $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
             $model->deliveryAddress = $addRepo->GetById($model->account->shipping_address_id);
             $model->billingAddress = $addRepo->GetById($model->account->billing_address_id);
             $model->commissions = $dcRepo->ListByAccount($id);

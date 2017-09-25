@@ -124,10 +124,10 @@
     <input type="hidden" data-checkbox-id="has-fuel-surcharge" name="has-fuel-surcharge" value="{{$model->account->fuel_surcharge == 0 ? "false" : "true"}}" />
     <input type="hidden" data-checkbox-id="send-bills" name="send-bills" value="{{$model->account->send_bills == 0 ? "false" : "true"}}" />
     <div class="well">
-        <!--Basic Information Panel-->
+<!--Basic Information Panel-->
         <pre id='errors' class='hidden'></pre>
         <div class="clearfix">
-            <!-- errors go here if submission fails -->
+<!-- errors go here if submission fails -->
             @if(!empty($errors) && $errors->count() > 0)
                 <br />
                 <div class="col-lg-12">
@@ -157,7 +157,7 @@
                         <h3 class="panel-title">Basic Info</h3>
                     </div>
                     <div class='panel-body'>
-                        <!-- Parent Account -->
+<!-- Parent Account -->
                         <div id="parent-location" class="bottom15 col-lg-12" >
                             <select id="parent-account-id" class='form-control' name="parent-account-id" data-id="-1">
                                 <option></option>
@@ -171,7 +171,7 @@
                             </select>
                         </div>
 
-                        <!--Account Number-->
+<!--Account Number-->
                         <div class="col-lg-4 bottom15">
                             <div class="input-group">
                                 <input class='form-control' id="account_number" type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
@@ -179,23 +179,23 @@
                             </div>
                         </div>
 
-                        <!--Account Name-->
+<!--Account Name-->
                         <div class="col-lg-4 bottom15">
                             <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
                         </div>
 
-                        <!--Rate Type -->
+<!--Rate Type -->
                         <div class="col-lg-4 bottom15">
                             <select class='form-control' name="rate-id" disabled >
                                 <option value="-1" selected disabled>Select Rate (coming soon!)</option>
                             </select>
                         </div>
 
-                        <!--Invoice Interval-->
+<!--Invoice Interval-->
                         <div class="col-lg-4 bottom15">
                             <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
                                 @foreach ($model->invoice_intervals as $ii)
-                                    @if ($ii == $model->account->invoice_interval)
+                                    @if (isset($model->account->invoice_interval) && $ii->value ==$model->account->invoice_interval)
                                         <option selected value="{{$ii->value}}">{{$ii->name}}</option>
                                     @else
                                         <option value="{{$ii->value}}">{{$ii->name}}</option>
@@ -204,7 +204,7 @@
                             </select>
                         </div>
 
-                        <!--Discount-->
+<!--Discount-->
                         <div class="col-lg-4 bottom15" id="discount-div">
                             <div class="input-group">
                                 <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{$model->account->gets_discount == 1 ? $model->account->discount * 100 : ""}}" />
@@ -212,12 +212,12 @@
                             </div>
                         </div>
 
-                        <!-- Fuel Surcharge-->
+<!-- Fuel Surcharge-->
                         <div class="col-lg-4 bottom15" id="fuel-surcharge">
                             <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge * 100}}" />
                         </div>
 
-                        <!--Custom Field-->
+<!--Custom Field-->
                         <div class="col-lg-4 bottom15" id="custom-div">
                             <div class="input-group">
                                 <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" value="{{$model->account->uses_custom_field == 1 ? $model->account->custom_field : ""}}"/>
@@ -225,7 +225,7 @@
                             </div>
                         </div>
 
-                        <!--Start Date-->
+<!--Start Date-->
                         <div class="col-lg-4 bottom15">
                             <div class="input-group">
                                 <span class="input-group-addon">
@@ -238,7 +238,7 @@
                             </div>
                         </div>
 
-                        <!-- Commissions -->
+<!-- Commissions -->
                         <div class="col-lg-12 col-nopadding">
                             @include('partials.commission', [
                                 'commission' => count($model->commissions) > 0 ? $model->commissions[0] : null,
@@ -258,7 +258,7 @@
                 </div>
             </div>
 
-            <!-- Addresses -->
+<!-- Addresses -->
             <div class="col-lg-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -285,7 +285,7 @@
                 </div>
             </div>
 
-            <!-- Contacts Panel -->
+<!-- Contacts Panel -->
             @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'title' => 'Contacts', 'prefix' => 'sc'])
         </div>
         <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>

@@ -47,6 +47,7 @@ Route::group(
             Route::get('/bills/create', 'BillController@create');
             Route::get('/bills/edit/{id}','BillController@edit');
             Route::post('/bills/store', 'BillController@store');
+            Route::get('/bills/delete/{id}', 'BillController@delete');
 
             Route::get('/drivers', 'DriverController@index');
             Route::get('/drivers/create', 'DriverController@create');
@@ -61,6 +62,7 @@ Route::group(
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
+            Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
 
             Route::post('/partials/getcontact', 'PartialsController@GetContact');
 

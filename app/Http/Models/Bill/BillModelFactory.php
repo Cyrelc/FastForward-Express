@@ -62,6 +62,7 @@
 		    $acctRepo = new Repos\AccountRepo();
 		    $driversRepo = new Repos\DriverRepo();
 		    $interlinersRepo = new Repos\InterlinerRepo();
+		    $selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
 		    $model->drivers = $driversRepo->ListAll();
@@ -75,7 +76,9 @@
 		    $model->pickup_use_submission = "account";
 		    $model->delivery_use_submission = "account";
 		    $model->use_interliner = 'false';
-            $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
+		    $model->skip_invoicing = 'false';
+		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
+            $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
 		    
 			$model = $this->MergeOld($model, $req);
 
@@ -90,6 +93,7 @@
 			$driversRepo = new Repos\DriverRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$billRepo = new Repos\BillRepo();
+			$selectionsRepo = new Repos\SelectionsRepo();
 
 			$model->bill = $billRepo->GetById($id);
             // $model->bill->date = strtotime($model->bill->date);
@@ -119,6 +123,11 @@
             else
             	$model->use_interliner = "false";
 
+            if (isset($model->bill->skip_invoicing))
+            	$model->skip_invoicing = "true";
+            else
+            	$model->skip_invoicing = "false";
+
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
             $model->bill->date = strtotime($model->bill->date);
@@ -130,8 +139,8 @@
             if($model->bill->delivery_account_id !== null)
             	$model->delivery_reference_name = $acctRepo->GetById($model->bill->delivery_account_id)->custom_field;
 
-            //to-do add this field to table
-            $model->payment_types = ['Cash', 'Cheque', 'Visa', 'Mastercard', 'American Express'];
+            $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
+            $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
             $model->payment_type = 'Cheque';
 
 			$model->accounts = $acctRepo->ListAll();
@@ -152,7 +161,7 @@
 
 			$model->bill = $billCollector->ReMerge($req, $model->bill);
 
-			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner');
+			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner', 'skip_invoicing', 'delivery_type');
 
 			foreach ($modelVars as $modelVar) {
 				if($req->old($modelVar) !== null)

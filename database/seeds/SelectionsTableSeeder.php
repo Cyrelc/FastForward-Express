@@ -53,6 +53,36 @@ class SelectionsTableSeeder extends Seeder
             'type' => 'prepaid_option'
         ]);
 
+        DB::table('selections')->insert([
+            'name' => 'Regular',
+            'value' => 'regular',
+            'type' => 'delivery_type'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Rush',
+            'value' => 'rush',
+            'type' => 'delivery_type'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Direct',
+            'value' => 'direct',
+            'type' => 'delivery_type'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Direct Rush',
+            'value' => 'direct_rush',
+            'type' => 'delivery_type'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Hot Shot',
+            'value' => 'hot_shot',
+            'type' => 'delivery_type'
+        ]);
+
         //TODO: Brandon -> insert your employee types here
         DB::table('selections')->insert([
             'name' => 'Full-Time Driver',

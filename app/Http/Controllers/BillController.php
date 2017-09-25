@@ -34,9 +34,25 @@ class BillController extends Controller {
     }
 
     public function edit(Request $req, $id) {
-        $factory = new Bill\BillModelFactory();
-        $model = $factory->GetEditModel($id, $req);
-        return view('bills.bill', compact('model'));
+        $billRepo = new Repos\BillRepo();
+        if ($billRepo->CheckIfInvoiced($id)) {
+            return ('Unable to edit. Bill has already been invoiced.');
+        } else {
+            $factory = new Bill\BillModelFactory();
+            $model = $factory->GetEditModel($id, $req);
+            return view('bills.bill', compact('model'));            
+        }
+    }
+
+    public function delete(Request $req, $id) {
+        $billRepo = new Repos\BillRepo();
+
+        if ($billRepo->CheckIfInvoiced($id) || $billRepo->CheckIfManifested($id)) {
+            return ('Unable to delete. Bill has already been invoiced');
+        } else {
+            $billRepo->Delete($id);
+            return redirect()->action('BillController@index');
+        }
     }
 
     public function store(Request $req) {

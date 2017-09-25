@@ -6,8 +6,8 @@
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/bills/bill.js'></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
-
+<!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
+ -->
 @parent
 @endsection
 
@@ -18,43 +18,12 @@
 @endsection
 
 @section ('content')
-    <script>
-        $(document).ready(function(){
-            //TODO: Remove, for testing only
-            $("#keep-options input").each(function(i,e) {
-                $(e).removeAttr('disabled');
 
-                $(e).click(function() {
-                    var keeps = {};
-
-                    $("#keep-options input").each(function(index, element) {
-                        keeps[$(element).attr('id')] = $(element).is(":checked");
-                    });
-
-                    debugger;
-                    window.storageService.setValue('bills-keep-options', keeps, 'local');
-                });
-            });
-
-            var keeps = window.storageService.getValue('bills-keep-options', 'local');
-
-            if (keeps) {
-                for (var key in keeps) {
-                    if (keeps.hasOwnProperty(key)) {
-
-                        if (keeps[key] === true)
-                            $("#" + key).prop('checked', 'true');
-                    }
-                }
-            }
-        });
-    </script>
-
-    @if (isset($model->bill->bill_id))
-        <h2>Edit Bill</h2>
-    @else
-        <h2>New Bill</h2>
-    @endif
+@if (isset($model->bill->bill_id))
+    <h2>Edit Bill</h2>
+@else
+    <h2>New Bill</h2>
+@endif
 
 <form method="POST" action="/bills/store">
 
@@ -101,6 +70,7 @@
     <input type='hidden' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
     <input type='hidden' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
     <input type='hidden' id='use_interliner' name='use_interliner' data-checkbox-id="use-interliner" value='{{$model->use_interliner}}' />
+    <input type='hidden' id='skip_invoicing' name='skip_invoicing' data-checkbox-id='skip-invoicing' value='{{$model->skip_invoicing}}' />
 <!-- delivery date -->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -123,6 +93,33 @@
             <div class="input-group">
                 <span class="input-group-addon">Charge: $</span>
                 <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
+            </div>
+        </div>
+<!-- delivery type -->
+        <div class="col-lg-4 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Delivery Type: </span>
+                <select id="delivery_type" class="form-control" name="delivery_type">
+                    <option></option>
+                    @foreach($model->delivery_types as $delivery_type)
+                        @if (isset($model->bill->delivery_type) && $delivery_type->value == $model->bill->delivery_type)
+                            <option selected value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
+                        @else
+                            <option value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+        </div>
+<!-- number of pieces -->
+        <div class="col-lg-4 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Number of Pieces: </span>
+                @if(isset($model->bill->num_pieces))
+                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="{{$model->bill->num_pieces}}" />
+                @else
+                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="1" />
+                @endif
             </div>
         </div>
 <!-- Charge -->
@@ -366,6 +363,9 @@
     <hr>
     <div class="checkbox">
         <label><input id="use-interliner" type="checkbox" name="use-interliner" data-hidden-name="use_interliner" data-div="interliner" />Use Interliner</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="skip-invoicing" type="checkbox" name="skip-invoicing" data-hidden-name="skip_invoicing" />Skip Invoicing</label>
     </div>
 </div>
 @endsection

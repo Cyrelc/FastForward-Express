@@ -23,6 +23,23 @@ class BillRepo {
         return $bills;
     }
 
+    public function CheckIfInvoiced($id) {
+        $bill = Bill::where('bill_id', '=', $id)->first();
+        
+        return ($bill->is_invoiced);
+    }
+
+    public function CheckIfManifested($id) {
+        $bill = Bill::where('bill_id', '=', $id)->first();
+
+        if($bill->is_pickup_manifested)
+            return true;
+        else if($bill->is_delivery_manifested)
+            return true;
+        else
+            return false;
+    }
+
     public function GetInvoiceCost($id) {
         $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
 
@@ -37,28 +54,14 @@ class BillRepo {
     public function Insert($bill) {
     	$new = new Bill;
 
-    	$new->charge_account_id = $bill['charge_account_id'];
-    	$new->pickup_account_id = $bill['pickup_account_id'];
-    	$new->delivery_account_id = $bill['delivery_account_id'];
-    	$new->pickup_address_id = $bill['pickup_address_id'];
-    	$new->delivery_address_id = $bill['delivery_address_id'];
-    	$new->charge_reference_value = $bill['charge_reference_value'];
-    	$new->pickup_reference_value = $bill['pickup_reference_value'];
-    	$new->delivery_reference_value = $bill['delivery_reference_value'];
-    	$new->pickup_driver_id = $bill['pickup_driver_id'];
-    	$new->delivery_driver_id = $bill['delivery_driver_id'];
-    	$new->pickup_driver_commission = $bill['pickup_driver_commission'];
-    	$new->delivery_driver_commission = $bill['delivery_driver_commission'];
-    	$new->interliner_id = $bill['interliner_id'];
-    	$new->interliner_amount = $bill['interliner_amount'];
-    	$new->bill_number = $bill['bill_number'];
-    	$new->description = $bill['description'];
-    	$new->date = $bill['date'];
-    	$new->amount = $bill['amount'];
+    	return ($new->create($bill));
+    }
 
-    	$new = $new->create($bill);
+    public function Delete($id) {
+        $bill = $this->GetById($id);
 
-    	return $new;
+        $bill->delete();
+        return;
     }
 
     public function Update($bill) {
@@ -78,6 +81,7 @@ class BillRepo {
         $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
         $old->interliner_amount = $bill['interliner_amount'];
+        $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
         $old->date = $bill['date'];

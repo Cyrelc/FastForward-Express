@@ -31,6 +31,6 @@ class CreateInvoiceOption extends Migration
      */
     public function down()
     {
-        Schema::drop('invoice_option');
+        Schema::drop('invoice_options');
     }
 }
