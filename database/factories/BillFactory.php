@@ -43,7 +43,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
     if ($hasPieces)
         $result["num_pieces"] = rand(1, 10);
 
-    $result["type"] = $descriptions[rand(0, 3)];
+    $result["delivery_type"] = $descriptions[rand(0, 3)];
     
     $hasDates = rand(0, 1) == 1;
 
