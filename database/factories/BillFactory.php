@@ -16,11 +16,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         "delivery_driver_id" => rand(1, 4),
         "description" => $descriptions[rand(0,3)],
         "date" => $faker->dateTimeThisYear,
-        "amount" => $amount,
-        "reference_id" => DB::table("references")->insertGetId([
-            "reference_type_id" => rand(1, 4),
-            "reference_value" => "1A2B3C4D5E6F"
-        ])
+        "amount" => $amount
     ];
 
     $result["skip_invoicing"] = (rand(0, 3) == 0);
@@ -29,19 +25,6 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         $result["interliner_id"] = rand(1, 10);
         $result["interliner_amount"] = $amount * (rand(0, 3) / 100);
     }
-    
-    $hasDimensions = rand(0, 1) == 1;
-
-    if ($hasDimensions) {
-        $result["height"] = rand(100, 10000) / 1000;
-        $result["width"] = rand(100, 10000) / 1000;
-        $result["length"] = rand(100, 10000) / 1000;
-    }
-
-    $hasPieces = rand(0,1) == 1;
-
-    if ($hasPieces)
-        $result["num_pieces"] = rand(1, 10);
 
     $result["delivery_type"] = $descriptions[rand(0, 3)];
     
@@ -58,5 +41,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         $result["delivered"] = $baseDate;
     }
 
+    $result["bill_number"] = round(microtime(true) * 1000);
+    
     return $result;
 });

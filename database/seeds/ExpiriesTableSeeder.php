@@ -13,20 +13,20 @@ class ExpiriesTableSeeder extends Seeder
     {
         DB::table("expiries")->insert([
             "description" => "Vehicle Damage",
-            "grace" => 5,
+            "grace_days" => 5,
             "mandatory" => true,
             "should_notify" => true,
             "notification_type" => "text",
-            "severity_id" => 2
+            "selection_id" => 14
         ]);
 
         DB::table("expiries")->insert([
             "description" => "Insurance",
-            "grace" => 0,
+            "grace_days" => 0,
             "mandatory" => true,
             "should_notify" => true,
             "notification_type" => "email",
-            "severity_id" => 1
+            "selection_id" => 13
         ]);
     }
 }

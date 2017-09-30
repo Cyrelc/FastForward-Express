@@ -5,9 +5,8 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder {
     public function run() {
         //Static values
+        $this->call(SelectionsTableSeeder::class);        
         $this->call(RolesTableSeeder::class);
-        $this->call(SeveritiesTableSeeder::class);
-        $this->call(ReferenceTypesTableSeeder::class);
         $this->call(RateTypesTableSeeder::class);
         $this->call(ExpiriesTableSeeder::class);
         $this->call(ChargebacksTableSeeder::class);
@@ -21,7 +20,5 @@ class DatabaseSeeder extends Seeder {
         $this->call(InterlinersTableSeeder::class);
         $this->call(BillsTableSeeder::class);
         $this->call(ManifestsTableSeeder::class);
-
-        $this->call(SelectionsTableSeeder::class);
     }
 }

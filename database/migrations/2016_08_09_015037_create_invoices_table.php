@@ -16,6 +16,12 @@ class CreateInvoicesTable extends Migration
             $table->increments('invoice_id');
             $table->unsignedInteger('account_id');
             $table->date('date');
+            $table->float('balance_owing');
+            $table->float('bill_cost');
+            $table->float('tax');
+            $table->float('total_cost');
+            $table->float('fuel_surcharge');
+            $table->float('discount')->nullable();
 
 			$table->foreign('account_id')->references('account_id')->on('accounts');
         });

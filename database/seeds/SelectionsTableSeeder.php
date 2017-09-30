@@ -83,6 +83,30 @@ class SelectionsTableSeeder extends Seeder
             'type' => 'delivery_type'
         ]);
 
+        DB::table('selections')->insert([
+            'name' => 'No Warning',
+            'value' => 'no_warning',
+            'type' => 'severity'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Warn But Continue',
+            'value' => 'warn_continue',
+            'type' => 'severity'
+        ]);
+        
+        DB::table('selections')->insert([
+            'name' => 'Warn and Suspend',
+            'value' => 'warn_suspend',
+            'type' => 'severity'
+        ]);
+
+        DB::table('selections')->insert([
+            'name' => 'Warn and Terminate',
+            'value' => 'warn_terminate',
+            'type' => 'severity'
+        ]);
+
         //TODO: Brandon -> insert your employee types here
         DB::table('selections')->insert([
             'name' => 'Full-Time Driver',

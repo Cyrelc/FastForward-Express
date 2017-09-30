@@ -30,8 +30,8 @@ class AccountsTableSeeder extends Seeder
             $attrs = [
                 "account_number" => $i,
                 "stripe_id" => $i,
-                "is_master" => true,
-                "gets_discount" => $i % 5 == 0 ? true : false,
+                "has_parent" => false,
+                "has_discount" => $i % 5 == 0 ? true : false,
                 "discount" => $i % 5 == 0 ? rand(1, 5) / 10 : 0,
                 "shipping_address_id" => $sad->address_id,
                 "can_be_parent" => $hasSubAccounts,
@@ -99,7 +99,7 @@ class AccountsTableSeeder extends Seeder
                     $subAccount = [
                         "account_number" => $i . '-' . $k . '-sub',
                         "stripe_id" => $i . '-' . $k . '-sub',
-                        "is_master" => false,
+                        "has_parent" => true,
                         "can_be_parent" => false,
                         "parent_account_id" => $a->account_id,
                         "billing_address_id" => $badr->address_id,

@@ -24,7 +24,6 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('delivery_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id')->nullable();
             $table->unsignedInteger('delivery_address_id')->nullable();
-            $table->unsignedInteger('reference_id')->nullable();
             $table->string('charge_reference_value')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->string('delivery_reference_value')->nullable();
@@ -39,12 +38,7 @@ class CreateBillsTable extends Migration
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
-            $table->boolean('is_invoiced')->default(false);
-            $table->integer('num_pieces')->nullable();
-            $table->float('weight')->nullable();
-            $table->float('height')->nullable();
-            $table->float('width')->nullable();
-            $table->float('length')->nullable();
+            $table->boolean('is_invoiced')->default(false);            
             $table->string('delivery_type');
             $table->datetime('call_received')->nullable();
             $table->datetime('picked_up')->nullable();
@@ -59,7 +53,6 @@ class CreateBillsTable extends Migration
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
 			$table->foreign('pickup_address_id')->references('address_id')->on('addresses');
 			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
-			$table->foreign('reference_id')->references('reference_id')->on('references');
 			$table->foreign('pickup_driver_id')->references('driver_id')->on('drivers');
             $table->foreign('delivery_driver_id')->references('driver_id')->on('drivers');
 			$table->foreign('interliner_id')->references('interliner_id')->on('interliners');
