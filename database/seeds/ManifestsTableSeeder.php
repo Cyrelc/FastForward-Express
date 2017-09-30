@@ -12,7 +12,7 @@ class ManifestsTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker\Factory::create();
-        $billNumber = 1002;
+        
         for($i = 0; $i < 20; $i++) {
             $mid = DB::table('manifests')->insertGetId([
                 "start_date" => new Carbon\Carbon('first day of last month'),
@@ -56,9 +56,6 @@ class ManifestsTableSeeder extends Seeder
                         "pickup_driver_id" => rand(1, 12),
                         "delivery_driver_id" => $driverId,
                     ];
-
-                $bill["bill_number"] = $billNumber;
-                $billNumber++;
                 $weight = rand(0,2);
 
                 $manifestScenario = rand(0,2);

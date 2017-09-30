@@ -11,7 +11,7 @@ class BillsTableSeeder extends Seeder
      */
     public function run()
     {
-        for($i = 0; $i < 1000; $i++) {
+        for($i = 0; $i < 10; $i++) {
             $scenario = rand(0,3);
             $chargeScenario = rand(0, 10);
 
@@ -23,8 +23,7 @@ class BillsTableSeeder extends Seeder
                     "delivery_account_id" => rand(1, 40),
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false,
-                    "bill_number" => $i + 1
+                    "is_invoiced" => false
                 ];
 
                 //Charge to random account
@@ -42,8 +41,7 @@ class BillsTableSeeder extends Seeder
                     "delivery_address_id" => factory(App\Address::class)->create()->address_id,
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false,
-                    "bill_number" => $i + 1
+                    "is_invoiced" => false
                 ];
 
                 //Charge to random account
@@ -59,8 +57,7 @@ class BillsTableSeeder extends Seeder
                     "delivery_account_id" => rand(1, 40),
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false,
-                    "bill_number" => $i + 1
+                    "is_invoiced" => false
                 ];
 
                 //Charge to random account
@@ -76,15 +73,17 @@ class BillsTableSeeder extends Seeder
                     "delivery_address_id" => factory(App\Address::class)->create()->address_id,
                     "pickup_driver_id" => rand(1, 12),
                     "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false,
-                    "bill_number" => $i + 1
+                    "is_invoiced" => false
                 ];
 
                 //Charge to random account
                 $bill["charge_account_id"] = rand(1, 40);
             }
 
-            factory(App\Bill::class)->create($bill);
+            $id = factory(App\Bill::class)->create($bill)->bill_id;
+
+            for($i = 0; $i < rand(10, 20); $i++)
+                factory(App\Package::class)->create(["bill_id"=>$id]);
         }
     }
 }

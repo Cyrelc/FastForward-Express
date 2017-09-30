@@ -39,12 +39,7 @@ class CreateBillsTable extends Migration
             $table->string('description');
             $table->date('date');
             $table->decimal('amount');
-            $table->boolean('is_invoiced')->default(false);
-            $table->integer('num_pieces')->nullable();
-            $table->float('weight')->nullable();
-            $table->float('height')->nullable();
-            $table->float('width')->nullable();
-            $table->float('length')->nullable();
+            $table->boolean('is_invoiced')->default(false);            
             $table->string('delivery_type');
             $table->datetime('call_received')->nullable();
             $table->datetime('picked_up')->nullable();
