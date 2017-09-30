@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class DriverEmergencyContacts extends Migration
+class EmployeeEmergencyContacts extends Migration
 {
     /**
      * Run the migrations.
@@ -12,14 +12,14 @@ class DriverEmergencyContacts extends Migration
      */
     public function up()
     {
-        Schema::create('driver_emergency_contacts', function (Blueprint $table) {
-            $table->unsignedInteger('driver_id');
+        Schema::create('employee_emergency_contacts', function (Blueprint $table) {
+            $table->unsignedInteger('employee_id');
             $table->unsignedInteger('contact_id');
             $table->boolean('is_primary');
 
-            $table->foreign('driver_id')->references('driver_id')->on('drivers');
+            $table->foreign('employee_id')->references('employee_id')->on('employees');
             $table->foreign('contact_id')->references('contact_id')->on('contacts');
-            $table->primary(array('driver_id', 'contact_id'));
+            $table->primary(array('employee_id', 'contact_id'));
         });
     }
 
@@ -30,6 +30,6 @@ class DriverEmergencyContacts extends Migration
      */
     public function down()
     {
-        Schema::drop('driver_emergency_contacts');
+        Schema::drop('employee_emergency_contacts');
     }
 }
