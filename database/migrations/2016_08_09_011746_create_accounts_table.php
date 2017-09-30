@@ -25,7 +25,7 @@ class CreateAccountsTable extends Migration
             $table->date('start_date');
             $table->boolean('send_bills')->default(false);
             $table->boolean('send_invoices')->default(false);
-            $table->boolean('has_parent')->default(true);
+            $table->boolean('has_parent')->default(false);
             $table->unsignedInteger('parent_account_id')->nullable();
             $table->boolean('has_discount')->default(false);
             $table->float('discount');
