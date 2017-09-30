@@ -1,9 +1,13 @@
 <?php
 $factory->define(App\Account::class, function (Faker\Generator $faker) {
     $sendBills = false;
+    $sendInvoices = false;
 
     if (rand(0,1) == 0)
         $sendBills = true;
+
+    if (rand(0,1) == 0)
+        $sendInvoices = true;
 
     $customField = rand(0, 10);
 
@@ -31,6 +35,7 @@ $factory->define(App\Account::class, function (Faker\Generator $faker) {
         "name" => $faker->company,
         "start_date" => $faker->dateTimeThisYear,
         "send_bills" => $sendBills,
+        "send_invoices" => $sendInvoices,
         "gst_exempt" => rand(0,10) == 1 ? false : true,
         "charge_interest" => rand(0,10) == 1 ? false : true,
         "can_be_parent" => rand(0,3) == 1 ? true : false,
