@@ -16,11 +16,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         "delivery_driver_id" => rand(1, 4),
         "description" => $descriptions[rand(0,3)],
         "date" => $faker->dateTimeThisYear,
-        "amount" => $amount,
-        "reference_id" => DB::table("references")->insertGetId([
-            "reference_type_id" => rand(1, 4),
-            "reference_value" => "1A2B3C4D5E6F"
-        ])
+        "amount" => $amount
     ];
 
     $result["skip_invoicing"] = (rand(0, 3) == 0);
