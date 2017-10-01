@@ -318,16 +318,19 @@
 <!-- Piece Information -->
          <div class="col-lg-12 bottom15">
             <input type="hidden" id="next_piece_id" value="0"/>
+            <input type="hidden" name="delete_packages" />
             <table id='package_table' class="table table-bordered">
                 <thead class="thead-inverse">
-                    <th><button type="button" id="add_package" >Add Package</button></th>
-                    <th>#</th>
+                    <th><button type="button" id="add_package">Add Package</button></th>
                     <th>Weight</th>
                     <th>Length</th>
                     <th>Width</th>
                     <th>Height</th>
                 <thead>
                 <tbody>
+                    @foreach($model->packages as $package)
+                        <script type="text/javascript">addPackage({{$package->weight}}, {{$package->length}}, {{$package->width}}, {{$package->height}}, {{$package->package_id}});</script>
+                    @endforeach
                 </tbody>
             </table>
         </div>
