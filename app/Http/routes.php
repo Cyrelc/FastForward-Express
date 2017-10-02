@@ -49,12 +49,12 @@ Route::group(
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
 
-            Route::get('/drivers', 'DriverController@index');
-            Route::get('/drivers/create', 'DriverController@create');
-            Route::post('/drivers/store', 'DriverController@store');
-            Route::get('/drivers/edit/{id}', 'DriverController@edit');
-            Route::post('/drivers/submitEdit', 'DriverController@submitEdit');
-            Route::post('/drivers/action', 'DriverController@action');
+            Route::get('/employees', 'EmployeeController@index');
+            Route::get('/employees/create', 'EmployeeController@create');
+            Route::post('/employees/store', 'EmployeeController@store');
+            Route::get('/employees/edit/{id}', 'EmployeeController@edit');
+            Route::post('/employees/submitEdit', 'EmployeeController@submitEdit');
+            Route::post('/employees/action', 'EmployeeController@action');
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices', 'InvoiceController@index');

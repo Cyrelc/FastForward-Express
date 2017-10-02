@@ -5,38 +5,38 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Repos;
-use App\Http\Models\Driver;
+use App\Http\Models\Employee;
 use \App\Http\Validation\Utils;
 
-class DriverController extends Controller {
+class EmployeeController extends Controller {
 
     public function __construct() {
         $this->middleware('auth');
     }
 
     public function index() {
-        $factory = new Driver\DriverModelFactory();
+        $factory = new Employee\EmployeeModelFactory();
         $contents = $factory->ListAll();
 
-        return view('drivers.drivers', compact('contents'));
+        return view('employees.employees', compact('contents'));
     }
 
     public function create(Request $req) {
-        $factory = new Driver\DriverModelFactory();
+        $factory = new Employee\EmployeeModelFactory();
         $model = $factory->GetCreateModel($req);
 
-        return view('drivers.driver', compact('model'));
+        return view('employees.employee', compact('model'));
     }
 
     public function edit(Request $req, $id) {
-        $factory = new Driver\DriverModelFactory();
+        $factory = new Employee\EmployeeModelFactory();
         $model = $factory->GetEditModel($req, $id);
 
-        return view('drivers.driver', compact('model'));
+        return view('employees.employee', compact('model'));
     }
 
     public function store(Request $req) {
-        $driverRules = (new \App\Http\Validation\DriverValidationRules())->GetValidationRules();
+        $employeeRules = (new \App\Http\Validation\EmployeeValidationRules())->GetValidationRules($req);
         $partialsRules = new \App\Http\Validation\PartialsValidationRules();
 
         $contactValidator = new \App\Http\Validation\PartialsValidationRules();
@@ -44,14 +44,14 @@ class DriverController extends Controller {
         $contactCollector = new \App\Http\Collectors\ContactCollector();
         $contactsCollector = new \App\Http\Collectors\ContactsCollector();
 
-        $driverId = $req->input('driver-id');
-        $isEdit = $driverId !== null && $driverId > 0;
+        $employeeId = $req->input('employee_id');
+        $isEdit = $employeeId !== null && $employeeId > 0;
 
         $validationRules = [];
         $validationMessages = [];
 
-        $validationRules = array_merge($validationRules, $driverRules['rules']);
-        $validationMessages = array_merge($validationMessages, $driverRules['messages']);
+        $validationRules = array_merge($validationRules, $employeeRules['rules']);
+        $validationMessages = array_merge($validationMessages, $employeeRules['messages']);
 
         $contactRules = $contactValidator->GetContactValidationRules('contact', 'Contact');
         $validationRules = array_merge($validationRules, $contactRules['rules']);
@@ -80,7 +80,7 @@ class DriverController extends Controller {
         $emailAddressRepo = new Repos\EmailAddressRepo();
         $addressRepo = new Repos\AddressRepo();
         $contactRepo = new Repos\ContactRepo();
-        $driverRepo = new Repos\DriverRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
 
         $emergencyContactIds = array();        
         $contactActions = $contactsCollector->GetActions($req);
@@ -133,7 +133,7 @@ class DriverController extends Controller {
                     $newId = $contactRepo->Insert($contact)->contact_id;
 
                     if ($isEdit) {
-                        $driverRepo->AddEmergencyContact($driverId, $newId);
+                        $employeeRepo->AddEmergencyContact($employeeId, $newId);
                     } else {
                         if ($newPrimaryId == $contactId)
                             $newPrimaryId = $newId;
@@ -196,33 +196,33 @@ class DriverController extends Controller {
                 $contactRepo->Delete($delete_id);
         //END contacts
 
-        $user = $userCollector->CollectDriver($req, 'contact');
+        $user = $userCollector->CollectEmployee($req, 'contact');
+
         $contact = $contactCollector->Collect($req, 'contact');
         $contact['contact_id'] = $req->input('id-for-contact');
-        $user['user_id'] = $req->input('user-id');
+        $user['user_id'] = $req->input('user_id');
 
         //Contact Info/User
         if($isEdit) {
-            $userId = $userRepo->Update($user, ['Driver'])->user_id;
+            $userId = $userRepo->Update($user, ['Employee'])->user_id;
             $contactId = $contactRepo->Update($contact)->contact_id;
         } else {
-            $userId = $userRepo->Insert($user, 'Driver')->user_id;
+            $userId = $userRepo->Insert($user, 'Employee')->user_id;
             $contactId = $contactRepo->Insert($contact)->contact_id;
         }
 
-        $driverCollector = new \App\Http\Collectors\DriverCollector();
+        $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
 
         $phone1 = $contactCollector->CollectPhoneNumberSingle($req, 'contact-phone1', $contactId, true);
         $phone2 = $contactCollector->CollectPhoneNumberSingle($req, 'contact-phone2', $contactId, false);
         $email1 = $contactCollector->CollectEmailSingle($req, 'contact-email1', $contactId, true);
         $email2 = $contactCollector->CollectEmailSingle($req, 'contact-email2', $contactId, false);
-        $pager = $driverCollector->CollectPager($req, $contactId);
         $address = $addressCollector->Collect($req, 'no-contact', true, $contactId);
         $address['contact_id'] = $contactId;
-        $driver = $driverCollector->Collect($req, $contactId, $userId);
+        $employee = $employeeCollector->Collect($req, $contactId, $userId);
 
         if ($isEdit) {
-            $driverRepo->Update($driver);
+            $employeeRepo->Update($employee);
             $phoneNumberRepo->Update($phone1);
             $emailAddressRepo->Update($email1);
             $addressRepo->Update($address);
@@ -237,8 +237,8 @@ class DriverController extends Controller {
                 $phoneNumberRepo->Update($phone2);
             if ($req->input('contact-' . $contactId . '-email2-id') != null && $req->input('primary-email2') != null)
                 $emailAddressRepo->Update($email2);
-            if ($req->input('contact-' . $contactId . '-pager-id') != null)
-                $phoneNumberRepo->Update($pager);
+            // if ($req->input('contact-' . $contactId . '-pager-id') != null)
+            //     $phoneNumberRepo->Update($pager);
         } else {
             $phoneNumberRepo->Insert($phone1);
             $emailAddressRepo->Insert($email1);
@@ -247,26 +247,26 @@ class DriverController extends Controller {
             if ($phone2['phone_number'] !== null && strlen($phone2['phone_number']) > 0)
                 $phoneNumberRepo->Insert($phone2);
 
-            if ($pager['phone_number'] !== null && strlen($pager['phone_number']) > 0)
-                $phoneNumberRepo->Insert($pager);
+            // if ($pager['phone_number'] !== null && strlen($pager['phone_number']) > 0)
+            //     $phoneNumberRepo->Insert($pager);
 
             if ($email2['email'] !== null && strlen($email2['email']) > 0)
                 $emailAddressRepo->Insert($email2);
             
-                $driverId = $driverRepo->Insert($driver, $emergencyContactIds)->driver_id;
+                $employeeId = $employeeRepo->Insert($employee, $emergencyContactIds)->employee_id;
         }
 
         //Handle change of primary
         if ($newPrimaryId != null) {
-            if (Utils::HasValue($driverId)) {
-                $driverRepo->ChangePrimary($driverId, $newPrimaryId);
+            if (Utils::HasValue($employeeId)) {
+                $employeeRepo->ChangePrimary($employeeId, $newPrimaryId);
             }
         }
 
         if ($isEdit)
-            return redirect()->action('DriverController@edit',['driver_id'=>$driver['driver_id']]);
+            return redirect()->action('EmployeeController@edit',['employee_id'=>$employee['employee_id']]);
         else {
-            return redirect()->action('DriverController@create');
+            return redirect()->action('EmployeeController@create');
         }
     }
 
@@ -280,16 +280,16 @@ class DriverController extends Controller {
                 ]);
             }
 
-            $driverRepo = new Repos\DriverRepo();
+            $employeeRepo = new Repos\EmployeeRepo();
 
-            $driver = $driverRepo->GetById($id);
+            $employee = $employeeRepo->GetById($id);
 
             if ($req->input('action') == 'deactivate')
-                $driver->active = false;
+                $employee->active = false;
             else if ($req->input('action') == 'activate')
-                $driver->active = true;
+                $employee->active = true;
 
-            $driverRepo->Update($driver);
+            $employeeRepo->Update($employee);
 
             return response()->json([
                 'success' => true

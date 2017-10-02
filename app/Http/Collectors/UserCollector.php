@@ -10,7 +10,7 @@ namespace App\Http\Collectors;
 
 
 class UserCollector {
-    public function CollectDriver($req, $prefix) {
+    public function CollectEmployee($req, $prefix) {
         $user = [
             'username' => substr($req->input($prefix . '-first-name'), 0, 1) . $req->input($prefix . '-last-name'),
             'email' => $req->input($prefix . '-email1'),
