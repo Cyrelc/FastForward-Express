@@ -4,6 +4,12 @@ namespace App\Http\Repos;
 use App\Driver;
 
 class DriverRepo {
+	public function ListAll() {
+		$drivers = Driver::All();
+
+		return $drivers;
+	}
+
 	public function GetById($driverId) {
 		$driver = Driver::where('driver_id', '=', $driverId)->first();
 

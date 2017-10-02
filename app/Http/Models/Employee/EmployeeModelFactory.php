@@ -79,13 +79,16 @@ class EmployeeModelFactory
         $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
         $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
         $model->driver = $driverRepo->GetByEmployeeId($id);
-        // $model->driver = new \App\Driver();
+        if (!isset($model->driver))
+            $model->driver = new \App\Driver();
 
         $model->employee->start_date = strtotime($model->employee->start_date);
         $model->employee->dob = strtotime($model->employee->dob);
-        $model->driver->license_expiration = strtotime($model->driver->license_expiration);
-        $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
-        $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
+        if(isset($model->driver)) {
+            $model->driver->license_expiration = strtotime($model->driver->license_expiration);
+            $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
+            $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
+        }
 
         $model->emergency_contacts = $contactsFactory->GetEditModel($employeeRepo->ListEmergencyContacts($model->employee->employee_id), true);
 

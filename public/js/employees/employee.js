@@ -23,10 +23,11 @@ $(document).ready(function(){
     		disableSales();
     })
 
-	if($("#is_driver").val())
+	if($("#is_driver").val() == "true") {
 		enableDriver();
+	}
 
-	if($("#is_sales").val()) 
+	if($("#is_sales").val() == "true") 
 		enableSales();
 });
 
