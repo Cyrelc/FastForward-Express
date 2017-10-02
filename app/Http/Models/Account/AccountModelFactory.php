@@ -75,7 +75,7 @@
             $selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListParents();
-		    $model->drivers = $employeesRepo->ListAll();
+		    $model->employees = $employeesRepo->ListAll();
             $model->account = new \App\Account();
             $model->deliveryAddress = new \App\Address();
             $model->billingAddress = new \App\Address();
@@ -94,7 +94,7 @@
             $model = new AccountFormModel();
 
             $acctRepo = new Repos\AccountRepo();
-            $driversRepo = new Repos\DriverRepo();
+            $employeesRepo = new Repos\EmployeeRepo();
             $addRepo = new Repos\AddressRepo();
             $dcRepo = new Repos\CommissionRepo();
             $selectionsRepo = new Repos\SelectionsRepo();
@@ -126,7 +126,7 @@
                 $model->parentAccount = $acctRepo->GetById($model->account->parent_account_id);
 
             $model->accounts = $acctRepo->ListParents();
-            $model->drivers = $driversRepo->ListAll();
+            $model->employees = $employeesRepo->ListAll();
 
             $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
 
