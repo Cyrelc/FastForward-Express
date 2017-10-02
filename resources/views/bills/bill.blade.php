@@ -203,11 +203,11 @@
                         <span class="input-group-addon">Pickup Driver: </span>
                         <select id="pickup_driver_id" class="form-control" name='pickup_driver_id'>
                             <option></option>
-                            @foreach($model->drivers as $d)
-                                @if (isset($model->bill->pickup_driver_id) && $d->driver_id == $model->bill->pickup_driver_id)
-                                    <option selected value="{{$d->driver_id}}" data-driver-commission="{{$d->pickup_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                            @foreach($model->employees as $e)
+                                @if (isset($model->bill->pickup_driver_id) && $e->employee_id == $model->bill->pickup_driver_id)
+                                    <option selected value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$d->driver_id}}" data-driver-commission="{{$d->pickup_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                    <option value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
@@ -268,11 +268,11 @@
                         <span class="input-group-addon">Delivery Driver: </span>
                         <select id="delivery_driver_id" class="form-control" name="delivery_driver_id">
                             <option></option>
-                            @foreach($model->drivers as $d)
-                                @if (isset($model->bill->delivery_driver_id) && $d->driver_id == $model->bill->delivery_driver_id)
-                                    <option selected value="{{$d->driver_id}}" data-driver-commission="{{$d->delivery_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                            @foreach($model->employees as $e)
+                                @if (isset($model->bill->delivery_driver_id) && $e->employee_id == $model->bill->delivery_driver_id)
+                                    <option selected value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$d->driver_id}}" data-driver-commission="{{$d->delivery_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                    <option value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
