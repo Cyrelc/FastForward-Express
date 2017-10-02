@@ -12,7 +12,7 @@ class CommissionsTableSeeder extends Seeder
     public function run()
     {
         DB::table('commissions')->insert([
-            "driver_id" => 1,
+            "employee_id" => 1,
             "account_id" => 1,
             "commission" => 0.05,
             "depreciation_amount" => 0.02,
@@ -21,7 +21,7 @@ class CommissionsTableSeeder extends Seeder
         ]);
 
         DB::table('commissions')->insert([
-            "driver_id" => 2,
+            "employee_id" => 2,
             "account_id" => 1,
             "commission" => 0.07,
             "depreciation_amount" => 0.01,

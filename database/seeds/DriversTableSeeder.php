@@ -12,38 +12,7 @@ class DriversTableSeeder extends Seeder
     public function run()
     {
         $faker = Faker\Factory::create();
-
-        $stripe_ids = array(
-            "cus_8ynZkXhBHTXkux",
-            "cus_8zAePKdfiC1QMW",
-            "cus_8zAe2sRM0d1jC6",
-            "cus_8zAepil5YN3cXY",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-        );
-
-        $driver_numbers = array(
-            "0000001",
-            "0000002",
-            "0000003",
-            "0000004",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-        );
+        $employeeId;
 
         for($i = 0; $i < 12; $i++) {
             $contactId = factory(App\Contact::class)->create()->contact_id;
@@ -73,7 +42,7 @@ class DriversTableSeeder extends Seeder
                 'is_primary'=>1
             ]);
 
-            $d = factory(App\Driver::class)->create([
+            $employeeId = factory(App\Employee::class)->create([
                 "contact_id" => $contactId,
                 "user_id" => function(){
                     $uid = factory(App\User::class)->create()->user_id;
@@ -84,9 +53,11 @@ class DriversTableSeeder extends Seeder
                     ]);
 
                     return $uid;
-                },
-                "driver_number" => $driver_numbers[$i],
-                "stripe_id" => $stripe_ids[$i],
+                }
+            ])->employee_id;
+
+            $d = factory(App\Driver::class)->create([
+                "employee_id" => $employeeId
             ]);
 
             //Add expiries
@@ -190,9 +161,9 @@ class DriversTableSeeder extends Seeder
                     factory(App\Address::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
                 }
 
-                DB::table('driver_emergency_contacts')->insert([
+                DB::table('employee_emergency_contacts')->insert([
                     "contact_id" => $cid,
-                    "driver_id" => $d->driver_id,
+                    "employee_id" => $employeeId,
                     "is_primary" => $j === 0
                 ]);
             }
