@@ -28,7 +28,7 @@
 
 <form onsubmit="" method="POST" action="/employees/store">
 	<input type="hidden" name="_token" value="{{ csrf_token() }}">
-	<input id="is_driver" name="is_driver" value="{{isset($model->driver->driver_id) ? "true" : "false" }}">
+	<input type="hidden" id="is_driver" name="is_driver" value="{{isset($model->driver->driver_id) ? "true" : "false" }}">
 	<input type="hidden" id="is_sales" name="is_sales" value="">
 
 	@if(isset($model) && isset($model->employee) && $model->employee->employee_id > 0)
