@@ -60,12 +60,18 @@
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 		    $acctRepo = new Repos\AccountRepo();
-		    $employeesRepo = new Repos\EmployeeRepo();
 		    $interlinersRepo = new Repos\InterlinerRepo();
 		    $selectionsRepo = new Repos\SelectionsRepo();
+		    $employeeRepo = new Repos\EmployeeRepo();
+		    $driverRepo = new Repos\DriverRepo();
+		    $contactsRepo = new Repos\ContactRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
-		    $model->drivers = $employeesRepo->ListAll();
+		    $model->employees = $employeeRepo->ListAllDrivers();
+		    foreach ($model->employees as $employee) {
+		    	$employee->driver = $driverRepo->GetByEmployeeId($employee->employee_id);
+		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
+		    }
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
 
@@ -90,10 +96,18 @@
 
 			$acctRepo = new Repos\AccountRepo();
 			$addrRepo = new Repos\AddressRepo();
-			$driversRepo = new Repos\DriverRepo();
+			$employeeRepo = new Repos\EmployeeRepo();
+			$driverRepo = new Repos\DriverRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$billRepo = new Repos\BillRepo();
 			$selectionsRepo = new Repos\SelectionsRepo();
+			$contactsRepo = new Repos\ContactRepo();
+
+		    $model->employees = $employeeRepo->ListAllDrivers();
+		    foreach ($model->employees as $employee) {
+		    	$employee->driver = $driverRepo->GetByEmployeeId($employee->employee_id);
+		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
+		    }
 
 			$model->bill = $billRepo->GetById($id);
             // $model->bill->date = strtotime($model->bill->date);
@@ -144,7 +158,6 @@
             $model->payment_type = 'Cheque';
 
 			$model->accounts = $acctRepo->ListAll();
-			$model->drivers = $driversRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();
 
 			$model = $this->MergeOld($model, $req);

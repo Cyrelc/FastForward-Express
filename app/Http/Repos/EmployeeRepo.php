@@ -13,6 +13,17 @@ class EmployeeRepo {
         return $employees;
     }
 
+    public function ListAllDrivers() {
+        $driverRepo = new DriverRepo();
+
+        $drivers = $driverRepo->ListAll();
+        $employeesWhoAreDrivers = [];
+        foreach($drivers as $driver) {
+            array_push($employeesWhoAreDrivers, $this->getById($driver->employee_id));
+        }
+        return $employeesWhoAreDrivers;
+    }
+
     public function GetById($id) {
         $employee = Employee::where('employee_id', '=', $id)->first();
 
@@ -41,7 +52,7 @@ class EmployeeRepo {
     }
 
     public function GetCommissionByAccount($accountId) {
-        $commission = DriverCommission::where('account_id', '=', $accountId)->first();
+        $commission = EmployeeCommission::where('account_id', '=', $accountId)->first();
 
         return $commission;
     }

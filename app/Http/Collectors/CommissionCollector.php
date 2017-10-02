@@ -14,7 +14,7 @@ class CommissionCollector {
         return [
             'commission_id' => $req->input($prefix . '-id'),
             'account_id' => $accountId,
-            'driver_id' => $req->input($prefix . '-employee-id'),
+            'employee_id' => $req->input($prefix . '-employee-id'),
             'commission' => $req->input($prefix . '-percent'),
             'depreciation_amount' => $req->input($prefix . '-depreciation-percent'),
             'years' => $req->input($prefix . '-depreciation-duration'),
@@ -33,7 +33,7 @@ class CommissionCollector {
                 $com = new \App\DriverCommission();
 
                 if ($req->old('commission-1-employee-id') !== null)
-                    $com["driver_id"] = $req->old('commission-1-employee-id');
+                    $com["employee_id"] = $req->old('commission-1-employee-id');
                 if ($req->old('commission-1-percent') !== null)
                     $com["commission"] = $req->old('commission-1-percent') / 100;
                 if ($req->old('commission-1-depreciate-percentage') !== null)
@@ -50,7 +50,7 @@ class CommissionCollector {
                 $com = new \App\DriverCommission();
 
                 if ($req->old('commission-2-employee-id') !== null)
-                    $com["driver_id"] = $req->old('commission-2-employee-id');
+                    $com["employee_id"] = $req->old('commission-2-employee-id');
                 if ($req->old('commission-2-percent') !== null)
                     $com["commission"] = $req->old('commission-2-percent') / 100;
                 if ($req->old('commission-2-depreciate-percentage') !== null)
@@ -69,7 +69,7 @@ class CommissionCollector {
                 $com = $model->commissions[0];
 
                 if ($req->old('commission-1-employee-id') !== null)
-                    $com["driver_id"] = $req->old('commission-1-employee-id');
+                    $com["employee_id"] = $req->old('commission-1-employee-id');
                 if ($req->old('commission-1-percent') !== null)
                     $com["commission"] = $req->old('commission-1-percent') / 100;
                 if ($req->old('commission-1-depreciate-percentage') !== null)
@@ -86,7 +86,7 @@ class CommissionCollector {
                 $com = $model->commissions[1];
 
                 if ($req->old('commission-2-employee-id') !== null)
-                    $com["driver_id"] = $req->old('commission-2-employee-id');
+                    $com["employee_id"] = $req->old('commission-2-employee-id');
                 if ($req->old('commission-2-percent') !== null)
                     $com["commission"] = $req->old('commission-2-percent') / 100;
                 if ($req->old('commission-2-depreciate-percentage') !== null)
