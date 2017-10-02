@@ -60,12 +60,12 @@
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 		    $acctRepo = new Repos\AccountRepo();
-		    $driversRepo = new Repos\DriverRepo();
+		    $employeesRepo = new Repos\EmployeeRepo();
 		    $interlinersRepo = new Repos\InterlinerRepo();
 		    $selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
-		    $model->drivers = $driversRepo->ListAll();
+		    $model->drivers = $employeesRepo->ListAll();
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
 

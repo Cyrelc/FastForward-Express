@@ -16,6 +16,7 @@ class UserRoleRepo {
     }
 
     public function AddUserToRole($user, $role) {
+        return;
         \DB::table('user_roles')->insert(array(
             'user_id' => $user->user_id,
             'role_id' => $role->role_id
@@ -23,6 +24,7 @@ class UserRoleRepo {
     }
 
     public function RemoveUserFromRole($user, $role) {
+        return;
         \DB::table('user_roles')->delete(array(
             'user_id' => $user->user_id,
             'role_id' => $role->role_id

@@ -28,6 +28,9 @@ class EmployeeCollector {
         if (Utils::HasValue($req->old('DOB')))
             $employee->dob = strtotime($req->old('DOB'));
 
+        if (Utils::HasValue($req->old('employee_number')))
+            $employee->employee_number = $req->old('employee_number');
+
         return $employee;
     }
 }

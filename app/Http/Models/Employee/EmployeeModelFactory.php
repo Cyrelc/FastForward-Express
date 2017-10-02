@@ -50,9 +50,13 @@ class EmployeeModelFactory
         $model = new Employee\EmployeeFormModel();
         $model->employee = new \App\Employee();
         $model->contact = new \App\Contact();
+        $model->driver = new \App\Driver();
 
         $model->employee->dob = date('U');
         $model->employee->start_date = date('U');
+        $model->driver->license_expiration = date('U');
+        $model->license_plate_expiration = date('U');
+        $model->driver->insurance_expiration = date('U');
 
         $model->emergency_contacts = [];
 
@@ -65,6 +69,7 @@ class EmployeeModelFactory
         $addressRepo = new Repos\AddressRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $phoneNumberRepo = new Repos\PhoneNumberRepo();
+        $driverRepo = new Repos\DriverRepo();
 
         $contactsFactory = new Models\Partials\ContactsModelFactory();
         $contactFactory = new Models\Partials\ContactModelFactory();
@@ -73,9 +78,14 @@ class EmployeeModelFactory
         $model->employee = $employeeRepo->GetById($id);
         $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
         $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
+        $model->driver = $driverRepo->GetByEmployeeId($id);
+        // $model->driver = new \App\Driver();
 
         $model->employee->start_date = strtotime($model->employee->start_date);
         $model->employee->dob = strtotime($model->employee->dob);
+        $model->driver->license_expiration = strtotime($model->driver->license_expiration);
+        $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
+        $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
 
         $model->emergency_contacts = $contactsFactory->GetEditModel($employeeRepo->ListEmergencyContacts($model->employee->employee_id), true);
 
@@ -86,10 +96,12 @@ class EmployeeModelFactory
     public function MergeOld($model, $req) {
         $contactCollector = new \App\Http\Collectors\ContactCollector();
         $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
+        $driverCollector = new \App\Http\Collectors\DriverCollector();
 
         $model->employee = $employeeCollector->Remerge($req, $model->employee);
         $model->contact = $contactCollector->RemergeContact($req, $model->contact, '','contact', true);
         $model->emergency_contacts = $contactCollector->Remerge($req, $model->emergency_contacts, true);
+        $model->driver = $driverCollector->Remerge($req, $model->driver);
 
         return $model;
     }

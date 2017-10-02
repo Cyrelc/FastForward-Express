@@ -15,8 +15,8 @@ class UserRepo
     public function Insert($user, $roleName) {
         $new = new User;
 //TODO: UNDO
-        $new->user_id = 1;
-        return $new;
+        // $new->user_id = 1;
+        // return $new;
 
         $pass = '';
         $user = array_merge($user, array(

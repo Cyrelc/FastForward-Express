@@ -70,6 +70,12 @@ class EmployeeController extends Controller {
             if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        if ($req->is_driver == 'true') {
+            $driverValidation = (new \App\Http\Validation\DriverValidationRules())->GetValidationRules($req);
+            $validationRules = array_merge($validationRules, $driverValidation['rules']);
+            $validationMessage = array_merge($validationMessages, $driverValidation['messages']);
+        }
+
         $this->validate($req, $validationRules, $validationMessages);
 
         $userCollector = new \App\Http\Collectors\UserCollector();
@@ -81,6 +87,9 @@ class EmployeeController extends Controller {
         $addressRepo = new Repos\AddressRepo();
         $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
+        if ($req->is_driver) {
+            $driverRepo = new Repos\DriverRepo();
+        }
 
         $emergencyContactIds = array();        
         $contactActions = $contactsCollector->GetActions($req);
@@ -254,6 +263,19 @@ class EmployeeController extends Controller {
                 $emailAddressRepo->Insert($email2);
             
                 $employeeId = $employeeRepo->Insert($employee, $emergencyContactIds)->employee_id;
+        }
+
+        if ($req->is_driver) {
+            $driverCollector = new \App\Http\Collectors\DriverCollector();
+            $driver_data = $driverCollector->Collect($req, (string)$employeeId);
+            if ($req->driver_id != null) {
+                $driverRepo->Update($driver_data);
+            } else {
+                $driverRepo->Insert($driver_data);
+            }
+        } else {
+            if($driverRepo->GetByEmployeeId() != null)
+                $driverRepo->DeleteByEmployeeId($employeeId);
         }
 
         //Handle change of primary
