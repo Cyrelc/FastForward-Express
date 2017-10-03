@@ -15,16 +15,17 @@ class BillsTableSeeder extends Seeder
             $scenario = rand(0,3);
             $chargeScenario = rand(0, 10);
 
-            $bill = [];
+            $bill = [
+                "pickup_address_id" => factory(App\Address::class)->create()->address_id,
+                "delivery_address_id" => factory(App\Address::class)->create()->address_id,
+                "pickup_driver_id" => rand(1, 12),
+                "delivery_driver_id" => rand(1, 12),
+                "is_invoiced" => false
+            ];
             //Pickup and to account
             if ($scenario == 0) {
-                $bill = [
-                    "pickup_account_id" => rand(1, 40),
-                    "delivery_account_id" => rand(1, 40),
-                    "pickup_driver_id" => rand(1, 12),
-                    "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false
-                ];
+                $bill["pickup_account_id"] = rand(1, 40);
+                $bill["delivery_account_id"] = rand(1, 40);
 
                 //Charge to random account
                 if ($chargeScenario < 5)
@@ -36,13 +37,7 @@ class BillsTableSeeder extends Seeder
             }
             //Pickup account, to address
             else if ($scenario == 1) {
-                $bill = [
-                    "pickup_account_id" => rand(1, 40),
-                    "delivery_address_id" => factory(App\Address::class)->create()->address_id,
-                    "pickup_driver_id" => rand(1, 12),
-                    "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false
-                ];
+                $bill["pickup_account_id"] = rand(1, 40);
 
                 //Charge to random account
                 if ($chargeScenario < 3)
@@ -52,13 +47,7 @@ class BillsTableSeeder extends Seeder
             }
             //Pickup address, to account
             else if ($scenario == 2) {
-                $bill = [
-                    "pickup_address_id" => factory(App\Address::class)->create()->address_id,
-                    "delivery_account_id" => rand(1, 40),
-                    "pickup_driver_id" => rand(1, 12),
-                    "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false
-                ];
+                $bill["delivery_account_id"] = rand(1, 40);
 
                 //Charge to random account
                 if ($chargeScenario < 3)
@@ -68,14 +57,6 @@ class BillsTableSeeder extends Seeder
             }
             //Pickup address, to address
             else {
-                $bill = [
-                    "pickup_address_id" => factory(App\Address::class)->create()->address_id,
-                    "delivery_address_id" => factory(App\Address::class)->create()->address_id,
-                    "pickup_driver_id" => rand(1, 12),
-                    "delivery_driver_id" => rand(1, 12),
-                    "is_invoiced" => false
-                ];
-
                 //Charge to random account
                 $bill["charge_account_id"] = rand(1, 40);
             }

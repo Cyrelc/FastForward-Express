@@ -111,6 +111,9 @@ class ManifestsTableSeeder extends Seeder
                         break;
                 }
 
+                $bill["pickup_address_id"] = factory(App\Address::class)->create()->address_id;
+                $bill["delivery_address_id"] = factory(App\Address::class)->create()->address_id;
+                
 				$invoiceTotal += factory(App\Bill::class)->create($bill)->amount * 1.05;
 			}
 
