@@ -11,6 +11,10 @@ class Invoice extends Model
 
     public $fillable = [
         'account_id',
-        'date'
+        'date',
+        'bill_cost',
+        'tax',
+        'total_cost',
+        'balance_owing'
     ];
 }

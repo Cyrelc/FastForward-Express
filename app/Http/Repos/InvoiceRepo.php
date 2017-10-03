@@ -52,11 +52,26 @@ class InvoiceRepo {
             ->where('skip_invoicing', '=', 0)
             ->get();
 
+        $bill_cost = 0;
+        foreach($bills as $bill) {
+            $bill_cost += $bill->amount;
+            $bill_cost += $bill->interliner_amount;
+        }
+        //TODO: check interliner cost, add to individual bills and to total
+        //TODO: check if tax exempt, use variable tax cost rather than hard coded
+
+        $bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
+        $tax = number_format(round($bill_cost * .05, 2), 2, '.', '');
+        $total_cost = number_format(round($bill_cost + $tax, 2), 2, '.', '');
+
         $invoice = [
             'account_id' => $account_id,
-            'date' => date('Y-m-d')
+            'date' => date('Y-m-d'),
+            'bill_cost' => $bill_cost,
+            'tax' => $tax,
+            'total_cost' => $total_cost,
+            'balance_owing' => $total_cost
         ];
-
         $new = new Invoice();
         $new = $new->create($invoice);
 

@@ -48,7 +48,7 @@
 			while (!is_null($parent_id)) {
 				$parent = $accountRepo->GetById($parent_id);
 				array_push($model->parents, $parent);
-				$parent_id = $parent->parent_id;
+				$parent_id = $parent->parent_account_id;
 			}
 
 			$bills = $billRepo->GetByInvoiceId($id);
@@ -59,10 +59,6 @@
 				$bill_model->delivery_address = $addressRepo->GetById($bill->delivery_address_id);
 				array_push($model->bills, $bill_model);
 			}
-
-			$model->amount = $billRepo->GetInvoiceCost($id);
-			$model->tax = number_format(round($model->amount * .05, 2), 2, '.', '');
-			$model->total = $model->amount + $model->tax;
 
 			return $model;
 		}
