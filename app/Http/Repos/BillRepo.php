@@ -40,17 +40,6 @@ class BillRepo {
             return false;
     }
 
-    public function GetInvoiceCost($id) {
-        $cost = Bill::where('invoice_id', '=', $id)->pluck('amount');
-
-        $amount = 0;
-        foreach ($cost as $value) {
-            $amount += $value;
-        }
-
-        return number_format(round($amount, 2), 2, '.', '');
-    }
-
     public function Insert($bill) {
     	$new = new Bill;
 
