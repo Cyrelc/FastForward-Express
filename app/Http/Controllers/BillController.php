@@ -67,8 +67,10 @@ class BillController extends Controller {
         $acctRepo = new Repos\AccountRepo();
         $billRepo = new Repos\BillRepo();
         $addrRepo = new Repos\AddressRepo();
+        $packageRepo = new Repos\PackageRepo();
         $addrCollector = new \App\Http\Collectors\AddressCollector();
         $billCollector = new \App\Http\Collectors\BillCollector();
+        $packageCollector = new \App\Http\Collectors\PackageCollector();
 
         switch ($req->charge_selection_submission) {
             case "pickup_account":
@@ -116,13 +118,22 @@ class BillController extends Controller {
             $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
 
         $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
-        if ($req->bill_id) {
-            $billRepo->Update($bill);
-            return redirect()->action('BillController@index');
-        } else {
-            $billRepo->Insert($bill);
-            return redirect()->action('BillController@create');
-        }
-    }
 
+        if ($req->bill_id) {
+            $bill = $billRepo->Update($bill);
+        } else {
+            $bill = $billRepo->Insert($bill);
+        }
+
+        $packages = $packageCollector->Collect($req, $bill->bill_id);
+
+        foreach($packages as $package) {
+            $packageRepo->Insert($package);
+        }
+
+        if ($req->bill_id)
+            return redirect()->action('BillController@index');
+        else 
+            return redirect()->action('BillController@create');
+    }
 }

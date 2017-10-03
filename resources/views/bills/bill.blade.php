@@ -316,9 +316,11 @@
             </div>
         </div>
 <!-- Piece Information -->
-<!--         <div class="col-lg-12 bottom15">
-            <table id='piece_table' class="table table-bordered">
+         <div class="col-lg-12 bottom15">
+            <input type="hidden" id="next_piece_id" value="0"/>
+            <table id='package_table' class="table table-bordered">
                 <thead class="thead-inverse">
+                    <th><button type="button" id="add_package" >Add Package</button></th>
                     <th>#</th>
                     <th>Weight</th>
                     <th>Length</th>
@@ -329,7 +331,7 @@
                 </tbody>
             </table>
         </div>
- --><!-- Description -->
+ <!-- Description -->
         <div class="col-lg-12 bottom15">
             <label for="description">Description: </label>
             <textarea class="form-control" rows="5" name="description" placeholder="Any details pertaining to this bill">{{$model->bill->description}}</textarea>
