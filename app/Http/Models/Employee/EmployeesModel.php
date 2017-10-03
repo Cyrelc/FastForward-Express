@@ -1,10 +1,10 @@
 <?php
-namespace App\Http\Models\Driver;
+namespace App\Http\Models\Employee;
 
 
-class DriversModel
+class EmployeesModel
 {
-    public $drivers;
+    public $employee;
     public $success;
     public $errorMessage;
     public $friendlyMessage;

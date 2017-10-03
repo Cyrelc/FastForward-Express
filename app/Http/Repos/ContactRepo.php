@@ -45,7 +45,7 @@ class ContactRepo {
         $emailRepo = new EmailAddressRepo();
 
         $contact->accounts()->detach();
-        $contact->drivers()->detach();
+        $contact->employees()->detach();
         $pnRepo->DeleteByContact($cid);
         $addrRepo->DeleteByContact($cid);
         $emailRepo->DeleteByContact($cid);

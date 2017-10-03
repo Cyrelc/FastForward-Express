@@ -5,8 +5,8 @@ namespace App\Http\Collectors;
 
 class AccountCollector {
     public function Collect($req, $billing_id, $delivery_id) {
-        $hasParent = $req->input('parent-account-id') != null && strlen($req->input('parent-account-id')) > 0;
-        $getsDiscount = $req->input('discount') != null && $req->input('discount') > 0;
+
+        $hasDiscount = $req->input('discount') != null && $req->input('discount') > 0;
 
         return [
             'rate_type_id'=>1,
@@ -18,10 +18,10 @@ class AccountCollector {
             'name'=>$req->input('name'),
             'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
             'send_bills'=>$req->input('send-bills') == "true",
-            'is_master'=>!$hasParent,
-            'parent_account_id'=>!$hasParent ? null : $req->input('parent-account-id'),
-            'gets_discount' => $getsDiscount,
-            'discount'=> $getsDiscount ? $req->input('discount') / 100 : 0,
+            'has_parent'=>$req->isSubLocation,
+            'parent_account_id'=>($req->isSubLocation == "false") ? null : $req->input('parent-account-id'),
+            'has_discount' => $hasDiscount,
+            'discount'=> $hasDiscount ? $req->input('discount') / 100 : 0,
             'gst_exempt'=>$req->input('isGstExempt') == "true",
             'charge_interest'=>$req->input('shouldChargeInterest') == "true",
             'can_be_parent'=>$req->input('canBeParent') == "true",

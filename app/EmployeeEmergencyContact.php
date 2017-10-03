@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DriverEmergencyContact extends Model
+class EmployeeEmergencyContact extends Model
 {
     public $timestamps = false;
 }

@@ -14,7 +14,7 @@ class Contact extends Model
         return $this->belongsToMany('App\Account', 'account_contacts');
     }
 
-    public function drivers() {
-        return $this->belongsToMany('App\Driver', 'driver_emergency_contacts');
+    public function employees() {
+        return $this->belongsToMany('App\Employee', 'employee_emergency_contacts');
     }
 }

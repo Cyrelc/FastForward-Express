@@ -112,7 +112,7 @@
 <form method="POST" action="/accounts/store" onsubmit="saveScContact('sc', false)">
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
-    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->is_master ? "false" : "true") : "false" }}"/>
+    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->has_parent ? "true" : "false") : "false" }}"/>
     <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->gets_discount == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{$model->give_commission_1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-2" name="should-give-commission-2" value="{{$model->give_commission_2 ? "true" : "false"}}"/>
@@ -123,6 +123,7 @@
     <input type="hidden" data-me="billing-address" data-body="billing-body" data-checkbox-id="billing-address" name="hasBillingAddress" value="{{isset($model->billingAddress->address_id) ? "true" : "false" }}"/>
     <input type="hidden" data-checkbox-id="has-fuel-surcharge" name="has-fuel-surcharge" value="{{$model->account->fuel_surcharge == 0 ? "false" : "true"}}" />
     <input type="hidden" data-checkbox-id="send-bills" name="send-bills" value="{{$model->account->send_bills == 0 ? "false" : "true"}}" />
+    <input type="hidden" data-checkbox-id="send-invoices" name="send_invoices" value="{{$model->account->send_invoices == 0 ? "false" : "true"}}" />
     <div class="well">
 <!--Basic Information Panel-->
         <pre id='errors' class='hidden'></pre>
@@ -243,14 +244,14 @@
                             @include('partials.commission', [
                                 'commission' => count($model->commissions) > 0 ? $model->commissions[0] : null,
                                 'prefix' => 'commission-1',
-                                'drivers' => $model->drivers,
+                                'employees' => $model->employees,
                                 'title' => 'Commission 1'
                             ])
 
                             @include('partials.commission', [
                                 'commission' => count($model->commissions) > 1 ? $model->commissions[1] : null,
                                 'prefix' => 'commission-2',
-                                'drivers' => $model->drivers,
+                                'employees' => $model->employees,
                                 'title' => 'Commission 2'
                             ])
                         </div>
@@ -314,7 +315,7 @@
     <hr>
     <h4>Options</h4>
     <div class="checkbox">
-        <label><input id="charge-interest" type="checkbox" data-hidden-name="shouldChargeInterest" />Charge Interest on Balance Owing</label>
+        <label><input id="charge-interest" type="checkbox" data-hidden-name="shouldChargeInterest" disabled/>Charge Interest on Balance Owing</label>
     </div>
     <div class="checkbox">
         <label><input id="gst-exempt" type="checkbox" data-hidden-name="isGstExempt">Is GST Exempt</label>
@@ -327,6 +328,9 @@
     </div>
     <div class="checkbox">
         <label><input id="send-bills" type="checkbox" name="" value="" data-hidden-name="send-bills">Send Bills</label>
+    </div>
+    <div class="checkbox">
+        <label><input id="send-invoices" type="checkbox" name="" value="" data-hidden-name="send_invoices">Send Invoices</label>
     </div>
 </div>
 @endsection

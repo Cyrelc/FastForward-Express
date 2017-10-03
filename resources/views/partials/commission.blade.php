@@ -13,11 +13,11 @@
         <div class="col-lg-6 bottom15">
             <select id="employee-2-select" class="form-control" name='{{$prefix}}-employee-id'>
                 <option></option>
-                @foreach($drivers as $d)
-                    @if (count($model->commissions) > 1 && $d->driver_id == $commission->driver_id)
-                        <option selected="selected" value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                @foreach($employees as $e)
+                    @if (count($model->commissions) > 1 && $e->employee_id == $commission->driver_id)
+                        <option selected="selected" value="{{$d->employee_id}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                     @else
-                        <option value="{{$d->driver_id}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                        <option value="{{$e->employee_id}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                     @endif
                 @endforeach
             </select>

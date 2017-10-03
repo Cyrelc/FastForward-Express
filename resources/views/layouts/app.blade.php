@@ -40,10 +40,10 @@
                             </ul>
                         </li>
                         <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Drivers</a>
+                            <a class="dropdown-toggle" data-toggle="dropdown">Employees</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/drivers"><i class="fa fa-list"></i> List</a></li>
-                                <li><a href="/drivers/create"><i class="fa fa-plus-square-o"></i> New</a></li>
+                                <li><a href="/employees"><i class="fa fa-list"></i> List</a></li>
+                                <li><a href="/employees/create"><i class="fa fa-plus-square-o"></i> New</a></li>
                             </ul>
                         </li>
                         <li class="dropdown" disabled>

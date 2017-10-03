@@ -111,24 +111,16 @@
                 </select>
             </div>
         </div>
-<!-- number of pieces -->
-        <div class="col-lg-4 bottom15">
-            <div class="input-group">
-                <span class="input-group-addon">Number of Pieces: </span>
-                @if(isset($model->bill->num_pieces))
-                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="{{$model->bill->num_pieces}}" />
-                @else
-                    <input type="number" id="num_pieces" class="form-control" name="num_pieces" min="1" value="1" />
-                @endif
-            </div>
-        </div>
 <!-- Charge -->
         <div id="select_charge" class="col-lg-12 bottom15">
-            <label><input id="charge_pickup_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pickup_account' ? 'checked' : ''}} />  Charge Pickup Account</label>
-            <label><input id="charge_delivery_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'delivery_account' ? 'checked' : ''}} />  Charge Delivery Account</label>
-            <label><input id="charge_other_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'other_account' ? 'checked' : ''}}/>  Charge Other Account</label>
-            <label><input disabled id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
+            <div>
+                <label><input id="charge_pickup_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pickup_account' ? 'checked' : ''}} />  Charge Pickup Account</label>
+                <label><input id="charge_delivery_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'delivery_account' ? 'checked' : ''}} />  Charge Delivery Account</label>
+                <label><input id="charge_other_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'other_account' ? 'checked' : ''}}/>  Charge Other Account</label>
+                <label><input disabled id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
+            </div>
         </div>
+<!-- Payment Type -->
         <div class="col-lg-4 hidden bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Payment Type:</span>
@@ -211,11 +203,11 @@
                         <span class="input-group-addon">Pickup Driver: </span>
                         <select id="pickup_driver_id" class="form-control" name='pickup_driver_id'>
                             <option></option>
-                            @foreach($model->drivers as $d)
-                                @if (isset($model->bill->pickup_driver_id) && $d->driver_id == $model->bill->pickup_driver_id)
-                                    <option selected value="{{$d->driver_id}}" data-driver-commission="{{$d->pickup_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                            @foreach($model->employees as $e)
+                                @if (isset($model->bill->pickup_driver_id) && $e->employee_id == $model->bill->pickup_driver_id)
+                                    <option selected value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$d->driver_id}}" data-driver-commission="{{$d->pickup_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                    <option value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
@@ -276,11 +268,11 @@
                         <span class="input-group-addon">Delivery Driver: </span>
                         <select id="delivery_driver_id" class="form-control" name="delivery_driver_id">
                             <option></option>
-                            @foreach($model->drivers as $d)
-                                @if (isset($model->bill->delivery_driver_id) && $d->driver_id == $model->bill->delivery_driver_id)
-                                    <option selected value="{{$d->driver_id}}" data-driver-commission="{{$d->delivery_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                            @foreach($model->employees as $e)
+                                @if (isset($model->bill->delivery_driver_id) && $e->employee_id == $model->bill->delivery_driver_id)
+                                    <option selected value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$d->driver_id}}" data-driver-commission="{{$d->delivery_commission}}">{{$d->contact->first_name . ' ' . $d->contact->last_name}}</option>
+                                    <option value="{{$e->employee_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
@@ -323,7 +315,21 @@
                 </div>
             </div>
         </div>
-<!-- Description -->
+<!-- Piece Information -->
+<!--         <div class="col-lg-12 bottom15">
+            <table id='piece_table' class="table table-bordered">
+                <thead class="thead-inverse">
+                    <th>#</th>
+                    <th>Weight</th>
+                    <th>Length</th>
+                    <th>Width</th>
+                    <th>Height</th>
+                <thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+ --><!-- Description -->
         <div class="col-lg-12 bottom15">
             <label for="description">Description: </label>
             <textarea class="form-control" rows="5" name="description" placeholder="Any details pertaining to this bill">{{$model->bill->description}}</textarea>

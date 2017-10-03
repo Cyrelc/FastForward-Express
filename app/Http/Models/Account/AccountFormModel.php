@@ -7,7 +7,7 @@ class AccountFormModel
     public $account;
     public $parentAccount;
     public $accounts;
-    public $drivers;
+    public $employees;
     public $commissions;
     public $deliveryAddress;
 }

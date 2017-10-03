@@ -13,8 +13,7 @@ class BillValidationRules {
                     'delivery_use_submission' => 'required',
                     'delivery_driver_id' => 'required',
                     'delivery_driver_commission' => 'required|numeric|between:0,100',
-                    'delivery_type' => 'required',
-                    'num_pieces' => 'required'];
+                    'delivery_type' => 'required'];
 
     	$messages = ['date.required' => 'Delivery date is required',
                     'date.date' => 'Delivery date is in an incorrect format',
@@ -33,8 +32,7 @@ class BillValidationRules {
                     'delivery_driver_commission.required' => 'Delivery driver commission can not be empty',
                     'delivery_driver_commission.numeric' => 'Delivery driver commission must be a numeric value',
                     'delivery_driver_commission.between' => 'Delivery driver commission must be between 0% and 100%',
-                    'delivery_type.required' => 'Please select a delivery type',
-                    'num_pieces.required' => 'Please indicate how many packages were delivered'];
+                    'delivery_type.required' => 'Please select a delivery type'];
 
     	switch($req->charge_selection_submission) {
     		case "pickup_account":

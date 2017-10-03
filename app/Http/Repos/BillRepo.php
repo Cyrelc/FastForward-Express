@@ -86,6 +86,7 @@ class BillRepo {
         $old->description = $bill['description'];
         $old->date = $bill['date'];
         $old->amount = $bill['amount'];
+        $old->delivery_type = $bill['delivery_type'];
 
         $old->save();
 
