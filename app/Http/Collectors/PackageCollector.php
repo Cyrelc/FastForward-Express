@@ -12,6 +12,7 @@ class PackageCollector {
         $packages = [];
         foreach($package_names as $name) {
             $new_package = [
+                'package_id' => $req->input($name . '_id') == null ? '' : $req->input($name . '_id'),
                 'bill_id' => $bill_id,
                 'weight' => $req->input($name . '_weight'),
                 'height' => $req->input($name . '_height'),

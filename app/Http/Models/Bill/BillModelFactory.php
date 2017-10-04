@@ -102,6 +102,7 @@
 			$billRepo = new Repos\BillRepo();
 			$selectionsRepo = new Repos\SelectionsRepo();
 			$contactsRepo = new Repos\ContactRepo();
+			$packageRepo = new Repos\PackageRepo();
 
 		    $model->employees = $employeeRepo->ListAllDrivers();
 		    foreach ($model->employees as $employee) {
@@ -145,6 +146,7 @@
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
             $model->bill->date = strtotime($model->bill->date);
+            $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
 
             if($model->bill->charge_account_id !== null)
                 $model->charge_reference_name = $acctRepo->GetById($model->bill->charge_account_id)->custom_field;

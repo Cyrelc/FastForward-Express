@@ -127,8 +127,24 @@ class BillController extends Controller {
 
         $packages = $packageCollector->Collect($req, $bill->bill_id);
 
+        if($bill->bill_id) {
+            $old_packages = $packageRepo->GetByBillId($bill->bill_id);
+            $old_package_ids = [];
+            $new_package_ids = [];
+            foreach($old_packages as $old_package)
+                array_push($old_package_ids, $old_package->package_id);
+            foreach($packages as $package)
+                array_push($new_package_ids, $package['package_id']);
+            $delete_package_ids = array_diff($old_package_ids, $new_package_ids);
+            foreach($delete_package_ids as $delete_id)
+                $packageRepo->Delete($delete_id);
+        }
+
         foreach($packages as $package) {
-            $packageRepo->Insert($package);
+            if ($package['package_id'] == 'null')
+                $packageRepo->Insert($package);
+            else
+                $packageRepo->Update($package);
         }
 
         if ($req->bill_id)

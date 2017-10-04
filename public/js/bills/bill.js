@@ -128,8 +128,6 @@ $(document).ready(function() {
 	});
 
 //extend table to = piece_count
-	// addPiece();
-
 	$('#add_package').click(function(){
 		addPackage();
 	});
@@ -139,20 +137,21 @@ $(document).ready(function() {
 		row.remove();
 	});
 
-	function addPackage(weight = 0, length = 0, width = 0, height = 0) {
-		var table = $('#package_table');
-		var id = $('#next_piece_id').val();
-		id ++;
-		$('#next_piece_id').val(id);
-		table.children('tbody').append(
-			"<tr>" +
-				"<td><button type='button' id='remove_package'><i class='fa fa-minus'></i></button></td>" +
-				"<td>" + id + "</td>" +
-				"<td><input type='number' name='package" + id + "_weight' step='0.1' value='" + weight + "'/> kg </td>" +
-				"<td><input type='number' name='package" + id + "_length' step='0.01' value='" + length + "' /> meters </td>" +
-				"<td><input type='number' name='package" + id + "_width' step='0.01' value='" + width + "' /> meters </td>" +
-				"<td><input type='number' name='package" + id + "_height' step='0.01' value='" + height + "' /> meters </td>" +
-			"</tr>"
-		);
-	}
 });
+
+function addPackage(weight = 0, length = 0, width = 0, height = 0, package_id = null) {
+	var table = $('#package_table');
+	var id = $('#next_piece_id').val();
+	id ++;
+	$('#next_piece_id').val(id);
+	table.children('tbody').append(
+		"<tr>" +
+			"<input type='hidden' name='package" + id + "_id' value='" + package_id + "' />" +
+			"<td><button type='button' id='remove_package'><i class='fa fa-minus'></i></button></td>" +
+			"<td><input type='number' name='package" + id + "_weight' step='0.1' value='" + weight + "'/> kg </td>" +
+			"<td><input type='number' name='package" + id + "_length' step='0.01' value='" + length + "' /> meters </td>" +
+			"<td><input type='number' name='package" + id + "_width' step='0.01' value='" + width + "' /> meters </td>" +
+			"<td><input type='number' name='package" + id + "_height' step='0.01' value='" + height + "' /> meters </td>" +
+		"</tr>"
+	);
+}
