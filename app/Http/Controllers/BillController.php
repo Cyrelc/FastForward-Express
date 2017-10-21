@@ -67,8 +67,10 @@ class BillController extends Controller {
         $acctRepo = new Repos\AccountRepo();
         $billRepo = new Repos\BillRepo();
         $addrRepo = new Repos\AddressRepo();
+        $packageRepo = new Repos\PackageRepo();
         $addrCollector = new \App\Http\Collectors\AddressCollector();
         $billCollector = new \App\Http\Collectors\BillCollector();
+        $packageCollector = new \App\Http\Collectors\PackageCollector();
 
         switch ($req->charge_selection_submission) {
             case "pickup_account":
@@ -116,13 +118,38 @@ class BillController extends Controller {
             $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
 
         $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
-        if ($req->bill_id) {
-            $billRepo->Update($bill);
-            return redirect()->action('BillController@index');
-        } else {
-            $billRepo->Insert($bill);
-            return redirect()->action('BillController@create');
-        }
-    }
 
+        if ($req->bill_id) {
+            $bill = $billRepo->Update($bill);
+        } else {
+            $bill = $billRepo->Insert($bill);
+        }
+
+        $packages = $packageCollector->Collect($req, $bill->bill_id);
+
+        if($bill->bill_id) {
+            $old_packages = $packageRepo->GetByBillId($bill->bill_id);
+            $old_package_ids = [];
+            $new_package_ids = [];
+            foreach($old_packages as $old_package)
+                array_push($old_package_ids, $old_package->package_id);
+            foreach($packages as $package)
+                array_push($new_package_ids, $package['package_id']);
+            $delete_package_ids = array_diff($old_package_ids, $new_package_ids);
+            foreach($delete_package_ids as $delete_id)
+                $packageRepo->Delete($delete_id);
+        }
+
+        foreach($packages as $package) {
+            if ($package['package_id'] == 'null')
+                $packageRepo->Insert($package);
+            else
+                $packageRepo->Update($package);
+        }
+
+        if ($req->bill_id)
+            return redirect()->action('BillController@index');
+        else 
+            return redirect()->action('BillController@create');
+    }
 }

@@ -54,6 +54,7 @@ class AccountRepo {
         $old->name = $acct["name"];
         $old->start_date = $acct["start_date"];
         $old->send_bills = $acct["send_bills"];
+        $old->send_invoices = $acct["send_invoices"];
         $old->has_parent = $acct["has_parent"];
         $old->parent_account_id = $acct["parent_account_id"];
         $old->has_discount = $acct["has_discount"];

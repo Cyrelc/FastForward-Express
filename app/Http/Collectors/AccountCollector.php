@@ -18,6 +18,7 @@ class AccountCollector {
             'name'=>$req->input('name'),
             'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
             'send_bills'=>$req->input('send-bills') == "true",
+            'send_invoices' => $req->input('send_invoices') =="true",
             'has_parent'=>$req->isSubLocation,
             'parent_account_id'=>($req->isSubLocation == "false") ? null : $req->input('parent-account-id'),
             'has_discount' => $hasDiscount,
