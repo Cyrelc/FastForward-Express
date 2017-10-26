@@ -10,6 +10,13 @@ use App\Http\Models\Interliner;
 
 class InterlinerController extends Controller {
 
+    public function index() {
+        $factory = new Interliner\InterlinerModelFactory();
+        $contents = $factory->ListAll();
+
+        return view('interliners.interliners', compact('contents'));
+    }
+
     public function create(Request $req) {
         // Check permissions
         $interliner_model_factory = new Interliner\InterlinerModelFactory();
