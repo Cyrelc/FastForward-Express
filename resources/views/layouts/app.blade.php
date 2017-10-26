@@ -35,8 +35,15 @@
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown">Accounts</a>
                             <ul class="dropdown-menu">
-                                <li><a href="/accounts"><i class="fa fa-list"></i> List</a></li>
-                                <li><a href="/accounts/create"><i class="fa fa-plus-square-o"></i> New</a></li>
+                                <li><a href="/accounts"><i class="fa fa-list"></i> List Accounts</a></li>
+                                <li><a href="/accounts/create"><i class="fa fa-plus-square-o"></i> New Account</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown">Interliners</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/interliners"><i class="fa fa-list"></i> List Interliners</a></li>
+                                <li><a href="/interliners/create"><i class="fa fa-plus-square-o"></i> New Interliner</a></li>
                             </ul>
                         </li>
                         <li class="dropdown">

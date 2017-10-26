@@ -8,4 +8,9 @@ class Interliner extends Model
 {
     public $primaryKey = "interliner_id";
     public $timestamps = false;
+
+    protected $fillable = [
+    	'name',
+    	'address_id'
+    ];
 }
