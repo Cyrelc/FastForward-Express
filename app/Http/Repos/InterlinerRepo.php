@@ -22,4 +22,15 @@ class InterlinerRepo {
 
     	return ($new->create($interliner));
     }
+
+    public function Update($interliner) {
+        $old = $this->GetById($interliner['interliner_id']);
+
+        $old->name = $interliner['name'];
+        $old->address_id = $interliner['address_id'];
+
+        $old->save();
+
+        return $old;
+    }
 }

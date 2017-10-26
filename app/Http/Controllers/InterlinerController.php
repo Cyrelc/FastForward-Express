@@ -24,6 +24,12 @@ class InterlinerController extends Controller {
         return view('interliners.interliner', compact('model'));
     }
 
+    public function edit(Request $req, $id) {
+        $factory = new Interliner\InterlinerModelFactory();
+        $model = $factory->GetEditModel($req, $id);
+        return view('interliners.interliner', compact('model'));
+    }
+
     public function store(Request $req) {
     	//TODO - does not handle edit
     	//TODO - check permissions
@@ -39,12 +45,20 @@ class InterlinerController extends Controller {
         $interlinerRepo = new Repos\InterlinerRepo();
 
         $address = $addrCollector->CollectForAccount($req, 'address', false);
-        $addressId = $addrRepo->Insert($address)->address_id;
+        if ($req->address_id) 
+            $addressId = $addrRepo->Update($address)->address_id;
+        else
+            $addressId = $addrRepo->Insert($address)->address_id;
 
         $interliner = $interlinerCollector->Collect($req, $addressId);
-        $interliner = $interlinerRepo->Insert($interliner);
+        if ($req->interliner_id) {
+            $interliner = $interlinerRepo->Update($interliner);
+            return redirect()->action('InterlinerController@index');
+        }
+        else
+            $interliner = $interlinerRepo->Insert($interliner);
+            return redirect()->action('InterlinerController@create');
 
-        return redirect()->action('InterlinerController@create');
     }
 }
 

@@ -33,6 +33,17 @@ class InterlinerModelFactory{
 
 		return $model;
 	}
+
+	public function GetEditModel($req, $id) {
+		$model = new InterlinerFormModel();
+		$interlinerRepo = new Repos\InterlinerRepo();
+		$addressRepo = new Repos\AddressRepo();
+
+		$model->interliner = $interlinerRepo->GetById($id);
+		$model->interliner->address = $addressRepo->GetById($model->interliner->address_id);
+
+		return $model;
+	}
 }
 
 ?>

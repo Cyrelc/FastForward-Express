@@ -58,6 +58,7 @@ Route::group(
 
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');
+            Route::get('/interliners/edit/{id}', 'InterlinerController@edit');
             Route::get('/interliners', 'InterlinerController@index');
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
