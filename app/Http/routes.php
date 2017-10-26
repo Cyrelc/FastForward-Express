@@ -56,6 +56,9 @@ Route::group(
             Route::post('/employees/submitEdit', 'EmployeeController@submitEdit');
             Route::post('/employees/action', 'EmployeeController@action');
 
+            Route::get('/interliners/create', 'InterlinerController@create');
+            Route::post('interliners/store', 'InterlinerController@store');
+
             Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices', 'InvoiceController@index');
             Route::get('/invoices/view/{id}','InvoiceController@view');

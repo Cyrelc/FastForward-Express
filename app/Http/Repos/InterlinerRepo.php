@@ -16,4 +16,10 @@ class InterlinerRepo {
 
 	    return $interliner;
     }
+
+    public function Insert($interliner) {
+    	$new = new Interliner;
+
+    	return ($new->create($interliner));
+    }
 }
