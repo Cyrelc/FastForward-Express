@@ -62,17 +62,30 @@ class InvoiceController extends Controller {
     }
 
     public function store(Request $req) {
-        $invoiceRepo = new Repos\InvoiceRepo();
+        DB::beginTransaction();
+        try{
+            $invoiceRepo = new Repos\InvoiceRepo();
 
-        $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
-        $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+            $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
+            $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
 
-        $accounts = array();
-        foreach($req->checkboxes as $account)
-            array_push($accounts, $account);
+            $accounts = array();
+            foreach($req->checkboxes as $account)
+                array_push($accounts, $account);
 
-        $invoiceRepo->create($accounts, $start_date, $end_date);
+            $invoiceRepo->create($accounts, $start_date, $end_date);
 
-        return redirect()->action('InvoiceController@index');
+            DB::commit();
+
+            return redirect()->action('InvoiceController@index');
+            
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

@@ -56,100 +56,113 @@ class BillController extends Controller {
     }
 
     public function store(Request $req) {
-        $billValidation = new \App\Http\Validation\BillValidationRules();
-        $temp = $billValidation->GetValidationRules($req);
+        DB::beginTransaction();
+        try {
+            $billValidation = new \App\Http\Validation\BillValidationRules();
+            $temp = $billValidation->GetValidationRules($req);
 
-        $validationRules = $temp['rules'];
-        $validationMessages = $temp['messages'];
+            $validationRules = $temp['rules'];
+            $validationMessages = $temp['messages'];
 
-        $this->validate($req, $validationRules, $validationMessages);
+            $this->validate($req, $validationRules, $validationMessages);
 
-        $acctRepo = new Repos\AccountRepo();
-        $billRepo = new Repos\BillRepo();
-        $addrRepo = new Repos\AddressRepo();
-        $packageRepo = new Repos\PackageRepo();
-        $addrCollector = new \App\Http\Collectors\AddressCollector();
-        $billCollector = new \App\Http\Collectors\BillCollector();
-        $packageCollector = new \App\Http\Collectors\PackageCollector();
+            $acctRepo = new Repos\AccountRepo();
+            $billRepo = new Repos\BillRepo();
+            $addrRepo = new Repos\AddressRepo();
+            $packageRepo = new Repos\PackageRepo();
+            $addrCollector = new \App\Http\Collectors\AddressCollector();
+            $billCollector = new \App\Http\Collectors\BillCollector();
+            $packageCollector = new \App\Http\Collectors\PackageCollector();
 
-        switch ($req->charge_selection_submission) {
-            case "pickup_account":
-                $chargeAccountId = $req->pickup_account_id;
-                break;
-            case "delivery_account":
-                $chargeAccountId = $req->delivery_account_id;
-                break;
-            case "other_account" :
-                $chargeAccountId = $req->charge_account_id;
-                break;
-            case "pre-paid":
-                $chargeAccountId = null;
-                break;
-        }
+            switch ($req->charge_selection_submission) {
+                case "pickup_account":
+                    $chargeAccountId = $req->pickup_account_id;
+                    break;
+                case "delivery_account":
+                    $chargeAccountId = $req->delivery_account_id;
+                    break;
+                case "other_account" :
+                    $chargeAccountId = $req->charge_account_id;
+                    break;
+                case "pre-paid":
+                    $chargeAccountId = null;
+                    break;
+            }
 
-        switch ($req->pickup_use_submission) {
-            case "account":
-                $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
-                $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
-                $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
-                break;
-            case "address":
-                $pickupAddress = $addrCollector->CollectForAccount($req, 'pickup', false);
-                break;
-        }
-        if ($req->bill_id)
-            $pickupAddressId = $addrRepo->Update($pickupAddress)->address_id;
-        else
-            $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
-
-        switch ($req->delivery_use_submission) {
-            case "account":
-                $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
-                $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
-                $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
-                break;
-            case "address":
-                $deliveryAddress = $addrCollector->CollectForAccount($req, 'delivery', false);
-                break;
-        }
-        if ($req->bill_id)
-            $deliveryAddressId = $addrRepo->Update($deliveryAddress)->address_id;
-        else
-            $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
-
-        $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
-
-        if ($req->bill_id) {
-            $bill = $billRepo->Update($bill);
-        } else {
-            $bill = $billRepo->Insert($bill);
-        }
-
-        $packages = $packageCollector->Collect($req, $bill->bill_id);
-
-        if($bill->bill_id) {
-            $old_packages = $packageRepo->GetByBillId($bill->bill_id);
-            $old_package_ids = [];
-            $new_package_ids = [];
-            foreach($old_packages as $old_package)
-                array_push($old_package_ids, $old_package->package_id);
-            foreach($packages as $package)
-                array_push($new_package_ids, $package['package_id']);
-            $delete_package_ids = array_diff($old_package_ids, $new_package_ids);
-            foreach($delete_package_ids as $delete_id)
-                $packageRepo->Delete($delete_id);
-        }
-
-        foreach($packages as $package) {
-            if ($package['package_id'] == 'null')
-                $packageRepo->Insert($package);
+            switch ($req->pickup_use_submission) {
+                case "account":
+                    $pickupAccount = $acctRepo->GetById($req->pickup_account_id);
+                    $pickupAddress = $addrRepo->GetById($pickupAccount->shipping_address_id);
+                    $pickupAddress = $addrCollector->ToArray($pickupAddress, 'false');
+                    break;
+                case "address":
+                    $pickupAddress = $addrCollector->CollectForAccount($req, 'pickup', false);
+                    break;
+            }
+            if ($req->bill_id)
+                $pickupAddressId = $addrRepo->Update($pickupAddress)->address_id;
             else
-                $packageRepo->Update($package);
-        }
+                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
 
-        if ($req->bill_id)
-            return redirect()->action('BillController@index');
-        else 
-            return redirect()->action('BillController@create');
+            switch ($req->delivery_use_submission) {
+                case "account":
+                    $deliveryAccount = $acctRepo->GetById($req->delivery_account_id);
+                    $deliveryAddress = $addrRepo->GetById($deliveryAccount->shipping_address_id);
+                    $deliveryAddress = $addrCollector->ToArray($deliveryAddress, 'false');
+                    break;
+                case "address":
+                    $deliveryAddress = $addrCollector->CollectForAccount($req, 'delivery', false);
+                    break;
+            }
+            if ($req->bill_id)
+                $deliveryAddressId = $addrRepo->Update($deliveryAddress)->address_id;
+            else
+                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
+
+            $bill = $billCollector->Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId);
+
+            if ($req->bill_id) {
+                $bill = $billRepo->Update($bill);
+            } else {
+                $bill = $billRepo->Insert($bill);
+            }
+
+            $packages = $packageCollector->Collect($req, $bill->bill_id);
+
+            if($bill->bill_id) {
+                $old_packages = $packageRepo->GetByBillId($bill->bill_id);
+                $old_package_ids = [];
+                $new_package_ids = [];
+                foreach($old_packages as $old_package)
+                    array_push($old_package_ids, $old_package->package_id);
+                foreach($packages as $package)
+                    array_push($new_package_ids, $package['package_id']);
+                $delete_package_ids = array_diff($old_package_ids, $new_package_ids);
+                foreach($delete_package_ids as $delete_id)
+                    $packageRepo->Delete($delete_id);
+            }
+
+            foreach($packages as $package) {
+                if ($package['package_id'] == 'null')
+                    $packageRepo->Insert($package);
+                else
+                    $packageRepo->Update($package);
+            }
+
+            DB::commit();
+
+            if ($req->bill_id)
+                return redirect()->action('BillController@index');
+            else 
+                return redirect()->action('BillController@create');
+            
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }
