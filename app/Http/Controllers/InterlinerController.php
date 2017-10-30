@@ -33,32 +33,44 @@ class InterlinerController extends Controller {
     public function store(Request $req) {
     	//TODO - does not handle edit
     	//TODO - check permissions
-    	$interlinerValidation = new \App\Http\Validation\InterlinerValidationRules();
-    	$temp = $interlinerValidation->GetValidationRules($req);
+        DB::beginTransaction();
+        try {
+            $interlinerValidation = new \App\Http\Validation\InterlinerValidationRules();
+            $temp = $interlinerValidation->GetValidationRules($req);
 
-        $validationRules = $temp['rules'];
-        $validationMessages = $temp['messages'];
+            $validationRules = $temp['rules'];
+            $validationMessages = $temp['messages'];
 
-        $addrCollector = new \App\Http\Collectors\AddressCollector();
-        $interlinerCollector = new \App\Http\Collectors\InterlinerCollector();
-        $addrRepo = new Repos\AddressRepo();
-        $interlinerRepo = new Repos\InterlinerRepo();
+            $addrCollector = new \App\Http\Collectors\AddressCollector();
+            $interlinerCollector = new \App\Http\Collectors\InterlinerCollector();
+            $addrRepo = new Repos\AddressRepo();
+            $interlinerRepo = new Repos\InterlinerRepo();
 
-        $address = $addrCollector->CollectForAccount($req, 'address', false);
-        if ($req->address_id) 
-            $addressId = $addrRepo->Update($address)->address_id;
-        else
-            $addressId = $addrRepo->Insert($address)->address_id;
+            $address = $addrCollector->CollectForAccount($req, 'address', false);
+            if ($req->address_id) 
+                $addressId = $addrRepo->Update($address)->address_id;
+            else
+                $addressId = $addrRepo->Insert($address)->address_id;
 
-        $interliner = $interlinerCollector->Collect($req, $addressId);
-        if ($req->interliner_id) {
-            $interliner = $interlinerRepo->Update($interliner);
-            return redirect()->action('InterlinerController@index');
+            $interliner = $interlinerCollector->Collect($req, $addressId);
+
+            if ($req->interliner_id) {
+                $interliner = $interlinerRepo->Update($interliner);
+                DB::commit();
+                return redirect()->action('InterlinerController@index');
+            }
+            else {
+                $interliner = $interlinerRepo->Insert($interliner);
+                DB::commit();
+                return redirect()->action('InterlinerController@create');
+            }
+        } catch(Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
         }
-        else
-            $interliner = $interlinerRepo->Insert($interliner);
-            return redirect()->action('InterlinerController@create');
-
     }
 }
 
