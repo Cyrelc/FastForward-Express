@@ -40,13 +40,6 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
 
     var isPrimary = $("input[name^='contact-id-']").length == 0;
 
-    if (!fName || !lName || !sPpn || !sem)
-        return;
-
-    if (includeAddress)
-        if (!street || !city || !province || !postal || !country)
-            return;
-
     var data = {
         'new-contact-id': id,
         'new-first-name': fName,
