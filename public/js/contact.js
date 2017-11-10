@@ -1,6 +1,7 @@
 function saveScContact(multiPrefix, prefix, includeAddress) {
     var fName = $("#" + prefix + "-first-name").val();
     var lName = $("#" + prefix + "-last-name").val();
+    var position = $("#" + prefix + "-position").val();
     var sPpn = $("#" + prefix + "-phone1").val();
     var sPpnExt = $("#" + prefix + "-phone1-ext").val();
     var sSpn = $("#" + prefix + "-phone2").val();
@@ -50,6 +51,7 @@ function saveScContact(multiPrefix, prefix, includeAddress) {
         'new-contact-id': id,
         'new-first-name': fName,
         'new-last-name': lName,
+        'new-position' : position,
         'contact-0-phone1': sPpn,
         'contact-0-ext': sPpnExt,
         'contact-0-phone2': sSpn,
@@ -118,6 +120,7 @@ function makePrimary(element) {
 function clearScForm(prefix, includeAddress) {
     $("#" + prefix + "-first-name").val('');
     $("#" + prefix + "-last-name").val('');
+    $("#" + prefix + "-position").val('');
     $("#" + prefix + "-phone1").val('');
     $("#" + prefix + "-phone1-ext").val('');
     $("#" + prefix + "-phone2").val('');
