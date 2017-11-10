@@ -8,7 +8,8 @@ class ContactCollector {
     public function Collect($req, $prefix){
         return [
             'first_name'=>$req->input($prefix . '-first-name'),
-            'last_name'=>$req->input($prefix . '-last-name')
+            'last_name'=>$req->input($prefix . '-last-name'),
+            'position'=>$req->input($prefix . '-position')
         ];
     }
 
@@ -153,6 +154,7 @@ class ContactCollector {
     public function RemergeContact($req, $contact, $id, $prefix, $includeAddress) {
         $firstName = $req->old($prefix . '-first-name');
         $lastName = $req->old($prefix . '-last-name');
+        $position = $req->old($prefix . '-position');
         $phone1 = $req->old($prefix . '-phone1');
         $phone1Ext = $req->old($prefix . '-phone1-ext');
         $email1 = $req->old($prefix . '-email1');
@@ -180,6 +182,9 @@ class ContactCollector {
 
         if (Utils::HasValue($lastName))
             $contact->last_name = $lastName;
+
+        if (Utils::HasValue($position))
+            $contact->position = $position;
 
         if (Utils::HasValue($phone1))
             $contact->primaryPhone->phone_number = $phone1;
@@ -254,6 +259,7 @@ class ContactCollector {
 
         $contact->first_name = $contactArray['first_name'];
         $contact->last_name = $contactArray['last_name'];
+        $contact->position = $contactArray['position'];
 
         $phoneNumber->phone_number_id = in_array('phone_number_id', $phoneNumberArray) ? $phoneNumberArray['phone_number_id'] : -2;
         $phoneNumber->phone_number = $phoneNumberArray['phone_number'];

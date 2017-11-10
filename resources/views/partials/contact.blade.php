@@ -33,13 +33,18 @@
     <input type="hidden" data-contact-id="true" value="{{ isset($contact) ? ($contact->contact_id > 0 ? $contact->contact_id : '-1') : '-1' }}" />
 
     <!--First Name-->
-    <div class="col-lg-6 bottom15">
+    <div class="col-lg-4 bottom15">
         <input type='text' class='form-control contact-body' id='{{$prefix}}-first-name' name='{{ $prefix }}-first-name' placeholder='First Name' value="{{isset($contact) ? $contact->first_name : ''}}"/>
     </div>
 
     <!--Last Name-->
-    <div class="col-lg-6 bottom15">
+    <div class="col-lg-4 bottom15">
         <input type='text' class='form-control contact-body' id='{{$prefix}}-last-name' name='{{ $prefix }}-last-name' placeholder='Last Name' value="{{isset($contact) ? $contact->last_name : ''}}"/>
+    </div>
+
+    <!--Position-->
+    <div class="col-lg-4 bottom15">
+        <input type='text' class='form-control contact-body' id='{{$prefix}}-position' name='{{$prefix}}-position' placeholder='Position / Title' value="{{isset($contact) ? $contact->position : ''}}"/>
     </div>
 
     <!--Phone 1-->
@@ -68,7 +73,7 @@
             <ul class="nav nav-pills">
                 @if(!isset($contact) || $contact->contact_id === 0)
                     <li class="text-center" title="Save">
-                        <a href="javascript:saveScContact('{{$multi_div_prefix}}', '{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-save"></i></a>
+                        <a href="javascript:saveScContact('{{$multi_div_prefix}}', '{{$prefix}}', {{ $show_address == 1 ? 'true' : 'false' }})"><i class="fa fa-plus"></i></a>
                     </li>
                 @endif
 
