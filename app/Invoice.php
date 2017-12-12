@@ -14,6 +14,7 @@ class Invoice extends Model
         'date',
         'bill_cost',
         'tax',
+        'discount',
         'total_cost',
         'balance_owing'
     ];

@@ -23,7 +23,7 @@
 	<br>
 	<table style="width:90%">
 		<thead>
-			<tr>
+			<tr style="border-bottom: 2px solid black">
 				<td> Date </td>
 				<td>Bill Number</td>
 				@if (isset($model->parents[0]->custom_field))
@@ -49,16 +49,20 @@
 			@endforeach
 			<tr style="height:45px"></tr>
 			<?php
-				$amounts = array("Amount: {$model->invoice->bill_cost}", "Tax: {$model->invoice->tax}", "Total: {$model->invoice->total_cost}");
+				$amounts = [["Amount:", $model->invoice->bill_cost],
+								["Discount:", $model->invoice->discount], 
+								["Tax:", $model->invoice->tax],
+								["Total:", $model->invoice->total_cost]];
 				foreach($amounts as $amount) {
 					echo("<tr>");
-					$i = 4;
+					$i = 3;
 					if (!is_null($model->parents[0]->custom_field))
-						$i = 5;
+						$i = 4;
 					for ($i; $i > '0'; $i--) {
 						echo("<td></td>");
 					}
-					echo("<td style='float:right'>" . $amount . "</td>");
+					echo("<td style='text-align: right'>" . $amount[0] . "</td>");
+					echo("<td style='float:right'>" . $amount[1] . "</td>");
 					echo("</tr>");
 				}
 			?>

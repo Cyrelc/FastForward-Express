@@ -64,9 +64,9 @@ class InvoiceRepo {
         //TODO: fuel surcharge logic
 
         $bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
-        $discount = $bill_cost * $account->discount;
+        $discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
         if ($account->gst_exempt)
-            $tax = 0;
+            $tax = number_format(0, 2, '.', '');
         else
             $tax = number_format(round(($bill_cost - $discount) * .05, 2), 2, '.', '');
 
