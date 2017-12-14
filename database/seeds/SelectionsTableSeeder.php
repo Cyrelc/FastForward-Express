@@ -11,6 +11,7 @@ class SelectionsTableSeeder extends Seeder
      */
     public function run()
     {
+//Intervals
         DB::table('selections')->insert([
             'name' => 'Weekly',
             'value' => 'weekly',
@@ -28,7 +29,7 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'monthly',
             'type' => 'invoice_interval'
         ]);
-
+//Payment types
         DB::table('selections')->insert([
             'name' => 'Cash',
             'value' => 'cash',
@@ -52,7 +53,7 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'cheque',
             'type' => 'prepaid_option'
         ]);
-
+//Delivery Types
         DB::table('selections')->insert([
             'name' => 'Regular',
             'value' => 'regular',
@@ -82,7 +83,7 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'hot_shot',
             'type' => 'delivery_type'
         ]);
-
+//Driver Warning Types
         DB::table('selections')->insert([
             'name' => 'No Warning',
             'value' => 'no_warning',
@@ -107,7 +108,7 @@ class SelectionsTableSeeder extends Seeder
             'type' => 'severity'
         ]);
 
-        //TODO: Brandon -> insert your employee types here
+//Employee types
         DB::table('selections')->insert([
             'name' => 'Full-Time Driver',
             'value' => 'ft_driver',
@@ -130,6 +131,27 @@ class SelectionsTableSeeder extends Seeder
             'name' => 'Employee Type 1',
             'value' => 'employee_type_1',
             'type' => 'employee_type'
+        ]);
+//Phone types
+        DB::table('selections')->insert([
+            'name' => 'Cell',
+            'value' => 'cell',
+            'type' => 'phone_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Home',
+            'value' => 'home',
+            'type' => 'phone_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Work',
+            'value' => 'work',
+            'type' => 'phone_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Fax',
+            'value' => 'Fax',
+            'type' => 'phone_type'
         ]);
     }
 }
