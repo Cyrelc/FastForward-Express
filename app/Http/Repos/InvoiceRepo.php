@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
+use App\Account;
 use App\Bill;
 use App\Invoice;
 
@@ -52,22 +53,30 @@ class InvoiceRepo {
             ->where('skip_invoicing', '=', 0)
             ->get();
 
+        $account = Account::where('account_id', '=', $account_id)->first();
+
         $bill_cost = 0;
         foreach($bills as $bill) {
             $bill_cost += $bill->amount;
             $bill_cost += $bill->interliner_amount;
         }
-        //TODO: check interliner cost, add to individual bills and to total
-        //TODO: check if tax exempt, use variable tax cost rather than hard coded
+        //TODO: use variable tax cost rather than hard coded
+        //TODO: fuel surcharge logic
 
         $bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
-        $tax = number_format(round($bill_cost * .05, 2), 2, '.', '');
-        $total_cost = number_format(round($bill_cost + $tax, 2), 2, '.', '');
+        $discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
+        if ($account->gst_exempt)
+            $tax = number_format(0, 2, '.', '');
+        else
+            $tax = number_format(round(($bill_cost - $discount) * .05, 2), 2, '.', '');
+
+        $total_cost = number_format(round($bill_cost - $discount + $tax, 2), 2, '.', '');
 
         $invoice = [
             'account_id' => $account_id,
             'date' => date('Y-m-d'),
             'bill_cost' => $bill_cost,
+            'discount' => $discount,
             'tax' => $tax,
             'total_cost' => $total_cost,
             'balance_owing' => $total_cost
