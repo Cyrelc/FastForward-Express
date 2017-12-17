@@ -73,8 +73,6 @@ class BillCollector {
 	public function Remerge($req, $bill){
 		$billVars = array('charge_account_id', 'other_account_id', 'pickup_account_id', 'delivery_account_id', 'amount', 'bill_number', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'description', 'delivery_type');
 
-		// dd($req->old['amount'] !== null);
-
 		foreach ($billVars as $billVar) {
 			if($req->old($billVar) !== null)
 				$bill->{$billVar} = $req->old($billVar);

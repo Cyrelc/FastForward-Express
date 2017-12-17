@@ -50,9 +50,9 @@
 			<tr style="height:45px"></tr>
 			<?php
 				$amounts = [["Amount:", $model->invoice->bill_cost],
-								["Discount:", $model->invoice->discount], 
-								["Tax:", $model->invoice->tax],
-								["Total:", $model->invoice->total_cost]];
+							["Discount:", $model->invoice->discount],
+							["Tax:", $model->invoice->tax],
+							["Total:", $model->invoice->total_cost]];
 				foreach($amounts as $amount) {
 					echo("<tr>");
 					$i = 3;
