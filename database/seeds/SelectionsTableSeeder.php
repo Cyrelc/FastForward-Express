@@ -150,7 +150,12 @@ class SelectionsTableSeeder extends Seeder
         ]);
         DB::table('selections')->insert([
             'name' => 'Fax',
-            'value' => 'Fax',
+            'value' => 'fax',
+            'type' => 'phone_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Pager',
+            'value' => 'pager',
             'type' => 'phone_type'
         ]);
     }
