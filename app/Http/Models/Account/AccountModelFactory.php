@@ -39,7 +39,8 @@
                     $primaryContact = $contactRepo->GetById($acctsRepo->GetAccountPrimaryContactId($a->account_id)->contact_id);
                     $avm->primaryContact = $primaryContact->first_name . ' ' . $primaryContact->last_name;
 
-                    $avm->primaryPhone = $phoneRepo->GetContactPrimaryPhone($primaryContact->contact_id)->phone_number;
+                    // Temporarily removing concept of 'primary' phone numbers
+                    // $avm->primaryPhone = $phoneRepo->GetContactPrimaryPhone($primaryContact->contact_id)->phone_number;
 
                     array_push($avms, $avm);
                 }

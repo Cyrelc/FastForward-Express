@@ -40,7 +40,6 @@ class AccountController extends Controller {
     public function edit(Request $req, $id) {
         $factory = new Account\AccountModelFactory();
         $model = $factory->GetEditModel($id, $req);
-        //dd($model->account->contacts);
         return view('accounts.account', compact('model'));
     }
 
@@ -63,18 +62,18 @@ class AccountController extends Controller {
             $validationRules = array_merge($validationRules, $addrRules['rules']);
             $validationMessages = array_merge($validationMessages, $addrRules['messages']);
 
-            $contactsToDelete = $contactsCollector->GetDeletions($req);
+            $contacts = $contactsCollector->collectAll($req, 'account', false);
 
-            $contactsVal = $partialsRules->GetContactsValidationRules($req, $contactsToDelete, false);
-            $validationRules = array_merge($validationRules, $contactsVal['rules']);
-            $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
-
-            if ($contactsVal['contact_count'] == 0) {
+            if (count($contacts) < 1) {
                 //Manually fail validation
                 $rules['Contacts'] = 'required';
                 $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
                 if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
             }
+
+            $contactsVal = $partialsRules->GetContactsValidationRules($req, $contacts, false);
+            $validationRules = array_merge($validationRules, $contactsVal['rules']);
+            $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
 
             if ($req->input('billing-address') == 'on') {
                 $billAddressRules = $partialsRules->GetAddressValidationRules('billing', 'Billing');
@@ -98,118 +97,6 @@ class AccountController extends Controller {
             $emailAddressRepo = new Repos\EmailAddressRepo();
             $phoneNumberRepo = new Repos\PhoneNumberRepo();
             $commissionRepo = new Repos\CommissionRepo();
-
-            //Create array of all actions to be taken with contacts
-            $contactIds = array();
-            $contactActions = $contactsCollector->GetActions($req);
-
-            $accountId = $req->input('account-id');
-            //BEGIN contacts
-            $primary_id = null;
-            $newPrimaryId = $req->input('contact-action-change-primary');
-            
-            foreach($req->all() as $key=>$value) {
-                if (substr($key, 0, 11) == "contact-id-") {
-                    $contactId = substr($key, 11);
-
-                    $actions = $contactActions[$contactId];
-
-                    $primaryAction = "";
-                    if (in_array('delete', $actions))
-                        $primaryAction = 'delete';
-                    else if (in_array('update', $actions))
-                        $primaryAction = 'update';
-                    else if (in_array('new', $actions))
-                        $primaryAction = 'new';
-
-                    //What do we do with this contact? Return fail
-                    if ($primaryAction == "") {
-                        $rules['Contact-Action'] = 'required';
-                        $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-                        if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-                    }
-
-                    if ($primaryAction == "delete") {
-                        //Deleting contact, delete and don't do anything else
-
-                        //Check that another contact is being added as primary
-                        if ($req->input('contact-action-change-primary') === $contactId) {
-                            //Manually fail validation
-                            $rules['PrimaryContact'] = 'required';
-                            $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-                            if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-                        }
-
-                        $contactRepo->Delete($contactId);
-                        continue;
-                    }
-
-                    $contact = $contactCollector->Collect($req, 'contact-' . $contactId);
-                    $newId = null;
-
-                    if ($primaryAction == "new") {
-                        $newId = $contactRepo->Insert($contact)->contact_id;
-
-                        if (Utils::HasValue($accountId)) {
-                            $accountRepo->AddContact($accountId, $newId);
-                        } else {
-                            if ($newPrimaryId == $contactId)
-                                $newPrimaryId = $newId;
-                        }
-
-                        array_push($contactIds, $newId);
-                    }
-                    else if ($primaryAction == "update") {
-                        $contact["contact_id"] = $contactId;
-                        $contactRepo->Update($contact);
-                    }
-
-                    $phone1 = $contactCollector->CollectPhoneNumber($req, $contactId, true, $newId);
-                    $phone2 = $contactCollector->CollectPhoneNumber($req, $contactId, false, $newId);
-                    $email1 = $contactCollector->CollectEmail($req, $contactId, true, $newId);
-                    $email2 = $contactCollector->CollectEmail($req, $contactId, false, $newId);
-
-                    if (isset($newId))
-                        $contactId = $newId;
-
-                    if ($primaryAction == "new") {
-                        //New phone numbers on new account
-                        $phoneNumberRepo->Insert($phone1);
-                        $emailAddressRepo->Insert($email1);
-
-                        if (Utils::HasValue($phone2['phone_number']))
-                            $phoneNumberRepo->Insert($phone2);
-
-                        if (Utils::HasValue($email2['email']))
-                            $emailAddressRepo->Insert($email2);
-                    } else if ($primaryAction == "update") {
-                        //New phone numbers on existing account
-                        $phoneNumberRepo->Update($phone1);
-                        $emailAddressRepo->Update($email1);
-
-                        if (Utils::HasValue($phone2['phone_number'])) {
-                            if (Utils::HasValue($phone2['phone_number_id']))
-                                $phoneNumberRepo->Update($phone2);
-                            else
-                                $phoneNumberRepo->Insert($phone2);
-                        } else if (Utils::HasValue($phone2['phone_number_id']))
-                            $phoneNumberRepo->Delete($phone2['phone_number_id']);
-
-                        if (Utils::HasValue($email2['email'])) {
-                            if (Utils::HasValue($email2['email_address_id']))
-                                $emailAddressRepo->Update($email2);
-                            else
-                                $emailAddressRepo->Insert($email2);
-                        } else if (Utils::HasValue($email2['email_address_id']))
-                            $emailAddressRepo->Delete($email2['email_address_id']);
-                    }
-                }
-            }
-
-            if ($contactsToDelete !== null)
-                foreach($contactsToDelete as $delete_id)
-                    $contactRepo->Delete($delete_id);
-            //END contacts
 
             //BEGIN delivery address
             $addrCollector = new \App\Http\Collectors\AddressCollector();
@@ -241,10 +128,11 @@ class AccountController extends Controller {
             $acctCollector = new \App\Http\Collectors\AccountCollector();
             $account = $acctCollector->Collect($req, $billing_id, $delivery_id);
 
+            $accountId = $req->input('account-id');
     		$isNew = $accountId == null;
     		$args = [];
             if ($isNew) {
-                $accountId = $accountRepo->Insert($account, $contactIds)->account_id;
+                $accountId = $accountRepo->Insert($account)->account_id;
                 $action = 'AccountController@create';
             }
             else {
@@ -254,12 +142,6 @@ class AccountController extends Controller {
                 $args = ['id' => $accountId];
             }
 
-            //Handle change of primary
-            if ($newPrimaryId != null) {
-                if (Utils::HasValue($accountId)) {
-                    $accountRepo->ChangePrimary($accountId, $newPrimaryId);
-                }
-            }
             //Commission
             $commissionCollector = new \App\Http\Collectors\CommissionCollector();
             $commission1 = $commission2 = null;
@@ -294,6 +176,11 @@ class AccountController extends Controller {
                     $commissionRepo->Delete($commission2->commission_id);
             }
 
+            //BEGIN contacts
+            $newPrimaryId = $req->input('account-current-primary');
+            $contactRepo->HandleAccountContacts($contacts, $accountId, $newPrimaryId);
+            //END contacts
+            
             DB::commit();
             //END account
 

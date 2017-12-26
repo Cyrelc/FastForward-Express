@@ -29,6 +29,18 @@ class PhoneNumberRepo {
         return $pn;
     }
 
+    public function Handle($phone, $contact_id) {
+        if($phone['action'] == 'delete')
+            $this->Delete($phone['phone_number_id']);
+        else if ($phone['action'] == 'create') {
+            $phone['contact_id'] = $contact_id;
+            $this->Insert($phone);
+        } else if ($phone['action'] == 'update') {
+            $phone['contact_id'] = $contact_id;
+            $this->Update($phone);
+        }
+    }
+
     public function Insert($pn) {
         $new = new PhoneNumber;
 
@@ -37,15 +49,16 @@ class PhoneNumberRepo {
         return $new;
     }
 
-    public function Update($pn) {
-        $old = $this->GetByid($pn['phone_number_id']);
+    public function Update($phone) {
+        $old = $this->GetByid($phone['phone_number_id']);
 
         //We don't really deal with pn type right now
-        //$old->type = $pn['type'];
-        $old->phone_number = $pn['phone_number'];
-        $old->extension_number = $pn['extension_number'];
-        $old->is_primary = $pn['is_primary'];
-        $old->contact_id = $pn['contact_id'];
+        $old->type = $phone['type'];
+        $old->phone_number = $phone['phone_number'];
+        $old->extension_number = $phone['extension_number'];
+        // Temporarily depreciating concept of "primary" and "secondary" phone numbers
+        // $old->is_primary = $phone['is_primary'];
+        $old->contact_id = $phone['contact_id'];
 
         $old->save();
     }

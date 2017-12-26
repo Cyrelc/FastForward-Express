@@ -41,7 +41,7 @@
 
 @if(isset($multi))
     <div class='col-lg-12' id='{{$prefix}}-options' style='text-align: center'>
-        <button type='button' id='{{$prefix}}-make-primary' class='btn btn-sm btn-primary' onclick='makePrimary("{{$parent_prefix}}","{{$prefix}}")'><i class='fa fa-star'></i>&nbsp&nbspMake Primary</button>
-        <button type='button' id='{{$prefix}}-delete' class='btn btn-sm btn-danger' onclick='deleteContact("{{$parent_prefix}}","{{$prefix}}")'><i class='fa fa-trash'></i>&nbsp&nbspDelete</button>
+        <button type='button' id='{{$prefix}}-make-primary' class='btn btn-sm btn-primary' onclick='makePrimary("{{$prefix}}","contact-{{$contact_view_id}}")'><i class='fa fa-star'></i>&nbsp&nbspMake Primary</button>
+        <button type='button' id='{{$prefix}}-delete' class='btn btn-sm btn-danger' onclick='deleteContact("{{$prefix}}","contact-{{$contact_view_id}}")'><i class='fa fa-trash'></i>&nbsp&nbspDelete</button>
     </div>
 @endif

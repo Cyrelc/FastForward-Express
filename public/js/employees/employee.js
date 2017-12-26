@@ -39,7 +39,6 @@ function enableDriver() {
 	dateInput('license-picker');
 	dateInput('lp-picker');
 	dateInput('insurance-picker');
-	phoneInput('pager');
 
 	$('#dln').keydown(function(e){numberFilter(e);});
 

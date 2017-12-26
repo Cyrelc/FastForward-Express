@@ -1,34 +1,20 @@
 <?php
 namespace App\Http\Collectors;
 
-
 class ContactsCollector {
-    public function GetDeletions($req) {
-        $contactsToDelete = $req->input('contact-action-delete');
-        return $contactsToDelete;
-    }
+    public function collectAll($req, $prefix, $has_address) {
+        $contactCollector = new ContactCollector();
+        $addressCollector = new AddressCollector();
 
-    public function GetActions($req) {
-        $contactActions = [];
-
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0, 15) == "contact-action-") {
-                $ids = $req->input($key);
-                $type = substr($key, 15);
-
-                if (!is_array($ids))
-                    $ids = [$ids];
-
-                foreach ($ids as $contactId) {
-                    if (array_key_exists($contactId, $contactActions))
-                        array_push($contactActions[$contactId], $type);
-                    else
-                        $contactActions[$contactId] = [$type];
-                }
-            }
+        $new_contact_id_field = $prefix . '-new-contact-id';
+        $contacts = [];
+        for($i = 0; $i < $req->$new_contact_id_field; $i++) {
+            $contacts[$i] = $contactCollector->Collect($req, 'contact-' . $i);
+            $contacts[$i]['phone_numbers'] = $contactCollector->CollectPhoneNumbers($req, 'contact-' . $i);
+            $contacts[$i]['emails'] = $contactCollector->CollectEmails($req, 'contact-' . $i);
+            if($has_address)
+                $contacts[$i]['address'] = $addressCollector->Collect($req, 'contact-' . $i , $has_address);
         }
-
-        return $contactActions;
+        return $contacts;
     }
-
 }
