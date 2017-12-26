@@ -9,37 +9,46 @@ class ContactCollector {
         return [
             'first_name'=>$req->input($prefix . '-first-name'),
             'last_name'=>$req->input($prefix . '-last-name'),
-            'position'=>$req->input($prefix . '-position')
+            'position'=>$req->input($prefix . '-position'),
+            'action'=>$req->input($prefix . '-action'),
+            'db-id'=>$req->input($prefix . '-db-id'),
+            'prefix' => $prefix
         ];
     }
 
-    public function CollectPhoneNumber($req, $contactId, $isPrimary, $newId = null) {
-        $prefix = 'contact-' . $contactId . ($isPrimary ? '-phone1' : '-phone2');
-        return $this->CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId);
+    public function CollectPhoneNumbers($req, $prefix) {
+        $phone_numbers = [];
+        for($i = 0; $i < $req->input($prefix . '-phone-next-id'); $i++) {
+            $phone_prefix = $prefix . '-phone-' . $i;
+            $phone_numbers[$i] = $this->CollectPhoneNumberSingle($req, $phone_prefix);
+        }
+        return $phone_numbers;
     }
-
-    public function CollectPhoneNumberSingle($req, $prefix, $contactId, $isPrimary, $newId = null) {
+    
+    public function CollectPhoneNumberSingle($req, $prefix) {
         return [
-            'phone_number_id' => $req->input($prefix . '-id'),
-            'phone_number' => $req->input($prefix),
+            'prefix' => $prefix,
+            'action' => $req->input($prefix . '-action'),
+            'phone_number_id' => $req->input($prefix . '-db-id'),
+            'phone_number' => $req->input($prefix . '-number'),
             'extension_number' => $req->input($prefix . '-ext'),
-            'is_primary' => $isPrimary,
-            'contact_id' => isset($newId) ? $newId : $contactId
+            'type' => $req->input($prefix . '-type')
         ];
     }
 
-    public function CollectEmail($req, $contactId, $isPrimary, $newId = null) {
-        $prefix = 'contact-' . $contactId . ($isPrimary ? '-email1' : '-email2');
+    public function CollectEmails($req, $prefix) {
+        $emails = [];
+        $emails[0] = $this->CollectEmailSingle($req, $prefix . '-email1', true);
+        $emails[1] = $this->CollectEmailSingle($req, $prefix . '-email2', false);
 
-        return $this->CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId);
+        return $emails;
     }
 
-    public function CollectEmailSingle($req, $prefix, $contactId, $isPrimary, $newId = null) {
+    public function CollectEmailSingle($req, $prefix, $is_primary) {
         return [
             'email_address_id'=>$req->input($prefix . '-id'),
             'email'=>$req->input($prefix),
-            'contact_id'=>isset($newId) ? $newId : $contactId,
-            'is_primary'=>$isPrimary
+            'is_primary'=>$is_primary
         ];
     }
 

@@ -48,8 +48,9 @@ class EmployeeModelFactory
 
     public function GetCreateModel($request) {
         $model = new Employee\EmployeeFormModel();
+        $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
         $model->employee = new \App\Employee();
-        $model->contact = new \App\Contact();
+        $model->contact = $contactModelFactory->GetCreateModel();
         $model->driver = new \App\Driver();
 
         $model->employee->dob = date('U');
@@ -61,6 +62,7 @@ class EmployeeModelFactory
         $model->emergency_contacts = [];
 
         $model = $this->MergeOld($model, $request);
+        unset($model->contact->contact_id);
 
         return $model;
     }

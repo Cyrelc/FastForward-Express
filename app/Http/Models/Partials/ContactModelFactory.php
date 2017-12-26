@@ -6,23 +6,24 @@ use App\Http\Repos;
 use App\Http\Models\Contact;
 
 class ContactModelFactory {
+    public function GetCreateModel() {
+        $model = new \App\Contact();
+        $model->address = new \App\Address();
+
+        return $model;
+    }
+
     public function GetEditModel($contactId, $getAddress) {
         $contactRepo = new Repos\ContactRepo();
         $addressRepo = new Repos\AddressRepo();
         $phoneNumberRepo = new Repos\PhoneNumberRepo();
         $emailAddressRepo = new Repos\EmailAddressRepo();
+        $selectionsRepo = new Repos\SelectionsRepo();
 
         $contact = $contactRepo->GetById($contactId);
 
-        $phoneNumbers = $phoneNumberRepo->ListByContactId($contact->contact_id);
-        foreach($phoneNumbers as $phoneNumber){
-            if ($phoneNumber->type === "pager") continue;
-
-            if ($phoneNumber["is_primary"])
-                $contact->primaryPhone = $phoneNumber;
-            else
-                $contact->secondaryPhone = $phoneNumber;
-        }
+        $contact->phone_numbers = $phoneNumberRepo->ListByContactId($contact->contact_id);
+        $contact->phone_numbers->types = $selectionsRepo->GetSelectionsByType('phone_type');
 
         $emails = $emailAddressRepo->ListByContactId($contact->contact_id);
         foreach($emails as $email){
