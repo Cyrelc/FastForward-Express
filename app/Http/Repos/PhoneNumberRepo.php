@@ -30,7 +30,7 @@ class PhoneNumberRepo {
     }
 
     public function Handle($phone, $contact_id) {
-        if($phone['action'] == 'delete')
+        if($phone['action'] == 'delete' && $phone['db-id'] != '')
             $this->Delete($phone['phone_number_id']);
         else if ($phone['action'] == 'create') {
             $phone['contact_id'] = $contact_id;
