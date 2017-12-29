@@ -121,9 +121,9 @@
 					</div>
 				</div>
 			</div>
-		</div>
 <!--Emergency Contacts-->
 		@include('partials.contacts', ['contacts' => $model->emergency_contacts, 'show_address' => true, 'title' => 'Emergency Contacts', 'prefix' => 'emergency-contact'])
+		</div>
 
 		<div id='driver' class='tab-pane fade'>
 			<input type="hidden" name="driver_id" value="{{$model->driver->driver_id}}"/>
