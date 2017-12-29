@@ -30,12 +30,9 @@ class EmployeeRepo {
         return $employee;
     }
 
-    public function Insert($employee, $emergencyContactIds) {
+    public function Insert($employee) {
         $new = new Employee;
         $new = $new->create($employee);
-
-        foreach($emergencyContactIds as $id)
-            $new->contacts()->attach($id);
 
         return $new;
     }
