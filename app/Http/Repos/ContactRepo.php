@@ -20,7 +20,7 @@ class ContactRepo {
     public function HandleAccountContacts($contacts, $account_id, $primary_contact_prefix) {
         $accountRepo = new AccountRepo();
         foreach($contacts as $contact) {
-            if($contact['action'] == 'delete') {
+            if($contact['action'] == 'delete' && $contact['db-id'] != '') {
                 $this->Delete($contact['db-id']);
             } else {
                 if($contact['action'] == 'create') {
@@ -58,7 +58,7 @@ class ContactRepo {
         $employeeRepo = new EmployeeRepo();
         $addressRepo = new AddressRepo();
         foreach($contacts as $contact) {
-            if($contact['action'] == 'delete') {
+            if($contact['action'] == 'delete' && $contact['db-id'] != '') {
                 $this->Delete($contact['db-id']);
             } else {
                 if($contact['action'] == 'create') {
