@@ -54,7 +54,6 @@ class ContactRepo {
     }
 
     public function HandleEmergencyContacts($contacts, $employee_id, $primary_emergency_contact_prefix) {
-        $emergencyContactIds = [];
         $employeeRepo = new EmployeeRepo();
         $addressRepo = new AddressRepo();
         foreach($contacts as $contact) {
@@ -68,9 +67,9 @@ class ContactRepo {
                         'position'=>$contact['position']
                     ];
                     $contact_id = $this->Insert($temp)['contact_id'];
-                    array_push($emergencyContactIds, $contact_id);
                     $contact['address']['contact_id'] = $contact_id;
                     $addressRepo->Insert($contact['address']);
+                    $employeeRepo->AddEmergencyContact($employeeId, $contact_id);
                 } else if ($contact['action'] =='update') {
                     $contact_id = $this->Update($contact)->contact_id;
                     $contact['address']['contact_id'] = $contact_id;
@@ -93,7 +92,6 @@ class ContactRepo {
                     $employeeRepo->ChangePrimary($employee_id, $contact_id);
             }
         }
-        return $emergencyContactIds;
     }
 
     public function Insert($contact) {

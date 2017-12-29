@@ -96,11 +96,6 @@ class EmployeeController extends Controller {
                 $driverRepo = new Repos\DriverRepo();
             }
 
-            //BEGIN emergency contacts
-            $newPrimaryId = $req->input('emergency-contact-current-primary');
-            $emergencyContactIds = $contactRepo->HandleEmergencyContacts($emergencyContacts, $employeeId, $newPrimaryId);
-            //END emergency contacts
-
             $userCollector = new \App\Http\Collectors\UserCollector();
             $user = $userCollector->CollectEmployee($req, 'employee');
 
@@ -124,7 +119,7 @@ class EmployeeController extends Controller {
                 $addressRepo->Update($employeeContact['address']);
             } else {
                 $addressRepo->Insert($employeeContact['address']);
-                $employeeId = $employeeRepo->Insert($employee, $emergencyContactIds)->employee_id;
+                $employeeId = $employeeRepo->Insert($employee)->employee_id;
             }
             foreach($employeeContact['emails'] as $email) {
                 $email['contact_id'] = $contactId;
@@ -148,6 +143,11 @@ class EmployeeController extends Controller {
                 if($driverRepo->GetByEmployeeId() != null)
                     $driverRepo->DeleteByEmployeeId($employeeId);
             }
+
+            //BEGIN emergency contacts
+            $newPrimaryId = $req->input('emergency-contact-current-primary');
+            $emergencyContactIds = $contactRepo->HandleEmergencyContacts($emergencyContacts, $employeeId, $newPrimaryId);
+            //END emergency contacts
 
             DB::commit();
 
