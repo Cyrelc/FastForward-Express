@@ -132,7 +132,6 @@ class EmployeeController extends Controller {
                     $phoneNumberRepo->Handle($phone, $contactId);
 
             if ($req->is_driver == 'true') {
-                dd("whaaaaaat?!?!");
                 $driverCollector = new \App\Http\Collectors\DriverCollector();
                 $driver_data = $driverCollector->Collect($req, (string)$employeeId);
                 if ($req->driver_id != null) {
@@ -143,6 +142,7 @@ class EmployeeController extends Controller {
             } else {
                 if($driverRepo->GetByEmployeeId($employeeId) != null)
                     $driverRepo->DeleteByEmployeeId($employeeId);
+                    //TODO: Unable to delete if there are chargebacks present. Check for this.
             }
 
             //BEGIN emergency contacts
