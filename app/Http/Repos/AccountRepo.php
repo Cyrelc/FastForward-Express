@@ -93,6 +93,6 @@ class AccountRepo {
 
     public function AddContact($contactId, $accountId) {
         $account = $this->GetById($accountId);
-        $account->contacts()->attach($contactId);
+        $account->contacts()->attach($contactId, ['is_primary' => 'false']);
     }
 }
