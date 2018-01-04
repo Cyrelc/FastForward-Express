@@ -69,7 +69,7 @@ class ContactRepo {
                     $contact_id = $this->Insert($temp)['contact_id'];
                     $contact['address']['contact_id'] = $contact_id;
                     $addressRepo->Insert($contact['address']);
-                    $employeeRepo->AddEmergencyContact($employeeId, $contact_id);
+                    $employeeRepo->AddEmergencyContact($employee_id, $contact_id);
                 } else if ($contact['action'] =='update') {
                     $contact_id = $this->Update($contact)->contact_id;
                     $contact['address']['contact_id'] = $contact_id;
