@@ -131,7 +131,8 @@ class EmployeeController extends Controller {
             foreach($employeeContact['phone_numbers'] as $phone)
                     $phoneNumberRepo->Handle($phone, $contactId);
 
-            if ($req->is_driver) {
+            if ($req->is_driver == 'true') {
+                dd("whaaaaaat?!?!");
                 $driverCollector = new \App\Http\Collectors\DriverCollector();
                 $driver_data = $driverCollector->Collect($req, (string)$employeeId);
                 if ($req->driver_id != null) {
@@ -140,7 +141,7 @@ class EmployeeController extends Controller {
                     $driverRepo->Insert($driver_data);
                 }
             } else {
-                if($driverRepo->GetByEmployeeId() != null)
+                if($driverRepo->GetByEmployeeId($employeeId) != null)
                     $driverRepo->DeleteByEmployeeId($employeeId);
             }
 
