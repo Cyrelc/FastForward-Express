@@ -94,7 +94,7 @@
 
 <!--Account Name-->
                         <div class="col-lg-4 bottom15">
-                            <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                            <input type='text' class="form-control" id='name' name="name" placeholder="Company Name" value="{{$model->account->name}}" />
                         </div>
 
 <!--Rate Type -->
