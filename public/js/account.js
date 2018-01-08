@@ -105,7 +105,6 @@ function storeAccount(){
 			}
 		},
 		'error': function(response){
-			var errors = $('#errors');
 			var errorText = '';
 			for(var key in response.responseJSON) {
 				errorText += response.responseJSON[key][0] + '\n';
