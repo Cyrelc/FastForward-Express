@@ -31,6 +31,39 @@ $(document).ready(function(){
 		enableSales();
 });
 
+function storeEmployee() {
+	var data = $('#employee-form').serialize();
+
+	$.ajax({
+		'url': '/employees/store',
+		'type': 'POST',
+		'data': data,
+		'success': function(){
+			var isEdit = typeof($('#employee_id').val()) === 'undefined' ? false : true;
+			console.log(isEdit);
+			var employeeName = $('#employee-first-name').val() + ' ' + $('#employee-last-name').val();
+			if (isEdit) {
+				toastr.success(employeeName + ' successfully updated!', 'Success');				
+			} else {
+				toastr.success(employeeName + ' was successfully created', 'Success', {
+					'progressBar': true,
+					'positionClass': 'toast-top-full-width',
+					'showDuration': 500,
+					'onHidden': function(){location.reload()}
+				})
+			}
+		},
+		'error': function(response){
+			console.log(response);
+			var errorText = '';
+			for(var key in response.responseJSON){
+				errorText += response.responseJSON[key][0] + '</br>';
+			}
+			toastr.error(errorText, 'Errors', {'timeOut': 0, 'extendedTImeout': 0, 'positionClass': 'toast-top-full-width'})
+		}
+	})
+}
+
 function enableSales() {
 	//TODO: create sales type of employee, with default commission settings for that employee (see commissions partial blade)
 }
