@@ -43,7 +43,7 @@
     @else
         <h2>New Account</h2>
     @endif
-<form method="POST" action="/accounts/store">
+<form id='account_form'>
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->parentAccount) ? "true" : "false" }}"/>
@@ -60,7 +60,7 @@
     <input type="hidden" data-checkbox-id="send-invoices" name="send_invoices" value="{{$model->account->send_invoices == 0 ? "false" : "true"}}" />
     <div class="well">
 <!--Basic Information Panel-->
-        <pre id='errors' class='hidden'></pre>
+        <pre id='errors' hidden='true'></pre>
         <div class="clearfix">
 <!-- errors go here if submission fails -->
             @if(!empty($errors) && $errors->count() > 0)
@@ -223,7 +223,7 @@
 <!-- Contacts Panel -->
             @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'prefix' => 'account', 'title' => 'Contacts'])
         </div>
-        <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
+        <div class='text-center'><button type='button' class='btn btn-primary' onclick='storeAccount()'>Submit</button></div>
     </div>
 </form>
 @endsection

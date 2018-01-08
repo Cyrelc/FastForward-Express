@@ -69,7 +69,7 @@
             return $model;
         }
 
-        public function GetCreateModel($request) {
+        public function GetCreateModel() {
 		    $model = new AccountFormModel();
 		    $acctRepo = new Repos\AccountRepo();
 		    $employeesRepo = new Repos\EmployeeRepo();
@@ -87,11 +87,10 @@
 
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
-            $model = $this->MergeOld($model, $request);
 		    return $model;
         }
 
-        public function GetEditModel($id, $request) {
+        public function GetEditModel($id) {
             $model = new AccountFormModel();
 
             $acctRepo = new Repos\AccountRepo();
@@ -130,34 +129,6 @@
             $model->employees = $employeesRepo->ListAll();
 
             $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
-
-            $model = $this->MergeOld($model, $request);
-            return $model;
-        }
-
-        public function MergeOld($model, $req) {
-		    $acctCollector = new \App\Http\Collectors\AccountCollector();
-		    $addrCollector = new \App\Http\Collectors\AddressCollector();
-		    $contactCollector = new \App\Http\Collectors\ContactCollector();
-            $commissionCollector = new \App\Http\Collectors\CommissionCollector();
-
-		    //Account
-		    $model = $acctCollector->Remerge($req, $model);
-
-		    //Delivery Address
-            $model->deliveryAddress = $addrCollector->Remerge($req, $model->deliveryAddress, 'delivery');
-
-            //Billing address
-            if ($req->old("billing-street") !== null || $req->old("billing-street2") !== null || $req->old("billing-city") !== null ||
-                $req->old("billing-zip-postal") !== null || $req->old("billing-state-province") !== null || $req->old("billing-country") !== null)
-                $model->billingAddress = new \App\Address();
-            $model->billingAddress = $addrCollector->Remerge($req, $model->billingAddress, 'billing');
-
-            //Contacts
-            $model->account->contacts = $contactCollector->Remerge($req, $model->account->contacts, false);
-
-            //Commissions
-            $model = $commissionCollector->Remerge($req, $model);
 
             return $model;
         }

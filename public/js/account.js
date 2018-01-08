@@ -54,7 +54,7 @@ $(document).ready(function() {
 		$("#account_number_result").attr('title', 'Looking up Account Number!');
 
 		$.ajax({
-			'url': '{{URL::to('/')}}/accounts/is_unique',
+			'url': '/accounts/is_unique',
 			'type': 'POST',
 			'data': {'number' : newNum, '_token' : _token},
 			'success': function(e) {
@@ -82,6 +82,27 @@ $(document).ready(function() {
 	});
 
 });
+
+function storeAccount(){
+	var data = $('#account_form').serialize();
+
+	$.ajax({
+		'url': '/accounts/store',
+		'type': 'POST',
+		'data': data,
+		'success': function(e) {
+			location.reload();
+		},
+		'error': function(response){
+			var errors = $('#errors');
+			errors.attr('hidden', false);
+			errors.html('');
+			for(var key in response.responseJSON){
+				errors.append(response.responseJSON[key][0] + '\n');
+			}
+		}
+	})
+}
 
 $('#advFilter input[type="checkbox"]').each(function(i,j) {
 	if(j.checked){
