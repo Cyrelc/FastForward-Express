@@ -91,11 +91,18 @@ function storeAccount(){
 		'type': 'POST',
 		'data': data,
 		'success': function(e) {
-			location.reload();
-			// setTimeout(toastr.success("Success!"), 3000);
-			// $(document).ready(function(){
-			// 	toastr.success("Success!");
-			// })
+			var isEdit = typeof($('#account-id').val()) === 'undefined' ? false : true;
+			var accountName = $('#name').val();
+			if (isEdit) {
+				toastr.success(accountName + ' was successfully updated!', 'Success');
+			} else {
+				toastr.success(accountName + ' was succesfully created', 'Success', {
+					'progressBar' : true,
+					'positionClass' : 'toast-top-full-width',
+					'showDuration': 500,
+					'onHidden': function(){location.reload()}
+				})
+			}
 		},
 		'error': function(response){
 			var errors = $('#errors');
