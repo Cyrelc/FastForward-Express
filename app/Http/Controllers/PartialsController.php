@@ -4,38 +4,33 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+use App\Http\Models\Partials;
+use App\Http\Repos;
 use App\Http\Requests;
 
 class PartialsController extends Controller
 {
-    public function GetContact(Request $req) {
-        $collector = new \App\Http\Collectors\ContactCollector();
+    public function NewContact(Request $req) {
+        $contactModelFactory = new Partials\ContactModelFactory();
+        $show_address = $req->show_address;
+        $prefix = $req->prefix;
+        $action = $req->action;
+        $multi = $req->multi;
+        $parent_prefix = $req->parent_prefix;
+        $contact = $contactModelFactory->GetCreateModel($req);
+        $contact->contact_prefix = $req->prefix;
 
-        $contact = $collector->ToObject(
-        $collector->Collect($req, 'new'),
-        $collector->CollectPhoneNumber($req, 0, true),
-        $collector->CollectEmail($req, 0, true),
-        $collector->CollectPhoneNumber($req, 0, false),
-        $collector->CollectEmail($req, 0, false));
+        return view('partials.contact', compact('contact', 'prefix', 'action', 'show_address', 'parent_prefix', 'multi'));
+    }
 
-        $contact->contact_id = $req->input('new-contact-id');
-        $showAddress = $req->input('include-address') !== null && $req->input('include-address') == 'true';
+    public function NewPhone(Request $req) {
+        $phoneModelFactory = new Partials\PhoneModelFactory();
+        $selectionsRepo = new Repos\SelectionsRepo();
 
-        $model = [
-            'prefix' => 'contact-' . $req->input('new-contact-id'),
-            'show_address' => $showAddress,
-            'contact' => $contact,
-            'multi' => 'true',
-            'multi_div_prefix' => $req->input('multi-contact-prefix')
-        ];
+        $phone = $phoneModelFactory->GetCreateModel();
+        $prefix = $req->phone_prefix;
+        $types = $selectionsRepo->GetSelectionsByType('phone_type');
 
-        $model['contact']->is_new = 'true';
-
-        if($showAddress) {
-            $addrCollector = new \App\Http\Collectors\AddressCollector();
-            $model['contact']->address = $addrCollector->ToObject($addrCollector->Collect($req, 'new', true));
-        }
-
-        return view('partials.contact', $model);
+        return view('partials.phone_number', compact('phone', 'prefix', 'types'));
     }
 }

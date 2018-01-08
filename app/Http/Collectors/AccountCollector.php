@@ -6,7 +6,7 @@ namespace App\Http\Collectors;
 class AccountCollector {
     public function Collect($req, $billing_id, $delivery_id) {
 
-        $hasDiscount = $req->input('discount') != null && $req->input('discount') > 0;
+        $hasDiscount = $req->input('shouldGiveDiscount') == 'true' && $req->input('discount') > 0;
 
         return [
             'rate_type_id'=>1,
@@ -22,7 +22,7 @@ class AccountCollector {
             'has_parent'=>$req->isSubLocation,
             'parent_account_id'=>($req->isSubLocation == "false") ? null : $req->input('parent-account-id'),
             'has_discount' => $hasDiscount,
-            'discount'=> $hasDiscount ? $req->input('discount') / 100 : 0,
+            'discount'=> $hasDiscount ? $req->input('discount') : 0,
             'gst_exempt'=>$req->input('isGstExempt') == "true",
             'charge_interest'=>$req->input('shouldChargeInterest') == "true",
             'can_be_parent'=>$req->input('canBeParent') == "true",

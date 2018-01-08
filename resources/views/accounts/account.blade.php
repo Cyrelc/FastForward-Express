@@ -7,83 +7,17 @@
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
-<script type='text/javascript'>
+{{--  <script type='text/javascript'>
     $(document).ready(function() {
         //On failed validation, redisplay form correctly
-        $("input[data-checkbox-id]").each(function(i,e){
-            var value = $(e).val() == 'true';
-            if (value) {
-                var me = $(e).attr('data-me');
-                var check_box_id = "#" +$(e).attr('data-checkbox-id');
-                if (me) {
-                    var body = $(e).attr('data-body');
-                    $(check_box_id).prop('checked', true);
-                    enableBody(me, body);
-                } else
-                    $(check_box_id).click();
-            }
-        });
-
-        $("#billing-address").change(function(){
-            if ($("#billing-address").prop('checked'))
-                $("input[name='hasBillingAddress']").val('true');
-            else
-                $("input[name='hasBillingAddress']").val('');
-        });
-
-        dateInput('start-date');
-        comboInput('parent-account-id', 'Select a Parent Account');
-        comboInput('driver,select', 'Select a Driver');
-
         @php
             //Enable the billing address fields if there's a billing address
             if (isset($model->billingAddress) && isset($model->billingAddress->address_id))
                 echo '$("#billing-address").prop("checked", true);
                     enableBody("billing-address", "billing-body");';
         @endphp
-
-        $("#account_number").focusout(function(){
-            var curr = '{{$model->account->account_number}}';
-            var newNum = $("#account_number").val();
-            console.log('cur ' + curr + ' new ' + newNum);
-            if (!newNum) return;
-            if (curr && curr == newNum ) return;
-
-            console.log('{{URL::to('/')}}/accounts/is_unique');
-
-            $("#account_number_result").children('i').remove();
-            $("#account_number_result").append('<i class="fa fa-spinner fa-spin text-info"></i>');
-            $("#account_number_result").attr('title', 'Looking up Account Number!');
-
-            $.ajax({
-                'url': '{{URL::to('/')}}/accounts/is_unique',
-                'type': 'POST',
-                'data': {'number' : newNum},
-                'success': function(e) {
-                    if (e.success) {
-                        if (e.accounts.length == 0) {
-                            $("#account_number_result").append('<i class="fa fa-check text-success"></i>');
-                            $("#account_number_result").attr('title', 'Account Number is unique!');
-                        } else {
-                            $("#account_number_result").append('<i class="fa fa-exclamation-triangle text-warning"></i>');
-                            $("#account_number_result").attr('title', 'Account Number is not unique! Number is taken by ' + e.accounts[0].name);
-                        }
-                    } else {
-                        $("#account_number_result").append('<i class="fa fa-exclamation-circle text-danger"></i>');
-                        $("#account_number_result").attr('title', 'Account Number check failed! This account number might not be unique!');
-                    }
-                },
-                'error': function() {
-                    $("#account_number_result").append('<i class="fa fa-exclamation-circle text-danger"></i>');
-                    $("#account_number_result").attr('title', 'Account Number check failed! This account number might not be unique!');
-                },
-                'complete': function() {
-                    $("#account_number_result").children('i.text-info').remove();
-                }
-            });
-        });
     });
-</script>
+</script>  --}}
 @parent
 
 @endsection
@@ -109,11 +43,11 @@
     @else
         <h2>New Account</h2>
     @endif
-<form method="POST" action="/accounts/store" onsubmit="saveScContact('sc', false)">
+<form name='accountForm' method="POST" action="/accounts/store">
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
-    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->account->account_id) ? ($model->account->has_parent ? "true" : "false") : "false" }}"/>
-    <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->gets_discount == 1 ? "true" : "false"}}"/>
+    <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->parentAccount) ? "true" : "false" }}"/>
+    <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->has_discount == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{$model->give_commission_1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-2" name="should-give-commission-2" value="{{$model->give_commission_2 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{$model->account->charge_interest == 1 ? "true" : "false"}}"/>
@@ -175,6 +109,7 @@
 <!--Account Number-->
                         <div class="col-lg-4 bottom15">
                             <div class="input-group">
+                                <span class='input-group-addon'>Account Number</span>
                                 <input class='form-control' id="account_number" type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
                                 <span class="input-group-addon" id="account_number_result"></span>
                             </div>
@@ -182,7 +117,10 @@
 
 <!--Account Name-->
                         <div class="col-lg-4 bottom15">
-                            <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Name</span>
+                                <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                            </div>
                         </div>
 
 <!--Rate Type -->
@@ -194,28 +132,36 @@
 
 <!--Invoice Interval-->
                         <div class="col-lg-4 bottom15">
-                            <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
-                                @foreach ($model->invoice_intervals as $ii)
-                                    @if (isset($model->account->invoice_interval) && $ii->value ==$model->account->invoice_interval)
-                                        <option selected value="{{$ii->value}}">{{$ii->name}}</option>
-                                    @else
-                                        <option value="{{$ii->value}}">{{$ii->name}}</option>
-                                    @endif
-                                @endforeach
-                            </select>
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Invoice Interval</span>
+                                <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
+                                    @foreach ($model->invoice_intervals as $ii)
+                                        @if (isset($model->account->invoice_interval) && $ii->value ==$model->account->invoice_interval)
+                                            <option selected value="{{$ii->value}}">{{$ii->name}}</option>
+                                        @else
+                                            <option value="{{$ii->value}}">{{$ii->name}}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
 <!--Discount-->
                         <div class="col-lg-4 bottom15" id="discount-div">
                             <div class="input-group">
-                                <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{$model->account->gets_discount == 1 ? $model->account->discount * 100 : ""}}" />
+                                <span class='input-group-addon'>Discount</span>
+                                <input class='form-control' min=0 max=100 step='0.01' type='number' name='discount' placeholder="Discount %" value="{{$model->account->has_discount == 1 ? $model->account->discount : ""}}" />
                                 <span class="input-group-addon">%</span>
                             </div>
                         </div>
 
 <!-- Fuel Surcharge-->
                         <div class="col-lg-4 bottom15" id="fuel-surcharge">
-                            <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge * 100}}" />
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Fuel Surcharge</span>
+                                <input class='form-control' min=0 max=100 step='0.01' type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge}}" />
+                                <span class='input-group-addon'>%</span>
+                            </div>
                         </div>
 
 <!--Custom Field-->
@@ -287,7 +233,7 @@
             </div>
 
 <!-- Contacts Panel -->
-            @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'title' => 'Contacts', 'prefix' => 'sc'])
+            @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'prefix' => 'account', 'title' => 'Contacts'])
         </div>
         <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
     </div>

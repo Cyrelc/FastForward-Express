@@ -17,14 +17,8 @@ class AddressCollector {
         ];
     }
     
-    public function Collect($req, $contactId, $isPrimary, $newId = null) {
-        if ($contactId === 'no-contact')
-            $prefix = 'contact-address';
-        else if ($contactId === "new")
-            $prefix = "new";
-        else
-            $prefix = 'contact-' . $contactId . '-address';
-
+    public function Collect($req, $prefix, $isPrimary, $newId = null) {
+        $prefix = $prefix . '-address';
         return [
             'address_id'=>$req->input($prefix . '-id'),
             'name'=>$req->input($prefix . '-name'),
@@ -35,7 +29,6 @@ class AddressCollector {
             'state_province'=>$req->input($prefix . '-state-province'),
             'country'=>$req->input($prefix . '-country'),
             'is_primary'=>$isPrimary,
-            'contact_id'=>isset($newId) ? $newId : $contactId
         ];
     }
 

@@ -23,64 +23,80 @@ class PartialsValidationRules {
         ];
     }
 
-    public function GetContactsValidationRules($req, $contactsToDelete, $validateAddress) {
+    public function GetContactsValidationRules($req, $contacts, $validateAddress) {
         $validationRules = [];
         $validationMessages = [];
-        $contacts = 0;
+        $contact_count = 0;
 
-        foreach($req->all() as $key=>$value) {
-            if (substr($key, 0, 11) == "contact-id-") {
-                $contactId = substr($key, 11);
+        foreach($contacts as $contact) {
+            //Skip validation for any deleted contacts, and don't increase the contact count
+            if ($contact['action'] == 'delete')
+                continue;
 
-                //Skip validation for any deleted contacts, and don't increase the contact count
-                if ($contactsToDelete !== null && in_array($contactId, $contactsToDelete))
-                    continue;
+            $contact_count++;
 
-                $contacts++;
-                $fName = $req->input('contact-' . $contactId . '-first-name');
-                $lName = $req->input('contact-' . $contactId . '-last-name');
+            $contactValidationRules = $this->GetContactValidationRules($contact, $contact['first_name'] . ' ' . $contact['last_name']);
+            $validationRules = array_merge($validationRules, $contactValidationRules['rules']);
+            $validationMessages = array_merge($validationMessages, $contactValidationRules['messages']);
 
-                $contactValidationRules = $this->GetContactValidationRules('contact-' . $contactId, 'Contact ' . $fName . ' ' . $lName);
-                $validationRules = array_merge($validationRules, $contactValidationRules['rules']);
-                $validationMessages = array_merge($validationMessages, $contactValidationRules['messages']);
-
-                if ($validateAddress) {
-                    $addrValidation = $this->GetAddressValidationRules('contact-' . $contactId . '-address', 'Contact');
-                    $validationRules = array_merge($validationRules, $addrValidation['rules']);
-                    $validationMessages = array_merge($validationMessages, $addrValidation['messages']);
-                }
+            if ($validateAddress) {
+                $addrValidation = $this->GetAddressValidationRules($contact['prefix'] . '-address', 'Contact');
+                $validationRules = array_merge($validationRules, $addrValidation['rules']);
+                $validationMessages = array_merge($validationMessages, $addrValidation['messages']);
             }
+        }
+
+        if($contact_count == 0) {
+            //Manually fail validation, by checking for a field that cannot exist, if there isn't at least one contact
+            $validationRules[$contact['prefix'] . '-contacts-min'] = 'required';
+            $validationMessages[$contact['prefix'] . '-contacts-min.required'] = 'There must be at least one provided contact. Please contact support';
         }
 
         return [
             'rules' => $validationRules,
             'messages' => $validationMessages,
-            'contact_count' => $contacts
         ];
     }
 
-    public function GetContactValidationRules($prefix, $prefix_name) {
-        return [
+    public function GetContactValidationRules($contact, $prefix_name) {
+        $phones_count = 0;
+
+        $validation = [
             'rules' => [
-                $prefix . '-first-name' => 'required',
-                $prefix . '-last-name' => 'required',
+                $contact['prefix'] . '-first-name' => 'required',
+                $contact['prefix'] . '-last-name' => 'required',
+                $contact['prefix'] . '-action' => 'required',
                 //Regex used found here: http://www.regexlib.com/REDetails.aspx?regexp_id=607
-                $prefix . '-phone1' => ['required', 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                $prefix . '-phone2' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-                $prefix . '-email1' => 'required|email',
-                $prefix . '-email2' => 'email'
+                $contact['prefix'] . '-email1' => 'required|email',
+                $contact['prefix'] . '-email2' => 'email'
             ],
             'messages' => [
-                $prefix . '-first-name.required' => $prefix_name . ' First Name is required.',
-                $prefix . '-last-name.required' => $prefix_name . ' Last Name is required.',
-                $prefix . '-phone1.required' => $prefix_name . ' Primary Phone Number is required.',
-                $prefix . '-phone1.regex' => $prefix_name . ' Primary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                $prefix . '-phone2.regex' => $prefix_name . ' Secondary Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".',
-                $prefix . '-email1.required' => $prefix_name . ' Primary Email is required.',
-                $prefix . '-email1.email' => $prefix_name . ' Primary Email must be an email.',
-                $prefix . '-email2.email' => $prefix_name . ' Secondary Email must be an email.',
+                $contact['prefix'] . '-first-name.required' => $prefix_name . ' First Name is required.',
+                $contact['prefix'] . '-last-name.required' => $prefix_name . ' Last Name is required.',
+                $contact['prefix'] . '-action' => $prefix_name . ' action is required. Please contact support',
+                $contact['prefix'] . '-email1.required' => $prefix_name . ' Primary Email is required.',
+                $contact['prefix'] . '-email1.email' => $prefix_name . ' Primary Email must be an email.',
+                $contact['prefix'] . '-email2.email' => $prefix_name . ' Secondary Email must be an email.',
             ]
         ];
+
+        foreach($contact['phone_numbers'] as $phone) {
+            if($phone['action'] == 'delete')
+                continue;
+
+            $phones_count++;
+            $phoneValidation = $this->GetPhoneValidationRules($phone, $contact['first_name'] . ' ' . $contact['last_name']);
+            $validation['rules'] = array_merge($validation['rules'], $phoneValidation['rules']);
+            $validation['messages'] = array_merge($validation['messages'], $phoneValidation['messages']);
+        }
+
+        if($phones_count == 0) {
+            //Manually fail validation, by checking for a field that cannot exist, if there isn't at least one phone number
+            $validation['rules'][$contact['prefix'] . '-phone-number'] = 'required';
+            $validation['messages'][$contact['prefix'] . '-phone-number.required'] = 'Please provide at least one phone number for ' . $contact['first_name'] . ' ' . $contact['last_name'];
+        }
+
+        return $validation;
     }
 
     public function GetCommissionValidationRules($prefix, $prefix_name, $hasDepreciation) {
@@ -106,6 +122,20 @@ class PartialsValidationRules {
                 $prefix . 'depreciate-start-date' => $prefix_name . ' depreciation start date cannot be blank']);
         }
 
+        return [
+            'rules' => $validationRules,
+            'messages' => $validationMessages
+        ];
+    }
+
+    public function GetPhoneValidationRules($phone, $contact_name) {
+        $validationRules = [
+            $phone['prefix'] . '-number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
+        ];
+        $validationMessages = [
+            $phone['prefix'] . '-number.required' => $contact_name . ' Phone Number must not be blank. Please delete empty phone numbers if that is your intention',
+            $phone['prefix'] . '-number.regex' => $contact_name . ' Phone Number must be in the format "5305551212", "(530) 555-1212", or "530-555-1212".'
+        ];
         return [
             'rules' => $validationRules,
             'messages' => $validationMessages

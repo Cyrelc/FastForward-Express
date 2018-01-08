@@ -69,7 +69,8 @@ Route::group(
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
 
-            Route::post('/partials/getcontact', 'PartialsController@GetContact');
+            Route::post('/partials/contact/', 'PartialsController@NewContact');
+            Route::post('/partials/phone', 'PartialsController@NewPhone');
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 

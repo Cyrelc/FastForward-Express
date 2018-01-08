@@ -75,13 +75,10 @@
 							<h3 class='panel-title'>Contact Info</h3>
 						</div>
 						<div class='panel-body'>
-							@include('partials.contact', ['prefix' => 'contact', 'show_address' => true, 'contact' => $model->contact])
+							@include('partials.contact', ['prefix' => 'employee', 'show_address' => true, 'contact' => $model->contact])
 						</div>
 					</div>
 				</div>
-
-<!--Emergency Contacts-->
-				@include('partials.contacts', ['contacts' => $model->emergency_contacts, 'show_address' => true, 'title' => 'Emergency Contacts', 'prefix' => 'sc'])
 
 <!--Additional Info Panel-->
 			<div class="col-lg-12">
@@ -124,7 +121,10 @@
 					</div>
 				</div>
 			</div>
+<!--Emergency Contacts-->
+		@include('partials.contacts', ['contacts' => $model->emergency_contacts, 'show_address' => true, 'title' => 'Emergency Contacts', 'prefix' => 'emergency-contact'])
 		</div>
+
 		<div id='driver' class='tab-pane fade'>
 			<input type="hidden" name="driver_id" value="{{$model->driver->driver_id}}"/>
 
@@ -150,18 +150,16 @@
 <!--Pickup Commission-->
 						<div class="col-lg-6 bottom15">
 							<div class="input-group bottom15">
+								<span class='input-group-addon'>Pickup Commission</span>
 								<input type="number" name="pickup-commission" class="form-control" placeholder="Pickup Commission" value="{{$model->driver->pickup_commission}}"/>
 								<span class="input-group-addon">%</span>
 							</div>
 <!--Delivery Commission-->
 							<div class="input-group">
+								<span class='input-group-addon'>Delivery Commission</span>
 								<input type="number" name="delivery-commission" class="form-control" placeholder="Delivery Commission" value="{{$model->driver->delivery_commission}}"/>
 								<span class="input-group-addon">%</span>
 							</div>
-						</div>
-<!--Pager Number-->
-						<div class="col-lg-4 bottom15">
-							@include('partials.phone_number', ['prefix' => 'pager', 'phone' => $model->contact->pager, 'placeholder'=>'Pager', 'isPrimary'=>false])
 						</div>
 					</div>
 				</div>

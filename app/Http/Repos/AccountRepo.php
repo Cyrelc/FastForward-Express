@@ -31,13 +31,10 @@ class AccountRepo {
         return $account;
     }
 
-    public function Insert($acct, $contactIds) {
+    public function Insert($acct) {
         $new = new Account;
 
         $new = $new->create($acct);
-
-        foreach($contactIds as $contactId)
-            $new->contacts()->attach($contactId);
 
         return $new;
     }
@@ -94,8 +91,8 @@ class AccountRepo {
         return $result;
     }
 
-    public function AddContact($accountId, $contactId) {
+    public function AddContact($contactId, $accountId) {
         $account = $this->GetById($accountId);
-        $account->contacts()->attach($contactId);
+        $account->contacts()->attach($contactId, ['is_primary' => 'false']);
     }
 }
