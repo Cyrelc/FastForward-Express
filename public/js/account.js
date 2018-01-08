@@ -92,14 +92,18 @@ function storeAccount(){
 		'data': data,
 		'success': function(e) {
 			location.reload();
+			// setTimeout(toastr.success("Success!"), 3000);
+			// $(document).ready(function(){
+			// 	toastr.success("Success!");
+			// })
 		},
 		'error': function(response){
 			var errors = $('#errors');
-			errors.attr('hidden', false);
-			errors.html('');
-			for(var key in response.responseJSON){
-				errors.append(response.responseJSON[key][0] + '\n');
+			var errorText = '';
+			for(var key in response.responseJSON) {
+				errorText += response.responseJSON[key][0] + '\n';
 			}
+			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
 		}
 	})
 }

@@ -4,6 +4,7 @@
 
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
+<script type="text/javascript" src='/js/toastr.min.js'> </script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
@@ -24,6 +25,7 @@
 
 @section ('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 <style type="text/css">
 #errors {
     color: red;
@@ -62,30 +64,6 @@
 <!--Basic Information Panel-->
         <pre id='errors' hidden='true'></pre>
         <div class="clearfix">
-<!-- errors go here if submission fails -->
-            @if(!empty($errors) && $errors->count() > 0)
-                <br />
-                <div class="col-lg-12">
-                    <div class="alert alert-danger">
-                        <p>The following errors occurred on submit:</p>
-                        <ul>
-                            @foreach($errors->all() as $message)
-                                <!--Custom Messages-->
-                                @if ($message === "The contacts field is required.")
-                                    <li>At least one contact must be provided and marked as primary.</li>
-                                @elseif ($message === "The contact- action field is required.")
-                                    <li>An error has occurred. Please contact us and provide the following message: <pre>Contact Action not submitted.</pre></li>
-                                @elseif($message === "The primary contact field is required.")
-                                        <li>At least one contact must be selected as primary.</li>
-                                @else
-                                    <li>{{ $message }}</li>
-                                @endif
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
-
             <div class="col-lg-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
