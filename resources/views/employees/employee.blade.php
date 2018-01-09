@@ -150,11 +150,13 @@
 <!--Pickup Commission-->
 						<div class="col-lg-6 bottom15">
 							<div class="input-group bottom15">
+								<span class='input-group-addon'>Pickup Commission</span>
 								<input type="number" name="pickup-commission" class="form-control" placeholder="Pickup Commission" value="{{$model->driver->pickup_commission}}"/>
 								<span class="input-group-addon">%</span>
 							</div>
 <!--Delivery Commission-->
 							<div class="input-group">
+								<span class='input-group-addon'>Delivery Commission</span>
 								<input type="number" name="delivery-commission" class="form-control" placeholder="Delivery Commission" value="{{$model->driver->delivery_commission}}"/>
 								<span class="input-group-addon">%</span>
 							</div>

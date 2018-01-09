@@ -45,11 +45,11 @@
     @else
         <h2>New Account</h2>
     @endif
-<form id='account_form'>
+<form name='accountForm' method="POST" action="/accounts/store">
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->parentAccount) ? "true" : "false" }}"/>
-    <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->gets_discount == 1 ? "true" : "false"}}"/>
+    <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->has_discount == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{$model->give_commission_1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-2" name="should-give-commission-2" value="{{$model->give_commission_2 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="charge-interest" name="shouldChargeInterest" value="{{$model->account->charge_interest == 1 ? "true" : "false"}}"/>
@@ -87,6 +87,7 @@
 <!--Account Number-->
                         <div class="col-lg-4 bottom15">
                             <div class="input-group">
+                                <span class='input-group-addon'>Account Number</span>
                                 <input class='form-control' id="account_number" type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
                                 <span class="input-group-addon" id="account_number_result"></span>
                             </div>
@@ -94,7 +95,10 @@
 
 <!--Account Name-->
                         <div class="col-lg-4 bottom15">
-                            <input type='text' class="form-control" id='name' name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Name</span>
+                                <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                            </div>
                         </div>
 
 <!--Rate Type -->
@@ -106,28 +110,36 @@
 
 <!--Invoice Interval-->
                         <div class="col-lg-4 bottom15">
-                            <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
-                                @foreach ($model->invoice_intervals as $ii)
-                                    @if (isset($model->account->invoice_interval) && $ii->value ==$model->account->invoice_interval)
-                                        <option selected value="{{$ii->value}}">{{$ii->name}}</option>
-                                    @else
-                                        <option value="{{$ii->value}}">{{$ii->name}}</option>
-                                    @endif
-                                @endforeach
-                            </select>
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Invoice Interval</span>
+                                <select class='form-control' name="invoice-interval" placeholder="Select Invoice Interval">
+                                    @foreach ($model->invoice_intervals as $ii)
+                                        @if (isset($model->account->invoice_interval) && $ii->value ==$model->account->invoice_interval)
+                                            <option selected value="{{$ii->value}}">{{$ii->name}}</option>
+                                        @else
+                                            <option value="{{$ii->value}}">{{$ii->name}}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
 <!--Discount-->
                         <div class="col-lg-4 bottom15" id="discount-div">
                             <div class="input-group">
-                                <input class='form-control' min=0 max=100 type='number' name='discount' placeholder="Discount %" value="{{$model->account->gets_discount == 1 ? $model->account->discount * 100 : ""}}" />
+                                <span class='input-group-addon'>Discount</span>
+                                <input class='form-control' min=0 max=100 step='0.01' type='number' name='discount' placeholder="Discount %" value="{{$model->account->has_discount == 1 ? $model->account->discount : ""}}" />
                                 <span class="input-group-addon">%</span>
                             </div>
                         </div>
 
 <!-- Fuel Surcharge-->
                         <div class="col-lg-4 bottom15" id="fuel-surcharge">
-                            <input class='form-control' min=0 max=100 type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge * 100}}" />
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Fuel Surcharge</span>
+                                <input class='form-control' min=0 max=100 step='0.01' type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge}}" />
+                                <span class='input-group-addon'>%</span>
+                            </div>
                         </div>
 
 <!--Custom Field-->
