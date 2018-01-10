@@ -45,9 +45,9 @@
     @else
         <h2>New Account</h2>
     @endif
-<form name='accountForm' method="POST" action="/accounts/store">
+<form id='account_form'>
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="account-id" value="{{ $model->account->account_id }}" />
+    <input type="hidden" id='account-id' name="account-id" value="{{ $model->account->account_id }}" />
     <input type="hidden" data-body-id="" data-checkbox-id="sub-location" name="isSubLocation" value="{{ isset($model->parentAccount) ? "true" : "false" }}"/>
     <input type="hidden" data-checkbox-id="give-discount" name="shouldGiveDiscount" value="{{$model->account->has_discount == 1 ? "true" : "false"}}"/>
     <input type="hidden" data-checkbox-id="give-commission-1" name="should-give-commission-1" value="{{$model->give_commission_1 ? "true" : "false"}}"/>
@@ -62,7 +62,6 @@
     <input type="hidden" data-checkbox-id="send-invoices" name="send_invoices" value="{{$model->account->send_invoices == 0 ? "false" : "true"}}" />
     <div class="well">
 <!--Basic Information Panel-->
-        <pre id='errors' hidden='true'></pre>
         <div class="clearfix">
             <div class="col-lg-12">
                 <div class="panel panel-default">

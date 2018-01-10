@@ -90,7 +90,7 @@ function storeAccount(){
 		'url': '/accounts/store',
 		'type': 'POST',
 		'data': data,
-		'success': function(e) {
+		'success': function() {
 			var isEdit = typeof($('#account-id').val()) === 'undefined' ? false : true;
 			var accountName = $('#name').val();
 			if (isEdit) {
