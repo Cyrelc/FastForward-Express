@@ -4,6 +4,7 @@
 
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
+<script type="text/javascript" src='/js/toastr.min.js'> </script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/account.js'></script>
@@ -24,6 +25,7 @@
 
 @section ('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 <style type="text/css">
 #errors {
     color: red;
@@ -60,32 +62,8 @@
     <input type="hidden" data-checkbox-id="send-invoices" name="send_invoices" value="{{$model->account->send_invoices == 0 ? "false" : "true"}}" />
     <div class="well">
 <!--Basic Information Panel-->
-        <pre id='errors' class='hidden'></pre>
+        <pre id='errors' hidden='true'></pre>
         <div class="clearfix">
-<!-- errors go here if submission fails -->
-            @if(!empty($errors) && $errors->count() > 0)
-                <br />
-                <div class="col-lg-12">
-                    <div class="alert alert-danger">
-                        <p>The following errors occurred on submit:</p>
-                        <ul>
-                            @foreach($errors->all() as $message)
-                                <!--Custom Messages-->
-                                @if ($message === "The contacts field is required.")
-                                    <li>At least one contact must be provided and marked as primary.</li>
-                                @elseif ($message === "The contact- action field is required.")
-                                    <li>An error has occurred. Please contact us and provide the following message: <pre>Contact Action not submitted.</pre></li>
-                                @elseif($message === "The primary contact field is required.")
-                                        <li>At least one contact must be selected as primary.</li>
-                                @else
-                                    <li>{{ $message }}</li>
-                                @endif
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
-
             <div class="col-lg-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -119,7 +97,7 @@
                         <div class="col-lg-4 bottom15">
                             <div class='input-group'>
                                 <span class='input-group-addon'>Name</span>
-                                <input type='text' class="form-control" name="name" placeholder="Company Name" value="{{$model->account->name}}" />
+                                <input type='text' class="form-control" id='name' name="name" placeholder="Company Name" value="{{$model->account->name}}" />
                             </div>
                         </div>
 
@@ -235,7 +213,7 @@
 <!-- Contacts Panel -->
             @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'prefix' => 'account', 'title' => 'Contacts'])
         </div>
-        <div class='text-center'><button type='submit' class='btn btn-primary'>Submit</button></div>
+        <div class='text-center'><button type='button' class='btn btn-primary' onclick='storeAccount()'>Submit</button></div>
     </div>
 </form>
 @endsection

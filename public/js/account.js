@@ -54,7 +54,7 @@ $(document).ready(function() {
 		$("#account_number_result").attr('title', 'Looking up Account Number!');
 
 		$.ajax({
-			'url': '{{URL::to('/')}}/accounts/is_unique',
+			'url': '/accounts/is_unique',
 			'type': 'POST',
 			'data': {'number' : newNum, '_token' : _token},
 			'success': function(e) {
@@ -82,6 +82,37 @@ $(document).ready(function() {
 	});
 
 });
+
+function storeAccount(){
+	var data = $('#account_form').serialize();
+
+	$.ajax({
+		'url': '/accounts/store',
+		'type': 'POST',
+		'data': data,
+		'success': function(e) {
+			var isEdit = typeof($('#account-id').val()) === 'undefined' ? false : true;
+			var accountName = $('#name').val();
+			if (isEdit) {
+				toastr.success(accountName + ' was successfully updated!', 'Success');
+			} else {
+				toastr.success(accountName + ' was succesfully created', 'Success', {
+					'progressBar' : true,
+					'positionClass' : 'toast-top-full-width',
+					'showDuration': 500,
+					'onHidden': function(){location.reload()}
+				})
+			}
+		},
+		'error': function(response){
+			var errorText = '';
+			for(var key in response.responseJSON) {
+				errorText += response.responseJSON[key][0] + '</br>';
+			}
+			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
+		}
+	})
+}
 
 $('#advFilter input[type="checkbox"]').each(function(i,j) {
 	if(j.checked){

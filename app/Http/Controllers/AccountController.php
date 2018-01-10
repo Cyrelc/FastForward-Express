@@ -29,17 +29,17 @@ class AccountController extends Controller {
         return view('accounts.accounts', compact('contents'));
     }
 
-    public function create(Request $req) {
+    public function create() {
         //Check user settings and return popout or inline based on that
         //Check permissions
         $amf = new Account\AccountModelFactory();
-        $model = $amf->GetCreateModel($req);
+        $model = $amf->GetCreateModel();
         return view('accounts.account', compact('model'));
     }
 
-    public function edit(Request $req, $id) {
+    public function edit($id) {
         $factory = new Account\AccountModelFactory();
-        $model = $factory->GetEditModel($id, $req);
+        $model = $factory->GetEditModel($id);
         return view('accounts.account', compact('model'));
     }
 
