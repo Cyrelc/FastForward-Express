@@ -184,7 +184,9 @@ class AccountController extends Controller {
             DB::commit();
             //END account
 
-            return redirect()->action($action, $args);
+            return response()->json([
+                'success' => true,
+            ]);
 
         } catch(Exception $e) {
             DB::rollBack();
