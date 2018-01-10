@@ -4,6 +4,7 @@
 
 <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
+<script type='text/javascript' src='/js/toastr.min.js'> </script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/employees/employee.js"></script>
@@ -13,9 +14,8 @@
 @endsection
 
 @section ('style')
-
-	<link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-datetimepicker.min.css" />
-
+<link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-datetimepicker.min.css" />
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @endsection
 
 @section ('content')
@@ -26,39 +26,15 @@
 	<h2>New Employee</h2>
 @endif
 
-<form onsubmit="" method="POST" action="/employees/store">
+<form id='employee-form'>
 	<input type="hidden" name="_token" value="{{ csrf_token() }}">
 	<input type="hidden" id="is_driver" name="is_driver" value="{{isset($model->driver->driver_id) ? "true" : "false" }}">
 	<input type="hidden" id="is_sales" name="is_sales" value="">
 
 	@if(isset($model) && isset($model->employee) && $model->employee->employee_id > 0)
-		<input type="hidden" name="employee_id" value="{{$model->employee->employee_id}}"/>
+		<input type="hidden" id="employee_id" name="employee_id" value="{{$model->employee->employee_id}}"/>
 		<input type="hidden" name="user_id" value="{{$model->employee->user_id}}"/>
 	@endif
-<!-- errors will be output here -->
-	@if(!empty($errors) && $errors->count() > 0)
-		<div class="row">
-			<div class="col-lg-12">
-				<div class="alert alert-danger">
-					<p>The following errors occurred on submit:</p>
-
-					<ul>
-						@foreach($errors->all() as $message)
-							<!--Custom Messages-->
-								@if ($message === "The contacts field is required.")
-									<li>At least one emergency contact must be provided.</li>
-								@elseif ($message === "The contact- action field is required.")
-									<li>An error has occurred. Please contact us and provide the following message: <pre>Contact Action not submitted.</pre></li>
-								@else
-									<li>{{ $message }}</li>
-								@endif
-						@endforeach
-					</ul>
-				</div>
-			</div>
-		</div>
-	@endif
-	<p id='errors'></p>
 	<div class="col-lg-12">
 		<ul class='nav nav-pills'>
 			<li class="active"><a data-toggle="pill" href="#main"> Main </a></li>
@@ -210,7 +186,7 @@
 		</div>
 	</div>
 	<div class='text-center'>
-		<button type='submit' class='btn btn-primary'>Submit</button>
+		<button type='button' class='btn btn-primary' onclick='storeEmployee()'>Submit</button>
 	</div>
 </form>
 @endsection

@@ -61,7 +61,6 @@ class EmployeeModelFactory
 
         $model->emergency_contacts = [];
 
-        $model = $this->MergeOld($model, $request);
         unset($model->contact->contact_id);
 
         return $model;
@@ -93,20 +92,6 @@ class EmployeeModelFactory
         }
 
         $model->emergency_contacts = $contactsFactory->GetEditModel($employeeRepo->ListEmergencyContacts($model->employee->employee_id), true);
-
-        $model = $this->MergeOld($model, $request);
-        return $model;
-    }
-
-    public function MergeOld($model, $req) {
-        $contactCollector = new \App\Http\Collectors\ContactCollector();
-        $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
-        $driverCollector = new \App\Http\Collectors\DriverCollector();
-
-        $model->employee = $employeeCollector->Remerge($req, $model->employee);
-        $model->contact = $contactCollector->RemergeContact($req, $model->contact, '','contact', true);
-        $model->emergency_contacts = $contactCollector->Remerge($req, $model->emergency_contacts, true);
-        $model->driver = $driverCollector->Remerge($req, $model->driver);
 
         return $model;
     }
