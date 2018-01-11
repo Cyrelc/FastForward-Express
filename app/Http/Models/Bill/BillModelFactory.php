@@ -86,8 +86,6 @@
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
             $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
 		    
-			$model = $this->MergeOld($model, $req);
-
 		    return $model;
 		}
 
@@ -161,27 +159,6 @@
 
 			$model->accounts = $acctRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();
-
-			$model = $this->MergeOld($model, $req);
-
-			return $model;
-		}
-
-		public function MergeOld($model, $req) {
-		    $addrCollector = new \App\Http\Collectors\AddressCollector();
-		    $billCollector = new \App\Http\Collectors\BillCollector();
-
-			$model->pickupAddress = $addrCollector->ReMerge($req, $model->pickupAddress, 'pickup');
-			$model->deliveryAddress = $addrCollector->ReMerge($req, $model->deliveryAddress, 'delivery');
-
-			$model->bill = $billCollector->ReMerge($req, $model->bill);
-
-			$modelVars = array('charge_selection_submission', 'pickup_use_submission', 'delivery_use_submission', 'use_interliner', 'skip_invoicing', 'delivery_type');
-
-			foreach ($modelVars as $modelVar) {
-				if($req->old($modelVar) !== null)
-					$model->{$modelVar} = $req->old($modelVar);
-			}
 
 			return $model;
 		}

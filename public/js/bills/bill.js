@@ -155,3 +155,27 @@ function addPackage(weight = 0, length = 0, width = 0, height = 0, package_id = 
 		"</tr>"
 	);
 }
+
+function storeBill(){
+	var data = $('#bill-form').serialize();
+
+	$.ajax({
+		'url': '/bills/store',
+		'type': 'POST',
+		'data': data,
+		'success': function() {
+			var isEdit = $('#bill_id').val() == '' ? false : true;
+			if(isEdit){
+				var billNumber = $('#bill_number').val();
+				toastr.success('Bill ' + billNumber + ' successfully updated');
+			} else {
+				toastr.success('Bill created successfully', 'Success', {
+					'progressBar': true, 
+					'positionClass': 'toast-top-full-width',
+					'showDuration': 500,
+					'onHidden': function(){location.reload()}
+				})
+			}
+		}
+	})
+}
