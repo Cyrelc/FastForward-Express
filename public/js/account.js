@@ -91,7 +91,7 @@ function storeAccount(){
 		'type': 'POST',
 		'data': data,
 		'success': function() {
-			var isEdit = typeof($('#account-id').val()) === 'undefined' ? false : true;
+			var isEdit = $('#account-id').val() == '' ? false : true;
 			var accountName = $('#name').val();
 			if (isEdit) {
 				toastr.success(accountName + ' was successfully updated!', 'Success');
