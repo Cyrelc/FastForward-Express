@@ -3,13 +3,13 @@
 @section ('script')
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/invoices/invoice-generate.js'></script>
-
+<script type='text/javascript' src='/js/toastr.min.js'> </script>
 @parent
 @endsection
 
 @section('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
-
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 
@@ -17,27 +17,12 @@
 
 <h2>Generate Invoices</h2>
 
-<form method="POST" action="/invoices/store">
+<form id='invoice-form'>
 
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <input type="hidden" name="account_count" id="account_count">
 
 	<div class="clearfix well">
-        <pre id='errors' class='hidden'></pre>
-        @if(!empty($errors) && $errors->count() > 0)
-            <br />
-            <div class="col-lg-12">
-                <div class="alert alert-danger">
-                    <p>The following errors occurred on submit:</p>
-                    <ul>
-                        @foreach($errors->all() as $message)
-                            <li>{{ $message }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        @endif
-
 <!--Invoice Interval-->
         <div class="col-lg-4 bottom15">
             <div class="input-group">
@@ -96,7 +81,7 @@
         </div>
 
         <div class='text-center'>
-            <button type='submit' class='btn btn-primary'>Submit</button>
+            <button type='button' class='btn btn-primary' onclick='generateInvoices()'>Submit</button>
         </div>
     </div>
 </form>

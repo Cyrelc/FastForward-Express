@@ -65,6 +65,16 @@ class InvoiceController extends Controller {
     public function store(Request $req) {
         DB::beginTransaction();
         try{
+            $validationRules = [];
+            $validationMessages = [];
+
+            if(count($req->checkboxes) < 1) {
+                $validationRules = array_merge($validationRules, ['accounts' => 'required']);
+                $validationMessages = array_merge($validationMessages, ['accounts.required' => 'You must select at least one account to invoice']);
+            }
+
+            $this->validate($req, $validationRules, $validationMessages);
+
             $invoiceRepo = new Repos\InvoiceRepo();
 
             $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
