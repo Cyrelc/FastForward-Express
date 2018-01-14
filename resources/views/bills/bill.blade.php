@@ -2,18 +2,19 @@
 
 @section ('script')
 
-<script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
+<script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/bills/bill.js'></script>
+<script type='text/javascript' src='/js/bills/bill.js'></script>
+<script type='text/javascript' src='/js/toastr.min.js'></script>
 <!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
  -->
 @parent
 @endsection
 
 @section('style')
-<link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
-
+<link rel="stylesheet" type="text/css" href="/css/bootstrap-combobox.css" />
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 
@@ -25,30 +26,14 @@
     <h2>New Bill</h2>
 @endif
 
-<form method="POST" action="/bills/store">
-
+<form id='bill-form'>
 	<div class="clearfix well">
-        <pre id='errors' class='hidden'></pre>
-        @if(!empty($errors) && $errors->count() > 0)
-            <br />
-            <div class="col-lg-12">
-                <div class="alert alert-danger">
-                    <p>The following errors occurred on submit:</p>
-                    <ul>
-                        @foreach($errors->all() as $message)
-                            <li>{{ $message }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        @endif
-
 <!--predetermined information -->
     <div hidden class="col-lg-12">
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <h4 class="input-group-addon"> Bill Number: </h4>
-                <input type="text" class="form-control" name="bill_id" readonly value="{{$model->bill->bill_id}}" style="background:0; border:0; outline:0;" />
+                <input type="text" class="form-control" id='bill_id' name="bill_id" readonly value="{{$model->bill->bill_id}}" style="background:0; border:0; outline:0;" />
             </div>
         </div>
         <div class="col-lg-4 bottom15">
@@ -341,7 +326,7 @@
         </div>
 	</div>
     <div class='text-center'>
-        <button type='submit' class='btn btn-primary'>Submit</button>
+        <button type='button' class='btn btn-primary' onclick='storeBill()'>Submit</button>
     </div>
 </form>
 @endsection
