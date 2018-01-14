@@ -37,3 +37,28 @@ function getAccountsToInvoice(){
     	}
 	});
 }
+
+function generateInvoices(){
+	var data = $('#invoice-form').serialize();
+
+	$.ajax({
+		'url': '/invoices/store',
+		'type': 'POST',
+		'data': data,
+		'success': function() {
+			toastr.success('Invoices successfully created', 'Success', {
+				'progressBar': true,
+				'positionClass': 'toast-top-full-width',
+				'showDuration': 500,
+				'onHidden': function(){location.replace('/invoices')}
+			})
+		},
+		'error': function(response){
+			var errorText = '';
+			for(var key in response.responseJSON){
+				errorText += response.responseJSON[key][0] + '</br>';
+			}
+			toastr.error(errorText, 'Errors', {'timeOut': 0, 'extendedTImeout': 0});
+		}
+	});
+}
