@@ -76,7 +76,8 @@ Route::group(
 
             Route::post('/contactus', 'HomeController@ContactUs');
 
-            Route::get('/appsettings', 'HomeController@AppSettings');
+            Route::get('/appsettings', 'AdminController@load');
+            Route::post('/appsettings/storeGST', 'AdminController@storeGST');
 
             //API
             // Route::resource('/customers', 'AccountController',
