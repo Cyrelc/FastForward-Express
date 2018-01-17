@@ -99,4 +99,26 @@ class InvoiceController extends Controller {
             ]);
         }
     }
+
+    public function storeLayout(Request $req) {
+        DB::beginTransaction();
+        try{
+            $accountRepo = new Repos\AccountRepo();
+            $invoiceRepo = new Repos\InvoiceRepo();
+            
+            $accountRepo->UpdateInvoiceComment($req->comment, $req->account_id);
+            $invoiceRepo->StoreSortOrder($req, $req->account_id);
+
+            DB::commit();
+
+            return;
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }

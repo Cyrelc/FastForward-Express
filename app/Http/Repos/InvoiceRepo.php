@@ -4,6 +4,8 @@ namespace App\Http\Repos;
 use App\Account;
 use App\Bill;
 use App\Invoice;
+use App\AccountInvoiceSortEntries;
+use App\InvoiceSortOptions;
 
 class InvoiceRepo {
     public function ListAll() {
@@ -16,6 +18,64 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', '=', $id)->first();
 
         return $invoice;
+    }
+
+    public function GetSortOrderById($id) {
+        $account_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
+
+        $sort_options = [];
+        if(count($account_sort_options) > 0) {
+            $count = 0;
+            foreach($account_sort_options as $option) {
+                //TODO - handle custom sort field slightly differently
+                $current = InvoiceSortOptions::where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
+                $current->priority = $option->priority;
+                $current->subtotal = $option->subtotal;
+                array_push($sort_options, $current);
+            }
+        } else {
+            $sort_options = InvoiceSortOptions::All();
+            $count = 0;
+                //TODO - handle custom sort field slightly differently
+                foreach($sort_options as $option) {
+                $option->priority = $option->count;
+                $option->subtotal = false;
+                $count++;
+            }
+        }
+
+        return $sort_options;
+    }
+
+    public function StoreSortOrder($req, $id) {
+        $account_invoice_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
+
+        $sort_options = InvoiceSortOptions::All();
+        foreach($sort_options as $option) {
+            //If the field was submitted as a sort option
+            if($req->input($option->database_field_name) !== null) {
+                //If the account previously had that sort option set, update it 
+                $existing_sort_option = AccountInvoiceSortEntries::where('account_id', $id)->where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
+                if(isset($existing_sort_option)){
+                    $existing_sort_option->priority = $req->input($option->database_field_name);
+                    if($option->can_be_subtotaled) {
+                        $existing_sort_option->subtotal = !empty($req->input('subtotal_' . $option->database_field_name));
+                    }
+                    $existing_sort_option->save();
+                //otherwise create it
+                } else {
+                    $temp = [
+                        'account_id' => $id,
+                        'invoice_sort_option_id' => $option->invoice_sort_option_id,
+                        'priority' => $req->input($option->database_field_name)
+                    ];
+                    if($option->can_be_subtotaled)
+                        $temp['subtotal'] = !empty($req->input('subtotal_' . $option->database_field_name));
+                    $new = new AccountInvoiceSortEntries();
+                    $new->create($temp);
+                }
+            }
+        }
     }
 
     public function Create($account_ids, $start_date, $end_date) {
