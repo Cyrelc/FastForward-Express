@@ -255,5 +255,10 @@
     <div class="checkbox">
         <label><input id="send-invoices" type="checkbox" name="" value="" data-hidden-name="send_invoices">Send Invoices</label>
     </div>
+    @if(isset($model->account->account_id))
+        <hr>
+        <h4>Navigation<h4>
+        <a class='btn btn-info' href='/invoices/layouts/{{$model->account->account_id}}'>Go To Invoice Layout</a>
+    @endif
 </div>
 @endsection
