@@ -23,27 +23,31 @@ class InvoiceRepo {
     public function GetSortOrderById($id) {
         $account_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
 
+        $count = 0;
         $sort_options = [];
-        if(count($account_sort_options) > 0) {
-            $count = 0;
-            foreach($account_sort_options as $option) {
-                //TODO - handle custom sort field slightly differently
-                $current = InvoiceSortOptions::where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
-                $current->priority = $option->priority;
-                $current->subtotal = $option->subtotal;
-                array_push($sort_options, $current);
-            }
-        } else {
-            $sort_options = InvoiceSortOptions::All();
-            $count = 0;
-                //TODO - handle custom sort field slightly differently
-                foreach($sort_options as $option) {
-                $option->priority = $option->count;
-                $option->subtotal = false;
-                $count++;
-            }
+        $existing_ids = array();
+        foreach($account_sort_options as $option) {
+            $current = InvoiceSortOptions::where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
+            array_push($existing_ids, $current->invoice_sort_option_id);
+            $current->priority = $option->priority;
+            $current->subtotal = $option->subtotal;
+            if($current->database_field_name == 'charge_reference_value')
+                $current->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
+            array_push($sort_options, $current);
+            $count++;
         }
-
+        if(Account::where('account_id', $id)->first()->uses_custom_field == 0)
+            $missing_sort_options = InvoiceSortOptions::where('database_field_name', '!=', 'charge_reference_value')->whereNotIn('invoice_sort_option_id', $existing_ids)->get();
+        else
+            $missing_sort_options = InvoiceSortOptions::whereNotIn('invoice_sort_option_id', $existing_ids)->get();
+        foreach($missing_sort_options as $option) {
+            $option->priority = $count;
+            $option->subtotal = false;
+            if($option->database_field_name == 'charge_reference_value')
+                $option->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
+            array_push($sort_options, $option);
+            $count++;
+        }
         return $sort_options;
     }
 
@@ -57,11 +61,15 @@ class InvoiceRepo {
                 //If the account previously had that sort option set, update it 
                 $existing_sort_option = AccountInvoiceSortEntries::where('account_id', $id)->where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
                 if(isset($existing_sort_option)){
-                    $existing_sort_option->priority = $req->input($option->database_field_name);
-                    if($option->can_be_subtotaled) {
-                        $existing_sort_option->subtotal = !empty($req->input('subtotal_' . $option->database_field_name));
+                    if($option->database_field_name == 'charge_reference_value' && Account::select('uses_custom_field')->where('account_id', $id)->first()->uses_custom_field == 0) {
+                        $existing_sort_option->delete();
+                    } else {
+                        $existing_sort_option->priority = $req->input($option->database_field_name);
+                        if($option->can_be_subtotaled) {
+                            $existing_sort_option->subtotal = !empty($req->input('subtotal_' . $option->database_field_name));
+                        }
+                        $existing_sort_option->save();
                     }
-                    $existing_sort_option->save();
                 //otherwise create it
                 } else {
                     $temp = [
