@@ -95,4 +95,11 @@ class AccountRepo {
         $account = $this->GetById($accountId);
         $account->contacts()->attach($contactId, ['is_primary' => 'false']);
     }
+
+    public function UpdateInvoiceComment($comment, $accountId) {
+        $account = $this->GetById($accountId);
+        $account->invoice_comment = $comment;
+
+        $account->save();
+    }
 }

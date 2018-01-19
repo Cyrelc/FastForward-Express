@@ -4,6 +4,8 @@ namespace App\Http\Repos;
 use App\Account;
 use App\Bill;
 use App\Invoice;
+use App\AccountInvoiceSortEntries;
+use App\InvoiceSortOptions;
 
 class InvoiceRepo {
     public function ListAll() {
@@ -16,6 +18,72 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', '=', $id)->first();
 
         return $invoice;
+    }
+
+    public function GetSortOrderById($id) {
+        $account_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
+
+        $count = 0;
+        $sort_options = [];
+        $existing_ids = array();
+        foreach($account_sort_options as $option) {
+            $current = InvoiceSortOptions::where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
+            array_push($existing_ids, $current->invoice_sort_option_id);
+            $current->priority = $option->priority;
+            $current->subtotal = $option->subtotal;
+            if($current->database_field_name == 'charge_reference_value')
+                $current->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
+            array_push($sort_options, $current);
+            $count++;
+        }
+        if(Account::where('account_id', $id)->first()->uses_custom_field == 0)
+            $missing_sort_options = InvoiceSortOptions::where('database_field_name', '!=', 'charge_reference_value')->whereNotIn('invoice_sort_option_id', $existing_ids)->get();
+        else
+            $missing_sort_options = InvoiceSortOptions::whereNotIn('invoice_sort_option_id', $existing_ids)->get();
+        foreach($missing_sort_options as $option) {
+            $option->priority = $count;
+            $option->subtotal = false;
+            if($option->database_field_name == 'charge_reference_value')
+                $option->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
+            array_push($sort_options, $option);
+            $count++;
+        }
+        return $sort_options;
+    }
+
+    public function StoreSortOrder($req, $id) {
+        $account_invoice_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
+
+        $sort_options = InvoiceSortOptions::All();
+        foreach($sort_options as $option) {
+            //If the field was submitted as a sort option
+            if($req->input($option->database_field_name) !== null) {
+                //If the account previously had that sort option set, update it 
+                $existing_sort_option = AccountInvoiceSortEntries::where('account_id', $id)->where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
+                if(isset($existing_sort_option)){
+                    if($option->database_field_name == 'charge_reference_value' && Account::select('uses_custom_field')->where('account_id', $id)->first()->uses_custom_field == 0) {
+                        $existing_sort_option->delete();
+                    } else {
+                        $existing_sort_option->priority = $req->input($option->database_field_name);
+                        if($option->can_be_subtotaled) {
+                            $existing_sort_option->subtotal = !empty($req->input('subtotal_' . $option->database_field_name));
+                        }
+                        $existing_sort_option->save();
+                    }
+                //otherwise create it
+                } else {
+                    $temp = [
+                        'account_id' => $id,
+                        'invoice_sort_option_id' => $option->invoice_sort_option_id,
+                        'priority' => $req->input($option->database_field_name)
+                    ];
+                    if($option->can_be_subtotaled)
+                        $temp['subtotal'] = !empty($req->input('subtotal_' . $option->database_field_name));
+                    $new = new AccountInvoiceSortEntries();
+                    $new->create($temp);
+                }
+            }
+        }
     }
 
     public function Create($account_ids, $start_date, $end_date) {

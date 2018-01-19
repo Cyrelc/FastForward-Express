@@ -79,6 +79,7 @@
 			$model = new Invoice\InvoiceLayoutModel();
 
 			$acctRepo = new Repos\AccountRepo();
+			$invoiceRepo = new Repos\InvoiceRepo();
 
 			$model->account = $acctRepo->GetById($id);
 			$parent_id = $model->account->parent_account_id;
@@ -88,6 +89,8 @@
 				array_push($model->parents, $parent_name);
 				$parent_id = $acctRepo->GetById($parent_id)->parent_account_id;
 			}
+
+			$model->sort_options = $invoiceRepo->getSortOrderById($id);
 
 			return $model;
 		}

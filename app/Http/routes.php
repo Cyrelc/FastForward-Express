@@ -40,7 +40,6 @@ Route::group(
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/edit/{id}', 'AccountController@edit');
             Route::post('/accounts/action', 'AccountController@action');
-            Route::post('/accounts/submitEdit', 'AccountController@submitEdit');
             Route::post('/accounts/is_unique', 'AccountController@is_unique');
 
             Route::get('/bills', 'BillController@index');
@@ -53,7 +52,6 @@ Route::group(
             Route::get('/employees/create', 'EmployeeController@create');
             Route::post('/employees/store', 'EmployeeController@store');
             Route::get('/employees/edit/{id}', 'EmployeeController@edit');
-            Route::post('/employees/submitEdit', 'EmployeeController@submitEdit');
             Route::post('/employees/action', 'EmployeeController@action');
 
             Route::get('/interliners/create', 'InterlinerController@create');
@@ -66,6 +64,7 @@ Route::group(
             Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
+            Route::post('/invoices/storeLayout', 'InvoiceController@storeLayout');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
 
