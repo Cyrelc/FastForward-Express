@@ -11,7 +11,7 @@ class BillsTableSeeder extends Seeder
      */
     public function run()
     {
-        for($i = 0; $i < 500; $i++) {
+        for($i = 0; $i < 20; $i++) {
             $scenario = rand(0,3);
             $chargeScenario = rand(0, 10);
 
