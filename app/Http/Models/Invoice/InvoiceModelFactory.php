@@ -99,17 +99,6 @@
 			return $model;
 		}
 
-		protected function Subtotal($option, $bills) {
-			$array = array();
-			foreach($bills as $bill) {
-				if(array_key_exists($bill[$option->database_field_name], $array))
-					$array[$bill[$option->database_field_name]] += ($bill['amount'] + $bill['interliner_amount']);
-				else
-					$array[$bill[$option->database_field_name]] = ($bill['amount'] + $bill['interliner_amount']);
-			}
-			return $array;
-		}
-
 		public function GetCreateModel($req) {
 			$selectionsRepo = new Repos\SelectionsRepo();
 
