@@ -43,6 +43,10 @@
 			$billRepo = new Repos\BillRepo();
 
 			$model->invoice = $invoiceRepo->GetById($id);
+			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing');
+			foreach ($invoice_numbers as $identifier){
+				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
+			}
 
 			$parent_id = $model->invoice->account_id;
 			while (!is_null($parent_id)) {
@@ -51,16 +55,59 @@
 				$parent_id = $parent->parent_account_id;
 			}
 
-			$bills = $billRepo->GetByInvoiceId($id);
-			foreach ($bills as $bill) {
-				$bill_model = new Bill\BillViewModel();
-				$bill_model->bill = $bill;
-				$bill_model->pickup_address = $addressRepo->GetById($bill->pickup_address_id);
-				$bill_model->delivery_address = $addressRepo->GetById($bill->delivery_address_id);
-				array_push($model->bills, $bill_model);
+			$sort_options = $invoiceRepo->GetSortOrderById($model->invoice->account_id);
+			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Delivery' => 'delivery_address_name', 'Pickup' => 'pickup_address_name', 'Amount' => 'amount');
+			$bills = $billRepo->GetByInvoiceId($id, $sort_options);
+
+			$subtotals = array();
+			foreach($sort_options as $option)
+				if($option->subtotal) {
+					array_push($subtotals, array('field' => $option->database_field_name, 'current' => '', 'tally' => 0));
+				}
+
+			foreach($bills as $bill) {
+				$line = new InvoiceLine();
+				foreach($subtotals as $key => $value)
+					if($bill[$value['field']] === $value['current'])
+						$subtotals[$key]['tally'] += $bill->amount + $bill->interliner_amount;
+					else {
+						if($value['tally'] != 0) {
+							$line->amount = number_format($value['tally'], 2);
+							$line->is_subtotal = true;
+							$temp = $value['field'];
+							$line->$temp = $value['current'];
+							array_push($model->table, $line);
+							$line = new InvoiceLine();
+						}
+						$subtotals[$key]['current'] = $bill[$value['field']];
+						$subtotals[$key]['tally'] = $bill->amount + $bill->interliner_amount;
+					}
+				foreach($model->headers as $key => $value)
+					if($key == 'Amount')
+						$line->amount = number_format($bill->amount + $bill->interliner_amount, 2);
+					else
+						$line->$value = $bill[$value];
+				array_push($model->table, $line);
+			}
+			
+			foreach($subtotals as $key => $value) {
+				$line = new InvoiceLine();
+				$line->amount = $value['tally'];
+				array_push($model->table, $line);
 			}
 
 			return $model;
+		}
+
+		protected function Subtotal($option, $bills) {
+			$array = array();
+			foreach($bills as $bill) {
+				if(array_key_exists($bill[$option->database_field_name], $array))
+					$array[$bill[$option->database_field_name]] += ($bill['amount'] + $bill['interliner_amount']);
+				else
+					$array[$bill[$option->database_field_name]] = ($bill['amount'] + $bill['interliner_amount']);
+			}
+			return $array;
 		}
 
 		public function GetCreateModel($req) {
@@ -90,7 +137,7 @@
 				$parent_id = $acctRepo->GetById($parent_id)->parent_account_id;
 			}
 
-			$model->sort_options = $invoiceRepo->getSortOrderById($id);
+			$model->sort_options = $invoiceRepo->GetSortOrderById($id);
 
 			return $model;
 		}

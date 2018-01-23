@@ -2,6 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Bill;
+use DB;
 
 class BillRepo {
 
@@ -17,9 +18,23 @@ class BillRepo {
 	    return $bill;
     }
 
-    public function GetByInvoiceId($id) {
-        $bills = Bill::where('invoice_id', '=', $id)->get();
+    public function GetByInvoiceId($id, $sort_options) {
+        $bills = Bill::where('invoice_id', '=', $id)
+                ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+                ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+                ->select('bill_id',
+                'amount',
+                'interliner_amount',
+                'bill_number',
+                'date',
+                'pickup.name as pickup_address_name',
+                'delivery.name as delivery_address_name');
 
+        foreach($sort_options as $option) {
+            $bills->orderBy($option->database_field_name);
+        }
+
+        $bills = $bills->get();
         return $bills;
     }
 
