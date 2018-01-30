@@ -54,9 +54,11 @@
 				array_push($model->parents, $parent);
 				$parent_id = $parent->parent_account_id;
 			}
+			$model->parents[0]->billing_address = $addressRepo->GetById($model->parents[0]->billing_address_id);
+			$model->parents[0]->shipping_address = $addressRepo->GetById($model->parents[0]->shipping_address_id);
 
 			$sort_options = $invoiceRepo->GetSortOrderById($model->invoice->account_id);
-			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Delivery' => 'delivery_address_name', 'Pickup' => 'pickup_address_name', 'Amount' => 'amount');
+			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup' => 'pickup_address_name', 'Delivery' => 'delivery_address_name', 'Amount' => 'amount');
 			$bills = $billRepo->GetByInvoiceId($id, $sort_options);
 
 			$subtotals = array();
@@ -92,7 +94,8 @@
 			
 			foreach($subtotals as $key => $value) {
 				$line = new InvoiceLine();
-				$line->amount = $value['tally'];
+				$line->amount = number_format($value['tally'], 2);
+				$line->is_subtotal = true;
 				array_push($model->table, $line);
 			}
 

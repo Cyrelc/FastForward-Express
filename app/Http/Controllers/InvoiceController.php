@@ -9,6 +9,7 @@ use App\Http\Requests;
 
 use App\Http\Repos;
 use App\Http\Models\Invoice;
+use App\Http\Services;
 
 class InvoiceController extends Controller {
     public function __construct() {
@@ -120,5 +121,12 @@ class InvoiceController extends Controller {
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function print($invoice_id) {
+        //TODO check if invoice $id exists
+        $invoicePDFfactory = new Services\InvoicePDFfactory();
+
+        return $invoicePDFfactory->generateInvoice($invoice_id);
     }
 }

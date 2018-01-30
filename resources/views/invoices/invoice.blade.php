@@ -1,12 +1,16 @@
 @extends ('layouts.app')
 
 @section ('script')
-
+<script type='text/javascript' src='/js/invoices/invoice.js'></script>
 @parent
 @endsection
 
 @section ('style')
 <style type='text/css'>
+table {
+	page-break-inside: avoid;
+}
+
 .amount {
 	float:right
 }
@@ -24,13 +28,13 @@
 @section ('content')
 <div class="col-lg-12">
 	<?php
-		for ($i = count($model->parents); $i > 0; $i--) {
-			echo("<h4>" . $model->parents[$i - 1]->name . "</h4>");
+		for ($i = count($model->parents) - 1; $i >= 0; $i--) {
+			echo('<h4><a href="/accounts/edit/' . $model->parents[$i]->account_id . '">' . $model->parents[$i]->name . '</a></h4>');
 		}
 		echo("</hr>");
 		echo($model->parents[0]->invoice_comment);
 	?>
-	<br>
+	<br/>
 	<table style="width:90%">
 		<thead>
 			<tr style="border-bottom: 2px solid black">
@@ -56,12 +60,13 @@
 							["Discount:", $model->invoice->discount],
 							["Tax:", $model->invoice->tax],
 							["Total:", $model->invoice->total_cost]];
+				echo("<tr></tr>");
 				foreach($amounts as $amount) {
 					echo("<tr>");
 					$i = 3;
 					if (!is_null($model->parents[0]->custom_field))
 						$i = 4;
-					for ($i; $i > '0'; $i--) {
+					for ($i; $i > 0; $i--) {
 						echo("<td></td>");
 					}
 					echo("<td style='text-align: right'>" . $amount[0] . "</td>");
@@ -71,5 +76,13 @@
 			?>
 		</tbody>
 	</table>
+</div>
+@endsection
+
+@section ('advFilter')
+<div class="well form-group" style='margin-top:50px'>
+	<div class='text-center'>
+		<a class='btn btn-info' href='/invoices/print/{{$model->invoice->invoice_id}}' target='blank'><i class='fa fa-print'>Create PDF</i></a>
+	</div>
 </div>
 @endsection
