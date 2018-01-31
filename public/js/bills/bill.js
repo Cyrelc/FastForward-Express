@@ -165,6 +165,7 @@ function storeBill(){
 		'data': data,
 		'success': function() {
 			var isEdit = $('#bill_id').val() == '' ? false : true;
+			toastr.clear();
 			if(isEdit){
 				var billNumber = $('#bill_number').val();
 				toastr.success('Bill ' + billNumber + ' successfully updated');
@@ -182,6 +183,7 @@ function storeBill(){
 			for(var key in response.responseJSON){
 				errorText += response.responseJSON[key][0] + '</br>';
 			}
+			toastr.clear();
 			toastr.error(errorText, 'Errors', {'timeOut' : 0, 'extendedTImeout' : 0});
 		}
 	})

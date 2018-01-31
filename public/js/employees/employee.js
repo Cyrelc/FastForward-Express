@@ -40,7 +40,7 @@ function storeEmployee() {
 		'data': data,
 		'success': function(){
 			var isEdit = typeof($('#employee_id').val()) === 'undefined' ? false : true;
-			console.log(isEdit);
+			toastr.clear();
 			var employeeName = $('#employee-first-name').val() + ' ' + $('#employee-last-name').val();
 			if (isEdit) {
 				toastr.success(employeeName + ' successfully updated!', 'Success');				
@@ -54,11 +54,11 @@ function storeEmployee() {
 			}
 		},
 		'error': function(response){
-			console.log(response);
 			var errorText = '';
 			for(var key in response.responseJSON){
 				errorText += response.responseJSON[key][0] + '</br>';
 			}
+			toastr.clear();
 			toastr.error(errorText, 'Errors', {'timeOut': 0, 'extendedTImeout': 0, 'positionClass': 'toast-top-full-width'})
 		}
 	})

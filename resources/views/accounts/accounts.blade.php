@@ -4,7 +4,7 @@
 
 	<?php
 		$contents = $contents->accounts;
-		$columns = ['Active', 'DBID', 'ID', 'Parent', 'Name', 'Shipping Address', 'Invoice Interval', 'Start Date', 'Primary Contact'];//, 'Primary Phone'];
+		$columns = ['Active', 'DBID', 'Account Number', 'Parent', 'Name', 'Shipping Address', 'Invoice Interval', 'Start Date', 'Primary Contact'];//, 'Primary Phone'];
 		$variables = [['account', 'active'], ['account', 'account_id'], ['account', 'account_number'], ['account', 'parent_account'], ['account', 'name'], 'shippingAddress', ['account', 'invoice_interval'], ['account', 'start_date'], 'primaryContact'];//, 'primaryPhone'];
 		$tableConfig = [
 			'table' => 'account',
