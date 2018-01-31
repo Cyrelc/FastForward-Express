@@ -227,10 +227,10 @@
         <label><input id="give-discount" type="checkbox" data-div="discount-div" data-hidden-name="shouldGiveDiscount" />Give Discount</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-commission-1" type="checkbox" data-div="commission-1-div" data-hidden-name="should-give-commission-1" />Commission 1</label>
+        <label><input id="give-commission-1" type="checkbox" data-div="commission-1-div" data-hidden-name="should-give-commission-1" disabled/>Commission 1</label>
     </div>
     <div class="checkbox">
-        <label><input id="give-commission-2" type="checkbox" data-div="commission-2-div" data-hidden-name="should-give-commission-2" />Commission 2</label>
+        <label><input id="give-commission-2" type="checkbox" data-div="commission-2-div" data-hidden-name="should-give-commission-2" disabled/>Commission 2</label>
     </div>
     <div class="checkbox">
         <label><input id="use-custom-field" type="checkbox" data-hidden-name="useCustomField" data-div="custom-div" />Use Custom Field</label>

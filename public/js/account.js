@@ -93,6 +93,7 @@ function storeAccount(){
 		'success': function() {
 			var isEdit = $('#account-id').val() == '' ? false : true;
 			var accountName = $('#name').val();
+			toastr.clear();
 			if (isEdit) {
 				toastr.success(accountName + ' was successfully updated!', 'Success');
 			} else {
@@ -109,6 +110,7 @@ function storeAccount(){
 			for(var key in response.responseJSON) {
 				errorText += response.responseJSON[key][0] + '</br>';
 			}
+			toastr.clear();
 			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
 		}
 	})

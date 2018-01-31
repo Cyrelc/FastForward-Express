@@ -4,7 +4,7 @@ namespace App\Http\Validation;
 class AccountValidationRules {
     public function GetValidationRules($validateAccountNumberUnique, $accountId, $accountNumber, $isSubLocation, $giveDiscount, $customField) {
         $rules = [
-            'account-number' => ['required'],
+            'account-number' => 'required|unique:accounts,account_number,' . $accountId . ',account_id',
             'name' => 'required',
         ];
 
@@ -13,15 +13,6 @@ class AccountValidationRules {
             'account-number.unique' => 'Account Number must be unique',
             'name.required' => 'Company Name is required.',
         ];
-
-        if ($validateAccountNumberUnique) {
-            $accountRepo = new \App\Http\Repos\AccountRepo();
-            $account = $accountRepo->GetById($accountId);
-
-            if ($account->account_number !== $accountNumber) {
-                array_push($rules['account-number'], 'unique:accounts,account_number');
-            }
-        }
 
         if ($isSubLocation) {
             $rules = array_merge($rules, ['parent-account-id' => 'required']);
