@@ -29,8 +29,7 @@
 				@if (isset($model->parents[0]->custom_field))
 					<td> {{$model->parents[0]->custom_field}} </td>
 				@endif
-				<td> Pickup </td>
-				<td> Delivery </td>
+				<td> Charge Account </td>
 				<td style='float:right'> Amount </td>
 			</tr>
 		</thead>
@@ -42,8 +41,7 @@
 					@if (isset($model->parents[0]->custom_field))
 						<td>{{$bill->bill->charge_reference_value}}</td>
 					@endif
-					<td> {{$bill->pickup_address->name}} </td>
-					<td> {{$bill->delivery_address->name}} </td>
+					<td> {{$bill->charge_account_name}} </td>
 					<td style='float:right'> {{$bill->bill->amount + $bill->bill->interliner_amount}} </td>
 				</tr>
 			@endforeach
@@ -55,9 +53,9 @@
 							["Total:", $model->invoice->total_cost]];
 				foreach($amounts as $amount) {
 					echo("<tr>");
-					$i = 3;
+					$i = 2;
 					if (!is_null($model->parents[0]->custom_field))
-						$i = 4;
+						$i = 3;
 					for ($i; $i > '0'; $i--) {
 						echo("<td></td>");
 					}

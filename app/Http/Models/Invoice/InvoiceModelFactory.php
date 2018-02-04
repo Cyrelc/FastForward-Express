@@ -55,8 +55,7 @@
 			foreach ($bills as $bill) {
 				$bill_model = new Bill\BillViewModel();
 				$bill_model->bill = $bill;
-				$bill_model->pickup_address = $addressRepo->GetById($bill->pickup_address_id);
-				$bill_model->delivery_address = $addressRepo->GetById($bill->delivery_address_id);
+				$bill_model->charge_account_name = $accountRepo->GetById($bill->charge_account_id)->name;
 				array_push($model->bills, $bill_model);
 			}
 

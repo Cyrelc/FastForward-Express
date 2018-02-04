@@ -18,14 +18,8 @@ class InvoiceSortOptionsSeeder extends Seeder
         ]);
     
         DB::table('invoice_sort_options')->insert([
-            'database_field_name' => 'pickup_address_id',
-            'friendly_name' => 'Pickup Location',
-            'can_be_subtotaled' => true
-        ]);
-
-        DB::table('invoice_sort_options')->insert([
-            'database_field_name' => 'delivery_address_id',
-            'friendly_name' => 'Delivery Location',
+            'database_field_name' => 'charge_account_name',
+            'friendly_name' => 'Child Location',
             'can_be_subtotaled' => true
         ]);
 
