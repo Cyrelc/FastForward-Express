@@ -9,11 +9,11 @@
     <td style='width: 60%; text-align: center'>
         <h2><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h2>
     </td>
-    <td style='width: 40%'>
-        <table class='quick_reference'>
-            <td class='basic'><h4>Invoice Total:<br/><br/>{{$model->invoice->total_cost}}</h4></td>
-            <td class='warn'><h4>Account Balance:<br/><br/>{{$model->invoice->total_cost}}</h4></td>
-        </table>
+    <td class='basic'>
+        <h4>Invoice Total:<br/><br/>{{$model->invoice->total_cost}}</h4>
+    </td>
+    <td class='warn'>
+        <h4>Account Balance:<br/><br/>{{$model->invoice->total_cost}}</h4>
     </td>
 </table>
 

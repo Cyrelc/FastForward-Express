@@ -41,14 +41,6 @@ table.totals td {
     color: white;
     font-size: 14;
 }
-table.quick_reference {
-    float: right;
-    border: grey solid;
-    text-align: center;
-}
-.quick_reference td {
-    border: grey solid;
-}
 .text-left {
     padding-left: 5%;
     text-align:left;
@@ -57,8 +49,13 @@ table.quick_reference {
     padding-right: 5%;
     text-align:right;
 }
+td.basic, td.warn {
+    border: grey solid;
+    text-align: center;
+    margin-bottom: 20px;
+}
 td.basic {
-    background: #ADD8E6 solid;
+    background: #ADD8E6;
 }
 td.warn {
     background: orange;
