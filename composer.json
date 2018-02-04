@@ -9,7 +9,7 @@
         "laravel/framework": "5.2.*",
         "fzaninotto/faker": "^1.6",
         "doctrine/dbal": "^2.5",
-        "tecnick.com/tcpdf": "^6.2"
+        "barryvdh/laravel-dompdf": "^0.8.1"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

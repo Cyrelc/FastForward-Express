@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
+use DB;
 use App\Account;
 use App\Bill;
 use App\Invoice;
@@ -87,15 +88,40 @@ class InvoiceRepo {
     }
 
     public function Create($account_ids, $start_date, $end_date) {
-        $invoice_ids = [];
+        $invoices = array();
 
-        if (is_array($account_ids))
-            foreach($account_ids as $account_id)
-                array_push($invoice_ids, $this->GenerateInvoice($account_id, $start_date, $end_date));
-        else
-            array_push($invoice_ids, $this->GenerateInvoice($account_ids, $start_date, $end_date));
+        foreach($account_ids as $account_id) {
+            $account = Account::where('account_id', $account_id)->first(['has_parent', 'parent_account_id']);
+            if($account->has_parent) {
+                if(!array_key_exists($account->parent_account_id, $invoices))
+                    $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id);
+                $this->InvoiceBills($invoices[$account->parent_account_id]->invoice_id, $account_id, $start_date, $end_date);
+            } else {
+                if(!array_key_exists($account_id, $invoices))
+                    $invoices[$account_id] = $this->GenerateInvoice($account_id);
+                $this->InvoiceBills($invoices[$account_id]->invoice_id, $account_id, $start_date, $end_date);
+            }
+        }
 
-        return $invoice_ids;
+        foreach($invoices as $key => $value) {
+            //TODO: use variable tax cost rather than hard coded
+            //TODO: fuel surcharge logic
+            $account_repo = new AccountRepo();
+            $invoice = Invoice::where('invoice_id', $value->invoice_id)->first();
+            $account = $account_repo->GetById($invoice->account_id);
+            $bill_cost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_amount;});
+            $invoice->bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
+            $invoice->discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
+            if ($account->gst_exempt)
+                $invoice->tax = number_format(0, 2, '.', '');
+            else
+                $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * .05, 2), 2, '.', '');
+
+            $invoice->total_cost = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
+
+            $invoice->save();
+        }
+        return $invoices;
     }
 
     public function Delete($invoiceId) {
@@ -113,7 +139,21 @@ class InvoiceRepo {
         return;
     }
 
-    public function GenerateInvoice($account_id, $start_date, $end_date) {
+    public function GenerateInvoice($account_id) {
+        $invoice = [
+            'account_id' => $account_id,
+            'date' => date('Y-m-d'),
+            'bill_cost' => 0,
+            'discount' => 0,
+            'tax' => 0,
+            'total_cost' => 0,
+            'balance_owing' => 0
+        ];
+        $new = new Invoice();
+        return $new->create($invoice);
+    }
+
+    public function InvoiceBills($invoice_id, $account_id, $start_date, $end_date) {
         $bills = Bill::where('charge_account_id', '=', $account_id)
             ->where('date', '>=', $start_date)
             ->where('date', '<=', $end_date)
@@ -121,39 +161,8 @@ class InvoiceRepo {
             ->where('skip_invoicing', '=', 0)
             ->get();
 
-        $account = Account::where('account_id', '=', $account_id)->first();
-
-        $bill_cost = 0;
         foreach($bills as $bill) {
-            $bill_cost += $bill->amount;
-            $bill_cost += $bill->interliner_amount;
-        }
-        //TODO: use variable tax cost rather than hard coded
-        //TODO: fuel surcharge logic
-
-        $bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
-        $discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
-        if ($account->gst_exempt)
-            $tax = number_format(0, 2, '.', '');
-        else
-            $tax = number_format(round(($bill_cost - $discount) * .05, 2), 2, '.', '');
-
-        $total_cost = number_format(round($bill_cost - $discount + $tax, 2), 2, '.', '');
-
-        $invoice = [
-            'account_id' => $account_id,
-            'date' => date('Y-m-d'),
-            'bill_cost' => $bill_cost,
-            'discount' => $discount,
-            'tax' => $tax,
-            'total_cost' => $total_cost,
-            'balance_owing' => $total_cost
-        ];
-        $new = new Invoice();
-        $new = $new->create($invoice);
-
-        foreach($bills as $bill) {
-            $bill->invoice_id = $new->invoice_id;
+            $bill->invoice_id = $invoice_id;
             $bill->is_invoiced = 1;
 
             $bill->save();

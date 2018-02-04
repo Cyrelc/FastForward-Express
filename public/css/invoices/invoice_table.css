@@ -1,0 +1,77 @@
+@page {
+    margin: 100px 40px;
+}
+br {
+    display: block;
+    margin: 10px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+thead {
+	border-bottom: 2px solid black;
+}
+table.totals {
+	width: auto;
+	float: right;
+	background: #D3D3D3;
+}
+table.totals td {
+	padding: 10px;
+	color: black;
+	font-size: 16;
+	text-align: right;
+}
+.bill_list tr:nth-child(even) {
+	background: #d6e0f5;
+}
+.left {
+    float: left;
+}
+.center {
+    text-align: center;
+}
+.right, td.amount {
+	text-align: right;
+}
+.bill_list tr.subtotal {
+	border-top: 2px black solid;
+    background: #9596c4;
+    color: white;
+    font-size: 14;
+}
+table.quick_reference {
+    float: right;
+    border: grey solid;
+    text-align: center;
+}
+.quick_reference td {
+    border: grey solid;
+}
+.text-left {
+    padding-left: 5%;
+    text-align:left;
+}
+.text-right {
+    padding-right: 5%;
+    text-align:right;
+}
+td.basic {
+    background: #ADD8E6 solid;
+}
+td.warn {
+    background: orange;
+}
+.header {
+    position: fixed;
+    top: -90px;
+}
+.footer {
+    bottom: -15px;
+    position: fixed;
+    font-size: 10;
+}
+.footer .pagenum:before {
+    content: counter(page);
+}

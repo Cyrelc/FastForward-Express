@@ -48,57 +48,34 @@
 				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
 			}
 
-			$parent_id = $model->invoice->account_id;
-			while (!is_null($parent_id)) {
-				$parent = $accountRepo->GetById($parent_id);
-				array_push($model->parents, $parent);
-				$parent_id = $parent->parent_account_id;
-			}
-			$model->parents[0]->billing_address = $addressRepo->GetById($model->parents[0]->billing_address_id);
-			$model->parents[0]->shipping_address = $addressRepo->GetById($model->parents[0]->shipping_address_id);
+			$model->parent = $accountRepo->GetById($model->invoice->account_id);
+
+			$model->parent->shipping_address = $addressRepo->GetById($model->parent->shipping_address_id);
+			if(isset($model->parent->billing_address_id) && $model->parent->billing_address_id != '')
+				$model->parent->billing_address = $addressRepo->GetById($model->parent->billing_address_id);
+			else
+				$model->parent->billing_address = $model->parent->shipping_address;
 
 			$sort_options = $invoiceRepo->GetSortOrderById($model->invoice->account_id);
-			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup' => 'pickup_address_name', 'Delivery' => 'delivery_address_name', 'Amount' => 'amount');
+			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name', 'Amount' => 'amount');
 			$bills = $billRepo->GetByInvoiceId($id, $sort_options);
 
-			$subtotals = array();
-			foreach($sort_options as $option)
-				if($option->subtotal) {
-					array_push($subtotals, array('field' => $option->database_field_name, 'current' => '', 'tally' => 0));
+			foreach($bills as $account_id => $bill) {
+				$table = $model->tables[$account_id] = new InvoiceTable();
+				$model->tables[$account_id]->charge_account_name = $bill[0]->charge_account_name;
+				$model->tables[$account_id]->charge_account_id = $bill[0]->charge_account_id;
+				foreach($bill as $current) {
+					$line = new InvoiceLine();
+					$table->bill_subtotal += $current->amount + $current->interliner_amount;
+					$line->amount = number_format($current->amount + $current->interliner_amount, 2);
+					$line->is_subtotal = false;
+					$list = array('date', 'bill_number', 'pickup_address_name', 'delivery_address_name');
+					foreach($list as $item)
+						$line->$item = $current->$item;
+					array_push($table->lines, $line);
 				}
-
-			foreach($bills as $bill) {
-				$line = new InvoiceLine();
-				foreach($subtotals as $key => $value)
-					if($bill[$value['field']] === $value['current'])
-						$subtotals[$key]['tally'] += $bill->amount + $bill->interliner_amount;
-					else {
-						if($value['tally'] != 0) {
-							$line->amount = number_format($value['tally'], 2);
-							$line->is_subtotal = true;
-							$temp = $value['field'];
-							$line->$temp = $value['current'];
-							array_push($model->table, $line);
-							$line = new InvoiceLine();
-						}
-						$subtotals[$key]['current'] = $bill[$value['field']];
-						$subtotals[$key]['tally'] = $bill->amount + $bill->interliner_amount;
-					}
-				foreach($model->headers as $key => $value)
-					if($key == 'Amount')
-						$line->amount = number_format($bill->amount + $bill->interliner_amount, 2);
-					else
-						$line->$value = $bill[$value];
-				array_push($model->table, $line);
+				$table->bill_subtotal = number_format($table->bill_subtotal, 2);
 			}
-			
-			foreach($subtotals as $key => $value) {
-				$line = new InvoiceLine();
-				$line->amount = number_format($value['tally'], 2);
-				$line->is_subtotal = true;
-				array_push($model->table, $line);
-			}
-
 			return $model;
 		}
 
@@ -150,5 +127,4 @@
 
 			return $model;
 		}
-
 	}

@@ -6,7 +6,7 @@ class InvoiceViewModel {
     public $parents = array();
     public $bill_count;
     public $headers = array();
-    public $table = array();
+    public $tables = array();
     public $amount;
     public $tax;
     public $total;
