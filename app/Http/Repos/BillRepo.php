@@ -2,6 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Bill;
+use DB;
 
 class BillRepo {
 
@@ -17,9 +18,31 @@ class BillRepo {
 	    return $bill;
     }
 
-    public function GetByInvoiceId($id) {
-        $bills = Bill::where('invoice_id', '=', $id)->get();
+    public function GetByInvoiceId($id, $sort_options) {
+        $account_ids = Bill::where('invoice_id', $id)->groupBy('charge_account_id')->pluck('charge_account_id');
+        $bills = array();
+        foreach($account_ids as $account_id) {
+            $bills_by_account = Bill::where('invoice_id', '=', $id)
+            ->where('charge_account_id', $account_id)
+            ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+            ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->select('bill_id',
+            'amount',
+            'interliner_amount',
+            'bill_number',
+            'date',
+            'charge_account_id',
+            'pickup.name as pickup_address_name',
+            'delivery.name as delivery_address_name',
+            'accounts.name as charge_account_name');
+        
+            foreach($sort_options as $option) {
+                $bills_by_account->orderBy($option->database_field_name);
+            }
 
+            $bills[$account_id] = $bills_by_account->get();
+        }
         return $bills;
     }
 

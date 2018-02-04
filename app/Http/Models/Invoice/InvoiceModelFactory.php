@@ -43,22 +43,39 @@
 			$billRepo = new Repos\BillRepo();
 
 			$model->invoice = $invoiceRepo->GetById($id);
-
-			$parent_id = $model->invoice->account_id;
-			while (!is_null($parent_id)) {
-				$parent = $accountRepo->GetById($parent_id);
-				array_push($model->parents, $parent);
-				$parent_id = $parent->parent_account_id;
+			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing');
+			foreach ($invoice_numbers as $identifier){
+				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
 			}
 
-			$bills = $billRepo->GetByInvoiceId($id);
-			foreach ($bills as $bill) {
-				$bill_model = new Bill\BillViewModel();
-				$bill_model->bill = $bill;
-				$bill_model->charge_account_name = $accountRepo->GetById($bill->charge_account_id)->name;
-				array_push($model->bills, $bill_model);
-			}
+			$model->parent = $accountRepo->GetById($model->invoice->account_id);
 
+			$model->parent->shipping_address = $addressRepo->GetById($model->parent->shipping_address_id);
+			if(isset($model->parent->billing_address_id) && $model->parent->billing_address_id != '')
+				$model->parent->billing_address = $addressRepo->GetById($model->parent->billing_address_id);
+			else
+				$model->parent->billing_address = $model->parent->shipping_address;
+
+			$sort_options = $invoiceRepo->GetSortOrderById($model->invoice->account_id);
+			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name', 'Amount' => 'amount');
+			$bills = $billRepo->GetByInvoiceId($id, $sort_options);
+
+			foreach($bills as $account_id => $bill) {
+				$table = $model->tables[$account_id] = new InvoiceTable();
+				$model->tables[$account_id]->charge_account_name = $bill[0]->charge_account_name;
+				$model->tables[$account_id]->charge_account_id = $bill[0]->charge_account_id;
+				foreach($bill as $current) {
+					$line = new InvoiceLine();
+					$table->bill_subtotal += $current->amount + $current->interliner_amount;
+					$line->amount = number_format($current->amount + $current->interliner_amount, 2);
+					$line->is_subtotal = false;
+					$list = array('date', 'bill_number', 'pickup_address_name', 'delivery_address_name');
+					foreach($list as $item)
+						$line->$item = $current->$item;
+					array_push($table->lines, $line);
+				}
+				$table->bill_subtotal = number_format($table->bill_subtotal, 2);
+			}
 			return $model;
 		}
 
@@ -89,7 +106,7 @@
 				$parent_id = $acctRepo->GetById($parent_id)->parent_account_id;
 			}
 
-			$model->sort_options = $invoiceRepo->getSortOrderById($id);
+			$model->sort_options = $invoiceRepo->GetSortOrderById($id);
 
 			return $model;
 		}
@@ -110,5 +127,4 @@
 
 			return $model;
 		}
-
 	}

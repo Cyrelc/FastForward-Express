@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
 use DB;
-
+use View;
+use PDF;
 use App\Http\Requests;
-
 use App\Http\Repos;
 use App\Http\Models\Invoice;
+use App\Http\Services;
 
 class InvoiceController extends Controller {
     public function __construct() {
@@ -120,5 +122,14 @@ class InvoiceController extends Controller {
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function print($invoice_id) {
+        //TODO check if invoice $id exists
+        $invoice_model_factory = new Invoice\InvoiceModelFactory();
+        $model = $invoice_model_factory->GetById($invoice_id);
+        $is_pdf = 1;
+        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
+        return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 }
