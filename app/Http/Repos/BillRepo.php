@@ -18,7 +18,8 @@ class BillRepo {
 	    return $bill;
     }
 
-    public function GetByInvoiceId($id, $sort_options) {
+    public function GetByInvoiceId($id) {
+        $invoiceRepo = new InvoiceRepo();
         $account_ids = Bill::where('invoice_id', $id)->groupBy('charge_account_id')->pluck('charge_account_id');
         $bills = array();
         foreach($account_ids as $account_id) {
@@ -33,10 +34,12 @@ class BillRepo {
             'bill_number',
             'date',
             'charge_account_id',
+            'charge_reference_value',
             'pickup.name as pickup_address_name',
             'delivery.name as delivery_address_name',
             'accounts.name as charge_account_name');
-        
+
+			$sort_options = $invoiceRepo->GetSortOrderById($account_id);
             foreach($sort_options as $option) {
                 $bills_by_account->orderBy($option->database_field_name);
             }

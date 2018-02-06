@@ -39,11 +39,11 @@
 	<div class='col-lg-6'>
 		<ul class='list-group' id='sort_order_list'>
 		@foreach($model->sort_options as $option)
-			@if($option->can_be_subtotaled)
-				<li class='list-group-item' name='{{$option->database_field_name}}' value='{{$option->invoice_sort_option_id}}'>{{$option->friendly_name}}<label>Subtotal?<input type='checkbox' name='subtotal_{{$option->database_field_name}}' {{$option->subtotal == 1 ? 'checked' : ''}}/></label></li>
-			@else
-				<li class='list-group-item' name='{{$option->database_field_name}}' value='{{$option->invoice_sort_option_id}}'>{{$option->friendly_name}}</li>
-			@endif
+			<li class='list-group-item' name='{{$option->database_field_name}}' value='{{$option->invoice_sort_option_id}}'>{{$option->friendly_name}}
+				@if($option->can_be_subtotaled)
+					<label>Subtotal?<input type='checkbox' name='subtotal_{{$option->database_field_name}}' {{$option->subtotal == 1 ? 'checked' : ''}}/></label>
+				@endif
+			</li>
 		@endforeach
 		</ul>
 	</div>

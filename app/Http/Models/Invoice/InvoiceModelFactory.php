@@ -56,22 +56,23 @@
 			else
 				$model->parent->billing_address = $model->parent->shipping_address;
 
-			$sort_options = $invoiceRepo->GetSortOrderById($model->invoice->account_id);
-			$model->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name', 'Amount' => 'amount');
-			$bills = $billRepo->GetByInvoiceId($id, $sort_options);
+			$bills = $billRepo->GetByInvoiceId($id);
 
 			foreach($bills as $account_id => $bill) {
 				$table = $model->tables[$account_id] = new InvoiceTable();
 				$model->tables[$account_id]->charge_account_name = $bill[0]->charge_account_name;
 				$model->tables[$account_id]->charge_account_id = $bill[0]->charge_account_id;
+				$model->tables[$account_id]->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name');
+				if($accountRepo->GetById($account_id)->uses_custom_field)
+					$model->tables[$account_id]->headers[$accountRepo->GetById($account_id)->custom_field] = 'charge_reference_value';
+				$model->tables[$account_id]->headers['Amount'] = 'amount';
 				foreach($bill as $current) {
 					$line = new InvoiceLine();
 					$table->bill_subtotal += $current->amount + $current->interliner_amount;
 					$line->amount = number_format($current->amount + $current->interliner_amount, 2);
 					$line->is_subtotal = false;
-					$list = array('date', 'bill_number', 'pickup_address_name', 'delivery_address_name');
-					foreach($list as $item)
-						$line->$item = $current->$item;
+					foreach($model->tables[$account_id]->headers as $friendly_name => $db_name)
+						$line->$db_name = $current->$db_name;
 					array_push($table->lines, $line);
 				}
 				$table->bill_subtotal = number_format($table->bill_subtotal, 2);
