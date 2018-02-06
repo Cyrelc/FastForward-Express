@@ -2,6 +2,7 @@
 namespace app\Http\Models\Invoice;
 
 class InvoiceTable {
+    public $headers = array();
     public $charge_account_id;
     public $charge_account_name;
     public $lines = array();

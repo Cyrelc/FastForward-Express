@@ -68,7 +68,7 @@
     <table class='bill_list'>
         <thead>
             <tr>
-                @foreach($model->headers as $key => $value)
+                @foreach($table->headers as $key => $value)
                     <td class='{{$value}}'> {{$key}} </td>
                 @endforeach
             </tr>
@@ -80,14 +80,14 @@
                 @else
                     <tr>
                 @endif
-                @foreach($model->headers as $key => $value)
+                @foreach($table->headers as $key => $value)
                     <td class='{{$value}}'> {{$row->$value}} </td>
                 @endforeach
                 </tr>
             @endforeach
             @if(count($model->tables) > 1)
                 <tr class='subtotal'> 
-                    @for($i = 0; $i < count($model->headers) - 2; $i++)
+                    @for($i = 0; $i < count($table->headers) - 2; $i++)
                         <td></td>
                     @endfor
                     <td class='right'>Subtotal</td>
