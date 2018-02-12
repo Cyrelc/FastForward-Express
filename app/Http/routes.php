@@ -48,6 +48,9 @@ Route::group(
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
 
+            Route::get('/chargebacks', 'ChargebackController@manage');
+            Route::post('/chargebacks/store', 'ChargebackController@store');
+
             Route::get('/employees', 'EmployeeController@index');
             Route::get('/employees/create', 'EmployeeController@create');
             Route::post('/employees/store', 'EmployeeController@store');

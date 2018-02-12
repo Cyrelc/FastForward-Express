@@ -51,6 +51,7 @@
                             <ul class="dropdown-menu">
                                 <li><a href="/employees"><i class="fa fa-list"></i> List</a></li>
                                 <li><a href="/employees/create"><i class="fa fa-plus-square-o"></i> New</a></li>
+                                <li><a href='/chargebacks'><i class='fa fa-tag'></i> Chargebacks</a></li>
                             </ul>
                         </li>
                         <li class="dropdown" disabled>
