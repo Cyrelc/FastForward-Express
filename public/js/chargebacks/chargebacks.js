@@ -1,7 +1,7 @@
 $(document).ready(function(){
     dateInput('start_date');
 
-    $('#continuous').change(function(){
+    $('#continuous').change(function() {
         if(this.checked)
             $('#charge_count').attr('disabled', 'disabled');
         else 
@@ -9,9 +9,16 @@ $(document).ready(function(){
     });
 });
 
+function setDeactivateId(id) {
+    $("#deactivate_button").attr('onclick', 'deactivate(' + id + ')');
+}
+
 function submitChargeback() {
     var data = $('#chargeback_create_form').serialize();
-
+//manually include "employees" on this form if entry is missing for validation later. See validation rules
+    if(!data.includes('employees'))
+        data += '&employees=';
+    
     $.ajax({
         'url': '/chargebacks/store',
         'type': 'POST',
@@ -21,13 +28,68 @@ function submitChargeback() {
             toastr.success('Chargebacks created successfully');
             $('#chargeback_create_form').trigger('reset');
         },
-		'error': function(response){
-			var errorText = '';
-			for(var key in response.responseJSON){
-				errorText += response.responseJSON[key][0] + '</br>';
-			}
-			toastr.clear();
-			toastr.error(errorText, 'Errors', {'timeOut' : 0, 'extendedTImeout' : 0});
-		}
+        'error': function(response) {
+            showErrors(response);
+        }
     });
+}
+
+function updateChargeback(id) {
+    var data = $('#chargeback_' + id + ' input').serialize();
+
+    $.ajax({
+        'url': '/chargebacks/edit/' + id,
+        'type': 'POST',
+        'data': data,
+        'success': function() {
+            toastr.clear();
+            toastr.success('Chargeback ' + id + ' was successfully updated');
+        },
+        'error': function(response) {
+            showErrors(response);
+        }
+    });
+}
+
+function updateChargebacksList() {
+    var contentDiv = $('#manage');
+
+    $.ajax({
+        'url': '/chargebacks/edit',
+        'type': 'GET',
+        'success': function(response) {
+			toastr.clear();
+            contentDiv.html(response);
+        },
+        'error': function(response) {
+            showErrors(response);
+        }
+    });
+}
+
+function deactivate(id) {
+    $.ajax({
+        'url': '/chargebacks/deactivate/' + id,
+        'type': 'POST',
+        'data': {'_token' : $('#_token').val()},
+        'success': function() {
+            $('#deactivate_modal').modal('hide');
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+            toastr.clear();
+            toastr.success('Chargeback ' + id + ' was successfully deactivated');
+            updateChargebacksList();
+        }, 
+        'error': function(response) {
+            showErrors(response);
+        }
+    })
+}
+
+function showErrors(response) {
+    var errorText = '';
+    for(var key in response.responseJSON)
+        errorText += response.responseJSON[key][0] + '</br>';
+    toastr.clear();
+    toastr.error(errorText, 'Errors', {'timeOut' : 0, 'extendedTImeout': 0});
 }

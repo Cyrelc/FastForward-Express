@@ -20,12 +20,12 @@
 
 <ul class='nav nav-tabs'>
     <li class='active'><a data-toggle='tab' href='#new'>New Chargeback</a></li>
-    <li><a data-toggle='tab' href='#manage'>Manage Chargebacks</a></li>
+    <li><a data-toggle='tab' href='#manage' onclick='updateChargebacksList()'>Manage Chargebacks</a></li>
 </ul>
-
-<div class='tab-content clearfix well'>
-    <div id='new' class='tab-pane fade in active'>
-        <form id='chargeback_create_form'>
+<form id='chargeback_create_form'>
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <div class='tab-content clearfix well'>
+        <div id='new' class='tab-pane fade in active'>
             <div class='col-md-3 bottom15'>
                 <div class='input-group'>
                     <span class='input-group-addon'>Name</span>
@@ -78,7 +78,6 @@
         </form>
     </div>
     <div id='manage' class='tab-pane fade in'>
-        <h4>TABLE OF CHARGEBACKS TO MANAGE GOES HERE</h4>
     </div>
 </div>
 @endsection
