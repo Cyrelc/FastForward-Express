@@ -19,21 +19,7 @@ class ManifestsTableSeeder extends Seeder
                 "end_date" => new Carbon\Carbon('last day of last month')
             ]);
 
-            DB::table('manifest_modifications')->insert([
-                "manifest_id" => $mid,
-                "modification_id" => factory(App\Modification::class)->create([
-                    "comment" => "Created manifest"
-                ])->modification_id
-            ]);
-
             $iid = factory(App\Invoice::class)->create()->invoice_id;
-
-            DB::table('invoice_modifications')->insert([
-                "invoice_id" => $iid,
-                "modification_id" => factory(App\Modification::class)->create([
-                    "comment" => "Created invoice"
-                ])->modification_id
-            ]);
 
             $invoiceTotal = 0;
             $driverId = rand(1, 12);
@@ -137,13 +123,6 @@ class ManifestsTableSeeder extends Seeder
                                 "amount" => $amount,
                             ])->payment_id;
 
-                            DB::table('payment_modifications')->insert([
-                                "payment_id" => $pid,
-                                "modification_id" => factory(App\Modification::class)->create([
-                                    "comment" => "Created payment"
-                                ])->modification_id
-                            ]);
-
                             $invoiceTotal -= $amount;
 
                             if ($invoiceTotal < 0)
@@ -156,25 +135,12 @@ class ManifestsTableSeeder extends Seeder
                             "amount" => $invoiceTotal,
                         ])->payment_id;
 
-                        DB::table('payment_modifications')->insert([
-                            "payment_id" => $pid,
-                            "modification_id" => factory(App\Modification::class)->create([
-                                "comment" => "Created payment"
-                            ])->modification_id
-                        ]);
                     } else {
                         //"Accidentally" overpay
                         $pid = factory(App\Payment::class)->create([
                             "invoice_id" => $iid,
                             "amount" => $invoiceTotal + 30,
                         ])->payment_id;
-
-                        DB::table('payment_modifications')->insert([
-                            "payment_id" => $pid,
-                            "modification_id" => factory(App\Modification::class)->create([
-                                "comment" => "Created payment"
-                            ])->modification_id
-                        ]);
                     }
                 }
             }

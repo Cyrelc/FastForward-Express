@@ -24,6 +24,12 @@ class EmployeeRepo {
         return $employeesWhoAreDrivers;
     }
 
+    public function ListAllActive() {
+        $activeEmployees = Employee::where('active', true)->get();
+
+        return $activeEmployees;
+    }
+
     public function GetById($id) {
         $employee = Employee::where('employee_id', '=', $id)->first();
 
