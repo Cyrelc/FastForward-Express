@@ -116,12 +116,25 @@ class BillRepo {
         return $bills[0]->bill_count;
     }
 
-    public function CountByDriver($driverId) {
-	    $bills = \DB::table("bills")->select(\DB::raw('count(bill_id) as bill_count'))
-            ->where('pickup_driver_id', '=', $driverId)
-            ->orWhere('delivery_driver_id', '=', $driverId)
-            ->get();
+    public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
+        $count = Bill::whereDate('date', '>=', $start_date)
+                ->whereDate('date', '<=', $end_date)
+                ->where(function($query) use ($driver_id) {
+                    $query->where('pickup_driver_id', '=', $driver_id)
+                    ->where('is_pickup_manifested', false)
+                    ->orWhere('delivery_driver_id', '=', $driver_id)
+                    ->where('is_delivery_manifested', false);
+                })
+                ->count();
 
-	    return $bills[0]->bill_count;
+        return $count;
+    }
+
+    public function CountByDriver($driverId) {
+	    $count = Bill::where('pickup_driver_id', '=', $driverId)
+            ->orWhere('delivery_driver_id', '=', $driverId)
+            ->count();
+
+	    return $count;
     }
 }
