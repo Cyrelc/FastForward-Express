@@ -15,8 +15,7 @@ class ManifestsTableSeeder extends Seeder
         
         for($i = 0; $i < 20; $i++) {
             $mid = DB::table('manifests')->insertGetId([
-                "start_date" => new Carbon\Carbon('first day of last month'),
-                "end_date" => new Carbon\Carbon('last day of last month')
+                "date" => new Carbon\Carbon('first day of last month'),
             ]);
 
             $iid = factory(App\Invoice::class)->create()->invoice_id;
