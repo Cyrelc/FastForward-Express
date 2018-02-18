@@ -29,16 +29,14 @@ class ManifestModelFactory{
 
         $model = new DriverListModel();
 
-        $model->drivers = $driverRepo->ListAll();
-        for($i = 0; $i < count($model->drivers); $i ++) {
-            $driver = $model->drivers[$i];
+        $drivers = $driverRepo->ListAll();
+        foreach($drivers as $driver) {
             $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->driver_id, date('Y-m-d', strtotime($start_date)), date('Y-m-d', strtotime($end_date)));
-            if($driver->bill_count == 0) {
-                unset($model->drivers[$i]);
+            if($driver->bill_count == 0)
                 continue;
-            }
             $driver->employee = $employeeRepo->GetById($driver->employee_id);
             $driver->contact = $contactRepo->GetById($driver->employee->contact_id);
+            array_push($model->drivers, $driver);
         }
 
         return $model;

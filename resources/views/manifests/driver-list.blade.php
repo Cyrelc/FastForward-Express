@@ -5,7 +5,7 @@
     <table id="driver_preview_table" name="driver_preview_table" style="width:100%">
         <thead>
             <tr>
-                <th>Manifest?</th>s
+                <th>Manifest?</th>
                 <th>Employee Number</th>
                 <th>Driver</th>
                 <th>Number of Bills Matched</th>
@@ -14,7 +14,7 @@
         <tbody>
             @foreach($model->drivers as $driver)
                 <tr>
-                    <td><input type='checkbox' checked value='{{$driver->driver_id}}' /></td>
+                    <td><input type='checkbox' checked name='checkboxes[{{$driver->driver_id}}]' value='{{$driver->driver_id}}' /></td>
                     <td>{{$driver->employee->employee_number}}</td>
                     <td>{{$driver->contact->first_name}} {{$driver->contact->last_name}}</td>
                     <td>{{$driver->bill_count}}</td>

@@ -16,8 +16,37 @@ function getDriversToManifest() {
             toastr.clear();
             $('#driver_list').html(response);
         },
-        'error': function() {
-
+        'error': function(response) {
+            var errorText = '';
+            for(var key in response.responseJSON){
+                errorText += response.responseJSON[key][0] + '</br>';
+            }
+            toastr.error(errorText, 'Errors', {'timeOut': 0, 'extendedTImeout': 0});
         }
     });
+}
+
+function generateManifests(){
+	var data = $('#manifest-form').serialize();
+
+	$.ajax({
+		'url': '/manifests/store',
+		'type': 'POST',
+		'data': data,
+		'success': function(response) {
+			toastr.success(response, 'Success', {
+				'progressBar': true,
+				'positionClass': 'toast-top-full-width',
+				'showDuration': 500,
+				// 'onHidden': function(){location.replace('/manifests')}
+			})
+		},
+		'error': function(response){
+            var errorText = '';
+            for(var key in response.responseJSON){
+                errorText += response.responseJSON[key][0] + '</br>';
+            }
+            toastr.error(errorText, 'Errors', {'timeOut': 0, 'extendedTImeout': 0});
+        }
+	});
 }

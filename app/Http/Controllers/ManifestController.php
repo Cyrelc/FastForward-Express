@@ -21,6 +21,45 @@ class ManifestController extends Controller {
         $model = $manifestModelFactory->GetDriverListModel($req->start_date, $req->end_date);
         return view('manifests.driver-list', compact('model'));
     }
+
+    public function store(Request $req) {
+        DB::beginTransaction();
+        try{
+            $validationRules = [];
+            $validationMessages = [];
+
+            if(count($req->checkboxes) < 1) {
+                $validationRules = array_merge($validationRules, ['drivers' => 'required']);
+                $validationMessages = array_merge($validationMessages, ['drivers.required' => 'You must select at least one driver to manifest']);
+            }
+
+            $this->validate($req, $validationRules, $validationMessages);
+
+            $manifestRepo = new Repos\ManifestRepo();
+
+            $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
+            $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+
+            $drivers = array();
+            foreach($req->checkboxes as $driver)
+                array_push($drivers, $driver);
+
+            $manifestRepo->create($drivers, $start_date, $end_date);
+
+            DB::commit();
+
+            return;
+            
+        } catch(Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+    }
 }
 
 ?>

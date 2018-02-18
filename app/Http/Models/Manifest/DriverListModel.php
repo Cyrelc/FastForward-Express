@@ -2,7 +2,7 @@
 namespace app\Http\Models\Manifest;
 
 class DriverListModel {
-    public $drivers;
+    public $drivers = array();
 }
 
 ?>
