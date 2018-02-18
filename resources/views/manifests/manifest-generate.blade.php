@@ -28,7 +28,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Start Date: </span>
-                <input type='text' id="start_date" class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}" />
+                <input type='text' id="start_date" onblur='getDriversToManifest()' class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}" />
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -39,21 +39,18 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">End Date: </span>
-                <input type='text' id="end_date" class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}" />
+                <input type='text' id="end_date" onblur='getDriversToManifest()' class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}" />
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
             </div>
-        </div>
-        <div class='text-center'>
-            <button type='button' class='btn btn-info' onclick="getDriversToManifest()" >Update Driver List</button>
         </div>
 <!-- preview list -->
         <script type="text/javascript">getDriversToManifest();</script>
         </hr>
         <div class='col-md-12' id='driver_list'>
         </div>
-        <div class='text-center'>
+        <div class='col-md-12 text-center'>
             <button type='button' class='btn btn-primary' onclick='generateManifests()'>Submit</button>
         </div>
     </div>
