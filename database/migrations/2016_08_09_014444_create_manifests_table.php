@@ -14,7 +14,7 @@ class CreateManifestsTable extends Migration
     {
         Schema::create('manifests', function (Blueprint $table) {
             $table->increments('manifest_id');
-            $table->unsignedInteger('driver_id')->nullable();
+            $table->unsignedInteger('driver_id');
             $table->date('start_date');
             $table->date('end_date');
             $table->date('date_run');
