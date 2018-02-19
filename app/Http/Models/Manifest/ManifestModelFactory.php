@@ -4,6 +4,26 @@ namespace App\Http\Models\Manifest;
 use App\Http\Repos;
 
 class ManifestModelFactory{
+    public function ListAll() {
+        $manifestRepo = new Repos\ManifestRepo();
+        $driverRepo = new Repos\DriverRepo();
+        $billRepo = new Repos\BillRepo();
+
+        $model = new ManifestsModel();
+        $manifestViewModels = array();
+        foreach($manifestRepo->ListAll() as $manifest) {
+            $manifestViewModel = new ManifestViewModel();
+            $manifestViewModel->manifest = $manifest;
+            $manifestViewModel->driver_contact = $driverRepo->getContactByDriverId($manifest->driver_id);
+            $manifestViewModel->bill_count = $billRepo->countByManifestId($manifest->manifest_id);
+            array_push($manifestViewModels, $manifestViewModel);
+        }
+
+        $model->manifests = $manifestViewModels;
+
+        return $model;
+    }
+
     public function GetGenerateModel($start_date = null, $end_date = null) {
         if(isset($start_date) && isset($end_date)) {
             $start_date = (new \DateTime($start_date))->format('Y-m-d');

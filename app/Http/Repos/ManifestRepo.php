@@ -38,7 +38,7 @@ class ManifestRepo {
     public function GenerateManifest($driver_id, $start_date, $end_date) {
         $manifest = [
             'driver_id' => $driver_id,
-            'date' => date('Y-m-d'),
+            'date_run' => date('Y-m-d'),
             'start_date' => $start_date,
             'end_date' => $end_date
         ];
@@ -48,6 +48,10 @@ class ManifestRepo {
 
     public function GetById($manifest_id) {
         return Manifest::where('manifest_id', $manifest_id)->first();
+    }
+
+    public function ListAll() {
+        return Manifest::All();
     }
 
     public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {

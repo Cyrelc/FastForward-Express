@@ -22,6 +22,12 @@ class ManifestController extends Controller {
         return view('manifests.driver-list', compact('model'));
     }
 
+    public function index() {
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $model = $manifestModelFactory->ListAll();
+        return view('manifests.manifests', compact('model'));
+    }
+
     public function store(Request $req) {
         DB::beginTransaction();
         try{
@@ -58,8 +64,6 @@ class ManifestController extends Controller {
                 'error' => $e->getMessage()
             ]);
         }
-
     }
 }
-
 ?>
