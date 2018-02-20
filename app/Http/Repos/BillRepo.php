@@ -124,6 +124,15 @@ class BillRepo {
         return $count;
     }
 
+    public function GetByManifestId($manifest_id) {
+        $bills = Bill::where('pickup_manifest_id', $manifest_id)
+            ->orWhere('delivery_manifest_id', $manifest_id)
+            ->orderBy('date')
+            ->get();
+
+        return $bills;
+    }
+
     public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
         $count = Bill::whereDate('date', '>=', $start_date)
                 ->whereDate('date', '<=', $end_date)

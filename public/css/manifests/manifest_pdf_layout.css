@@ -1,0 +1,24 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+thead {
+	border-bottom: 2px solid black;
+}
+#manifest_full tr:nth-child(even) {
+	background: #d6e0f5;
+}
+.right {
+    text-align: right;
+}
+td.basic, td.warn {
+    border: grey solid;
+    text-align: center;
+    margin-bottom: 20px;
+}
+td.basic {
+    background: #ADD8E6;
+}
+td.warn {
+    background: orange;
+}

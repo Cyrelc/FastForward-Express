@@ -28,6 +28,12 @@ class ManifestController extends Controller {
         return view('manifests.manifests', compact('model'));
     }
 
+    public function view($manifest_id) {
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $model = $manifestModelFactory->GetById($manifest_id);
+        return view('manifests.manifest', compact('model'));
+    }
+
     public function store(Request $req) {
         DB::beginTransaction();
         try{
