@@ -38,31 +38,9 @@ class ManifestModelFactory{
         $model->driver = $driverRepo->GetById($model->manifest->driver_id);
         $model->driver->contact = $driverRepo->GetContactByDriverId($model->driver->driver_id);
 
-        $bills = $billRepo->GetByManifestId($manifest_id);
-        foreach($bills as $bill) {
-            $line = new ManifestLine();
-            $line->date = $bill->date;
-            $line->bill_amount = $bill->amount;
-            $line->bill_id = $bill->bill_id;
-            $line->account_name = $accountRepo->GetNameById($bill->charge_account_id);
-            $line->delivery_type = $bill->delivery_type;
-
-            if($bill->pickup_manifest_id == $manifest_id) {
-                $pickup_line = clone($line);
-                $pickup_line->type = 'Pickup';
-                $pickup_line->driver_amount = number_format($bill->amount * $model->driver->pickup_commission, 2);
-                $model->driver_total += $pickup_line->driver_amount;
-                array_push($model->lines, $pickup_line);
-            }
-            if($bill->delivery_manifest_id == $manifest_id) {
-                $line->type = 'Delivery';
-                $line->driver_amount = number_format($bill->amount * $model->driver->delivery_commission, 2);
-                $model->driver_total += $line->driver_amount;
-                array_push($model->lines, $line);
-            }
-        }
-
-        $model->driver_total = number_format($model->driver_total, 2);
+        $model->bills = $billRepo->GetByManifestId($manifest_id);
+        $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
+        $model->driver_total = number_format($billRepo->GetDriverTotalByManifestId($manifest_id), 2);
 
         return $model;
     }

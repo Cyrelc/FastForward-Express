@@ -17,6 +17,32 @@
 </table>
 
 <hr/></br>
+<table id='manifest_overview'>
+    <thead>
+        <tr>
+            <td>Date</td>
+            <td>Pickups</td>
+            <td>Deliveries</td>
+            <td>Pickup Value</td>
+            <td>Delivery Value</td>                                                                                                                   
+            <td class='right'>Driver Income</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($model->overview as $day)
+            <tr>
+                <td>{{$day->date}}</td>
+                <td>{{$day->pickup_count}}</td>
+                <td>{{$day->delivery_count}}</td>
+                <td>{{$day->pickup_amount}}</td>
+                <td>{{$day->delivery_amount}}</td>
+                <td class='right'>{{$day->pickup_amount + $day->delivery_amount}}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+
+<br/><br/><br/>
 
 <table id='manifest_full'>
     <thead>
@@ -31,15 +57,15 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($model->lines as $line)
+        @foreach($model->bills as $bill)
             <tr>
-                <td><a href='/bills/view/{{$line->bill_id}}'>{{$line->bill_id}}</a></td>
-                <td>{{$line->date}}</td>
-                <td>{{$line->account_name}}</td>
-                <td>{{$line->delivery_type}}</td>
-                <td>{{$line->type}}</td>
-                <td class='right'>{{$line->bill_amount}}</td>
-                <td class='right'>{{$line->driver_amount}}</td>
+                <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
+                <td>{{$bill->date}}</td>
+                <td>{{$bill->account_name}}</td>
+                <td>{{$bill->delivery_type}}</td>
+                <td>{{$bill->type}}</td>
+                <td class='right'>{{$bill->amount}}</td>
+                <td class='right'>{{$bill->driver_income}}</td>
             </tr>
         @endforeach
     </tbody>

@@ -125,12 +125,45 @@ class BillRepo {
     }
 
     public function GetByManifestId($manifest_id) {
-        $bills = Bill::where('pickup_manifest_id', $manifest_id)
-            ->orWhere('delivery_manifest_id', $manifest_id)
+        $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('round((amount * pickup_driver_commission), 2) as driver_income'));
+
+        $bills = Bill::where('delivery_manifest_id', $manifest_id)
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('round((amount * delivery_driver_commission), 2) as driver_income'))
+            ->union($pickup_bills)
             ->orderBy('date')
+            ->orderBy('bill_id')
             ->get();
 
         return $bills;
+    }
+
+    public function GetManifestOverviewById($manifest_id) {
+        $bills = Bill::where('pickup_manifest_id', $manifest_id)
+            ->orWhere('delivery_manifest_id', $manifest_id)
+            ->select('date',
+                    DB::raw('sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end) as pickup_amount'),
+                    DB::raw('sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end) as delivery_amount'),
+                    DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
+                    DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
+            ->groupBy('date')
+            ->get();
+
+        return $bills;
+    }
+
+    public function GetDriverTotalByManifestId($manifest_id) {
+        $total = Bill::where('pickup_manifest_id', $manifest_id)
+                ->orWhere('delivery_manifest_id', $manifest_id)
+                ->select(DB::raw('sum(case ' .
+                    'when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then round(amount * (pickup_driver_commission + delivery_driver_commission), 2) ' .
+                    'when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) ' .
+                    'when delivery_manifest_id  = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) end) as total'))
+                ->pluck('total');
+
+        return $total[0];
     }
 
     public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {

@@ -9,7 +9,8 @@ class ManifestViewModel {
     public $driver_total = 0.00;
     public $chargeback_total = 0.00;
     public $driver_income = 0.00;
-    public $lines = array();
+    public $bills;
+    public $overview;
 }
 
 ?>
