@@ -23,8 +23,8 @@
             <td>Date</td>
             <td>Pickups</td>
             <td>Deliveries</td>
-            <td>Pickup Value</td>
-            <td>Delivery Value</td>                                                                                                                   
+            <td>Pickup Income</td>
+            <td>Delivery Income</td>                                                                                                                   
             <td class='right'>Driver Income</td>
         </tr>
     </thead>
