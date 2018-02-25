@@ -18,6 +18,5 @@ class DatabaseSeeder extends Seeder {
         $this->call(CommissionsTableSeeder::class);
         $this->call(InterlinersTableSeeder::class);
         $this->call(BillsTableSeeder::class);
-        $this->call(ManifestsTableSeeder::class);
     }
 }

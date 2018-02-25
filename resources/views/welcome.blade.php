@@ -27,6 +27,7 @@
                                     <ul>
                                         <li>Fix bill pickup/delivery commission</li>
                                         <li>Correct invoice deletion route</li>
+                                        <li>Removed obsolete invoice options table and adjusted seeders</li>
                                     </ul>
                                 </td>
                             </tr>
