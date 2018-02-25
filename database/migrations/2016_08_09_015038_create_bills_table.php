@@ -27,8 +27,8 @@ class CreateBillsTable extends Migration
             $table->string('charge_reference_value')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->string('delivery_reference_value')->nullable();
-            $table->unsignedInteger('pickup_driver_id');
-            $table->unsignedInteger('delivery_driver_id');
+            $table->unsignedInteger('pickup_driver_id')->nullable();
+            $table->unsignedInteger('delivery_driver_id')->nullable();
             $table->float('pickup_driver_commission');
             $table->float('delivery_driver_commission');
             $table->unsignedInteger('interliner_id')->nullable();
