@@ -26,6 +26,7 @@
                                 <td>
                                     <ul>
                                         <li>Fix bill pickup/delivery commission</li>
+                                        <li>Correct invoice deletion route</li>
                                     </ul>
                                 </td>
                             </tr>
