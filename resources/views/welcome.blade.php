@@ -28,6 +28,7 @@
                                         <li>Fix bill pickup/delivery commission</li>
                                         <li>Correct invoice deletion route</li>
                                         <li>Removed obsolete invoice options table and adjusted seeders</li>
+                                        <li>New accounts now autofill billing address name based on Company name (will require ctrl + F5 first time)</li>
                                     </ul>
                                 </td>
                             </tr>
