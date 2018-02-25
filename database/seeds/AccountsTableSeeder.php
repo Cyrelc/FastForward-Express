@@ -86,8 +86,6 @@ class AccountsTableSeeder extends Seeder
                 ]);
             }
 
-            factory(App\InvoiceOption::class)->create(['account_id' => $a->account_id]);
-
             if ($hasSubAccounts) {
                 for($k = 0; $k < rand(1, 5); $k++){
                     $sadr = factory(App\Address::class)->create();
@@ -144,8 +142,6 @@ class AccountsTableSeeder extends Seeder
                             "is_primary" => $primary
                         ]);
                     }
-
-                    factory(App\InvoiceOption::class)->create(['account_id' => $aid]);
                 }
             }
         }

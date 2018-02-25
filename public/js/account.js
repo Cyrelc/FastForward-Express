@@ -81,6 +81,13 @@ $(document).ready(function() {
 		});
 	});
 
+	$('#name').blur(function() {
+		console.log('called');
+		if($('#account-id').val() == '' || $('#account-id').val() != null) {
+			console.log('true');
+			$('#delivery-name').val($('#name').val());
+		}
+	});
 });
 
 function storeAccount(){
