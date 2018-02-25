@@ -60,7 +60,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<a id="delete_button" type="button" class="btn btn-danger" href="/bills/delete/&id&">Delete</a>
+				<a id="delete_button" type="button" class="btn btn-danger" href="/invoices/delete/&id&">Delete</a>
 			</div>
 		</div>
 	</div>
