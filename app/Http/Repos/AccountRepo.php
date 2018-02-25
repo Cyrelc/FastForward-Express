@@ -31,6 +31,12 @@ class AccountRepo {
         return $account;
     }
 
+    public function GetNameById($account_id) {
+        $account = Account::where('account_id', $account_id)->first();
+
+        return $account['name'];
+    }
+
     public function Insert($acct) {
         $new = new Account;
 

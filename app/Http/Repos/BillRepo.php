@@ -116,12 +116,75 @@ class BillRepo {
         return $bills[0]->bill_count;
     }
 
-    public function CountByDriver($driverId) {
-	    $bills = \DB::table("bills")->select(\DB::raw('count(bill_id) as bill_count'))
-            ->where('pickup_driver_id', '=', $driverId)
-            ->orWhere('delivery_driver_id', '=', $driverId)
+    public function CountByManifestId($manifest_id) {
+        $count = Bill::where('pickup_manifest_id', $manifest_id)
+                ->orWhere('delivery_manifest_id', $manifest_id)
+                ->count();
+
+        return $count;
+    }
+
+    public function GetByManifestId($manifest_id) {
+        $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('round((amount * pickup_driver_commission), 2) as driver_income'));
+
+        $bills = Bill::where('delivery_manifest_id', $manifest_id)
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('round((amount * delivery_driver_commission), 2) as driver_income'))
+            ->union($pickup_bills)
+            ->orderBy('date')
+            ->orderBy('bill_id')
             ->get();
 
-	    return $bills[0]->bill_count;
+        return $bills;
+    }
+
+    public function GetManifestOverviewById($manifest_id) {
+        $bills = Bill::where('pickup_manifest_id', $manifest_id)
+            ->orWhere('delivery_manifest_id', $manifest_id)
+            ->select('date',
+                    DB::raw('sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end) as pickup_amount'),
+                    DB::raw('sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end) as delivery_amount'),
+                    DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
+                    DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
+            ->groupBy('date')
+            ->get();
+
+        return $bills;
+    }
+
+    public function GetDriverTotalByManifestId($manifest_id) {
+        $total = Bill::where('pickup_manifest_id', $manifest_id)
+                ->orWhere('delivery_manifest_id', $manifest_id)
+                ->select(DB::raw('sum(case ' .
+                    'when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then round(amount * (pickup_driver_commission + delivery_driver_commission), 2) ' .
+                    'when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) ' .
+                    'when delivery_manifest_id  = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) end) as total'))
+                ->pluck('total');
+
+        return $total[0];
+    }
+
+    public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
+        $count = Bill::whereDate('date', '>=', $start_date)
+                ->whereDate('date', '<=', $end_date)
+                ->where(function($query) use ($driver_id) {
+                    $query->where('pickup_driver_id', '=', $driver_id)
+                    ->where('is_pickup_manifested', false)
+                    ->orWhere('delivery_driver_id', '=', $driver_id)
+                    ->where('is_delivery_manifested', false);
+                })
+                ->count();
+
+        return $count;
+    }
+
+    public function CountByDriver($driverId) {
+	    $count = Bill::where('pickup_driver_id', '=', $driverId)
+            ->orWhere('delivery_driver_id', '=', $driverId)
+            ->count();
+
+	    return $count;
     }
 }

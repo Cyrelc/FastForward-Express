@@ -75,6 +75,12 @@ Route::group(
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
 
+            Route::get('/manifests/generate', 'ManifestController@generate');
+            Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
+            Route::post('/manifests/store', 'ManifestController@store');
+            Route::get('/manifests', 'ManifestController@index');
+            Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
+
             Route::post('/partials/contact/', 'PartialsController@NewContact');
             Route::post('/partials/phone', 'PartialsController@NewPhone');
 

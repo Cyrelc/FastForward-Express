@@ -16,6 +16,16 @@ class DriverRepo {
 		return $driver;
 	}
 
+	public function GetContactByDriverId($driver_id) {
+		$contact = Driver::join('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+			->join('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+			->where('driver_id', $driver_id)
+			->select('first_name', 'last_name', 'contacts.contact_id', 'position')
+			->first();
+
+		return $contact;
+	}
+
 	public function Insert($driver) {
     	$new = new Driver;
 
