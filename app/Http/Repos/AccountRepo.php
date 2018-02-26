@@ -8,9 +8,40 @@ use Illuminate\Support\Facades\DB;
 class AccountRepo {
 
     public function ListAll() {
-        $accounts = Account::All();
+        $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
+            ->join('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
+            ->join('account_contacts', function($join) {
+                $join->on('account_contacts.account_id', '=', 'accounts.account_id')
+                    ->where('account_contacts.is_primary', '=', 1);
+            })
+            ->join('contacts', 'account_contacts.contact_id', '=', 'contacts.contact_id')
+            ->select('accounts.account_id',
+                    'accounts.name',
+                    'accounts.account_number',
+                    'parent.name as parent_name',
+                    'parent.account_id as parent_id',
+                    'accounts.active',
+                    'accounts.invoice_interval',
+                    DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'))
+            ->get();
 
         return $accounts;
+    }
+
+    public function Deactivate($account_id) {
+        $account = Account::where('account_id', $account_id)->first();
+
+        $account->active = false;
+        $account->save();
+        return;
+    }
+
+    public function Activate($account_id) {
+        $account = Account::where('account_id', $account_id)->first();
+
+        $account->active = true;
+        $account->save();
+        return;
     }
 
     public function ListParents() {

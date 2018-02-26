@@ -22,6 +22,18 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1.144</td>
+                                <td>
+                                    <ul>
+                                        <li>Fixed disabling of accounts from accounts list page</li>
+                                        <li>Accounts list view now asynchronous</li>
+                                        <li>Security improvements on account list page (only required information is returned from the server)</li>
+                                        <li>Changed "parent name" in list view to link to parent account</li>
+                                        <li>Changed "account name" in list view to link to account edit</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>1.143</td>
                                 <td>
                                     <ul>

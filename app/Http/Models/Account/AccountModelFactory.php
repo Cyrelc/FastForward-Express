@@ -18,35 +18,6 @@
                 $phoneRepo = new Repos\PhoneNumberRepo();
 
                 $accounts = $acctsRepo->ListAll();
-
-                $avms = array();
-
-                foreach ($accounts as $a) {
-                    $avm = new Account\AccountViewModel();
-
-                    $avm->account = $a;
-                    $addr = $addrRepo->GetById($a->shipping_address_id);
-                    $avm->shippingAddress = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
-                    if(isset($avm->account->billing_address_id)) {
-                        $addr = $addrRepo->GetById($a->billing_address_id);
-                        $avm->billingAddress = $addr->street . ', ' . $addr->city . ', ' . $addr->zip_postal;
-                    }
-                    $avm->contacts = $a->contacts()->get();
-
-                    if (isset($avm->account->parent_account_id))
-                        $avm->account->parent_account = $acctsRepo->GetById($avm->account->parent_account_id)->name;
-
-                    $primaryContact = $contactRepo->GetById($acctsRepo->GetAccountPrimaryContactId($a->account_id)->contact_id);
-                    $avm->primaryContact = $primaryContact->first_name . ' ' . $primaryContact->last_name;
-
-                    // Temporarily removing concept of 'primary' phone numbers
-                    // $avm->primaryPhone = $phoneRepo->GetContactPrimaryPhone($primaryContact->contact_id)->phone_number;
-
-                    array_push($avms, $avm);
-                }
-
-                $model->accounts = $avms;
-                $model->success = true;
             }
             catch(Exception $e) {
 			    //TODO: Error-specific friendly messages
@@ -54,7 +25,7 @@
 			    $model->errorMessage = $e;
             }
 
-			return $model;
+			return $accounts;
 		}
 
 		public function GetById($id) {

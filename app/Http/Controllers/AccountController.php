@@ -22,11 +22,14 @@ class AccountController extends Controller {
         $this->class = new \App\Account;
     }
 
-    public function index() {
-        $factory = new Account\AccountModelFactory();
-        $contents = $factory->ListAll();
+    public function index(Request $req) {
+        return view('accounts.accounts');
+    }
 
-        return view('accounts.accounts', compact('contents'));
+    public function buildTable(Request $req) {
+        $accountModelFactory = new Account\AccountModelFactory();
+        $model = $accountModelFactory->ListAll($req);
+        return json_encode($model);
     }
 
     public function create() {
@@ -198,36 +201,20 @@ class AccountController extends Controller {
         }
     }
 
-    public function action (Request $req) {
-        try {
-            $id = $req->input('id');
-            if (!isset($id)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'ID was not specified.'
-                ]);
-            }
+    public function deactivate($account_id) {
+        $accountRepo = new Repos\AccountRepo();
 
-            $acctRepo = new Repos\AccountRepo();
+        $accountRepo->Deactivate($account_id);
 
-            $acct = $acctRepo->GetById($id);
+        return;
+    }
 
-            if ($req->input('action') == 'deactivate')
-                $acct->active = false;
-            else if ($req->input('action') == 'activate')
-                $acct->active = true;
+    public function activate($account_id) {
+        $accountRepo = new Repos\AccountRepo();
 
-            $acctRepo->Edit($acct);
+        $accountRepo->Activate($account_id);
 
-            return response()->json([
-                'success' => true
-            ]);
-        } catch(Exception $e){
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        return;
     }
 
     public function is_unique(Request $req) {
