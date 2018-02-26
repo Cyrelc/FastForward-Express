@@ -39,8 +39,10 @@ Route::group(
             Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/edit/{id}', 'AccountController@edit');
-            Route::post('/accounts/action', 'AccountController@action');
             Route::post('/accounts/is_unique', 'AccountController@is_unique');
+            Route::get('/accounts/buildTable', 'AccountController@buildTable');
+            Route::post('/accounts/deactivate/{id}', 'AccountController@deactivate');
+            Route::post('/accounts/activate/{id}', 'AccountController@activate');
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
