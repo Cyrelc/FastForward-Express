@@ -53,6 +53,7 @@ td.basic, td.warn {
     border: grey solid;
     text-align: center;
     margin-bottom: 20px;
+    width: 15%;
 }
 td.basic {
     background: #ADD8E6;
