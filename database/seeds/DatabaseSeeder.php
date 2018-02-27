@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder {
 
         $this->call(UsersTableSeeder::class);
 
+        $this->call(InvoiceSortOptionsSeeder::class);
         $this->call(DriversTableSeeder::class);
         $this->call(AccountsTableSeeder::class);
         $this->call(CommissionsTableSeeder::class);

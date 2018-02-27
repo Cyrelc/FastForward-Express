@@ -23,8 +23,8 @@
             <td>Date</td>
             <td>Pickups</td>
             <td>Deliveries</td>
-            <td>Pickup Income</td>
-            <td>Delivery Income</td>                                                                                                                   
+            <td class='right'>Pickup Income</td>
+            <td class='right'>Delivery Income</td>
             <td class='right'>Driver Income</td>
         </tr>
     </thead>
@@ -34,9 +34,9 @@
                 <td>{{$day->date}}</td>
                 <td>{{$day->pickup_count}}</td>
                 <td>{{$day->delivery_count}}</td>
-                <td>{{$day->pickup_amount}}</td>
-                <td>{{$day->delivery_amount}}</td>
-                <td class='right'>{{$day->pickup_amount + $day->delivery_amount}}</td>
+                <td class='right'>{{$day->pickup_amount}}</td>
+                <td class='right'>{{$day->delivery_amount}}</td>
+                <td class='right'>{{number_format($day->pickup_amount + $day->delivery_amount, 2)}}</td>
             </tr>
         @endforeach
     </tbody>

@@ -22,6 +22,18 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1.145</td>
+                                <td>
+                                    <ul>
+                                        <li>added invoice sort options to automatic seeders</li>
+                                        <li>added bill count to invoice views</li>
+                                        <li>bills no longer allow editing after they have been manifested</li>
+                                        <li>fixed number formatting on manifest view to always show two decimal places</li>
+                                        <li>Invoice generate view now automatically refreshes accounts list based on settings</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>1.144</td>
                                 <td>
                                     <ul>
