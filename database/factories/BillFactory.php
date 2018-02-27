@@ -7,7 +7,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         "15Kg Package",
         "20Kg Package",
     ];
-    $amount = rand(10000, 500000)/100;
+    $amount = rand(1000, 50000)/100;
 
     $cash = rand(0, 4);
         $result = [
@@ -15,7 +15,7 @@ $factory->define(App\Bill::class, function (Faker\Generator $faker) {
         "pickup_driver_id" => rand(1, 4),
         "delivery_driver_id" => rand(1, 4),
         "description" => $descriptions[rand(0,3)],
-        "date" => $faker->dateTimeThisYear,
+        "date" => $faker->dateTimeBetween($startDate = '-60 days', $endDate = '+60 days', $timezone = null),
         "amount" => $amount
     ];
 
