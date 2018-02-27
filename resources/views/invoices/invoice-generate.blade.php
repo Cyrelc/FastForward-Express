@@ -27,7 +27,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Invoice Interval: </span>
-                <select class='form-control' id='invoice-interval' name="invoice-interval" placeholder="Select Invoice Interval">
+                <select class='form-control' id='invoice-interval' onblur='getAccountsToInvoice()' name="invoice-interval" placeholder="Select Invoice Interval">
                     @foreach ($model->invoice_intervals as $ii)
                         <option value="{{$ii->value}}">{{$ii->name}}</option>
                     @endforeach
@@ -39,7 +39,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Start Date: </span>
-                <input type='text' id="start_date" class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}"/>
+                <input type='text' id="start_date" onblur='getAccountsToInvoice()' class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -50,7 +50,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">End Date: </span>
-                <input type='text' id="end_date" class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}"/>
+                <input type='text' id="end_date" onblur='getAccountsToInvoice()' class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>

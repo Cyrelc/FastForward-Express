@@ -127,11 +127,11 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('round((amount * pickup_driver_commission), 2) as driver_income'));
+            ->select('bill_id', 'bill_number', 'date', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
 
         $bills = Bill::where('delivery_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('round((amount * delivery_driver_commission), 2) as driver_income'))
+            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
             ->union($pickup_bills)
             ->orderBy('date')
             ->orderBy('bill_id')
@@ -144,8 +144,8 @@ class BillRepo {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)
             ->select('date',
-                    DB::raw('sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end) as pickup_amount'),
-                    DB::raw('sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end) as delivery_amount'),
+                    DB::raw('format(sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end), 2) as pickup_amount'),
+                    DB::raw('format(sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end), 2) as delivery_amount'),
                     DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
                     DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
             ->groupBy('date')
