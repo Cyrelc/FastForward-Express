@@ -43,8 +43,9 @@
 			$billRepo = new Repos\BillRepo();
 
 			$model->invoice = $invoiceRepo->GetById($id);
+			$model->invoice->bill_count = $billRepo->CountByInvoiceId($id);
 			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing');
-			foreach ($invoice_numbers as $identifier){
+			foreach ($invoice_numbers as $identifier) {
 				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
 			}
 

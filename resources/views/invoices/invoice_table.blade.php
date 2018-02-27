@@ -6,13 +6,16 @@
 
 <hr/>
 <table style='overflow: visible'>
-    <td style='width: 60%; text-align: center'>
+    <td style='width: 55%; text-align: center'>
         <h2><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h2>
     </td>
-    <td class='basic'>
+    <td class='basic' >
+        <h4>Bill Count:<br/><br/>{{$model->invoice->bill_count}}</h4>
+    </td>
+    <td class='basic' >
         <h4>Invoice Total:<br/><br/>{{$model->invoice->total_cost}}</h4>
     </td>
-    <td class='warn'>
+    <td class='warn' >
         <h4>Account Balance:<br/><br/>{{$model->invoice->total_cost}}</h4>
     </td>
 </table>
