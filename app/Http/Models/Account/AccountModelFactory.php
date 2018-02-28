@@ -55,6 +55,8 @@
             $model->commissions = [];
             $model->give_commission_1 = false;
             $model->give_commission_2 = false;
+            $model->account->send_bills = 1;
+            $model->account->send_invoices = 1;
 
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
