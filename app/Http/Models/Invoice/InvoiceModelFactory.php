@@ -57,27 +57,27 @@
 			else
 				$model->parent->billing_address = $model->parent->shipping_address;
 
-			$bills = $billRepo->GetByInvoiceId($id);
-
-			foreach($bills as $account_id => $bill) {
-				$table = $model->tables[$account_id] = new InvoiceTable();
-				$model->tables[$account_id]->charge_account_name = $bill[0]->charge_account_name;
-				$model->tables[$account_id]->charge_account_id = $bill[0]->charge_account_id;
-				$model->tables[$account_id]->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name');
-				if($accountRepo->GetById($account_id)->uses_custom_field)
-					$model->tables[$account_id]->headers[$accountRepo->GetById($account_id)->custom_field] = 'charge_reference_value';
-				$model->tables[$account_id]->headers['Amount'] = 'amount';
-				foreach($bill as $current) {
-					$line = new InvoiceLine();
-					$table->bill_subtotal += $current->amount + $current->interliner_amount;
-					$line->amount = number_format($current->amount + $current->interliner_amount, 2);
-					$line->is_subtotal = false;
-					foreach($model->tables[$account_id]->headers as $friendly_name => $db_name)
-						$line->$db_name = $current->$db_name;
-					array_push($table->lines, $line);
+			$model->tables = $billRepo->GetByInvoiceId($id);
+			$subtotal_by = $invoiceRepo->GetSubtotalById($model->parent->account_id);
+			if(count($model->tables) > 1) {
+				foreach($model->tables as $bill_sub_table) {
+					$subtotal_database_field_name = $subtotal_by->database_field_name;
+					$bill_sub_table->subtotal = $billRepo->GetInvoiceSubtotalByField($id, $subtotal_database_field_name, $bill_sub_table->bills[0]->$subtotal_database_field_name);
+					$bill_sub_table->tax = $bill_sub_table->subtotal * 0.05;
+					$bill_sub_table->total = number_format($bill_sub_table->subtotal + $bill_sub_table->tax, 2);
+					$bill_sub_table->subtotal = number_format($bill_sub_table->subtotal, 2);
+					$bill_sub_table->tax = number_format($bill_sub_table->tax, 2);
 				}
-				$table->bill_subtotal = number_format($table->bill_subtotal, 2);
 			}
+			foreach($model->tables as $table) {
+				$table->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name');
+				if($subtotal_by != NULL && $subtotal_by->database_field_name == 'charge_account_id')
+					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'custom_field';
+				else if($model->parent->uses_custom_field)
+					$table->headers[$model->parent->custom_field] = 'custom_field';
+				$table->headers['Amount'] = 'amount';
+			}
+
 			return $model;
 		}
 

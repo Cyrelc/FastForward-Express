@@ -6,7 +6,7 @@
 
 <hr/>
 <table style='overflow: visible'>
-    <td style='width: 55%; text-align: center'>
+    <td style='width: 40%; text-align: center'>
         <h2><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h2>
     </td>
     <td class='basic' >
@@ -64,10 +64,7 @@
 
 <hr/><p>{{$model->parent->invoice_comment}}</p><hr/>
 </br>
-@foreach($model->tables as $table)
-    @if(count($model->tables) > 1)
-        <h4>Sub Location: <a href='/accounts/edit/{{$table->charge_account_id}}'>{{$table->charge_account_name}}</a></h4>
-    @endif
+@foreach($model->tables as $table_key => $table)
     <table class='bill_list'>
         <thead>
             <tr>
@@ -77,30 +74,44 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($table->lines as $row)
-                @if($row->is_subtotal)
-                    <tr class='subtotal'>
-                @else
-                    <tr>
-                @endif
-                @foreach($table->headers as $key => $value)
-                    <td class='{{$value}}'> {{$row->$value}} </td>
-                @endforeach
+            @foreach($table->bills as $bill)
+                <tr>
+                    @foreach($table->headers as $key => $value)
+                        @if($value == 'amount')
+                            <td class='amount'>{{$bill->$value}}</td>
+                        @else
+                            <td>{{$bill->$value}}</td>
+                        @endif
+                    @endforeach
                 </tr>
             @endforeach
-            @if(count($model->tables) > 1)
-                <tr class='subtotal'> 
-                    @for($i = 0; $i < count($table->headers) - 2; $i++)
-                        <td></td>
-                    @endfor
-                    <td class='right'>Subtotal</td>
-                    <td class='right'>{{$table->bill_subtotal}}</td>
-                </tr>
-            @endif
         </tbody>
     </table>
-    <br/>
-    <br/>
+    @if(count($model->tables) > 1)
+<br/>
+<br/>
+    <div class='center'>
+        <h4>Subtotal For {{$table_key}}</h4>
+        <table class='subtotal center'>
+            <tbody>
+                <tr>
+                    <td class='amount'>Bill Cost:</td>
+                    <td class='amount'>{{$table->subtotal}}</td>
+                </tr>
+                <tr>
+                    <td class='amount'>Tax:</td>
+                    <td class='amount'>{{$table->tax}}</td>
+                </tr>
+                <tr>
+                    <td class='amount'>Total:</td>
+                    <td class='amount'>{{$table->total}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    @endif
+<br/>
+<br/>
 @endforeach
 <table class='totals'>
     <tbody>

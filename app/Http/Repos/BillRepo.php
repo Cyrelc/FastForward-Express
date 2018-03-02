@@ -20,32 +20,54 @@ class BillRepo {
 
     public function GetByInvoiceId($id) {
         $invoiceRepo = new InvoiceRepo();
-        $account_ids = Bill::where('invoice_id', $id)->groupBy('charge_account_id')->pluck('charge_account_id');
-        $bills = array();
-        foreach($account_ids as $account_id) {
-            $bills_by_account = Bill::where('invoice_id', '=', $id)
-            ->where('charge_account_id', $account_id)
-            ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
-            ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
-            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id',
-            'amount',
-            'interliner_amount',
-            'bill_number',
-            'date',
-            'charge_account_id',
-            'charge_reference_value',
-            'pickup.name as pickup_address_name',
-            'delivery.name as delivery_address_name',
-            'accounts.name as charge_account_name');
+        $accountRepo = new AccountRepo();
 
-			$sort_options = $invoiceRepo->GetSortOrderById($account_id);
+        $account_id = $invoiceRepo->GetById($id)->account_id;
+
+        $sort_options = $invoiceRepo->GetSortOrderById($account_id);
+        $subtotal_by = $invoiceRepo->GetSubtotalById($account_id);
+
+        $bill_query = Bill::where('invoice_id', $id)
+                ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+                ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+                ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+                ->select('bill_id',
+                DB::raw('format(amount + case when interliner_amount != NULL then interliner_amount else 0 end, 2) as amount'),
+                'bill_number',
+                'date',
+                'charge_account_id',
+                'charge_reference_value',
+                'pickup.name as pickup_address_name',
+                'delivery.name as delivery_address_name',
+                'accounts.name as charge_account_name');
+
+        $bills = array();
+        if($subtotal_by == NULL) {
             foreach($sort_options as $option) {
-                $bills_by_account->orderBy($option->database_field_name);
+                $bill_query->orderBy($option->database_field_name);
             }
 
-            $bills[$account_id] = $bills_by_account->get();
+            $bills[0] = new \stdClass();
+            $bills[0]->bills = $bill_query->get();
+        } else {
+            $subtotal_ids = Bill::where('invoice_id', $id)->groupBy($subtotal_by->database_field_name)->pluck($subtotal_by->database_field_name);
+
+            foreach($subtotal_ids as $subtotal_id) {
+                $subtotal_query = clone $bill_query;
+                $subtotal_query->where($subtotal_by->database_field_name, $subtotal_id);
+                if($subtotal_by->database_field_name == 'charge_account_id') {
+                    $sort_options = $invoiceRepo->GetSortOrderById($subtotal_id);
+                    $subtotal_string = $subtotal_by->friendly_name . ' ' . $accountRepo->GetById($subtotal_id)->name;
+                } else 
+                    $subtotal_string = $subtotal_by->friendly_name . ' ' . $subtotal_id;
+                foreach($sort_options as $option) {
+                    $subtotal_query->orderBy($option->database_field_name);
+                }
+                $bills[$subtotal_string] = new \stdClass();
+                $bills[$subtotal_string]->bills = $subtotal_query->get();
+            }
         }
+
         return $bills;
     }
 
@@ -186,5 +208,20 @@ class BillRepo {
             ->count();
 
 	    return $count;
+    }
+
+    public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
+        $subtotal = Bill::where('invoice_id', $invoice_id)
+            ->where($field_name, $field_value)
+            ->value(DB::raw('sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end)'));
+
+        return $subtotal;
+    }
+
+    public function GetAmountByInvoiceId($invoice_id) {
+        $amount = Bill::where('invoice_id', $invoice_id)
+            ->value(DB::raw('format(sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end), 2)'));
+
+        return $amount;
     }
 }
