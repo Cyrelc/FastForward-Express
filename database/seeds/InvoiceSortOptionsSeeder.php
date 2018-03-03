@@ -18,10 +18,10 @@ class InvoiceSortOptionsSeeder extends Seeder
         ]);
     
         DB::table('invoice_sort_options')->insert([
-            'database_field_name' => 'charge_account_name',
+            'database_field_name' => 'charge_account_id',
             'friendly_name' => 'Child Location',
             'can_be_subtotaled' => true,
-            'contingent_on' => 'can_be_parent'
+            'contingent_field' => 'can_be_parent'
         ]);
 
         DB::table('invoice_sort_options')->insert([
@@ -34,7 +34,7 @@ class InvoiceSortOptionsSeeder extends Seeder
             'database_field_name' => 'charge_reference_value',
             'friendly_name' => 'Custom Field',
             'can_be_subtotaled' => true,
-            'contingent_on' => 'uses_custom_field'
+            'contingent_field' => 'uses_custom_field'
         ]);
     }
 }
