@@ -145,7 +145,6 @@
                         <div class="col-lg-4 bottom15" id="custom-div">
                             <div class="input-group">
                                 <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name" value="{{$model->account->uses_custom_field == 1 ? $model->account->custom_field : ""}}"/>
-                                <span class="input-group-addon"><input type='checkbox' name='custom-tracker-sortable' /> Sortable?</span>
                             </div>
                         </div>
 

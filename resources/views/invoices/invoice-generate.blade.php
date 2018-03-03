@@ -71,6 +71,8 @@
                 <thead>
                     <tr>
                         <th>Invoice?</th>
+                        <th>Account ID</th>
+                        <th>Account Number</th>
                         <th>Account Name</th>
                         <th>Number of Bills Matched</th>
                     </tr>
