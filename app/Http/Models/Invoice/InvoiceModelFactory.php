@@ -70,13 +70,15 @@
 				}
 			}
 			foreach($model->tables as $table) {
-				$table->headers = array('Date' => 'date', 'Bill Number' => 'bill_number', 'Pickup Location' => 'pickup_address_name', 'Delivery Location' => 'delivery_address_name');
+				$table->headers = array('Date' => 'date', 'Bill ID' => 'bill_id', 'Bill Number' => 'bill_number', 'Type' => 'type');
 				if($subtotal_by != NULL && $subtotal_by->database_field_name == 'charge_account_id')
-					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'custom_field';
+					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'charge_reference_value';
 				else if($model->parent->uses_custom_field)
-					$table->headers[$model->parent->custom_field] = 'custom_field';
+					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
 				$table->headers['Amount'] = 'amount';
 			}
+
+			$model->unpaid_invoices = $invoiceRepo->GetWithOutstandingBalanceByAccountId($model->invoice->account_id);
 
 			return $model;
 		}

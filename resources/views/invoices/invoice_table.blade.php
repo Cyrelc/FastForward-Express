@@ -107,6 +107,29 @@
 <br/>
 <br/>
 @endforeach
+@if(count($model->unpaid_invoices) > 0)
+<h4>All Invoices with Balance Owing for Account {{$model->parent->name}}</h4>
+<table class='unpaid_invoices'>
+    <thead>
+        <tr>
+            <td>Invoice ID</td>
+            <td>Date</td>
+            <td>Invoice Total</td>
+            <td>Balance Owing</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($model->unpaid_invoices as $invoice)
+            <tr>
+                <td><a href='/invoices/view/{{$invoice->invoice_id}}'>{{$invoice->invoice_id}}</a></td>
+                <td>{{$invoice->date}}</td>
+                <td>{{$invoice->total_cost}}</td>
+                <td>{{$invoice->balance_owing}}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
 <table class='totals'>
     <tbody>
         <tr>

@@ -14,14 +14,15 @@ thead {
     border-top: 2px solid black;
 }
 table.totals {
-	width: auto;
+    width: auto;
+    max-width: 30%;
 	float: right;
 	background: rgb(37, 37, 37);
 }
 table.totals td {
-	padding: 10px;
+	padding: 5px;
 	color: #D3D3D3;
-	font-size: 18;
+	font-size: 16;
 	text-align: right;
 }
 .bill_list td {
@@ -52,7 +53,7 @@ table.totals td {
     padding-right: 10px;
     padding-top: 2px;
     padding-bottom: 2px;
-    font-size: 18px;
+    font-size: 16px;
 }
 .subtotal td.right {
     border-bottom: 2px solid black;
@@ -91,4 +92,8 @@ td.warn {
 }
 .footer .pagenum:before {
     content: counter(page);
+}
+table.unpaid_invoices {
+    width: 60%;
+    float: left;
 }

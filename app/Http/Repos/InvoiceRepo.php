@@ -171,4 +171,12 @@ class InvoiceRepo {
             $bill->save();
         }
     }
+
+    public function GetWithOutstandingBalanceByAccountId($account_id) {
+        $invoices = Invoice::where('account_id', $account_id)
+            ->where('balance_owing', '>', 0)
+            ->get();
+
+        return $invoices;
+    }
 }
