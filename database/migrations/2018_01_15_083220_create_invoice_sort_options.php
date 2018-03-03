@@ -17,6 +17,7 @@ class CreateInvoiceSortOptions extends Migration
             $table->string('database_field_name')->unique();
             $table->string('friendly_name')->unique();
             $table->boolean('can_be_subtotaled')->default(false);
+            $table->string('contingent_field')->nullable();
         });
     }
 

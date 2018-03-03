@@ -21,34 +21,37 @@ class InvoiceRepo {
         return $invoice;
     }
 
-    public function GetSortOrderById($id) {
-        $account_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
+    public function GetSubtotalById($account_id) {
+        $subtotal = AccountInvoiceSortEntries::where('account_id', $account_id)
+                ->where('subtotal', true)
+                ->join('invoice_sort_options', 'invoice_sort_options.invoice_sort_option_id', '=', 'account_invoice_sort_entries.invoice_sort_option_id')
+                ->first();
 
-        $count = 0;
-        $sort_options = [];
-        $existing_ids = array();
-        foreach($account_sort_options as $option) {
-            $current = InvoiceSortOptions::where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
-            array_push($existing_ids, $current->invoice_sort_option_id);
-            $current->priority = $option->priority;
-            $current->subtotal = $option->subtotal;
-            if($current->database_field_name == 'charge_reference_value')
-                $current->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
-            array_push($sort_options, $current);
-            $count++;
-        }
-        if(Account::where('account_id', $id)->first()->uses_custom_field == 0)
-            $missing_sort_options = InvoiceSortOptions::where('database_field_name', '!=', 'charge_reference_value')->whereNotIn('invoice_sort_option_id', $existing_ids)->get();
-        else
-            $missing_sort_options = InvoiceSortOptions::whereNotIn('invoice_sort_option_id', $existing_ids)->get();
-        foreach($missing_sort_options as $option) {
-            $option->priority = $count;
-            $option->subtotal = false;
+        return isset($subtotal) ? $subtotal : NULL;
+    }
+
+    public function GetSortOrderById($id) {
+        $accountRepo = new AccountRepo();
+
+        $sort_options = InvoiceSortOptions::leftJoin('account_invoice_sort_entries', function($join) use ($id) {
+                    $join->on('account_invoice_sort_entries.invoice_sort_option_id', '=', 'invoice_sort_options.invoice_sort_option_id')
+                        ->where('account_invoice_sort_entries.account_id', '=', $id);
+                })
+                ->orderBy('priority', 'asc')
+                ->get();
+
+        $account = $accountRepo->GetById($id);
+
+        foreach($sort_options as $key => $option) {
+            $contingent_field = $option->contingent_field;
+            if($contingent_field != NULL && $account->$contingent_field == false) {
+                unset($sort_options[$key]);
+                continue;
+            }
             if($option->database_field_name == 'charge_reference_value')
-                $option->friendly_name = Account::select('custom_field')->where('account_id', $id)->first()->custom_field;
-            array_push($sort_options, $option);
-            $count++;
+                $sort_options[$key]->friendly_name = $account->custom_field;
         }
+
         return $sort_options;
     }
 
@@ -117,7 +120,7 @@ class InvoiceRepo {
             else
                 $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * .05, 2), 2, '.', '');
 
-            $invoice->total_cost = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
+            $invoice->total_cost = $invoice->balance_owing = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
 
             $invoice->save();
         }
@@ -167,5 +170,13 @@ class InvoiceRepo {
 
             $bill->save();
         }
+    }
+
+    public function GetWithOutstandingBalanceByAccountId($account_id) {
+        $invoices = Invoice::where('account_id', $account_id)
+            ->where('balance_owing', '>', 0)
+            ->get();
+
+        return $invoices;
     }
 }

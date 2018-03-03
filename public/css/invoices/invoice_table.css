@@ -10,18 +10,24 @@ table {
     border-collapse: collapse;
 }
 thead {
-	border-bottom: 2px solid black;
+    border-bottom: 2px solid black;
+    border-top: 2px solid black;
 }
 table.totals {
-	width: auto;
+    width: auto;
+    max-width: 30%;
 	float: right;
-	background: #D3D3D3;
+	background: rgb(37, 37, 37);
 }
 table.totals td {
-	padding: 10px;
-	color: black;
+	padding: 5px;
+	color: #D3D3D3;
 	font-size: 16;
 	text-align: right;
+}
+.bill_list td {
+    border-left: 1px solid grey;
+    border-right: 1px solid grey;
 }
 .bill_list tr:nth-child(even) {
 	background: #d6e0f5;
@@ -36,10 +42,24 @@ table.totals td {
 	text-align: right;
 }
 .bill_list tr.subtotal {
-	border-top: 2px black solid;
-    background: #9596c4;
-    color: white;
-    font-size: 14;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+    min-width: 30%;
+    background: white;
+}
+.subtotal td {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    font-size: 16px;
+}
+.subtotal td.right {
+    border-bottom: 2px solid black;
+}
+.subtotal td:first-child {
+    border-left: none;
 }
 .text-left {
     padding-left: 5%;
@@ -53,7 +73,7 @@ td.basic, td.warn {
     border: grey solid;
     text-align: center;
     margin-bottom: 20px;
-    width: 15%;
+    width: 20%;
 }
 td.basic {
     background: #ADD8E6;
@@ -72,4 +92,8 @@ td.warn {
 }
 .footer .pagenum:before {
     content: counter(page);
+}
+table.unpaid_invoices {
+    width: 60%;
+    float: left;
 }
