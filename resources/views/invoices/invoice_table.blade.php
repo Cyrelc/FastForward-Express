@@ -85,31 +85,25 @@
                     @endforeach
                 </tr>
             @endforeach
+            @if(count($model->tables) > 1)
+                <tr class='subtotal'>
+                    <td class='center' colspan='{{count($table->headers) - 2}}'>Subtotal for {{$table_key}}</td>
+                    <td class='right'>Bill Subtotal:</td>
+                    <td class='right'>{{$table->subtotal}}</td>
+                </tr>
+                <tr class='subtotal'>
+                    <td colspan='{{count($table->headers) - 2}}'></td>
+                    <td class='right'>Tax:</td>
+                    <td class='right'>{{$table->tax}}</td>
+                </tr>
+                <tr class='subtotal'>
+                    <td colspan='{{count($table->headers) - 2}}'></td>
+                    <td class='right'>Subtotal:</td>
+                    <td class='right'>{{$table->total}}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
-    @if(count($model->tables) > 1)
-<br/>
-<br/>
-    <div class='center'>
-        <h4>Subtotal For {{$table_key}}</h4>
-        <table class='subtotal center'>
-            <tbody>
-                <tr>
-                    <td class='amount'>Bill Cost:</td>
-                    <td class='amount'>{{$table->subtotal}}</td>
-                </tr>
-                <tr>
-                    <td class='amount'>Tax:</td>
-                    <td class='amount'>{{$table->tax}}</td>
-                </tr>
-                <tr>
-                    <td class='amount'>Total:</td>
-                    <td class='amount'>{{$table->total}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    @endif
 <br/>
 <br/>
 @endforeach
