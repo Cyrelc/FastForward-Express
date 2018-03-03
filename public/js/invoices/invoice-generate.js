@@ -26,7 +26,9 @@ function getAccountsToInvoice(){
 	    			var row = $("<tr>");
 
 	    			row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' checked value='" + cur.account_id + "' /></td>");
-	    			row.append("<td>" + cur.name + "</td>");
+					row.append('<td>' + cur.account_id + '</td>');
+					row.append('<td>' + cur.account_number + '</td>');
+					row.append("<td>" + cur.name + "</td>");
 	    			row.append("<td>" + cur.bill_count + "</td>");
 
 	    			$("#account_preview_table tbody").append(row);
