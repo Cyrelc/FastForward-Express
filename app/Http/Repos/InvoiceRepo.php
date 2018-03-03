@@ -120,7 +120,7 @@ class InvoiceRepo {
             else
                 $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * .05, 2), 2, '.', '');
 
-            $invoice->total_cost = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
+            $invoice->total_cost = $invoice->balance_owing = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
 
             $invoice->save();
         }
