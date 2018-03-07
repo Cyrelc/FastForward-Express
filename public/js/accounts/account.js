@@ -1,17 +1,14 @@
 $(document).ready(function() {
-	var checkboxes = '#send-invoices, #send-bills, #sub-location, #give-discount, #give-commission-1, #give-commission-2, #has-fuel-surcharge, #charge-interest, #gst-exempt, #use-custom-field, #existing-account, #can-be-parent, #existing-account';
-	$(checkboxes).change(function() {
+	$('#account_options input:checkbox').change(function() {
 		if(this.checked){
-            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('true');
             $('#' + $(this).attr('data-div')).fadeIn();
 		}
 		else {
-            $("input[name='" + $(this).attr('data-hidden-name') + "']").val('false');
 		    $('#' + $(this).attr('data-div')).fadeOut();
 		}
 	});
 
-	$(checkboxes).each(function (i, e) {
+	$('#account_options input:checkbox').each(function (i, e) {
 	    $("#" + $(this).attr('data-div')).css('display', 'none');
 	});
 
@@ -26,18 +23,13 @@ $(document).ready(function() {
 	comboInput('parent-account-id', 'Select a Parent Account');
 	comboInput('driver,select', 'Select a Driver');
 
-	$("input[data-checkbox-id]").each(function(i,e){
-		var value = $(e).val() == 'true';
-		if (value) {
-			var me = $(e).attr('data-me');
-			var check_box_id = "#" +$(e).attr('data-checkbox-id');
-			if (me) {
-				var body = $(e).attr('data-body');
-				$(check_box_id).prop('checked', true);
-				enableBody(me, body);
-			} else
-				$(check_box_id).click();
-		}
+	$('#account_options input:checkbox').each(function(index, element){
+		var data_div = $('#' + $(element).attr('data-div'));
+		if(data_div != undefined)
+			if($(element).attr('checked') == undefined) 
+				$(data_div).hide();
+			else
+				$(data_div).show();
 	});
 
 	$("#account_number").focusout(function(){
@@ -46,8 +38,6 @@ $(document).ready(function() {
 		var newNum = $("#account_number").val();
 		if (!newNum) return;
 		if (curr && curr == newNum ) return;
-
-		console.log('{{URL::to('/')}}/accounts/is_unique');
 
 		$("#account_number_result").children('i').remove();
 		$("#account_number_result").append('<i class="fa fa-spinner fa-spin text-info"></i>');
@@ -82,16 +72,14 @@ $(document).ready(function() {
 	});
 
 	$('#name').blur(function() {
-		console.log('called');
-		if($('#account-id').val() == '' || $('#account-id').val() != null) {
-			console.log('true');
+		if($('#account-id').val() == '' || $('#account-id').val() == null) {
 			$('#delivery-name').val($('#name').val());
 		}
 	});
 });
 
 function storeAccount(){
-	var data = $('#account_form').serialize();
+	var data = $('#account_form, #account_options').serialize();
 
 	$.ajax({
 		'url': '/accounts/store',
