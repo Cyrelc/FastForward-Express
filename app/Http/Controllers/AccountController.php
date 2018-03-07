@@ -55,8 +55,7 @@ class AccountController extends Controller {
             $contactsCollector = new \App\Http\Collectors\ContactsCollector();
 
             $acctRules = $accountsRules->GetValidationRules($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0,
-                $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation') == 'true', $req->input('shouldGiveDiscount') == 'true',
-                $req->input('useCustomField') == 'true');
+                $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation'), $req->input('giveDiscount'), $req->input('useCustomField') == 'true');
 
             $validationRules = $acctRules['rules'];
             $validationMessages = $acctRules['messages'];

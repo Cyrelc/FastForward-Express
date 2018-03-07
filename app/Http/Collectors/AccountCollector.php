@@ -6,7 +6,7 @@ namespace App\Http\Collectors;
 class AccountCollector {
     public function Collect($req, $billing_id, $delivery_id) {
 
-        $hasDiscount = $req->input('shouldGiveDiscount') == 'true' && $req->input('discount') > 0;
+        $hasDiscount = isset($req->giveDiscount) && $req->input('discount') > 0;
 
         return [
             'rate_type_id'=>1,
@@ -17,19 +17,19 @@ class AccountCollector {
             'stripe_id'=>40,
             'name'=>$req->input('name'),
             'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
-            'send_bills'=>$req->input('send-bills') == "true",
-            'send_invoices' => $req->input('send_invoices') =="true",
-            'has_parent'=>$req->isSubLocation,
-            'parent_account_id'=>($req->isSubLocation == "false") ? null : $req->input('parent-account-id'),
+            'send_bills'=>isset($req->send_bills),
+            'send_invoices' => isset($req->send_invoices),
+            'has_parent'=>isset($req->isSubLocation),
+            'parent_account_id'=>isset($req->isSubLocation) ? $req->input('parent-account-id') : null,
             'has_discount' => $hasDiscount,
             'discount'=> $hasDiscount ? $req->input('discount') : 0,
-            'gst_exempt'=>$req->input('isGstExempt') == "true",
-            'charge_interest'=>$req->input('shouldChargeInterest') == "true",
-            'can_be_parent'=>$req->input('canBeParent') == "true",
+            'gst_exempt'=>isset($req->isGstExempt),
+            'charge_interest'=>isset($req->chargeInterest),
+            'can_be_parent'=>isset($req->canBeParent),
             'active'=>true,
-            'uses_custom_field' => $req->input('useCustomField') == "true",
-            'custom_field' => $req->input('custom-tracker'),
-            'fuel_surcharge' => $req->input('has-fuel-surcharge') == 'true' ? $req->input('fuel-surcharge') / 100 : 0
+            'uses_custom_field' => isset($req->useCustomField),
+            'custom_field' => isset($req->useCustomField) ? $req->input('custom-tracker') : null,
+            'fuel_surcharge' => isset($req->hasFuelSurcharge) ? $req->input('fuel-surcharge') / 100 : 0
         ];
     }
 
