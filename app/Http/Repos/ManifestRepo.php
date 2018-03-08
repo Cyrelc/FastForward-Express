@@ -8,10 +8,12 @@ use App\Manifest;
 class ManifestRepo {
     public function Create($driver_ids, $start_date, $end_date) {
         $manifests = array();
+        $chargebackRepo = new ChargebackRepo();
 
         foreach($driver_ids as $driver_id) {
             $manifest = $this->GenerateManifest($driver_id, $start_date, $end_date);
             $this->ManifestBills($manifest->manifest_id, $driver_id, $start_date, $end_date);
+            $chargebackRepo->RunChargebacksForManifest($manifest);
             array_push($manifests, $manifest);
         }
 
@@ -19,7 +21,7 @@ class ManifestRepo {
     }
 
     public function GetManifestAmountById($manifest_id) {
-        $driverRepo = new Repos\DriverRepo();
+        $driverRepo = new DriverRepo();
         $manifest = $this->GetById($manifest_id);
 
         $driver = $driverRepo->GetById($manifest->driver_id);

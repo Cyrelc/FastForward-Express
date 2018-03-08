@@ -33,9 +33,9 @@ class ChargebackRepo {
         return;
     }
 
-    public function GetActiveByEmployeeId($employee_id) {
-        $chargebacks = Chargeback::where('employee_id', $employee_id)->where('count_remaining', '>', 0)
-                        ->orWhere('employee_id', $employee_id)->where('continuous', true)->get();
+    public function GetActiveByEmployeeId($employee_id, $start_date = '9999-01-01') {
+        $chargebacks = Chargeback::where('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('count_remaining', '>', 0)
+                        ->orWhere('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('continuous', true)->get();
 
         return $chargebacks;
     }
@@ -44,6 +44,42 @@ class ChargebackRepo {
         $chargeback = Chargeback::where('chargeback_id', $chargeback_id)->first();
 
         return $chargeback;
+    }
+
+    public function GetByManifestId($manifest_id) {
+        return Chargeback::where('manifest_id', $manifest_id);
+    }
+
+    public function GetChargebackTotalByManifestId($manifest_id) {
+        $amount = Chargeback::where('manifest_id', $manifest_id)->sum('amount');
+
+        return $amount;
+    }
+
+    public function RunChargebacksForManifest($manifest) {
+        $driverRepo = new DriverRepo();
+        $employee_id = $driverRepo->GetById($manifest->driver_id)->employee_id;
+        $chargebacks = $this->GetActiveByEmployeeId($employee_id, $manifest->date_run);
+        foreach($chargebacks as $chargeback) {
+            if($chargeback->continuous) {
+                $new = $chargeback->replicate();
+                $new->continuous = false;
+                $new->manifest_id = $manifest->manifest_id;
+                $new->save();
+            } else if ($chargeback->count_remaining == 1) {
+                $chargeback->count_remaining = 0;
+                $chargeback->manifest_id = $manifest->manifest_id;
+                $chargeback->save();
+            } else {
+                $chargeback->count_remaining--;
+                $chargeback->save();
+                $new = $chargeback->replicate();
+                $new->count_remaining = 0;
+                $new->manifest_id = $manifest->manifest_id;
+                $new->save();
+            }
+        }
+        return;
     }
 
     public function Update($id, $req) {

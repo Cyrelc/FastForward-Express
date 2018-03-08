@@ -30,6 +30,7 @@ class ManifestModelFactory{
         $driverRepo = new Repos\DriverRepo();
         $addressRepo = new Repos\AddressRepo();
         $accountRepo = new Repos\AccountRepo();
+        $chargebackRepo = new Repos\ChargebackRepo();
 
         $model = new ManifestViewModel();
 
@@ -41,6 +42,9 @@ class ManifestModelFactory{
         $model->bills = $billRepo->GetByManifestId($manifest_id);
         $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
         $model->driver_total = number_format($billRepo->GetDriverTotalByManifestId($manifest_id), 2);
+
+        $model->chargebacks = $chargebackRepo->GetByManifestId($manifest_id);
+        $model->chargeback_total = $chargebackRepo->GetChargebackTotalByManifestId($manifest_id);
 
         return $model;
     }
