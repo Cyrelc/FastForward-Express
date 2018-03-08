@@ -47,7 +47,9 @@ class ChargebackRepo {
     }
 
     public function GetByManifestId($manifest_id) {
-        return Chargeback::where('manifest_id', $manifest_id);
+        return Chargeback::where('manifest_id', $manifest_id)
+                ->select('name', 'gl_code', 'description', DB::raw('format(amount, 2) as amount'))
+                ->get();
     }
 
     public function GetChargebackTotalByManifestId($manifest_id) {
