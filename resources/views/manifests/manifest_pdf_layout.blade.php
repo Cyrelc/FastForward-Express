@@ -17,6 +17,7 @@
 </table>
 
 <hr/></br>
+<div class='col-md-12'><div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Summary</h3></div></div>
 <table id='manifest_overview'>
     <thead>
         <tr>
@@ -42,8 +43,33 @@
     </tbody>
 </table>
 
-<br/><br/><br/>
+@if($model->chargebacks != null)
+<br/><br/>
+<div class='col-md-12 center'><h3>Chargebacks</h3></div>
+<table id='chargebacks'>
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>GL Code</td>
+            <td>Description</td>
+            <td class='right'>Amount</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($model->chargebacks as $chargeback)
+        <tr>
+            <td>{{$chargeback->name}}</td>
+            <td>{{$chargeback->gl_code}}</td>
+            <td>{{$chargeback->description}}</td>
+            <td class='right red'>{{$chargeback->amount}}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
 
+<br/><br/>
+<div class='col-md-12 center'><h3>Detailed</h3></div>
 <table id='manifest_full'>
     <thead>
         <tr>

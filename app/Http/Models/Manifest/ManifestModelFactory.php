@@ -41,10 +41,16 @@ class ManifestModelFactory{
 
         $model->bills = $billRepo->GetByManifestId($manifest_id);
         $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
-        $model->driver_total = number_format($billRepo->GetDriverTotalByManifestId($manifest_id), 2);
+
+        $driver_total = $billRepo->GetDriverTotalByManifestId($manifest_id);
+        $model->driver_total = number_format($driver_total, 2); 
 
         $model->chargebacks = $chargebackRepo->GetByManifestId($manifest_id);
-        $model->chargeback_total = $chargebackRepo->GetChargebackTotalByManifestId($manifest_id);
+
+        $chargeback_total = $chargebackRepo->GetChargebackTotalByManifestId($manifest_id);
+        $model->chargeback_total = number_format($chargeback_total, 2);
+
+        $model->driver_income = number_format($driver_total - $chargeback_total, 2);
 
         return $model;
     }
