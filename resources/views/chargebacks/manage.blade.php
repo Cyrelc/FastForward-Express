@@ -22,10 +22,10 @@
     <li class='active'><a data-toggle='tab' href='#new'>New Chargeback</a></li>
     <li><a data-toggle='tab' href='#manage' onclick='updateChargebacksList()'>Manage Chargebacks</a></li>
 </ul>
-<form id='chargeback_create_form'>
-    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <div class='tab-content clearfix well'>
-        <div id='new' class='tab-pane fade in active'>
+<div class='tab-content clearfix well'>
+    <div id='new' class='tab-pane fade in active'>
+        <form id='chargeback_create_form'>
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <div class='col-md-3 bottom15'>
                 <div class='input-group'>
                     <span class='input-group-addon'>Name</span>
@@ -41,7 +41,7 @@
             </div>
             <div class='col-md-3 bottom15'>
                 <div class='input-group'>
-                    <span class='input-group-addon'>Amount</span>
+                    <span class='input-group-addon'>Amount: $</span>
                     <input class='form-control' type='number' step='0.01' name='amount' />
                 </div>
             </div>
