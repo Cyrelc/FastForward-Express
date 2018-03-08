@@ -4,20 +4,45 @@
     <link rel='stylesheet' type='text/css' href='/css/manifests/manifest_pdf_layout.css' />
 @endif
 
+@if(isset($is_pdf))
+<div class='header'>
+    <table>
+        <td width:'30%'>
+            <h4>Driver: {{$model->driver->contact->first_name}} {{$model->driver->contact->last_name}}<br/>
+                Manifest ID: {{$model->manifest->manifest_id}}<br/>
+                Date: {{$model->manifest->date_run}}</h4>
+        </td>
+        <td width:'40%' style='text-align: center;'>
+            <h2>Fast Forward Express Ltd.</h2>
+        </td>
+        <td class='text-right' width:'30%'>
+            <h4>Box 11117<br/>Edmonton, AB<br/>T5J 2K4</h4>
+        </td>
+    </table>
+</div>
+<div class='footer'>
+    <table>
+        <td style='width: 30%'>(780) 458-1074</td>
+        <td style='width: 40%; text-align: center;'>Page: <span class='pagenum'></span></td>
+        <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>www.fastforwardexpress.com</a></td>
+    </table>
+</div>
+<br/><br/>
+@endif
+
 <hr/>
 <table style='overflow: visible'>
     <tbody>
         <tr>
-            <td class='basic'><h4>Driver Gross:<br/><br/>${{$model->driver_total}}</h4></td>
-            <td class='warn'><h4>Chargebacks:<br/><br/>${{$model->chargeback_total}}</h4></td>
-            <td class='basic'><h4>Driver Income:<br/><br/>${{$model->driver_income}}</h4></td>
-            <td style='width: 60%; text-align: center'><a href='/employees/edit/{{$model->driver->employee_id}}' ><h2>{{$model->driver->contact->first_name}} {{$model->driver->contact->last_name}}</h2></a></td>
+            <td class='basic' style='width: 20%'><h4>Driver Gross:<br/><br/>${{$model->driver_total}}</h4></td>
+            <td class='warn' style='width:20%'><h4>Chargebacks:<br/><br/>${{$model->chargeback_total}}</h4></td>
+            <td class='basic' style='width: 20%'><h4>Driver Income:<br/><br/>${{$model->driver_income}}</h4></td>
+            <td style='width: 40%; text-align: center'><a href='/employees/edit/{{$model->driver->employee_id}}' ><h2>{{$model->driver->contact->first_name}} {{$model->driver->contact->last_name}}</h2></a></td>
         </tr>
     </tbody>
 </table>
 
-<hr/></br>
-<div class='col-md-12'><div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Summary</h3></div></div>
+<div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Summary</h3></div>
 <table id='manifest_overview'>
     <thead>
         <tr>
@@ -44,8 +69,7 @@
 </table>
 
 @if($model->chargebacks != null)
-<br/><br/>
-<div class='col-md-12 center'><h3>Chargebacks</h3></div>
+<div class='center'><h3>Chargebacks</h3></div>
 <table id='chargebacks'>
     <thead>
         <tr>
@@ -68,8 +92,7 @@
 </table>
 @endif
 
-<br/><br/>
-<div class='col-md-12 center'><h3>Detailed</h3></div>
+<div class='col center'><h3>Detailed</h3></div>
 <table id='manifest_full'>
     <thead>
         <tr>
@@ -96,14 +119,3 @@
         @endforeach
     </tbody>
 </table>
-
-<div class='col-md-3 right' style='float:right'>
-    <table>
-        <tbody>
-            <tr>
-                <td>Driver Total Pay: </td>
-                <td>{{$model->driver_total}}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>

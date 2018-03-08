@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use DB;
+use PDF;
 
 use App\Http\Repos;
 use App\Http\Models\Manifest;
@@ -32,6 +33,15 @@ class ManifestController extends Controller {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
         $model = $manifestModelFactory->GetById($manifest_id);
         return view('manifests.manifest', compact('model'));
+    }
+
+    public function print($manifest_id) {
+        //TODO check if invoice $id exists
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $model = $manifestModelFactory->GetById($manifest_id);
+        $is_pdf = 1;
+        $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
+        return $pdf->stream($model->driver->contact->first_name . '_' . $model->driver->contact->last_name . '.' . $model->manifest->date_run . '.pdf');
     }
 
     public function store(Request $req) {
