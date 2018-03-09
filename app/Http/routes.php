@@ -82,6 +82,7 @@ Route::group(
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests', 'ManifestController@index');
             Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
+            Route::get('/manifests/print/{id}', 'ManifestController@print');
 
             Route::post('/partials/contact/', 'PartialsController@NewContact');
             Route::post('/partials/phone', 'PartialsController@NewPhone');
