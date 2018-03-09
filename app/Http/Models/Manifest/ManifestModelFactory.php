@@ -6,22 +6,8 @@ use App\Http\Repos;
 class ManifestModelFactory{
     public function ListAll() {
         $manifestRepo = new Repos\ManifestRepo();
-        $driverRepo = new Repos\DriverRepo();
-        $billRepo = new Repos\BillRepo();
 
-        $model = new ManifestsModel();
-        $manifestViewModels = array();
-        foreach($manifestRepo->ListAll() as $manifest) {
-            $manifestViewModel = new ManifestViewModel();
-            $manifestViewModel->manifest = $manifest;
-            $manifestViewModel->driver_contact = $driverRepo->getContactByDriverId($manifest->driver_id);
-            $manifestViewModel->bill_count = $billRepo->countByManifestId($manifest->manifest_id);
-            array_push($manifestViewModels, $manifestViewModel);
-        }
-
-        $model->manifests = $manifestViewModels;
-
-        return $model;
+        return $manifestRepo->ListAll();
     }
 
     public function GetById($manifest_id) {
