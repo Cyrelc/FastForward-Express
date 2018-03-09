@@ -24,9 +24,13 @@ class ManifestController extends Controller {
     }
 
     public function index() {
+        return view('manifests.manifests');
+    }
+
+    public function buildTable(Request $req) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $model = $manifestModelFactory->ListAll();
-        return view('manifests.manifests', compact('model'));
+        $model = $manifestModelFactory->ListAll($req);
+        return json_encode($model);
     }
 
     public function view($manifest_id) {

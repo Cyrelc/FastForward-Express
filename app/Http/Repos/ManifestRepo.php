@@ -53,7 +53,19 @@ class ManifestRepo {
     }
 
     public function ListAll() {
-        return Manifest::All();
+        $manifests = Manifest::leftJoin('drivers', 'drivers.driver_id', '=', 'manifests.driver_id')
+                ->leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+                ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+                ->select('manifest_id',
+                    'drivers.driver_id',
+                    'employees.employee_id',
+                    DB::raw('concat(first_name, " ", last_name) as employee_name'),
+                    DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
+                    'date_run',
+                    'manifests.start_date',
+                    'end_date')
+                ->get();
+        return $manifests;
     }
 
     public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {
