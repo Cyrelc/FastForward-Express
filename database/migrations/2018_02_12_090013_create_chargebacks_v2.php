@@ -15,7 +15,6 @@ class CreateChargebacksV2 extends Migration
         Schema::create('chargebacks', function (Blueprint $table) {
             $table->increments('chargeback_id');
             $table->unsignedInteger('employee_id');
-            $table->unsignedInteger('manifest_id')->nullable()->default(null);
             $table->float('amount');
             $table->string('gl_code')->nullable();
             $table->string('name');
@@ -24,8 +23,7 @@ class CreateChargebacksV2 extends Migration
             $table->unsignedInteger('count_remaining');
             $table->date('start_date');
 
-			$table->foreign('manifest_id')->references('manifest_id')->on('manifests');
-			$table->foreign('employee_id')->references('employee_id')->on('employees');
+            $table->foreign('employee_id')->references('employee_id')->on('employees');
         });
     }
 

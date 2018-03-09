@@ -22,6 +22,23 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1.147</td>
+                                <td>
+                                    <ul>
+                                        <li>Adjusted invoice create/edit page to remove unnecessary code.</li>
+                                        <li>Fixed issue with multiple submissions of Chargebacks creating duplicate entries</li>
+                                        <li>Chargebacks are now updated and created as necessary, and tied to manifests when manifests are run</li>
+                                        <li>Chargebacks are now shown on manifests, as is the total</li>
+                                        <li>Manifests can now be printed individually</li>
+                                        <li>Manifest list view can now be accesssed, and is asynchronously generated</li>
+                                        <li>Font Awesome updated to version 5.0.8, allowing access to new icons</li>
+                                        <li>Chargbacks now use a join table when generated for manifests. NOTE: Requires DB alterations</li>
+                                        <li>Able to add minimum invoice amount onto accounts on creation and update</li>
+                                        <li>Minimum Invoice Amount now overrides bill total in the event that minimum invoice amount is greater and is set</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>1.145</td>
                                 <td>
                                     <ul>

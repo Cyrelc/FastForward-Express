@@ -23,8 +23,8 @@ class CreateAccountsTable extends Migration
             $table->string('stripe_id')->nullable();
             $table->string('name');
             $table->date('start_date');
-            $table->boolean('send_bills')->default(false);
-            $table->boolean('send_invoices')->default(false);
+            $table->boolean('send_bills')->default(true);
+            $table->boolean('send_invoices')->default(true);
             $table->boolean('has_parent')->default(false);
             $table->unsignedInteger('parent_account_id')->nullable();
             $table->boolean('has_discount')->default(false);
@@ -36,6 +36,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('uses_custom_field')->default(false);
             $table->string('custom_field')->nullable();
             $table->boolean('active')->default(true);
+            $table->float('minimum_invoice_amount')->default(0);
 
 			$table->unique('account_number');
 			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');
