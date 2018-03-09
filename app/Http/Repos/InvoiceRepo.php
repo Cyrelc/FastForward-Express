@@ -113,6 +113,8 @@ class InvoiceRepo {
             $invoice = Invoice::where('invoice_id', $value->invoice_id)->first();
             $account = $account_repo->GetById($invoice->account_id);
             $bill_cost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_amount;});
+            if($account->min_invoice_amount != null && $account->min_invoice_amount > $bill_cost)
+                $bill_cost = $account->min_invoice_amount;
             $invoice->bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
             $invoice->discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
             if ($account->gst_exempt)
