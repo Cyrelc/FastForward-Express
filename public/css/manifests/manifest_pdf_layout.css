@@ -1,11 +1,15 @@
+@page {
+    margin: 90px 40px 50px;
+}
 table {
     width: 100%;
     border-collapse: collapse;
 }
 thead {
-	border-bottom: 2px solid black;
+    border-bottom: 2px solid black;
+    border-top: 2px solid black;
 }
-#manifest_full tr:nth-child(even), #manifest_overview tr:nth-child(even) {
+#manifest_full tr:nth-child(even), #manifest_overview tr:nth-child(even), #chargebacks tr:nth-child(even) {
 	background: #d6e0f5;
 }
 .right {
@@ -21,4 +25,22 @@ td.basic {
 }
 td.warn {
     background: orange;
+}
+.center {
+    text-align: center;
+}
+.red{
+    color:red;
+}
+.header {
+    position: fixed;
+    top: -85px;
+}
+.footer {
+    bottom: -10px;
+    position: fixed;
+    font-size: 10;
+}
+.footer .pagenum:before {
+    content: counter(page);
 }

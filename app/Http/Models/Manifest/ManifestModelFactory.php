@@ -6,22 +6,8 @@ use App\Http\Repos;
 class ManifestModelFactory{
     public function ListAll() {
         $manifestRepo = new Repos\ManifestRepo();
-        $driverRepo = new Repos\DriverRepo();
-        $billRepo = new Repos\BillRepo();
 
-        $model = new ManifestsModel();
-        $manifestViewModels = array();
-        foreach($manifestRepo->ListAll() as $manifest) {
-            $manifestViewModel = new ManifestViewModel();
-            $manifestViewModel->manifest = $manifest;
-            $manifestViewModel->driver_contact = $driverRepo->getContactByDriverId($manifest->driver_id);
-            $manifestViewModel->bill_count = $billRepo->countByManifestId($manifest->manifest_id);
-            array_push($manifestViewModels, $manifestViewModel);
-        }
-
-        $model->manifests = $manifestViewModels;
-
-        return $model;
+        return $manifestRepo->ListAll();
     }
 
     public function GetById($manifest_id) {
@@ -30,6 +16,7 @@ class ManifestModelFactory{
         $driverRepo = new Repos\DriverRepo();
         $addressRepo = new Repos\AddressRepo();
         $accountRepo = new Repos\AccountRepo();
+        $chargebackRepo = new Repos\ChargebackRepo();
 
         $model = new ManifestViewModel();
 
@@ -40,7 +27,16 @@ class ManifestModelFactory{
 
         $model->bills = $billRepo->GetByManifestId($manifest_id);
         $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
-        $model->driver_total = number_format($billRepo->GetDriverTotalByManifestId($manifest_id), 2);
+
+        $driver_total = $billRepo->GetDriverTotalByManifestId($manifest_id);
+        $model->driver_total = number_format($driver_total, 2); 
+
+        $model->chargebacks = $chargebackRepo->GetByManifestId($manifest_id);
+
+        $chargeback_total = $chargebackRepo->GetChargebackTotalByManifestId($manifest_id);
+        $model->chargeback_total = number_format($chargeback_total, 2);
+
+        $model->driver_income = number_format($driver_total - $chargeback_total, 2);
 
         return $model;
     }

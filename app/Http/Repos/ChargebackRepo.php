@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use DB;
 use App\Chargeback;
+use App\DriverChargeback;
 
 class ChargebackRepo {
 
@@ -33,9 +34,9 @@ class ChargebackRepo {
         return;
     }
 
-    public function GetActiveByEmployeeId($employee_id) {
-        $chargebacks = Chargeback::where('employee_id', $employee_id)->where('count_remaining', '>', 0)
-                        ->orWhere('employee_id', $employee_id)->where('continuous', true)->get();
+    public function GetActiveByEmployeeId($employee_id, $start_date = '9999-01-01') {
+        $chargebacks = Chargeback::where('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('count_remaining', '>', 0)
+                        ->orWhere('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('continuous', true)->get();
 
         return $chargebacks;
     }
@@ -44,6 +45,38 @@ class ChargebackRepo {
         $chargeback = Chargeback::where('chargeback_id', $chargeback_id)->first();
 
         return $chargeback;
+    }
+
+    public function GetByManifestId($manifest_id) {
+        return DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
+                ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
+                ->select('name', 'gl_code', 'description', DB::raw('format(amount, 2) as amount'))
+                ->get();
+    }
+
+    public function GetChargebackTotalByManifestId($manifest_id) {
+        $amount = DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
+                ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
+                ->sum('amount');
+
+        return $amount;
+    }
+
+    public function RunChargebacksForManifest($manifest) {
+        $driverRepo = new DriverRepo();
+        $employee_id = $driverRepo->GetById($manifest->driver_id)->employee_id;
+        $chargebacks = $this->GetActiveByEmployeeId($employee_id, $manifest->date_run);
+        foreach($chargebacks as $chargeback) {
+            $new = new DriverChargeback;
+            $new->chargeback_id = $chargeback->chargeback_id;
+            $new->manifest_id = $manifest->manifest_id;
+            $new->save();
+            if($chargeback->continuous == false) {
+                $chargeback->count_remaining--;
+                $chargeback->save();
+            }
+        }
+        return;
     }
 
     public function Update($id, $req) {
