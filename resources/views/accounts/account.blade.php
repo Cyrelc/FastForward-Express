@@ -114,6 +114,13 @@
                                 <span class="input-group-addon">%</span>
                             </div>
                         </div>
+<!--Minimum Invoice Amount-->
+                        <div class='col-lg-4 bottom15' id='min_invoice_amount_div'>
+                            <span class='input-group'>
+                                <span class='input-group-addon'>Minimum Invoice Payment $</span>
+                                <input class='form-control' min=0 max=100 step='0.01' type='number' name='min_invoice_amount' placeholder='Minimum Payment' value='{{$model->account->min_invoice_amount}}' />
+                            </span>
+                        </div>
 <!-- Fuel Surcharge-->
                         <div class="col-lg-4 bottom15" id="fuel-surcharge">
                             <div class='input-group'>
@@ -214,6 +221,9 @@
         </div>
         <div class="checkbox">
             <label><input type="checkbox" name="hasFuelSurcharge" data-div="fuel-surcharge" {{$model->account->fuel_surcharge == 0 ? '' : 'checked'}}>Charge Fuel Surcharge</label>
+        </div>
+        <div class='checkbox'>
+            <label><input type='checkbox' id='has_min_invoice_amount' name='has_min_invoice_amount' data-div='min_invoice_amount_div' {{$model->account->min_invoice_amount == 0 ? '' : 'checked'}} />Minimum Invoice Payment</label>
         </div>
         <hr>
         <h4>Options</h4>

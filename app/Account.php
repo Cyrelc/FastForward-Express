@@ -31,7 +31,8 @@ class Account extends Model
                     'can_be_parent',
                     'custom_field',
                     'uses_custom_field',
-                    'active'];
+                    'active',
+                    'min_invoice_amount'];
 
     public function contacts() {
         return $this->belongsToMany('App\Contact', 'account_contacts');

@@ -29,7 +29,8 @@ class AccountCollector {
             'active'=>true,
             'uses_custom_field' => isset($req->useCustomField),
             'custom_field' => isset($req->useCustomField) ? $req->input('custom-tracker') : null,
-            'fuel_surcharge' => isset($req->hasFuelSurcharge) ? $req->input('fuel-surcharge') / 100 : 0
+            'fuel_surcharge' => isset($req->hasFuelSurcharge) ? $req->input('fuel-surcharge') / 100 : 0,
+            'min_invoice_amount' => isset($req->has_min_invoice_amount) ? $req->min_invoice_amount : 0
         ];
     }
 }
