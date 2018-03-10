@@ -59,3 +59,9 @@ function printMass(){
         }
     });
 }
+
+function selectAll(selectAllCheckbox) {
+    $('.manifestSelect').each(function() {
+        $(this).prop('checked', $(selectAllCheckbox).prop('checked'));
+    });
+}

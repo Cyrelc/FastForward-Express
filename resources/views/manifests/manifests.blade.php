@@ -21,7 +21,7 @@
 	<table id='table'>
 		<thead>
 			<tr>
-				<td></td>
+				<td><input type='checkbox' id='selectAll' onclick='selectAll(this)' title='Selects all items on the current table page' /></td>
 				<td></td>
 				<td>Manifest ID</td>
 				<td>Driver ID</td>
