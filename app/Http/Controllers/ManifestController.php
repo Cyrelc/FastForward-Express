@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use DB;
 use PDF;
+use ZipArchive;
+use Response;
 
 use App\Http\Repos;
 use App\Http\Models\Manifest;
 use Illuminate\Http\Request;
 
 class ManifestController extends Controller {
+    public function download($filename) {
+        $path = storage_path() . '/app/public/';
+        return response()->download($path . $filename)->deleteFileAfterSend(true);
+    }
+
     public function generate() {
         // Check permissions
         $manifestModelFactory = new Manifest\ManifestModelFactory();
@@ -46,6 +53,39 @@ class ManifestController extends Controller {
         $is_pdf = 1;
         $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
         return $pdf->stream($model->driver->contact->first_name . '_' . $model->driver->contact->last_name . '.' . $model->manifest->date_run . '.pdf');
+    }
+
+    public function printMass(Request $req) {
+        $storagepath = storage_path() . '/app/public/';
+        $foldername = 'manifests.' . time();
+        mkdir($storagepath . $foldername);
+        $path = $storagepath . $foldername . '/';
+        $files = array();
+
+        $zip = new ZipArchive();
+        $zipfile = $storagepath . $foldername . '.zip';
+        $zip->open($zipfile, ZipArchive::CREATE);
+
+        $toBeUnlinked = array();
+
+        foreach($req->checkboxes as $manifest_id => $value) {
+            $manifestModelFactory = new Manifest\ManifestModelFactory();
+            $model = $manifestModelFactory->GetById($manifest_id);
+            $filename = $model->driver->contact->first_name . '.' . $model->driver->contact->last_name . '.' . 'manifest.' . $model->manifest->date_run . '.pdf';
+            $is_pdf = 1;
+            $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
+            $pdf->save($path . $filename);
+            $zip->addFile($path . $filename, $filename);
+            $toBeUnlinked[$manifest_id] = $path . $filename;
+        }
+
+        $zip->close();
+
+        foreach($toBeUnlinked as $file)
+            unlink($file);
+        rmdir($storagepath . $foldername);
+
+        return $foldername . '.zip';
     }
 
     public function store(Request $req) {
