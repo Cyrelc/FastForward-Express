@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
+use DB;
 use App\Driver;
 
 class DriverRepo {
@@ -8,6 +9,16 @@ class DriverRepo {
 		$drivers = Driver::All();
 
 		return $drivers;
+	}
+
+	public function ListAllWithEmployeeAndContact() {
+		$drivers = Driver::leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+				->leftJoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+				->select('driver_id',
+						'employees.employee_id',
+						DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'));
+
+		return $drivers->get();
 	}
 
 	public function GetById($driverId) {

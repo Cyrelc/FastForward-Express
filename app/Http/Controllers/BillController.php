@@ -20,10 +20,15 @@ class BillController extends Controller {
     }
 
     public function index() {
-        $factory = new Bill\BillModelFactory();
-        $contents = $factory->ListAll();
+        $billModelFactory = new Bill\BillModelFactory();
+        $model = $billModelFactory->GetBillAdvancedFiltersModel();
 
-        return view('bills.bills', compact('contents'));
+        return view('bills.bills', compact('model'));
+    }
+
+    public function buildTable(Request $req) {
+        $billRepo = new Repos\BillRepo();
+        return $billRepo->ListAll($req);
     }
 
     public function create(Request $req) {
