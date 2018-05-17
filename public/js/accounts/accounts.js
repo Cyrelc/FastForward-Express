@@ -30,7 +30,9 @@ $(document).ready(function() {
             {'data': 'parent_name'},
             {'data': 'name'},
             {'data': 'invoice_interval'},
-            {'data': 'primary_contact_name'}
+            {'data': 'primary_contact_name'},
+            {'data': 'shipping_address_name'},
+            {'data': 'billing_address_name'}
         ]
     });
     // table.on( 'xhr', function ( e, settings, json ) {
