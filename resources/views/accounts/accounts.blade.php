@@ -28,6 +28,8 @@
 				<td>Account Name</td>
 				<td>Invoice Interval</td>
 				<td>Contact</td>
+				<td>Shipping Address Name</td>
+				<td>Billing Address Name</td>
 			</tr>
 		</thead>
 	</table>
