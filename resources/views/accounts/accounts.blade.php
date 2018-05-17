@@ -4,7 +4,7 @@
 <script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
-<script type='text/javascript' src='/js/accounts/accounts.js'></script>
+<script type='text/javascript' src='/js/accounts/accounts.js?17-05-2018'></script>
 <script type="text/javascript" src='/js/toastr.min.js'> </script>
 @endsection
 
