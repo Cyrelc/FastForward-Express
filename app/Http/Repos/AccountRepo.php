@@ -65,6 +65,22 @@ class AccountRepo {
         return $account;
     }
 
+    public function GetNextActiveById($id) {
+        $next = Account::where('account_id', '>', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->min();
+        return $next;
+    }
+
+    public function GetPrevActiveById($id) {
+        $prev = Account::where('account_id', '<', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->max();
+        return $prev;
+    }
+
     public function GetNameById($account_id) {
         $account = Account::where('account_id', $account_id)->first();
 

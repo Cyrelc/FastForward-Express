@@ -103,6 +103,9 @@
 
             $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
 
+            $model->prev_id = $acctRepo->GetPrevActiveById($id);
+            $model->next_id = $acctRepo->GetNextActiveById($id);
+
             return $model;
         }
 	}
