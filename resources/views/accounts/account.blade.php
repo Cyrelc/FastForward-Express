@@ -195,8 +195,10 @@
 <!-- Contacts Panel -->
             @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'prefix' => 'account', 'title' => 'Contacts'])
         </div>
-        <div class='text-center'><button type='button' class='btn btn-primary' onclick='storeAccount()'>Submit</button></div>
     </div>
+    <div class='col-lg-4 text-center'>@if(isset($model->prev_id))<a class='btn btn-info' href='/accounts/edit/{{$model->prev_id}}'>Previous Account</a>@endif</div>
+    <div class='col-lg-4 text-center'><button type='button' class='btn btn-primary' onclick='storeAccount()'>Submit</button></div>
+    <div class='col-lg-4 text-center'>@if(isset($model->next_id))<a class='btn btn-info' href='/accounts/edit/{{$model->next_id}}'>Next Account</a>@endif</div>
 </form>
 @endsection
 
