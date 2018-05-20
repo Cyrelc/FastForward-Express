@@ -70,6 +70,7 @@ Route::group(
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices', 'InvoiceController@index');
+            Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
             Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
@@ -77,6 +78,8 @@ Route::group(
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
+            Route::post('/invoices/printMass', 'InvoiceController@printMass');
+            Route::get('/invoices/download/{filename}', 'InvoiceController@download');
 
             Route::get('/manifests/generate', 'ManifestController@generate');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');

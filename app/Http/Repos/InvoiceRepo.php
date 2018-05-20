@@ -10,9 +10,17 @@ use App\InvoiceSortOptions;
 
 class InvoiceRepo {
     public function ListAll() {
-        $invoices = Invoice::All();
+        $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
+            ->select('invoices.invoice_id',
+                'accounts.account_id',
+                'accounts.name as account_name',
+                'date',
+                'balance_owing',
+                'bill_cost',
+                'total_cost',
+                DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
-        return $invoices;
+        return $invoices->get();
     }
 
     public function GetById($id) {

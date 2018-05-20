@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use DB;
 use View;
 use PDF;
+use ZipArchive;
 use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Models\Invoice;
@@ -23,10 +24,19 @@ class InvoiceController extends Controller {
         $this->class = new \App\Invoice;
     }
 
+    public function download($filename) {
+        $path = storage_path() . '/app/public/';
+        return response()->download($path . $filename)->deleteFileAfterSend(true);
+    }
+
     public function index() {
+        return view('invoices.invoices');
+    }
+
+    public function buildTable(Request $req) {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-        $contents = $invoiceModelFactory->ListAll();
-        return view('invoices.invoices', compact('contents'));
+        $model = $invoiceModelFactory->ListAll($req);
+        return json_encode($model);
     }
 
     public function view(Request $req, $id) {
@@ -131,5 +141,38 @@ class InvoiceController extends Controller {
         $is_pdf = 1;
         $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
+    }
+
+    public function printMass(Request $req) {
+        $storagepath = storage_path() . '/app/public/';
+        $foldername = 'invoices.' . time();
+        mkdir($storagepath . $foldername);
+        $path = $storagepath . $foldername . '/';
+        $files = array();
+
+        $zip = new ZipArchive();
+        $zipfile = $storagepath . $foldername . '.zip';
+        $zip->open($zipfile, ZipArchive::CREATE);
+
+        $toBeUnlinked =  array();
+
+        foreach($req->checkboxes as $invoice_id => $value) {
+            $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+            $model = $invoiceModelFactory->GetById($invoice_id);
+            $filename = $model->parent->name . '-' . $model->invoice->invoice_id;
+            $is_pdf = 1;
+            $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
+            $pdf->save($path . $filename, $filename);
+            $zip->addFile($path . $filename, $filename);
+            $toBeUnlinked[$invoice_id] = $path . $filename;
+        }
+
+        $zip->close();
+
+        foreach($toBeUnlinked as $file)
+            unlink($file);
+        rmdir($storagepath . $foldername);
+
+        return $foldername . '.zip';
     }
 }
