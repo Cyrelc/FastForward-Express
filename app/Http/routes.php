@@ -49,6 +49,7 @@ Route::group(
             Route::get('/bills/edit/{id}','BillController@edit');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
+            Route::get('/bills/buildTable', 'BillController@buildTable');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');
@@ -84,6 +85,8 @@ Route::group(
             Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
             Route::get('/manifests/print/{id}', 'ManifestController@print');
             Route::get('/manifests/buildTable', 'ManifestController@buildTable');
+            Route::post('/manifests/printMass', 'ManifestController@printMass');
+            Route::get('/manifests/download/{filename}', 'ManifestController@download');
 
             Route::post('/partials/contact/', 'PartialsController@NewContact');
             Route::post('/partials/phone', 'PartialsController@NewPhone');

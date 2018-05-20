@@ -57,6 +57,15 @@
 
 		}
 
+		public function GetBillAdvancedFiltersModel() {
+			$model = new BillAdvancedFiltersModel();
+
+			$driverRepo = new Repos\DriverRepo();
+			$model->drivers = $driverRepo->ListAllWithEmployeeAndContact();
+
+			return $model;
+		}
+
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 		    $acctRepo = new Repos\AccountRepo();

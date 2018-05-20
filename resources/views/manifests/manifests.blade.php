@@ -21,6 +21,7 @@
 	<table id='table'>
 		<thead>
 			<tr>
+				<td><input type='checkbox' id='selectAll' onclick='selectAll(this)' title='Selects all items on the current table page' /></td>
 				<td></td>
 				<td>Manifest ID</td>
 				<td>Driver ID</td>
@@ -34,7 +35,25 @@
 		</thead>
 	</table>
 </div>
+
+<div id='downloadModal' class='modal fade' role='dialog'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<h4 class='modal-title'>Creating PDF files</h4>
+			</div>
+			<div class='modal-body'>
+				<i class='fas fa-spinner fa-spin'></i> Please wait while we generate your manifests
+			</div>
+		</div>
+	</div>
+</div>
 @endsection
 
 @section('advFilter')
+<div class='well'>
+	<h4>Actions</h4>
+	<button type='button' class='btn btn-primary' onclick='printMass()'>Download Selected</button>
+	<hr/>
+</div>
 @endsection

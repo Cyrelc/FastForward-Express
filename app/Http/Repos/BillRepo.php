@@ -6,10 +6,38 @@ use DB;
 
 class BillRepo {
 
-	public function ListAll() {
-		$bills = Bill::All();
+	public function ListAll($req) {
+        $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+                ->leftJoin('drivers as pickup_driver', 'pickup_driver.driver_id', '=', 'bills.pickup_driver_id')
+                ->leftJoin('drivers as delivery_driver', 'delivery_driver.driver_id', '=', 'bills.delivery_driver_id')
+                ->leftJoin('interliners', 'interliners.interliner_id', '=', 'bills.interliner_id')
+                ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'pickup_driver.employee_id')
+                ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'delivery_driver.employee_id')
+                ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
+                ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
+                ->select('bill_id',
+                        'bill_number',
+                        'date',
+                        'delivery_type',
+                        'accounts.name as charge_account_name',
+                        'bills.charge_account_id',
+                        DB::raw('format(amount, 2) as amount'),
+                        DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
+                        'pickup_employee.employee_id as pickup_employee_id',
+                        DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
+                        'delivery_employee.employee_id as delivery_employee_id',
+                        'description',
+                        'interliners.name as interliner_name',
+                        'interliners.interliner_id',
+                        DB::raw('(select count(*) from packages where packages.bill_id = bills.bill_id) as package_count'),
+                        'invoice_id',
+                        'pickup_manifest_id',
+                        'delivery_manifest_id',
+                        'is_invoiced',
+                        'is_pickup_manifested',
+                        'is_delivery_manifested');
 
-		return $bills;
+		return $bills->get();
 	}
 
     public function GetById($id) {
