@@ -17,7 +17,7 @@ $(document).ready(function() {
         pageLength: 50,
         order: [1, 'desc'],
         createdRow: function(row, data, index) {
-            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Bill" onclick="deleteBill(' + data.bill_id + ')" />';
+            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Bill" data-toggle="modal" data-target="#delete_modal" onclick="deleteBill(' + data.bill_id + ')" />';
             var editable = false;
             if(data.is_invoiced == false && data.is_pickup_manifested == false && data.is_delivery_manifested == false)
                 editable = true;
@@ -52,3 +52,8 @@ $(document).ready(function() {
         ]
     })
 });
+
+function deleteBill(id) {
+    console.log('deleteBill called');
+    $('#delete_modal #delete_button').attr('href', '/bills/delete/' + id);
+}

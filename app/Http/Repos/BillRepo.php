@@ -126,6 +126,8 @@ class BillRepo {
 
     public function Delete($id) {
         $bill = $this->GetById($id);
+        $packageRepo = new PackageRepo();
+        $packageRepo->DeleteByBillId($id);
 
         $bill->delete();
         return;
