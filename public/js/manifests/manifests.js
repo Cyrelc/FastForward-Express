@@ -8,19 +8,20 @@ $(document).ready(function() {
         pageLength: 50,
         order: [2, 'desc'],
         createdRow: function (row, data, index) {
-            var editButton = '<a class="fa fa-edit btn btn-default btn-xs" title="View Manifest" href="/manifests/view/' + data.manifest_id + '" />';
-            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" onclick="deleteManifest(' + data.manifest_id + '" />';
+//TODO - currently no function to delete a manifest. The commented out delete button will be correct, when this function exists            
+//            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" data-toggle="modal" data-target="#delete_modal" onclick="deleteManifest(' + data.manifest_id + ')" />';
+            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" onclick="deleteManifest(' + data.manifest_id + ')" />';
+            $('.manifest_id', row).html('<a href="/manifests/view/' + data.manifest_id + '" >' + data.manifest_id + '</a>');
             $('td', row).eq(0).html('<input class="manifestSelect" type="checkbox" name="checkboxes[' + data.manifest_id + ']" />');
             $actiontd = $('td', row).eq(1);
-            $actiontd.html('<div class="hover-div" >' + editButton + deleteButton + '</div>');
+            $actiontd.html('<div class="hover-div" >' + deleteButton + '</div>');
             $('td', row).eq(4).html('<a href="/employees/edit/' + data.employee_id + '" >' + data.employee_name + '</a>');
         },
         columns: [
             {className:'select', orderable: false, data: null, defaultContent: ''},
             {className:'actions', orderable: false, data: null, defaultContent: ''},
-            {data: 'manifest_id'},
+            {data: 'manifest_id', className: 'manifest_id'},
             {data: 'driver_id'},
-            {data: 'employee_id'},
             {data: 'employee_name'},
             {data: 'date_run'},
             {data: 'start_date'},
@@ -64,4 +65,8 @@ function selectAll(selectAllCheckbox) {
     $('.manifestSelect').each(function() {
         $(this).prop('checked', $(selectAllCheckbox).prop('checked'));
     });
+}
+
+function deleteManifest(id) {
+    $('#delete_modal #delete_button').attr('href', '/manifests/delete/' + id);
 }

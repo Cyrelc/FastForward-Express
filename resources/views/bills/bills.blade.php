@@ -5,7 +5,7 @@
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js'></script>
-<script type='text/javascript' src='/js/bills/bills.js'></script>
+<script type='text/javascript' src='/js/bills/bills.js?5-20-2018'></script>
 <script type="text/javascript" src='/js/toastr.min.js'> </script>
 @endsection
 
@@ -57,7 +57,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<a id="delete_button" type="button" class="btn btn-danger" href="/bills/delete/&id&">Delete</a>
+				<a id="delete_button" type="button" class="btn btn-danger" href="">Delete</a>
 			</div>
 		</div>
 	</div>
