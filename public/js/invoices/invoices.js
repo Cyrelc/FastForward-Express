@@ -8,7 +8,7 @@ $(document).ready(function() {
         pageLength: 50,
         order: [2, 'desc'],
         createdRow: function (row, data, index) {
-            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Invoice" onclick="deleteInvoice(' + data.invoice_id + '" />';
+            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Invoice" data-toggle="modal" data-target="#delete_modal" onclick="deleteInvoice(' + data.invoice_id + ')" />';
             $('td', row).eq(0).html('<input class="invoiceSelect" type="checkbox" name="checkboxes[' + data.invoice_id + ']" />');
             $actiontd = $('td', row).eq(1);
             $actiontd.html('<div class="hover-div" >' + deleteButton + '</div>');
@@ -55,4 +55,8 @@ function printMass() {
             toastr.error(errorText, 'Errors', {'timeOut' : 0, 'extendedTIme' : 0});
         }
     })
+}
+
+function deleteInvoice(id) {
+    $('#delete_modal #delete_button').attr('href', '/invoices/delete/' + id);
 }

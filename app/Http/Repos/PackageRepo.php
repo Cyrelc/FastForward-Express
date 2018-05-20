@@ -41,7 +41,13 @@ class PackageRepo {
 
     	$old->delete();
     	return;
-    }
+	}
+	
+	public function DeleteByBillId($bill_id) {
+		$packages = $this->GetByBillId($bill_id);
+		foreach($packages as $package)
+			$this->Delete($package->package_id);
+	}
 }
 
 ?>

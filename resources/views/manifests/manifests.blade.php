@@ -4,7 +4,7 @@
 <script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
-<script type='text/javascript' src='/js/manifests/manifests.js'></script>
+<script type='text/javascript' src='/js/manifests/manifests.js?5-20-2018'></script>
 <script type="text/javascript" src='/js/toastr.min.js'> </script>
 @endsection
 
@@ -25,8 +25,7 @@
 				<td></td>
 				<td>Manifest ID</td>
 				<td>Driver ID</td>
-				<td>Employee ID</td>
-				<td>Driver</td>
+				<td>Employee</td>
 				<td>Date Run</td>
 				<td>First Bill Date</td>
 				<td>Last Bill Date</td>
@@ -48,6 +47,27 @@
 		</div>
 	</div>
 </div>
+
+<!-- delete modal -->
+<div id="delete_modal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+<!-- delete modal content -->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Confirm Deletion of Manifest</h4>
+			</div>
+			<div class="modal-body">
+				<p id="delete_message">Please confirm deletion of manifest. <b>This action can not be undone.</b></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				<a id="delete_button" type="button" class="btn btn-danger" href="">Delete</a>
+			</div>
+		</div>
+	</div>
+</div>
+	
 @endsection
 
 @section('advFilter')

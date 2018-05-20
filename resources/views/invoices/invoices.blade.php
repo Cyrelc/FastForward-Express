@@ -46,11 +46,11 @@
 				<h4 class="modal-title">Confirm Deletion of Invoice</h4>
 			</div>
 			<div class="modal-body">
-				<p id="delete_message">Please confirm deletion of invoice. This action can not be undone.</p>
+				<p id="delete_message">Please confirm deletion of invoice. <b>This action can not be undone.</b></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				<a id="delete_button" type="button" class="btn btn-danger" href="/invoices/delete/&id&">Delete</a>
+				<a id="delete_button" type="button" class="btn btn-danger" href="">Delete</a>
 			</div>
 		</div>
 	</div>
