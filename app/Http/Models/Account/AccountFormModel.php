@@ -10,4 +10,6 @@ class AccountFormModel
     public $employees;
     public $commissions;
     public $deliveryAddress;
+    public $next_id;
+    public $prev_id;
 }

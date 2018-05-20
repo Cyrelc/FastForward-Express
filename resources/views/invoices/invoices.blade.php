@@ -1,51 +1,41 @@
-@extends ('layouts.tables')
-
-@section ('variables')
-
-<?php
-	$contents = $contents->invoices;
-	$columns = ['Id', 'Account', 'Date Run', 'Bill Count'];//'First Bill Date', 'Last Bill Date', 'Number of Bills', 'Price', 'Tax', 'Total'];
-	$variables = [['invoice', 'invoice_id'], ['account', 'name'], ['invoice', 'date'], 'bill_count'];//'first_bill_date', 'last_bill_date', 'bill_count'];
-	$tableConfig = [
-		'table' => 'invoices',
-		'editPath' => 'invoices/edit/',
-		'actionPath' => 'invoices/action',
-		'id_col' => 1
-		];
-?>
-
-@endsection
+@extends ('layouts.app')
 
 @section ('script')
-<script type="text/javascript">
-	var columnDefs = [];
-    var order = [1];
-
-	function dtRowCallback(row, data) {
-	    var id = data[1];
-	    var name = data[4].replace("'", "\\'");
-
-        var editButton = '<a class="btn btn-xs btn-default" href="invoices/view/' + id + '"><i class="fa fa-edit"></i></a>';
-		var delButton = '<button type="button" class="fa fa-trash btn btn-xs btn-danger" data-toggle="modal" data-target="#delete_modal" onclick="setDeleteId(' + id + ')"></button>';
-
-		if (data[1] == 0) {
-		    $(row).addClass('disabled');
-	        $(row).attr('title', 'Deactivated');
-            $(row).find('.hover-div').html(editButton + activateButton);
-		} else
-			$(row).find('.hover-div').html(editButton + delButton);
-	}
-
-	function setDeleteId(id){
-		$("#delete_button").attr('href', '/invoices/delete/' + id);
-	}
-</script>
-
+<script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
+<script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
+<script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
+<script type='text/javascript' src='/js/invoices/invoices.js'></script>
+<script type="text/javascript" src='/js/toastr.min.js'> </script>
 @parent
+@endsection
 
+@section('style')
+<link rel='stylesheet' type='text/css' href='/DataTables/media/css/jquery.dataTables.min.css'/>
+<link rel='stylesheet' type='text/css' href='/DataTables/extensions/Buttons/css/buttons.dataTables.min.css'/>
+<link rel='stylesheet' type='text/css' href='/css/tables.css' />
+<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
+@parent
 @endsection
 
 @section ('content')
+<div clas='col-md-11'>
+	<table id='table'>
+		<thead>
+			<tr>
+				<td><input type='checkbox' id='selectAll' onclick='selectAll(this)' title='Selects all items on the current table page' /></td>
+				<td></td>
+				<td>Invoice ID</td>
+				<td>Account</td>
+				<td>Date</td>
+				<td>Balance Owing</td>
+				<td>Bill Cost</td>
+				<td>Total Cost</td>
+				<td>Bill Count</td>
+			</tr>
+		</thead>
+	</table>
+</div>
+
 <!-- delete modal -->
 <div id="delete_modal" class="modal fade" role="dialog">
 	<div class="modal-dialog">
@@ -67,7 +57,14 @@
 </div>
 
 @parent
+@endsection
 
+@section('advFilter')
+<div class='well'>
+	<h4>Actions</h4>
+	<button type='button' class='btn btn-primary' onclick='printMass()'>Download Selected</button>
+	</hr>
+</div>
 @endsection
 
 @section('navBar')

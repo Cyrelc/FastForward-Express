@@ -9,29 +9,9 @@
 	class InvoiceModelFactory{
 
 		public function ListAll() {
-			$model = new Invoice\InvoicesModel();
-
 			$invoiceRepo = new Repos\InvoiceRepo();
-			$accountRepo = new Repos\AccountRepo();
-			$billRepo = new Repos\BillRepo();
-			
-			$invoices = $invoiceRepo->ListAll();
 
-			$invoice_view_models = array();
-			foreach ($invoices as $invoice) {
-				$invoice_view_model = new InvoiceViewModel();
-
-				$invoice_view_model->invoice = $invoice;
-				$invoice_view_model->account = $accountRepo->GetById($invoice->account_id);
-				$invoice_view_model->bill_count = $billRepo->CountByInvoiceId($invoice->invoice_id);
-
-				array_push($invoice_view_models, $invoice_view_model);
-			}
-
-			$model->invoices = $invoice_view_models;
-			$model->success = true;
-
-			return $model;
+			return $invoiceRepo->ListAll();
 		}
 
 		public function GetById($id) {

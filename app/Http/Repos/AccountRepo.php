@@ -10,6 +10,7 @@ class AccountRepo {
     public function ListAll() {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->join('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
+            ->join('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
             ->join('account_contacts', function($join) {
                 $join->on('account_contacts.account_id', '=', 'accounts.account_id')
                     ->where('account_contacts.is_primary', '=', 1);
@@ -22,6 +23,8 @@ class AccountRepo {
                     'parent.account_id as parent_id',
                     'accounts.active',
                     'accounts.invoice_interval',
+                    'shipping_address.name as shipping_address_name',
+                    'billing_address.name as billing_address_name',
                     DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'))
             ->get();
 
@@ -60,6 +63,22 @@ class AccountRepo {
         $account = Account::where('account_id', '=', $id)->first();
 
         return $account;
+    }
+
+    public function GetNextActiveById($id) {
+        $next = Account::where('account_id', '>', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->min();
+        return $next;
+    }
+
+    public function GetPrevActiveById($id) {
+        $prev = Account::where('account_id', '<', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->max();
+        return $prev;
     }
 
     public function GetNameById($account_id) {
