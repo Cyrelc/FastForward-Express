@@ -94,6 +94,7 @@ Route::group(
 
             Route::get('/appsettings', 'AdminController@load');
             Route::post('/appsettings/storeGST', 'AdminController@storeGST');
+            Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
             //API
             // Route::resource('/customers', 'AccountController',
