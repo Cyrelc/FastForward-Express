@@ -1,5 +1,3 @@
-<script type='text/javascript' src='{{URL::to('/')}}/js/admin/admin.js'></script>
-
 <form id='password-form'>
     <div class='col-md-4'>
         <input type='text' name='password' id='password' class='form-control'/>
