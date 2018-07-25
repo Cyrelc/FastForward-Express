@@ -65,6 +65,7 @@ class BillRepo {
                 'date',
                 'charge_account_id',
                 'charge_reference_value',
+                'delivery_type',
                 'pickup.name as pickup_address_name',
                 'delivery.name as delivery_address_name',
                 'accounts.name as charge_account_name');
