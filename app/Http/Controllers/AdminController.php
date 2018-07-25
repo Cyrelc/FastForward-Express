@@ -3,6 +3,7 @@
     namespace App\Http\Controllers;
 
     use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Hash;
 
     use App\Http\Models\Admin;
 
@@ -20,8 +21,10 @@
             $xml = simplexml_load_file($path);
             $xml->GST = $req->input('gst_percent');
             $xml->asXML($path);
-            
+        }
+        
+        public function hashPassword(Request $req) {
+            return Hash::make(preg_replace('/\s+/', '', $req->password));
         }
     }
-
 ?>

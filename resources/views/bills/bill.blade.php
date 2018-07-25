@@ -130,9 +130,9 @@
                         <option></option>
                         @foreach($model->accounts as $a)
                             @if (isset($model->bill->charge_account_id) && $a->account_id == $model->bill->charge_account_id)
-                                <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                             @else
-                                <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                             @endif
                         @endforeach
                     </select>
@@ -213,9 +213,9 @@
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id)
-                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @else
-                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @endif
                                 @endforeach
                             </select>
@@ -278,9 +278,9 @@
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id)
-                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                        <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @else
-                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->name}}</option>
+                                        <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @endif
                                 @endforeach
                             </select>
