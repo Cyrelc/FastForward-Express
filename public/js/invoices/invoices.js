@@ -13,11 +13,12 @@ $(document).ready(function() {
             $actiontd = $('td', row).eq(1);
             $actiontd.html('<div class="hover-div" >' + deleteButton + '</div>');
             $('.account', row).html('<a href="/accounts/edit/' + data.account_id + '" >' + data.account_name + '</a>');
+            $('.invoice_id', row).html('<a href="/invoices/view/' + data.invoice_id + '" >' + data.invoice_id + '</a>');
         },
         columns: [
             {className:'select', orderable: false, data: null, defaultContent: ''},
             {className:'actions', orderable: false, data: null, defaultContent: ''},
-            {data: 'invoice_id'},
+            {data: 'invoice_id', className: 'invoice_id'},
             {data: 'account_name', className: 'account'},
             {data: 'date'},
             {data: 'balance_owing'},
