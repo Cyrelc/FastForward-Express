@@ -17,6 +17,7 @@ class AccountRepo {
             })
             ->join('contacts', 'account_contacts.contact_id', '=', 'contacts.contact_id')
             ->select('accounts.account_id',
+                    'accounts.custom_field as custom_field',
                     'accounts.name',
                     'accounts.account_number',
                     'parent.name as parent_name',
