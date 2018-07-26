@@ -195,9 +195,9 @@
                             <option></option>
                             @foreach($model->employees as $e)
                                 @if(($is_new && Cookie::get('bill_keep_pickup_driver') == $e->driver->driver_id) || (isset($model->bill->pickup_driver_id) && $e->driver->driver_id == $model->bill->pickup_driver_id))
-                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
+                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->employee_number . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
+                                    <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->employee_number . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
@@ -260,9 +260,9 @@
                             <option></option>
                             @foreach($model->employees as $e)
                                 @if(($is_new && Cookie::get('bill_keep_delivery_driver') == $e->driver->driver_id) || (isset($model->bill->delivery_driver_id) && $e->driver->driver_id == $model->bill->delivery_driver_id))
-                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
+                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->employee_number . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
-                                    <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
+                                    <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->employee_number . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
                             @endforeach
                         </select>
