@@ -22,6 +22,18 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1.149</td>
+                                <td>
+                                    <ul>
+                                        <li>Replace "Child Location" with account ID on Invoices</li>
+                                        <li>Added "unique" constraint to drivers to prevent duplicates</li>
+                                        <li>Rearrange existing fields on Invoice to match desired layout</li>
+                                        <li>Fixed issue causing account balance on invoices to only read the most recent invoice</li>
+                                        <li>Add first non-matching location name to invoices</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>1.148</td>
                                 <td>
                                     <ul>
