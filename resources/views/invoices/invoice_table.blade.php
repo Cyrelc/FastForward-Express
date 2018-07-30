@@ -79,6 +79,14 @@
                     @foreach($table->headers as $key => $value)
                         @if($value == 'amount')
                             <td class='amount'>{{$bill->$value}}</td>
+                        @elseif($value == 'address')
+                            <td class='address'>
+                                @if($bill->charge_account_name != $bill->pickup_address_name)
+                                    {{$bill->pickup_address_name}}
+                                @elseif($bill->charge_account_name != $bill->delivery_address_name)
+                                    {{$bill->delivery_address_name}}
+                                @endif
+                            </td>
                         @else
                             <td>{{$bill->$value}}</td>
                         @endif

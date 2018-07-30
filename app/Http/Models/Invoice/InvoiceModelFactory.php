@@ -56,7 +56,8 @@
 				else if($model->parent->uses_custom_field)
 					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
 				$table->headers['Tracer #'] = 'bill_id';
-				$table->headers['Type']='delivery_type';
+				$table->headers['Type'] = 'delivery_type';
+				$table->headers['Address'] = 'address';
 				$table->headers['Amount'] = 'amount';
 			}
 
