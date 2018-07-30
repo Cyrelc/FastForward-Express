@@ -22,6 +22,18 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td>1.148</td>
+                                <td>
+                                    <ul>
+                                        <li>Added ability to mass print invoices</li>
+                                        <li>Invoice table now asynchronous</li>
+                                        <li>Added missing link to view invoices from table</li>
+                                        <li>Fixed delivery type missing from invoice view</li>
+                                        <li></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>1.147</td>
                                 <td>
                                     <ul>
