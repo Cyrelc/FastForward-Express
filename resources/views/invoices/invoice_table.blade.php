@@ -16,7 +16,7 @@
         <h4>Invoice Total:<br/><br/>{{$model->invoice->total_cost}}</h4>
     </td>
     <td class='warn' >
-        <h4>Account Balance:<br/><br/>{{$model->invoice->total_cost}}</h4>
+        <h4>Account Balance:<br/><br/>{{$model->account_owing}}</h4>
     </td>
 </table>
 
