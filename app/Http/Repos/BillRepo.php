@@ -86,7 +86,8 @@ class BillRepo {
                 $subtotal_query->where($subtotal_by->database_field_name, $subtotal_id);
                 if($subtotal_by->database_field_name == 'charge_account_id') {
                     $sort_options = $invoiceRepo->GetSortOrderById($subtotal_id);
-                    $subtotal_string = $subtotal_by->friendly_name . ' ' . $accountRepo->GetById($subtotal_id)->name;
+                    $temp_account = $accountRepo->GetById($subtotal_id);
+                    $subtotal_string = $temp_account->account_number . ' ' . $temp_account->name;
                 } else if($subtotal_by->database_field_name == 'charge_reference_value') {
                     $subtotal_string = $accountRepo->GetById($account_id)->custom_field . ' ' . $subtotal_id;
                 } else
