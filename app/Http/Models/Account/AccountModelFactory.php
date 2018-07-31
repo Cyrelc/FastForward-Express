@@ -79,21 +79,21 @@
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
             $model->deliveryAddress = $addRepo->GetById($model->account->shipping_address_id);
             $model->billingAddress = $addRepo->GetById($model->account->billing_address_id);
-            $model->commissions = $dcRepo->ListByAccount($id);
-            $model->give_commission_1 = false;
-            $model->give_commission_2 = false;
-            if ($model->commissions == null)
-                $model->commissions = [];
+            // $model->commissions = $dcRepo->ListByAccount($id);
+            // $model->give_commission_1 = false;
+            // $model->give_commission_2 = false;
+            // if ($model->commissions == null)
+            //     $model->commissions = [];
 
-            if (count($model->commissions) > 0)
-                $model->give_commission_1 = true;
+            // if (count($model->commissions) > 0)
+            //     $model->give_commission_1 = true;
 
-            if (count($model->commissions) > 1)
-                $model->give_commission_2 = true;
+            // if (count($model->commissions) > 1)
+            //     $model->give_commission_2 = true;
 
             //make dates actual dates for client-side formatting
-            for($i = 0; $i < count($model->commissions); $i++)
-                $model->commissions[$i]->start_date = strtotime($model->commissions[$i]->start_date);
+            // for($i = 0; $i < count($model->commissions); $i++)
+            //     $model->commissions[$i]->start_date = strtotime($model->commissions[$i]->start_date);
 
             if (isset($model->account->parent_account_id))
                 $model->parentAccount = $acctRepo->GetById($model->account->parent_account_id);
