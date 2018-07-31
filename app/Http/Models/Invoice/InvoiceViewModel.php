@@ -9,6 +9,7 @@ class InvoiceViewModel {
     public $amount;
     public $tax;
     public $total;
+    public $account_owing = 0;
 }
 
 ?>

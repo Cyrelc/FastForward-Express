@@ -50,15 +50,22 @@
 				}
 			}
 			foreach($model->tables as $table) {
-				$table->headers = array('Date' => 'date', 'Bill ID' => 'bill_id', 'Bill Number' => 'bill_number', 'Type' => 'delivery_type');
+				$table->headers = array('Date' => 'date', 'Waybill Number' => 'bill_number');
 				if($subtotal_by != NULL && $subtotal_by->database_field_name == 'charge_account_id')
 					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'charge_reference_value';
 				else if($model->parent->uses_custom_field)
 					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
+				$table->headers['Tracer #'] = 'bill_id';
+				$table->headers['Type'] = 'delivery_type';
+				$table->headers['Address'] = 'address';
 				$table->headers['Amount'] = 'amount';
 			}
 
 			$model->unpaid_invoices = $invoiceRepo->GetWithOutstandingBalanceByAccountId($model->invoice->account_id);
+			foreach($model->unpaid_invoices as $unpaid_invoice)
+				$model->account_owing += $unpaid_invoice->balance_owing;
+
+			$model->account_owing = number_format($model->account_owing, 2);
 
 			return $model;
 		}
