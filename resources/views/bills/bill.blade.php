@@ -5,7 +5,7 @@
 <script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='/js/bills/bill.js'></script>
+<script type='text/javascript' src='/js/bills/bill.js?7-30-2018'></script>
 <script type='text/javascript' src='/js/toastr.min.js'></script>
 <!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
  -->
@@ -20,10 +20,12 @@
 
 @section ('content')
 
-@if (isset($model->bill->bill_id))
+@if(isset($model->bill->bill_id))
     <h2>Edit Bill</h2>
+    @php($is_new = false)
 @else
     <h2>New Bill</h2>
+    @php($is_new = true)
 @endif
 
 <form id='bill-form'>
@@ -51,7 +53,6 @@
     </div>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input type='hidden' id="charge_selection_submission" name="charge_selection_submission" value='{{$model->charge_selection_submission}}'/>
     <input type='hidden' id='pickup_use_submission' name='pickup_use_submission' value='{{$model->pickup_use_submission}}' />
     <input type='hidden' id='delivery_use_submission' name='delivery_use_submission' value='{{$model->delivery_use_submission}}' />
     <input type='hidden' id='use_interliner' name='use_interliner' data-checkbox-id="use-interliner" value='{{$model->use_interliner}}' />
@@ -60,7 +61,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Date: </span>
-                <input type='text' id="date" class="form-control" name='date' placeholder="Delivery Date" value="{{date("l, F d Y", $model->bill->date)}}"/>
+                <input type='text' id="date" class="form-control" name='date' placeholder="Delivery Date" value="@if($is_new && Cookie::get('bill_keep_date')) {{Cookie::get('bill_keep_date')}} @else {{date("l, F d Y", $model->bill->date)}} @endif"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -97,12 +98,16 @@
             </div>
         </div>
 <!-- Charge -->
-        <div id="select_charge" class="col-lg-12 bottom15">
-            <div>
-                <label><input id="charge_pickup_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pickup_account' ? 'checked' : ''}} />  Charge Pickup Account</label>
-                <label><input id="charge_delivery_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'delivery_account' ? 'checked' : ''}} />  Charge Delivery Account</label>
-                <label><input id="charge_other_account" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'other_account' ? 'checked' : ''}}/>  Charge Other Account</label>
-                <label><input disabled id="pre_paid" type="radio" name="charge_selection" {{$model->charge_selection_submission == 'pre-paid' ? 'checked' : ''}}/>  Pre-Paid (Auto-Invoice)</label>
+        <div class="col-lg-12 bottom15">
+            <div class='input-group'>
+                <span class='input-group-addon'>Charge to: </span>
+                <select id="charge_selection" class='form-control btn btn-primary' name='charge_selection'>
+                    <option @if(($is_new && Cookie::get('bill_keep_charge_selection') == null) || ($is_new && Cookie::get('bill_keep_charge_selection') == 'pickup_account')) selected @elseif(!$is_new && $model->charge_selection_submission == 'pickup_account') selected @elseif($is_new && !Cookie::get('bill_keep_charge_selection')) selected @endif value='pickup_account'>Pickup Account</option>
+                    <option @if($is_new && Cookie::get('bill_keep_charge_selection') == 'delivery_account') selected @elseif(!$is_new && $model->charge_selection_submission == 'delivery_account') selected @endif value='delivery_account'>Delivery Account</option>
+                    <option @if($is_new && Cookie::get('bill_keep_charge_selection') == 'other_account') selected @elseif(!$is_new && $model->charge_selection_submission == 'other_account') selected @endif value='other_account'>Other Account</option>
+                    <option disabled @if($is_new && Cookie::get('bill_keep_charge_selection') == 'pre_paid') selected @elseif(!$is_new && $model->charge_selection_submission == 'pre_paid') selected @endif value='pre_paid'>Pre Paid</option>
+                    <option disabled @if($is_new && Cookie::get('bill_keep_charge_selection') == 'driver') selected @elseif(!$is_new && $model->charge_selection_submission == 'driver') selected @endif value='driver'>Driver</option>
+                </select>
             </div>
         </div>
 <!-- Payment Type -->
@@ -129,7 +134,7 @@
                     <select id="charge_account_id" class="form-control" name="charge_account_id" data-reference="charge_reference">
                         <option></option>
                         @foreach($model->accounts as $a)
-                            @if (isset($model->bill->charge_account_id) && $a->account_id == $model->bill->charge_account_id)
+                            @if(($is_new && Cookie::get('bill_keep_charge_account') == $a->account_id) || (isset($model->bill->charge_account_id) && $a->account_id == $model->bill->charge_account_id))
                                 <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                             @else
                                 <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
@@ -189,7 +194,7 @@
                         <select id="pickup_driver_id" class="form-control" name='pickup_driver_id'>
                             <option></option>
                             @foreach($model->employees as $e)
-                                @if (isset($model->bill->pickup_driver_id) && $e->driver->driver_id == $model->bill->pickup_driver_id)
+                                @if(($is_new && Cookie::get('bill_keep_pickup_driver') == $e->driver->driver_id) || (isset($model->bill->pickup_driver_id) && $e->driver->driver_id == $model->bill->pickup_driver_id))
                                     <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
                                     <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->pickup_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
@@ -212,7 +217,7 @@
                             <select id="pickup_account_id" class="form-control" name="pickup_account_id" data-reference="pickup_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
-                                    @if (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id)
+                                    @if(($is_new && Cookie::get('bill_keep_pickup_account') == $a->account_id) || (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id))
                                         <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @else
                                         <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
@@ -254,8 +259,8 @@
                         <select id="delivery_driver_id" class="form-control" name="delivery_driver_id">
                             <option></option>
                             @foreach($model->employees as $e)
-                                @if (isset($model->bill->delivery_driver_id) && $e->driver->driver_id == $model->bill->delivery_driver_id)
-                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->driver_id . ' - ' . $e->driver->delivery_commission}}">{{$e->contact->first_name . ' ' . $e->contact->last_name}}</option>
+                                @if(($is_new && Cookie::get('bill_keep_delivery_driver') == $e->driver->driver_id) || (isset($model->bill->delivery_driver_id) && $e->driver->driver_id == $model->bill->delivery_driver_id))
+                                    <option selected value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @else
                                     <option value="{{$e->driver->driver_id}}" data-driver-commission="{{$e->driver->delivery_commission}}">{{$e->driver->driver_id . ' - ' . $e->contact->first_name . ' ' . $e->contact->last_name}}</option>
                                 @endif
@@ -277,7 +282,7 @@
                             <select id="delivery_account_id" class="form-control" name="delivery_account_id" data-reference="delivery_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
-                                    @if (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id)
+                                    @if(($is_new && Cookie::get('bill_keep_delivery_account') == $a->account_id) || (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id))
                                         <option selected value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
                                     @else
                                         <option value="{{$a->account_id}}" data-reference-field-name="{{$a->custom_field}}" >{{$a->account_number}} - {{$a->name}}</option>
@@ -332,30 +337,34 @@
 @endsection
 
 @section ('advFilter')
-<div class="well form-group" id="keep-options">
-    <h4>On Submit</h4>
-    <hr>
-    <div class="checkbox">
-        <label><input disabled id="keep_date" type="checkbox" name="keep_date" />Keep Date</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_charge_selection" type="checkbox" name="keep_charge_selection" />Keep Charge Selection</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_charge_account" type="checkbox" name="keep_charge_account" />Keep Charge Account</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_pickup_account" type="checkbox" name="keep_pickup_account" />Keep Pickup Account</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_delivery_account" type="checkbox" name="keep_delivery_account" />Keep Delivery Account</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_pickup_driver" type="checkbox" name="keep_pickup_driver" />Keep Pickup Driver</label>
-    </div>
-    <div class="checkbox">
-        <label><input disabled id="keep_delivery_driver" type="checkbox" name="keep_delivery_driver" />Keep Delivery Driver</label>
-    </div>
+<div class="well form-group">
+    <form id='bill-persistence-form'>
+        @if($is_new)
+            <h4>On Submit</h4>
+            <hr>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_date" {{Cookie::get('bill_keep_date') ? 'checked' : ''}} />Keep Date</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_charge_selection" {{Cookie::get('bill_keep_charge_selection') ? 'checked' : ''}} />Keep Charge Selection</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_charge_account" {{Cookie::get('bill_keep_charge_account') ? 'checked' : ''}} />Keep Charge Account</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_pickup_account" {{Cookie::get('bill_keep_pickup_account') ? 'checked' : '' }} />Keep Pickup Account</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_delivery_account" {{Cookie::get('bill_keep_delivery_account') ? 'checked' : '' }} />Keep Delivery Account</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_pickup_driver" {{Cookie::get('bill_keep_pickup_driver') ? 'checked' : '' }} />Keep Pickup Driver</label>
+            </div>
+            <div class="checkbox">
+                <label><input type="checkbox" name="keep_delivery_driver" {{Cookie::get('bill_keep_delivery_driver') ? 'checked' : '' }} />Keep Delivery Driver</label>
+            </div>
+        @endif
+    </form>
     <hr>
     <div class="checkbox">
         <label><input id="use-interliner" type="checkbox" name="use-interliner" data-hidden-name="use_interliner" data-div="interliner" />Use Interliner</label>
