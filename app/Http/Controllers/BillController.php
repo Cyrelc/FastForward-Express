@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Cookie;
 use DB;
 
 use App\Http\Repos;
@@ -62,6 +63,23 @@ class BillController extends Controller {
         }
     }
 
+    private function setPersistenceCookies(Request $req) {
+        $persistenceFields = array('keep_date' => 'date',
+            'keep_charge_selection' => 'charge_selection',
+            'keep_charge_account' => 'charge_account_id',
+            'keep_pickup_account' => 'pickup_account_id',
+            'keep_delivery_account' => 'delivery_account_id',
+            'keep_pickup_driver' => 'pickup_driver_id',
+            'keep_delivery_driver' => 'delivery_driver_id');
+
+        foreach($persistenceFields as $checkbox => $fieldName) {
+            if(isset($req->$checkbox))
+                $test = Cookie::queue('bill_' . $checkbox, $req->$fieldName, 43200);
+            else
+                Cookie::queue(Cookie::forget('bill_' . $checkbox));
+        }
+    }
+
     public function store(Request $req) {
         DB::beginTransaction();
         try {
@@ -81,7 +99,7 @@ class BillController extends Controller {
             $billCollector = new \App\Http\Collectors\BillCollector();
             $packageCollector = new \App\Http\Collectors\PackageCollector();
 
-            switch ($req->charge_selection_submission) {
+            switch ($req->charge_selection) {
                 case "pickup_account":
                     $chargeAccountId = $req->pickup_account_id;
                     break;
@@ -157,6 +175,7 @@ class BillController extends Controller {
             }
 
             DB::commit();
+            $this->setPersistenceCookies($req);
 
             if ($req->bill_id)
                 return redirect()->action('BillController@index');
