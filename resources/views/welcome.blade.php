@@ -30,6 +30,9 @@
                                         <li>Rearrange existing fields on Invoice to match desired layout</li>
                                         <li>Fixed issue causing account balance on invoices to only read the most recent invoice</li>
                                         <li>Add first non-matching location name to invoices</li>
+                                        <li>Bill Charge Selection now a dropdown to better match expected functionality</li>
+                                        <li>Bill information now persists on NEW BILL ENTRY alone</li>
+                                        <li>Removed persistence options from showing, or affecting, bill edit page</li>
                                     </ul>
                                 </td>
                             </tr>
