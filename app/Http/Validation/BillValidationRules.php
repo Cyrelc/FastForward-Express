@@ -6,7 +6,7 @@ class BillValidationRules {
     	$rules = [	'date' => 'required|date',
     				'bill_number' => 'required|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
     				'amount' => 'required|numeric',
-    				'charge_selection_submission' => 'required',
+    				'charge_selection' => 'required',
     				'pickup_use_submission' => 'required',
     				'pickup_driver_id' => 'required',
                     'pickup_driver_commission' => 'required|numeric|between:0,100',
@@ -21,7 +21,7 @@ class BillValidationRules {
                     'bill_number.unique' => 'Provided waybill number is not unique. Please try again.',
     				'amount.required' => 'Bill amount can not be empty',
                     'amount.numeric' => 'Bill amount must be a numeric value',
-    				'charge_selection_submission.required' => 'You must select a payment method or account to charge',
+    				'charge_selection.required' => 'You must select a payment method or account to charge',
     				'pickup_use_submission.required' => 'You must select whether to use an account or address for pickup',
     				'pickup_driver_id.required' => 'Pickup driver can not be empty',
                     'pickup_driver_commission.required' => 'Pickup driver commission can not be empty',
@@ -34,7 +34,7 @@ class BillValidationRules {
                     'delivery_driver_commission.between' => 'Delivery driver commission must be between 0% and 100%',
                     'delivery_type.required' => 'Please select a delivery type'];
 
-    	switch($req->charge_selection_submission) {
+    	switch($req->charge_selection) {
     		case "pickup_account":
     			$rules = array_merge($rules, ['pickup_account_id' => 'required']);
     			$messages = array_merge($messages, ['pickup_account_id.required' => 'Pickup account can not be blank']);
