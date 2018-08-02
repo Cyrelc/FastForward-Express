@@ -66,7 +66,7 @@
             </div>
             <div class='col-md-4 bottom15'>
                 <h4>Select Employees</h4>
-                <select class='form-control' multiple name='employees[]'>
+                <select class='form-control selectpicker' data-live-search='true' multiple name='employees[]'>
                     @foreach($model->employees as $employee)
                         <option value='{{$employee->employee_id}}'>{{$employee->employee_id}} - {{$employee->contact->first_name}} {{$employee->contact->last_name}}</option>
                     @endforeach

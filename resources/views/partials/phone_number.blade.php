@@ -4,7 +4,7 @@
     <button type="button" class="btn btn-sm btn-danger" onclick="deletePhone(this, '{{$prefix}}');"><i class="fa fa-trash"></i></button>
 </div>
 <div class="col-lg-3">
-    <select name="{{$prefix}}-type" class="form-control">
+    <select name="{{$prefix}}-type" class="form-control selectpicker">
         <option></option>
         @foreach($types as $type)
             @if (isset($phone->type) && $type->value == $phone->type)
