@@ -1,0 +1,11 @@
+.checkbox-lg {
+    width: 22px;
+    height: 22px;
+}
+#errors {
+    color: red;
+}
+.split-50 {
+    width: 50%;
+    float: left;
+}

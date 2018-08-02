@@ -31,10 +31,6 @@ $(document).ready(function() {
     });
 
 	dateInput('date');
-    comboInput('account_id', 'Select an Account');
-    comboInput('pickup_driver_id', 'Select a Pickup Driver');
-    comboInput('delivery_driver_id', 'Select a Delivery Driver');
-    comboInput('interliner_id', 'Select an Interliner (optional)');
 
 //select who pays
 

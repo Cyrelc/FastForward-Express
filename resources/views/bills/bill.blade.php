@@ -5,7 +5,7 @@
 <script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='/js/bills/bill.js?7-30-2018'></script>
+<script type='text/javascript' src='/js/bills/bill.js?8-02-2018'></script>
 <script type='text/javascript' src='/js/toastr.min.js'></script>
 <!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
  -->
@@ -85,7 +85,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Delivery Type: </span>
-                <select id="delivery_type" class="form-control" name="delivery_type">
+                <select id="delivery_type" class="form-control selectpicker" name="delivery_type">
                     <option></option>
                     @foreach($model->delivery_types as $delivery_type)
                         @if (isset($model->bill->delivery_type) && $delivery_type->value == $model->bill->delivery_type)
@@ -101,7 +101,7 @@
         <div class="col-lg-12 bottom15">
             <div class='input-group'>
                 <span class='input-group-addon'>Charge to: </span>
-                <select id="charge_selection" class='form-control btn btn-primary' name='charge_selection'>
+                <select id="charge_selection" class='form-control selectpicker btn btn-primary' name='charge_selection'>
                     <option @if(($is_new && Cookie::get('bill_keep_charge_selection') == null) || ($is_new && Cookie::get('bill_keep_charge_selection') == 'pickup_account')) selected @elseif(!$is_new && $model->charge_selection_submission == 'pickup_account') selected @elseif($is_new && !Cookie::get('bill_keep_charge_selection')) selected @endif value='pickup_account'>Pickup Account</option>
                     <option @if($is_new && Cookie::get('bill_keep_charge_selection') == 'delivery_account') selected @elseif(!$is_new && $model->charge_selection_submission == 'delivery_account') selected @endif value='delivery_account'>Delivery Account</option>
                     <option @if($is_new && Cookie::get('bill_keep_charge_selection') == 'other_account') selected @elseif(!$is_new && $model->charge_selection_submission == 'other_account') selected @endif value='other_account'>Other Account</option>
@@ -114,7 +114,7 @@
         <div class="col-lg-4 hidden bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Payment Type:</span>
-                <select id="payment_type" class="form-control" name="payment_type">
+                <select id="payment_type" class="form-control selectpicker" name="payment_type">
                     <option></option>
                     @foreach($model->payment_types as $payment_type)
                         @if (isset($model->bill->payment_type) && $payment_type == $model->payment_type)
@@ -131,7 +131,7 @@
             <div class="col-lg-6 bottom15">
                 <div class="input-group">
                     <span class="input-group-addon">Charge Account: </span>
-                    <select id="charge_account_id" class="form-control" name="charge_account_id" data-reference="charge_reference">
+                    <select id="charge_account_id" class="form-control selectpicker" name="charge_account_id" data-live-search='true' data-reference="charge_reference">
                         <option></option>
                         @foreach($model->accounts as $a)
                             @if(($is_new && Cookie::get('bill_keep_charge_account') == $a->account_id) || (isset($model->bill->charge_account_id) && $a->account_id == $model->bill->charge_account_id))
@@ -156,7 +156,7 @@
             <div class="col-lg-8 bottom15">
                 <div class="input-group">
                     <span class="input-group-addon">Interliner: </span>
-                    <select id="interliner_id" class="form-control" name="interliner_id">
+                    <select id="interliner_id" class="form-control selectpicker" data-live-search='true' name="interliner_id">
                         <option></option>
                         @foreach($model->interliners as $i)
                             @if (isset($model->bill->interliner_id) && $i->interliner_id == $model->bill->interliner_id)
@@ -191,7 +191,7 @@
                 <div class="col-lg-8 bottom15">
                     <div class="input-group">
                         <span class="input-group-addon">Pickup Driver: </span>
-                        <select id="pickup_driver_id" class="form-control" name='pickup_driver_id'>
+                        <select id="pickup_driver_id" class="form-control selectpicker" data-live-search='true' name='pickup_driver_id'>
                             <option></option>
                             @foreach($model->employees as $e)
                                 @if(($is_new && Cookie::get('bill_keep_pickup_driver') == $e->driver->driver_id) || (isset($model->bill->pickup_driver_id) && $e->driver->driver_id == $model->bill->pickup_driver_id))
@@ -214,7 +214,7 @@
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Pickup Account: </span>
-                            <select id="pickup_account_id" class="form-control" name="pickup_account_id" data-reference="pickup_reference">
+                            <select id="pickup_account_id" class="form-control selectpicker" data-live-search='true' name="pickup_account_id" data-reference="pickup_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if(($is_new && Cookie::get('bill_keep_pickup_account') == $a->account_id) || (isset($model->bill->pickup_account_id) && $a->account_id == $model->bill->pickup_account_id))
@@ -256,7 +256,7 @@
                 <div class="col-lg-8 bottom15">
                     <div class="input-group">
                         <span class="input-group-addon">Delivery Driver: </span>
-                        <select id="delivery_driver_id" class="form-control" name="delivery_driver_id">
+                        <select id="delivery_driver_id" class="form-control selectpicker" data-live-search='true' name="delivery_driver_id">
                             <option></option>
                             @foreach($model->employees as $e)
                                 @if(($is_new && Cookie::get('bill_keep_delivery_driver') == $e->driver->driver_id) || (isset($model->bill->delivery_driver_id) && $e->driver->driver_id == $model->bill->delivery_driver_id))
@@ -279,7 +279,7 @@
                     <div class="col-lg-12 bottom15">
                         <div class="input-group">
                             <span class="input-group-addon">Delivery Account: </span>
-                            <select id="delivery_account_id" class="form-control" name="delivery_account_id" data-reference="delivery_reference">
+                            <select id="delivery_account_id" class="form-control selectpicker" data-live-search='true' name="delivery_account_id" data-reference="delivery_reference">
                                 <option></option>
                                 @foreach($model->accounts as $a)
                                     @if(($is_new && Cookie::get('bill_keep_delivery_account') == $a->account_id) || (isset($model->bill->delivery_account_id) && $a->account_id == $model->bill->delivery_account_id))
