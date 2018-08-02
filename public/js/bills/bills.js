@@ -16,6 +16,7 @@ $(document).ready(function() {
         ColVis: {exclude: [0]},
         pageLength: 50,
         order: [1, 'desc'],
+        deferRender: true,
         createdRow: function(row, data, index) {
             var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Bill" data-toggle="modal" data-target="#delete_modal" onclick="deleteBill(' + data.bill_id + ')" />';
             var editable = false;
