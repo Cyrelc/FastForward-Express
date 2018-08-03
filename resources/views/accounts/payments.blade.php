@@ -16,11 +16,11 @@
             </div>
         </div>
         <div class='col-md-3'>
-            <select id='select_payment' class='form-control'>
-                <!-- TODO: show only if account has positive balance -->
-                <!-- TODO: if account_balance selected, limit the value allowed to be put against invoice -->
+            <select id='select_payment' name='select_payment' class='form-control selectpicker' >
+                {{-- TODO: show only if account has positive balance --}}
+                {{-- TODO: if account_balance selected, limit the value allowed to be put against invoice --}}
                 <option value='account'>Account Balance ($1000.00)</option>
-                <!-- TODO: if account has credit cards on file, list each active CC -->
+                {{-- TODO: if account has credit cards on file, list each active CC --}}
                 <option value='cheque'>Cheque</option>
                 <option value='bank_transfer'>Bank Transfer</option>
             </select>
@@ -30,6 +30,15 @@
         </div>
         <div class='col-md-2 hidden' id='bank_transfer_id' >
             <input type='text' name='bank_transfer_id' class='form-control' placeholder='Bank Transfer Number' />
+        </div>
+        <div class='col-md-12 hidden' id='select_invoices'>
+            <div class='input-group'>
+                <span class='input-group-addon'>Select Invoices</span>
+                <select name='select_invoices' class='form-control selectpicker' multiple >
+                    <option></option>
+                    {{-- TODO: load all upaid invoices here --}}
+                </select>
+            </div>
         </div>
     </div>
     <div class='panel-body'>
@@ -82,13 +91,13 @@
                         <div class='col-md-7 bottom15'>
                             <div class='input-group'>
                                 <span class='input-group-addon'>Expiration Date</span>
-                                <select class='form-control' name='expiration_month' >
+                                <select class='form-control selectpicker' name='expiration_month' >
                                     @for($i = 1; $i < 13; $i++)
                                         <option value='{{$i}}'>{{$i}}</option>
                                     @endfor
                                 </select>
                                 <span class='input-group-addon'>/</span>
-                                <select class='form-control' name='expiration_year' >
+                                <select class='form-control selectpicker' data-live-search='true' name='expiration_year' >
                                     @for($i = 0; $i < 30; $i++)
                                         <option value='{{$i + 2018}}'>{{$i + 2018}}</option>
                                     @endfor
@@ -111,4 +120,3 @@
 		</div>
 	</div>
 </div>
-
