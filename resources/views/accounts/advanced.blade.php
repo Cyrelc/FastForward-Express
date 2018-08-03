@@ -12,7 +12,7 @@
         <div id="parent-location" class="bottom15 col-lg-4" >
             <div class='input-group'>
                 <span class='input-group-addon'>Parent Account</span>
-                <select id="parent-account-id" class='form-control' name="parent-account-id">
+                <select id="parent-account-id" class='form-control selectpicker' name="parent-account-id" data-live-search='true' >
                     <option></option>
                     @foreach ($model->accounts as $parent)
                         @if (isset($model->account->account_id) && $model->account->parent_account_id == $parent->account_id)
