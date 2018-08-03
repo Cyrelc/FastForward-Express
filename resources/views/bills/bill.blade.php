@@ -7,8 +7,6 @@
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
 <script type='text/javascript' src='/js/bills/bill.js?8-02-2018'></script>
 <script type='text/javascript' src='/js/toastr.min.js'></script>
-<!-- <script type='text/javascript' src='{{URL::to('/')}}/js/storageService.js'></script>
- -->
 @parent
 @endsection
 
