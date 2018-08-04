@@ -37,6 +37,7 @@ class CreateAccountsTable extends Migration
             $table->string('custom_field')->nullable();
             $table->boolean('active')->default(true);
             $table->float('minimum_invoice_amount')->default(0);
+            $table->float('account_balance')->default(0);
 
 			$table->unique('account_number');
 			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');
