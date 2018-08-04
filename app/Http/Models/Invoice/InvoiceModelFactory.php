@@ -61,11 +61,9 @@
 				$table->headers['Amount'] = 'amount';
 			}
 
-			$model->unpaid_invoices = $invoiceRepo->GetWithOutstandingBalanceByAccountId($model->invoice->account_id);
-			foreach($model->unpaid_invoices as $unpaid_invoice)
-				$model->account_owing += $unpaid_invoice->balance_owing;
+			$model->unpaid_invoices = $invoiceRepo->GetOutstandingByAccountId($model->invoice->account_id);
 
-			$model->account_owing = number_format($model->account_owing, 2);
+			$model->account_owing = number_format($invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id), 2);
 
 			return $model;
 		}
