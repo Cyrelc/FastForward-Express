@@ -69,8 +69,8 @@
             $acctRepo = new Repos\AccountRepo();
             $employeesRepo = new Repos\EmployeeRepo();
             $addRepo = new Repos\AddressRepo();
-            $dcRepo = new Repos\CommissionRepo();
             $selectionsRepo = new Repos\SelectionsRepo();
+            $invoiceRepo = new Repos\InvoiceRepo();
 
             $contactsModelFactory = new Models\Partials\ContactsModelFactory();
 
@@ -100,7 +100,8 @@
 
             $model->accounts = $acctRepo->ListParents();
             $model->employees = $employeesRepo->ListAll();
-
+            $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($id);
+            
             $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
 
             $model->prev_id = $acctRepo->GetPrevActiveById($id);
