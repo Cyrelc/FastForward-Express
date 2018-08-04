@@ -52,6 +52,11 @@ class InvoiceController extends Controller {
         return view('invoices.invoice-generate', compact('model'));
     }
 
+    public function getOutstandingByAccountId(Request $req) {
+        $invoice_repo = new Repos\InvoiceRepo();
+        return json_encode($invoice_repo->getOutstandingByAccountId($req->input('account-id')));
+    }
+
     public function delete(Request $req, $id) {
         $invoiceRepo = new Repos\InvoiceRepo();
 
