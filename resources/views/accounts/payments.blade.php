@@ -1,73 +1,114 @@
 <script type='text/javascript' src='/js/accounts/payments.js'></script>
+<script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
+<script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
+<script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
+
+<link rel='stylesheet' type='text/css' href='/DataTables/media/css/jquery.dataTables.min.css'/>
+<link rel='stylesheet' type='text/css' href='/DataTables/extensions/Buttons/css/buttons.dataTables.min.css'/>
+<link rel='stylesheet' type='text/css' href='/css/tables.css' />
 
 <div class='panel panel-default'>
     <div class='panel-heading clearfix'>
-        <div class='col-md-2'>
-            <button type='button' class='btn btn-primary' data-toggle="modal" data-target="#credit_card_modal" disabled><i class='fa fa-credit-card'></i>&nbsp&nbspAdd New Credit Card</button>
-        </div>
-        <div class='col-md-2 form-check form-check-inline'>
-            <input type="checkbox" id='payOldestInvoicesFirst' name='payOldestInvoicesFirst' class='form-check-input checkbox-lg' checked />
-            <label class='form-check-label' for='payOldestInvoicesFirst'>Pay Oldest Invoices First</label>
-        </div>
-        <div class='col-md-3'>
-            <div class='input-group'>
-                <span class='input-group-addon'>Payment Amount</span>
-                <input type='number' min='0' step='0.01' class='form-control' name='payment_amount' placeholder='Payment Amount' />
-            </div>
-        </div>
-        <div class='col-md-3'>
-            <select id='select_payment' name='select_payment' class='form-control selectpicker' >
-                {{-- TODO: show only if account has positive balance --}}
-                {{-- TODO: if account_balance selected, limit the value allowed to be put against invoice --}}
-                <option value='account'>Account Balance ($1000.00)</option>
-                {{-- TODO: if account has credit cards on file, list each active CC --}}
-                <option value='cheque'>Cheque</option>
-                <option value='bank_transfer'>Bank Transfer</option>
-            </select>
-        </div>
-        <div class='col-md-2 hidden' id='cheque_number' >
-            <input type='text' name='cheque_number' class='form-control' placeholder='Cheque Number' />
-        </div>
-        <div class='col-md-2 hidden' id='bank_transfer_id' >
-            <input type='text' name='bank_transfer_id' class='form-control' placeholder='Bank Transfer Number' />
-        </div>
-        <div class='col-md-12 hidden' id='select_invoices'>
-            <div class='input-group'>
-                <span class='input-group-addon'>Select Invoices</span>
-                <select name='select_invoices' class='form-control selectpicker' multiple >
-                    <option></option>
-                    {{-- TODO: load all upaid invoices here --}}
-                </select>
-            </div>
+        <div class='col-md-12'>
+            <button type='button' class='btn btn-primary' data-toggle='modal' data-target='#credit_card_modal' disabled><i class='fa fa-credit-card'></i>&nbsp&nbspAdd New Credit Card</button>
+            <button type='button' class='btn btn-success' data-toggle='modal' data-target='#payment_modal'><i class='far fa-money-bill-alt'></i>&nbsp&nbspNew Payment</button>
         </div>
     </div>
     <div class='panel-body'>
-        <h3>Invoice Summary</h3>
-        <table style='border: 1px solid black; width:100%'>
+        <h3>Payment History</h3>
+        <table id='payments_table' width='100%'>
             <thead>
                 <tr>
-                    <td style='border: 1px solid black'>Invoice Id</td>
-                    <td style='border: 1px solid black'>Date</td>
-                    <td style='border: 1px solid black'>Bill Count</td>
-                    <td style='border: 1px solid black'>Balance Owing</td>
+                    <td>Payment id</td>
+                    <td>Invoice ID</td>
+                    <td>Date</td>
+                    <td>Amount</td>
+                    <td>Payment Method</td>
+                    <td>Reference Number</td>
+                    <td>Notes</td>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td style='border: 1px solid black'>15</td>
-                    <td style='border: 1px solid black'>02/08/2018</td>
-                    <td style='border: 1px solid black'>45</td>
-                    <td style='border: 1px solid black'>$289.47</td>
-                </tr>
-            </tbody>
         </table>
+    </div>
+</div>
+
+<!-- payment modal -->
+<div id='payment_modal' class='modal fade' role='dialog'>
+    <div class='modal-dialog'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <button type='button' class='close' data-dismiss='modal'>&times;</button>
+                <h3 class='modal-title'>New Payment</h3>
+            </div>
+            <div class='modal-body'>
+                <div class='clearfix'>
+                    <form id='payment_form'>
+                        <div class='col-md-8'>
+                            <div class='input-group bottom15'>
+                                <span class='input-group-addon'>Payment Method</span>
+                                <select id='select_payment' name='select_payment' class='form-control selectpicker' >
+                                    @if($model->account->account_balance > 0)
+                                        <option value='account' data-amount='{{$model->account->account_balance}}'>Account Balance (${{$model->account->account_balance}})</option>
+                                    @endif
+                                    {{-- TODO: pull from selections table? --}}
+                                    {{-- TODO: if account has credit cards on file, list each active CC --}}
+                                    <option value='credit_card'>Credit Card</option>
+                                    <option value='cheque'>Cheque</option>
+                                    <option value='bank_transfer'>Bank Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class='col-md-4 bottom15 hidden' id='reference_value_div' >
+                            <input type='text' id='reference_value' name='reference_value' class='form-control' />
+                        </div>
+                        <div class='col-md-8 bottom15'>
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Payment Amount: $</span>
+                                <input type='number' min='0' step='0.01' class='form-control' id='payment_amount' name='payment_amount' value='{{$model->account->account_balance > 0 ? $model->account->account_balance : $model->balance_owing}}' placeholder='Payment Amount' />
+                            </div>
+                        </div>
+                        <div class='col-md-4 bottom15 form-check form-check-inline'>
+                            <input type="checkbox" id='auto_pay' class='form-check-input checkbox-lg' checked />
+                            <label class='form-check-label' for='auto_pay'>Auto Pay</label>
+                        </div>
+                        <hr>
+                        <div class='col-md-12 bottom15' id='select_invoices'>
+                            <h2>Outstanding Invoices</h2>
+                            <table id='invoices_table' width='100%'>
+                                <thead>
+                                    <tr>
+                                        <td>Invoice ID</td>
+                                        <td>Invoice Date</td>
+                                        <td>Balance Owing</td>
+                                        <td>Payment Amount</td>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <div class='col-lg-12 bottom15'>
+                            <div class='input-group'>
+                                <span class='input-group-addon'>Remainder added to account: $</span>
+                                <input type='number' readonly value='0' step='0.01' id='on_account' class='form-control' />
+                            </div>
+                        </div>
+                        <div class='col-lg-12 bottom15'>
+                            <label for='comment'>Comment: </label>
+                            <textarea class='form-control' rows='3' name='comment' placeholder='Notes/Comments'></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+			<div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type='button' class="btn btn-success" onclick='submitPayment()'>Submit</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- credit card modal -->
 <div id="credit_card_modal" class="modal fade" role="dialog">
 	<div class="modal-dialog">
-<!-- delete modal content -->
 		<div class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
