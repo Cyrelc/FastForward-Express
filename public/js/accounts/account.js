@@ -7,8 +7,6 @@ $(document).ready(function() {
 	});
 
 	dateInput('start-date');
-	comboInput('parent-account-id', 'Select a Parent Account');
-	comboInput('driver,select', 'Select a Driver');
 
 	$("#account_number").focusout(function(){
 		var curr = '{{$model->account->account_number}}';
@@ -87,4 +85,4 @@ function storeAccount(){
 			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
 		}
 	})
-}
+};

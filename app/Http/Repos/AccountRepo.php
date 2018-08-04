@@ -7,6 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class AccountRepo {
 
+    public function AdjustBalance($account_id, $amount) {
+        $account = Account::where('account_id', $account_id)
+            ->first();
+
+        $account->account_balance += $amount;
+
+        $account->save();
+
+        return $account;
+    }
+
     public function ListAll() {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
