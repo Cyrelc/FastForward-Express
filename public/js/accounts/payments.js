@@ -45,6 +45,8 @@ $(document).ready(function() {
 
     $('#select_payment').change(handleReferenceValue);
     handleReferenceValue();
+
+    stickyTabs();
 });
 
 function handleReferenceValue() {
