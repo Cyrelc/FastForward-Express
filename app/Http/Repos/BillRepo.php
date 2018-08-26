@@ -17,7 +17,8 @@ class BillRepo {
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
                 ->select('bill_id',
                         'bill_number',
-                        'date',
+                        'pickup_date_scheduled',
+                        'delivery_date_scheduled',
                         'delivery_type',
                         'accounts.name as charge_account_name',
                         'bills.charge_account_id',
@@ -33,9 +34,7 @@ class BillRepo {
                         'invoice_id',
                         'pickup_manifest_id',
                         'delivery_manifest_id',
-                        'is_invoiced',
-                        'is_pickup_manifested',
-                        'is_delivery_manifested');
+                        'percentage_complete');
 
 		return $bills->get();
 	}
@@ -155,9 +154,11 @@ class BillRepo {
         $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
-        $old->date = $bill['date'];
+        $old->pickup_date_scheduled = $bill['pickup_date_scheduled'];
+        $old->delivery_date_scheduled = $bill['delivery_date_scheduled'];
         $old->amount = $bill['amount'];
         $old->delivery_type = $bill['delivery_type'];
+        $old->percentage_complete = $bill['percentage_complete'];
 
         $old->save();
 

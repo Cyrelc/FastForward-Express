@@ -198,4 +198,11 @@ class AccountController extends Controller {
             ]);
         }
     }
+
+    public function getShippingAddress(Request $req) {
+        $addressRepo = new Repos\AddressRepo();
+        $accountRepo = new Repos\AccountRepo();
+
+        return $addressRepo->GetById(($accountRepo->GetById($req->account_id))['shipping_address_id']);
+    }
 }

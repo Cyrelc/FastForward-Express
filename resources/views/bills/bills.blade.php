@@ -26,7 +26,8 @@
 				<td></td>
 				<td>Bill ID</td>
 				<td>Waybill</td>
-				<td>Date</td>
+				<td>Pickup Date</td>
+				<td>Delivery Date</td>
 				<td>Type</td>
 				<td>Account</td>
 				<td>Pickup Driver</td>
@@ -38,6 +39,7 @@
 				<td>Pickup Manifest</td>
 				<td>Delivery Manifest</td>
 				<td>Amount</td>
+				<td>Complete</td>
 			</tr>
 		</thead>
 	</table>

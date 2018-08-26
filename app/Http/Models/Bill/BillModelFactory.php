@@ -86,14 +86,8 @@
 
 			$model->pickupAddress = new \App\Address();
 			$model->deliveryAddress = new \App\Address();
-			$model->pickupAddress->city = $model->deliveryAddress->city = 'Edmonton';
-			$model->pickupAddress->state_province = $model->deliveryAddress->state_province = 'Alberta';
-			$model->pickupAddress->country = $model->deliveryAddress->country = 'Canada';
 		    $model->charge_selection_submission = null;
-            $model->bill->date = date("U");
-		    $model->pickup_use_submission = "account";
-		    $model->delivery_use_submission = "account";
-		    $model->use_interliner = 'false';
+			$model->bill->pickup_date = $model->bill->delivery_date = date("U");
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
             $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
