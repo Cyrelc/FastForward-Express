@@ -19,18 +19,18 @@ class AccountCollector {
             'start_date'=>(new \DateTime($req->input('start-date')))->format('Y-m-d'),
             'send_bills'=>isset($req->send_bills),
             'send_invoices' => isset($req->send_invoices),
-            'has_parent'=>isset($req->isSubLocation),
-            'parent_account_id'=>isset($req->isSubLocation) ? $req->input('parent-account-id') : null,
-            'has_discount' => $hasDiscount,
-            'discount'=> $hasDiscount ? $req->input('discount') : 0,
+            'has_parent'=>$req->input('parent-account-id') == null ? false : true,
+            'parent_account_id'=>$req->input('parent-account-id') == null ? null : $req->input('parent-account-id'),
+            'has_discount' => $req->discount == null ? false : true,
+            'discount'=> $req->discount,
             'gst_exempt'=>isset($req->isGstExempt),
             'charge_interest'=>isset($req->chargeInterest),
             'can_be_parent'=>isset($req->canBeParent),
             'active'=>true,
-            'uses_custom_field' => isset($req->useCustomField),
-            'custom_field' => isset($req->useCustomField) ? $req->input('custom-tracker') : null,
-            'fuel_surcharge' => isset($req->hasFuelSurcharge) ? $req->input('fuel-surcharge') / 100 : 0,
-            'min_invoice_amount' => isset($req->has_min_invoice_amount) ? $req->min_invoice_amount : 0
+            'uses_custom_field' => $req->input('custom-tracker') == '' ? false : true,
+            'custom_field' => $req->input('custom-tracker'),
+            'fuel_surcharge' => $req->input('fuel-surcharge'),
+            'min_invoice_amount' => $req->min_invoice_amount
         ];
     }
 }

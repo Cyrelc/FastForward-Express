@@ -27,7 +27,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Invoice Interval: </span>
-                <select class='form-control' id='invoice-interval' onblur='getAccountsToInvoice()' name="invoice-interval" placeholder="Select Invoice Interval">
+                <select class='form-control selectpicker' id='invoice-interval' onblur='getAccountsToInvoice()' name="invoice-interval" placeholder="Select Invoice Interval">
                     @foreach ($model->invoice_intervals as $ii)
                         <option value="{{$ii->value}}">{{$ii->name}}</option>
                     @endforeach

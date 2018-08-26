@@ -80,6 +80,7 @@ Route::group(
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
             Route::post('/invoices/printMass', 'InvoiceController@printMass');
             Route::get('/invoices/download/{filename}', 'InvoiceController@download');
+            Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
 
             Route::get('/manifests/generate', 'ManifestController@generate');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
@@ -93,6 +94,9 @@ Route::group(
 
             Route::post('/partials/contact/', 'PartialsController@NewContact');
             Route::post('/partials/phone', 'PartialsController@NewPhone');
+
+            Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
+            Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 
