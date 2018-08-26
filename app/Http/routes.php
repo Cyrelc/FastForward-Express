@@ -43,6 +43,7 @@ Route::group(
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
             Route::post('/accounts/deactivate/{id}', 'AccountController@deactivate');
             Route::post('/accounts/activate/{id}', 'AccountController@activate');
+            Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');

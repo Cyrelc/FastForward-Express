@@ -15,9 +15,7 @@ class CreateBillsTable extends Migration
         Schema::create('bills', function (Blueprint $table) {
             $table->increments('bill_id');
             $table->unsignedInteger('pickup_manifest_id')->nullable();
-            $table->boolean('is_pickup_manifested')->default(false);
             $table->unsignedInteger('delivery_manifest_id')->nullable();
-            $table->boolean('is_delivery_manifested')->default(false);
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('charge_account_id')->nullable();
             $table->unsignedInteger('pickup_account_id')->nullable();
@@ -29,20 +27,24 @@ class CreateBillsTable extends Migration
             $table->string('delivery_reference_value')->nullable();
             $table->unsignedInteger('pickup_driver_id')->nullable();
             $table->unsignedInteger('delivery_driver_id')->nullable();
-            $table->float('pickup_driver_commission');
-            $table->float('delivery_driver_commission');
+            $table->float('pickup_driver_commission')->nullable();
+            $table->float('delivery_driver_commission')->nullable();
             $table->unsignedInteger('interliner_id')->nullable();
             $table->decimal('interliner_amount')->nullable();
             $table->boolean('skip_invoicing')->default(false);
-            $table->string('bill_number');
+            $table->string('bill_number')->nullable();
             $table->string('description');
-            $table->date('date');
-            $table->decimal('amount');
+            $table->date('pickup_date_expected');
+            $table->date('delivery_date_expected');
+            $table->time('pickup_time_expected');
+            $table->time('delivery_time_expected');
+            $table->decimal('amount')->nullable();
             $table->boolean('is_invoiced')->default(false);            
-            $table->string('delivery_type');
+            $table->string('delivery_type')->nullable();
             $table->datetime('call_received')->nullable();
             $table->datetime('picked_up')->nullable();
             $table->datetime('delivered')->nullable();
+            $table->float('percentage_complete');
 
 			$table->unique('bill_number');
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
