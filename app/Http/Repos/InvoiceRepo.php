@@ -172,7 +172,6 @@ class InvoiceRepo {
 
         foreach($bills as $bill) {
             $bill->invoice_id = null;
-            $bill->is_invoiced = false;
 
             $bill->save();
         }
@@ -197,10 +196,11 @@ class InvoiceRepo {
 
     public function InvoiceBills($invoice_id, $account_id, $start_date, $end_date) {
         $bills = Bill::where('charge_account_id', '=', $account_id)
-            ->where('date', '>=', $start_date)
-            ->where('date', '<=', $end_date)
-            ->where('is_invoiced', '=', 0)
+            ->where('pickup_date_scheduled', '>=', $start_date)
+            ->where('pickup_date_scheduled', '<=', $end_date)
+            ->where('invoice_id', null)
             ->where('skip_invoicing', '=', 0)
+            ->where('percentage_complete', 1)
             ->get();
 
         foreach($bills as $bill) {

@@ -70,28 +70,28 @@ class ManifestRepo {
 
     public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {
         $pickup_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date) {
-            $query->whereDate('date', '>=', $start_date)
-            ->whereDate('date', '<=', $end_date)
+            $query->whereDate('pickup_date_scheduled', '>=', $start_date)
+            ->whereDate('pickup_date_scheduled', '<=', $end_date)
             ->where('pickup_driver_id', $driver_id)
-            ->where('is_pickup_manifested', false);
+            ->where('pickup_manifest_id', null)
+            ->where('percentage_complete', 1);
         })->get();
 
         $delivery_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date){
-            $query->whereDate('date', '>=', $start_date)
-            ->whereDate('date', '<=', $end_date)
+            $query->whereDate('pickup_date_scheduled', '>=', $start_date)
+            ->whereDate('pickup_date_scheduled', '<=', $end_date)
             ->where('delivery_driver_id', $driver_id)
-            ->where('is_delivery_manifested', false);
+            ->where('delivery_manifest_id', null)
+            ->where('percentage_complete', 1);
         })->get();
 
         foreach($pickup_bills as $bill) {
             $bill->pickup_manifest_id = $manifest_id;
-            $bill->is_pickup_manifested = true;
             $bill->save();
         }
 
         foreach($delivery_bills as $bill) {
             $bill->delivery_manifest_id = $manifest_id;
-            $bill->is_delivery_manifested = true;
             $bill->save();
         }
     }

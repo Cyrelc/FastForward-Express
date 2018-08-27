@@ -29,7 +29,8 @@ function getAccountsToInvoice(){
 					row.append('<td>' + cur.account_id + '</td>');
 					row.append('<td>' + cur.account_number + '</td>');
 					row.append("<td>" + cur.name + "</td>");
-	    			row.append("<td>" + cur.bill_count + "</td>");
+					row.append("<td>" + cur.bill_count + "</td>");
+					row.append("<td>" + cur.incomplete_bill_count + '</td>');
 
 	    			$("#account_preview_table tbody").append(row);
 	    		}

@@ -74,7 +74,8 @@
                         <th>Account ID</th>
                         <th>Account Number</th>
                         <th>Account Name</th>
-                        <th>Number of Bills Matched</th>
+                        <th>Completed Bills Matched</th>
+                        <th>Incomplete Bills Matched</th>
                     </tr>
                 </thead>
                 <tbody>
