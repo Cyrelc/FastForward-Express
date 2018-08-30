@@ -6,7 +6,7 @@ use DB;
 
 class BillRepo {
 
-	public function ListAll($req) {
+	public function ListAll($filter) {
         $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->leftJoin('drivers as pickup_driver', 'pickup_driver.driver_id', '=', 'bills.pickup_driver_id')
                 ->leftJoin('drivers as delivery_driver', 'delivery_driver.driver_id', '=', 'bills.delivery_driver_id')
@@ -36,7 +36,18 @@ class BillRepo {
                         'delivery_manifest_id',
                         'percentage_complete');
 
-		return $bills->get();
+        if($filter == 'dispatch')
+            $bills->where('pickup_driver_id', null)
+                    ->orWhere('delivery_driver_id', null)
+                    ->orWhere('pickup_driver_commission', null)
+                    ->orWhere('delivery_driver_commission', null)
+                    ->orWhere('delivery_type', null);
+        elseif($filter == 'billing')
+            $bills->where('bill_number', null)
+                ->orWhere('amount', null)
+                ->orWhere('charge_account_id', null);
+
+        return $bills->get();
 	}
 
     public function GetById($id) {

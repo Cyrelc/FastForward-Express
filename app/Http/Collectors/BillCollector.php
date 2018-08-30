@@ -19,7 +19,7 @@ class BillCollector {
 				$count++;
 		}
 
-		$percentage_complete = $count / count($required_fields);
+		$percentage_complete = number_format($count / count($required_fields), 2);
 
 		$skip_invoicing = false;
 		if ($req->skip_invoicing == 'true')
