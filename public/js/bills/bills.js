@@ -1,16 +1,6 @@
 $(document).ready(function() {
-
-    $('#pickup_driver, #delivery_driver').multiselect({
-        nonSelectedText: 'Select Driver(s)',
-        enableFiltering: true,
-        buttonWidth: '100%'
-    });
-
-    dateInput('start_date');
-    dateInput('end_date');
-
     var table = $('#table').DataTable({
-        ajax: {url:'/bills/buildTable', dataSrc:''},
+        ajax: {url:'/bills/buildTable', dataSrc: '', data: function(d) { d.filter = $('#bills_advanced_filter').val()}},
         dom: 'lf<"columnVis"B>rtip',
         buttons: ['colvis'],
         ColVis: {exclude: [0]},
@@ -19,6 +9,15 @@ $(document).ready(function() {
         deferRender: true,
         createdRow: function(row, data, index) {
             var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Bill" data-toggle="modal" data-target="#delete_modal" onclick="deleteBill(' + data.bill_id + ')" />';
+            var progress_bar;
+            if(data.percentage_complete < 0.33) 
+                progress_bar = 'progress-bar-danger';
+            else if (data.percentage_complete < 0.66)
+                progress_bar = 'progress-bar-warning';
+            else if (data.percentage_complete == 1)
+                progress_bar = 'progress-bar-success';
+            else 
+                progress_bar = 'progress-bar-info';
             $('.actions', row).html('<div class="hover-div" >' + deleteButton + '</div>');
             $('.bill_id', row).html('<a href="/bills/edit/' + data.bill_id + '" >' + data.bill_id + '</a>');
             $('.charge_account', row).html('<a href="/accounts/edit/' + data.charge_account_id + '" >' + data.charge_account_name + '</a>');
@@ -28,6 +27,7 @@ $(document).ready(function() {
             $('.invoice', row).html('<a href="/invoices/view/' + data.invoice_id + '" >' + data.invoice_id + '</a>');
             $('.pickup_manifest', row).html('<a href="/manifests/view/' + data.pickup_manifest_id + '" >' +  data.pickup_manifest_id + '</a>');
             $('.delivery_manifest', row).html('<a href="/manifests/view/' + data.delivery_manifest_id + '" >' + data.delivery_manifest_id + '</a>');
+            $('.percentage_complete', row).html('<div class="progress-bar ' + progress_bar + '" role="progressbar" aria-valuenow="' + data.percentage_complete * 100 + '" style="width:' + data.percentage_complete * 100 + '%">' + data.percentage_complete * 100 + '%</div>');
         },
         columns: [
             {className:'actions', orderable: false, data: null, defaultContent: '', colvis: false},
@@ -46,9 +46,13 @@ $(document).ready(function() {
             {data: 'pickup_manifest_id', className: 'pickup_manifest', visible: false},
             {data: 'delivery_manifest_id', className: 'delivery_manifest', visible: false},
             {data: 'amount'},
-            {data: 'percentage_complete'}
+            {data: 'percentage_complete', className: 'percentage_complete'}
         ]
     })
+
+    $('#bills_advanced_filter').change(function() {
+        table.ajax.reload();
+    });
 });
 
 function deleteBill(id) {

@@ -22,14 +22,16 @@ class BillController extends Controller {
 
     public function index() {
         $billModelFactory = new Bill\BillModelFactory();
+        $driverRepo = new Repos\DriverRepo();
         $model = $billModelFactory->GetBillAdvancedFiltersModel();
+        $drivers = $driverRepo->ListAllWithEmployeeAndContact();
 
-        return view('bills.bills', compact('model'));
+        return view('bills.bills', compact('model', 'drivers'));
     }
 
     public function buildTable(Request $req) {
         $billRepo = new Repos\BillRepo();
-        return $billRepo->ListAll($req);
+        return $billRepo->ListAll($req->filter);
     }
 
     public function create(Request $req) {
@@ -117,11 +119,10 @@ class BillController extends Controller {
 
             $bill = $billCollector->Collect($req, $pickupAddressId, $deliveryAddressId);
 
-            if ($req->bill_id) {
+            if($req->bill_id)
                 $bill = $billRepo->Update($bill);
-            } else {
+            else
                 $bill = $billRepo->Insert($bill);
-            }
 
             $packages = $packageCollector->Collect($req, $bill->bill_id);
 

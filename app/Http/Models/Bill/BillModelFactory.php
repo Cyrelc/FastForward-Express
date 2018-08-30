@@ -149,7 +149,8 @@
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
-            $model->bill->date = strtotime($model->bill->date);
+			$model->bill->pickup_date_scheduled = strtotime($model->bill->pickup_date_scheduled);
+			$model->bill->delivery_date_scheduled = strtotime($model->bill->delivery_date_scheduled);
             $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
 
             if($model->bill->charge_account_id !== null)

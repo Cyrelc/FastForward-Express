@@ -67,6 +67,16 @@
 @endsection
 
 @section('advFilter')
-<div class='well' style='text-align:center'>
-</div>
+<form id='bills_advanced_filters'>
+	<div class='well' style='text-align:center'>
+		<div class='input-group'>
+			<span class='input-group-addon'>Bill Filter</span>
+			<select class='form-control selectpicker' name='bills_advanced_filter' id='bills_advanced_filter'>
+				<option></option>
+				<option value='dispatch'>Dispatch</option>
+				<option value='billing'>Billing</option>
+			</select>
+		</div>
+	</div>
+</form>
 @endsection
