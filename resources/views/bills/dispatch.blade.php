@@ -2,21 +2,6 @@
 
 <!--pickup driver-->
 <div class="clearfix">
-    <div class="col-lg-12 bottom15">
-        <div class="input-group">
-            <span class="input-group-addon">Delivery Type: </span>
-            <select id="delivery_type" class="form-control selectpicker" name="delivery_type">
-                <option></option>
-                @foreach($model->delivery_types as $delivery_type)
-                    @if (isset($model->bill->delivery_type) && $delivery_type->value == $model->bill->delivery_type)
-                        <option selected value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
-                    @else
-                        <option value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>
-                    @endif
-                @endforeach
-            </select>
-        </div>
-    </div>
     <div class="col-lg-8 bottom15">
         <div class="input-group">
             <span class="input-group-addon">Pickup Driver: </span>
@@ -62,7 +47,7 @@
     </div>
 <!-- Interliner -->
     <div id="interliner">
-        <div class="col-lg-8 bottom15">
+        <div class="col-lg-6 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Interliner: </span>
                 <select id="interliner_id" class="form-control selectpicker" data-live-search='true' name="interliner_id">
@@ -77,10 +62,16 @@
                 </select>
             </div>
         </div>
-        <div class="col-lg-4 bottom15">
+        <div class="col-lg-3 bottom15">
             <div class="input-group">
-                <span class="input-group-addon">Interliner Amount: $</span>
-                <input id="interliner_amount" name="interliner_amount" type="number" class="form-control" min="0" value="{{$model->bill->interliner_amount}}" step="0.01" />
+                <span class="input-group-addon">Interliner Cost: $</span>
+                <input id="interliner_cost" name="interliner_cost" type="number" class="form-control" min="0" value="{{$model->bill->interliner_cost}}" step="0.01" />
+            </div>
+        </div>
+        <div class="col-lg-3 bottom15">
+            <div class="input-group">
+                <span class="input-group-addon">Interliner Cost to Customer: $</span>
+                <input id="interliner_cost_to_customer" name="interliner_cost_to_customer" type="number" class="form-control" min="0" value="{{$model->bill->interliner_cost_to_customer}}" step="0.01" />
             </div>
         </div>
     </div>

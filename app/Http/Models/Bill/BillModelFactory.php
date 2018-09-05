@@ -87,7 +87,7 @@
 			$model->pickupAddress = new \App\Address();
 			$model->deliveryAddress = new \App\Address();
 		    $model->charge_selection_submission = null;
-			$model->bill->pickup_date = $model->bill->delivery_date = date("U");
+			$model->bill->pickup_date_scheduled = $model->bill->delivery_date_scheduled = date("U");
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
             $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');

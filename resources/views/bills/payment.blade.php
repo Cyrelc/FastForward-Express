@@ -20,7 +20,7 @@
 <!-- Amount -->
             <div class="col-lg-4 bottom15">
                 <div class="input-group">
-                    <span class="input-group-addon">Charge: $</span>
+                    <span class="input-group-addon">Driver Charge: $</span>
                     <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
                 </div>
             </div>
@@ -46,7 +46,7 @@
             <div id='charge_reference' class="col-lg-4 {{$model->bill->charge_reference_value == '' ? 'hidden' : ''}} bottom15" id="charge_reference">
                 <div class="input-group">
                     <span id="charge_reference_name" class="input-group-addon" >{{$model->charge_reference_name}}</span>
-                    <input id="charge_reference_value" name="charge_reference_value" class="form-control" type="text" value="{{$model->bill->charge_reference_value}}" />
+                    <input id="charge_reference_value" name="charge_reference_value" class="form-control" type="text" disabled value="{{$model->bill->charge_reference_value}}" />
                 </div>
             </div>
         </div>

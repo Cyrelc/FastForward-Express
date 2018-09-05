@@ -5,13 +5,16 @@ namespace App\Http\Collectors;
 class BillCollector {
 	public function Collect($req, $pickupAddressId, $deliveryAddressId) { 
 
-		$required_fields = ['bill_id', 'payment_type', 'pickup_address_id', 'delivery_address_id', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
+		$required_fields = ['bill_id', 'payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
 
 		switch($req->payment_type) {
 			case 'account':
 				$required_fields = array_merge($required_fields, ['charge_account_id']);
 				break;
 		}
+
+		if($req->interliner_id != "")
+			$required_fields = array_merge($required_fields, ['interliner_id', 'interliner_cost', 'interliner_cost_to_customer']);
 
 		$count = 0;
 		foreach($required_fields as $field) {
@@ -40,11 +43,12 @@ class BillCollector {
 			'pickup_driver_commission' => $req->pickup_driver_commission == "" ? null : $req->pickup_driver_commission / 100,
 			'delivery_driver_commission' => $req->delivery_driver_commission == "" ? null : $req->delivery_driver_commission / 100,
 			'interliner_id' => $req->interliner_id == "" ? null : $req->interliner_id,
-			'interliner_amount' => $req->interliner_id == "" ? null : $req->interliner_amount,
+			'interliner_cost' => $req->interliner_id == "" ? null : $req->interliner_cost,
+			'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
 			'bill_number' => $req->bill_number == "" ? null : $req->bill_number,
 			'description' => $req->description,
 			'pickup_date_scheduled' => (new \DateTime($req->input('pickup_date_scheduled')))->format('Y-m-d'),
-			'delivery_date_scheduled' => (new \DateTime($req->input('delivery_date_scheduled')))->format('Y-m-d'),
+			'delivery_date_scheduled' => (new \DateTime($req->delivery_date_scheduled))->format('Y-m-d'),
 			'amount' => $req->amount == "" ? null : $req->amount,
 			'skip_invoicing' => $skip_invoicing,
 			'delivery_type' => $req->delivery_type == "" ? null : $req->delivery_type,

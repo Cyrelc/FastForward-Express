@@ -29,6 +29,7 @@
 				<td>Pickup Date</td>
 				<td>Delivery Date</td>
 				<td>Type</td>
+				<td>Account #</td>
 				<td>Account</td>
 				<td>Pickup Driver</td>
 				<td>Delivery Driver</td>

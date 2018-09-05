@@ -70,7 +70,7 @@ class BillRepo {
                 ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
                 ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->select('bill_id',
-                DB::raw('format(amount + case when interliner_amount != NULL then interliner_amount else 0 end, 2) as amount'),
+                DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
                 'bill_number',
                 'pickup_date_scheduled',
                 'delivery_date_scheduled',
@@ -162,7 +162,8 @@ class BillRepo {
         $old->pickup_driver_commission = $bill['pickup_driver_commission'];
         $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
-        $old->interliner_amount = $bill['interliner_amount'];
+        $old->interliner_cost = $bill['interliner_cost'];
+        $old->interliner_cost_to_customer = $bill['interliner_cost_to_customer'];
         $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
@@ -260,14 +261,14 @@ class BillRepo {
     public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
         $subtotal = Bill::where('invoice_id', $invoice_id)
             ->where($field_name, $field_value)
-            ->value(DB::raw('sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end)'));
+            ->value(DB::raw('sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end)'));
 
         return $subtotal;
     }
 
     public function GetAmountByInvoiceId($invoice_id) {
         $amount = Bill::where('invoice_id', $invoice_id)
-            ->value(DB::raw('format(sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end), 2)'));
+            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end), 2)'));
 
         return $amount;
     }

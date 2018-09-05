@@ -7,6 +7,7 @@ $(document).ready(function() {
         pageLength: 50,
         order: [1, 'desc'],
         deferRender: true,
+        columnDefs: [{ 'visible': false, 'targets': 4 }],
         createdRow: function(row, data, index) {
             var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Bill" data-toggle="modal" data-target="#delete_modal" onclick="deleteBill(' + data.bill_id + ')" />';
             var progress_bar;
@@ -36,6 +37,7 @@ $(document).ready(function() {
             {data: 'pickup_date_scheduled'},
             {data: 'delivery_date_scheduled'},
             {data: 'delivery_type'},
+            {data: 'charge_account_id'},
             {data: 'charge_account_name', className: 'charge_account'},
             {data: 'pickup_employee_name', className: 'pickup_employee'},
             {data: 'delivery_employee_name', className: 'delivery_employee'},
@@ -50,9 +52,11 @@ $(document).ready(function() {
         ]
     })
 
-    $('#bills_advanced_filter').change(function() {
+    $('#bills_advanced_filter').change(function() { //TODO - remove auto refresh when live for clients
         table.ajax.reload();
     });
+
+    setInterval(function() {table.ajax.reload();}, 600000);
 });
 
 function deleteBill(id) {
