@@ -30,7 +30,8 @@ class CreateBillsTable extends Migration
             $table->float('pickup_driver_commission')->nullable();
             $table->float('delivery_driver_commission')->nullable();
             $table->unsignedInteger('interliner_id')->nullable();
-            $table->decimal('interliner_amount')->nullable();
+            $table->decimal('interliner_cost_to_customer')->nullable();
+            $table->decimal('interliner_cost')->nullable();
             $table->boolean('skip_invoicing')->default(false);
             $table->string('bill_number')->nullable();
             $table->string('description');
@@ -39,7 +40,6 @@ class CreateBillsTable extends Migration
             $table->time('pickup_time_expected');
             $table->time('delivery_time_expected');
             $table->decimal('amount')->nullable();
-            $table->boolean('is_invoiced')->default(false);            
             $table->string('delivery_type')->nullable();
             $table->datetime('call_received')->nullable();
             $table->datetime('picked_up')->nullable();

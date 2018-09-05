@@ -20,7 +20,7 @@
 <!-- Amount -->
             <div class="col-lg-4 bottom15">
                 <div class="input-group">
-                    <span class="input-group-addon">Charge: $</span>
+                    <span class="input-group-addon">Driver Charge: $</span>
                     <input id="amount" name="amount" type="number" class="form-control" min="0.00" value="{{$model->bill->amount}}" step="0.01" />
                 </div>
             </div>

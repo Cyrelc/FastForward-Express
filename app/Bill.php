@@ -22,21 +22,17 @@ class Bill extends Model
     						'pickup_driver_commission',
     						'delivery_driver_commission',
                             'interliner_id',
-                            'interliner_amount',
+                            'interliner_cost',
+                            'interliner_cost_to_customer',
                             'skip_invoicing',
     						'bill_number',
     						'amount',
     						'date',
                             'description',
-                            'num_pieces',
-                            'weight',
-                            'height',
-                            'length',
-                            'width',
                             'delivery_type',
-                            'call_received',
-                            'picked_up',
-                            'delivered'
+                            'pickup_date_scheduled',
+                            'delivery_date_scheduled',
+                            'percentage_complete'
                         ];
 
 }
