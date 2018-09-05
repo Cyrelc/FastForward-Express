@@ -205,7 +205,6 @@ class InvoiceRepo {
 
         foreach($bills as $bill) {
             $bill->invoice_id = $invoice_id;
-            $bill->is_invoiced = 1;
 
             $bill->save();
         }
