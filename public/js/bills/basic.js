@@ -14,9 +14,11 @@ $(document).ready(function() {
     $('#pickup_account_id, #delivery_account_id, #charge_account_id').change(function(){
         if ($('option:selected', this).attr('data-reference-field-name')) {
             $('#' + $(this).attr('data-reference')).removeClass('hidden');
+            $('#' + $(this).attr('data-reference') + ' input').removeAttr('disabled');
             document.getElementById($(this).attr('data-reference') + '_name').innerHTML = ($("option:selected", this).attr('data-reference-field-name'));
         } else {
             $('#' + $(this).attr('data-reference')).addClass('hidden');
+            $('#' + $(this).attr('data-reference') + ' input').attr('disabled', 'disabled');
         }
         if($(this).val()) {
             if($(this).attr('name') === 'pickup_account_id')

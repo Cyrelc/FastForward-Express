@@ -41,7 +41,7 @@
         <div id='{{$prefix}}_reference' class="col-lg-12 {{$model->bill->pickup_reference_value == '' ? 'hidden' : ''}} bottom15" name="{{$prefix}}_reference">
             <div class="input-group">
                 <span id="{{$prefix}}_reference_name" class="input-group-addon" >{{$model->pickup_reference_name}}</span>
-                <input id="{{$prefix}}_reference_value" name="{{$prefix}}_reference_value" class="form-control" type="text" value="{{$model->bill->pickup_reference_value}}" />
+                <input id="{{$prefix}}_reference_value" name="{{$prefix}}_reference_value" class="form-control" type="text" disabled value="{{$model->bill->pickup_reference_value}}" />
             </div>
         </div>
 <!-- address -->
