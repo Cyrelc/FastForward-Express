@@ -64,17 +64,20 @@ class AccountRepo {
         return $accounts;
     }
 
-    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date) {
-        $accounts = Account::where('invoice_interval', $invoice_interval)
+    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_intervals, $start_date, $end_date) {
+        $accounts = Account::whereIn('invoice_interval', $invoice_intervals)
                 ->where('active', true)
                 ->select('accounts.account_id',
                         'accounts.account_number',
+                        'accounts.invoice_interval',
                         'accounts.name',
                         DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled <= "' . $end_date . '" and pickup_date_scheduled >= "' . $start_date . '" and percentage_complete = 1 and invoice_id IS NULL) as bill_count'),
-                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled <= "' . $end_date . '" and pickup_date_scheduled >= "' . $start_date . '" and percentage_complete != 1) as incomplete_bill_count')
+                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled <= "' . $end_date . '" and pickup_date_scheduled >= "' . $start_date . '" and percentage_complete != 1) as incomplete_bill_count'),
+                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled < "' . $start_date . '" and invoice_id IS NULL) as legacy_bill_count')
                 )->groupBy('accounts.account_id')
                 ->havingRaw('bill_count > 0')
-                ->orHavingRaw('incomplete_bill_count > 0');
+                ->orHavingRaw('incomplete_bill_count > 0')
+                ->orHavingRaw('legacy_bill_count > 0');
 
         return $accounts->get();
     }
