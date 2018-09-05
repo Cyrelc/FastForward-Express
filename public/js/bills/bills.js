@@ -50,9 +50,11 @@ $(document).ready(function() {
         ]
     })
 
-    $('#bills_advanced_filter').change(function() {
+    $('#bills_advanced_filter').change(function() { //TODO - remove auto refresh when live for clients
         table.ajax.reload();
     });
+
+    setInterval(function() {table.ajax.reload();}, 600000);
 });
 
 function deleteBill(id) {
