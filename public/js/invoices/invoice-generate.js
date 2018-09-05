@@ -6,13 +6,13 @@ $(document).ready(function() {
 function getAccountsToInvoice(){
 	var start_date = $("#start_date").val();
 	var end_date = $('#end_date').val();
-	var invoice_interval = $("#invoice-interval option:selected").val();//$("option:selected", this)).val();
+	var invoice_intervals = $("#invoice_intervals").val();
 	var _token = $("input[name='_token").val();
 
     $.ajax({
     	type: "POST",
     	url: '/invoices/getAccountsToInvoice',
-    	data: {'start_date' : start_date, 'end_date' : end_date, 'invoice_interval' : invoice_interval}, //TODO replace invoice interval fill options
+    	data: {'start_date' : start_date, 'end_date' : end_date, 'invoice_intervals' : invoice_intervals},
     	'success': function(results){
     		if (results.length > 0) {
     			$('#preview_list_placeholder').addClass('hidden');
@@ -25,11 +25,23 @@ function getAccountsToInvoice(){
 
 	    			var row = $("<tr>");
 
-	    			row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' checked value='" + cur.account_id + "' /></td>");
+					if(cur.incomplete_bill_count == 0)
+						row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' checked value='" + cur.account_id + "' /></td>");
+					else
+						row.append('<td><input type="checkbox" name="checkboxes[' + i + ']" value="' + cur.account_id + '"/></td>');
 					row.append('<td>' + cur.account_id + '</td>');
 					row.append('<td>' + cur.account_number + '</td>');
 					row.append("<td>" + cur.name + "</td>");
-	    			row.append("<td>" + cur.bill_count + "</td>");
+					row.append('<td>' + cur.invoice_interval + '</td>');
+					row.append("<td>" + cur.bill_count + "</td>");
+					if(cur.incomplete_bill_count > 0)
+						row.append('<td><font color="red">' + cur.incomplete_bill_count + '</font></td>');
+					else
+						row.append('<td></td>');
+					if(cur.legacy_bill_count > 0)
+						row.append('<td><font color="red">' + cur.legacy_bill_count + '</font></td>');
+					else
+						row.append('<td></td>');
 
 	    			$("#account_preview_table tbody").append(row);
 	    		}

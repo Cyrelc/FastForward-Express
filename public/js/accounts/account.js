@@ -1,17 +1,4 @@
 $(document).ready(function() {
-	$('#account_options input:checkbox').change(function() {
-		if(this.checked){
-            $('#' + $(this).attr('data-div')).fadeIn();
-		}
-		else {
-		    $('#' + $(this).attr('data-div')).fadeOut();
-		}
-	});
-
-	$('#account_options input:checkbox').each(function (i, e) {
-	    $("#" + $(this).attr('data-div')).css('display', 'none');
-	});
-
 	$("#billing-address").change(function(){
 		if ($("#billing-address").prop('checked'))
 			$("input[name='hasBillingAddress']").val('true');
@@ -20,17 +7,6 @@ $(document).ready(function() {
 	});
 
 	dateInput('start-date');
-	comboInput('parent-account-id', 'Select a Parent Account');
-	comboInput('driver,select', 'Select a Driver');
-
-	$('#account_options input:checkbox').each(function(index, element){
-		var data_div = $('#' + $(element).attr('data-div'));
-		if(data_div != undefined)
-			if($(element).attr('checked') == undefined) 
-				$(data_div).hide();
-			else
-				$(data_div).show();
-	});
 
 	$("#account_number").focusout(function(){
 		var curr = '{{$model->account->account_number}}';
@@ -79,7 +55,7 @@ $(document).ready(function() {
 });
 
 function storeAccount(){
-	var data = $('#account_form, #account_options').serialize();
+	var data = $('#account_basic, $account_advanced').serialize();
 
 	$.ajax({
 		'url': '/accounts/store',
@@ -109,13 +85,4 @@ function storeAccount(){
 			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
 		}
 	})
-}
-
-$('#advFilter input[type="checkbox"]').each(function(i,j) {
-	if(j.checked){
-		$('tr#' + j.id).fadeIn();
-	}
-	else{
-		$('tr#' + j.id).fadeOut();
-	}
-});
+};

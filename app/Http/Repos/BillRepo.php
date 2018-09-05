@@ -6,7 +6,7 @@ use DB;
 
 class BillRepo {
 
-	public function ListAll($req) {
+	public function ListAll($filter) {
         $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->leftJoin('drivers as pickup_driver', 'pickup_driver.driver_id', '=', 'bills.pickup_driver_id')
                 ->leftJoin('drivers as delivery_driver', 'delivery_driver.driver_id', '=', 'bills.delivery_driver_id')
@@ -17,7 +17,8 @@ class BillRepo {
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
                 ->select('bill_id',
                         'bill_number',
-                        'date',
+                        'pickup_date_scheduled',
+                        'delivery_date_scheduled',
                         'delivery_type',
                         'accounts.name as charge_account_name',
                         'bills.charge_account_id',
@@ -33,11 +34,20 @@ class BillRepo {
                         'invoice_id',
                         'pickup_manifest_id',
                         'delivery_manifest_id',
-                        'is_invoiced',
-                        'is_pickup_manifested',
-                        'is_delivery_manifested');
+                        'percentage_complete');
 
-		return $bills->get();
+        if($filter == 'dispatch')
+            $bills->where('pickup_driver_id', null)
+                    ->orWhere('delivery_driver_id', null)
+                    ->orWhere('pickup_driver_commission', null)
+                    ->orWhere('delivery_driver_commission', null)
+                    ->orWhere('delivery_type', null);
+        elseif($filter == 'billing')
+            $bills->where('bill_number', null)
+                ->orWhere('amount', null)
+                ->orWhere('charge_account_id', null);
+
+        return $bills->get();
 	}
 
     public function GetById($id) {
@@ -60,9 +70,10 @@ class BillRepo {
                 ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
                 ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->select('bill_id',
-                DB::raw('format(amount + case when interliner_amount != NULL then interliner_amount else 0 end, 2) as amount'),
+                DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
                 'bill_number',
-                'date',
+                'pickup_date_scheduled',
+                'delivery_date_scheduled',
                 'charge_account_id',
                 'charge_reference_value',
                 'delivery_type',
@@ -151,13 +162,16 @@ class BillRepo {
         $old->pickup_driver_commission = $bill['pickup_driver_commission'];
         $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
-        $old->interliner_amount = $bill['interliner_amount'];
+        $old->interliner_cost = $bill['interliner_cost'];
+        $old->interliner_cost_to_customer = $bill['interliner_cost_to_customer'];
         $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
-        $old->date = $bill['date'];
+        $old->pickup_date_scheduled = $bill['pickup_date_scheduled'];
+        $old->delivery_date_scheduled = $bill['delivery_date_scheduled'];
         $old->amount = $bill['amount'];
         $old->delivery_type = $bill['delivery_type'];
+        $old->percentage_complete = $bill['percentage_complete'];
 
         $old->save();
 
@@ -183,13 +197,13 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'date', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
+            ->select('bill_id', 'bill_number', 'pickup_date_scheduled', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
 
         $bills = Bill::where('delivery_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'date', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
+            ->select('bill_id', 'bill_number', 'pickup_date_scheduled', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
             ->union($pickup_bills)
-            ->orderBy('date')
+            ->orderBy('pickup_date_scheduled')
             ->orderBy('bill_id')
             ->get();
 
@@ -199,12 +213,12 @@ class BillRepo {
     public function GetManifestOverviewById($manifest_id) {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)
-            ->select('date',
+            ->select('pickup_date_scheduled',
                     DB::raw('format(sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end), 2) as pickup_amount'),
                     DB::raw('format(sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end), 2) as delivery_amount'),
                     DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
                     DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
-            ->groupBy('date')
+            ->groupBy('pickup_date_scheduled')
             ->get();
 
         return $bills;
@@ -223,17 +237,17 @@ class BillRepo {
     }
 
     public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
-        $count = Bill::whereDate('date', '>=', $start_date)
-                ->whereDate('date', '<=', $end_date)
+        $count = Bill::whereDate('pickup_date_scheduled', '>=', $start_date)
+                ->whereDate('pickup_date_scheduled', '<=', $end_date)
+                ->where('percentage_complete', 1)
                 ->where(function($query) use ($driver_id) {
                     $query->where('pickup_driver_id', '=', $driver_id)
-                    ->where('is_pickup_manifested', false)
+                    ->where('pickup_manifest_id', null)
                     ->orWhere('delivery_driver_id', '=', $driver_id)
-                    ->where('is_delivery_manifested', false);
-                })
-                ->count();
+                    ->where('delivery_manifest_id', null);
+                });
 
-        return $count;
+        return $count->count();
     }
 
     public function CountByDriver($driverId) {
@@ -247,14 +261,14 @@ class BillRepo {
     public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
         $subtotal = Bill::where('invoice_id', $invoice_id)
             ->where($field_name, $field_value)
-            ->value(DB::raw('sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end)'));
+            ->value(DB::raw('sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end)'));
 
         return $subtotal;
     }
 
     public function GetAmountByInvoiceId($invoice_id) {
         $amount = Bill::where('invoice_id', $invoice_id)
-            ->value(DB::raw('format(sum(amount + case when interliner_amount != NULL then interliner_amount else 0 end), 2)'));
+            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end), 2)'));
 
         return $amount;
     }

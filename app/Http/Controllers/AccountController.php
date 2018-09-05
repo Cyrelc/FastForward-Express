@@ -83,14 +83,6 @@ class AccountController extends Controller {
                 $validationMessages = array_merge($validationMessages, $billAddressRules['messages']);
             }
 
-            for ($i = 1; $i < 3; $i++) {
-                if ($req->input('give-commission-' . $i) == 'true') {
-                    $valRules = $partialsRules->GetCommissionValidationRules('commission-' . $i, 'Commission', ($req->input('depreciate-' . $i . '-percent') != '' || $req->input('depreciate-' . $i . '-duration') != '' || $req->input('depreciate-' . $i . '-start-date') != ''));
-                    $validationRules = array_merge($validationRules, $valRules['rules']);
-                    $validationMessages = array_merge($validationMessages, $valRules['messages']);
-                }
-            }
-
             $this->validate($req, $validationRules, $validationMessages);
 
             $accountRepo = new Repos\AccountRepo();
@@ -142,40 +134,6 @@ class AccountController extends Controller {
                 $accountRepo->Update($account);
                 $action = 'AccountController@edit';
                 $args = ['id' => $accountId];
-            }
-
-            //Commission
-            $commissionCollector = new \App\Http\Collectors\CommissionCollector();
-            $commission1 = $commission2 = null;
-
-            if ($req->input('give-commission-1') == 'true')
-                $commission1 = $commissionCollector->Collect($req, 'commission-1', $accountId);
-
-            if ($req->input('give-commission-2') == 'true')
-                $commission2 = $commissionCollector->Collect($req, 'commission-2', $accountId);
-
-            if ($isNew) {
-                if ($commission1 !== null)
-                    $commissionRepo->Insert($commission1);
-
-                if ($commission2 !== null)
-                    $commissionRepo->Insert($commission2);
-            } else {
-                if ($req->input('give-commission-1') == 'true') {
-                    if ($commission1->commission_id == null)
-                        $commissionRepo->Insert($commission1);
-                    else
-                        $commissionRepo->Update($commission1);
-                } else if ($commission1 != null)
-                    $commissionRepo->Delete($commission1->commission_id);
-
-                if ($req->input('give-commission-2') == 'true') {
-                    if ($commission2->commission_id == null)
-                        $commissionRepo->Insert($commission2);
-                    else
-                        $commissionRepo->Update($commission2);
-                } else if ($commission2 != null)
-                    $commissionRepo->Delete($commission2->commission_id);
             }
 
             //BEGIN contacts
@@ -239,5 +197,12 @@ class AccountController extends Controller {
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function getShippingAddress(Request $req) {
+        $addressRepo = new Repos\AddressRepo();
+        $accountRepo = new Repos\AccountRepo();
+
+        return $addressRepo->GetById(($accountRepo->GetById($req->account_id))['shipping_address_id']);
     }
 }

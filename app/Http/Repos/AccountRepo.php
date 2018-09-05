@@ -7,6 +7,17 @@ use Illuminate\Support\Facades\DB;
 
 class AccountRepo {
 
+    public function AdjustBalance($account_id, $amount) {
+        $account = Account::where('account_id', $account_id)
+            ->first();
+
+        $account->account_balance += $amount;
+
+        $account->save();
+
+        return $account;
+    }
+
     public function ListAll() {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
@@ -53,10 +64,22 @@ class AccountRepo {
         return $accounts;
     }
 
-    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date) {
-        $accounts = DB::select('SELECT a.account_id, a.name, a.account_number, count(b.bill_id) as bill_count FROM bills b inner join accounts a on a.account_id = b.charge_account_id where a.invoice_interval = "' . $invoice_interval . '" and a.active = 1 and b.is_invoiced = 0 and b.skip_invoicing = 0 and b.date >= "' . $start_date . '" and b.date <= "' . $end_date . '" group by a.account_id order by a.name');
+    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoice_intervals, $start_date, $end_date) {
+        $accounts = Account::whereIn('invoice_interval', $invoice_intervals)
+                ->where('active', true)
+                ->select('accounts.account_id',
+                        'accounts.account_number',
+                        'accounts.invoice_interval',
+                        'accounts.name',
+                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled <= "' . $end_date . '" and pickup_date_scheduled >= "' . $start_date . '" and percentage_complete = 1 and invoice_id IS NULL) as bill_count'),
+                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled <= "' . $end_date . '" and pickup_date_scheduled >= "' . $start_date . '" and percentage_complete != 1) as incomplete_bill_count'),
+                        DB::raw('(select count(*) from bills where charge_account_id = account_id and pickup_date_scheduled < "' . $start_date . '" and invoice_id IS NULL) as legacy_bill_count')
+                )->groupBy('accounts.account_id')
+                ->havingRaw('bill_count > 0')
+                ->orHavingRaw('incomplete_bill_count > 0')
+                ->orHavingRaw('legacy_bill_count > 0');
 
-        return $accounts;
+        return $accounts->get();
     }
 
     public function GetById($id) {

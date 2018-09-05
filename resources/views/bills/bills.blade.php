@@ -26,8 +26,10 @@
 				<td></td>
 				<td>Bill ID</td>
 				<td>Waybill</td>
-				<td>Date</td>
+				<td>Pickup Date</td>
+				<td>Delivery Date</td>
 				<td>Type</td>
+				<td>Account #</td>
 				<td>Account</td>
 				<td>Pickup Driver</td>
 				<td>Delivery Driver</td>
@@ -38,6 +40,7 @@
 				<td>Pickup Manifest</td>
 				<td>Delivery Manifest</td>
 				<td>Amount</td>
+				<td>Complete</td>
 			</tr>
 		</thead>
 	</table>
@@ -65,6 +68,16 @@
 @endsection
 
 @section('advFilter')
-<div class='well' style='text-align:center'>
-</div>
+<form id='bills_advanced_filters'>
+	<div class='well' style='text-align:center'>
+		<div class='input-group'>
+			<span class='input-group-addon'>Bill Filter</span>
+			<select class='form-control selectpicker' name='bills_advanced_filter' id='bills_advanced_filter'>
+				<option></option>
+				<option value='dispatch'>Dispatch</option>
+				<option value='billing'>Billing</option>
+			</select>
+		</div>
+	</div>
+</form>
 @endsection

@@ -9,6 +9,18 @@ use App\AccountInvoiceSortEntries;
 use App\InvoiceSortOptions;
 
 class InvoiceRepo {
+
+    public function AdjustBalanceOwing($invoice_id, $amount) {
+        $invoice = Invoice::where('invoice_id', $invoice_id)
+            ->first();
+
+        $invoice->balance_owing += $amount;
+
+        $invoice->save();
+
+        return $invoice;
+    }
+
     public function ListAll() {
         $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
             ->select('invoices.invoice_id',
@@ -23,10 +35,27 @@ class InvoiceRepo {
         return $invoices->get();
     }
 
+    public function CalculateAccountBalanceOwing($account_id) {
+        $balance_owing = Invoice::where('account_id', $account_id)
+            ->sum('balance_owing');
+
+        return $balance_owing;
+    }
+
     public function GetById($id) {
         $invoice = Invoice::where('invoice_id', '=', $id)->first();
 
         return $invoice;
+    }
+
+    public function GetOutstandingByAccountId($account_id) {
+        $invoices = Invoice::where('account_id', $account_id)
+            ->where('balance_owing', '>', '0')
+            ->select('invoice_id',
+                'date',
+                'balance_owing');
+
+        return $invoices->get();
     }
 
     public function GetSubtotalById($account_id) {
@@ -143,7 +172,6 @@ class InvoiceRepo {
 
         foreach($bills as $bill) {
             $bill->invoice_id = null;
-            $bill->is_invoiced = false;
 
             $bill->save();
         }
@@ -168,10 +196,11 @@ class InvoiceRepo {
 
     public function InvoiceBills($invoice_id, $account_id, $start_date, $end_date) {
         $bills = Bill::where('charge_account_id', '=', $account_id)
-            ->where('date', '>=', $start_date)
-            ->where('date', '<=', $end_date)
-            ->where('is_invoiced', '=', 0)
+            ->where('pickup_date_scheduled', '>=', $start_date)
+            ->where('pickup_date_scheduled', '<=', $end_date)
+            ->where('invoice_id', null)
             ->where('skip_invoicing', '=', 0)
+            ->where('percentage_complete', 1)
             ->get();
 
         foreach($bills as $bill) {
@@ -180,13 +209,5 @@ class InvoiceRepo {
 
             $bill->save();
         }
-    }
-
-    public function GetWithOutstandingBalanceByAccountId($account_id) {
-        $invoices = Invoice::where('account_id', $account_id)
-            ->where('balance_owing', '>', 0)
-            ->get();
-
-        return $invoices;
     }
 }

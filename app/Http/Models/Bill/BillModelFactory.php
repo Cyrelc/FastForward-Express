@@ -86,14 +86,8 @@
 
 			$model->pickupAddress = new \App\Address();
 			$model->deliveryAddress = new \App\Address();
-			$model->pickupAddress->city = $model->deliveryAddress->city = 'Edmonton';
-			$model->pickupAddress->state_province = $model->deliveryAddress->state_province = 'Alberta';
-			$model->pickupAddress->country = $model->deliveryAddress->country = 'Canada';
 		    $model->charge_selection_submission = null;
-            $model->bill->date = date("U");
-		    $model->pickup_use_submission = "account";
-		    $model->delivery_use_submission = "account";
-		    $model->use_interliner = 'false';
+			$model->bill->pickup_date_scheduled = $model->bill->delivery_date_scheduled = date("U");
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
             $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
@@ -155,7 +149,8 @@
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
-            $model->bill->date = strtotime($model->bill->date);
+			$model->bill->pickup_date_scheduled = strtotime($model->bill->pickup_date_scheduled);
+			$model->bill->delivery_date_scheduled = strtotime($model->bill->delivery_date_scheduled);
             $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
 
             if($model->bill->charge_account_id !== null)

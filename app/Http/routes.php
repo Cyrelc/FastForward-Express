@@ -43,6 +43,7 @@ Route::group(
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
             Route::post('/accounts/deactivate/{id}', 'AccountController@deactivate');
             Route::post('/accounts/activate/{id}', 'AccountController@activate');
+            Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
@@ -80,6 +81,7 @@ Route::group(
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
             Route::post('/invoices/printMass', 'InvoiceController@printMass');
             Route::get('/invoices/download/{filename}', 'InvoiceController@download');
+            Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
 
             Route::get('/manifests/generate', 'ManifestController@generate');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
@@ -93,6 +95,9 @@ Route::group(
 
             Route::post('/partials/contact/', 'PartialsController@NewContact');
             Route::post('/partials/phone', 'PartialsController@NewPhone');
+
+            Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
+            Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
             Route::get('/logout', 'Auth\AuthController@getLogout');
 

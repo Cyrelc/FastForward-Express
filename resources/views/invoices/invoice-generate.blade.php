@@ -27,7 +27,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Invoice Interval: </span>
-                <select class='form-control' id='invoice-interval' onblur='getAccountsToInvoice()' name="invoice-interval" placeholder="Select Invoice Interval">
+                <select class='form-control selectpicker' id='invoice_intervals' onblur='getAccountsToInvoice()' name="invoice_intervals[]" multiple placeholder="Select Invoice Interval">
                     @foreach ($model->invoice_intervals as $ii)
                         <option value="{{$ii->value}}">{{$ii->name}}</option>
                     @endforeach
@@ -74,7 +74,10 @@
                         <th>Account ID</th>
                         <th>Account Number</th>
                         <th>Account Name</th>
-                        <th>Number of Bills Matched</th>
+                        <th>Invoice Interval</th>
+                        <th>Completed Bills</th>
+                        <th>Incomplete Bills</th>
+                        <th>Legacy Bills&nbsp&nbsp<i class='fa fa-question-circle' title='Number of bills that are uninvoiced, and have a date prior to the start date listed above'></i></th>
                     </tr>
                 </thead>
                 <tbody>

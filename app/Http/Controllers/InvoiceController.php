@@ -52,6 +52,11 @@ class InvoiceController extends Controller {
         return view('invoices.invoice-generate', compact('model'));
     }
 
+    public function getOutstandingByAccountId(Request $req) {
+        $invoice_repo = new Repos\InvoiceRepo();
+        return json_encode($invoice_repo->getOutstandingByAccountId($req->input('account-id')));
+    }
+
     public function delete(Request $req, $id) {
         $invoiceRepo = new Repos\InvoiceRepo();
 
@@ -70,7 +75,7 @@ class InvoiceController extends Controller {
         $acctRepo = new Repos\AccountRepo();
         $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
         $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
-        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_interval, $start_date, $end_date);
+        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $start_date, $end_date);
         return $accounts;
     }
 

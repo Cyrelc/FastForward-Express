@@ -2,85 +2,57 @@
 
 namespace App\Http\Collectors;
 
-
 class BillCollector {
-	public function Collect($req, $chargeAccountId, $pickupAddressId, $deliveryAddressId) { 
+	public function Collect($req, $pickupAddressId, $deliveryAddressId) { 
 
-		switch ($req->pickup_use_submission) {
+		$required_fields = ['bill_id', 'payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
+
+		switch($req->payment_type) {
 			case 'account':
-				$pickup_account = $req->pickup_account_id;
-				break;
-			case 'address':
-				$pickup_account = null;
+				$required_fields = array_merge($required_fields, ['charge_account_id']);
 				break;
 		}
 
-		switch ($req->delivery_use_submission) {
-			case 'account':
-				$delivery_account = $req->delivery_account_id;
-				break;
-			case 'address':
-				$delivery_account = null;
-				break;
+		if($req->interliner_id != "")
+			$required_fields = array_merge($required_fields, ['interliner_id', 'interliner_cost', 'interliner_cost_to_customer']);
+
+		$count = 0;
+		foreach($required_fields as $field) {
+			if ($req->input($field) != null)
+				$count++;
 		}
 
-		switch ($req->use_interliner) {
-			case 'true':
-				$interliner_id = $req->interliner_id;
-				$interliner_amount = $req->interliner_amount;
-				break;
-			case 'false':
-				$interliner_id = null;
-				$interliner_amount = null;
-				break;
-		}
+		$percentage_complete = number_format($count / count($required_fields), 2);
 
 		$skip_invoicing = false;
 		if ($req->skip_invoicing == 'true')
 			$skip_invoicing = true;
 
-		if ($chargeAccountId == $req->pickup_account_id && !is_null($req->pickup_reference_value))
-			$req->charge_reference_value = $req->pickup_reference_value;
-		else if ($chargeAccountId == $req->delivery_account_id && !is_null($req->charge_reference_value))
-			$req->charge_reference_value = $req->delivery_reference_value;
-
 		return [
 			'bill_id' => $req->bill_id,
-			'charge_account_id' => $chargeAccountId,
-			'other_account_id' => $req->other_account_id,
-			'pickup_account_id' => $pickup_account,
+			'charge_account_id' => $req->charge_account_id == "" ? null : $req->charge_account_id,
+			'pickup_account_id' => $req->pickup_account_id == "" ? null : $req->pickup_account_id,
 			'pickup_address_id' => $pickupAddressId,
-			'delivery_account_id' => $delivery_account,
+			'delivery_account_id' => $req->delivery_account_id == "" ? null : $req->delivery_account_id,
 			'delivery_address_id' => $deliveryAddressId,
 			'charge_reference_value' => $req->charge_reference_value,
 			'pickup_reference_value' => $req->pickup_reference_value,
 			'delivery_reference_value' => $req->delivery_reference_value,
-			'pickup_driver_id' => $req->pickup_driver_id,
-			'delivery_driver_id' => $req->delivery_driver_id,
-			'pickup_driver_commission' => $req->pickup_driver_commission / 100,
-			'delivery_driver_commission' => $req->delivery_driver_commission / 100,
-			'interliner_id' => $interliner_id,
-			'interliner_amount' => $interliner_amount,
-			'bill_number' => $req->bill_number,
+			'pickup_driver_id' => $req->pickup_driver_id == "" ? null : $req->pickup_driver_id,
+			'delivery_driver_id' => $req->delivery_driver_id == "" ? null : $req->delivery_driver_id,
+			'pickup_driver_commission' => $req->pickup_driver_commission == "" ? null : $req->pickup_driver_commission / 100,
+			'delivery_driver_commission' => $req->delivery_driver_commission == "" ? null : $req->delivery_driver_commission / 100,
+			'interliner_id' => $req->interliner_id == "" ? null : $req->interliner_id,
+			'interliner_cost' => $req->interliner_id == "" ? null : $req->interliner_cost,
+			'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
+			'bill_number' => $req->bill_number == "" ? null : $req->bill_number,
 			'description' => $req->description,
-			'date' => (new \DateTime($req->input('date')))->format('Y-m-d'),
-			'amount' => $req->amount,
+			'pickup_date_scheduled' => (new \DateTime($req->input('pickup_date_scheduled')))->format('Y-m-d'),
+			'delivery_date_scheduled' => (new \DateTime($req->delivery_date_scheduled))->format('Y-m-d'),
+			'amount' => $req->amount == "" ? null : $req->amount,
 			'skip_invoicing' => $skip_invoicing,
-			'delivery_type' => $req->delivery_type
+			'delivery_type' => $req->delivery_type == "" ? null : $req->delivery_type,
+			'percentage_complete' => $percentage_complete
 		];
-	}
-
-	public function Remerge($req, $bill){
-		$billVars = array('charge_account_id', 'other_account_id', 'pickup_account_id', 'delivery_account_id', 'amount', 'bill_number', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'description', 'delivery_type');
-
-		foreach ($billVars as $billVar) {
-			if($req->old($billVar) !== null)
-				$bill->{$billVar} = $req->old($billVar);
-		}
-
-		if ($req->old('date') !== null)
-			$bill->date = strtotime($req->old('date'));
-
-		return $bill;
 	}
 }
