@@ -4,15 +4,13 @@
 <script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
-<script type='text/javascript' src='/js/accounts/accounts.js?17-05-2018'></script>
-<script type="text/javascript" src='/js/toastr.min.js'> </script>
+<script type='text/javascript' src='/js/accounts/accounts.js?{{config('view.version')}}'></script>
 @endsection
 
 @section('style')
 <link rel='stylesheet' type='text/css' href='/DataTables/media/css/jquery.dataTables.min.css'/>
 <link rel='stylesheet' type='text/css' href='/DataTables/extensions/Buttons/css/buttons.dataTables.min.css'/>
 <link rel='stylesheet' type='text/css' href='/css/tables.css' />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 

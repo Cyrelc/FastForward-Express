@@ -1,4 +1,4 @@
-<script type='text/javascript' src='/js/accounts/payments.js'></script>
+<script type='text/javascript' src='/js/accounts/payments.js?{{config('view.version')}}'></script>
 <script type='text/javascript' src='/DataTables/media/js/jquery.dataTables.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>

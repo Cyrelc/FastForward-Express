@@ -2,15 +2,12 @@
 
 @section ('script')
 <script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
-<script type='text/javascript' src='/js/manifests/manifest-generate.js'></script>
-<script type='text/javascript' src='/js/toastr.min.js'> </script>
-<script type='text/javascript' src='/js/manifests/manifest-generate.js'></script>
+<script type='text/javascript' src='/js/manifests/manifest-generate.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
 @section('style')
 <link rel="stylesheet" type="text/css" href="/css/bootstrap-combobox.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 

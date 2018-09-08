@@ -2,8 +2,7 @@
 
 @section ('script')
 <script src="//cdnjs.cloudflare.com/ajax/libs/Sortable/1.6.0/Sortable.min.js"></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/layouts.js'></script>
-<script type='text/javascript' src='/js/toastr.min.js'></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/layouts.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
@@ -17,7 +16,7 @@
 	margin-left: 15px;
 }
 </style>
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
+
 @parent
 @endsection
 

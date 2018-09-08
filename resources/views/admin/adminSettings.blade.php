@@ -1,15 +1,13 @@
 @extends ('layouts.app')
 
 @section('script')
-<script type='text/javascript' src='{{URL::to('/')}}/js/admin/admin.js?2018-06-20'></script>
-<script type="text/javascript" src='/js/toastr.min.js'> </script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/admin/admin.js?{{config('view.version')}}'></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 @endsection
 
 @section ('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 <style type="text/css">
 #errors {
     color: red;

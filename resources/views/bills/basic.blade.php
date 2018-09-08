@@ -1,4 +1,4 @@
-<script type='text/javascript' src='{{URL::to('/')}}/js/bills/basic.js'></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/bills/basic.js?{{config('view.version')}}'></script>
 
 <div class="clearfix">
 <!-- Pickup/Delivery -->
