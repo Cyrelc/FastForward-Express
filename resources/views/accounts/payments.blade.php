@@ -50,6 +50,7 @@
                                     @if($model->account->account_balance > 0)
                                         <option value='account' data-amount='{{$model->account->account_balance}}'>Account Balance (${{$model->account->account_balance}})</option>
                                     @endif
+                                    {{-- TODO add option to give account credit (admins only) --}}
                                     {{-- TODO: pull from selections table? --}}
                                     {{-- TODO: if account has credit cards on file, list each active CC --}}
                                     <option value='credit_card'>Credit Card</option>
