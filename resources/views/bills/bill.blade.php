@@ -33,7 +33,6 @@
 <form id='bill-form'>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input type='hidden' id='skip_invoicing' name='skip_invoicing' data-checkbox-id='skip-invoicing' value='{{$model->skip_invoicing}}' />
 <!--predetermined information -->
     <div hidden class="col-lg-12">
         <div class="col-lg-4 bottom15">
@@ -106,8 +105,10 @@
         @endif
     </form>
     <hr>
-    <div class="checkbox">
-        <label><input id="skip-invoicing" type="checkbox" name="skip-invoicing" data-hidden-name="skip_invoicing" />Skip Invoicing</label>
-    </div>
+    <form id='bill_options_form'>
+        <div class="checkbox">
+            <label><input id="skip_invoicing" type="checkbox" name="skip_invoicing" {{$model->bill->skip_invoicing == 1 ? 'checked' : ''}} />Skip Invoicing</label>
+        </div>
+    </form>
 </div>
 @endsection
