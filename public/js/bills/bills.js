@@ -37,7 +37,7 @@ $(document).ready(function() {
             {data: 'pickup_date_scheduled'},
             {data: 'delivery_date_scheduled'},
             {data: 'delivery_type'},
-            {data: 'charge_account_id'},
+            {data: 'charge_account_number'},
             {data: 'charge_account_name', className: 'charge_account'},
             {data: 'pickup_employee_name', className: 'pickup_employee'},
             {data: 'delivery_employee_name', className: 'delivery_employee'},

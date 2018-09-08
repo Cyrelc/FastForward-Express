@@ -27,7 +27,7 @@ $(document).ready(function() {
         buttons: ['colvis'],
         columnDefs: [{'sWidth':'20px', 'aTargets':[1]}],
         pageLength: 50,
-        order: [2, 'desc'],
+        order: [0, 'desc'],
         // createdRow: function (row, data, index) {
         // },
         columns: [

@@ -3,7 +3,7 @@ $(document).ready(function() {
 });
 
 function storeBill(){
-	var data = $('#bill-form, #bill-persistence-form').serialize();
+	var data = $('#bill-form, #bill-persistence-form, #bill_options_form').serialize();
 console.log(data);
 	$.ajax({
 		'url': '/bills/store',

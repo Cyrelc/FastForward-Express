@@ -4,14 +4,12 @@
 <script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='/js/toastr.min.js'></script>
-<script type='text/javascript' src='/js/chargebacks/chargebacks.js'></script>
+<script type='text/javascript' src='/js/chargebacks/chargebacks.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
 @section('style')
 <link rel="stylesheet" type="text/css" href="/css/bootstrap-combobox.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 

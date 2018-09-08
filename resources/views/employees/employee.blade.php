@@ -4,10 +4,9 @@
 
 <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
-<script type='text/javascript' src='/js/toastr.min.js'> </script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type="text/javascript" src="{{URL::to('/')}}/js/employees/employee.js"></script>
+<script type="text/javascript" src="{{URL::to('/')}}/js/employees/employee.js?{{config('view.version')}}"></script>
 
 @parent
 
@@ -15,7 +14,6 @@
 
 @section ('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-datetimepicker.min.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @endsection
 
 @section ('content')

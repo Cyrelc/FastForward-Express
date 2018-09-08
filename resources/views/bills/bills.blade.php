@@ -5,8 +5,7 @@
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/dataTables.buttons.min.js'></script>
 <script type='text/javascript' src='/DataTables/extensions/Buttons/js/buttons.colVis.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/js/bootstrap-multiselect.js'></script>
-<script type='text/javascript' src='/js/bills/bills.js?5-20-2018'></script>
-<script type="text/javascript" src='/js/toastr.min.js'> </script>
+<script type='text/javascript' src='/js/bills/bills.js?{{config('view.version')}}'></script>
 @endsection
 
 @section('style')
@@ -14,7 +13,6 @@
 <link rel='stylesheet' type='text/css' href='/DataTables/extensions/Buttons/css/buttons.dataTables.min.css'/>
 <link rel="stylesheet" href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.13/css/bootstrap-multiselect.css' />
 <link rel='stylesheet' type='text/css' href='/css/tables.css' />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 

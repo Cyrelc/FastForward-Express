@@ -55,7 +55,7 @@ $(document).ready(function() {
 });
 
 function storeAccount(){
-	var data = $('#account_basic, $account_advanced').serialize();
+	var data = $('#account_basic, #account_advanced').serialize();
 
 	$.ajax({
 		'url': '/accounts/store',

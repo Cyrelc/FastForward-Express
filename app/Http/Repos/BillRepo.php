@@ -21,7 +21,7 @@ class BillRepo {
                         'delivery_date_scheduled',
                         'delivery_type',
                         'accounts.name as charge_account_name',
-                        'bills.charge_account_id',
+                        'accounts.account_number as charge_account_number',
                         DB::raw('format(amount, 2) as amount'),
                         DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
                         'pickup_employee.employee_id as pickup_employee_id',
@@ -261,14 +261,14 @@ class BillRepo {
     public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
         $subtotal = Bill::where('invoice_id', $invoice_id)
             ->where($field_name, $field_value)
-            ->value(DB::raw('sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end)'));
+            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end), 2)'));
 
         return $subtotal;
     }
 
     public function GetAmountByInvoiceId($invoice_id) {
         $amount = Bill::where('invoice_id', $invoice_id)
-            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer != NULL then interliner_cost_to_customer else 0 end), 2)'));
+            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end), 2)'));
 
         return $amount;
     }

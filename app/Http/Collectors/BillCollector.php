@@ -5,7 +5,7 @@ namespace App\Http\Collectors;
 class BillCollector {
 	public function Collect($req, $pickupAddressId, $deliveryAddressId) { 
 
-		$required_fields = ['bill_id', 'payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
+		$required_fields = ['payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
 
 		switch($req->payment_type) {
 			case 'account':
@@ -23,10 +23,6 @@ class BillCollector {
 		}
 
 		$percentage_complete = number_format($count / count($required_fields), 2);
-
-		$skip_invoicing = false;
-		if ($req->skip_invoicing == 'true')
-			$skip_invoicing = true;
 
 		return [
 			'bill_id' => $req->bill_id,
@@ -50,7 +46,7 @@ class BillCollector {
 			'pickup_date_scheduled' => (new \DateTime($req->input('pickup_date_scheduled')))->format('Y-m-d'),
 			'delivery_date_scheduled' => (new \DateTime($req->delivery_date_scheduled))->format('Y-m-d'),
 			'amount' => $req->amount == "" ? null : $req->amount,
-			'skip_invoicing' => $skip_invoicing,
+			'skip_invoicing' => isset($req->skip_invoicing),
 			'delivery_type' => $req->delivery_type == "" ? null : $req->delivery_type,
 			'percentage_complete' => $percentage_complete
 		];

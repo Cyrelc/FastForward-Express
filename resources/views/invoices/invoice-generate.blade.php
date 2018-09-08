@@ -2,14 +2,12 @@
 
 @section ('script')
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/invoice-generate.js'></script>
-<script type='text/javascript' src='/js/toastr.min.js'> </script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/invoice-generate.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
 @section('style')
 <link rel="stylesheet" type="text/css" href="{{URL::to('/')}}/css/bootstrap-combobox.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 

@@ -1,4 +1,4 @@
-<script type='text/javascript' src='{{URL::to('/')}}/js/bills/dispatch.js'></script>
+<script type='text/javascript' src='{{URL::to('/')}}/js/bills/dispatch.js?{{config('view.version')}}'></script>
 
 <!--pickup driver-->
 <div class="clearfix">

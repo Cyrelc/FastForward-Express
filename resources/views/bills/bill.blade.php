@@ -5,14 +5,12 @@
 <script type="text/javascript" src="/js/bootstrap-combobox.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-<script type='text/javascript' src='/js/bills/bill.js?8-02-2018'></script>
-<script type='text/javascript' src='/js/toastr.min.js'></script>
+<script type='text/javascript' src='/js/bills/bill.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
 @section('style')
 <link rel="stylesheet" type="text/css" href="/css/bootstrap-combobox.css" />
-<link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 @parent
 @endsection
 
@@ -35,7 +33,6 @@
 <form id='bill-form'>
 <!--form-->
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-    <input type='hidden' id='skip_invoicing' name='skip_invoicing' data-checkbox-id='skip-invoicing' value='{{$model->skip_invoicing}}' />
 <!--predetermined information -->
     <div hidden class="col-lg-12">
         <div class="col-lg-4 bottom15">
@@ -108,8 +105,10 @@
         @endif
     </form>
     <hr>
-    <div class="checkbox">
-        <label><input id="skip-invoicing" type="checkbox" name="skip-invoicing" data-hidden-name="skip_invoicing" />Skip Invoicing</label>
-    </div>
+    <form id='bill_options_form'>
+        <div class="checkbox">
+            <label><input id="skip_invoicing" type="checkbox" name="skip_invoicing" {{$model->bill->skip_invoicing == 1 ? 'checked' : ''}} />Skip Invoicing</label>
+        </div>
+    </form>
 </div>
 @endsection
