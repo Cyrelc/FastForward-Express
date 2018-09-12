@@ -20,23 +20,6 @@ class ManifestRepo {
         return $manifests;
     }
 
-    public function GetManifestAmountById($manifest_id) {
-        $driverRepo = new DriverRepo();
-        $manifest = $this->GetById($manifest_id);
-
-        $driver = $driverRepo->GetById($manifest->driver_id);
-
-        $pickup_subtotal = 0.5 * Bill::where('pickup_manifest_id', $manifest_id)
-                ->sum('amount');
-        $delivery_subtotal = 0.5 * Bill::where('delivery_manifest_id', $manifest_id)
-                ->sum('amount');
-
-        $total = $pickup_subtotal * $driver->pickup_commission;
-        $total += $delivery_subtotal * $driver->delivery_commission;
-
-        return $total;
-    }
-
     public function GenerateManifest($driver_id, $start_date, $end_date) {
         $manifest = [
             'driver_id' => $driver_id,
