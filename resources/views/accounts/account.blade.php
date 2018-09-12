@@ -42,15 +42,15 @@
         <div id='advanced' class='tab-pane fade well'>
             @include('accounts.advanced')
         </div>
-        <div id='commissions' class='tab-pane fade well'>
+        {{-- <div id='commissions' class='tab-pane fade well'>
             @include('accounts.commissions')
-        </div>
+        </div> --}}
         @if(isset($model->account->account_id))
             <div id='payments' class='tab-pane fade well'>
                 @include('accounts.payments')
             </div>
-            <div id='invoice_layout' class='tab-pane fade well'>
-            </div>
+            {{-- <div id='invoice_layout' class='tab-pane fade well'>
+            </div> --}}
         @endif
     </div>
     <div class='col-lg-4 text-center'>@if(isset($model->prev_id))<a class='btn btn-info' href='/accounts/edit/{{$model->prev_id}}'>Previous Account</a>@endif</div>
