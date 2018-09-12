@@ -132,14 +132,30 @@ class InvoiceRepo {
 
         foreach($account_ids as $account_id) {
             $account = Account::where('account_id', $account_id)->first(['has_parent', 'parent_account_id']);
-            if($account->has_parent) {
-                if(!array_key_exists($account->parent_account_id, $invoices))
-                    $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id);
-                $this->InvoiceBills($invoices[$account->parent_account_id]->invoice_id, $account_id, $start_date, $end_date);
-            } else {
-                if(!array_key_exists($account_id, $invoices))
-                    $invoices[$account_id] = $this->GenerateInvoice($account_id);
-                $this->InvoiceBills($invoices[$account_id]->invoice_id, $account_id, $start_date, $end_date);
+            $bills = Bill::where('charge_account_id', '=', $account_id)
+                        ->where('pickup_date_scheduled', '>=', $start_date)
+                        ->where('pickup_date_scheduled', '<=', $end_date)
+                        ->where('invoice_id', null)
+                        ->where('skip_invoicing', '=', 0)
+                        ->where('percentage_complete', 1)
+                        ->get();
+
+            if(count($bills) > 0) {
+                if($account->has_parent) {
+                    if(!array_key_exists($account->parent_account_id, $invoices))
+                        $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id);
+                    foreach($bills as $bill) {
+                        $bill->invoice_id = $invoices[$account->parent_account_id]->invoice_id;
+                        $bill->save();
+                    }
+                } else {
+                    if(!array_key_exists($account_id, $invoices))
+                        $invoices[$account_id] = $this->GenerateInvoice($account_id);
+                    foreach($bills as $bill) {
+                        $bill->invoice_id = $invoices[$account_id]->invoice_id;
+                        $bill->save();
+                    }
+                }
             }
         }
 
@@ -192,21 +208,5 @@ class InvoiceRepo {
         ];
         $new = new Invoice();
         return $new->create($invoice);
-    }
-
-    public function InvoiceBills($invoice_id, $account_id, $start_date, $end_date) {
-        $bills = Bill::where('charge_account_id', '=', $account_id)
-            ->where('pickup_date_scheduled', '>=', $start_date)
-            ->where('pickup_date_scheduled', '<=', $end_date)
-            ->where('invoice_id', null)
-            ->where('skip_invoicing', '=', 0)
-            ->where('percentage_complete', 1)
-            ->get();
-
-        foreach($bills as $bill) {
-            $bill->invoice_id = $invoice_id;
-
-            $bill->save();
-        }
     }
 }

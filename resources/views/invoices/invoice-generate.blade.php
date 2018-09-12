@@ -75,6 +75,7 @@
                         <th>Invoice Interval</th>
                         <th>Completed Bills</th>
                         <th>Incomplete Bills</th>
+                        <th>Skipped Bills</th>
                         <th>Legacy Bills&nbsp&nbsp<i class='fa fa-question-circle' title='Number of bills that are uninvoiced, and have a date prior to the start date listed above'></i></th>
                     </tr>
                 </thead>

@@ -25,7 +25,9 @@ function getAccountsToInvoice(){
 
 	    			var row = $("<tr>");
 
-					if(cur.incomplete_bill_count == 0)
+					if(cur.bill_count == 0)
+						row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' disabled value='" + cur.account_id + "'/></td>");
+					else if(cur.incomplete_bill_count == 0 && cur.legacy_bill_count == 0 && cur.skipped_bill_count == 0)
 						row.append("<td><input type='checkbox' name='checkboxes[" + i + "]' checked value='" + cur.account_id + "' /></td>");
 					else
 						row.append('<td><input type="checkbox" name="checkboxes[' + i + ']" value="' + cur.account_id + '"/></td>');
@@ -36,6 +38,10 @@ function getAccountsToInvoice(){
 					row.append("<td>" + cur.bill_count + "</td>");
 					if(cur.incomplete_bill_count > 0)
 						row.append('<td><font color="red">' + cur.incomplete_bill_count + '</font></td>');
+					else
+						row.append('<td></td>');
+					if(cur.skipped_bill_count > 0)
+						row.append('<td><font color="orange">' + cur.skipped_bill_count + '</font></td>');
 					else
 						row.append('<td></td>');
 					if(cur.legacy_bill_count > 0)
