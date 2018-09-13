@@ -1,7 +1,6 @@
 <!--Basic Information Panel-->
-<input type="hidden" id='account-id' name="account-id" value="{{ $model->account->account_id }}" />
-
 <form id='account_basic'>
+    <input type="hidden" id='account-id' name="account-id" value="{{$model->account->account_id}}" />
     <div class="clearfix">
         <div class="col-lg-12">
             <div class="panel panel-default">

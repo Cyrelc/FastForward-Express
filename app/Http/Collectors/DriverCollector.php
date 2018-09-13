@@ -14,8 +14,8 @@ class DriverCollector {
             'license_plate_expiration' => (new \DateTime($req->input('license_plate_expiration')))->format('Y-m-d'),
             'insurance_number' => $req->input('insurance'),
             'insurance_expiration' => (new \DateTime($req->input('insurance_expiration')))->format('Y-m-d'),
-            'pickup_commission' => $req->input('pickup-commission') / 100,
-            'delivery_commission' => $req->input('delivery-commission') / 100,
+            'pickup_commission' => $req->input('pickup-commission'),
+            'delivery_commission' => $req->input('delivery-commission'),
         ];
     }
 

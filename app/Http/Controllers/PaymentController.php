@@ -51,7 +51,7 @@ class PaymentController extends Controller {
 
             $accountRepo->AdjustBalance($account_id, $account_adjustment);
 
-            if($req->input('select_payment') != 'account') {
+            if($req->input('select_payment') != 'account' && $account_adjustment > 0) {
                 $account_payment = $paymentCollector->CollectAccountPayment($req, $account_adjustment);
                 $paymentRepo->insert($account_payment);
             }
