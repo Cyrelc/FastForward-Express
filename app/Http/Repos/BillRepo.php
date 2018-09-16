@@ -34,7 +34,8 @@ class BillRepo {
                         'invoice_id',
                         'pickup_manifest_id',
                         'delivery_manifest_id',
-                        'percentage_complete');
+                        'percentage_complete',
+                        DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'));
 
         if($filter == 'dispatch')
             $bills->where('pickup_driver_id', null)
@@ -114,23 +115,13 @@ class BillRepo {
         return $bills;
     }
 
-    public function CheckIfInvoiced($id) {
-        $bill = Bill::where('bill_id', '=', $id)->first();
-        
-        return ($bill->is_invoiced);
-    }
-
-    public function CheckIfManifested($id) {
-        $bill = Bill::where('bill_id', '=', $id)->first();
-
-        if($bill->is_pickup_manifested)
-            return true;
-        else if($bill->is_delivery_manifested)
-            return true;
-        else
+    public function IsEditable($bill) {
+        if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
             return false;
+        else
+            return true;
     }
-
+    
     public function Insert($bill) {
     	$new = new Bill;
 
@@ -139,6 +130,8 @@ class BillRepo {
 
     public function Delete($id) {
         $bill = $this->GetById($id);
+        if(!IsEditable($bill))
+            return false;
         $packageRepo = new PackageRepo();
         $packageRepo->DeleteByBillId($id);
 
@@ -148,6 +141,8 @@ class BillRepo {
 
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
+        if(!IsEditable($bill))
+            return false;
 
         $old->charge_account_id = $bill['charge_account_id'];
         $old->pickup_account_id = $bill['pickup_account_id'];

@@ -17,7 +17,13 @@
 @section ('content')
 
 @if(isset($model->bill->bill_id))
-    <h2>Edit Bill</h2>
+    @if($model->view_only)
+        <h2>View Bill</h2>
+        <input type='hidden' id='view_only' value='true' />
+    @else
+        <h2>Edit Bill</h2>
+        <input type='hidden' id='view_only' value='false' />
+    @endif
     @php($is_new = false)
 @else
     <h2>New Bill</h2>
@@ -70,7 +76,7 @@
 
 <div class='text-center'>
     <div class='col-md-12 text-center'>
-        <button type='button' class='btn btn-primary' onclick='storeBill()'><i class='far fa-save fa-2x'></i><br/>Submit</button>
+        <button type='button' class='btn btn-primary' onclick='storeBill()' {{$model->view_only ? 'disabled' : ''}}><i class='far fa-save fa-2x'></i><br/>Submit</button>
     </div>
 </div>
 @endsection

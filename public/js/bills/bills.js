@@ -19,7 +19,8 @@ $(document).ready(function() {
                 progress_bar = 'progress-bar-success';
             else 
                 progress_bar = 'progress-bar-info';
-            $('.actions', row).html('<div class="hover-div" >' + deleteButton + '</div>');
+            if(data.editable)
+                $('.actions', row).html('<div class="hover-div" >' + deleteButton + '</div>');
             $('.bill_id', row).html('<a href="/bills/edit/' + data.bill_id + '" >' + data.bill_id + '</a>');
             $('.charge_account', row).html('<a href="/accounts/edit/' + data.charge_account_id + '" >' + data.charge_account_name + '</a>');
             $('.pickup_employee', row).html('<a href="/employees/edit/' + data.pickup_employee_id + '" >' + data.pickup_employee_name + '</a>');
