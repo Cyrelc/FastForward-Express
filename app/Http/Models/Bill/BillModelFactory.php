@@ -91,7 +91,7 @@
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 			$model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
-			$model->view_only = false;
+			$model->read_only = false;
 			
 		    return $model;
 		}
@@ -124,9 +124,9 @@
 			$model->bill->pickup_driver_commission *= 100;
 			$model->bill->delivery_driver_commission *= 100;
             $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
-			$model->view_only = $billRepo->IsEditable($model->bill);
+			$model->read_only = $billRepo->IsReadOnly($model->bill);
 
-            $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
+			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
             $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
 
 			$model->accounts = $acctRepo->ListAll();

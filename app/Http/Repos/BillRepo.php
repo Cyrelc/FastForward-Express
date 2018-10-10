@@ -115,11 +115,11 @@ class BillRepo {
         return $bills;
     }
 
-    public function IsEditable($bill) {
+    public function IsReadOnly($bill) {
         if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
-            return false;
-        else
             return true;
+        else
+            return false;
     }
     
     public function Insert($bill) {
