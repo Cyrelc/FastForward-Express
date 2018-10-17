@@ -21,6 +21,7 @@ class BillRepo {
                         'time_delivery_scheduled',
                         'delivery_type',
                         'accounts.name as charge_account_name',
+                        'charge_account_id',
                         'accounts.account_number as charge_account_number',
                         DB::raw('format(amount, 2) as amount'),
                         DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
