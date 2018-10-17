@@ -25,7 +25,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Start Date: </span>
-                <input type='text' id="start_date" onblur='getDriversToManifest()' class="form-control" name='start_date' value="{{date("l, F d Y", $model->start_date)}}" />
+                <input type='text' id="start_date" onblur='getDriversToManifest()' class="form-control" name='start_date' value="{{date("F d, Y H:i:s", $model->start_date)}}" />
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -36,7 +36,7 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">End Date: </span>
-                <input type='text' id="end_date" onblur='getDriversToManifest()' class="form-control" name='end_date' value="{{date("l, F d Y", $model->end_date)}}" />
+                <input type='text' id="end_date" onblur='getDriversToManifest()' class="form-control" name='end_date' value="{{date("F d, Y H:i:s", $model->end_date)}}" />
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>

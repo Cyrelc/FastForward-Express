@@ -15,25 +15,42 @@
 @endsection
 
 @section ('content')
-
-@if(isset($model->bill->bill_id))
-    @if($model->view_only)
-        <h2>View Bill</h2>
-        <input type='hidden' id='view_only' value='true' />
-    @else
-        <h2>Edit Bill</h2>
-        <input type='hidden' id='view_only' value='false' />
+<div class='col-md-12'>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->bill_id))
+            @if($model->read_only)
+                <h3>View Bill</h3>
+                <input type='hidden' id='read_only' value='true' />
+            @else
+                <h3>Edit Bill</h3>
+                <input type='hidden' id='read_only' value='false' />
+            @endif
+            @php($is_new = false)
+        @else
+            <h3>New Bill</h3>
+            @php($is_new = true)
+        @endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->invoice_id))<h4>Invoice ID: <a href='/invoices/view/{{$model->bill->invoice_id}}'>{{$model->bill->invoice_id}}</a></h4>@endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->delivery_manifest_id))<h4>Delivery Manifest ID: <a href='/manifests/view/{{$model->bill->delivery_manifest_id}}'>{{$model->bill->delivery_manifest_id}}</a></h4>@endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->pickup_manifest_id))<h4>Pickup Manifest ID: <a href='/manifests/view/{{$model->bill->pickup_manfiest_id}}'>{{$model->bill->pickup_manifest_id}}</a></h4>@endif
+    </div>
+    @if(!$is_new && !$model->read_only)
+        <div class='col-md-9 bottom15'>
+            <div class='progress-bar' role='progressbar' aria-valuenow='{{$model->bill->percentage_complete * 100}}' style='width:{{$model->bill->percentage_complete * 100}}%'>{{$model->bill->percentage_complete * 100}}%</div>
+        </div>
     @endif
-    @php($is_new = false)
-@else
-    <h2>New Bill</h2>
-    @php($is_new = true)
-@endif
+</div>
 
 <ul class='nav nav-tabs nav-justified'>
-    <li><a data-toggle='tab' href='#basic' class='btn btn-light'><i class='fas fa-map-pin fa-2x'></i><br/>Pickup/Delivery Info</a></li>
-    <li><a data-toggle='tab' href='#dispatch' class='btn btn-light'><i class='fas fa-truck fa-2x'></i><br/>Dispatch</a></li>
-    <li><a data-toggle='tab' href='#payment' class='btn btn-light'><i class='far fa-credit-card fa-2x'></i><br/>Payment</a></li>
+    <li class='active'><a data-toggle='tab' href='#basic' class='btn btn-basic'><i class='fas fa-map-pin fa-2x'></i><br/>Pickup/Delivery Info</a></li>
+    <li><a data-toggle='tab' href='#dispatch' class='btn btn-basic'><i class='fas fa-truck fa-2x'></i><br/>Dispatch</a></li>
+    <li><a data-toggle='tab' href='#payment' class='btn btn-basic'><i class='far fa-credit-card fa-2x'></i><br/>Payment</a></li>
 </ul>
 
 <form id='bill-form'>
@@ -45,18 +62,6 @@
             <div class="input-group">
                 <h4 class="input-group-addon"> Bill Number: </h4>
                 <input type="text" class="form-control" id='bill_id' name="bill_id" readonly value="{{$model->bill->bill_id}}" style="background:0; border:0; outline:0;" />
-            </div>
-        </div>
-        <div class="col-lg-4 bottom15">
-            <div class="input-group"> 
-                <h4 class="input-group-addon"> Invoice Number: </h4>
-                <input type="text" class="form-control" name="invoice_id" readonly value="{{$model->bill->invoice_id}}" /> 
-            </div>
-        </div>
-        <div class="col-lg-4 bottom15">
-            <div class="input-group">
-                <h4 class="input-group-addon"> Manifest Number: </h4>
-                <input type="text" class="form-control" name="manifest_id" readonly value="{{$model->bill->manifest_id}}" />
             </div>
         </div>
     </div>
@@ -76,7 +81,7 @@
 
 <div class='text-center'>
     <div class='col-md-12 text-center'>
-        <button type='button' class='btn btn-primary' onclick='storeBill()' {{$model->view_only ? 'disabled' : ''}}><i class='far fa-save fa-2x'></i><br/>Submit</button>
+        <button type='button' class='btn btn-primary' onclick='storeBill()' {{$model->read_only ? 'disabled hidden' : ''}}><i class='far fa-save fa-2x'></i><br/>Submit</button>
     </div>
 </div>
 @endsection
@@ -84,7 +89,7 @@
 @section ('advFilter')
 <div class="well form-group">
     <form id='bill-persistence-form'>
-        @if($is_new)
+        @if(false)
             <h4>On Submit</h4>
             <hr>
             <div class="checkbox">

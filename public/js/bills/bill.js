@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	if($('#view_only').val()) {
+	if($('#read_only').val() == 'true') {
 		$(':input').attr('readonly', true);
 		$('select').prop('disabled', true);
 		$('#add_package, #remove_package').attr('disabled', 'disabled');

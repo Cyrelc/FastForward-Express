@@ -17,8 +17,8 @@ class BillRepo {
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
                 ->select('bill_id',
                         'bill_number',
-                        'pickup_date_scheduled',
-                        'delivery_date_scheduled',
+                        'time_pickup_scheduled',
+                        'time_delivery_scheduled',
                         'delivery_type',
                         'accounts.name as charge_account_name',
                         'accounts.account_number as charge_account_number',
@@ -42,7 +42,8 @@ class BillRepo {
                     ->orWhere('delivery_driver_id', null)
                     ->orWhere('pickup_driver_commission', null)
                     ->orWhere('delivery_driver_commission', null)
-                    ->orWhere('delivery_type', null);
+                    ->orWhere('delivery_type', null)
+                    ->orWhere('time_dispatched', null);
         elseif($filter == 'billing')
             $bills->where('bill_number', null)
                 ->orWhere('amount', null)
@@ -73,8 +74,8 @@ class BillRepo {
                 ->select('bill_id',
                 DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
                 'bill_number',
-                'pickup_date_scheduled',
-                'delivery_date_scheduled',
+                'time_pickup_scheduled',
+                'time_pickup_scheduled',
                 'charge_account_id',
                 'charge_reference_value',
                 'delivery_type',
@@ -130,7 +131,7 @@ class BillRepo {
 
     public function Delete($id) {
         $bill = $this->GetById($id);
-        if(!IsEditable($bill))
+        if($this->IsReadOnly($bill))
             return false;
         $packageRepo = new PackageRepo();
         $packageRepo->DeleteByBillId($id);
@@ -141,7 +142,7 @@ class BillRepo {
 
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
-        if(!IsEditable($bill))
+        if($this->IsReadOnly($bill))
             return false;
 
         $old->charge_account_id = $bill['charge_account_id'];
@@ -162,8 +163,12 @@ class BillRepo {
         $old->skip_invoicing = $bill['skip_invoicing'];
         $old->bill_number = $bill['bill_number'];
         $old->description = $bill['description'];
-        $old->pickup_date_scheduled = $bill['pickup_date_scheduled'];
-        $old->delivery_date_scheduled = $bill['delivery_date_scheduled'];
+        $old->time_pickup_scheduled = $bill['time_pickup_scheduled'];
+        $old->time_delivery_scheduled = $bill['time_delivery_scheduled'];
+        $old->time_call_received = $bill['time_call_received'];
+        $old->time_dispatched = $bill['time_dispatched'];
+        $old->time_picked_up = $bill['time_picked_up'];
+        $old->time_delivered = $bill['time_delivered'];
         $old->amount = $bill['amount'];
         $old->delivery_type = $bill['delivery_type'];
         $old->percentage_complete = $bill['percentage_complete'];
@@ -192,13 +197,13 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'pickup_date_scheduled', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
+            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
 
         $bills = Bill::where('delivery_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'pickup_date_scheduled', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
+            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
             ->union($pickup_bills)
-            ->orderBy('pickup_date_scheduled')
+            ->orderBy('time_pickup_scheduled')
             ->orderBy('bill_id')
             ->get();
 
@@ -208,12 +213,12 @@ class BillRepo {
     public function GetManifestOverviewById($manifest_id) {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)
-            ->select('pickup_date_scheduled',
+            ->select(DB::raw('DATE(time_pickup_scheduled) as time_pickup_scheduled'),
                     DB::raw('format(sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end), 2) as pickup_amount'),
                     DB::raw('format(sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end), 2) as delivery_amount'),
                     DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
                     DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
-            ->groupBy('pickup_date_scheduled')
+            ->groupBy(DB::raw('DATE(time_pickup_scheduled)'))
             ->get();
 
         return $bills;
@@ -232,8 +237,8 @@ class BillRepo {
     }
 
     public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
-        $count = Bill::whereDate('pickup_date_scheduled', '>=', $start_date)
-                ->whereDate('pickup_date_scheduled', '<=', $end_date)
+        $count = Bill::whereDate('time_pickup_scheduled', '>=', $start_date)
+                ->whereDate('time_pickup_scheduled', '<=', $end_date)
                 ->where('percentage_complete', 1)
                 ->where(function($query) use ($driver_id) {
                     $query->where('pickup_driver_id', '=', $driver_id)

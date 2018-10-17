@@ -87,7 +87,7 @@
 			$model->pickupAddress = new \App\Address();
 			$model->deliveryAddress = new \App\Address();
 		    $model->charge_selection_submission = null;
-			$model->bill->pickup_date_scheduled = $model->bill->delivery_date_scheduled = date("U");
+			$model->bill->time_call_received = date("U");
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 			$model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
@@ -119,8 +119,12 @@
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
-			$model->bill->pickup_date_scheduled = strtotime($model->bill->pickup_date_scheduled);
-			$model->bill->delivery_date_scheduled = strtotime($model->bill->delivery_date_scheduled);
+			$model->bill->time_pickup_scheduled = strtotime($model->bill->time_pickup_scheduled);
+			$model->bill->time_delivery_scheduled = strtotime($model->bill->time_delivery_scheduled);
+			$model->bill->time_call_received = strtotime($model->bill->time_call_received);
+			isset($model->bill->time_dispatched) ? $model->bill->time_dispatched = strtotime($model->bill->time_dispatched) : '';
+			isset($model->bill->time_picked_up) ? $model->bill->time_picked_up = strtotime($model->bill->time_picked_up) : '';
+			isset($model->bill->time_delivered) ? $model->bill->time_delivered = strtotime($model->bill->time_delivered) : '';
 			$model->bill->pickup_driver_commission *= 100;
 			$model->bill->delivery_driver_commission *= 100;
             $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
