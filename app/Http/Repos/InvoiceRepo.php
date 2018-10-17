@@ -27,9 +27,9 @@ class InvoiceRepo {
                 'accounts.account_id',
                 'accounts.name as account_name',
                 'date',
-                'balance_owing',
-                'bill_cost',
-                'total_cost',
+                DB::raw('format(balance_owing, 2) as balance_owing'),
+                DB::raw('format(bill_cost, 2) as bill_cost'),
+                DB::raw('format(total_cost, 2) as total_cost'),
                 DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
         return $invoices->get();
