@@ -84,42 +84,50 @@
         <button type='button' class='btn btn-primary' onclick='storeBill()' {{$model->read_only ? 'disabled hidden' : ''}}><i class='far fa-save fa-2x'></i><br/>Submit</button>
     </div>
 </div>
+
+<!-- amendment modal -->
+<div id="amendment_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+<!-- amendment modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Create Amendment</h4>
+            </div>
+            <div class="modal-body">
+                <div class='col-md-12 bottom15'>
+                    <div class='input-group'>
+                        <span class='input-group-addon'>Amendment Type: </span>
+                        <select id='amendment_type' class='form-control selectpicker'>
+                            <option value='price_adjustment'>Price Adjustment</option>
+                            <option value='account_reassign'>Account Reassignment</option>
+                        </select>
+                    </div>
+                </div>
+                <div class='tab-content'>
+                    <div id='price_adjustment' class="col-md-12 tab-pane fade">
+
+                    </div>
+                    <div id='account_reassign' class='col-md-12 tab-pane fade'>
+                        
+                    </div>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a id="create_amendment" type="button" class="btn btn-success" href="">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section ('advFilter')
 <div class="well form-group">
-    <form id='bill-persistence-form'>
-        @if(false)
-            <h4>On Submit</h4>
-            <hr>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_date" {{Cookie::get('bill_keep_date') ? 'checked' : ''}} />Keep Date</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_charge_selection" {{Cookie::get('bill_keep_charge_selection') ? 'checked' : ''}} />Keep Charge Selection</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_charge_account" {{Cookie::get('bill_keep_charge_account') ? 'checked' : ''}} />Keep Charge Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_pickup_account" {{Cookie::get('bill_keep_pickup_account') ? 'checked' : '' }} />Keep Pickup Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_delivery_account" {{Cookie::get('bill_keep_delivery_account') ? 'checked' : '' }} />Keep Delivery Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_pickup_driver" {{Cookie::get('bill_keep_pickup_driver') ? 'checked' : '' }} />Keep Pickup Driver</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_delivery_driver" {{Cookie::get('bill_keep_delivery_driver') ? 'checked' : '' }} />Keep Delivery Driver</label>
-            </div>
-        @endif
-    </form>
-    <hr>
     <form id='bill_options_form'>
         <div class="checkbox">
             <label><input id="skip_invoicing" type="checkbox" name="skip_invoicing" {{$model->bill->skip_invoicing == 1 ? 'checked' : ''}} />Skip Invoicing</label>
         </div>
     </form>
+    <hr>
 </div>
 @endsection
