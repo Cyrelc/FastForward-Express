@@ -33,6 +33,7 @@
 <!--Custom Field-->
                     <div class="col-lg-4 bottom15" id="custom-div">
                         <div class="input-group">
+                            <span class='input-group-addon'>Custom Tracking Field Name: </span>
                             <input type='text' class="form-control" name='custom-tracker' placeholder="Tracking Field Name (optional)" value="{{$model->account->uses_custom_field == 1 ? $model->account->custom_field : ""}}"/>
                         </div>
                     </div>
