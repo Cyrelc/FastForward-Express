@@ -75,4 +75,34 @@
             </div>
         </div>
     </div>
+    <hr>
+    <h4>Timestamps</h4>
+    <div class='col-md-6 bottom15'>
+        <div class='input-group' id="time_call_received">
+            <span class='input-group-addon'>Call Received: </span>
+            <input type='text' class="form-control" name='time_call_received' value="{{date("F d, Y g:i A", $model->bill->time_call_received)}}"/>
+            <span class='input-group-addon'><i class='fa fa-clock'></i></span>
+        </div>
+    </div>
+    <div class='col-md-6 bottom15'>
+        <div class='input-group' id="time_dispatched">
+            <span class='input-group-addon'>Dispatched: </span>
+            <input type='text' class="form-control" name='time_dispatched' value="{{isset($model->bill->time_dispatched) ? date("F d, Y g:i A", $model->bill->time_dispatched) : ''}}"/>
+            <span class='input-group-addon'><i class='fa fa-clock'></i></span>
+        </div>
+    </div>
+    <div class='col-md-6 bottom15'>
+        <div class='input-group' id="time_picked_up">
+            <span class='input-group-addon'>Picked Up: </span>
+            <input type='text' class="form-control" name='time_picked_up' value="{{isset($model->bill->time_picked_up) ? date("F d, Y g:i A", $model->bill->time_picked_up) : ''}}"/>
+            <span class='input-group-addon'><i class='fa fa-clock'></i></span>
+        </div>
+    </div>
+    <div class='col-md-6 bottom15'>
+        <div class='input-group' id="time_delivered">
+            <span class='input-group-addon'>Delivered: </span>
+            <input type='text' class="form-control" name='time_delivered' value="{{isset($model->bill->time_delivered) ? date("F d, Y g:i A", $model->bill->time_delivered) : ''}}"/>
+            <span class='input-group-addon'><i class='fa fa-clock'></i></span>
+        </div>
+    </div>
 </div>

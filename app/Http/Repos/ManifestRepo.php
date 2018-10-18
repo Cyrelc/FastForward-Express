@@ -53,16 +53,16 @@ class ManifestRepo {
 
     public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {
         $pickup_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date) {
-            $query->whereDate('pickup_date_scheduled', '>=', $start_date)
-            ->whereDate('pickup_date_scheduled', '<=', $end_date)
+            $query->whereDate('time_pickup_scheduled', '>=', $start_date)
+            ->whereDate('time_pickup_scheduled', '<=', $end_date)
             ->where('pickup_driver_id', $driver_id)
             ->where('pickup_manifest_id', null)
             ->where('percentage_complete', 1);
         })->get();
 
         $delivery_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date){
-            $query->whereDate('pickup_date_scheduled', '>=', $start_date)
-            ->whereDate('pickup_date_scheduled', '<=', $end_date)
+            $query->whereDate('time_pickup_scheduled', '>=', $start_date)
+            ->whereDate('time_pickup_scheduled', '<=', $end_date)
             ->where('delivery_driver_id', $driver_id)
             ->where('delivery_manifest_id', null)
             ->where('percentage_complete', 1);

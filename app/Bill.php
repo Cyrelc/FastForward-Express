@@ -30,8 +30,12 @@ class Bill extends Model
     						'date',
                             'description',
                             'delivery_type',
-                            'pickup_date_scheduled',
-                            'delivery_date_scheduled',
+                            'time_pickup_scheduled',
+                            'time_delivery_scheduled',
+                            'time_call_received',
+                            'time_dispatched',
+                            'time_picked_up',
+                            'time_delivered',
                             'percentage_complete'
                         ];
 

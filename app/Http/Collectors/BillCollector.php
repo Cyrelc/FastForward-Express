@@ -5,7 +5,7 @@ namespace App\Http\Collectors;
 class BillCollector {
 	public function Collect($req, $pickupAddressId, $deliveryAddressId) { 
 
-		$required_fields = ['payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'pickup_date_scheduled', 'delivery_date_scheduled', 'amount', 'delivery_type'];
+		$required_fields = ['payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'time_pickup_scheduled', 'time_delivery_scheduled', 'amount', 'delivery_type', 'time_call_received', 'time_dispatched'];
 
 		switch($req->payment_type) {
 			case 'account':
@@ -43,8 +43,12 @@ class BillCollector {
 			'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
 			'bill_number' => $req->bill_number == "" ? null : $req->bill_number,
 			'description' => $req->description,
-			'pickup_date_scheduled' => (new \DateTime($req->input('pickup_date_scheduled')))->format('Y-m-d'),
-			'delivery_date_scheduled' => (new \DateTime($req->delivery_date_scheduled))->format('Y-m-d'),
+			'time_pickup_scheduled' => new \DateTime($req->time_pickup_scheduled),
+			'time_delivery_scheduled' => new \DateTime($req->time_delivery_scheduled),
+			'time_call_received' => new \DateTime($req->time_call_received),
+			'time_dispatched' => $req->time_dispatched == "" ? null : new \DateTime($req->time_dispatched),
+			'time_picked_up' => $req->time_picked_up == "" ? null : new \DateTime($req->time_picked_up),
+			'time_delivered' => $req->time_delivered == "" ? null : new \DateTime($req->time_delivered),
 			'amount' => $req->amount == "" ? null : $req->amount,
 			'skip_invoicing' => isset($req->skip_invoicing),
 			'delivery_type' => $req->delivery_type == "" ? null : $req->delivery_type,

@@ -15,19 +15,42 @@
 @endsection
 
 @section ('content')
-
-@if(isset($model->bill->bill_id))
-    <h2>Edit Bill</h2>
-    @php($is_new = false)
-@else
-    <h2>New Bill</h2>
-    @php($is_new = true)
-@endif
+<div class='col-md-12'>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->bill_id))
+            @if($model->read_only)
+                <h3>View Bill</h3>
+                <input type='hidden' id='read_only' value='true' />
+            @else
+                <h3>Edit Bill</h3>
+                <input type='hidden' id='read_only' value='false' />
+            @endif
+            @php($is_new = false)
+        @else
+            <h3>New Bill</h3>
+            @php($is_new = true)
+        @endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->invoice_id))<h4>Invoice ID: <a href='/invoices/view/{{$model->bill->invoice_id}}'>{{$model->bill->invoice_id}}</a></h4>@endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->delivery_manifest_id))<h4>Delivery Manifest ID: <a href='/manifests/view/{{$model->bill->delivery_manifest_id}}'>{{$model->bill->delivery_manifest_id}}</a></h4>@endif
+    </div>
+    <div class='col-md-3 bottom15'>
+        @if(isset($model->bill->pickup_manifest_id))<h4>Pickup Manifest ID: <a href='/manifests/view/{{$model->bill->pickup_manfiest_id}}'>{{$model->bill->pickup_manifest_id}}</a></h4>@endif
+    </div>
+    @if(!$is_new && !$model->read_only)
+        <div class='col-md-9 bottom15'>
+            <div class='progress-bar' role='progressbar' aria-valuenow='{{$model->bill->percentage_complete * 100}}' style='width:{{$model->bill->percentage_complete * 100}}%'>{{$model->bill->percentage_complete * 100}}%</div>
+        </div>
+    @endif
+</div>
 
 <ul class='nav nav-tabs nav-justified'>
-    <li><a data-toggle='tab' href='#basic' class='btn btn-light'><i class='fas fa-map-pin fa-2x'></i><br/>Pickup/Delivery Info</a></li>
-    <li><a data-toggle='tab' href='#dispatch' class='btn btn-light'><i class='fas fa-truck fa-2x'></i><br/>Dispatch</a></li>
-    <li><a data-toggle='tab' href='#payment' class='btn btn-light'><i class='far fa-credit-card fa-2x'></i><br/>Payment</a></li>
+    <li class='active'><a data-toggle='tab' href='#basic' class='btn btn-basic'><i class='fas fa-map-pin fa-2x'></i><br/>Pickup/Delivery Info</a></li>
+    <li><a data-toggle='tab' href='#dispatch' class='btn btn-basic'><i class='fas fa-truck fa-2x'></i><br/>Dispatch</a></li>
+    <li><a data-toggle='tab' href='#payment' class='btn btn-basic'><i class='far fa-credit-card fa-2x'></i><br/>Payment</a></li>
 </ul>
 
 <form id='bill-form'>
@@ -39,18 +62,6 @@
             <div class="input-group">
                 <h4 class="input-group-addon"> Bill Number: </h4>
                 <input type="text" class="form-control" id='bill_id' name="bill_id" readonly value="{{$model->bill->bill_id}}" style="background:0; border:0; outline:0;" />
-            </div>
-        </div>
-        <div class="col-lg-4 bottom15">
-            <div class="input-group"> 
-                <h4 class="input-group-addon"> Invoice Number: </h4>
-                <input type="text" class="form-control" name="invoice_id" readonly value="{{$model->bill->invoice_id}}" /> 
-            </div>
-        </div>
-        <div class="col-lg-4 bottom15">
-            <div class="input-group">
-                <h4 class="input-group-addon"> Manifest Number: </h4>
-                <input type="text" class="form-control" name="manifest_id" readonly value="{{$model->bill->manifest_id}}" />
             </div>
         </div>
     </div>
@@ -70,45 +81,53 @@
 
 <div class='text-center'>
     <div class='col-md-12 text-center'>
-        <button type='button' class='btn btn-primary' onclick='storeBill()'><i class='far fa-save fa-2x'></i><br/>Submit</button>
+        <button type='button' class='btn btn-primary' onclick='storeBill()' {{$model->read_only ? 'disabled hidden' : ''}}><i class='far fa-save fa-2x'></i><br/>Submit</button>
+    </div>
+</div>
+
+<!-- amendment modal -->
+<div id="amendment_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+<!-- amendment modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Create Amendment</h4>
+            </div>
+            <div class="modal-body">
+                <div class='col-md-12 bottom15'>
+                    <div class='input-group'>
+                        <span class='input-group-addon'>Amendment Type: </span>
+                        <select id='amendment_type' class='form-control selectpicker'>
+                            <option value='price_adjustment'>Price Adjustment</option>
+                            <option value='account_reassign'>Account Reassignment</option>
+                        </select>
+                    </div>
+                </div>
+                <div class='tab-content'>
+                    <div id='price_adjustment' class="col-md-12 tab-pane fade">
+
+                    </div>
+                    <div id='account_reassign' class='col-md-12 tab-pane fade'>
+                        
+                    </div>
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <a id="create_amendment" type="button" class="btn btn-success" href="">Delete</a>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
 
 @section ('advFilter')
 <div class="well form-group">
-    <form id='bill-persistence-form'>
-        @if($is_new)
-            <h4>On Submit</h4>
-            <hr>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_date" {{Cookie::get('bill_keep_date') ? 'checked' : ''}} />Keep Date</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_charge_selection" {{Cookie::get('bill_keep_charge_selection') ? 'checked' : ''}} />Keep Charge Selection</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_charge_account" {{Cookie::get('bill_keep_charge_account') ? 'checked' : ''}} />Keep Charge Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_pickup_account" {{Cookie::get('bill_keep_pickup_account') ? 'checked' : '' }} />Keep Pickup Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_delivery_account" {{Cookie::get('bill_keep_delivery_account') ? 'checked' : '' }} />Keep Delivery Account</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_pickup_driver" {{Cookie::get('bill_keep_pickup_driver') ? 'checked' : '' }} />Keep Pickup Driver</label>
-            </div>
-            <div class="checkbox">
-                <label><input type="checkbox" name="keep_delivery_driver" {{Cookie::get('bill_keep_delivery_driver') ? 'checked' : '' }} />Keep Delivery Driver</label>
-            </div>
-        @endif
-    </form>
-    <hr>
     <form id='bill_options_form'>
         <div class="checkbox">
             <label><input id="skip_invoicing" type="checkbox" name="skip_invoicing" {{$model->bill->skip_invoicing == 1 ? 'checked' : ''}} />Skip Invoicing</label>
         </div>
     </form>
+    <hr>
 </div>
 @endsection

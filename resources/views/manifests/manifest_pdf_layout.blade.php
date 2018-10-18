@@ -57,7 +57,7 @@
     <tbody>
         @foreach($model->overview as $day)
             <tr>
-                <td>{{$day->pickup_date_scheduled}}</td>
+                <td>{{$day->time_pickup_scheduled}}</td>
                 <td>{{$day->pickup_count}}</td>
                 <td>{{$day->delivery_count}}</td>
                 <td class='right'>{{$day->pickup_amount}}</td>
@@ -109,7 +109,7 @@
         @foreach($model->bills as $bill)
             <tr>
                 <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
-                <td>{{$bill->pickup_date_scheduled}}</td>
+                <td>{{$bill->time_pickup_scheduled}}</td>
                 <td>{{$bill->account_name}}</td>
                 <td>{{$bill->delivery_type}}</td>
                 <td>{{$bill->type}}</td>

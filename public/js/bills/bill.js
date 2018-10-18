@@ -1,10 +1,14 @@
 $(document).ready(function() {
-
+	if($('#read_only').val() == 'true') {
+		$(':input').attr('readonly', true);
+		$('select').prop('disabled', true);
+		$('#add_package, #remove_package').attr('disabled', 'disabled');
+	}
 });
 
 function storeBill(){
 	var data = $('#bill-form, #bill-persistence-form, #bill_options_form').serialize();
-console.log(data);
+
 	$.ajax({
 		'url': '/bills/store',
 		'type': 'POST',

@@ -12,7 +12,7 @@ class InvoiceSortOptionsSeeder extends Seeder
     public function run()
     {
         DB::table('invoice_sort_options')->insert([
-            'database_field_name' => 'pickup_date_scheduled',
+            'database_field_name' => 'time_pickup_scheduled',
             'friendly_name' => 'Bill Date',
             'can_be_subtotaled' => true
         ]);

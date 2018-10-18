@@ -1,16 +1,13 @@
 <script type='text/javascript' src='{{URL::to('/')}}/js/bills/basic.js?{{config('view.version')}}'></script>
 
 <div class="clearfix">
-<!-- Pickup/Delivery -->
-    <div class='col-md-12'>
 <!-- Pickup -->
-        <div class='col-md-6'>
-            @include('partials.pickup_delivery', ['prefix' => 'pickup', 'title' => 'Pickup', 'address' => $model->pickupAddress, 'account_id' => $model->bill->pickup_account_id, 'date' => $model->bill->pickup_date_scheduled])
-        </div>
+    <div class='col-md-6'>
+        @include('partials.pickup_delivery', ['prefix' => 'pickup', 'title' => 'Pickup', 'address' => $model->pickupAddress, 'account_id' => $model->bill->pickup_account_id, 'date' => $model->bill->time_pickup_scheduled])
+    </div>
 <!-- Delivery -->
-        <div class='col-md-6'>
-            @include('partials.pickup_delivery', ['prefix' => 'delivery', 'title' => 'Delivery', 'address' => $model->deliveryAddress, 'account_id' => $model->bill->delivery_account_id, 'date' => $model->bill->delivery_date_scheduled])
-        </div>
+    <div class='col-md-6'>
+        @include('partials.pickup_delivery', ['prefix' => 'delivery', 'title' => 'Delivery', 'address' => $model->deliveryAddress, 'account_id' => $model->bill->delivery_account_id, 'date' => $model->bill->time_delivery_scheduled])
     </div>
 <!-- Delivery Type -->
     <div class="col-lg-12 bottom15">

@@ -28,11 +28,12 @@ $(document).ready(function() {
         columnDefs: [{'sWidth':'20px', 'aTargets':[1]}],
         pageLength: 50,
         order: [0, 'desc'],
-        // createdRow: function (row, data, index) {
-        // },
+        createdRow: function (row, data, index) {
+            data.invoice_id == null ? '' : $('.invoice_id', row).html('<a href="/invoices/view/' + data.invoice_id + '" >' + data.invoice_id + '</a>');
+        },
         columns: [
             {data: 'payment_id'},
-            {data: 'invoice_id'},
+            {data: 'invoice_id', className:'invoice_id'},
             {data: 'date'},
             {data: 'amount'},
             {data: 'payment_type'},
