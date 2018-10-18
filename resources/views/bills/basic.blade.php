@@ -3,11 +3,21 @@
 <div class="clearfix">
 <!-- Pickup -->
     <div class='col-md-6'>
-        @include('partials.pickup_delivery', ['prefix' => 'pickup', 'title' => 'Pickup', 'address' => $model->pickupAddress, 'account_id' => $model->bill->pickup_account_id, 'date' => $model->bill->time_pickup_scheduled])
+        @include('partials.pickup_delivery', ['prefix' => 'pickup',
+                                            'title' => 'Pickup',
+                                            'address' => $model->pickupAddress,
+                                            'account_id' => $model->bill->pickup_account_id,
+                                            'date' => $model->bill->time_pickup_scheduled,
+                                            'reference_value' => $model->bill->pickup_reference_value])
     </div>
 <!-- Delivery -->
     <div class='col-md-6'>
-        @include('partials.pickup_delivery', ['prefix' => 'delivery', 'title' => 'Delivery', 'address' => $model->deliveryAddress, 'account_id' => $model->bill->delivery_account_id, 'date' => $model->bill->time_delivery_scheduled])
+        @include('partials.pickup_delivery', ['prefix' => 'delivery',
+                                            'title' => 'Delivery',
+                                            'address' => $model->deliveryAddress,
+                                            'account_id' => $model->bill->delivery_account_id,
+                                            'date' => $model->bill->time_delivery_scheduled,
+                                            'reference_value' => $model->bill->delivery_reference_value])
     </div>
 <!-- Delivery Type -->
     <div class="col-lg-12 bottom15">
