@@ -1,6 +1,5 @@
 $(document).ready(function() {
-    dateInput('start_date');
-    dateInput('end_date');
+    $('#start_date, #end_date').datetimepicker({format: 'MMMM Do, YYYY h:mm A', useCurrent: false});
 });
 
 function getDriversToManifest() {

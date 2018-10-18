@@ -1,14 +1,16 @@
 $(document).ready(function() {
-    dateInput('pickup_date_scheduled');
-    dateInput('delivery_date_scheduled');
-    $('#pickup_time_expected').datetimepicker({format: 'LT'});
-    $('#delivery_time_expected').datetimepicker({format: 'LT'});
+    $('#time_pickup_scheduled, #time_delivery_scheduled').datetimepicker({format: 'MMMM Do, YYYY h:mm A', stepping: 5});
 
-    $('#pickup_date_scheduled').change(function() {
+    $('#time_pickup_scheduled').change(function() {
         console.log('fired');
-        if($('#delivery_date_scheduled').val() < $('#pickup_date_scheduled').val())
-            $('#delivery_date_scheduled').val($('#pickup_date_scheduled').val()).trigger('change');
+        if($('#time_delivery_scheduled').val() < $('#time_pickup_scheduled').val())
+            $('#time_delivery_scheduled').val($('#time_pickup_scheduled').val()).trigger('change');
     });
+
+    $('#pickup_address_type, #delivery_address_type').change(function(){
+        $('option', this).each(function(){$('#' + $(this).val()).removeClass('in active')});
+        $('#' + $(this).val()).addClass('in active');
+    }).trigger('change');
 
 //display custom field if present for the account.
     $('#pickup_account_id, #delivery_account_id, #charge_account_id').change(function(){

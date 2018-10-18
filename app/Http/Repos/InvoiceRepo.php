@@ -27,9 +27,9 @@ class InvoiceRepo {
                 'accounts.account_id',
                 'accounts.name as account_name',
                 'date',
-                'balance_owing',
-                'bill_cost',
-                'total_cost',
+                DB::raw('format(balance_owing, 2) as balance_owing'),
+                DB::raw('format(bill_cost, 2) as bill_cost'),
+                DB::raw('format(total_cost, 2) as total_cost'),
                 DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
         return $invoices->get();
@@ -133,8 +133,8 @@ class InvoiceRepo {
         foreach($account_ids as $account_id) {
             $account = Account::where('account_id', $account_id)->first(['has_parent', 'parent_account_id']);
             $bills = Bill::where('charge_account_id', '=', $account_id)
-                        ->where('pickup_date_scheduled', '>=', $start_date)
-                        ->where('pickup_date_scheduled', '<=', $end_date)
+                        ->where('time_pickup_scheduled', '>=', $start_date)
+                        ->where('time_pickup_scheduled', '<=', $end_date)
                         ->where('invoice_id', null)
                         ->where('skip_invoicing', '=', 0)
                         ->where('percentage_complete', 1)

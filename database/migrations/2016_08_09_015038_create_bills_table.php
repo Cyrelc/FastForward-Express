@@ -35,15 +35,14 @@ class CreateBillsTable extends Migration
             $table->boolean('skip_invoicing')->default(false);
             $table->string('bill_number')->nullable();
             $table->string('description');
-            $table->date('pickup_date_expected');
-            $table->date('delivery_date_expected');
-            $table->time('pickup_time_expected');
-            $table->time('delivery_time_expected');
+            $table->datetime('time_pickup_scheduled');
+            $table->datetime('time_delivery_scheduled');
             $table->decimal('amount')->nullable();
             $table->string('delivery_type')->nullable();
-            $table->datetime('call_received')->nullable();
-            $table->datetime('picked_up')->nullable();
-            $table->datetime('delivered')->nullable();
+            $table->datetime('time_call_received');
+            $table->datetime('time_dispatched')->nullable();
+            $table->datetime('time_picked_up')->nullable();
+            $table->datetime('time_delivered')->nullable();
             $table->float('percentage_complete');
 
 			$table->unique('bill_number');

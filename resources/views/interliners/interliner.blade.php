@@ -3,7 +3,7 @@
 @section ('script')
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/dist/cleave.min.js"></script>
 <script type="text/javascript" src="https://nosir.github.io/cleave.js/js/lib.js"></script>
-
+<script type='text/javascript' src='/js/partials/address.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 

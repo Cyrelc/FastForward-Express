@@ -50,7 +50,7 @@
 				}
 			}
 			foreach($model->tables as $table) {
-				$table->headers = array('Date' => 'pickup_date_scheduled', 'Waybill Number' => 'bill_number');
+				$table->headers = array('Date' => 'time_pickup_scheduled', 'Waybill Number' => 'bill_number');
 				if($subtotal_by != NULL && $subtotal_by->database_field_name == 'charge_account_id')
 					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'charge_reference_value';
 				else if($model->parent->uses_custom_field)
@@ -74,8 +74,8 @@
 			$model = new Invoice\InvoiceFormModel();
 
 			$model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
-			$model->start_date = date("U");
-			$model->end_date = date("U");
+			$model->start_date = strtotime("first day of last month 00:00:00");
+			$model->end_date = strtotime("last day of last month 23:59:59");
 
 			return $model;
 		}
@@ -101,8 +101,8 @@
 		}
 
 		public function GetGenerateModel($invoice_interval, $start_date, $end_date) {
-			$start_date = (new \DateTime($start_date))->format('Y-m-d');
-			$end_date = (new \DateTime($end_date))->format('Y-m-d');
+			$start_date = new \DateTime($start_date);
+			$end_date = new \DateTime($end_date);
 
 			$repo = new Repos\AccountRepo();
 			$model = new GenerateInvoiceViewModel();

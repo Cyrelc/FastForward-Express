@@ -6,6 +6,7 @@
 <script type='text/javascript' src='{{URL::to('/')}}/js/validation.js'></script>
 <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-combobox.js"></script>
 <script type='text/javascript' src='{{URL::to('/')}}/js/accounts/account.js?{{config('view.version')}}'></script>
+<script type='text/javascript' src='/js/partials/address.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 
