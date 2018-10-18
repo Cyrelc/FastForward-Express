@@ -47,10 +47,10 @@
                     </select>
                 </div>
 <!-- custom tracker -->
-                <div id='{{$prefix}}_reference' class="{{$model->bill->pickup_reference_value == '' ? 'hidden' : ''}} bottom15" name="{{$prefix}}_reference">
+                <div id='{{$prefix}}_reference' class="{{$reference_value == '' ? 'hidden' : ''}} bottom15" name="{{$prefix}}_reference">
                     <div class="input-group">
-                        <span id="{{$prefix}}_reference_name" class="input-group-addon" >{{$model->pickup_reference_name}}</span>
-                        <input id="{{$prefix}}_reference_value" name="{{$prefix}}_reference_value" class="form-control" type="text" disabled value="{{$model->bill->pickup_reference_value}}" />
+                        <span id="{{$prefix}}_reference_name" class="input-group-addon" >{{$reference_value}}</span>
+                        <input id="{{$prefix}}_reference_value" name="{{$prefix}}_reference_value" class="form-control" type="text" disabled value="{{$reference_value}}" />
                     </div>
                 </div>
             </div>
