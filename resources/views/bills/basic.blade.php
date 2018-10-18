@@ -1,5 +1,4 @@
 <script type='text/javascript' src='{{URL::to('/')}}/js/bills/basic.js?{{config('view.version')}}'></script>
-<script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDkZes5-lvbP_RXr5Hys9kAv967B1UUDh0&libraries=places'></script>
 
 <div class="clearfix">
 <!-- Pickup -->

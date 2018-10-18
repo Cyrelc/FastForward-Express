@@ -1,9 +1,9 @@
 <div class="panel panel-info">
-    <div class="panel-heading clearfix text-center">
+    <div class="panel-heading text-center">
         <h3>{{$title}}</h3>
     </div>
 <!-- account selection -->
-    <div class="panel-body bottom15 clearfix">
+    <div class="panel-body bottom15">
 <!-- date -->
         <div class="col-lg-12 bottom15">
             <div class="input-group" id="time_{{$prefix}}_scheduled">
@@ -19,15 +19,17 @@
             <div class='input-group'>
                 <span class='input-group-addon'>Input Address By: </span>
                 <select id='{{$prefix}}_address_type' class='form-control selectpicker'>
-                    <option value='{{$prefix}}_search'>Search</option>
+                    <option value='{{$prefix}}_address' {{!isset($account_id) && !$is_new ? 'selected' : ''}}>Address</option>
                     <option value='{{$prefix}}_account' {{isset($account_id) ? 'selected' : ''}}>Account</option>
-                    <option value='{{$prefix}}_manual' {{!isset($account_id) && !$is_new ? 'selected' : ''}}>Manual</option>
                 </select>
             </div>
         </div>
+    </div>
+    <div class='panel-footer bottom15 clearfix'>
         <div class='tab-content'>
-            <div class="col-md-12 tab-pane fade">
-                <input id='{{$prefix}}_search' type='text' placeholder='Search for an address' class='form-control'></input>
+<!-- address -->
+            <div id='{{$prefix}}_address' class='tab-pane fade {{(!$is_new && !isset($account_id)) ? 'in active' : ''}} '>
+                @include('partials.address', ['enabled' => true])
             </div>
 <!-- account select option -->
             <div id='{{$prefix}}_account' class='col-md-12 tab-pane fade'>
@@ -51,10 +53,6 @@
                         <input id="{{$prefix}}_reference_value" name="{{$prefix}}_reference_value" class="form-control" type="text" disabled value="{{$model->bill->pickup_reference_value}}" />
                     </div>
                 </div>
-            </div>
-<!-- address -->
-            <div id='{{$prefix}}_manual' class='tab-pane fade {{(!$is_new && !isset($account_id)) ? 'in active' : ''}} '>
-                @include('partials.address', ['enabled' => true])
             </div>
         </div>
     </div>

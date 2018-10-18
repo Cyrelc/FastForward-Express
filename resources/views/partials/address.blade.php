@@ -1,10 +1,12 @@
-<script type="text/javascript">
-    $(document).ready(function(){
-        zipInput("{{$prefix}}-zip");
-    });
-</script>
-
 <div class="form-group bottom15" id="{{$prefix}}-div">
+    <!-- Search -->
+    <div class='col-md-12 bottom15'>
+        <div class='input-group'>
+            <span class='input-group-addon'>Address Search/Autocomplete: </span>
+            <input id='{{$prefix}}_location_search' type='text' data-div='{{$prefix}}' class='form-control' placeholder="Enter an Address" onFocus='geolocate("{{$prefix}}")'></input>
+        </div>
+    </div>
+
     <!--Address ID-->
     <input type="hidden" name="{{$prefix}}-id" value="{{isset($address) ? $address->address_id : ''}}" />
 
