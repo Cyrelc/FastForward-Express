@@ -2,10 +2,11 @@ $(document).ready(function() {
 
     var table = $('#table').DataTable({
         ajax: {url:'/invoices/buildTable', dataSrc:''},
-        dom: 'lf<"columnVis"B>rtip',
-        buttons: ['colvis'],
+        dom: 'f<"columnVis"B>lrtip',
+        buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         columnDefs: [{'sWidth':'20px', 'aTargets':[1]}],
         pageLength: 50,
+        stateSave: true,
         order: [2, 'desc'],
         createdRow: function (row, data, index) {
             var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Invoice" data-toggle="modal" data-target="#delete_modal" onclick="deleteInvoice(' + data.invoice_id + ')" />';

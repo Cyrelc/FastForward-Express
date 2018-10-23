@@ -1,10 +1,11 @@
 $(document).ready(function() {
     var table = $('#table').DataTable({
         ajax: {url:'/bills/buildTable', dataSrc: '', data: function(d) { d.filter = $('#bills_advanced_filter').val()}},
-        dom: 'lf<"columnVis"B>rtip',
-        buttons: ['colvis'],
+        dom: 'f<"columnVis"B>lrtip',
+        buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         ColVis: {exclude: [0]},
         pageLength: 50,
+        stateSave: true,
         order: [1, 'desc'],
         deferRender: true,
         columnDefs: [{ 'visible': false, 'targets': 4 }],
@@ -21,14 +22,19 @@ $(document).ready(function() {
                 progress_bar = 'progress-bar-info';
             if(data.editable)
                 $('.actions', row).html('<div class="hover-div" >' + deleteButton + '</div>');
-            $('.bill_id', row).html('<a href="/bills/edit/' + data.bill_id + '" >' + data.bill_id + '</a>');
-            $('.charge_account', row).html('<a href="/accounts/edit/' + data.charge_account_id + '" >' + data.charge_account_name + '</a>');
-            $('.pickup_employee', row).html('<a href="/employees/edit/' + data.pickup_employee_id + '" >' + data.pickup_employee_name + '</a>');
-            $('.delivery_employee', row).html('<a href="/employees/edit/' + data.delivery_employee_id + '" >' + data.delivery_employee_name + '</a>');
-            $('.interliner').html('<a href="/interliners/edit/' + data.interliner_id + '" >' + data.interliner_name + '</a>');
-            $('.invoice', row).html('<a href="/invoices/view/' + data.invoice_id + '" >' + data.invoice_id + '</a>');
-            $('.pickup_manifest', row).html('<a href="/manifests/view/' + data.pickup_manifest_id + '" >' +  data.pickup_manifest_id + '</a>');
-            $('.delivery_manifest', row).html('<a href="/manifests/view/' + data.delivery_manifest_id + '" >' + data.delivery_manifest_id + '</a>');
+            var links = [{'db_id_field' : 'bill_id', 'url' : '/bills/edit/', 'db_name_field' : 'bill_id'},
+                        {'db_id_field' : 'charge_account_id', 'url' : '/accounts/edit/', 'db_name_field' : 'charge_account_name'},
+                        {'db_id_field' : 'pickup_employee_id','url' : '/employees/edit/', 'db_name_field' : 'pickup_employee_name'},
+                        {'db_id_field' : 'delivery_employee_id','url' : '/employees/edit/', 'db_name_field' : 'delivery_employee_name'},
+                        {'db_id_field' : 'interliner_id', 'url':'/interliners/edit/', 'db_name_field' : 'interliner_name'},
+                        {'db_id_field' : 'invoice_id', 'url' : '/invoices/view/', 'db_name_field' : 'invoice_id'},
+                        {'db_id_field' : 'pickup_manifest_id', 'url' : '/manifests/view', 'db_name_field' : 'pickup_manfiest_id'},
+                        {'db_id_field' : 'delivery_manifest_id', 'url' : '/manifests/view', 'db_name_field' : 'delivery_manifest_id'}];
+            for(link in links) {
+                var cur_row = links[link];
+                if(data[cur_row['db_id_field']] != '' && data[cur_row['db_id_field']] != null)
+                    $('.' + cur_row['db_id_field'], row).html('<a href="' + cur_row['url'] + data[cur_row['db_id_field']] + '" >' + data[cur_row['db_name_field']] + '</a>');
+            }
             $('.percentage_complete', row).html('<div class="progress-bar ' + progress_bar + '" role="progressbar" aria-valuenow="' + data.percentage_complete * 100 + '" style="width:' + data.percentage_complete * 100 + '%">' + data.percentage_complete * 100 + '%</div>');
         },
         columns: [
@@ -39,19 +45,21 @@ $(document).ready(function() {
             {data: 'time_delivery_scheduled'},
             {data: 'delivery_type'},
             {data: 'charge_account_number'},
-            {data: 'charge_account_name', className: 'charge_account'},
-            {data: 'pickup_employee_name', className: 'pickup_employee'},
-            {data: 'delivery_employee_name', className: 'delivery_employee'},
-            {data: 'interliner_name', className: 'interliner', visible: false},
+            {data: 'charge_account_name', className: 'charge_account_id'},
+            {data: 'pickup_employee_name', className: 'pickup_employee_id'},
+            {data: 'delivery_employee_name', className: 'delivery_employee_id'},
+            {data: 'interliner_name', className: 'interliner_id', visible: false},
             {data: 'description', visible: false},
             {data: 'package_count', visible: false},
-            {data: 'invoice_id', className: 'invoice', visible: false},
-            {data: 'pickup_manifest_id', className: 'pickup_manifest', visible: false},
-            {data: 'delivery_manifest_id', className: 'delivery_manifest', visible: false},
+            {data: 'invoice_id', className: 'invoice_id', visible: false},
+            {data: 'pickup_manifest_id', className: 'pickup_manifest_id', visible: false},
+            {data: 'delivery_manifest_id', className: 'delivery_manifest_id', visible: false},
             {data: 'amount'},
             {data: 'percentage_complete', className: 'percentage_complete'}
         ]
     })
+
+    table.buttons().container().appendTo('#example_wrapper .col-sm-6:eq(0)');
 
     $('#bills_advanced_filter').change(function() { //TODO - remove auto refresh when live for clients
         table.ajax.reload();
