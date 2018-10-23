@@ -6,6 +6,7 @@ $(document).ready(function() {
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         columnDefs: [{'sWidth':'35px', 'aTargets':[0]}, {searchable: false, targets: 1}],
         pageLength: 50,
+        stateSave: true,
         order: [1, 'asc'],
         createdRow: function (row, data, index) {
             var editButton = '<a class="fa fa-edit btn btn-default btn-xs" title="Edit Account" href="/accounts/edit/' + data.account_id + '" />';

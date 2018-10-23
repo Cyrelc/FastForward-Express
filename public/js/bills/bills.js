@@ -5,6 +5,7 @@ $(document).ready(function() {
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         ColVis: {exclude: [0]},
         pageLength: 50,
+        stateSave: true,
         order: [1, 'desc'],
         deferRender: true,
         columnDefs: [{ 'visible': false, 'targets': 4 }],

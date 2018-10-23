@@ -6,6 +6,7 @@ $(document).ready(function() {
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         columnDefs: [{'sWidth':'30px', 'aTargets':[1]}],
         pageLength: 50,
+        stateSave: true,
         order: [2, 'desc'],
         createdRow: function (row, data, index) {
 //TODO - currently no function to delete a manifest. The commented out delete button will be correct, when this function exists            
