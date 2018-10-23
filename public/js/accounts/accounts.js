@@ -2,10 +2,8 @@ $(document).ready(function() {
 
     var table = $('#table').DataTable( {
         ajax: {'url':'/accounts/buildTable', 'dataSrc':''},
-        dom: 'lf<"columnVis"B>rtip',
-        buttons: [
-            'colvis'
-        ],
+        dom: 'f<"columnVis"B>lrtip',
+        buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         columnDefs: [{'sWidth':'35px', 'aTargets':[0]}, {searchable: false, targets: 1}],
         pageLength: 50,
         order: [1, 'asc'],
