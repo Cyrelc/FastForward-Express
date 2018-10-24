@@ -14,7 +14,7 @@ class BillCollector {
 		}
 
 		if($req->interliner_id != "")
-			$required_fields = array_merge($required_fields, ['interliner_id', 'interliner_cost', 'interliner_cost_to_customer']);
+			$required_fields = array_merge($required_fields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
 
 		$count = 0;
 		foreach($required_fields as $field) {
@@ -39,6 +39,7 @@ class BillCollector {
 			'pickup_driver_commission' => $req->pickup_driver_commission == "" ? null : $req->pickup_driver_commission / 100,
 			'delivery_driver_commission' => $req->delivery_driver_commission == "" ? null : $req->delivery_driver_commission / 100,
 			'interliner_id' => $req->interliner_id == "" ? null : $req->interliner_id,
+			'interliner_reference_value' => $req->interliner_id == "" ? null : $req->interliner_reference_value,
 			'interliner_cost' => $req->interliner_id == "" ? null : $req->interliner_cost,
 			'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
 			'bill_number' => $req->bill_number == "" ? null : $req->bill_number,

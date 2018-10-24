@@ -159,6 +159,7 @@ class BillRepo {
         $old->pickup_driver_commission = $bill['pickup_driver_commission'];
         $old->delivery_driver_commission = $bill['delivery_driver_commission'];
         $old->interliner_id = $bill['interliner_id'];
+        $old->interliner_reference_value = $bill['interliner_reference_value'];
         $old->interliner_cost = $bill['interliner_cost'];
         $old->interliner_cost_to_customer = $bill['interliner_cost_to_customer'];
         $old->skip_invoicing = $bill['skip_invoicing'];
