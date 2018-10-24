@@ -24,7 +24,7 @@ class BillValidationRules {
 					'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'];
 
 		if($req->interliner_id != "") {
-			$rules = array_merge($rules, ['interliner_cost' => "required|min:0", 'interliner_cost_to_customer' => 'required|min:0']);
+			$rules = array_merge($rules, ['interliner_reference_value' => 'required|alpha_dash|min:4', 'interliner_cost' => "required|min:0", 'interliner_cost_to_customer' => 'required|min:0']);
 			$messages = array_merge($messages, ['interliner_cost.required' => 'Must enter an interliner cost', 'interliner_cost_to_customer.required' => 'Must enter an interliner cost to customer']);
 		}
 

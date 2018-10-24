@@ -32,6 +32,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('interliner_id')->nullable();
             $table->decimal('interliner_cost_to_customer')->nullable();
             $table->decimal('interliner_cost')->nullable();
+            $table->string('interliner_reference_value')->nullable();
             $table->boolean('skip_invoicing')->default(false);
             $table->string('bill_number')->nullable();
             $table->string('description');

@@ -47,7 +47,7 @@
     </div>
 <!-- Interliner -->
     <div id="interliner">
-        <div class="col-lg-6 bottom15">
+        <div class="col-lg-12 bottom15">
             <div class="input-group">
                 <span class="input-group-addon">Interliner: </span>
                 <select id="interliner_id" class="form-control selectpicker" data-live-search='true' name="interliner_id">
@@ -60,17 +60,11 @@
                         @endif
                     @endforeach
                 </select>
-            </div>
-        </div>
-        <div class="col-lg-3 bottom15">
-            <div class="input-group">
-                <span class="input-group-addon">Interliner Cost: $</span>
+                <span class='input-group-addon'>Tracking #: </span>
+                <input id='interliner_reference_value' name='interliner_reference_value' type='text' class='form-control' value='{{$model->bill->interliner_reference_value}}' />
+                <span class='input-group-addon'>Actual Cost: </span>
                 <input id="interliner_cost" name="interliner_cost" type="number" class="form-control" min="0" value="{{$model->bill->interliner_cost}}" step="0.01" />
-            </div>
-        </div>
-        <div class="col-lg-3 bottom15">
-            <div class="input-group">
-                <span class="input-group-addon">Interliner Cost to Customer: $</span>
+                <span class='input-group-addon'>Cost to Customer: </span>
                 <input id="interliner_cost_to_customer" name="interliner_cost_to_customer" type="number" class="form-control" min="0" value="{{$model->bill->interliner_cost_to_customer}}" step="0.01" />
             </div>
         </div>
