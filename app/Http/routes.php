@@ -99,7 +99,7 @@ Route::group(
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
-            Route::get('/logout', 'Auth\AuthController@getLogout');
+            Route::get('/logout', 'Auth\LoginController@logout');
 
             Route::post('/contactus', 'HomeController@ContactUs');
 
