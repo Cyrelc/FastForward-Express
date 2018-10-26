@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Bill extends Model
 {
+    use LogsActivity;
+    
     public $primaryKey = "bill_id";
     public $timestamps = false;
 
@@ -39,4 +42,6 @@ class Bill extends Model
                             'percentage_complete'
                         ];
 
+    protected static $logFillable = true;
+    protected static $logOnlyDirty = true;
 }

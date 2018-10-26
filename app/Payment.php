@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Payment extends Model
 {
+    use LogsActivity;
+
     public $primaryKey = "payment_id";
     public $timestamps = false;
 
@@ -18,4 +21,6 @@ class Payment extends Model
                             'comment'
                         ];
 
+    protected static $logFillable = true;
+    protected static $logOnlyDirty = true;
 }

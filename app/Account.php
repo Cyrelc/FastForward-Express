@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Account extends Model
 {
+    use LogsActivity;
+
     public $primaryKey = "account_id";
     public $timestamps = false;
 
@@ -33,6 +36,9 @@ class Account extends Model
                     'uses_custom_field',
                     'active',
                     'min_invoice_amount'];
+
+    protected static $logFillable = true;
+    protected static $logOnlyDirty = true;
 
     public function contacts() {
         return $this->belongsToMany('App\Contact', 'account_contacts');

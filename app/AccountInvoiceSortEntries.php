@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class AccountInvoiceSortEntries extends Model
 {
+    use LogsActivity;
+
     public $primaryKey = "account_invoice_sort_entry_id";
     public $timestamps = false;
 
@@ -15,4 +18,5 @@ class AccountInvoiceSortEntries extends Model
                         'subtotal'
                         ];
 
+    protected static $logFillable = true;
 }
