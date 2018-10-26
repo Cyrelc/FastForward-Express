@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class User extends Authenticatable
 {
+    use LogsActivity;
+
     public $primaryKey="user_id";
 
     /**
@@ -25,6 +28,8 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    protected static $logFillable = true;
+    
     public function roles() {
         return $this->belongsToMany('App\Role', 'user_roles');
     }

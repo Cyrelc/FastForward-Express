@@ -3,9 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Invoice extends Model
 {
+    use LogsActivity;
+
     public $primaryKey = "invoice_id";
     public $timestamps = false;
 
@@ -18,4 +21,7 @@ class Invoice extends Model
         'total_cost',
         'balance_owing'
     ];
+    
+    protected static $logFillable = true;
+    protected static $logOnlyDirty = true;
 }
