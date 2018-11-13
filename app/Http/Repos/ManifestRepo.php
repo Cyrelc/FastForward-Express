@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use DB;
 use App\Bill;
+use App\Chargeback;
 use App\Manifest;
 
 class ManifestRepo {
@@ -69,11 +70,21 @@ class ManifestRepo {
         })->get();
 
         foreach($pickup_bills as $bill) {
+            if($bill->chargeback_id != null && $bill->invoice_id == null && $bill->pickup_manifest_id == null && $bill->delivery_manifest_id == null) {
+                $chargeback = Chargeback::where('chargeback_id', $bill->chargeback_id)->first();
+                $chargeback->count_remaining = 1;
+                $chargeback->save();
+            }
             $bill->pickup_manifest_id = $manifest_id;
             $bill->save();
         }
 
         foreach($delivery_bills as $bill) {
+            if($bill->chargeback_id != null && $bill->invoice_id == null && $bill->pickup_manifest_id == null && $bill->delivery_manifest_id == null) {
+                $chargeback = Chargeback::where('chargeback_id', $bill->chargeback_id)->first();
+                $chargeback->count_remaining = 1;
+                $chargeback->save();
+            }
             $bill->delivery_manifest_id = $manifest_id;
             $bill->save();
         }

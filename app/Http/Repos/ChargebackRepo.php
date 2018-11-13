@@ -25,12 +25,27 @@ class ChargebackRepo {
         }
     }
 
+    public function CreateBillChargeback($chargeback) {
+        $new = new Chargeback;
+
+        $new = $new->create($chargeback);
+
+        return $new;
+    }
+
     public function DeactivateById($id) {
         $chargeback = $this->GetById($id);
         $chargeback->count_remaining = 0;
         $chargeback->continuous = 0;
 
         $chargeback->save();
+        return;
+    }
+
+    public function Delete($id) {
+        $old =  $this->GetById($id);
+
+        $old->delete();
         return;
     }
 
@@ -84,7 +99,8 @@ class ChargebackRepo {
         $chargeback = $this->GetById($id);
 
         foreach($fields as $field)
-            $chargeback->$field = $req->$field;
+            if(isset($req->$field))
+                $chargeback->$field = $req->$field;
 
         $chargeback->continuous = isset($req->continuous);
         if($chargeback->continuous)

@@ -36,7 +36,8 @@ class BillRepo {
                         'pickup_manifest_id',
                         'delivery_manifest_id',
                         'percentage_complete',
-                        DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'));
+                        DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
+                        DB::raw('case when charge_account_id is not null then "account" when payment_id is not null then "prepaid" when chargeback_id is not null then "driver" end as charge_type'));
 
         if($filter == 'dispatch')
             $bills->where('pickup_driver_id', null)
@@ -147,6 +148,8 @@ class BillRepo {
             return false;
 
         $old->charge_account_id = $bill['charge_account_id'];
+        $old->payment_id = $bill['payment_id'];
+        $old->chargeback_id = $bill['chargeback_id'];
         $old->pickup_account_id = $bill['pickup_account_id'];
         $old->delivery_account_id = $bill['delivery_account_id'];
         $old->pickup_address_id = $bill['pickup_address_id'];

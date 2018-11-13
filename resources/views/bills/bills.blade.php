@@ -42,6 +42,7 @@
 				<td>Pickup Manifest</td>
 				<td>Delivery Manifest</td>
 				<td>Amount</td>
+				<td>Payment Type</td>
 				<td>Complete</td>
 			</tr>
 		</thead>

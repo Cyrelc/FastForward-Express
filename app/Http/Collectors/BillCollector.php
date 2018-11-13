@@ -3,18 +3,19 @@
 namespace App\Http\Collectors;
 
 class BillCollector {
-	public function Collect($req, $pickupAddressId, $deliveryAddressId) { 
+	public function Collect($req, $pickupAddressId, $deliveryAddressId, $charge_id) { 
 
-		$required_fields = ['payment_type', 'pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'time_pickup_scheduled', 'time_delivery_scheduled', 'amount', 'delivery_type', 'time_call_received', 'time_dispatched'];
-
-		switch($req->payment_type) {
-			case 'account':
-				$required_fields = array_merge($required_fields, ['charge_account_id']);
-				break;
-		}
+		$required_fields = ['pickup_driver_id', 'delivery_driver_id', 'pickup_driver_commission', 'delivery_driver_commission', 'bill_number', 'time_pickup_scheduled', 'time_delivery_scheduled', 'amount', 'delivery_type', 'time_call_received', 'time_dispatched'];
 
 		if($req->interliner_id != "")
 			$required_fields = array_merge($required_fields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
+
+		if($req->charge_type == 'account')
+			$required_fields = array_merge($required_fields, ['charge_account_id']);
+		elseif($req->charge_type == 'driver')
+			$required_fields = array_merge($required_fields, ['chargeback_id']);
+		elseif($req->charge_type == 'prepaid')
+			$required_fields = array_merge($required_fields, ['payment_id']);
 
 		$count = 0;
 		foreach($required_fields as $field) {
@@ -26,7 +27,9 @@ class BillCollector {
 
 		return [
 			'bill_id' => $req->bill_id,
-			'charge_account_id' => $req->charge_account_id == "" ? null : $req->charge_account_id,
+			'charge_account_id' => $req->charge_type == 'account' ? $charge_id : null,
+			'chargeback_id' => $req->charge_type == 'driver' ? $charge_id : null,
+			'payment_id' => $req->charge_type == 'prepaid' ? $charge_id : null,
 			'pickup_account_id' => $req->pickup_account_id == "" ? null : $req->pickup_account_id,
 			'pickup_address_id' => $pickupAddressId,
 			'delivery_account_id' => $req->delivery_account_id == "" ? null : $req->delivery_account_id,
