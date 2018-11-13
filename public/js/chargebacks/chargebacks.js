@@ -28,9 +28,7 @@ function submitChargeback() {
             toastr.success('Chargebacks created successfully');
             $('#chargeback_create_form').trigger('reset');
         },
-        'error': function(response) {
-            showErrors(response);
-        }
+		'error': function(response){handleErrorReponse(response)}
     });
 }
 
@@ -45,9 +43,7 @@ function updateChargeback(id) {
             toastr.clear();
             toastr.success('Chargeback ' + id + ' was successfully updated');
         },
-        'error': function(response) {
-            showErrors(response);
-        }
+		'error': function(response){handleErrorReponse(response)}
     });
 }
 
@@ -61,9 +57,7 @@ function updateChargebacksList() {
 			toastr.clear();
             contentDiv.html(response);
         },
-        'error': function(response) {
-            showErrors(response);
-        }
+		'error': function(response){handleErrorReponse(response)}
     });
 }
 
@@ -80,16 +74,6 @@ function deactivate(id) {
             toastr.success('Chargeback ' + id + ' was successfully deactivated');
             updateChargebacksList();
         }, 
-        'error': function(response) {
-            showErrors(response);
-        }
+		'error': function(response){handleErrorReponse(response)}
     })
-}
-
-function showErrors(response) {
-    var errorText = '';
-    for(var key in response.responseJSON)
-        errorText += response.responseJSON[key][0] + '</br>';
-    toastr.clear();
-    toastr.error(errorText, 'Errors', {'timeOut' : 0, 'extendedTImeout': 0});
 }

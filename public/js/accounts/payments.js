@@ -120,13 +120,6 @@ function submitPayment() {
                 'onHidden': function(){location.reload()}
             });
         },
-        'error': function(response) {
-			var errorText = '';
-			for(var key in response.responseJSON) {
-				errorText += response.responseJSON[key][0] + '</br>';
-			}
-			toastr.clear();
-			toastr.error(errorText, 'Errors', {'timeOut' : '0', 'extendedTImeout': '0'});
-        }
+		'error': function(response){handleErrorReponse(response)}
     });
 }

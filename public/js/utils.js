@@ -70,3 +70,11 @@ function stickyTabs() {
         window.scrollTo(0, 0);
     })
 }
+
+function handleErrorReponse(response) {
+    var errorText = '';
+    for(var key in response.responseJSON.errors)
+        errorText += response.responseJSON.errors[key][0] + '</br>';
+    toastr.clear();
+    toastr.error(errorText, response.responseJSON.message, {'timeOut' : 0, 'extendedTImeout' : 0});
+}
