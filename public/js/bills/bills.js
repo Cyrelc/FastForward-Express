@@ -55,6 +55,7 @@ $(document).ready(function() {
             {data: 'pickup_manifest_id', className: 'pickup_manifest_id', visible: false},
             {data: 'delivery_manifest_id', className: 'delivery_manifest_id', visible: false},
             {data: 'amount'},
+            {data: 'charge_type', visible: false},
             {data: 'percentage_complete', className: 'percentage_complete'}
         ]
     })

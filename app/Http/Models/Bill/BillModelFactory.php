@@ -90,8 +90,9 @@
 			$model->bill->time_call_received = date("U");
 		    $model->skip_invoicing = 'false';
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
-			$model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
+			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
 			$model->read_only = false;
+			$model->bill->charge_driver_id = null;
 			
 		    return $model;
 		}
@@ -108,6 +109,8 @@
 			$selectionsRepo = new Repos\SelectionsRepo();
 			$contactsRepo = new Repos\ContactRepo();
 			$packageRepo = new Repos\PackageRepo();
+			$paymentRepo = new Repos\PaymentRepo();
+			$chargebackRepo = new Repos\ChargebackRepo();
 
 		    $model->employees = $employeeRepo->ListAllDrivers();
 		    foreach ($model->employees as $employee) {
@@ -127,11 +130,13 @@
 			isset($model->bill->time_delivered) ? $model->bill->time_delivered = strtotime($model->bill->time_delivered) : '';
 			$model->bill->pickup_driver_commission *= 100;
 			$model->bill->delivery_driver_commission *= 100;
-            $model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
+			$model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
+			$model->chargeback = $model->bill->chargeback_id == null ? new \App\Chargeback : $chargebackRepo->GetById($model->bill->chargeback_id);
+			$model->payment = $model->bill->payment_id == null ? new \App\Payment : $paymentRepo->GetById($model->bill->payment_id);
 			$model->read_only = $billRepo->IsReadOnly($model->bill);
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
-            $model->payment_types = $selectionsRepo->GetSelectionsByType('payment_type');
+			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
 
 			$model->accounts = $acctRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();

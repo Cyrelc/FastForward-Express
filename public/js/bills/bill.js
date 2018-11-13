@@ -4,10 +4,12 @@ $(document).ready(function() {
 		$('select').prop('disabled', true);
 		$('#add_package, #remove_package').attr('disabled', 'disabled');
 	}
+
+    stickyTabs();
 });
 
 function storeBill(){
-	var data = $('#bill-form, #bill-persistence-form, #bill_options_form').serialize();
+	var data = $('#bill-form, #bill_options_form').serialize();
 
 	$.ajax({
 		'url': '/bills/store',

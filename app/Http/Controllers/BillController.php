@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Cookie;
 use DB;
 
 use App\Http\Repos;
@@ -59,23 +58,6 @@ class BillController extends Controller {
         }
     }
 
-    private function setPersistenceCookies(Request $req) {
-        $persistenceFields = array('keep_date' => 'date',
-            'keep_charge_selection' => 'charge_selection',
-            'keep_charge_account' => 'charge_account_id',
-            'keep_pickup_account' => 'pickup_account_id',
-            'keep_delivery_account' => 'delivery_account_id',
-            'keep_pickup_driver' => 'pickup_driver_id',
-            'keep_delivery_driver' => 'delivery_driver_id');
-
-        foreach($persistenceFields as $checkbox => $fieldName) {
-            if(isset($req->$checkbox))
-                $test = Cookie::queue('bill_' . $checkbox, $req->$fieldName, 43200);
-            else
-                Cookie::queue(Cookie::forget('bill_' . $checkbox));
-        }
-    }
-
     public function store(Request $req) {
         DB::beginTransaction();
         try {
@@ -91,13 +73,12 @@ class BillController extends Controller {
             $billRepo = new Repos\BillRepo();
             $addrRepo = new Repos\AddressRepo();
             $packageRepo = new Repos\PackageRepo();
+            $chargebackRepo = new Repos\ChargebackRepo();
+            $paymentRepo = new Repos\PaymentRepo();
+
             $addrCollector = new \App\Http\Collectors\AddressCollector();
             $billCollector = new \App\Http\Collectors\BillCollector();
             $packageCollector = new \App\Http\Collectors\PackageCollector();
-
-            switch ($req->payment_type) {
-                //TODO
-            }
 
             $pickupAddress = $addrCollector->CollectForAccount($req, 'pickup', false);
             $deliveryAddress = $addrCollector->CollectForAccount($req, 'delivery', false);
@@ -111,7 +92,10 @@ class BillController extends Controller {
                 $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
             }
 
-            $bill = $billCollector->Collect($req, $pickupAddressId, $deliveryAddressId);
+            $old_bill = isset($req->bill_id) ? $billRepo->getById($req->bill_id) : null;
+            $payment_id = $req->charge_type == '' ? null : $this->getPaymentId($old_bill, $req);
+
+            $bill = $billCollector->Collect($req, $pickupAddressId, $deliveryAddressId, $payment_id);
 
             if($req->bill_id)
                 $bill = $billRepo->Update($bill);
@@ -140,8 +124,14 @@ class BillController extends Controller {
                     $packageRepo->Update($package);
             }
 
+            //if a previous payment method exists, that does not match the currently submitted payment method
+            //then delete the old payment record if necessary
+            if($old_bill != null && $req->charge_type != 'prepaid' && $old_bill->payment_id != null)
+                $paymentRepo->Delete($old_bill->payment_id);
+            elseif($old_bill != null && $req->charge_type != 'driver' && $old_bill->chargeback_id != null)
+                $chargebackRepo->Delete($old_bill->chargeback_id);
+
             DB::commit();
-            $this->setPersistenceCookies($req);
 
             if ($req->bill_id)
                 return redirect()->action('BillController@index');
@@ -155,6 +145,44 @@ class BillController extends Controller {
                 'success' => false,
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    private function getPaymentId($old_bill, $req) {
+        $chargebackRepo = new Repos\ChargebackRepo();
+        $paymentRepo = new Repos\PaymentRepo();
+
+        switch ($req->charge_type) {
+            case 'account':
+                return $req->charge_account_id;
+            case 'driver':
+                $amount = ($req->amount == '' ? 0 : $req->amount) + ($req->interliner_cost_to_customer == '' ? 0 : $req->interliner_cost_to_customer);
+                if($old_bill != null && $old_bill->chargeback_id != null) {
+                    $data = new \Illuminate\Http\Request();
+                    $data->replace(['amount' => $amount]);
+                    $chargebackRepo->Update($old_bill->chargeback_id, $data);
+                    return $old_bill->chargeback_id;
+                } else {
+                    $chargeback = [
+                        'employee_id' => $req->charge_driver_id,
+                        'amount' => $amount,
+                        'gl_code' => null,
+                        'name' => 'Bill Chargeback',
+                        'description' => $req->description,
+                        'continuous' => false,
+                        'count_remaining' => 0,
+                        'start_date' => (new \DateTime($req->input('start_date')))->format('Y-m-d')
+                    ];
+                    return ($chargebackRepo->CreateBillChargeback($chargeback))->chargeback_id;
+                }
+            case 'prepaid':
+                if($old_bill != null && $old_bill->payment_id != null) {
+                    $payment = (new \App\Http\Collectors\PaymentCollector())->CollectBillPayment($req);
+                    return ($paymentRepo->Update($old_bill->payment_id, $payment))->payment_id;
+                } else {
+                    $payment = (new \App\Http\Collectors\PaymentCollector())->CollectBillPayment($req);
+                    return ($paymentRepo->Insert($payment))->payment_id;
+                }
         }
     }
 }

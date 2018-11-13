@@ -12,7 +12,9 @@ class Bill extends Model
     public $primaryKey = "bill_id";
     public $timestamps = false;
 
-    protected $fillable = [	'charge_account_id',
+    protected $fillable = [	'chargeback_id',
+                            'payment_id',
+                            'charge_account_id',
     						'pickup_account_id',
     						'delivery_account_id',
                             'pickup_address_id',

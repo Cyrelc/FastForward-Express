@@ -26,5 +26,17 @@ class PaymentCollector {
             'comment' => $req->comment
         ];
     }
+
+    public function CollectBillPayment($req) {
+        return [
+            'account_id' => null,
+            'invoice_id' => null,
+            'date' => date('Y-m-d'),
+            'amount' => isset($req->amount) ? $req->amount : 0 + isset($req->interliner_cost_to_customer) ? $req->interliner_cost_to_customer : 0,
+            'payment_type' => $req->prepaid_type,
+            'reference_value' => $req->prepaid_reference_value,
+            'comment' => null
+        ];
+    }
 }
 ?>

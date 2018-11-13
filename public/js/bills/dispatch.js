@@ -4,7 +4,8 @@ $(document).ready(function() {
         $("#pickup_driver_commission").val($("option:selected", this).attr('data-driver-commission'));
         if (!$("#delivery_driver_id").val()) {
             $('#delivery_driver_id').val($('#pickup_driver_id').val()).trigger('change');
-            $('#time_dispatched span').trigger('click');
+            if($('#time_dispatched').val() == '')
+                $('#time_dispatched span').trigger('click');
         }
     });
 

@@ -18,6 +18,8 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('delivery_manifest_id')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('charge_account_id')->nullable();
+            $table->unsignedInteger('chargeback_id')->nullable();
+            $table->unsignedInteger('payment_id')->nullable();
             $table->unsignedInteger('pickup_account_id')->nullable();
             $table->unsignedInteger('delivery_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id');
@@ -50,11 +52,13 @@ class CreateBillsTable extends Migration
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
             $table->foreign('delivery_manifest_id')->references('manifest_id')->on('manifests');
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
-			$table->foreign('charge_account_id')->references('account_id')->on('accounts');
+            $table->foreign('charge_account_id')->references('account_id')->on('accounts');
+            $table->foreign('chargeback_id')->references('chargeback_id')->on('chargebacks')->onDelete('cascade');
+            $table->foreign('payment_id')->references('payment_id')->on('payments')->onDelete('cascade');
 			$table->foreign('pickup_account_id')->references('account_id')->on('accounts');
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
-			$table->foreign('pickup_address_id')->references('address_id')->on('addresses');
-			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
+			$table->foreign('pickup_address_id')->references('address_id')->on('addresses')->onDelete('cascade');
+			$table->foreign('delivery_address_id')->references('address_id')->on('addresses')->onDelete('cascade');
 			$table->foreign('pickup_driver_id')->references('employee_id')->on('employees');
             $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');
 			$table->foreign('interliner_id')->references('interliner_id')->on('interliners');

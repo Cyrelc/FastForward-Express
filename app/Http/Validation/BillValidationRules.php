@@ -14,7 +14,7 @@ class BillValidationRules {
 					'delivery_reference_value' => 'sometimes|required'];
 
     	$messages = ['time_pickup_scheduled.required' => 'Pickup date is required',
-					'time_pickup_scheduled.date' => 'Delivery date is in an incorrect format',
+					'time_pickup_scheduled.date' => 'Pickup date is in an incorrect format',
 					'time_delivery_scheduled.required' => 'Delivery date is required',
 					'time_delivery_scheduled.date' => 'Delivery date is in an incorrect format',
 					'time_call_received.required' => 'Call Received Time is requred',
@@ -24,8 +24,18 @@ class BillValidationRules {
 					'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'];
 
 		if($req->interliner_id != "") {
-			$rules = array_merge($rules, ['interliner_reference_value' => 'required|alpha_dash|min:4', 'interliner_cost' => "required|min:0", 'interliner_cost_to_customer' => 'required|min:0']);
-			$messages = array_merge($messages, ['interliner_cost.required' => 'Must enter an interliner cost', 'interliner_cost_to_customer.required' => 'Must enter an interliner cost to customer']);
+			$rules = array_merge($rules, ['interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
+		}
+
+		if($req->charge_type == 'account') {
+			$rules = array_merge($rules, ['charge_account_id' => 'required', 'charge_account_reference_value' => 'sometimes|required']);
+			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
+		} else if ($req->charge_type == 'driver') {
+			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
+			$messages = array_merge($messages, ['charge_driver_id.required' => 'Must select a driver to charge back to']);
+		} else if ($req->charge_type == 'prepaid') {
+			$rules = array_merge($rules, ['prepaid_type' => 'required', 'prepaid_reference_value' => 'sometimes|required|min:4']);
+			$messages = array_merge($messages, ['prepaid_type.required' => 'Must select a payment type for "prepaid"', 'prepaid_reference_value.required' => 'Selected prepaid type requires a reference value', 'prepaid_reference_value.min' => 'Prepaid reference value must be at least four characters in length']);
 		}
 
 		$partialsRules = new \App\Http\Validation\PartialsValidationRules();
