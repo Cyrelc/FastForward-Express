@@ -92,7 +92,8 @@
 		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
 			$model->read_only = false;
-			$model->bill->charge_driver_id = null;
+			$model->chargeback = new \App\Chargeback;
+			$model->payment = new \App\Payment;
 			
 		    return $model;
 		}
