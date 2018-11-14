@@ -31,7 +31,9 @@
 				<td>Invoice Interval</td>
 				<td>Contact</td>
 				<td>Shipping Address Name</td>
+				<td>Shipping Address</td>
 				<td>Billing Address Name</td>
+				<td>Billing Address</td>
 			</tr>
 		</thead>
 	</table>

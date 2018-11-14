@@ -37,6 +37,8 @@ class AccountRepo {
                     'accounts.invoice_interval',
                     'shipping_address.name as shipping_address_name',
                     'billing_address.name as billing_address_name',
+                    DB::raw('concat(shipping_address.street, " ", shipping_address.street2, ", ", shipping_address.city, ", ", shipping_address.state_province, ", ", shipping_address.country, " ", shipping_address.zip_postal) as shipping_address'),
+                    DB::raw('concat(billing_address.street, " ", billing_address.street2, ", ", billing_address.city, ", ", billing_address.state_province, ", ", billing_address.country, " ", billing_address.zip_postal) as billing_address'),
                     DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'));
 
         return $accounts->get();

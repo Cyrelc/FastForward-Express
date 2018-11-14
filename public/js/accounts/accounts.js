@@ -31,7 +31,9 @@ $(document).ready(function() {
             {'data': 'invoice_interval'},
             {'data': 'primary_contact_name'},
             {'data': 'shipping_address_name'},
-            {'data': 'billing_address_name'}
+            {'data': 'shipping_address', visible: false},
+            {'data': 'billing_address_name'},
+            {'data': 'billing_address', visible: false}
         ]
     });
     // table.on( 'xhr', function ( e, settings, json ) {
