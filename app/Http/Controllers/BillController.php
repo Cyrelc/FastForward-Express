@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Validator;
 use DB;
 
 use App\Http\Repos;
@@ -133,10 +134,10 @@ class BillController extends Controller {
 
             DB::commit();
 
-            if ($req->bill_id)
-                return redirect()->action('BillController@index');
-            else 
-                return redirect()->action('BillController@create');
+            return response()->json([
+                'success' => true,
+                'id' => $bill->bill_id
+            ]);
             
         } catch(Exception $e) {
             DB::rollBack();

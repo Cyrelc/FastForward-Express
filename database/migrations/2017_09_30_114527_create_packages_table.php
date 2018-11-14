@@ -14,6 +14,7 @@ class CreatePackagesTable extends Migration
     {
         Schema::create('packages', function (Blueprint $table) {
             $table->increments('package_id');
+            $table->int('count');
             $table->float('weight');
             $table->float('height');
             $table->float('width');

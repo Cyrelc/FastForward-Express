@@ -128,6 +128,25 @@ class PartialsValidationRules {
         ];
     }
 
+    public function GetPackageValidationRules($req, $package_name) {
+        return [
+            'rules' => [
+                $package_name . '_count' => 'required|numeric|min:1',
+                $package_name . '_weight' => 'required|numeric|min:0.001',
+                $package_name . '_height' => 'required|numeric|min:0.1',
+                $package_name . '_length' => 'required|numeric|min:0.1',
+                $package_name . '_width' => 'required|numeric|min:0.1'
+            ],
+            'messages' => [
+                $package_name . '_count.min' => 'Must include at least one instance of package',
+                $package_name . '_weight.min' => 'Package weight must be greater than zero',
+                $package_name . '_height.min' => 'Package height must be greater than zero',
+                $package_name . '_length.min' => 'Package length must be greater than zero',
+                $package_name . '_width.min' => 'Package width must be greater than zero'
+            ]
+        ];
+    }
+
     public function GetPhoneValidationRules($phone, $contact_name) {
         $validationRules = [
             $phone['prefix'] . '-number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],

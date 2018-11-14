@@ -48,6 +48,21 @@ class BillValidationRules {
 		$rules = array_merge($rules, $deliveryAddress['rules']);
 		$messages = array_merge($messages, $deliveryAddress['messages']);
 
+		$package_names = [];
+        foreach($req->all() as $key => $value) {
+            if(substr_compare($key, 'package', 0, 7) == 0 && !in_array(explode('_', $key, 2)[0], $package_names))
+                array_push($package_names, explode('_', $key, 2)[0]);
+		}
+		if(count($package_names) < 1) {
+			$rules = array_merge($rules, ['package' => 'required']);
+			$messages = array_merge($messages, ['package.required' => 'At least one package is required']);
+		}
+		foreach($package_names as $package_name) {
+			$package_validation = $partialsRules->GetPackageValidationRules($req, $package_name);
+			$rules = array_merge($rules, $package_validation['rules']);
+			$messages = array_merge($messages, $package_validation['messages']);
+		}
+
     	return ['rules' => $rules, 'messages' => $messages];
     }
 }

@@ -14,6 +14,7 @@ class PackageCollector {
             $new_package = [
                 'package_id' => $req->input($name . '_id') == null ? '' : $req->input($name . '_id'),
                 'bill_id' => $bill_id,
+                'count' => $req->input($name . '_count'),
                 'weight' => $req->input($name . '_weight'),
                 'height' => $req->input($name . '_height'),
                 'width' => $req->input($name . '_width'),

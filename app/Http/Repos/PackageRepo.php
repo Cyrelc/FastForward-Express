@@ -26,6 +26,7 @@ class PackageRepo {
     public function Update($package) {
     	$old = $this->GetById($package['package_id']);
 
+		$old->count = $package['count'];
     	$old->weight = $package['weight'];
     	$old->height = $package['height'];
     	$old->length = $package['length'];

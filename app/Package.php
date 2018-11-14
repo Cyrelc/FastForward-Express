@@ -13,7 +13,8 @@ class Package extends Model
     public $primaryKey = "package_id";
 
     protected $fillable = [
-    	'bill_id',
+		'bill_id',
+		'count',
     	'weight',
     	'height',
     	'width',

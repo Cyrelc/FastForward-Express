@@ -20,10 +20,10 @@
     <div class='col-md-3 bottom15'>
         @if(isset($model->bill->bill_id))
             @if($model->read_only)
-                <h3>View Bill</h3>
+                <h3>View Bill {{$model->bill->bill_id}}</h3>
                 <input type='hidden' id='read_only' value='true' />
             @else
-                <h3>Edit Bill</h3>
+                <h3>Edit Bill {{$model->bill->bill_id}}</h3>
                 <input type='hidden' id='read_only' value='false' />
             @endif
             @php($is_new = false)

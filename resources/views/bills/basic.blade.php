@@ -42,6 +42,7 @@
         <table id='package_table' class="table table-bordered">
             <thead class="thead-inverse">
                 <th><button type="button" id="add_package">Add Package</button></th>
+                <th>Count</th>
                 <th>Weight</th>
                 <th>Length</th>
                 <th>Width</th>
@@ -52,7 +53,7 @@
                     <script type='text/javascript'>addPackage()</script>
                 @else
                     @foreach($model->packages as $package)
-                        <script type="text/javascript">addPackage({{$package->weight}}, {{$package->length}}, {{$package->width}}, {{$package->height}}, {{$package->package_id}});</script>
+                        <script type="text/javascript">addPackage({{$package->count}}, {{$package->weight}}, {{$package->length}}, {{$package->width}}, {{$package->height}}, {{$package->package_id}});</script>
                     @endforeach
                 @endif
             </tbody>

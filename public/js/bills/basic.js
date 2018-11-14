@@ -41,7 +41,7 @@ $(document).ready(function() {
     });
 });
 
-function addPackage(weight = 0, length = 0, width = 0, height = 0, package_id = null) {
+function addPackage(count = 1, weight = '', length = '', width = '', height = '', package_id = null) {
 	var table = $('#package_table');
 	var id = $('#next_piece_id').val();
 	id ++;
@@ -49,11 +49,12 @@ function addPackage(weight = 0, length = 0, width = 0, height = 0, package_id = 
 	table.children('tbody').append(
 		"<tr>" +
 			"<input type='hidden' name='package" + id + "_id' value='" + package_id + "' />" +
-			"<td><button type='button' id='remove_package'><i class='fa fa-minus'></i></button></td>" +
-			"<td><input type='number' name='package" + id + "_weight' step='0.1' value='" + weight + "'/> kg </td>" +
-			"<td><input type='number' name='package" + id + "_length' step='0.01' value='" + length + "' /> cm </td>" +
-			"<td><input type='number' name='package" + id + "_width' step='0.01' value='" + width + "' /> cm </td>" +
-			"<td><input type='number' name='package" + id + "_height' step='0.01' value='" + height + "' /> cm </td>" +
+            "<td><button type='button' id='remove_package'><i class='fa fa-minus'></i></button></td>" +
+            "<td><input type='number' name='package" + id + "_count' step=1 min='1' value='" + count + "'/></td>" +
+			"<td><input type='number' name='package" + id + "_weight' step='0.1' min='0' value='" + weight + "'/> kg </td>" +
+			"<td><input type='number' name='package" + id + "_length' step='0.01' min='0' value='" + length + "' /> cm </td>" +
+			"<td><input type='number' name='package" + id + "_width' step='0.01' min='0' value='" + width + "' /> cm </td>" +
+			"<td><input type='number' name='package" + id + "_height' step='0.01' min='0' value='" + height + "' /> cm </td>" +
 		"</tr>"
 	);
 }
