@@ -8,6 +8,7 @@ class DriverCollector {
         return [
             'driver_id' => $req->input('driver_id'),
             'employee_id' => $employee_id,
+            'company_name' => $req->company_name == '' ? null : $req->company_name,
             'drivers_license_number' => $req->input('DLN'),
             'license_expiration' => (new \DateTime($req->input('license_expiration')))->format('Y-m-d'),
             'license_plate_number' => $req->input('license_plate'),

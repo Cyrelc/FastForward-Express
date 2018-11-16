@@ -63,6 +63,7 @@ Route::group(
             Route::post('/employees/store', 'EmployeeController@store');
             Route::get('/employees/edit/{id}', 'EmployeeController@edit');
             Route::post('/employees/action', 'EmployeeController@action');
+            Route::get('/employees/buildTable', 'EmployeeController@buildTable');
 
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');

@@ -46,7 +46,7 @@ class DriverRepo {
 	public function Update($driver) {
 		$old = $this->GetById($driver['driver_id']);
 
-		$fields = ['drivers_license_number','license_expiration', 'license_plate_number', 'license_plate_expiration', 'insurance_number', 'insurance_expiration', 'pickup_commission', 'delivery_commission'];
+		$fields = ['company_name', 'drivers_license_number','license_expiration', 'license_plate_number', 'license_plate_expiration', 'insurance_number', 'insurance_expiration', 'pickup_commission', 'delivery_commission'];
 
 		foreach($fields as $field) {
 			$old->$field = $driver[$field];

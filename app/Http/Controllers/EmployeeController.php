@@ -11,15 +11,17 @@ use \App\Http\Validation\Utils;
 
 class EmployeeController extends Controller {
 
+    public function buildTable() {
+        $employeeRepo = new Repos\EmployeeRepo();
+        return $employeeRepo->ListAll();
+    }
+
     public function __construct() {
         $this->middleware('auth');
     }
 
     public function index() {
-        $factory = new Employee\EmployeeModelFactory();
-        $contents = $factory->ListAll();
-
-        return view('employees.employees', compact('contents'));
+        return view('employees.employees');
     }
 
     public function create(Request $req) {

@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
+use DB;
 use App\Employee;
 use App\EmployeeCommission;
 use App\EmployeeEmergencyContact;
@@ -8,9 +9,21 @@ use App\EmployeeEmergencyContact;
 class EmployeeRepo {
 
     public function ListAll() {
-        $employees = Employee::All();
+        $employees = Employee::leftjoin('drivers', 'employees.employee_id', '=', 'drivers.employee_id')
+                            ->leftjoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+                            ->leftjoin('phone_numbers', function($leftJoin) {
+                                $leftJoin->on('phone_numbers.contact_id', '=', 'contacts.contact_id');
+                                $leftJoin->where('phone_numbers.is_primary', '=', true);
+                            })
+                            ->select(
+                                'employees.employee_id',
+                                'employee_number',
+                                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
+                                'phone_number as primary_phone',
+                                'company_name'
+                            );
 
-        return $employees;
+        return $employees->get();
     }
 
     public function ListAllDrivers() {
