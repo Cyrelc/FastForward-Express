@@ -12,6 +12,13 @@ class UserRepo
         return $user;
     }
 
+    public function ChangePassword($userId, $password) {
+        $old = $this->GetById($userId);
+
+        $old->password = $password;
+        $old->save();
+    }
+
     public function Insert($user, $roleName) {
         $new = new User;
 //TODO: UNDO

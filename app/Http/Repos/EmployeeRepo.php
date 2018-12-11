@@ -20,7 +20,9 @@ class EmployeeRepo {
                                 'employee_number',
                                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
                                 'phone_number as primary_phone',
-                                'company_name'
+                                'company_name',
+                                'active',
+                                'user_id'
                             );
 
         return $employees->get();

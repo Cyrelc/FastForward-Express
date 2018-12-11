@@ -36,4 +36,35 @@
 		</thead>
 	</table>
 </div>
+
+<!-- disable modal -->
+<div id="password_change_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+<!-- disable modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" id='password_change_title'>Change Password</h4>
+            </div>
+            <div class="modal-body">
+                <p id="password_change_message">Please enter new password. <b>This action can not be undone.</b></p>
+                <form id='password_change_form'>
+                    <div class='input-group bottom15'>
+                        <span class='input-group-addon'>Password:</span>
+                        <input type='password' name='password' class='form-control' placeholder='New Password' />
+                    </div>
+                    <div class='input-group'>
+                        <span class='input-group-addon'>Confirm Password:</span>
+                        <input type='password' name='password_confirm' class='form-control' placeholder='Confirm Password' />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button id="password_change_submit_button" type="button" class="btn btn-success">Submit</a>
+            </div>
+        </div>
+    </div>
+</div>
+    
 @endsection

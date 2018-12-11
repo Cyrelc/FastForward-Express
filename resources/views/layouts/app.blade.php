@@ -59,9 +59,6 @@
                         <li class="dropdown" disabled>
                             <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
                         </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">New Delivery</a>
-                        </li>
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
                                 <ul class="dropdown-menu">

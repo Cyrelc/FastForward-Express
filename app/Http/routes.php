@@ -108,6 +108,7 @@ Route::group(
             Route::post('/appsettings/storeGST', 'AdminController@storeGST');
             Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
+            Route::post('/users/changePassword/{id}', 'UserController@changePassword');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

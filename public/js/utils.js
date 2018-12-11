@@ -71,7 +71,7 @@ function stickyTabs() {
     })
 }
 
-function handleErrorReponse(response) {
+function handleErrorResponse(response) {
     var errorText = '';
     for(var key in response.responseJSON.errors)
         errorText += response.responseJSON.errors[key][0] + '</br>';
