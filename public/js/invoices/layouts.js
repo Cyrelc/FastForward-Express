@@ -19,6 +19,6 @@ function storeInvoiceLayout() {
 			toastr.clear();
 			toastr.success(response, 'Success');
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	})
 }

@@ -72,6 +72,6 @@ function generateInvoices(){
 				'onHidden': function(){location.replace('/invoices')}
 			})
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	});
 }

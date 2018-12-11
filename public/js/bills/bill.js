@@ -30,6 +30,6 @@ function storeBill(){
 				})
 			}
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	})
 }

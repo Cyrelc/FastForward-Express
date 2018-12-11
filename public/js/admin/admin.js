@@ -7,7 +7,7 @@ function storeGST(){
 		'success': function() {
 			toastr.success('GST was successfully updated!', 'Success');
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	})
 }
 
@@ -20,7 +20,7 @@ function generateHash() {
 		'success': function(response) {
 			$('#password-hash').val(response);
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	})
 }
 

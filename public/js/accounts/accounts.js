@@ -51,7 +51,7 @@ function activateAccount(button, account_id) {
             toastr.clear();
             toastr.success('Account #' + account_id + ' was successfully reactivated', 'Success');
         },
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
     });
 }
 
@@ -65,6 +65,6 @@ function deactivateAccount(button, account_id) {
             toastr.clear();
             toastr.success('Account #' + account_id + ' was successfully deactivated', 'Success');
         },
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
     });
 }

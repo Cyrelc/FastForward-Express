@@ -75,6 +75,6 @@ function setAddressFromAccount(accountId, prefix) {
             $('#' + prefix + '-zip').val(response.zip_postal);
             $('#' + prefix + '-country').val(response.country);
         },
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	})
 }

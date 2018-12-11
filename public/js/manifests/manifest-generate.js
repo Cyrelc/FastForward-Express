@@ -15,7 +15,7 @@ function getDriversToManifest() {
             toastr.clear();
             $('#driver_list').html(response);
         },
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
     });
 }
 
@@ -34,6 +34,6 @@ function generateManifests(){
 				// 'onHidden': function(){location.replace('/manifests')}
 			})
 		},
-		'error': function(response){handleErrorReponse(response)}
+		'error': function(response){handleErrorResponse(response)}
 	});
 }
