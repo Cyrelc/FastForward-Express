@@ -77,7 +77,6 @@ class BillRepo {
                 DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
                 'bill_number',
                 'time_pickup_scheduled',
-                'time_pickup_scheduled',
                 'charge_account_id',
                 'charge_reference_value',
                 'delivery_type',
@@ -118,7 +117,8 @@ class BillRepo {
         return $bills;
     }
 
-    public function IsReadOnly($bill) {
+    public function IsReadOnly($bill_id) {
+        $bill = $this->GetById($bill_id);
         if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
             return true;
         else
@@ -133,7 +133,7 @@ class BillRepo {
 
     public function Delete($id) {
         $bill = $this->GetById($id);
-        if($this->IsReadOnly($bill))
+        if($this->IsReadOnly($bill->bill_id))
             return false;
         $packageRepo = new PackageRepo();
         $packageRepo->DeleteByBillId($id);
@@ -144,7 +144,7 @@ class BillRepo {
 
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
-        if($this->IsReadOnly($bill))
+        if($this->IsReadOnly($bill->bill_id))
             return false;
 
         $old->charge_account_id = $bill['charge_account_id'];
