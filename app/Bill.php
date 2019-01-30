@@ -27,6 +27,7 @@ class Bill extends Model
     						'pickup_driver_commission',
     						'delivery_driver_commission',
                             'interliner_id',
+                            'interliner_reference_value',
                             'interliner_cost',
                             'interliner_cost_to_customer',
                             'skip_invoicing',
