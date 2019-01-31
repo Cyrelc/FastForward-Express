@@ -13,7 +13,7 @@ class BillCollector {
 		if($req->charge_type == 'account')
 			$required_fields = array_merge($required_fields, ['charge_account_id']);
 		elseif($req->charge_type == 'driver')
-			$required_fields = array_merge($required_fields, ['chargeback_id']);
+			$required_fields = array_merge($required_fields, ['charge_driver_id']);
 		elseif($req->charge_type == 'prepaid')
 			$required_fields = array_merge($required_fields, ['payment_id']);
 
