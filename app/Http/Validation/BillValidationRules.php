@@ -9,8 +9,8 @@ class BillValidationRules {
 					'time_dispatched' => 'date',
 					'time_picked_up' => 'date',
 					'time_delivered' => 'date',
-					'charge_reference_value' => 'sometimes|required',
-					'pickup_reference_value' => 'sometimes|required',
+					// 'charge_reference_value' => 'sometimes|required',
+					// 'pickup_reference_value' => 'sometimes|required',
 					'delivery_reference_value' => 'sometimes|required'];
 
     	$messages = ['time_pickup_scheduled.required' => 'Pickup date is required',
@@ -19,8 +19,8 @@ class BillValidationRules {
 					'time_delivery_scheduled.date' => 'Delivery date is in an incorrect format',
 					'time_call_received.required' => 'Call Received Time is requred',
 					'time_call_received.date' => 'Call received time is in an incorrect format',
-					'charge_reference_value.required' => 'Charge Account requires a custom tracking field value',
-					'pickup_reference_value.required' => 'Pickup Account requires a custom tracking field value',
+					// 'charge_reference_value.required' => 'Charge Account requires a custom tracking field value',
+					// 'pickup_reference_value.required' => 'Pickup Account requires a custom tracking field value',
 					'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'];
 
 		if($req->interliner_id != "") {
@@ -28,7 +28,7 @@ class BillValidationRules {
 		}
 
 		if($req->charge_type == 'account') {
-			$rules = array_merge($rules, ['charge_account_id' => 'required', 'charge_account_reference_value' => 'sometimes|required']);
+			$rules = array_merge($rules, ['charge_account_id' => 'required']); //, 'charge_account_reference_value' => 'sometimes|required']);
 			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
 		} else if ($req->charge_type == 'driver') {
 			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
