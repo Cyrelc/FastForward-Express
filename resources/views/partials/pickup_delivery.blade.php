@@ -18,7 +18,7 @@
         <div class='col-md-12 bottom15'>
             <div class='input-group'>
                 <span class='input-group-addon'>Input Address By: </span>
-                <select id='{{$prefix}}_address_type' class='form-control selectpicker'>
+                <select id='{{$prefix}}_address_type' name='{{$prefix}}_address_type' class='form-control selectpicker'>
                     <option value='{{$prefix}}_address' {{!isset($account_id) && !$is_new ? 'selected' : ''}}>Address</option>
                     <option value='{{$prefix}}_account' {{isset($account_id) ? 'selected' : ''}}>Account</option>
                 </select>
