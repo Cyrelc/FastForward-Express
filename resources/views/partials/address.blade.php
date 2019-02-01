@@ -22,7 +22,7 @@
 
     <!--Street 2-->
     <div class="col-lg-6 bottom15">
-        <input type='text' id="{{$prefix}}-street2" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street2' placeholder="Address Line 2" value="{{isset($address) ? $address->street2 : ''}}" />
+        <input type='text' id="{{$prefix}}-street2" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street2' placeholder="Address Line 2 (optional)" value="{{isset($address) ? $address->street2 : ''}}" />
     </div>
 
     <!--City-->
