@@ -144,7 +144,7 @@ class BillRepo {
 
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
-        if($this->IsReadOnly($bill->bill_id))
+        if($this->IsReadOnly($old->bill_id))
             return false;
 
         $old->charge_account_id = $bill['charge_account_id'];
