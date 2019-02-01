@@ -24,7 +24,6 @@
         <div class="input-group">
             <span class="input-group-addon">Delivery Type: </span>
             <select id="delivery_type" class="form-control selectpicker" name="delivery_type">
-                <option></option>
                 @foreach($model->delivery_types as $delivery_type)
                     @if (isset($model->bill->delivery_type) && $delivery_type->value == $model->bill->delivery_type)
                         <option selected value="{{$delivery_type->value}}">{{$delivery_type->name}}</option>

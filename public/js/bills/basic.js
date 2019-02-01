@@ -2,7 +2,6 @@ $(document).ready(function() {
     $('#time_pickup_scheduled, #time_delivery_scheduled').datetimepicker({format: 'MMMM Do, YYYY h:mm A', stepping: 5});
 
     $('#time_pickup_scheduled').change(function() {
-        console.log('fired');
         if($('#time_delivery_scheduled').val() < $('#time_pickup_scheduled').val())
             $('#time_delivery_scheduled').val($('#time_pickup_scheduled').val()).trigger('change');
     });
