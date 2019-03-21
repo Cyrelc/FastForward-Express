@@ -266,7 +266,7 @@ class BillRepo {
     public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
         $subtotal = Bill::where('invoice_id', $invoice_id)
             ->where($field_name, $field_value)
-            ->value(DB::raw('format(sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end), 2)'));
+            ->value(DB::raw('round(sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end), 2)'));
 
         return $subtotal;
     }
