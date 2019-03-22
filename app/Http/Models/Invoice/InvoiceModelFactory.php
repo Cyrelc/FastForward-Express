@@ -74,8 +74,8 @@
 			$model = new Invoice\InvoiceFormModel();
 
 			$model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
-			$model->start_date = strtotime("first day of last month 00:00:00");
-			$model->end_date = strtotime("last day of last month 23:59:59");
+			$model->start_date = strtotime("first day of last month");
+			$model->end_date = strtotime("last day of last month");
 
 			return $model;
 		}

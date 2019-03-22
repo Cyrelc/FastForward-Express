@@ -133,8 +133,8 @@ class InvoiceRepo {
         foreach($account_ids as $account_id) {
             $account = Account::where('account_id', $account_id)->first(['has_parent', 'parent_account_id']);
             $bills = Bill::where('charge_account_id', '=', $account_id)
-                        ->where('time_pickup_scheduled', '>=', $start_date)
-                        ->where('time_pickup_scheduled', '<=', $end_date)
+                        ->whereDate('time_pickup_scheduled', '>=', $start_date)
+                        ->whereDate('time_pickup_scheduled', '<=', $end_date)
                         ->where('invoice_id', null)
                         ->where('skip_invoicing', '=', 0)
                         ->where('percentage_complete', 1)
