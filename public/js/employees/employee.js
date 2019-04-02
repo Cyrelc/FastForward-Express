@@ -1,4 +1,4 @@
-$(document).ready(function(){
+$('document').ready(function(){
     dateInput('dob-picker');
     dateInput('startdate-picker');
 
@@ -7,32 +7,20 @@ $(document).ready(function(){
     new Cleave('#sin', {
         delimiter: ' ',
         blocks: [3, 3, 3]
-    });
-
-    $("#is_driver_checkbox").change(function(){
-    	if($(this).prop('checked'))
-    		enableDriver();
-    	else 
-    		disableDriver();
-    });
-
-    $("#is_sales_checkbox").change(function(){
-    	if($(this).prop('checked'))
-    		enableSales();
-    	else
-    		disableSales();
-    })
-
-	if($("#is_driver").val() == "true") {
-		enableDriver();
-	}
-
-	if($("#is_sales").val() == "true") 
-		enableSales();
+	});
+	
+	cleave();
 });
 
-function storeEmployee() {
-	var data = $('#employee-form').serialize();
+function storeEmployee(button) {
+    var radio = $('#employee_contact_form input:radio[name="email_is_primary[]"]');
+    var primaryIndex = radio.index(radio.filter(':checked'));
+    radio.filter(':checked').val(primaryIndex);
+    radio = $('#employee_contact_form input:radio[name="phone_is_primary[]"]');
+    primaryIndex = radio.index(radio.filter(':checked'));
+    radio.filter(':checked').val(primaryIndex);
+
+	var data = $('#employee_contact_form, #employee_driver_form, #employee_admin_form').serialize();
 
 	$.ajax({
 		'url': '/employees/store',
@@ -41,9 +29,9 @@ function storeEmployee() {
 		'success': function(){
 			var isEdit = typeof($('#employee_id').val()) === 'undefined' ? false : true;
 			toastr.clear();
-			var employeeName = $('#employee-first-name').val() + ' ' + $('#employee-last-name').val();
+			var employeeName = $('#employee_contact_form').find('#first_name').val() + ' ' + $('#employee_contact_form').find('#last_name').val();
 			if (isEdit) {
-				toastr.success(employeeName + ' successfully updated!', 'Success');				
+				toastr.success(employeeName + ' successfully updated!', 'Success');
 			} else {
 				toastr.success(employeeName + ' was successfully created', 'Success', {
 					'progressBar': true,

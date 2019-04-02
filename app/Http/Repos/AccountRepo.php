@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Account;
-use App\AccountContact;
+use App\AccountUser;
 use Illuminate\Support\Facades\DB;
 
 class AccountRepo {
@@ -22,11 +22,11 @@ class AccountRepo {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
             ->leftJoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
-            ->join('account_contacts', function($join) {
-                $join->on('account_contacts.account_id', '=', 'accounts.account_id')
-                    ->where('account_contacts.is_primary', '=', 1);
+            ->leftJoin('account_users', function($join) {
+                $join->on('account_users.account_id', '=', 'accounts.account_id')
+                    ->where('account_users.is_primary', '=', 1);
             })
-            ->join('contacts', 'account_contacts.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
             ->select('accounts.account_id',
                     'accounts.custom_field as custom_field',
                     'accounts.name',
@@ -151,14 +151,8 @@ class AccountRepo {
         $old->save();
     }
 
-    public function ListAccountContacts($accountId) {
-        $accountContacts = AccountContact::where('account_id', '=', $accountId)->get();
-
-        return $accountContacts;
-    }
-
-    public function GetAccountPrimaryContactId($accountId) {
-        $primaryContact = AccountContact::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
+    public function GetAccountPrimaryUserId($accountId) {
+        $primaryContact = AccountUser::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
 
         return $primaryContact;
     }
@@ -166,8 +160,8 @@ class AccountRepo {
     public function ChangePrimary($accountId, $contactId) {
         //Manually do this cause Laravel sucks, ensure parameters are valid
         if ($accountId == null || !is_numeric($accountId) || $accountId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
-        \DB::update('update account_contacts set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1;');
-        \DB::update('update account_contacts set is_primary = 1 where account_id = ' . $accountId . ' and contact_id = ' . $contactId . ';');
+        \DB::update('update account_users set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1;');
+        \DB::update('update account_users set is_primary = 1 where account_id = ' . $accountId . ' and contact_id = ' . $contactId . ';');
     }
 
     public function IsUnique($accountNumber) {

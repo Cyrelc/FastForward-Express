@@ -78,3 +78,22 @@ function handleErrorResponse(response) {
     toastr.clear();
     toastr.error(errorText, response.responseJSON.message, {'timeOut' : 0, 'extendedTImeout' : 0});
 }
+
+function cleave() {
+    $('.phone_number').toArray().forEach(function(field){
+        new Cleave(field, {
+            numericOnly: true,
+            delimiters: ['(',')',' ','-'],
+            blocks: [0, 3, 0, 3, 4]
+        });
+    });
+
+    $('.phone_ext').toArray().forEach(function(field){
+        new Cleave(field, {
+            numeral: true,
+            numeralThousandsGroupStyle: 'none',
+            numeralPositiveOnly: true
+        });
+    });
+}
+

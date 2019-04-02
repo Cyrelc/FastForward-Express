@@ -3,45 +3,35 @@
 @else
     <div class="col-lg-12">
 @endif
-    <input type='hidden' name='{{$prefix}}-db-id' value='{{isset($contact->contact_id) ? $contact->contact_id : null}}' />
-    <input type='hidden' id='{{$prefix}}-action' name='{{$prefix}}-action' value='{{isset($contact->contact_id) ? "update" : "create"}}' />
+    <input type='hidden' name='contact_id' value='{{$contact->contact_id}}' />
     <!--First Name-->
-    <div class="col-lg-4 bottom15">
-        <input type='text' class='form-control' id='{{$prefix}}-first-name' name='{{$prefix}}-first-name' placeholder='First Name' value='{{$contact->first_name}}' />
+    <label for='first_name' class='col-md-2 col-form-label'><h4>First Name</h4></label>
+    <div class='col-md-4 bottom15'>
+        <input type='text' class='form-control' id='first_name' name='first_name' placeholder='First Name' value='{{$contact->first_name}}' />
     </div>
     <!--Last Name-->
-    <div class="col-lg-4 bottom15">
-        <input type='text' class='form-control contact-body' id='{{$prefix}}-last-name' name='{{$prefix}}-last-name' placeholder='Last Name' value="{{$contact->last_name}}"/>
+    <label for='last_name' class='col-md-2 col-form-label'><h4>Last Name</h4></label>
+    <div class='col-md-4 bottom15'>
+        <input type='text' class='form-control' id='last_name' name='last_name' placeholder='Last Name' value='{{$contact->last_name}}' />
     </div>
-
     <!--Position-->
-    <div class="col-lg-4 bottom15">
-        <input type='text' class='form-control contact-body' id='{{$prefix}}-position' name='{{$prefix}}-position' placeholder='Position / Title' value="{{$contact->position}}"/>
-    </div>
-    <!--Email 1-->
-    <div class='col-lg-6 bottom15'>
-        @include('partials.email', ['prefix'=> $prefix . '-email1','email'=>(isset($contact) ? $contact->primaryEmail : null), 'isPrimary'=>true, 'placeholder'=> 'Primary Email'])
-    </div>
-    <!--Email 2-->
-    <div class='col-lg-6'>
-        @include('partials.email', ['prefix'=> $prefix . '-email2','email'=>(isset($contact) ? $contact->secondaryEmail : null), 'isPrimary'=>false, 'placeholder'=> 'Secondary Email'])
-    </div>
-    <!--Phone-->
-    <div class="col-lg-12 bottom15">
-        @include('partials.phone_numbers', ['prefix'=> $prefix . '-phone', 'phoneNumbers'=> $contact->phone_numbers])
+    <label for='position' class='col-md-4 col-form-label'><h4>Position/Title</h4></label>
+    <div class='col-md-8 bottom15'>
+        <input type='text' class='form-control' id='position' name='position' placeholder='Position/Title' value='{{$contact->position}}' />
     </div>
 </div>
-
 <!--Address-->
 @if ($show_address)
     <div class="col-lg-6">
-        @include('partials.address', ['prefix' => $prefix . '-address', 'address' => isset($contact->address) ? $contact->address : null, 'enabled'=>true])
+        @include('partials.address', ['prefix' => 'contact-address', 'address' => $contact->address, 'enabled'=>true])
     </div>
 @endif
-
-@if(isset($multi))
-    <div class='col-lg-12' id='{{$prefix}}-options' style='text-align: center'>
-        <button type='button' id='{{$prefix}}-make-primary' class='btn btn-sm btn-primary' onclick='makePrimary("{{$parent_prefix}}","{{$prefix}}")'><i class='fa fa-star'></i>&nbsp&nbspMake Primary</button>
-        <button type='button' id='{{$prefix}}-delete' class='btn btn-sm btn-danger' onclick='deleteContact("{{$parent_prefix}}","{{$prefix}}")'><i class='fa fa-trash'></i>&nbsp&nbspDelete</button>
-    </div>
-@endif
+<!--Emails-->
+<div class='col-lg-12 bottom15'>
+    @include('partials.emails', ['emails' => $contact->emails, 'email_types' => $contact->emails->types])
+</div>
+<!--Phones-->
+<div class="col-lg-12 bottom15">
+    @include('partials.phone_numbers', ['phone_numbers'=> $contact->phone_numbers, 'phone_types'=> $contact->phone_numbers->types])
+</div>
+    

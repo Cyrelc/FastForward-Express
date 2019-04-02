@@ -5,14 +5,15 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class EmailAddress extends Model
+class AccountUser extends Model
 {
     use LogsActivity;
 
-    public $primaryKey = "email_address_id";
+    public $primaryKey = 'contact_id';
     public $timestamps = false;
 
-    protected $fillable = ['email', 'is_primary', 'contact_id', 'type'];
+    protected $fillable = ['user_id', 'contact_id', 'account_id', 'is_primary'];
 
     protected static $logFillable = true;
+    protected static $logOnlyDirect = true;
 }

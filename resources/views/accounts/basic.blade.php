@@ -65,7 +65,5 @@
                 </div>
             </div>
         </div>
-<!-- Contacts Panel -->
-        @include('partials.contacts', ['contacts' => $model->account->contacts, 'show_address' => false, 'prefix' => 'account', 'title' => 'Contacts'])
     </div>
 </form>

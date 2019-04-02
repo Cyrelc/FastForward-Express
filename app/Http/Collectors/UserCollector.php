@@ -18,4 +18,24 @@ class UserCollector {
 
         return $user;
     }
+
+    public function Collect($req) {
+        $user = [
+            'email' => $req->email[$req->email_is_primary[0]],
+            'is_locked' => !$req->enabled
+        ];
+
+        return $user;
+    }
+
+    public function CollectAccountUser($account_id, $contact_id, $is_primary, $user_id = null) {
+        $account_user = [
+            'account_id' => $account_id,
+            'contact_id' => $contact_id,
+            'is_primary' => $is_primary,
+            'user_id' => $user_id
+        ];
+
+        return $account_user;
+    }
 }

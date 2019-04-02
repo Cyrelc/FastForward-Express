@@ -24,13 +24,14 @@
     @endif
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
     <ul class='nav nav-tabs'>
-        <li class='active'><a data-toggle='tab' href='#basic'>Basic Info</a></li>
+        <li class='active'><a data-toggle='tab' href='#basic'><h4>Basic Info</h4></a></li>
         {{-- <li><a data-toggle='tab' href='#admin'>Admin</a></li> --}}
-        <li><a data-toggle='tab' href='#advanced'>Advanced</a></li>
+        <li><a data-toggle='tab' href='#advanced'><h4>Advanced</h4></a></li>
         @if(isset($model->account->account_id))
-            <li><a data-toggle='tab' href='#commissions'>Commissions</a></li>
-            <li><a data-toggle='tab' href='#payments'>Payments</a></li>
-            <li><a disabled data-toggle='tab' href='#invoice_layouts'>Invoice Layout</a></li>
+            <li><a data-toggle='tab' href='#commissions'><h4>Commissions</h4></a></li>
+            <li><a data-toggle='tab' href='#payments'><h4>Payments</h4></a></li>
+            <li><a data-toggle='tab' href='#users'><h4>Users</h4></a></li>
+            <li><a disabled data-toggle='tab' href='#invoice_layouts'><h4>Auditing</h4></a></li>
         @endif
     </ul>
     <div class='tab-content'>
@@ -52,6 +53,12 @@
             </div>
             {{-- <div id='invoice_layout' class='tab-pane fade well'>
             </div> --}}
+            <div id='users' class='tab-pane fade well'>
+                @include('accounts.users')
+            </div>
+            <div id='auditing'  class='tab-pane fade well'>
+                @include('accounts.auditing');
+            </div>
         @endif
     </div>
     <div class='col-lg-4 text-center'>@if(isset($model->prev_id))<a class='btn btn-info' href='/accounts/edit/{{$model->prev_id}}'>Previous Account</a>@endif</div>

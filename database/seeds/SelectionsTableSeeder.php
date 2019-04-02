@@ -158,5 +158,26 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'pager',
             'type' => 'phone_type'
         ]);
+//Email or Contact Types
+        DB::table('selections')->insert([
+            'name' => 'Billing',
+            'value' => 'billing',
+            'type' => 'contact_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Marketing',
+            'value' => 'marketing',
+            'type' => 'contact_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Owner',
+            'value' => 'owner',
+            'type' => 'contact_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Support',
+            'value' => 'support',
+            'type' => 'contact_type'
+        ]);
     }
 }

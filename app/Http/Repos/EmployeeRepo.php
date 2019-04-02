@@ -76,9 +76,25 @@ class EmployeeRepo {
     }
 
     public function ListEmergencyContacts($employeeId) {
-        $emergency_contacts = EmployeeEmergencyContact::where('employee_id', '=', $employeeId)->get();
+        $emergency_contacts = EmployeeEmergencyContact::where('employee_id', '=', $employeeId)
+            ->leftJoin('contacts', 'employee_emergency_contacts.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('phone_numbers', function($join){
+                $join->on('phone_numbers.contact_id', '=', 'employee_emergency_contacts.contact_id');
+                $join->on('phone_numbers.is_primary', '=', DB::raw(true));
+            })
+            ->leftJoin('email_addresses', function($join){
+                $join->on('email_addresses.contact_id', '=', 'employee_emergency_contacts.contact_id');
+                $join->on('email_addresses.is_primary', '=', DB::raw(true));
+            })
+            ->select(
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as name'),
+                'email_addresses.email as primary_email',
+                'phone_numbers.phone_number as primary_phone',
+                'contacts.position',
+                'employee_emergency_contacts.contact_id'
+            );
 
-        return $emergency_contacts;
+        return $emergency_contacts->get();
     }
 
     public function AddEmergencyContact($employeeId, $contactId) {

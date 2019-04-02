@@ -4,7 +4,7 @@ namespace App\Http\Repos;
 use App\PhoneNumber;
 
 class PhoneNumberRepo {
-    public function ListByContactId($cid) {
+    public function GetByContactId($cid) {
         $pns = PhoneNumber::where('contact_id', '=', $cid)->get();
 
         return $pns;
@@ -41,24 +41,21 @@ class PhoneNumberRepo {
         }
     }
 
-    public function Insert($pn) {
+    public function Insert($phone) {
         $new = new PhoneNumber;
 
-        $new = $new->create($pn);
+        $new = $new->create($phone);
         
         return $new;
     }
 
     public function Update($phone) {
-        $old = $this->GetByid($phone['phone_number_id']);
+        $old = $this->GetById($phone['phone_number_id']);
 
-        //We don't really deal with pn type right now
         $old->type = $phone['type'];
         $old->phone_number = $phone['phone_number'];
         $old->extension_number = $phone['extension_number'];
-        // Temporarily depreciating concept of "primary" and "secondary" phone numbers
-        // $old->is_primary = $phone['is_primary'];
-        $old->contact_id = $phone['contact_id'];
+        $old->is_primary = $phone['is_primary'];
 
         $old->save();
     }

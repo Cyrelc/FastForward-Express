@@ -79,7 +79,7 @@ class AccountsTableSeeder extends Seeder
                     factory(App\Address::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
                 }
 
-                DB::table("account_contacts")->insert([
+                DB::table("account_users")->insert([
                     "contact_id" => $cid,
                     "account_id" => $a->account_id,
                     "is_primary" => $primary
@@ -136,7 +136,7 @@ class AccountsTableSeeder extends Seeder
                             factory(App\Address::class)->create(['contact_id'=>$cid, 'is_primary'=>$isPrimary]);
                         }
 
-                        DB::table("account_contacts")->insert([
+                        DB::table("account_users")->insert([
                             "contact_id" => $cid,
                             "account_id" => $aid,
                             "is_primary" => $primary

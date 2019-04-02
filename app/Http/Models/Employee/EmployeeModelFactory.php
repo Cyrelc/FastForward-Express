@@ -46,11 +46,22 @@ class EmployeeModelFactory
         return $model;
     }
 
+    public function ListEmergencyContacts($employee_id) {
+        $employeeRepo = new Repos\EmployeeRepo();
+
+        $emergencyContacts = $employeeRepo->ListEmergencyContacts($employee_id);
+
+        return $emergencyContacts;
+    }
+
     public function GetCreateModel($request) {
-        $model = new Employee\EmployeeFormModel();
         $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
+
+        $model = new Employee\EmployeeFormModel();
+        
         $model->employee = new \App\Employee();
         $model->contact = $contactModelFactory->GetCreateModel();
+        $model->contact->emails->types = null;
         $model->driver = new \App\Driver();
 
         $model->employee->dob = date('U');
@@ -78,6 +89,7 @@ class EmployeeModelFactory
         $model = new EmployeeFormModel();
         $model->employee = $employeeRepo->GetById($id);
         $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
+        $model->contact->emails->types = null;
         $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
         $model->driver = $driverRepo->GetByEmployeeId($id);
         if (!isset($model->driver))
@@ -90,8 +102,6 @@ class EmployeeModelFactory
             $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
             $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
         }
-
-        $model->emergency_contacts = $contactsFactory->GetEditModel($employeeRepo->ListEmergencyContacts($model->employee->employee_id), true);
 
         return $model;
     }

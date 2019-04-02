@@ -27,7 +27,6 @@ class EmployeeController extends Controller {
     public function create(Request $req) {
         $factory = new Employee\EmployeeModelFactory();
         $model = $factory->GetCreateModel($req);
-
         return view('employees.employee', compact('model'));
     }
 
@@ -36,6 +35,53 @@ class EmployeeController extends Controller {
         $model = $factory->GetEditModel($req, $id);
 
         return view('employees.employee', compact('model'));
+    }
+
+    public function editEmergencyContact(Request $req, $id) {
+        $modelFactory = new \App\Http\Models\Partials\ContactModelFactory();
+        $model = $modelFactory->GetEditModel($id, true);
+        $model->emails->types = null;
+        return view('employees.editEmergencyContact', compact('model'));
+    }
+
+    public function storeEmergencyContact(Request $req) {
+        DB::beginTransaction();
+        try {
+            $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
+
+            $temp = $partialsValidation->GetContactValidationRules($req, true, true, true);
+
+            $this->validate($req, $temp['rules'], $temp['messages']);
+
+            $contactCollector = new \App\Http\Collectors\ContactCollector();
+
+            //Begin Contact
+            $contactId = $req->contact_id;
+            $contactRepo = new Repos\ContactRepo();
+            $contact = $contactCollector->GetContact($req);
+            if($contactId == '')
+                $contactId = $contactRepo->Insert($contact)->contact_id;
+            else
+                $contactRepo->Update($contact);
+            //End Contact
+            $contactCollector->ProcessPhonesForContact($req, $contactId);
+            $contactCollector->ProcessEmailsForContact($req, $contactId);
+
+            DB::commit();
+        } catch (exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success'=> false,
+                'error'=>$e->getMessage()
+            ]);
+        }
+    }
+
+    public function getEmergencyContactsTable(Request $req, $id) {
+        $employeeModelFactory = new Employee\EmployeeModelFactory();
+        $model = $employeeModelFactory->ListEmergencyContacts($id);
+        return json_encode($model);
     }
 
     public function store(Request $req) {
@@ -47,14 +93,10 @@ class EmployeeController extends Controller {
             $contactValidator = new \App\Http\Validation\PartialsValidationRules();
 
             $contactCollector = new \App\Http\Collectors\ContactCollector();
-            $contactsCollector = new \App\Http\Collectors\ContactsCollector();
             $addressCollector = new \App\Http\Collectors\AddressCollector();
 
-            $emergencyContacts = $contactsCollector->collectAll($req, 'emergency-contact', true);
-            $employeeContact = $contactCollector->Collect($req, 'employee');
-            $employeeContact['phone_numbers'] = $contactCollector->CollectPhoneNumbers($req, 'employee');
-            $employeeContact['emails'] = $contactCollector->CollectEmails($req, 'employee');
-            $employeeContact['address'] = $addressCollector->Collect($req, 'employee', true);
+            $contact = $contactCollector->GetContact($req);
+            $address = $addressCollector->Collect($req, 'contact', true);
 
             $employeeId = $req->input('employee_id');
             $isEdit = $employeeId !== null && $employeeId > 0;
@@ -65,22 +107,11 @@ class EmployeeController extends Controller {
             $validationRules = array_merge($validationRules, $employeeRules['rules']);
             $validationMessages = array_merge($validationMessages, $employeeRules['messages']);
 
-            $contactRules = $contactValidator->GetContactValidationRules($employeeContact, 'Employee');
+            $contactRules = $contactValidator->GetContactValidationRules($req, true, true, true);
             $validationRules = array_merge($validationRules, $contactRules['rules']);
             $validationMessages = array_merge($validationMessages, $contactRules['messages']);
 
-            $contactsVal = $partialsRules->GetContactsValidationRules($req, $emergencyContacts, true);
-            $validationRules = array_merge($validationRules, $contactsVal['rules']);
-            $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
-
-            if (count($emergencyContacts) < 1) {
-                //Manually fail validation
-                $rules['Contacts'] = 'required';
-                $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-                if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-            }
-
-            if ($req->is_driver == 'true') {
+            if ($req->is_driver == 'on') {
                 $driverValidation = (new \App\Http\Validation\DriverValidationRules())->GetValidationRules($req);
                 $validationRules = array_merge($validationRules, $driverValidation['rules']);
                 $validationMessage = array_merge($validationMessages, $driverValidation['messages']);
@@ -89,8 +120,6 @@ class EmployeeController extends Controller {
             $this->validate($req, $validationRules, $validationMessages);
 
             $userRepo = new Repos\UserRepo();
-            $phoneNumberRepo = new Repos\PhoneNumberRepo();
-            $emailAddressRepo = new Repos\EmailAddressRepo();
             $addressRepo = new Repos\AddressRepo();
             $contactRepo = new Repos\ContactRepo();
             $employeeRepo = new Repos\EmployeeRepo();
@@ -99,41 +128,33 @@ class EmployeeController extends Controller {
             }
 
             $userCollector = new \App\Http\Collectors\UserCollector();
-            $user = $userCollector->CollectEmployee($req, 'employee');
+            $user = $userCollector->Collect($req);
 
-            $user['user_id'] = $req->input('user_id');
-
-            //Contact Info/User
+            //Begin User
             if($isEdit) {
-                $userId = $userRepo->Update($user, ['Employee'])->user_id;
-                $contactId = $contactRepo->Update($employeeContact)->contact_id;
+                $user['user_id'] = $userRepo->GetUserByEmployeeId($employeeId)->user_id;
+                $userId = $userRepo->Update($user)->user_id;
+                $contactId = $contactRepo->Update($contact)->contact_id;
+                $addressRepo->Update($address);
             } else {
-                $userId = $userRepo->Insert($user, 'Employee')->user_id;
-                $contactId = $contactRepo->Insert($employeeContact)->contact_id;
+                $userId = $userRepo->Insert($user)->user_id;
+                $contactId = $contactRepo->Insert($contact)->contact_id;
+                $address['contact_id'] = $contactId;
+                $addressRepo->Insert($address);
             }
-
-            $employeeContact['address']['contact_id'] = $contactId;
+            $contactCollector->ProcessEmailsForContact($req, $contactId);
+            $contactCollector->ProcessPhonesForContact($req, $contactId);
+            
             $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
 
             $employee = $employeeCollector->Collect($req, $contactId, $userId);
             if ($isEdit) {
                 $employeeRepo->Update($employee);
-                $addressRepo->Update($employeeContact['address']);
             } else {
-                $addressRepo->Insert($employeeContact['address']);
                 $employeeId = $employeeRepo->Insert($employee)->employee_id;
             }
-            foreach($employeeContact['emails'] as $email) {
-                $email['contact_id'] = $contactId;
-                if(isset($email['email_address_id']))
-                    $emailAddressRepo->Update($email);
-                else
-                    $emailAddressRepo->Insert($email);
-            }
-            foreach($employeeContact['phone_numbers'] as $phone)
-                    $phoneNumberRepo->Handle($phone, $contactId);
 
-            if ($req->is_driver == 'true') {
+            if ($req->is_driver == 'on') {
                 $driverCollector = new \App\Http\Collectors\DriverCollector();
                 $driver_data = $driverCollector->Collect($req, (string)$employeeId);
                 if ($req->driver_id != null) {
@@ -141,16 +162,12 @@ class EmployeeController extends Controller {
                 } else {
                     $driverRepo->Insert($driver_data);
                 }
-            } else {
-                if($driverRepo->GetByEmployeeId($employeeId) != null)
-                    $driverRepo->DeleteByEmployeeId($employeeId);
+            } //else {
+                //if($driverRepo->GetByEmployeeId($employeeId) != null)
+                    //$driverRepo->DeleteByEmployeeId($employeeId);
                     //TODO: Unable to delete if there are chargebacks present. Check for this.
-            }
-
-            //BEGIN emergency contacts
-            $newPrimaryId = $req->input('emergency-contact-current-primary');
-            $emergencyContactIds = $contactRepo->HandleEmergencyContacts($emergencyContacts, $employeeId, $newPrimaryId);
-            //END emergency contacts
+                    //Fix - don't delete. Only ever disable.
+            // }
 
             DB::commit();
 

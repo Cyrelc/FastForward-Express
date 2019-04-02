@@ -35,7 +35,7 @@
             $model = new AccountViewModel();
             $a = $acctsRepo->GetById($id);
             $model->account = $a;
-            $model->contacts = $a->contacts()->get();
+            // $model->contacts = $a->contacts()->get();
 
             return $model;
         }
@@ -102,8 +102,6 @@
             $model->employees = $employeesRepo->ListAll();
             $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($id);
             
-            $model->account->contacts = $contactsModelFactory->GetEditModel($acctRepo->ListAccountContacts($id), false);
-
             $model->prev_id = $acctRepo->GetPrevActiveById($id);
             $model->next_id = $acctRepo->GetNextActiveById($id);
 

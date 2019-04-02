@@ -17,7 +17,7 @@ class Contact extends Model
     protected static $logOnlyDirty = true;
 
     public function accounts() {
-        return $this->belongsToMany('App\Account', 'account_contacts');
+        return $this->belongsToMany('App\Account', 'account_users');
     }
 
     public function employees() {

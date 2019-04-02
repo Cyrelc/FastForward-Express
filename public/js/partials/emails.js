@@ -1,11 +1,11 @@
-function addPhone(button) {
+function addEmail(button) {
     var tbody = $(button).closest('table').find('tbody');
     var clone = $(tbody).find('tr:first').clone();
     clone.show();
     clone.find('input:text').val('');
     clone.find('input:radio').prop('checked', false);
-    clone.find('[name*="_id[]"]').val('');
-    clone.find('[name*="_action[]"]').val('create');
+    clone.find('[name="email_address_id[]"]').val('');
+    clone.find('[name="email_action[]"]').val('create');
     clone.find('.bootstrap-select').replaceWith(function() {return $('select', this);});
     clone.find('option:selected').prop('selected', false);
     clone.appendTo($(tbody));
@@ -13,13 +13,13 @@ function addPhone(button) {
     cleave();
 }
 
-function deletePhone(deleteButton) {
-    $tr = $(deleteButton).closest('tr');
+function deleteEmail(deleteButton) {
+    var tr = $(deleteButton).closest('tr');
     if($(deleteButton).closest('tbody').find('tr:visible').length > 1) {
-        $tr.hide();
-        $tr.find('[name="phone_action[]"]').val('delete');
-        $tr.find('[name="phone[]"]').val('');
-        $tr.find('input:radio').prop('checked', false);
+        tr.hide();
+        tr.find('[name="email_action[]"]').val('delete');
+        tr.find('[name="email[]"]').val('');
+        tr.find('input:radio').prop('checked', false);
     }
 }
 

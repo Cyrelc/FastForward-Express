@@ -33,7 +33,6 @@ class AccountController extends Controller {
     }
 
     public function create() {
-        //Check user settings and return popout or inline based on that
         //Check permissions
         $amf = new Account\AccountModelFactory();
         $model = $amf->GetCreateModel();
@@ -51,8 +50,6 @@ class AccountController extends Controller {
         try {
             $partialsRules = new \App\Http\Validation\PartialsValidationRules();
             $accountsRules = new \App\Http\Validation\AccountValidationRules();
-            $contactCollector = new \App\Http\Collectors\ContactCollector();
-            $contactsCollector = new \App\Http\Collectors\ContactsCollector();
 
             $acctRules = $accountsRules->GetValidationRules($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0,
                 $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation'), $req->input('giveDiscount'), isset($req->useCustomField));
@@ -64,19 +61,6 @@ class AccountController extends Controller {
             $validationRules = array_merge($validationRules, $addrRules['rules']);
             $validationMessages = array_merge($validationMessages, $addrRules['messages']);
 
-            $contacts = $contactsCollector->collectAll($req, 'account', false);
-
-            if (count($contacts) < 1) {
-                //Manually fail validation
-                $rules['Contacts'] = 'required';
-                $validator =  \Illuminate\Support\Facades\Validator::make($req->all(), $rules);
-                if ($validator->fails()) return redirect()->back()->withErrors($validator)->withInput();
-            }
-
-            $contactsVal = $partialsRules->GetContactsValidationRules($req, $contacts, false);
-            $validationRules = array_merge($validationRules, $contactsVal['rules']);
-            $validationMessages = array_merge($validationMessages, $contactsVal['messages']);
-
             if ($req->input('billing-address') == 'on') {
                 $billAddressRules = $partialsRules->GetAddressValidationRules('billing', 'Billing');
                 $validationRules = array_merge($validationRules, $billAddressRules['rules']);
@@ -86,10 +70,7 @@ class AccountController extends Controller {
             $this->validate($req, $validationRules, $validationMessages);
 
             $accountRepo = new Repos\AccountRepo();
-            $contactRepo = new Repos\ContactRepo();
             $addressRepo = new Repos\AddressRepo();
-            $emailAddressRepo = new Repos\EmailAddressRepo();
-            $phoneNumberRepo = new Repos\PhoneNumberRepo();
             $commissionRepo = new Repos\CommissionRepo();
 
             //BEGIN delivery address
@@ -135,12 +116,7 @@ class AccountController extends Controller {
                 $action = 'AccountController@edit';
                 $args = ['id' => $accountId];
             }
-
-            //BEGIN contacts
-            $newPrimaryId = $req->input('account-current-primary');
-            $contactRepo->HandleAccountContacts($contacts, $accountId, $newPrimaryId);
-            //END contacts
-            
+          
             DB::commit();
             //END account
 

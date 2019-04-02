@@ -12,6 +12,14 @@ class UserRepo
         return $user;
     }
 
+    public function AddUserToAccountUser($contact_id, $user_id) {
+        $accountUser = \App\AccountUser::where('contact_id', $contact_id)->first();
+
+        $accountUser->user_id = $user_id;
+
+        $accountUser->save();
+    }
+
     public function ChangePassword($userId, $password) {
         $old = $this->GetById($userId);
 
@@ -19,15 +27,24 @@ class UserRepo
         $old->save();
     }
 
-    public function Insert($user, $roleName) {
-        $new = new User;
-//TODO: UNDO
-        // $new->user_id = 1;
-        // return $new;
+    public function GetAccountUserByContactId($contact_id) {
+        $accountUser = \App\AccountUser::where('contact_id', $contact_id);
 
-        $pass = '';
+        return $accountUser->first();
+    }
+
+    public function GetUserByEmployeeId($employeeId) {
+        $employee = \App\Employee::where('employee_id', $employeeId)->first();
+        $user = \App\User::where('user_id', $employee->user_id)->first();
+
+        return $user;
+    }
+
+    public function Insert($user) {
+        $new = new User;
+
         $user = array_merge($user, array(
-            'password' => Hash::make($pass),
+            'password' => Hash::make(str_random(15)),
             'is_locked' => false,
             'login_attempts' => 0,
             'remember_token' => null
@@ -35,30 +52,26 @@ class UserRepo
 
         $new = $new->create($user);
 
-        $roleRepo = new RolesRepo();
-        $userRoleRepo = new UserRoleRepo();
-        $role = $roleRepo->GetByName($roleName);
-        $userRoleRepo->AddUserToRole($new, $role);
+        return $new;
+    }
+
+    public function InsertAccountUser($account_user) {
+        $new = new \App\AccountUser;
+        
+        $new = $new->create($account_user);
 
         return $new;
     }
 
-    public function Update($user, $roleNames) {
+    public function Update($user) {
         $old = $this->GetById($user['user_id']);
 
-        $old->username = $user['username'];
+        // no support for usernames atm
+        // $old->username = $user['username'];
+        $old->is_locked = $user['is_locked'];
         $old->email = $user['email'];
 
         $old->save();
-
-        $userRoleRepo = new UserRoleRepo();
-        $roleRepo = new RolesRepo();
-        $roles = [];
-
-        foreach($roleNames as $roleName)
-            array_push($roles, $roleRepo->GetByName($roleName));
-
-        $userRoleRepo->UpdateRoles($old, $roles);
 
         return $old;
     }

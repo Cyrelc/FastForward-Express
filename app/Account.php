@@ -41,7 +41,7 @@ class Account extends Model
     protected static $logOnlyDirty = true;
 
     public function contacts() {
-        return $this->belongsToMany('App\Contact', 'account_contacts');
+        return $this->belongsToMany('App\Contact', 'account_users');
     }
 
     public function rate_types() {

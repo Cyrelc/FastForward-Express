@@ -15,6 +15,7 @@ class CreateEmailAddressesTable extends Migration
         Schema::create('email_addresses', function (Blueprint $table) {
             $table->increments('email_address_id');
             $table->string('email');
+            $table->string('type');
             $table->boolean('is_primary')->default(true);
             $table->unsignedInteger('contact_id');
 

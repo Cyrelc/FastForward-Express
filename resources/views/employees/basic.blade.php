@@ -38,15 +38,20 @@
                     <input type='text' name="startdate" class="form-control" placeholder="Start Date" value="{{date("l, F d Y", $model->employee->start_date)}}"/>
                 </div>
             </div>
-<!-- Employee Number -->
-            <div class="col-lg-4 bottom15">
-                <div class='input-group'>
-                    <span class="input-group-addon">Employee Number </span>
-                    <input type='text' name="employee_number" class='form-control' value="{{$model->employee->employee_number}}" />
-                </div>
-            </div>
         </div>
     </div>
 </div>
 <!--Emergency Contacts-->
-@include('partials.contacts', ['contacts' => $model->emergency_contacts, 'show_address' => true, 'title' => 'Emergency Contacts', 'prefix' => 'emergency-contact'])
+<div class='col-lg-12'>
+    <div class='panel panel-default'>
+        <div class='panel panel-heading'>
+            <h3 class="panel-title">Emergency Contacts</h3>
+        </div>
+        <div class='panel-body'>
+            <div class='col-lg-12'>
+                @include('employees.emergencyContacts')
+            </div>
+        </div>
+    </div>
+</div>
+

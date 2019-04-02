@@ -64,6 +64,10 @@ Route::group(
             Route::get('/employees/edit/{id}', 'EmployeeController@edit');
             Route::post('/employees/action', 'EmployeeController@action');
             Route::get('/employees/buildTable', 'EmployeeController@buildTable');
+            Route::get('/employees/getEmergencyContacts/{id}', 'EmployeeController@getEmergencyContactsTable');
+            Route::get('/employees/editEmergencyContact/{id}', 'EmployeeController@editEmergencyContact');
+            Route::post('/employees/editEmergencyContact', 'EmployeeController@storeEmergencyContact');
+            Route::post('/employees/deleteEmergencyContact/{id}', 'EmployeeController@deleteEmergencyContact');
 
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');
@@ -94,9 +98,6 @@ Route::group(
             Route::post('/manifests/printMass', 'ManifestController@printMass');
             Route::get('/manifests/download/{filename}', 'ManifestController@download');
 
-            Route::post('/partials/contact/', 'PartialsController@NewContact');
-            Route::post('/partials/phone', 'PartialsController@NewPhone');
-
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
@@ -109,6 +110,10 @@ Route::group(
             Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
             Route::post('/users/changePassword/{id}', 'UserController@changePassword');
+            Route::get('/users/getAccountUsers/{id}', 'UserController@getAccountUsers');
+            Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
+            Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
+            Route::get('/users/createAccountUser/{id}', 'UserController@createAccountUser');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

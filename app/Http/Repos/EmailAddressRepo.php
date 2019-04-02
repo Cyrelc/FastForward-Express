@@ -4,10 +4,17 @@ namespace App\Http\Repos;
 use App\EmailAddress;
 
 class EmailAddressRepo {
-    public function ListByContactId($cid) {
+    public function GetByContactId($cid) {
         $ems = EmailAddress::where('contact_id', '=', $cid)->get();
 
         return $ems;
+    }
+
+    public function GetPrimaryByContactId($contact_id) {
+        $primary = EmailAddress::where('contact_id', $contact_id)
+           ->where('is_primary', true);
+
+        return $primary->first();
     }
 
     public function GetById($id) {
@@ -30,6 +37,7 @@ class EmailAddressRepo {
         $old->email = $address['email'];
         $old->is_primary = $address['is_primary'];
         $old->contact_id = $address['contact_id'];
+        $old->type = $address['type'];
 
         $old->save();
     }
