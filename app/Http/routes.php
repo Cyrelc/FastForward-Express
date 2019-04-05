@@ -114,6 +114,7 @@ Route::group(
             Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
             Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
             Route::get('/users/createAccountUser/{id}', 'UserController@createAccountUser');
+            Route::post('/users/deleteAccountUser', 'UserController@deleteAccountUser');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

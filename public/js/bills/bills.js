@@ -70,6 +70,6 @@ $(document).ready(function() {
 });
 
 function deleteBill(id) {
-    console.log('deleteBill called');
     $('#delete_modal #delete_button').attr('href', '/bills/delete/' + id);
 }
+

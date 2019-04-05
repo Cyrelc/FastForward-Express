@@ -40,6 +40,16 @@ class UserController extends Controller {
         return view('accounts.editUser', compact('model'));
     }
 
+    public function deleteAccountUser(Request $req) {
+        //Do I have permission?
+        $userRepo = new Repos\UserRepo();
+        $accountId = $userRepo->GetAccountUserByContactId($req->contact_id)->account_id;
+        if($userRepo->CountAccountUsers($accountId) > 1)
+            $userRepo->deleteAccountUser($contact_id);
+        else
+            return response()->json(['message' => 'Minimum of one account user required', 'errors' => ['min_count' => ['Account must have at least one user']]], 403);
+    }
+
     public function getAccountUsers(Request $req, $id) {
         $userModelFactory = new User\UserModelFactory();
         $model = $userModelFactory->getAccountUsers($id);

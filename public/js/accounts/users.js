@@ -6,7 +6,7 @@ $(document).ready(function() {
         pageLength: 50,
         order: [1, 'asc'],
         createdRow: function (row, data, index) {
-            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete User" data-toggle="modal" data-target="#delete_modal" onclick="deleteUser(' + data.contact_id + ')" />';
+            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete User" data-toggle="modal" data-target="#delete_user_modal" onclick="prepDeleteUser(' + data.contact_id + ')" />';
             var editUser = '<a class="btn btn-warning btn-xs" title="Edit User" onclick="editUser(' + data.contact_id + ')" ><i class="fas fa-user-edit"></i></a>';
 
             var userBadge = data.user_id == null ? '' : '<span class="badge badge-pill badge-primary">User</span>';
@@ -38,6 +38,29 @@ function addUser() {
         },
         'error': function(response){handleErrorResponse(response)}
     })
+}
+
+function prepDeleteUser(contact_id) {
+    $('#delete_user_form #contact_id').val(contact_id);
+}
+
+function deleteUser() {
+    var data = $('#delete_user_form').serialize();
+
+    $.ajax({
+        url: '/users/deleteAccountUser',
+        type : 'POST',
+        data: data,
+        'success': function(response) {
+            toastr.clear();
+            toastr.success('User successfully deleted', 'Success', {
+                'progressBar': true,
+                'showDuration' : 500,
+            });
+            $('#delete_user_modal').toggle();
+        },
+        'error': function(response){handleErrorResponse(response)}
+    });
 }
 
 function editUser(contactId) {
