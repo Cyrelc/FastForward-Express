@@ -4,15 +4,15 @@
         <div class="col-lg-4 bottom15">
             <div class="input-group">
                 <span class='input-group-addon'>Account Number</span>
-                <input class='form-control' id="account_number" type='text' name='account-number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
+                <input class='form-control' id="account_number" type='text' name='account_number' placeholder="Previous Account Number" value="{{$model->account->account_number}}"/>
                 <span class="input-group-addon" id="account_number_result"></span>
             </div>
         </div>
 <!-- Parent Account -->
-        <div id="parent-location" class="bottom15 col-lg-4" >
+        <div id="parent_location" class="bottom15 col-lg-4" >
             <div class='input-group'>
                 <span class='input-group-addon'>Parent Account</span>
-                <select id="parent-account-id" class='form-control selectpicker' name="parent-account-id" data-live-search='true' >
+                <select id="parent_account_id" class='form-control selectpicker' name="parent_account_id" data-live-search='true' >
                     <option></option>
                     @foreach ($model->accounts as $parent)
                         @if (isset($model->account->account_id) && $model->account->parent_account_id == $parent->account_id)
@@ -30,7 +30,7 @@
                 <span class="input-group-addon">
                     Start Date
                 </span>
-                <input type='text' id="start-date" class="form-control" name='start-date' placeholder="Start Date" value="{{date("l, F d Y", $model->account->start_date)}}"/>
+                <input type='text' id="start_date" class="form-control" name='start_date' placeholder="Start Date" value="{{date("l, F d Y", $model->account->start_date)}}"/>
                 <span class="input-group-addon">
                     <i class="fa fa-calendar"></i>
                 </span>
@@ -65,11 +65,11 @@
         <div class="col-lg-4 bottom15" id="fuel-surcharge">
             <div class='input-group'>
                 <span class='input-group-addon'>Fuel Surcharge</span>
-                <input class='form-control' min=0 max=100 step='0.01' type='number' name="fuel-surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge}}" />
+                <input class='form-control' min=0 max=100 step='0.01' type='number' name="fuel_surcharge" placeholder="Fuel surcharge %" value="{{$model->account->fuel_surcharge}}" />
                 <span class='input-group-addon'>%</span>
             </div>
         </div>
-        <div class='col-lg-4 bottom15' id='charge-interest'>
+        <div class='col-lg-4 bottom15' id='charge_interest'>
             <h4>INTEREST LOGIC GOES HERE</h4>
         </div>
         <br>
@@ -77,11 +77,11 @@
         <hr>
 <!--configuration-->
         <div class='col-md-3 form-check form-check-inline'>
-            <input type="checkbox" id='isGstExempt' name='isGstExempt' class='form-check-input checkbox-lg' {{$model->account->gst_exempt == 1 ? 'checked' : ''}}>
+            <input type="checkbox" id='is_gst_exempt' name='is_gst_exempt' class='form-check-input checkbox-lg' {{$model->account->gst_exempt == 1 ? 'checked' : ''}}>
             <label class='form-check-label' for='isGstExempt'>Is GST Exempt</label>
         </div>
         <div class='col-md-3 form-check form-check-inline'>
-            <input type="checkbox" id='canBeParent' name='canBeParent' class='form-check-input checkbox-lg' {{$model->account->can_be_parent == 1 ? 'checked' : ''}}>
+            <input type="checkbox" id='can_be_parent' name='can_be_parent' class='form-check-input checkbox-lg' {{$model->account->can_be_parent == 1 ? 'checked' : ''}}>
             <label class='form-check-label' for='canBeParent'>Can be Parent</label>
         </div>
         <div class="col-md-3 form-check form-check-inline">
@@ -89,7 +89,7 @@
             <label class='form-check-label' for='send_bills'>Send Bills</label>
         </div>
         <div class="col-md-3 form-check form-check-inline">
-            <input type="checkbox" id='send_bills' name="send_invoices" class='form-check-input checkbox-lg' {{$model->account->send_invoices == 1 ? 'checked' : ''}}>
+            <input type="checkbox" id='send_invoices' name="send_invoices" class='form-check-input checkbox-lg' {{$model->account->send_invoices == 1 ? 'checked' : ''}}>
             <label class='form-check-label' for='send_bills'>Send Invoices</label>
         </div>
     </div>

@@ -8,7 +8,7 @@ use DB;
 use App\Http\Repos;
 use App\Http\Models\Account;
 use \App\Http\Validation\Utils;
-
+use \App\Http\Validation;
 
 class AccountController extends Controller {
 
@@ -34,8 +34,8 @@ class AccountController extends Controller {
 
     public function create() {
         //Check permissions
-        $amf = new Account\AccountModelFactory();
-        $model = $amf->GetCreateModel();
+        $modelFactory = new Account\AccountModelFactory();
+        $model = $modelFactory->GetCreateModel();
         return view('accounts.account', compact('model'));
     }
 
@@ -48,14 +48,23 @@ class AccountController extends Controller {
     public function store(Request $req) {
         DB::beginTransaction();
         try {
-            $partialsRules = new \App\Http\Validation\PartialsValidationRules();
-            $accountsRules = new \App\Http\Validation\AccountValidationRules();
+            $partialsRules = new Validation\PartialsValidationRules();
+            $accountsRules = new Validation\AccountValidationRules();
 
-            $acctRules = $accountsRules->GetValidationRules($req->input('account-number') !== null && $req->input('account-id') !== null && $req->input('account-id') > 0,
-                $req->input('account-id'), $req->input('account-number'), $req->input('isSubLocation'), $req->input('giveDiscount'), isset($req->useCustomField));
+            $validationRules = [];
+            $validationMessages = [];
 
-            $validationRules = $acctRules['rules'];
-            $validationMessages = $acctRules['messages'];
+            if(isset($req->account_id)) {
+                //Can I edit this?
+                $isEdit = true;
+            } else {
+                //Can I create this?
+                $isEdit = false;
+            }
+
+            $acctRules = $accountsRules->GetValidationRules($req);
+            $validationRules = array_merge($validationRules, $acctRules['rules']);
+            $validationMessages = array_merge($validationMessages, $acctRules['messages']);
 
             $addrRules = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
             $validationRules = array_merge($validationRules, $addrRules['rules']);
@@ -82,7 +91,6 @@ class AccountController extends Controller {
                 $delivery_id = $addressRepo->Insert($delivery)->address_id;
             else
                 $addressRepo->Update($delivery);
-
             //END delivery address
             //BEGIN billing address
             $billing_id = $req->input('billing-id');
@@ -103,20 +111,20 @@ class AccountController extends Controller {
             $acctCollector = new \App\Http\Collectors\AccountCollector();
             $account = $acctCollector->Collect($req, $billing_id, $delivery_id);
 
-            $accountId = $req->input('account-id');
-    		$isNew = $accountId == null;
-    		$args = [];
-            if ($isNew) {
-                $accountId = $accountRepo->Insert($account)->account_id;
-                $action = 'AccountController@create';
-            }
-            else {
+            $accountId = $req->input('account_id');
+            if ($isEdit) {
                 $account["account_id"] = $accountId;
                 $accountRepo->Update($account);
                 $action = 'AccountController@edit';
                 $args = ['id' => $accountId];
             }
-          
+            else {
+                $req->account_id = $accountRepo->Insert($account)->account_id;
+                $userController = new UserController();
+                $userController->storeAccountUser($req, true);
+                $action = 'AccountController@create';
+            }
+
             DB::commit();
             //END account
 

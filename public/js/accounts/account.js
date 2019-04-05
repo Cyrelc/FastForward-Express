@@ -1,12 +1,5 @@
 $(document).ready(function() {
-	$("#billing-address").change(function(){
-		if ($("#billing-address").prop('checked'))
-			$("input[name='hasBillingAddress']").val('true');
-		else
-			$("input[name='hasBillingAddress']").val('');
-	});
-
-	dateInput('start-date');
+	dateInput('start_date');
 
 	$("#account_number").focusout(function(){
 		var curr = '{{$model->account->account_number}}';
@@ -48,13 +41,21 @@ $(document).ready(function() {
 	});
 
 	$('#name').blur(function() {
-		if($('#account-id').val() == '' || $('#account-id').val() == null) {
-			$('#delivery-name').val($('#name').val());
+		if($('#account_id').val() == '' || $('#account_id').val() == null) {
+			$('#delivery_name').val($('#name').val());
 		}
 	});
+
+	cleave();
 });
 
 function storeAccount(){
+    var radio = $('#account_basic input:radio[name="email_is_primary[]"]');
+    var primaryIndex = radio.index(radio.filter(':checked'));
+    radio.filter(':checked').val(primaryIndex);
+    radio = $('#account_basic input:radio[name="phone_is_primary[]"]');
+    primaryIndex = radio.index(radio.filter(':checked'));
+    radio.filter(':checked').val(primaryIndex);
 	var data = $('#account_basic, #account_advanced').serialize();
 
 	$.ajax({
@@ -62,8 +63,8 @@ function storeAccount(){
 		'type': 'POST',
 		'data': data,
 		'success': function() {
-			var isEdit = $('#account-id').val() == '' ? false : true;
-			var accountName = $('#name').val();
+			var isEdit = $('#account_id').val() == '' ? false : true;
+			var accountName = $('#account_name').val();
 			toastr.clear();
 			if (isEdit) {
 				toastr.success(accountName + ' was successfully updated!', 'Success');

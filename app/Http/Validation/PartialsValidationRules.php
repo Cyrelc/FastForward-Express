@@ -8,7 +8,7 @@ class PartialsValidationRules {
                 $prefix . '-street' => 'required',
                 $prefix . '-city' => 'required',
                 //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
-                $prefix . '-zip-postal' => ['required', 'regex:/^((\d{5}-\d{4})|(\d{5})|([AaBbCcEeGgHhJjKkLlMmNnPpRrSsTtVvXxYy]\d[A-Za-z]\s?\d[A-Za-z]\d))$/'],
+                $prefix . '-zip-postal' => ['required', 'regex:/^[ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ][ -]?[0-9][ABCEGHJKLMNPRSTVWXYZ][0-9]/'],
                 $prefix . '-state-province' => 'required',
                 $prefix . '-country' => 'required',
             ],

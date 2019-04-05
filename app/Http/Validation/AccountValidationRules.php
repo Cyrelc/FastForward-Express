@@ -2,39 +2,27 @@
 namespace App\Http\Validation;
 
 class AccountValidationRules {
-    public function GetValidationRules($validateAccountNumberUnique, $accountId, $accountNumber, $isSubLocation, $giveDiscount, $customField) {
+    public function GetValidationRules($req) {
         $rules = [
-            'account-number' => 'required|unique:accounts,account_number,' . $accountId . ',account_id',
-            'name' => 'required',
+            'account_number' => 'required|unique:accounts,account_number,' . $req->account_id . ',account_id',
+            'account_name' => 'required',
+            'invoice_interval' => 'required|exists:selections,value',
+            'parent-account-id' => 'exists:accounts,account_id',
+            'discount' => 'nullable|numeric|between:0,100',
+            'start_date' => 'required|date',
+            'min_invoice_amount' => 'nullable|numeric',
+            'fuel_surcharge' => 'nullable|numeric',
         ];
 
         $messages = [
-            'account-number.required' => 'Account Number is required',
-            'account-number.unique' => 'Account Number must be unique',
-            'name.required' => 'Company Name is required.',
+            'account_number.required' => 'Account Number is required',
+            'account_number.unique' => 'Account Number must be unique',
+            'account_name.required' => 'Company Name is required.',
+            'discount.numeric' => 'Discount must be a number',
+            'discount.between' => 'Discount value is invalid'
         ];
 
-        if ($isSubLocation) {
-            $rules = array_merge($rules, ['parent-account-id' => 'required']);
-            $messages = array_merge($messages, ['parent-account-id.required' => 'A Parent Account is required.']);
-        }
-
-        if ($giveDiscount) {
-            $rules = array_merge($rules, ['discount' => 'required|numeric']);
-            $messages = array_merge($messages, [
-                'discount.required' => 'A Discount value is required.',
-                'discount.numeric' => 'Discount must be a number.'
-            ]);
-        }
-
-        if ($customField) {
-            $rules = array_merge($rules, ['custom-tracker' => 'required']);
-            $messages = array_merge($messages, ['custom-tracker.required' => 'Tracking Field Name is required.']);
-        }
-
-        return [
-            'rules' => $rules,
-            'messages' => $messages
-        ];
+        return ['rules' => $rules, 'messages' => $messages];
     }
 }
+

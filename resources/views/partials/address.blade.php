@@ -3,7 +3,7 @@
     <div class='col-md-12 bottom15'>
         <div class='input-group'>
             <span class='input-group-addon'>Address Search/Autocomplete: </span>
-            <input id='{{$prefix}}_location_search' type='text' data-div='{{$prefix}}' class='form-control' placeholder="Enter an Address" onFocus='geolocate("{{$prefix}}")'></input>
+            <input id='{{$prefix}}_location_search' type='text' data-div='{{$prefix}}' class='form-control' placeholder="Enter an Address" onFocus='geolocate("{{$prefix}}")' />
         </div>
     </div>
 
@@ -17,7 +17,7 @@
 
     <!--Steet-->
     <div class="col-lg-6">
-        <input type='text' id="{{$prefix}}-street" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street' placeholder="Address Line 1"  value="{{isset($address) ? $address->street : ''}}"/>
+        <input type='text' id="{{$prefix}}-street" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-street' placeholder="Address Line 1"  value="{{isset($address) ? $address->street : ''}}" />
     </div>
 
     <!--Street 2-->
@@ -45,3 +45,4 @@
         <input type='text' id="{{$prefix}}-country" {{$enabled ? '' : 'disabled'}} class='form-control' name='{{$prefix}}-country' placeholder="Country" value="{{isset($address) ? $address->country : ''}}" />
     </div>
 </div>
+

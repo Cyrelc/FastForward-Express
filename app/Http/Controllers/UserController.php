@@ -54,7 +54,13 @@ class UserController extends Controller {
         return view('accounts.editUser', compact('model'));
     }
 
-    public function storeAccountUser(Request $req) {
+    public function setPrimaryAccountUser($contact_id) {
+        $userRepo = new Repos\UserRepo();
+        $userRepo->setPrimaryAccountUser($contact_id);
+        return;
+    }
+
+    public function storeAccountUser(Request $req, $isPrimary = false) {
         DB::beginTransaction();
         try {
             $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
@@ -98,7 +104,7 @@ class UserController extends Controller {
                 }
             } else {
                 $userId = $userRepo->Insert($user)->user_id;
-                $accountUser = $userCollector->CollectAccountUser($req->account_id, $contactId, false, $userId);
+                $accountUser = $userCollector->CollectAccountUser($req->account_id, $contactId, $isPrimary, $userId);
                 $accountUserId = $userRepo->InsertAccountUser($accountUser)->account_user_id;
             }
             //End User

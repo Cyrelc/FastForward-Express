@@ -28,9 +28,7 @@
             </td>
             @endif
             <td><input type='text' class='form-control email_address' name='email[]' placeholder='Email Address' value='{{$email->email}}' /></td>
-            <td>
-                <input type='radio' class='form-control' name='email_is_primary[]' {{$email->is_primary ? 'checked' : ''}} />
-            </td>
+            <td><input type='radio' class='form-control' name='email_is_primary[]' {{$email->is_primary ? 'checked' : ''}} value='off'/></td>
         </tr>
         @endforeach
     </tbody>
