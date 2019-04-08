@@ -41,10 +41,10 @@ class BillController extends Controller {
         return view('bills.bill', compact('model'));
     }
 
-    public function edit(Request $req, $id) {
+    public function edit(Request $req, $bill_id) {
         $billRepo = new Repos\BillRepo();
         $factory = new Bill\BillModelFactory();
-        $model = $factory->GetEditModel($id, $req);
+        $model = $factory->GetEditModel($req, $bill_id);
         return view('bills.bill', compact('model'));
     }
 
