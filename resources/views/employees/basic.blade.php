@@ -42,16 +42,18 @@
     </div>
 </div>
 <!--Emergency Contacts-->
-<div class='col-lg-12'>
-    <div class='panel panel-default'>
-        <div class='panel panel-heading'>
-            <h3 class="panel-title">Emergency Contacts</h3>
-        </div>
-        <div class='panel-body'>
-            <div class='col-lg-12'>
-                @include('employees.emergencyContacts')
+@if(isset($model->employee->employee_id))
+    <div class='col-lg-12'>
+        <div class='panel panel-default'>
+            <div class='panel panel-heading'>
+                <h3 class="panel-title">Emergency Contacts</h3>
+            </div>
+            <div class='panel-body'>
+                <div class='col-lg-12'>
+                    @include('employees.emergencyContacts')
+                </div>
             </div>
         </div>
     </div>
-</div>
+@endif
 

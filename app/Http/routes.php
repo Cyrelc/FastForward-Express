@@ -68,6 +68,7 @@ Route::group(
             Route::get('/employees/editEmergencyContact/{id}', 'EmployeeController@editEmergencyContact');
             Route::post('/employees/editEmergencyContact', 'EmployeeController@storeEmergencyContact');
             Route::post('/employees/deleteEmergencyContact/{id}', 'EmployeeController@deleteEmergencyContact');
+            Route::get('/employees/createEmergencyContact/{id}', 'EmployeeController@createEmergencyContact');
 
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');

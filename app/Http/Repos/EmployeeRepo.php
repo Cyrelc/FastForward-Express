@@ -112,9 +112,10 @@ class EmployeeRepo {
         return $emergency_contacts->get();
     }
 
-    public function AddEmergencyContact($employeeId, $contactId) {
-        $employee = $this->GetById($employeeId);
-        $employee->contacts()->attach($contactId);
+    public function AddEmergencyContact($emergency_contact) {
+        $new = new EmployeeEmergencyContact;
+        $new = $new->create($emergency_contact);
+        return $new;
     }
 
     public function ChangePrimary($employeeId, $contactId) {

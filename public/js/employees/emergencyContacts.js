@@ -2,7 +2,7 @@ $(document).ready(function() {
     $('#emergency_contacts_table').DataTable({
         ajax: {'url':'/employees/getEmergencyContacts/' + $('#employee_id').val(), 'dataSrc':''},
         dom: 'f<"columnVis"B>lrtip',
-        buttons: [{extend: 'print', exportOptions: {columns: ':visible'}}, 'colvis', {text: 'Add Emergency Contact', action: addContact()}],
+        buttons: [{extend: 'print', exportOptions: {columns: ':visible'}}, 'colvis', {text: 'Add Emergency Contact', action: function(){addContact()}}],
         pageLength: 50,
         order: [1, 'asc'],
         createdRow: function (row, data, index) {
@@ -22,7 +22,18 @@ $(document).ready(function() {
 });
 
 function addContact() {
-    console.log('attempted to add new user');
+    var employee_id = $('#employee_id').val();
+    $.ajax({
+        type: 'GET',
+        url: '/employees/createEmergencyContact/' + employee_id,
+        'success': function(results) {
+            $('#edit_contact_modal').html(results);
+            $('select').selectpicker();
+            cleave();
+            $('#edit_contact_modal').modal('toggle');
+        },
+        'error': function(response){handleErrorResponse(response)}
+    })
 }
 
 function editContact(contactId) {

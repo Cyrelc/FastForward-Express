@@ -54,12 +54,12 @@ class AccountController extends Controller {
             $validationRules = [];
             $validationMessages = [];
 
-            if(isset($req->account_id)) {
-                //Can I edit this?
-                $isEdit = true;
-            } else {
+            if($req->account_id == '') {
                 //Can I create this?
                 $isEdit = false;
+            } else {
+                //Can I edit this?
+                $isEdit = true;
             }
 
             $acctRules = $accountsRules->GetValidationRules($req);
