@@ -98,7 +98,7 @@
 		    return $model;
 		}
 
-		public function GetEditModel($id, $req) {
+		public function GetEditModel($req, $bill_id) {
 			$model = new BillFormModel();
 
 			$acctRepo = new Repos\AccountRepo();
@@ -112,6 +112,7 @@
 			$packageRepo = new Repos\PackageRepo();
 			$paymentRepo = new Repos\PaymentRepo();
 			$chargebackRepo = new Repos\ChargebackRepo();
+			$activityLogRepo = new Repos\ActivityLogRepo();
 
 		    $model->employees = $employeeRepo->ListAllDrivers();
 		    foreach ($model->employees as $employee) {
@@ -119,7 +120,7 @@
 		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
 		    }
 
-			$model->bill = $billRepo->GetById($id);
+			$model->bill = $billRepo->GetById($bill_id);
 
             $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
             $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
@@ -141,6 +142,10 @@
 
 			$model->accounts = $acctRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();
+
+			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
+			foreach($model->activity_log as $key => $log)
+				$model->activity_log[$key]->properties = json_decode($log->properties);
 
 			return $model;
 		}

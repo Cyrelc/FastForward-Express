@@ -1,6 +1,6 @@
 $(document).ready(function() {
     $('#users_table').DataTable({
-        ajax: {'url':'/users/getAccountUsers/' + $('#account-id').val(), 'dataSrc':''},
+        ajax: {'url':'/users/getAccountUsers/' + $('#account_id').val(), 'dataSrc':''},
         dom: 'f<"columnVis"B>lrtip',
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}}, 'colvis', {text: 'Add User', action: function(){addUser()}}],
         pageLength: 50,

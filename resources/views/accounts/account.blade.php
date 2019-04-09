@@ -31,7 +31,9 @@
             <li><a data-toggle='tab' href='#commissions'><h4>Commissions</h4></a></li>
             <li><a data-toggle='tab' href='#payments'><h4>Payments</h4></a></li>
             <li><a data-toggle='tab' href='#users'><h4>Users</h4></a></li>
-            <li><a disabled data-toggle='tab' href='#invoice_layouts'><h4>Auditing</h4></a></li>
+        @endif
+        @if(isset($model->activity_log))
+            <li><a data-toggle='tab' href='#activity_log'><h4>Activity Log</h4></a></li>
         @endif
     </ul>
     <div class='tab-content'>
@@ -56,8 +58,10 @@
             <div id='users' class='tab-pane fade well'>
                 @include('accounts.users')
             </div>
-            <div id='auditing'  class='tab-pane fade well'>
-                @include('accounts.auditing');
+        @endif
+        @if(isset($model->activity_log))
+            <div id='activity_log' class='tab-pane fade well'>
+                @include('partials.activity_log')
             </div>
         @endif
     </div>

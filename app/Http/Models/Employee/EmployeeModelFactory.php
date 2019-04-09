@@ -78,6 +78,7 @@ class EmployeeModelFactory
     }
 
     public function GetEditModel($request, $id) {
+        $activityLogRepo = new Repos\ActivityLogRepo();
         $addressRepo = new Repos\AddressRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $phoneNumberRepo = new Repos\PhoneNumberRepo();
@@ -102,6 +103,10 @@ class EmployeeModelFactory
             $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
             $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
         }
+
+        $model->activity_log = $activityLogRepo->GetEmployeeActivityLog($model->employee->employee_id);
+        foreach($model->activity_log as $key => $log)
+            $model->activity_log[$key]->properties = json_decode($log->properties);
 
         return $model;
     }

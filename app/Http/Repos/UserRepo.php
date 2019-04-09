@@ -27,6 +27,12 @@ class UserRepo
         $old->save();
     }
 
+    public function CountAccountUsers($account_id) {
+        $count = \App\AccountUser::where('account_id', $account_id)->count();
+
+        return $count;
+    }
+
     public function GetAccountUserByContactId($contact_id) {
         $accountUser = \App\AccountUser::where('contact_id', $contact_id);
 
@@ -38,6 +44,18 @@ class UserRepo
         $user = \App\User::where('user_id', $employee->user_id)->first();
 
         return $user;
+    }
+
+    public function GetAccountUserIds ($account_id) {
+        $query = \App\AccountUser::where('account_id', $account_id)
+            ->leftJoin('email_addresses', 'email_addresses.contact_id', '=', 'account_users.contact_id')
+            ->leftJoin('phone_numbers', 'phone_numbers.contact_id', '=', 'account_users.contact_id');
+        $accountUsers['contact_ids'] = $query->pluck('account_users.contact_id');
+        $accountUsers['user_ids'] = $query->pluck('user_id');
+        $accountUsers['email_ids'] = $query->pluck('email_address_id');
+        $accountUsers['phone_ids'] = $query->pluck('phone_number_id');
+
+        return $accountUsers;
     }
 
     public function Insert($user) {
@@ -61,6 +79,21 @@ class UserRepo
         $new = $new->create($account_user);
 
         return $new;
+    }
+
+    public function SetPrimaryAccountUser($contact_id) {
+        $newPrimary = \App\AccountUser::where($contact_id, 'contact_id')->first();
+        $oldPrimary = \App\AccountUser::where('account_id', $newPrimary->account_id)
+            ->where('is_primary', true)
+            ->first();
+        if(isset($oldPrimary->contact_id)) {
+            $oldPrimary->is_primary = false;
+            $oldPrimary->save();
+        }
+        $newPrimary->is_primary = true;
+        $newPrimary->save();
+
+        return $newPrimary;
     }
 
     public function Update($user) {

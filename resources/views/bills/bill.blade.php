@@ -52,6 +52,9 @@
     <li class='active'><a data-toggle='tab' href='#basic' class='btn btn-basic'><i class='fas fa-map-pin fa-2x'></i><br/>Pickup/Delivery Info</a></li>
     <li><a data-toggle='tab' href='#dispatch' class='btn btn-basic'><i class='fas fa-truck fa-2x'></i><br/>Dispatch</a></li>
     <li><a data-toggle='tab' href='#payment' class='btn btn-basic'><i class='far fa-credit-card fa-2x'></i><br/>Payment</a></li>
+    @if(isset($model->activity_log))
+        <li><a data-toggle='tab' href='#activity_log' class='btn btn-basic'><i class='fas fa-book-open fa-2x'></i><br/>Activity Log</a></li>
+    @endif
 </ul>
 
 <form id='bill-form'>
@@ -77,6 +80,11 @@
         <div id='payment' class='tab-pane fade well'>
             @include('bills.payment')
         </div>
+        @if(isset($model->activity_log))
+            <div id='activity_log' class='tab-pane fade well'>
+                @include('partials.activity_log')
+            </div>
+        @endif
     </div>
 </form>
 

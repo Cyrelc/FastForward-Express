@@ -36,6 +36,9 @@
 			<li id="driver_form_tab" name="driver_form_button" style="{{isset($model->driver->driver_id) ? '' : 'display:none'}}"><a data-toggle="tab" href="#driver"><h4>Driver</h4></a></li>
 			<li id="sales_form_tab" class="hidden"><a data-toggle="tab" href="#sales"></h4>Sales</h4></a></li>
 			<li id='admin_form_tab'><a data-toggle='tab' href='#admin'><h4>Administration</h4></a></li>
+			@if(isset($model->activity_log))
+				<li><a data-toggle='tab' href='#activity_log'><h4>Activity Log</h4></a></li>
+			@endif
 		</ul>
 	</div>
 	<div class="tab-content">
@@ -54,6 +57,11 @@
 				@include('employees.admin');
 			</form>
 		</div>
+        @if(isset($model->activity_log))
+            <div id='activity_log' class='tab-pane fade well'>
+                @include('partials.activity_log')
+            </div>
+        @endif
 	</div>
 	<div class='text-center'>
 		<button type='button' class='btn btn-primary' onclick='storeEmployee(this)'>Submit</button>
