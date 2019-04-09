@@ -30,6 +30,14 @@ class EmployeeController extends Controller {
         return view('employees.employee', compact('model'));
     }
 
+    public function createEmergencyContact(Request $req, $employee_id) {
+        $modelFactory = new \App\Http\Models\Partials\ContactModelFactory();
+        $model = $modelFactory->GetCreateModel();
+        $model->employee_id = $employee_id;
+        $model->emails->types = null;
+        return view('employees.editEmergencyContact', compact('model'));
+    }
+
     public function edit(Request $req, $id) {
         $factory = new Employee\EmployeeModelFactory();
         $model = $factory->GetEditModel($req, $id);
@@ -59,8 +67,13 @@ class EmployeeController extends Controller {
             $contactId = $req->contact_id;
             $contactRepo = new Repos\ContactRepo();
             $contact = $contactCollector->GetContact($req);
-            if($contactId == '')
+            if($contactId == '') {
                 $contactId = $contactRepo->Insert($contact)->contact_id;
+                $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
+                $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $contactId);
+                $employeeRepo = new Repos\EmployeeRepo();
+                $employeeRepo->AddEmergencyContact($employeeEmergencyContact);
+            }
             else
                 $contactRepo->Update($contact);
             //End Contact

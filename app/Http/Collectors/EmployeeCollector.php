@@ -17,20 +17,12 @@ class EmployeeCollector {
             'active' => true
         ];
     }
-
-    public function Remerge($req, $employee) {
-        if (Utils::HasValue($req->old('startdate')))
-            $employee->start_date = strtotime($req->old('startdate'));
-
-        if (Utils::HasValue($req->old('SIN')))
-            $employee->sin = $req->old('SIN');
-
-        if (Utils::HasValue($req->old('DOB')))
-            $employee->dob = strtotime($req->old('DOB'));
-
-        if (Utils::HasValue($req->old('employee_number')))
-            $employee->employee_number = $req->old('employee_number');
-
-        return $employee;
+    public function CollectEmergencyContact($req, $contact_id, $is_primary = false) {
+        return [
+            'employee_id' => $req->employee_id,
+            'contact_id' => $contact_id,
+            'is_primary' => $is_primary
+        ];
     }
 }
+

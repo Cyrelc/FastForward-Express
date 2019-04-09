@@ -8,6 +8,7 @@
         </div>
         <div class='modal-body clearfix'>
             <form id='emergency_contact_form'>
+                <input type='hidden' name='employee_id' value='{{$model->employee_id}}' />
                 @include('partials.contact', ['contact' => $model, 'show_address' => true])
             </form>
         </div>

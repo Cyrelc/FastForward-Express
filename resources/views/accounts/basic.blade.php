@@ -55,9 +55,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading" style="height: 39px;">
                     <h3 class="panel-title">
-                        <label style="font-weight: normal;">
-                            <input type='checkbox' id='use_billing_address' name='use_billing_address' {{isset($model->billingAddress->address_id) ? 'checked' : ''}} onclick='switchDiv(this, "billing-div")'/> <p>Billing Address</p>
-                        </label>
+                        <input type='checkbox' id='use_billing_address' name='use_billing_address' {{isset($model->billingAddress->address_id) ? 'checked' : ''}} onclick='switchDiv(this, "billing-div")' />&nbspBilling Address
                     </h3>
                 </div>
                 <div class="panel-body">
