@@ -94,7 +94,7 @@ class AccountController extends Controller {
             //END delivery address
             //BEGIN billing address
             $billing_id = $req->input('billing-id');
-            if ($req->input('billing-address') == 'on') {
+            if ($req->use_billing_address == 'on') {
                 $billing = $addrCollector->CollectForAccount($req, 'billing');
 
                 if ($billing_id == null || $billing_id == '')

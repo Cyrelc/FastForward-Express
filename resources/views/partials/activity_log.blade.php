@@ -40,15 +40,30 @@
                 <td>{{$line->user_name}}</td>
                 <td>{{$line->description}}</td>
                 <td>
-                    @foreach($line->properties->attributes as $key => $attribute)
-                        @if($line->description != 'created' || $attribute != '')
-                            <label>{{$key}}</label>: {{$line->properties->attributes->$key}}
-                        @endif
-                        @if(isset($line->properties->old)) 
-                        {{-- && $line->properties->old->$key != '') --}}
-                            <label>was</label> {{$line->properties->old->$key}}
-                        @endif
-                    @endforeach
+                    <table class='table-condensed table-bordered' style='width: 100%'>
+                        <thead>
+                            <tr>
+                                <td>Field</td>
+                                <td>Old</td>
+                                <td>New</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($line->properties->attributes as $key => $attribute)
+                                @if($line->description != 'created' || $attribute != '')
+                                    <tr>
+                                        <td><label>{{$key}}</label></td>
+                                        @if(isset($line->properties->old))
+                                        <td>{{$line->properties->old->$key}}</td>
+                                        @else
+                                        <td>''</td>
+                                        @endif
+                                        <td>{{$attribute}}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
                 </td>
             </tr>
         @endforeach

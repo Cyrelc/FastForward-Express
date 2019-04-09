@@ -67,6 +67,7 @@
             $model = new AccountFormModel();
 
             $acctRepo = new Repos\AccountRepo();
+            $activityLogRepo = new Repos\ActivityLogRepo();
             $employeesRepo = new Repos\EmployeeRepo();
             $addRepo = new Repos\AddressRepo();
             $selectionsRepo = new Repos\SelectionsRepo();
@@ -101,6 +102,10 @@
             $model->accounts = $acctRepo->ListParents();
             $model->employees = $employeesRepo->ListAll();
             $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($id);
+
+            $model->activity_log = $activityLogRepo->GetAccountActivityLog($model->account->account_id);
+			foreach($model->activity_log as $key => $log)
+				$model->activity_log[$key]->properties = json_decode($log->properties);
             
             $model->prev_id = $acctRepo->GetPrevActiveById($id);
             $model->next_id = $acctRepo->GetNextActiveById($id);
