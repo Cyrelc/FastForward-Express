@@ -59,6 +59,37 @@ class ActivityLogRepo {
             );
         return $activity->get();
     }
+
+    public function GetEmployeeActivityLog($employee_id) {
+        $driverRepo = new DriverRepo();
+        $employeeRepo = new EmployeeRepo();
+        $employee = $employeeRepo->GetById($employee_id);
+        $relevantIds = $employeeRepo->GetEmployeeRelevantIds($employee_id);
+        $driver = $driverRepo->GetByEmployeeId($employee_id);
+
+        $activity = ActivityLog::where([['subject_type', 'App\Employee'], ['subject_id', $employee_id]])
+            ->orWhere(function($contacts) use ($relevantIds) {
+                $contacts->where('subject_type', 'App\Contact');
+                $contacts->whereIn('subject_id', $relevantIds['contact_ids']);
+            })
+            ->orWhere(function($addresses) use ($relevantIds) {
+                $addresses->where('subject_type', 'App\Address');
+                $addresses->whereIn('subject_id', $relevantIds['address_ids']);
+            })
+            ->orWhere(function($emails) use ($relevantIds) {
+                $emails->where('subject_type', 'App\Email');
+                $emails->whereIn('subject_id', $relevantIds['email_ids']);
+            })
+            ->orWhere(function($phones) use ($relevantIds) {
+                $phones->where('subject_type', 'App\Phone');
+                $phones->whereIn('subject_id', $relevantIds['phone_ids']);
+            });
+
+        if(isset($driver->driver_id))
+            $activity->orWhere([['subject_type', 'App\Driver'], ['subject_id', $driver->driver_id]]);
+
+        return $activity->get();
+    }
 }
 
 ?>

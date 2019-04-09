@@ -51,6 +51,21 @@ class EmployeeRepo {
         return $employee;
     }
 
+    public function GetEmployeeRelevantIds($employee_id) {
+        $relevantIds['contact_ids'] = EmployeeEmergencyContact::where('employee_id', $employee_id)
+            ->pluck('contact_id')
+            ->toArray();
+        array_push($relevantIds['contact_ids'], $this->GetById($employee_id)->contact_id);
+        $relevantIds['email_ids'] = \App\EmailAddress::whereIn('contact_id', $relevantIds['contact_ids'])
+            ->pluck('email_address_id')->toArray();
+        $relevantIds['phone_ids'] = \App\PhoneNumber::whereIn('contact_id', $relevantIds['contact_ids'])
+            ->pluck('phone_number_id')->toArray();
+        $relevantIds['address_ids'] = \App\Address::whereIn('contact_id', $relevantIds)
+            ->pluck('address_id')->toArray();
+
+        return $relevantIds;
+    }
+
     public function Insert($employee) {
         $new = new Employee;
         $new = $new->create($employee);
