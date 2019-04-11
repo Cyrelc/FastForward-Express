@@ -77,7 +77,7 @@
         @if(isset($model->account->account_id))
             <h4>Navigation<h4>
             <a class='btn btn-info bottom15 col-md-10' href='/invoices/layouts/{{$model->account->account_id}}'>Go To Invoice Layout</a>
-            <a disabled class='btn btn-basic bottom15 col-md-10' href='' >View Bills</a>
+            <a class='btn btn-basic bottom15 col-md-10' href='/bills?filter[charge_account_id]={{$model->account->account_id}}' >View Bills</a>
             <a disabled class='btn btn-basic bottom15 col-md-10' href='' >View Invoices</a>
         @endif
     </div>

@@ -1,12 +1,14 @@
 <?php
 namespace App\Http\Repos;
 
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\Filter;
+
 use App\Bill;
 use DB;
 
 class BillRepo {
-
-	public function ListAll($filter) {
+	public function ListAll($req) {
         $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->leftJoin('drivers as pickup_driver', 'pickup_driver.driver_id', '=', 'bills.pickup_driver_id')
                 ->leftJoin('drivers as delivery_driver', 'delivery_driver.driver_id', '=', 'bills.delivery_driver_id')
@@ -39,19 +41,23 @@ class BillRepo {
                         DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
                         DB::raw('case when charge_account_id is not null then "account" when payment_id is not null then "prepaid" when chargeback_id is not null then "driver" end as charge_type'));
 
-        if($filter == 'dispatch')
-            $bills->where('pickup_driver_id', null)
-                    ->orWhere('delivery_driver_id', null)
-                    ->orWhere('pickup_driver_commission', null)
-                    ->orWhere('delivery_driver_commission', null)
-                    ->orWhere('delivery_type', null)
-                    ->orWhere('time_dispatched', null);
-        elseif($filter == 'billing')
-            $bills->where('bill_number', null)
-                ->orWhere('amount', null)
-                ->orWhere('charge_account_id', null);
+        // if($filter == 'dispatch')
+        //     $bills->where('pickup_driver_id', null)
+        //             ->orWhere('delivery_driver_id', null)
+        //             ->orWhere('pickup_driver_commission', null)
+        //             ->orWhere('delivery_driver_commission', null)
+        //             ->orWhere('delivery_type', null)
+        //             ->orWhere('time_dispatched', null);
+        // elseif($filter == 'billing')
+        //     $bills->where('bill_number', null)
+        //         ->orWhere('amount', null)
+        //         ->orWhere('charge_account_id', null);
 
-        return $bills->get();
+            $filteredBills = QueryBuilder::for($bills)
+                ->allowedFilters(Filter::exact('charge_account_id'),
+                    'invoice_id');
+
+            return $filteredBills->get();
 	}
 
     public function GetById($id) {

@@ -31,7 +31,7 @@ class BillController extends Controller {
 
     public function buildTable(Request $req) {
         $billRepo = new Repos\BillRepo();
-        return $billRepo->ListAll($req->filter);
+        return $billRepo->ListAll($req);
     }
 
     public function create(Request $req) {
