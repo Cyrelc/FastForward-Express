@@ -1,6 +1,9 @@
 <?php
 namespace App\Http\Repos;
 
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\Filter;
+
 use DB;
 use App\Account;
 use App\Bill;
@@ -32,7 +35,10 @@ class InvoiceRepo {
                 DB::raw('format(total_cost, 2) as total_cost'),
                 DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
-        return $invoices->get();
+        $filteredInvoices = QueryBuilder::for($invoices)
+            ->allowedFilters(Filter::exact('account_id', 'invoices.account_id'));
+
+        return $filteredInvoices->get();
     }
 
     public function CalculateAccountBalanceOwing($account_id) {

@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
     var table = $('#table').DataTable({
-        ajax: {url:'/invoices/buildTable', dataSrc:''},
+        ajax: {url:'/invoices/buildTable' + window.location.search, dataSrc:''},
         dom: 'f<"columnVis"B>lrtip',
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         columnDefs: [{'sWidth':'20px', 'aTargets':[1]}],
