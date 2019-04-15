@@ -1,6 +1,7 @@
 $(document).ready(function() {
+    var temp = window.location.search;
     var table = $('#table').DataTable({
-        ajax: {url:'/bills/buildTable', dataSrc: '', data: function(d) { d.filter = $('#bills_advanced_filter').val()}},
+        ajax: {url:'/bills/buildTable' + window.location.search, dataSrc: ''},
         dom: 'f<"columnVis"B>lrtip',
         buttons: [{extend: 'print', exportOptions: {columns: ':visible'}},'colvis'],
         ColVis: {exclude: [0]},

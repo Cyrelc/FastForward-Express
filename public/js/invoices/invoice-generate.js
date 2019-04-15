@@ -5,6 +5,8 @@ $(document).ready(function() {
 function getAccountsToInvoice(){
 	var start_date = $("#start_date").val();
 	var end_date = $('#end_date').val();
+	var temp_date = new Date($('#start_date').data('DateTimePicker').date());
+	var legacy_date = temp_date.getFullYear() + '-' + temp_date.getMonth() + '-' + temp_date.getDate();
 	var invoice_intervals = $("#invoice_intervals").val();
 	var _token = $("input[name='_token").val();
 
@@ -36,15 +38,15 @@ function getAccountsToInvoice(){
 					row.append('<td>' + cur.invoice_interval + '</td>');
 					row.append("<td>" + cur.bill_count + "</td>");
 					if(cur.incomplete_bill_count > 0)
-						row.append('<td><font color="red">' + cur.incomplete_bill_count + '</font></td>');
+						row.append('<td><font color="red"><a href="/bills?filter[charge_account_id]=' + cur.account_id + '&filter[complete]=false&filter[skip_invoicing]=0">' + cur.incomplete_bill_count + '</a></font></td>');
 					else
 						row.append('<td></td>');
 					if(cur.skipped_bill_count > 0)
-						row.append('<td><font color="orange">' + cur.skipped_bill_count + '</font></td>');
+						row.append('<td><font color="orange"><a href="/bills?filter[charge_account_id]=' + cur.account_id + '&filter[skip_invoicing]=true">' + cur.skipped_bill_count + '</a></font></td>');
 					else
 						row.append('<td></td>');
 					if(cur.legacy_bill_count > 0)
-						row.append('<td><font color="red">' + cur.legacy_bill_count + '</font></td>');
+						row.append('<td><font color="red"><a href="/bills?filter[charge_account_id]=' + cur.account_id + '&filter[skip_invoicing]=0&filter[invoiced]=false&filter[date_between]=,' + legacy_date + '">'  + cur.legacy_bill_count + '</a></font></td>');
 					else
 						row.append('<td></td>');
 
