@@ -3,6 +3,12 @@ namespace App\Http\Repos;
 
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\Filter;
+use App\Http\Filters\DateBetween;
+use App\Http\Filters\BillFilters\Complete;
+use App\Http\Filters\BillFilters\ManifestId;
+use App\Http\Filters\BillFilters\Invoiced;
+use App\Http\Filters\BillFilters\Dispatch;
+use App\Http\Filters\BillFilters\Billing;
 
 use App\Bill;
 use DB;
@@ -41,21 +47,16 @@ class BillRepo {
                         DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
                         DB::raw('case when charge_account_id is not null then "account" when payment_id is not null then "prepaid" when chargeback_id is not null then "driver" end as charge_type'));
 
-        // if($filter == 'dispatch')
-        //     $bills->where('pickup_driver_id', null)
-        //             ->orWhere('delivery_driver_id', null)
-        //             ->orWhere('pickup_driver_commission', null)
-        //             ->orWhere('delivery_driver_commission', null)
-        //             ->orWhere('delivery_type', null)
-        //             ->orWhere('time_dispatched', null);
-        // elseif($filter == 'billing')
-        //     $bills->where('bill_number', null)
-        //         ->orWhere('amount', null)
-        //         ->orWhere('charge_account_id', null);
-
             $filteredBills = QueryBuilder::for($bills)
                 ->allowedFilters(Filter::exact('charge_account_id'),
-                    'invoice_id');
+                    Filter::exact('invoice_id'),
+                    Filter::custom('date_between', DateBetween::class, 'time_pickup_scheduled'),
+                    Filter::custom('complete', Complete::class),
+                    Filter::custom('manifest_id', ManifestId::class),
+                    'skip_invoicing',
+                    Filter::custom('invoiced', Invoiced::class),
+                    Filter::custom('billing', Billing::class),
+                    Filter::custom('dispatch', Dispatch::class));
 
             return $filteredBills->get();
 	}
