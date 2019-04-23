@@ -42,7 +42,7 @@
     </tbody>
 </table>
 
-<div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Summary</h3></div>
+<div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Driver Statement</h3></div>
 <table id='manifest_overview'>
     <thead>
         <tr>

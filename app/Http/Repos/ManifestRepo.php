@@ -5,6 +5,7 @@ use DB;
 use App\Bill;
 use App\Chargeback;
 use App\Manifest;
+use App\DriverChargeback;
 
 class ManifestRepo {
     public function Create($driver_ids, $start_date, $end_date) {
@@ -19,6 +20,34 @@ class ManifestRepo {
         }
 
         return $manifests;
+    }
+
+    public function Delete($manifest_id) {
+        $pickupBills = Bill::where('pickup_manifest_id', $manifest_id)->get();
+        $deliveryBills = Bill::where('delivery_manifest_id', $manifest_id)->get();
+        $chargebacks = DriverChargeback::where('manifest_id', $manifest_id)->get();
+        $manifest = Manifest::where('manifest_id', $manifest_id);
+
+        foreach($pickupBills as $bill) {
+            $bill->pickup_manifest_id = null;
+
+            $bill->save();
+        }
+        foreach($deliveryBills as $bill) {
+            $bill->delivery_manifest_id = null;
+
+            $bill->save();
+        }
+        foreach($chargebacks as $chargeback) {
+            if($chargeback->continuous == 0) {
+                $temp = Chargeback::where('chargeback_id', $chargeback->chargeback_id)->first();
+                $temp->count_remaining++;
+                $temp->save();
+                $chargeback->delete();
+            }
+        }
+        $manifest->delete();
+        return;
     }
 
     public function GenerateManifest($driver_id, $start_date, $end_date) {
