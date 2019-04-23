@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    $('#start_date, #end_date').datetimepicker({format: 'MMMM Do, YYYY h:mm A', useCurrent: false});
+    $('#start_date, #end_date').datetimepicker({format: 'MMMM Do, YYYY', useCurrent: false});
 });
 
 function getDriversToManifest() {
