@@ -46,8 +46,8 @@ class ManifestModelFactory{
             $start_date = (new \DateTime($start_date))->format('Y-m-d');
             $end_date = (new \DateTime($end_date))->format('Y-m-d');
         } else {
-            $start_date = date('U', strtotime('first day of previous month 00:00:00'));
-            $end_date = date('U', strtotime('last day of previous month 23:59:59'));
+            $start_date = date('U', strtotime('first day of previous month'));
+            $end_date = date('U', strtotime('last day of previous month'));
         }
 
         $model = new GenerateManifestViewModel();

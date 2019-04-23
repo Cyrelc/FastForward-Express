@@ -43,8 +43,8 @@ class ManifestRepo {
                 $temp = Chargeback::where('chargeback_id', $chargeback->chargeback_id)->first();
                 $temp->count_remaining++;
                 $temp->save();
-                $chargeback->delete();
             }
+            $chargeback->delete();
         }
         $manifest->delete();
         return;
