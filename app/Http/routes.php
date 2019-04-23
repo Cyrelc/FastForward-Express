@@ -92,6 +92,7 @@ Route::group(
             Route::get('/manifests/generate', 'ManifestController@generate');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
+            Route::get('/manifests/delete/{id}', 'ManifestController@delete');
             Route::get('/manifests', 'ManifestController@index');
             Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
             Route::get('/manifests/print/{id}', 'ManifestController@print');

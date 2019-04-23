@@ -9,9 +9,7 @@ $(document).ready(function() {
         stateSave: true,
         order: [2, 'desc'],
         createdRow: function (row, data, index) {
-//TODO - currently no function to delete a manifest. The commented out delete button will be correct, when this function exists            
-//            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" data-toggle="modal" data-target="#delete_modal" onclick="deleteManifest(' + data.manifest_id + ')" />';
-            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" onclick="deleteManifest(' + data.manifest_id + ')" />';
+            var deleteButton = '<a class="fa fa-trash-alt btn btn-danger btn-xs" title="Delete Manifest" data-toggle="modal" data-target="#delete_modal" onclick="deleteManifest(' + data.manifest_id + ')" />';
             $('.manifest_id', row).html('<a href="/manifests/view/' + data.manifest_id + '" >' + data.manifest_id + '</a>');
             $('td', row).eq(0).html('<input class="manifestSelect" type="checkbox" name="checkboxes[' + data.manifest_id + ']" />');
             $actiontd = $('td', row).eq(1);

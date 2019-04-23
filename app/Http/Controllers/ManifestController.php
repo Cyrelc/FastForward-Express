@@ -12,6 +12,26 @@ use App\Http\Models\Manifest;
 use Illuminate\Http\Request;
 
 class ManifestController extends Controller {
+    public function delete(Request $req, $manifest_id) {
+        $manifestRepo = new Repos\ManifestRepo();
+
+        DB::beginTransaction();
+        try{
+            $manifestRepo->delete($manifest_id);
+
+            DB::commit();
+
+            return redirect()->action('ManifestController@index');
+        } catch(exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
     public function download($filename) {
         $path = storage_path() . '/app/public/';
         return response()->download($path . $filename)->deleteFileAfterSend(true);
