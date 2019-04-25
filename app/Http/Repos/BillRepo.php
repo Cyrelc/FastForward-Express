@@ -209,17 +209,16 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $pickup_bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', DB::raw('format(amount, 2)'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'));
+            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', DB::raw('format(amount, 2) as amount'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Pickup" as type'), DB::raw('format(round((amount * pickup_driver_commission), 2), 2) as driver_income'), DB::raw('DATE_FORMAT(time_pickup_scheduled, "%Y-%m-%d") as day'));
 
         $bills = Bill::where('delivery_manifest_id', $manifest_id)
             ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', 'amount', 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'))
+            ->select('bill_id', 'bill_number', 'time_pickup_scheduled', DB::raw('format(amount, 2) as amount'), 'charge_account_id', 'accounts.name as account_name', 'delivery_type', DB::raw('"Delivery" as type'), DB::raw('format(round((amount * delivery_driver_commission), 2), 2) as driver_income'), DB::raw('DATE_FORMAT(time_pickup_scheduled, "%Y-%m-%d") as day'))
             ->union($pickup_bills)
             ->orderBy('time_pickup_scheduled')
-            ->orderBy('bill_id')
-            ->get();
+            ->orderBy('bill_id');
 
-        return $bills;
+        return $bills->get();
     }
 
     public function GetManifestOverviewById($manifest_id) {
