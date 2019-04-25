@@ -106,7 +106,14 @@
         </tr>
     </thead>
     <tbody>
+        <?php $temp = null; ?>
         @foreach($model->bills as $bill)
+            @if($temp != $bill->day)
+                <?php $temp = $bill->day; ?>
+                <tr>
+                    <td colspan='7' style='text-align:center'><b>{{$temp}}</b></td>
+                </tr>
+            @endif
             <tr>
                 <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
                 <td>{{$bill->time_pickup_scheduled}}</td>
