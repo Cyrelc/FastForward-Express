@@ -283,4 +283,32 @@ class BillRepo {
 
         return $amount;
     }
+
+    public function GetBillsOnBoard($driver_id) {
+        $billsOnBoard = Bill::where(function($driver) use ($driver_id) {
+            $driver->where('pickup_driver_id', $driver_id);
+            $driver->orWhere('delivery_driver_id', $driver_id);
+        })
+        ->where(function($time) {
+            $time->where('time_picked_up', null);
+            $time->orWhere('time_delivered', null);
+        })
+        ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
+        ->leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
+        ->select('bill_id',
+                'pickup_address.name as pickup_address_name',
+                'delivery_address.name as delivery_address_name',
+                'time_pickup_scheduled',
+                'delivery_type');
+
+        return $billsOnBoard->get();
+    }
+
+    public function GetBillsWithNoDriver() {
+        $bills = Bill::where('pickup_driver_id', null)
+            ->orWhere('delivery_driver_id', null)
+            ->get();
+
+        return $bills;
+    }
 }

@@ -56,25 +56,24 @@
                                 <li><a href='/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a></li>
                             </ul>
                         </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href='/dispatch'>Dispatch</a>
                         </li>
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
                                 <ul class="dropdown-menu">
                                     <li><a href="/appsettings">Application Settings</a></li>
+                                    {{-- <li><a href='#' data-toggle='modal' data-target='#my_password_change_modal'>Change Password</a></li> --}}
                                     <li><a href="/logout">Log Out</a></li>
                                 </ul>
                         </li>
                     @endif
-
-                    <li>
+                    {{-- <li>
                         <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile"></i></a>
-                    </li>
+                    </li> --}}
                 </div>
             </div>
         </nav>
-
     </div>
 </div>
 
