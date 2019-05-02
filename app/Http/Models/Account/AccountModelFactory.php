@@ -103,6 +103,16 @@
             $model->employees = $employeesRepo->ListAll();
             $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($id);
 
+			$parent_id = $model->account->parent_account_id;
+
+			while(isset($parent_id)) {
+				$parent_name = $acctRepo->GetById($parent_id)->name;
+				array_push($model->parents, $parent_name);
+				$parent_id = $acctRepo->GetById($parent_id)->parent_account_id;
+			}
+
+            $model->sort_options = $invoiceRepo->GetSortOrderById($id);
+
             $model->activity_log = $activityLogRepo->GetAccountActivityLog($model->account->account_id);
 			foreach($model->activity_log as $key => $log)
 				$model->activity_log[$key]->properties = json_decode($log->properties);

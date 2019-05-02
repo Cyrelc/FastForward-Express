@@ -44,6 +44,7 @@ Route::group(
             Route::post('/accounts/deactivate/{id}', 'AccountController@deactivate');
             Route::post('/accounts/activate/{id}', 'AccountController@activate');
             Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
+            Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
@@ -80,8 +81,6 @@ Route::group(
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
             Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
-            Route::get('/invoices/layouts/{id}', 'InvoiceController@layouts');
-            Route::post('/invoices/storeLayout', 'InvoiceController@storeLayout');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
