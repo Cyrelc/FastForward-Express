@@ -1,6 +1,5 @@
 @section ('script')
 <script src="//cdnjs.cloudflare.com/ajax/libs/Sortable/1.6.0/Sortable.min.js"></script>
-<script type='text/javascript' src='{{URL::to('/')}}/js/invoices/layouts.js?{{config('view.version')}}'></script>
 @parent
 @endsection
 

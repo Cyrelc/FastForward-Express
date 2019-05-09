@@ -2,7 +2,7 @@
 namespace app\Http\Validation;
 
 class PartialsValidationRules {
-    public function GetAddressValidationRules($prefix, $prefix_name) {
+    public function GetAddressValidationRules($req, $prefix, $prefix_name) {
         return [
             'rules' => [
                 $prefix . '-street' => 'required',
