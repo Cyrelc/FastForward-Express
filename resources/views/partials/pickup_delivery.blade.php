@@ -5,7 +5,7 @@
 <!-- account selection -->
     <div class="panel-body bottom15">
 <!-- date -->
-        <div class="col-lg-12 bottom15">
+        <div class="col-md-6 bottom15">
             <div class="input-group" id="time_{{$prefix}}_scheduled">
                 <span class="input-group-addon">Estimated {{$title}}: </span>
                 <input type='text' class="form-control" name='time_{{$prefix}}_scheduled' placeholder="{{$title}} Date" value="{{isset($date) ? date("F d, Y g:i A", $date) : ''}}"/>
@@ -15,24 +15,20 @@
             </div>
         </div>
 <!-- select address entry type -->
-        <div class='col-md-12 bottom15'>
+        <div class='col-md-6 bottom15'>
             <div class='input-group'>
                 <span class='input-group-addon'>Input Address By: </span>
                 <select id='{{$prefix}}_address_type' name='{{$prefix}}_address_type' class='form-control selectpicker'>
-                    <option value='{{$prefix}}_address' {{!isset($account_id) && !$is_new ? 'selected' : ''}}>Address</option>
-                    <option value='{{$prefix}}_account' {{isset($account_id) ? 'selected' : ''}}>Account</option>
+                    <option value='{{$prefix}}_address_search' {{!isset($account_id) && !$is_new ? 'selected' : ''}}>Address</option>
+                    <option value='{{$prefix}}_account_search' {{isset($account_id) ? 'selected' : ''}}>Account</option>
                 </select>
             </div>
         </div>
     </div>
     <div class='panel-footer bottom15 clearfix'>
-        <div class='tab-content'>
-<!-- address -->
-            <div id='{{$prefix}}_address' class='tab-pane fade {{(!$is_new && !isset($account_id)) ? 'in active' : ''}} '>
-                @include('partials.address', ['enabled' => true])
-            </div>
 <!-- account select option -->
-            <div id='{{$prefix}}_account' class='col-md-12 tab-pane fade'>
+        <div id='{{$prefix}}_account_search'>
+            <div class='col-md-10'>
                 <div class="input-group bottom15">
                     <span class="input-group-addon">{{$title}} Account: </span>
                     <select id="{{$prefix}}_account_id" class="form-control selectpicker" data-live-search='true' name="{{$prefix}}_account_id" data-reference="{{$prefix}}_reference">
@@ -54,6 +50,11 @@
                     </div>
                 </div>
             </div>
+            <div class='col-md-2 bottom15'>
+                <button type='button' class='btn' data-toggle='collapse' data-target='#{{$prefix}}-details' aria-expanded='false' aria-controls='{{$prefix}}-details'>Details</button>
+            </div>
         </div>
+<!-- address -->
+        @include('partials.address', ['enabled' => true])
     </div>
 </div>

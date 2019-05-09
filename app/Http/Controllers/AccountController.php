@@ -66,12 +66,12 @@ class AccountController extends Controller {
             $validationRules = array_merge($validationRules, $acctRules['rules']);
             $validationMessages = array_merge($validationMessages, $acctRules['messages']);
 
-            $addrRules = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
+            $addrRules = $partialsRules->GetAddressValidationRules($req, 'delivery', 'Delivery');
             $validationRules = array_merge($validationRules, $addrRules['rules']);
             $validationMessages = array_merge($validationMessages, $addrRules['messages']);
 
             if ($req->use_billing_address == 'on') {
-                $billAddressRules = $partialsRules->GetAddressValidationRules('billing', 'Billing');
+                $billAddressRules = $partialsRules->GetAddressValidationRules($req, 'billing', 'Billing');
                 $validationRules = array_merge($validationRules, $billAddressRules['rules']);
                 $validationMessages = array_merge($validationMessages, $billAddressRules['messages']);
             }

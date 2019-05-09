@@ -12,4 +12,5 @@ class AccountFormModel
     public $deliveryAddress;
     public $next_id;
     public $prev_id;
+    public $parents = array();
 }

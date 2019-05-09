@@ -40,11 +40,11 @@ class BillValidationRules {
 
 		$partialsRules = new \App\Http\Validation\PartialsValidationRules();
 		
-		$pickupAddress = $partialsRules->GetAddressValidationRules('pickup', 'Pickup');
+		$pickupAddress = $partialsRules->GetAddressValidationRules($req, 'pickup', 'Pickup');
 		$rules = array_merge($rules, $pickupAddress['rules']);
 		$messages = array_merge($messages, $pickupAddress['messages']);
 
-		$deliveryAddress = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
+		$deliveryAddress = $partialsRules->GetAddressValidationRules($req, 'delivery', 'Delivery');
 		$rules = array_merge($rules, $deliveryAddress['rules']);
 		$messages = array_merge($messages, $deliveryAddress['messages']);
 
