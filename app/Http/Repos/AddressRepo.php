@@ -35,6 +35,9 @@ class AddressRepo {
         $new->state_province = $address['state_province'];
         $new->country = $address['country'];
         $new->is_primary = $address['is_primary'];
+        $new->lat = $address['lat'];
+        $new->lng = $address['lng'];
+        $new->formatted = $address['formatted'];
 
         if (array_key_exists('contact_id', $address))
             $new->contact_id = $address['contact_id'];
@@ -54,6 +57,9 @@ class AddressRepo {
         $old->zip_postal = $address['zip_postal'];
         $old->state_province = $address['state_province'];
         $old->country = $address['country'];
+        $old->lat = $address['lat'];
+        $old->lng = $address['lng'];
+        $old->formatted = $address['formatted'];
 
         $old->save();
 

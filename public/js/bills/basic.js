@@ -7,8 +7,8 @@ $(document).ready(function() {
     });
 
     $('#pickup_address_type, #delivery_address_type').change(function(){
-        $('option', this).each(function(){$('#' + $(this).val()).removeClass('in active')});
-        $('#' + $(this).val()).addClass('in active');
+        $('option', this).each(function(){$('#' + $(this).val()).hide()});
+        $('#' + $(this).val()).show();
     }).trigger('change');
 
 //display custom field if present for the account.
@@ -66,13 +66,17 @@ function setAddressFromAccount(accountId, prefix) {
 		'type': 'GET',
 		'data': data,
 		'success': function(response) {
+            $('#' + prefix + '_place_search').val(response.formatted);
+            $('#' + prefix + '-lat').val(response.lat);
+            $('#' + prefix + '-lng').val(response.lng);
             $('#' + prefix + '-name').val(response.name);
-            $('#' + prefix + '-street').val(response.street); //street2 city province zip country
+            $('#' + prefix + '-street').val(response.street);
             $('#' + prefix + '-street2').val(response.street2);
             $('#' + prefix + '-city').val(response.city);
             $('#' + prefix + '-province').val(response.state_province);
             $('#' + prefix + '-zip').val(response.zip_postal);
             $('#' + prefix + '-country').val(response.country);
+            drawMap(prefix);
         },
 		'error': function(response){handleErrorResponse(response)}
 	})

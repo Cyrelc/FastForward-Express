@@ -66,12 +66,12 @@ class AccountController extends Controller {
             $validationRules = array_merge($validationRules, $acctRules['rules']);
             $validationMessages = array_merge($validationMessages, $acctRules['messages']);
 
-            $addrRules = $partialsRules->GetAddressValidationRules('delivery', 'Delivery');
+            $addrRules = $partialsRules->GetAddressValidationRules($req, 'delivery', 'Delivery');
             $validationRules = array_merge($validationRules, $addrRules['rules']);
             $validationMessages = array_merge($validationMessages, $addrRules['messages']);
 
             if ($req->use_billing_address == 'on') {
-                $billAddressRules = $partialsRules->GetAddressValidationRules('billing', 'Billing');
+                $billAddressRules = $partialsRules->GetAddressValidationRules($req, 'billing', 'Billing');
                 $validationRules = array_merge($validationRules, $billAddressRules['rules']);
                 $validationMessages = array_merge($validationMessages, $billAddressRules['messages']);
             }
@@ -135,6 +135,28 @@ class AccountController extends Controller {
         } catch(Exception $e) {
             DB::rollBack();
             dd(response());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function storeInvoiceLayout(Request $req, $account_id) {
+        DB::beginTransaction();
+        try{
+            $accountRepo = new Repos\AccountRepo();
+            $invoiceRepo = new Repos\InvoiceRepo();
+
+            $accountRepo->UpdateInvoiceComment($req->comment, $account_id);
+            $invoiceRepo->StoreSortOrder($req, $account_id);
+
+            DB::commit();
+
+            return;
+        } catch(Exception $e) {
+            DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()

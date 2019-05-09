@@ -13,7 +13,10 @@ class AddressCollector {
             'state_province'=>$req->input($prefix . '-state-province'),
             'country'=>$req->input($prefix . '-country'),
             'is_primary'=>false,
-            'contact_id'=>null
+            'contact_id'=>null,
+            'lat'=>$req->input($prefix . '-lat') == 0 ? null : $req->input($prefix . '-lat'),
+            'lng'=>$req->input($prefix . '-lng') == 0 ? null : $req->input($prefix . '-lng'),
+            'formatted'=>$req->input($prefix . '-formatted') == '' ? join(' ', array($req->input($prefix . '-name'), $req->input($prefix . '-street'), $req->input($prefix . '-street2'), $req->input($prefix . '-city'), $req->input($prefix . '-state-province'), $req->input($prefix . '-country'), $req->input($prefix . '-zip-postal'))) : $req->input($prefix . '-formatted')
         ];
     }
     

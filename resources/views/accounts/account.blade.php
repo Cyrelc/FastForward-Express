@@ -31,6 +31,7 @@
             <li><a data-toggle='tab' href='#commissions'><h4>Commissions</h4></a></li>
             <li><a data-toggle='tab' href='#payments'><h4>Payments</h4></a></li>
             <li><a data-toggle='tab' href='#users'><h4>Users</h4></a></li>
+            <li><a data-toggle='modal' href='#invoice_layout_modal'><h4>Invoice Layout</h4></a></li>
         @endif
         @if(isset($model->activity_log))
             <li><a data-toggle='tab' href='#activity_log'><h4>Activity Log</h4></a></li>
@@ -69,16 +70,21 @@
     <div class='col-lg-4 text-center'><button type='button' class='btn btn-primary' onclick='storeAccount()'>Submit</button></div>
     <div class='col-lg-4 text-center'>@if(isset($model->next_id))<a class='btn btn-info' href='/accounts/edit/{{$model->next_id}}'>Next Account</a>@endif</div>
 </div>
+
+<!-- invoice layout -->
+<div id='invoice_layout_modal' class='modal fade' role='dialog'>
+    @include('accounts.invoiceLayout');
+</div>
 @endsection
 
 @section ('advFilter')
 <div class="well form-group">
     <div class='clearfix text-center'>
         @if(isset($model->account->account_id))
-            <h4>Navigation<h4>
-            <a class='btn btn-info bottom15 col-md-10' href='/invoices/layouts/{{$model->account->account_id}}'>Go To Invoice Layout</a>
+            <h4>Quick Navigation<h4>
+            <hr/>
             <a class='btn btn-basic bottom15 col-md-10' href='/bills?filter[charge_account_id]={{$model->account->account_id}}' >View Bills</a>
-            <a disabled class='btn btn-basic bottom15 col-md-10' href='' >View Invoices</a>
+            <a class='btn btn-basic bottom15 col-md-10' href='/invoices?filter[account_id]={{$model->account->account_id}}' >View Invoices</a>
         @endif
     </div>
 </div>
