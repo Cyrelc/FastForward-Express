@@ -49,6 +49,7 @@ Route::group(
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
             Route::get('/bills/edit/{id}','BillController@edit');
+            Route::post('/bills/storePartial/{id}', 'BillController@storePartial');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/buildTable', 'BillController@buildTable');

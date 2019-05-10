@@ -285,6 +285,7 @@ class BillRepo {
     }
 
     public function GetBillsOnBoard($driver_id) {
+        //todo either only get today's bills, or include ability to filter by date
         $billsOnBoard = Bill::where(function($driver) use ($driver_id) {
             $driver->where('pickup_driver_id', $driver_id);
             $driver->orWhere('delivery_driver_id', $driver_id);
@@ -298,6 +299,10 @@ class BillRepo {
         ->select('bill_id',
                 'pickup_address.name as pickup_address_name',
                 'delivery_address.name as delivery_address_name',
+                'pickup_address.lat as pickup_lat',
+                'pickup_address.lng as pickup_lng',
+                'delivery_address.lat as delivery_lat',
+                'delivery_address.lng as delivery_lng',
                 'time_pickup_scheduled',
                 'delivery_type');
 
