@@ -14,7 +14,7 @@ class CreateAccountsTable extends Migration
     {
         Schema::create('accounts', function (Blueprint $table) {
             $table->increments('account_id');
-            $table->unsignedInteger('rate_type_id');
+            $table->unsignedInteger('ratesheet_id')->nullable();
             $table->unsignedInteger('billing_address_id')->nullable();
             $table->unsignedInteger('shipping_address_id');
             $table->string('account_number');
@@ -40,10 +40,10 @@ class CreateAccountsTable extends Migration
             $table->float('account_balance')->default(0);
 
 			$table->unique('account_number');
-			$table->foreign('rate_type_id')->references('rate_type_id')->on('rate_types');
 			$table->foreign('billing_address_id')->references('address_id')->on('addresses');
             $table->foreign('shipping_address_id')->references('address_id')->on('addresses');
-			$table->foreign('parent_account_id')->references('account_id')->on('accounts');
+            $table->foreign('parent_account_id')->references('account_id')->on('accounts');
+            $table->foreign('ratesheet_id')->references('ratesheet_id')->on('ratesheets');
         });
     }
 
