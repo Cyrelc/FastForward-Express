@@ -58,6 +58,14 @@ function comboInput(id, placeholderText) {
     $("#" + id + "-cb").attr('placeholder', placeholderText);
 }
 
+function poundsToKilograms(pounds){
+    return +(pounds / 2.2046).toFixed(3);
+}
+
+function kilogramsToPounds(kilograms){
+    return +(kilograms * 2.2046).toFixed(3);
+}
+
 function stickyTabs() {
     var url = document.location.toString();
     if (url.match('#')) {
@@ -73,8 +81,11 @@ function stickyTabs() {
 
 function handleErrorResponse(response) {
     var errorText = '';
-    for(var key in response.responseJSON.errors)
+    $('.has-error').removeClass('has-error');
+    for(var key in response.responseJSON.errors) {
+        $('[name="' + key + '"]').parent().addClass('has-error');
         errorText += response.responseJSON.errors[key][0] + '</br>';
+    }
     toastr.clear();
     toastr.error(errorText, response.responseJSON.message, {'timeOut' : 0, 'extendedTImeout' : 0});
 }

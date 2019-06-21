@@ -66,7 +66,7 @@ function drawMap(prefix){
         marker = false;
     }
     var position = new google.maps.LatLng(lat, lng);
-    var map = new google.maps.Map(document.getElementById(prefix + '-map'), {center: position, zoom: zoom});
+    var map = new google.maps.Map(document.getElementById(prefix + '-map'), {center: position, zoom: zoom, disableDefaultUI: true});
     if(marker)
         marker = new google.maps.Marker({map: map, position: position});
 }

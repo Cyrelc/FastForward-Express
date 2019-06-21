@@ -63,6 +63,7 @@
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
                                 <ul class="dropdown-menu">
                                     <li><a href="/appsettings">Application Settings</a></li>
+                                    <li><a href='/ratesheets'>Rate Sheets</a></li>
                                     <li><a href="/logout">Log Out</a></li>
                                 </ul>
                         </li>
@@ -74,17 +75,22 @@
                 </div>
             </div>
         </nav>
-
     </div>
 </div>
 
 <div class="row">
-    <div id="advFilter" class="col-lg-2">
-            @yield('advFilter')
-    </div>
-    <div id='content' class="col-lg-10">
-        @yield('content')
-    </div>
+    @if(View::hasSection('advFilter'))
+        <div id="advFilter" class="col-lg-2">
+                @yield('advFilter')
+        </div>
+        <div id='content' class="col-lg-10">
+            @yield('content')
+        </div>
+    @else
+        <div id='content' class="col-lg-12">
+            @yield('content')
+        </div>
+    @endif
 </div>
 
 <div id="contact-us-modal" class="modal fade" tabindex="-1" role="dialog">

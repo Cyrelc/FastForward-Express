@@ -15,7 +15,7 @@
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js'></script>
-        <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyCsYKY4RmwIz_LqRgM5tng5ve-zo1HDr_U&libraries=places'></script>
+        <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyCsYKY4RmwIz_LqRgM5tng5ve-zo1HDr_U&libraries=places,drawing,geometry'></script>
         <script type='text/javascript' src='/js/toastr.min.js'> </script>
         <script src="{{URL::to('/')}}/js/utils.js"></script>
 
@@ -25,7 +25,7 @@
 
         <!-- Styles -->
         <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css' rel='stylesheet' />
-        <link rel='stylesheet' type='text/css' href='/css/app.css' />
+        <link rel='stylesheet' type='text/css' href='/css/app2.css' />
         <link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css' />
         <link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 
