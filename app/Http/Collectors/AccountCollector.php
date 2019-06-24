@@ -9,7 +9,7 @@ class AccountCollector {
         $hasDiscount = isset($req->giveDiscount) && $req->input('discount') > 0;
 
         return [
-            'rate_type_id'=>1,
+            'ratesheet_id'=>null,
             'billing_address_id'=>$billing_id,
             'shipping_address_id'=>$delivery_id,
             'account_number'=>$req->account_number,

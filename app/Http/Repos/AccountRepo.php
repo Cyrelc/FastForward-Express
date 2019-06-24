@@ -125,7 +125,7 @@ class AccountRepo {
     public function Update($acct) {
         $old = $this->GetById($acct["account_id"]);
 
-        $old->rate_type_id = $acct["rate_type_id"];
+        $old->ratesheet_id = $acct["ratesheet_id"];
         $old->billing_address_id = $acct["billing_address_id"];
         $old->shipping_address_id = $acct["shipping_address_id"];
         $old->account_number = $acct["account_number"];
