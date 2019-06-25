@@ -147,6 +147,7 @@ class AccountRepo {
         $old->custom_field = $acct["custom_field"];
         $old->active = $acct["active"];
         $old->min_invoice_amount = $acct['min_invoice_amount'];
+        $old->use_parent_ratesheet = $acct['use_parent_ratesheet'];
 
         $old->save();
     }
