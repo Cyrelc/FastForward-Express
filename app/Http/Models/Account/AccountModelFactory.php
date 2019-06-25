@@ -44,6 +44,7 @@
 		    $model = new AccountFormModel();
 		    $acctRepo = new Repos\AccountRepo();
             $selectionsRepo = new Repos\SelectionsRepo();
+            $ratesheetRepo = new Repos\RatesheetRepo();
             $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
 
 		    $model->accounts = $acctRepo->ListParents();
@@ -57,6 +58,7 @@
             $model->give_commission_2 = false;
             $model->account->send_bills = 1;
             $model->account->send_invoices = 1;
+            $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
 
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
@@ -72,6 +74,7 @@
             $addRepo = new Repos\AddressRepo();
             $selectionsRepo = new Repos\SelectionsRepo();
             $invoiceRepo = new Repos\InvoiceRepo();
+            $ratesheetRepo = new Repos\RatesheetRepo();
 
             $contactsModelFactory = new Models\Partials\ContactsModelFactory();
 
@@ -80,6 +83,7 @@
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
             $model->deliveryAddress = $addRepo->GetById($model->account->shipping_address_id);
             $model->billingAddress = $addRepo->GetById($model->account->billing_address_id);
+            $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
             // $model->commissions = $dcRepo->ListByAccount($id);
             // $model->give_commission_1 = false;
             // $model->give_commission_2 = false;
