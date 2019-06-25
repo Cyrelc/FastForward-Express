@@ -46,6 +46,10 @@ $(document).ready(function() {
 		}
 	});
 
+	$('#use_parent_ratesheet').change(function() {
+		$(this).prop('checked') ? $('#ratesheet_id').prop('disabled', true) : $('#ratesheet_id').prop('disabled', false)
+	})
+
 	var sort_order_list = document.getElementById('sort_order_list');
 	Sortable.create(sort_order_list);
 

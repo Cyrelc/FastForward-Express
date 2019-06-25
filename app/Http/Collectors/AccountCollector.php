@@ -5,11 +5,10 @@ namespace App\Http\Collectors;
 
 class AccountCollector {
     public function Collect($req, $billing_id, $delivery_id) {
-
         $hasDiscount = isset($req->giveDiscount) && $req->input('discount') > 0;
 
         return [
-            'ratesheet_id'=>null,
+            'ratesheet_id'=>$req->ratesheet_id === '' ? null : $req->ratesheet_id,
             'billing_address_id'=>$billing_id,
             'shipping_address_id'=>$delivery_id,
             'account_number'=>$req->account_number,
@@ -30,7 +29,8 @@ class AccountCollector {
             'uses_custom_field' => $req->custom_tracker == '' ? false : true,
             'custom_field' => $req->custom_tracker,
             'fuel_surcharge' => $req->fuel_surcharge,
-            'min_invoice_amount' => $req->min_invoice_amount
+            'min_invoice_amount' => $req->min_invoice_amount,
+            'use_parent_ratesheet' => isset($req->use_parent_ratesheet)
         ];
     }
 }

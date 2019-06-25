@@ -38,6 +38,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('active')->default(true);
             $table->float('minimum_invoice_amount')->default(0);
             $table->float('account_balance')->default(0);
+            $table->boolean('use_parent_ratesheet')->default(1);
 
 			$table->unique('account_number');
 			$table->foreign('billing_address_id')->references('address_id')->on('addresses');

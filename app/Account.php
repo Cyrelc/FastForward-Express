@@ -12,7 +12,7 @@ class Account extends Model
     public $primaryKey = "account_id";
     public $timestamps = false;
 
-    protected $fillable = ['rate_type_id',
+    protected $fillable = ['ratesheet_id',
                     'has_parent',
                     'parent_account_id',
                     'billing_address_id',
@@ -35,7 +35,8 @@ class Account extends Model
                     'custom_field',
                     'uses_custom_field',
                     'active',
-                    'min_invoice_amount'];
+                    'min_invoice_amount',
+                    'use_parent_ratesheet'];
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;

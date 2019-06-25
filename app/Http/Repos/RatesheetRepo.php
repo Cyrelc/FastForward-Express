@@ -15,6 +15,12 @@ class RatesheetRepo {
         return ($new->create($ratesheet));
     }
 
+    public function ListAllNameAndId() {
+        $ratesheets = Ratesheet::select('name', 'ratesheet_id');
+
+        return $ratesheets->get();
+    }
+
     public function Update($ratesheet) {
         $old = Ratesheet::where('ratesheet_id', $ratesheet['ratesheet_id'])->first();
 

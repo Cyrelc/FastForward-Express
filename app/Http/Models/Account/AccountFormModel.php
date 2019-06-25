@@ -14,4 +14,5 @@ class AccountFormModel
     public $prev_id;
     public $parents = array();
     public $sort_options = array();
+    public $ratesheets = array();
 }
