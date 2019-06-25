@@ -1,79 +1,71 @@
-@extends('layouts.html')
+@extends('layouts.html2')
 
 @section('head')
-
-@yield('script')
 
 @yield('style')
 
 @stop
 
 @section('body')
-<div class="row">
-    <div class="col-lg-12">
-        <div id='FFELogo'>
-        <nav id="menu" class="navbar navbar-inverse">
-            <div class="container-fluid">
-                <div class="nav navbar-nav">
-                    @if (Auth::guest())
-                        <li><a href="/login">Log In <i class="fa fa-sign-in"></i></a></li>
-                    @else
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">Bills</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/bills"><i class="fa fa-list"></i> List</li>
-                                <li><a href="/bills/create"><i class="fa fa-plus-square"></i> New</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/invoices"><i class="fa fa-list"></i> List</li>
-                                <li><a href="/invoices/generate"><i class='fa fa-plus-square'></i> Generate Invoices</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Accounts</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/accounts"><i class="fa fa-list"></i> List Accounts</a></li>
-                                <li><a href="/accounts/create"><i class="fa fa-plus-square"></i> New Account</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Interliners</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/interliners"><i class="fa fa-list"></i> List Interliners</a></li>
-                                <li><a href="/interliners/create"><i class="fa fa-plus-square"></i> New Interliner</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Employees</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/employees"><i class="fa fa-list"></i> List</a></li>
-                                <li><a href="/employees/create"><i class="fa fa-plus-square"></i> New</a></li>
-                                <li><a href='/chargebacks'><i class='fa fa-tag'></i> Chargebacks</a></li>
-                                <li><a href='/manifests'><i class='fas fa-clipboard-list'></i> Manifests</a></li>
-                                <li><a href='/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="/appsettings">Application Settings</a></li>
-                                    <li><a href='/ratesheets'>Rate Sheets</a></li>
-                                    <li><a href="/logout">Log Out</a></li>
-                                </ul>
-                        </li>
-                    @endif
-
-                    <li>
-                        <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile"></i></a>
-                    </li>
-                </div>
-            </div>
+<div class='row'>
+    {{-- placeholder for logo when available --}}
+    <div class='col-md-3'>
+    </div>
+    <div class='col-md-12'>
+        <nav class='navbar navbar-expand-lg navbar-dark bg-dark'>
+            <a class='navbar-brand' href='#'>Fast Forward Express</a>
+            <ul class='navbar-nav ml-auto'>
+                @if (Auth::guest())
+                    <li class='nav-item'><a href="/login">Log In <i class="fa fa-sign-in"></i></a></li>
+                @else
+                <li class='nav-item dropdown'>
+                    <a class='nav-link dropdown-toggle' href='#' id='navbar-bills' data-toggle='dropdown'>Bills</a>
+                    <div class='dropdown-menu'>
+                        <a class='dropdown-item' href="/bills"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/bills/create"><i class="fa fa-plus-square"></i> New</a>
+                    </div>
+                </li>
+                <li class='nav-item dropdown'>
+                    <a class='nav-link dropdown-toggle' href='#' id='navbar-invoices' data-toggle='dropdown'>Invoices</a>
+                    <div class='dropdown-menu'>
+                        <a class='dropdown-item' href="/invoices"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/invoices/generate"><i class='fa fa-plus-square'></i> Generate Invoices</a>
+                    </div>
+                </li>
+                <li class='nav-item dropdown'>
+                    <a class='nav-link dropdown-toggle' href='#' id='navbar-accounts' data-toggle='dropdown'>Accounts</a>
+                    <div class='dropdown-menu'>
+                        <a class='dropdown-item' href="/accounts"><i class="fa fa-list"></i> List Accounts</a>
+                        <a class='dropdown-item' href="/accounts/create"><i class="fa fa-plus-square"></i> New Account</a>
+                    </div>
+                </li>
+                <li class='nav-item dropdown'>
+                    <a class='nav-link dropdown-toggle' href='#' id='navbar-employees' data-toggle='dropdown'>Employees</a>
+                    <div class='dropdown-menu'>
+                        <a class='dropdown-item' href="/employees"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/employees/create"><i class="fa fa-plus-square"></i> New</a>
+                        <a class='dropdown-item' href='/chargebacks'><i class='fa fa-tag'></i> Chargebacks</a>
+                        <a class='dropdown-item' href='/manifests'><i class='fas fa-clipboard-list'></i> Manifests</a>
+                        <a class='dropdown-item' href='/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a>
+                    </div>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' href='/dispatch'>Dispatch</a>
+                </li>
+                <li class='nav item dropdown'>
+                    <a class='nav-link dropdown-toggle' href='#' id='navbar-admin' data-toggle='dropdown'>Administration</a>
+                    <div class='dropdown-menu'>
+                        <a class='dropdown-item' href="/appsettings">Application Settings</a>
+                        <a class='dropdown-item' href='/ratesheets'>Rate Sheets</a>
+                        <a class='dropdown-item' href="/interliners"><i class="fa fa-list"></i> List Interliners</a>
+                        <a class='dropdown-item' href="/interliners/create"><i class="fa fa-plus-square"></i> New Interliner</a>
+                    </div>
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' href="/logout">Log Out</a>
+                </li>
+                @endif
+            </ul>
         </nav>
     </div>
 </div>
@@ -138,7 +130,7 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-@stop
+@endsection
 
 @section('footer')
 <script type="text/javascript">
@@ -217,4 +209,6 @@
         $("#err-msg").text('No error message provided.');
     }
 </script>
-@stop
+@yield('script')
+@parent
+@endsection

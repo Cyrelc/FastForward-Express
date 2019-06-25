@@ -13,4 +13,5 @@ class AccountFormModel
     public $next_id;
     public $prev_id;
     public $parents = array();
+    public $sort_options = array();
 }

@@ -102,6 +102,12 @@ Route::group(
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
+            Route::get('/ratesheets', 'RatesheetController@index');
+            Route::get('/ratesheets/edit/{id}', 'RatesheetController@edit');
+            Route::get('/ratesheets/create', 'RatesheetController@create');
+            Route::post('/ratesheets/store', 'RatesheetController@store');
+            Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
+
             Route::get('/logout', 'Auth\LoginController@logout');
 
             Route::post('/contactus', 'HomeController@ContactUs');
