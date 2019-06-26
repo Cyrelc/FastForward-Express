@@ -39,7 +39,7 @@
     </body>
 
     <footer>
-        <script src="{{asset('js/app.js')}}"></script>
+        <script src="{{asset('compiled_js/app.js')}}"></script>
         @yield('footer')
     </footer>
 </html>

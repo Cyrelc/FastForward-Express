@@ -12,7 +12,8 @@
         "barryvdh/laravel-dompdf": "^0.8.1",
         "spatie/laravel-activitylog": "^3.1",
         "fideloper/proxy": "^4.0",
-        "spatie/laravel-query-builder": "^1.17.*"
+        "spatie/laravel-query-builder": "^1.17.4",
+        "altynbek07/laravel-config-writer": "^1.2"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
@@ -43,11 +44,13 @@
         ],
         "post-install-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postInstall",
-            "php artisan optimize"
+            "php artisan optimize",
+            "npm install"
         ],
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
-            "php artisan optimize"
+            "php artisan optimize",
+            "npm install"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
