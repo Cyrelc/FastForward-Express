@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-    var data = {'account-id':$('#account-id').val()};
+    var data = {'account_id':$('#account_id').val()};
 
     var invoicesTable = $('#invoices_table').DataTable({
         ajax: {url:'/invoices/getOutstanding', dataSrc:'', data:data},
