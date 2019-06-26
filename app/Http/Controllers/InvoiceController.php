@@ -54,7 +54,7 @@ class InvoiceController extends Controller {
 
     public function getOutstandingByAccountId(Request $req) {
         $invoice_repo = new Repos\InvoiceRepo();
-        return json_encode($invoice_repo->getOutstandingByAccountId($req->input('account-id')));
+        return json_encode($invoice_repo->getOutstandingByAccountId($req->input('account_id')));
     }
 
     public function delete(Request $req, $id) {

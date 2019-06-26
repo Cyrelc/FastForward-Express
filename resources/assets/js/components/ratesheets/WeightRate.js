@@ -1,6 +1,5 @@
 import React from 'react'
 import {InputGroup, FormControl, Row, Col} from 'react-bootstrap'
-import Cleave from 'cleave.js/react'
 
 export default function WeightRate(props) {
     return(
