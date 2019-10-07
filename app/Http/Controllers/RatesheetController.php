@@ -80,14 +80,15 @@ class RatesheetController extends Controller {
 
             $this->validate($req, $ratesheetRules['rules'], $ratesheetRules['messages']);
 
-            $req->mapZones = $this->findNeighbours($req->mapZones);
+            if(sizeof($req->mapZones) > 1)
+                $req->mapZones = $this->findNeighbours($req->mapZones);
 
-            if(isset($req->ratesheetId)) {
-                //Can I edit this?
-                $isEdit = true;
-            } else {
+            if($req->ratesheetId === '') {
                 //Can I create this?
                 $isEdit = false;
+            } else {
+                //Can I edit this?
+                $isEdit = true;
             }
 
             $collector = new Collectors\RatesheetCollector();
