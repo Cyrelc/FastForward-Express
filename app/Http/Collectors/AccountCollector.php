@@ -27,7 +27,7 @@ class AccountCollector {
             'can_be_parent'=>isset($req->can_be_parent),
             'active'=>true,
             'uses_custom_field' => $req->custom_tracker == '' ? false : true,
-            'custom_field' => $req->custom_tracker,
+            'custom_field' => $req->custom_tracker === '' ? null : $req->custom_tracker,
             'fuel_surcharge' => $req->fuel_surcharge,
             'min_invoice_amount' => $req->min_invoice_amount,
             'use_parent_ratesheet' => isset($req->use_parent_ratesheet)
