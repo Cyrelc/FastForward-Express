@@ -14,8 +14,11 @@ export default class Ratesheet extends Component {
             formType: null,
             ratesheetId: null,
             name: '',
+            holidayRate: '',
+            weekendRate: '',
             useInternalZonesCalc: true,
             deliveryTypes: [],
+            timeRates: [],
             weightRates: [],
             zoneRates: [],
             mapZones: [],
@@ -28,6 +31,7 @@ export default class Ratesheet extends Component {
             useSnapping: true
         }
         this.handleChange = this.handleChange.bind(this)
+        this.handleTimeRateChange = this.handleTimeRateChange.bind(this)
         this.handleWeightRateChange = this.handleWeightRateChange.bind(this)
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
         this.deleteZone = this.deleteZone.bind(this)
@@ -56,7 +60,7 @@ export default class Ratesheet extends Component {
                     return response.json()
                 })
                 .then((data) => {
-                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
+                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: data.timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
                     if(formType === 'edit') {
                         data.mapZones.map(zone => {
                             const polygon = new google.maps.Polygon({
@@ -78,7 +82,7 @@ export default class Ratesheet extends Component {
                 if(obj.id === id)
                     return type === 'checkbox' ? {...obj, [name]: checked} : {...obj, [name]: value}
                 return obj
-            }) 
+            })
             this.setState({[section] : updated})
         } else
         type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value})
@@ -88,6 +92,18 @@ export default class Ratesheet extends Component {
         if(value === '' || value === undefined || value === 0)
             return true
         return false
+    }
+
+    handleTimeRateChange(event, id) {
+        const {name, value} = event.target
+        var next
+        const updated = this.state.timeRates.map((obj, index, arr) => {
+            if(obj.id === id)
+                return {...obj, [name]: value}
+            else 
+                return obj
+        })
+        this.setState({timeRates: updated})
     }
 
     handleWeightRateChange(event, id) {
@@ -131,7 +147,7 @@ export default class Ratesheet extends Component {
         if(!this.isEmpty(value) && updated[updated.length -1].id === id)
             updated = updated.concat([{id: this.state.zoneRates.length, cost: undefined, zones: this.state.zoneRates.length + 1}])
         else if(this.isEmpty(updated[index]['regularCost']) && this.isEmpty(updated[index]['rushCost'] && this.isEmpty(updated[index]['directCost'] && this.isEmpty(updated[index]['directCost']))))
-            while(typeof updated[updated.length -2] != 'undefined' 
+            while(typeof updated[updated.length - 2] != 'undefined' 
                 && this.isEmpty(updated[updated.length - 2]['regularCost']) 
                 && this.isEmpty(updated[updated.length - 2]['rushCost']) 
                 && this.isEmpty(updated[updated.length - 2]['directCost']) 
@@ -202,7 +218,7 @@ export default class Ratesheet extends Component {
     }
 
     getCoordinates(polygon) {
-        return polygon.getPath().j.map(point => {return {lat: parseFloat(point.lat()), lng: parseFloat(point.lng())}})
+        return polygon.getPath().g.map(point => {return {lat: parseFloat(point.lat()), lng: parseFloat(point.lng())}})
     }
 
     updateZone(id) {
@@ -232,12 +248,15 @@ export default class Ratesheet extends Component {
     store(){
         var data = {
             name: this.state.name,
+            holidayRate: this.state.holidayRate,
+            weekendRate: this.state.weekendRate,
             ratesheetId : this.state.ratesheetId,
             useInternalZonesCalc: this.state.useInternalZonesCalc,
             deliveryTypes : this.state.deliveryTypes.slice(),
             weightRates : this.state.weightRates.slice(),
             zoneRates : this.state.zoneRates.slice(),
-            mapZones : this.state.mapZones.map(zone => {return {...zone, polygon : null}})
+            mapZones : this.state.mapZones.map(zone => {return {...zone, polygon : null}}),
+            timeRates: this.state.timeRates.slice()
         }
         $.ajax({
             'url': '/ratesheets/store',
@@ -266,10 +285,12 @@ export default class Ratesheet extends Component {
                         <Tab eventKey='settings' title={<h3><i className='fas fa-cog'></i> Settings</h3>}>
                             <SettingsTab 
                                 name= {this.state.name}
-                                deliveryTypes= {this.state.deliveryTypes} 
+                                deliveryTypes= {this.state.deliveryTypes}
+                                timeRates = {this.state.timeRates} 
                                 weightRates= {this.state.weightRates}
                                 useInternalZonesCalc= {this.state.useInternalZonesCalc}
                                 handleChange= {this.handleChange}
+                                handleTimeRateChange = {this.handleTimeRateChange}
                                 handleWeightRateChange = {this.handleWeightRateChange}
                                 handleZoneRateChange = {this.handleZoneRateChange}
                                 zoneRates = {this.state.zoneRates}

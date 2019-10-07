@@ -9,7 +9,7 @@ class Ratesheet extends Model
 {
     public $primaryKey = "ratesheet_id";
 
-    protected $fillable = ['name', 'use_internal_zones_calc', 'delivery_types', 'weight_rates', 'zone_rates', 'map_zones'];
+    protected $fillable = ['name', 'use_internal_zones_calc', 'delivery_types', 'weight_rates', 'zone_rates', 'map_zones', 'holiday_rate', 'weekend_rate', 'time_rates'];
     public $timestamps = false;
 
     public function Accounts() {

@@ -11,11 +11,11 @@ export default function WeightRate(props) {
                     </InputGroup.Prepend>
                     <FormControl 
                         key={props.id + '-kgmax'}
-                        type='number' 
-                        min={props.kgmin} 
-                        step={0.1} 
-                        name='kgmax' 
-                        value={props.kgmax} 
+                        type='number'
+                        min={props.kgmin}
+                        step={0.1}
+                        name='kgmax'
+                        value={props.kgmax}
                         onChange={(event) => props.handleWeightRateChange(event, props.id)} />
                     <InputGroup.Append>
                         <InputGroup.Text>kg</InputGroup.Text>
@@ -28,7 +28,7 @@ export default function WeightRate(props) {
                         <InputGroup.Text key={props.id + '-lbmin'}>{props.lbmin} lb to </InputGroup.Text>
                     </InputGroup.Prepend>
                     <FormControl
-                        key={props.id + 'lbmax'}
+                        key={props.id + '-lbmax'}
                         type='number' 
                         min={props.lbmin} 
                         step={0.1} 

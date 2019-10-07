@@ -1,5 +1,6 @@
 import React from 'react'
 import {Card, Row, Col, Table, InputGroup, FormControl, Form} from 'react-bootstrap'
+import TimeRate from './TimeRate'
 import WeightRates from './WeightRates'
 import ZoneRate from './ZoneRate'
 import RateOption from './RateOption'
@@ -24,6 +25,61 @@ export default function SettingsTab(props) {
                     <strong><Form.Check type='checkbox' name='useInternalZonesCalc' label='Use Internal Zones Crossed to Calculate Pricing' checked={props.useInternalZonesCalc} onChange={props.handleChange} /></strong>
                     </Col>
                 </Row>
+                <hr/>
+                <Row>
+                    <Col md={2}>
+                        <h4 className='text-muted'>Weekends & Holidays</h4>
+                    </Col>
+                    <Col md={4}>
+                        <InputGroup>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Weekend Price: </InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <FormControl
+                                type='number'
+                                step='0.01'
+                                placeholder='Weekend Pricing'
+                                name='weekendRate'
+                                value={props.weekendRate}
+                                onChange={props.handleChange}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={4}>
+                        <InputGroup>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Holiday Price: </InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <FormControl
+                                type='number'
+                                step='0.01'
+                                placeholder='Holiday Pricing'
+                                name='holidayRate'
+                                value={props.holidayRate}
+                                onChange={props.handleChange}
+                            />
+                        </InputGroup>
+                    </Col>
+                </Row>
+                <hr/>
+                {props.timeRates &&
+                <Row>
+                    <Col md={2}>
+                        <h4 className='text-muted'>After Hours</h4>
+                    </Col>
+                    <Col md={10}>
+                        {props.timeRates.map(rate =>
+                            <TimeRate
+                                key = {rate.id}
+                                id = {rate.id}
+                                startTime = {rate.start_time}
+                                endTime = {rate.end_time}
+                                cost = {rate.cost}
+                                handleTimeRateChange = {props.handleTimeRateChange}
+                            />
+                        )}
+                    </Col>
+                </Row>}
             </Card.Header>
             <Card.Body>
                 <Row>
@@ -38,6 +94,27 @@ export default function SettingsTab(props) {
                                     <tr>
                                         {props.deliveryTypes.map(type => 
                                             <td>{type.friendlyName}</td>
+                                        )}
+                                    </tr>
+                                {/* </thead>
+                                <thead> */}
+                                    <tr>
+                                        {props.deliveryTypes.map(type =>
+                                            <td>
+                                                <InputGroup>
+                                                    <InputGroup.Prepend>
+                                                        <InputGroup.Text>Time Est. </InputGroup.Text>
+                                                    </InputGroup.Prepend>
+                                                    <FormControl
+                                                        type='number'
+                                                        min='0.1'
+                                                        step='0.1'
+                                                        name='time'
+                                                        value={props.time}
+                                                        onChange={event => props.handleChange(event, 'deliveryTypes', props.id)}
+                                                    />
+                                                </InputGroup>
+                                            </td>
                                         )}
                                     </tr>
                                 </thead>
