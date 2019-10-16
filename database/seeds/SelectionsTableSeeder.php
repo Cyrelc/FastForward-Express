@@ -29,30 +29,6 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'monthly',
             'type' => 'invoice_interval'
         ]);
-//Payment types
-        DB::table('selections')->insert([
-            'name' => 'Cash',
-            'value' => 'cash',
-            'type' => 'prepaid_option'
-        ]);
-
-        DB::table('selections')->insert([
-            'name' => 'Visa',
-            'value' => 'visa',
-            'type' => 'prepaid_option'
-        ]);
-
-        DB::table('selections')->insert([
-            'name' => 'Mastercard',
-            'value' => 'mastercard',
-            'type' => 'prepaid_option'
-        ]);
-
-        DB::table('selections')->insert([
-            'name' => 'Cheque',
-            'value' => 'cheque',
-            'type' => 'prepaid_option'
-        ]);
 //Delivery Types
         DB::table('selections')->insert([
             'name' => 'Regular',
@@ -75,12 +51,6 @@ class SelectionsTableSeeder extends Seeder
         DB::table('selections')->insert([
             'name' => 'Direct Rush',
             'value' => 'direct_rush',
-            'type' => 'delivery_type'
-        ]);
-
-        DB::table('selections')->insert([
-            'name' => 'Hot Shot',
-            'value' => 'hot_shot',
             'type' => 'delivery_type'
         ]);
 //Driver Warning Types
@@ -109,29 +79,29 @@ class SelectionsTableSeeder extends Seeder
         ]);
 
 //Employee types
-        DB::table('selections')->insert([
-            'name' => 'Full-Time Driver',
-            'value' => 'ft_driver',
-            'type' => 'employee_type'
-        ]);
+        // DB::table('selections')->insert([
+        //     'name' => 'Full-Time Driver',
+        //     'value' => 'ft_driver',
+        //     'type' => 'employee_type'
+        // ]);
 
-        DB::table('selections')->insert([
-            'name' => 'Contractor Driver',
-            'value' => 'c_driver',
-            'type' => 'employee_type'
-        ]);
+        // DB::table('selections')->insert([
+        //     'name' => 'Contractor Driver',
+        //     'value' => 'c_driver',
+        //     'type' => 'employee_type'
+        // ]);
 
-        DB::table('selections')->insert([
-            'name' => 'Office Employee',
-            'value' => 'office',
-            'type' => 'employee_type'
-        ]);
+        // DB::table('selections')->insert([
+        //     'name' => 'Office Employee',
+        //     'value' => 'office',
+        //     'type' => 'employee_type'
+        // ]);
 
-        DB::table('selections')->insert([
-            'name' => 'Employee Type 1',
-            'value' => 'employee_type_1',
-            'type' => 'employee_type'
-        ]);
+        // DB::table('selections')->insert([
+        //     'name' => 'Employee Type 1',
+        //     'value' => 'employee_type_1',
+        //     'type' => 'employee_type'
+        // ]);
 //Phone types
         DB::table('selections')->insert([
             'name' => 'Cell',

@@ -7,9 +7,8 @@ class DatabaseSeeder extends Seeder {
         //Static values
         $this->call(SelectionsTableSeeder::class);        
         $this->call(RolesTableSeeder::class);
-        $this->call(RateTypesTableSeeder::class);
         $this->call(ExpiriesTableSeeder::class);
-        $this->call(PaymentMethodsTableSeeder::class);
+        // $this->call(PaymentTypesTableSeeder::class);
 
         $this->call(UsersTableSeeder::class);
 
