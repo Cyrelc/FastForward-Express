@@ -105,7 +105,7 @@ function autoCalculatePayments() {
 
 function submitPayment() {
     var data = $('#payment_form').serialize();
-    data += '&account-id=' + $('#account-id').val();
+    data += '&account-id=' + $('#account_id').val();
 
     $.ajax({
         'url': '/payments/accountPayment',
