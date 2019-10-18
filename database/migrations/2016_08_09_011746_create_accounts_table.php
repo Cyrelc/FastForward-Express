@@ -36,7 +36,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('uses_custom_field')->default(false);
             $table->string('custom_field')->nullable();
             $table->boolean('active')->default(true);
-            $table->float('minimum_invoice_amount')->default(0);
+            $table->float('min_invoice_amount')->default(0);
             $table->float('account_balance')->default(0);
             $table->boolean('use_parent_ratesheet')->default(0);
 

@@ -21,6 +21,9 @@ class CreateRatesheetsTable extends Migration
             $table->text('weight_rates');
             $table->text('zone_rates');
             $table->text('map_zones');
+            $table->float('weekend_rate');
+            $table->float('holiday_rate');
+            $table->text('time_rates')->nullable();
         });
     }
 
