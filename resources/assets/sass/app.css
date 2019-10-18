@@ -1,0 +1,15 @@
+.input-group, .pad-top, .text-muted {
+    padding-top: 10px;
+}
+
+.card {
+    padding: 15px;
+}
+
+.nav-tabs {
+    padding-top: 20px;
+}
+
+.nav-item.nav-link.active {
+    border-color: black;
+}
