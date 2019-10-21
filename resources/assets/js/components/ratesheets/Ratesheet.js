@@ -227,12 +227,12 @@ export default class Ratesheet extends Component {
                 if(this.state.useSnapping) {
                     var temp = zone.polygon.getPath()
                     zone.polygon.getPath().forEach((coord1, i) => {
-                        this.state.mapZones.map((compZone, j) => {
+                        this.state.mapZones.map((compZone) => {
                             if(compZone.id === id)
                                 return
-                            compZone.polygon.getPath().forEach((coord2, j) => {
+                            compZone.polygon.getPath().forEach((coord2) => {
                                 if(google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2) < 200)
-                                    temp.j[i] = coord2
+                                    temp.g[i] = coord2
                             })
                         })
                     })
