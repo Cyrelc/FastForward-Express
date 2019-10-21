@@ -58,6 +58,16 @@ function comboInput(id, placeholderText) {
     $("#" + id + "-cb").attr('placeholder', placeholderText);
 }
 
+function roundTimeToNextFifteenMinutes(time = null) {
+    var rounded = time ? new Date(time) : new Date()
+
+    rounded.setMilliseconds(0);
+    rounded.setSeconds(0)
+    rounded.setMinutes(Math.ceil(rounded.getMinutes() / 15) * 15)
+
+    return rounded
+}
+
 function poundsToKilograms(pounds){
     return +(pounds / 2.2046).toFixed(3);
 }

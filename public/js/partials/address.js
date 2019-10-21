@@ -26,7 +26,7 @@ $(document).ready(function(){
                 }
                 else {
                     $('#' + prefix + '_place_search').parent().addClass('has-error');
-                    toastr.error('Your address is missing specific location data, but could not be automatically reconciled. Please use the provided search to select a valid address, or certain features may not be available', 'Notice');
+                    toastr.warn('Your address is missing specific location data, but could not be automatically reconciled. Please use the provided search to select a valid address, or certain features may not be available', 'Notice');
                     drawMap(prefix);
                 }
             });
