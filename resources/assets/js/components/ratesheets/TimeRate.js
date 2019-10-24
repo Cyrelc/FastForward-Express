@@ -1,6 +1,5 @@
 import React from 'react'
 import {Row, Col, InputGroup, FormControl} from 'react-bootstrap'
-import Moment from 'moment'
 import DatePicker from 'react-datepicker'
 
 export default function TimeRate(props) {

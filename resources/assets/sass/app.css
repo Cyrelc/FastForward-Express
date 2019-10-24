@@ -13,3 +13,7 @@
 .nav-item.nav-link.active {
     border-color: black;
 }
+
+.css-2b097c-container {
+    flex: 1
+}
