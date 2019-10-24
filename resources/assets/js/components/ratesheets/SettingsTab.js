@@ -72,8 +72,8 @@ export default function SettingsTab(props) {
                             <TimeRate
                                 key = {rate.id}
                                 id = {rate.id}
-                                startTime = {rate.start_time}
-                                endTime = {rate.end_time}
+                                startTime = {rate.startTime}
+                                endTime = {rate.endTime}
                                 cost = {rate.cost}
                                 handleTimeRateChange = {props.handleTimeRateChange}
                             />

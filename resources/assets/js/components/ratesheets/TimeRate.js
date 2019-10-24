@@ -1,33 +1,35 @@
 import React from 'react'
 import {Row, Col, InputGroup, FormControl} from 'react-bootstrap'
 import Moment from 'moment'
-import momentLocalizer from 'react-widgets-moment'
-import {DateTimePicker} from 'react-widgets'
+import DatePicker from 'react-datepicker'
 
 export default function TimeRate(props) {
-    Moment.locale('en')
-    momentLocalizer()
-
     return (
         <Row>
             <Col md={3}>
-                <DateTimePicker
+                <DatePicker 
                     key={props.id + '-start'}
-                    step={30}
-                    date={false}
-                    value={props.start_time}
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={15}
+                    dateFormat='h:mm aa'
+                    selected={props.startTime}
+                    value={props.startTime}
                     onChange={datetime => props.handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime}}, props.id)}
-                    className='pad-top'
+                    className='form-control'
                 />
             </Col>
             <Col md={3}>
-                <DateTimePicker
+                <DatePicker
                     key={props.id + '-end'}
-                    step={30}
-                    date={false}
-                    value={props.end_time}
-                    onChange={datetime => props.handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime}}, props.id)}
-                    className='pad-top'
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={15}
+                    dateFormat='h:mm aa'
+                    selected={props.endTime}
+                    value={props.endTime}
+                    onChange={datetime => props.handleTimeRateChange({target: {name: 'endTime', type:'date', value: datetime}}, props.id)}
+                    className='form-control'
                 />
             </Col>
             <Col md={4}>
