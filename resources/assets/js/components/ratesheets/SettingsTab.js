@@ -96,8 +96,6 @@ export default function SettingsTab(props) {
                                             <td>{type.friendlyName}</td>
                                         )}
                                     </tr>
-                                {/* </thead>
-                                <thead> */}
                                     <tr>
                                         {props.deliveryTypes.map(type =>
                                             <td>
@@ -110,8 +108,8 @@ export default function SettingsTab(props) {
                                                         min='0.1'
                                                         step='0.1'
                                                         name='time'
-                                                        value={props.time}
-                                                        onChange={event => props.handleChange(event, 'deliveryTypes', props.id)}
+                                                        value={type.time}
+                                                        onChange={event => props.handleChange(event, 'deliveryTypes', type.id)}
                                                     />
                                                 </InputGroup>
                                             </td>
