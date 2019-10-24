@@ -60,7 +60,10 @@ export default class Ratesheet extends Component {
                     return response.json()
                 })
                 .then((data) => {
-                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: data.timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
+                    var timeRates = data.timeRates.map(rate => {
+                        return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
+                    })
+                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
                     if(formType === 'edit') {
                         data.mapZones.map(zone => {
                             const polygon = new google.maps.Polygon({
@@ -96,7 +99,6 @@ export default class Ratesheet extends Component {
 
     handleTimeRateChange(event, id) {
         const {name, value} = event.target
-        var next
         const updated = this.state.timeRates.map((obj, index, arr) => {
             if(obj.id === id)
                 return {...obj, [name]: value}
