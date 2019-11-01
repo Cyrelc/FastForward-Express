@@ -7,7 +7,7 @@ class InterlinerValidationRules {
     	$messages = ['name.required' => 'The Interliner name cannot be blank'];
 
         $partialsRules = new \App\Http\Validation\PartialsValidationRules();
-        $address = $partialsRules->GetAddressValidationRules('address', 'Address');
+        $address = $partialsRules->GetAddressValidationRules($req, 'address', 'Address');
         $rules = array_merge($rules, $address['rules']);
         $messages = array_merge($messages, $address['messages']);
 

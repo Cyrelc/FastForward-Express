@@ -10,7 +10,7 @@ export default function TimeRate(props) {
                     key={props.id + '-start'}
                     showTimeSelect
                     showTimeSelectOnly
-                    timeIntervals={15}
+                    timeIntervals={30}
                     dateFormat='h:mm aa'
                     selected={props.startTime}
                     value={props.startTime}
@@ -23,7 +23,7 @@ export default function TimeRate(props) {
                     key={props.id + '-end'}
                     showTimeSelect
                     showTimeSelectOnly
-                    timeIntervals={15}
+                    timeIntervals={30}
                     dateFormat='h:mm aa'
                     selected={props.endTime}
                     value={props.endTime}
