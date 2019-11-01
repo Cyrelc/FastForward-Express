@@ -46,7 +46,7 @@ class InterlinerController extends Controller {
             $addrRepo = new Repos\AddressRepo();
             $interlinerRepo = new Repos\InterlinerRepo();
 
-            $address = $addrCollector->CollectForAccount($req, 'address', false);
+            $address = $addrCollector->CollectForAccount($req, 'address');
             if ($req->address_id) 
                 $addressId = $addrRepo->Update($address)->address_id;
             else
