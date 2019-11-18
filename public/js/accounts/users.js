@@ -29,7 +29,7 @@ $(document).ready(function() {
 function addUser() {
     $.ajax({
         type: "GET",
-        url: '/users/createAccountUser/' + $('#account-id').val(),
+        url: '/users/createAccountUser/' + $('#account_id').val(),
         'success' : function(results) {
             $('#edit_user_modal').html(results);
             $('select').selectpicker();
