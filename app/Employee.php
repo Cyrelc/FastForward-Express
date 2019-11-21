@@ -16,6 +16,7 @@ class Employee extends Model
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 
     public function contact() {
         return $this->belongsTo('App\Contact');

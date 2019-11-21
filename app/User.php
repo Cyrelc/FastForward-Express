@@ -28,6 +28,7 @@ class User extends Authenticatable
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
     
     public function roles() {
         return $this->belongsToMany('App\Role', 'user_roles');

@@ -15,5 +15,6 @@ class AccountUser extends Model
     protected $fillable = ['user_id', 'contact_id', 'account_id', 'is_primary'];
 
     protected static $logFillable = true;
-    protected static $logOnlyDirect = true;
+    protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 }
