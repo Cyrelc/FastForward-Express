@@ -17,9 +17,9 @@ class RatesheetController extends Controller {
         return view('ratesheets.ratesheets');
     }
 
-    public function buildTable(Request $req) {
+    public function buildTable() {
         $ratesheetModelFactory = new Ratesheet\RatesheetModelFactory();
-        $model = $ratesheetModelFactory->ListAll($req);
+        $model = $ratesheetModelFactory->ListAll();
         return json_encode($model);
     }
 
