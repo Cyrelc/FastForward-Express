@@ -48,10 +48,13 @@ Route::group(
 
             Route::get('/bills', 'BillController@index');
             Route::get('/bills/create', 'BillController@create');
-            Route::get('/bills/edit/{id}','BillController@edit');
+            Route::get('/bills/edit/{id}', 'BillController@edit');
+            // Route::get('/bills/getModel/{id?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/buildTable', 'BillController@buildTable');
+            // Route::get('/bills/{mode}', 'BillController@view');
+            // Route::get('/bills/{mode}/{id}', 'BillController@view');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');
@@ -103,6 +106,7 @@ Route::group(
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
             Route::get('/ratesheets', 'RatesheetController@index');
+            Route::get('/ratesheets/REST/index', 'RatesheetController@buildTable');
             Route::get('/ratesheets/edit/{id}', 'RatesheetController@edit');
             Route::get('/ratesheets/create', 'RatesheetController@create');
             Route::post('/ratesheets/store', 'RatesheetController@store');

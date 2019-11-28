@@ -15,6 +15,7 @@ class Contact extends Model
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 
     public function accounts() {
         return $this->belongsToMany('App\Account', 'account_users');

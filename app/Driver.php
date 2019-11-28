@@ -34,6 +34,7 @@ class Driver extends Model
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 
     public function bills() {
         return $this->belongsToMany('App\Bill');

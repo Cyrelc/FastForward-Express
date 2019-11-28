@@ -56,7 +56,8 @@ class ActivityLogRepo {
                 'users.email as user_name',
                 'description',
                 'properties'
-            );
+            )
+            ->orderBy('activity_log.updated_at', 'desc');
         return $activity->get();
     }
 

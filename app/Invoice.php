@@ -24,4 +24,5 @@ class Invoice extends Model
     
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 }

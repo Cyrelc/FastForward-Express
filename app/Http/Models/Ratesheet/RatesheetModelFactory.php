@@ -7,7 +7,8 @@ use App\Http\Models\Ratesheet;
 
 class RatesheetModelFactory {
     public function ListAll() {
-        return null;
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        return $ratesheetRepo->ListAll();
     }
 
     public function GetById($id) {

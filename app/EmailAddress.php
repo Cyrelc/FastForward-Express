@@ -15,4 +15,6 @@ class EmailAddress extends Model
     protected $fillable = ['email', 'is_primary', 'contact_id', 'type'];
 
     protected static $logFillable = true;
+    protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 }
