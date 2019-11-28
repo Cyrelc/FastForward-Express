@@ -16,7 +16,7 @@ class RatesheetRepo {
     }
 
     public function ListAll() {
-        $ratesheets = Ratesheet::select('name', 'ratesheet_id', 'delivery_types', 'weekend_rates', 'holiday_rates');
+        $ratesheets = Ratesheet::select('name', 'ratesheet_id', 'delivery_types', 'weekend_rate', 'holiday_rate');
 
         return $ratesheets->get();
     }
