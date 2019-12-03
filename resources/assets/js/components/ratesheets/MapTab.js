@@ -1,5 +1,5 @@
 import React from 'react'
-import {Row, Col, Jumbotron, InputGroup, ToggleButton, ButtonGroup, OverlayTrigger, Popover, Button} from 'react-bootstrap'
+import {Row, Col, Jumbotron, InputGroup, ToggleButton, ButtonGroup, FormControl, Popover, Button} from 'react-bootstrap'
 import Zone from './Zone'
 
 export default function MapTab(props) {
@@ -17,6 +17,17 @@ export default function MapTab(props) {
         <Jumbotron fluid>
             <Row>
                 <Col md={3}>
+                    <InputGroup>
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Snap Accuracy</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl 
+                            type='number'
+                            name='snapPrecision'
+                            value={props.snapPrecision}
+                            onChange={props.handleChange}
+                        />
+                    </InputGroup>
                     <InputGroup>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Default Zone Type: </InputGroup.Text>
@@ -47,17 +58,12 @@ export default function MapTab(props) {
                                 onChange={props.handleChange}
                                 style={{backgroundColor: props.polyColours.outlyingFill, color:props.defaultZoneType === 'outlying' ? 'black' : 'white'}}>Outlying</ToggleButton>
                         </ButtonGroup>
-                        {/* <InputGroup.Append>
-                            <OverlayTrigger trigger='click' placement='right' overlay={popover}>
-                                <Button variant='success'>How to</Button>
-                            </OverlayTrigger>
-                        </InputGroup.Append> */}
                     </InputGroup>
-                    <div style={{height: 1000, overflowY: 'scroll'}}>
+                    <div style={{height: 900, overflowY: 'scroll'}}>
                         {props.mapZones.map(zone => 
-                            <Zone 
-                                key={zone.id} 
-                                id={zone.id} 
+                            <Zone
+                                key={zone.id}
+                                id={zone.id}
                                 zone={zone}
                                 handleChange={props.handleChange}
                                 deleteZone={props.deleteZone}

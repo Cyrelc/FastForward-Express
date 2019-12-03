@@ -9,7 +9,7 @@ export default function Zone(props) {
                     <Col>
                         <InputGroup>
                             <InputGroup.Prepend>
-                                <InputGroup.Text>Zone Name: </InputGroup.Text>
+                                <InputGroup.Text>Name: </InputGroup.Text>
                             </InputGroup.Prepend>
                             <FormControl type='text' name='name' value={props.zone.name} onChange={event => props.handleChange(event, 'mapZones', props.id)}/>
                         </InputGroup>
