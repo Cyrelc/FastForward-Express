@@ -11,24 +11,25 @@ export default class Ratesheet extends Component {
         super()
         this.state = {
             key: 'settings',
-            formType: null,
-            ratesheetId: null,
-            name: '',
-            holidayRate: '',
-            weekendRate: '',
-            useInternalZonesCalc: true,
+            defaultZoneType: 'internal',
             deliveryTypes: [],
+            formType: null,
+            holidayRate: '',
+            latLngPrecision: 5,
+            map: undefined,
+            mapCenter: new google.maps.LatLng(53.544389, -113.4909266),
+            mapDrawingManager: undefined,
+            mapZones: [],
+            mapZoom: 12,
+            name: '',
+            polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
+            ratesheetId: null,
+            snapPrecision: 200,
             timeRates: [],
+            useInternalZonesCalc: true,
+            weekendRate: '',
             weightRates: [],
             zoneRates: [],
-            mapZones: [],
-            polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
-            mapCenter: new google.maps.LatLng(53.544389, -113.49092669999999),
-            mapZoom: 12,
-            map: undefined,
-            mapDrawingManager: undefined,
-            defaultZoneType: 'internal',
-            useSnapping: true
         }
         this.handleChange = this.handleChange.bind(this)
         this.handleTimeRateChange = this.handleTimeRateChange.bind(this)
@@ -66,8 +67,9 @@ export default class Ratesheet extends Component {
                     this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
                     if(formType === 'edit') {
                         data.mapZones.map(zone => {
+                            const coordinates = JSON.parse(zone.coordinates) ? JSON.parse(zone.coordinates) : zone.coordinates;
                             const polygon = new google.maps.Polygon({
-                                    paths: zone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
+                                    paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
                                 })
                             polygon.setMap(this.state.map)
                             this.createPolygon(polygon, zone)
@@ -220,20 +222,20 @@ export default class Ratesheet extends Component {
     }
 
     getCoordinates(polygon) {
-        return polygon.getPath().g.map(point => {return {lat: parseFloat(point.lat()), lng: parseFloat(point.lng())}})
+        return polygon.getPath().g.map(point => {return {lat: parseFloat(point.lat()).toFixed(this.state.latLngPrecision), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
     updateZone(id) {
         const updated = this.state.mapZones.map(zone => {
             if(zone.id === id) {
-                if(this.state.useSnapping) {
+                if(this.state.snapPrecision > 0) {
                     var temp = zone.polygon.getPath()
                     zone.polygon.getPath().forEach((coord1, i) => {
                         this.state.mapZones.map((compZone) => {
                             if(compZone.id === id)
                                 return
                             compZone.polygon.getPath().forEach((coord2) => {
-                                if(google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2) < 200)
+                                if(google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2) < this.state.snapPrecision)
                                     temp.g[i] = coord2
                             })
                         })
@@ -257,8 +259,8 @@ export default class Ratesheet extends Component {
             deliveryTypes : this.state.deliveryTypes.slice(),
             weightRates : this.state.weightRates.slice(),
             zoneRates : this.state.zoneRates.slice(),
-            mapZones : this.state.mapZones.map(zone => {return {...zone, polygon : null}}),
-            timeRates: this.state.timeRates.slice()
+            mapZones : this.state.mapZones.map(zone => {return {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice())}}),
+            timeRates: this.state.timeRates.slice(),
         }
         $.ajax({
             'url': '/ratesheets/store',
@@ -302,8 +304,10 @@ export default class Ratesheet extends Component {
                             <MapTab 
                                 polyColours = {this.state.polyColours}
                                 defaultZoneType = {this.state.defaultZoneType}
-                                handleChange={this.handleChange}
+                                snapPrecision={this.state.snapPrecision}
                                 mapZones={this.state.mapZones}
+
+                                handleChange={this.handleChange}
                                 deleteZone={this.deleteZone}
                                 editZone={this.editZone}
                             />
