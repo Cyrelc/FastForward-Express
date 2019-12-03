@@ -67,7 +67,13 @@ export default class Ratesheet extends Component {
                     this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
                     if(formType === 'edit') {
                         data.mapZones.map(zone => {
-                            const coordinates = JSON.parse(zone.coordinates) ? JSON.parse(zone.coordinates) : zone.coordinates;
+                            const coordinates = (() => {
+                                try{
+                                    return JSON.parse(zone.coordinates)
+                                } catch (e) {
+                                    return zone.coordinates
+                                }
+                            })()
                             const polygon = new google.maps.Polygon({
                                     paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
                                 })
