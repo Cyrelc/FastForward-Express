@@ -28,6 +28,83 @@ export default function SettingsTab(props) {
                 <hr/>
                 <Row>
                     <Col md={2}>
+                        <h4 className='text-muted'>Pallet/Skid Pricing</h4>
+                    </Col>
+                    <Col md={10}>
+                        <InputGroup>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Base Cost: $</InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <FormControl
+                                type='number'
+                                name='palletBasePrice'
+                                min={1}
+                                step={0.01}
+                                value={props.palletRate.palletBasePrice}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text>Up to: </InputGroup.Text>
+                            </InputGroup.Append>
+                            <FormControl
+                                type='number'
+                                name='palletBaseWeightKgs'
+                                min={1}
+                                value={props.palletRate.palletBaseWeightKgs}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text> kgs </InputGroup.Text>
+                            </InputGroup.Append>
+                            <FormControl
+                                type='number'
+                                name='palletBaseWeightLbs'
+                                min={1}
+                                value={props.palletRate.palletBaseWeightLbs}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text> lbs</InputGroup.Text>
+                            </InputGroup.Append>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Additional Cost: $</InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <FormControl
+                                type='number'
+                                name='palletAdditionalCharge'
+                                min={1}
+                                value={props.palletRate.palletAdditionalCharge}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text> for every </InputGroup.Text>
+                            </InputGroup.Append>
+                            <FormControl
+                                type='number'
+                                name='palletAdditionalWeightKgs'
+                                min={1}
+                                value={props.palletRate.palletAdditionalWeightKgs}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text> kgs </InputGroup.Text>
+                            </InputGroup.Append>
+                            <FormControl
+                                type='number'
+                                name='palletAdditionalWeightLbs'
+                                min={1}
+                                value={props.palletRate.palletAdditionalWeightLbs}
+                                onChange={props.handlePalletRateChange}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text> lbs</InputGroup.Text>
+                            </InputGroup.Append>
+                        </InputGroup>
+                    </Col>
+                </Row>
+                <hr/>
+                <Row>
+                    <Col md={2}>
                         <h4 className='text-muted'>Weekends & Holidays</h4>
                     </Col>
                     <Col md={4}>
