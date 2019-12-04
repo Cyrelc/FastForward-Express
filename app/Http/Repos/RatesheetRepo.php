@@ -35,6 +35,7 @@ class RatesheetRepo {
         $old->holiday_rate = $ratesheet['holiday_rate'];
         $old->time_rates = $ratesheet['time_rates'];
         $old->delivery_types = $ratesheet['delivery_types'];
+        $old->pallet_rate = $ratesheet['pallet_rate'];
         $old->weight_rates = $ratesheet['weight_rates'];
         $old->zone_rates = $ratesheet['zone_rates'];
         $old->map_zones = $ratesheet['map_zones'];

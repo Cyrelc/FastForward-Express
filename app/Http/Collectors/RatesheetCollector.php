@@ -12,6 +12,7 @@ class RatesheetCollector {
             'weekend_rate' => $req->weekendRate,
             'holiday_rate' => $req->holidayRate,
             'delivery_types' => json_encode($req->deliveryTypes),
+            'pallet_rate' => json_encode($req->palletRate),
             'time_rates' => json_encode($req->timeRates),
             'weight_rates' => json_encode($req->weightRates),
             'zone_rates' => json_encode($req->zoneRates),

@@ -44,7 +44,7 @@ class ContactCollector {
             $email = [
                 'email_address_id' => $req->email_address_id[$i],
                 'email' => $req->email[$i],
-                'type' => $req->email_type[$i],
+                'type' => $req->email_type[$i] ? $req->email_type[$i] : null,
                 'is_primary' => $is_primary,
                 'contact_id' => $contact_id
             ];

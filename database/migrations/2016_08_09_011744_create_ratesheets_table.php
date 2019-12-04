@@ -15,15 +15,17 @@ class CreateRatesheetsTable extends Migration
     {
         Schema::create('ratesheets', function (Blueprint $table) {
             $table->increments('ratesheet_id');
-            $table->string('name');
-            $table->boolean('use_internal_zones_calc');
+
             $table->text('delivery_types');
-            $table->text('weight_rates');
-            $table->text('zone_rates');
-            $table->text('map_zones');
-            $table->float('weekend_rate');
             $table->float('holiday_rate');
+            $table->mediumText('map_zones');
+            $table->string('name');
+            $table->text('pallet_rate');
             $table->text('time_rates')->nullable();
+            $table->boolean('use_internal_zones_calc');
+            $table->text('weight_rates');
+            $table->float('weekend_rate');
+            $table->text('zone_rates');
         });
     }
 

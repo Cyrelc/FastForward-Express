@@ -4,7 +4,14 @@ namespace App\Http\Validation;
 class RatesheetValidationRules {
     public function GetValidationRules($req) {
         $rules = [
+            'deliveryTypes.*.time' => 'required|numeric',
             'name' => 'required|alpha_dash|unique:ratesheets,name,' . $req->ratesheetId . ',ratesheet_id',
+            'palletRate.palletBasePrice' => 'required|numeric',
+            'palletRate.palletBaseWeightKgs' => 'required|numeric',
+            'palletRate.palletBaseWeightLbs' => 'required|numeric',
+            'palletRate.palletAdditionalCharge' => 'required|numeric',
+            'palletRate.palletAdditionalWeightKgs' => 'required|numeric',
+            'palletRate.palletAdditionalWeightLbs' => 'required|numeric',
             'weightRates' => 'required|array|min:2',
         ];
 

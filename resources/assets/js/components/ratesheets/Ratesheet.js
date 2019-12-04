@@ -22,6 +22,7 @@ export default class Ratesheet extends Component {
             mapZones: [],
             mapZoom: 12,
             name: '',
+            palletRate: {},
             polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
             ratesheetId: null,
             snapPrecision: 200,
@@ -32,6 +33,7 @@ export default class Ratesheet extends Component {
             zoneRates: [],
         }
         this.handleChange = this.handleChange.bind(this)
+        this.handlePalletRateChange = this.handlePalletRateChange.bind(this)
         this.handleTimeRateChange = this.handleTimeRateChange.bind(this)
         this.handleWeightRateChange = this.handleWeightRateChange.bind(this)
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
@@ -64,7 +66,7 @@ export default class Ratesheet extends Component {
                     var timeRates = data.timeRates.map(rate => {
                         return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
                     })
-                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
+                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, palletRate: data.palletRate, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
                     if(formType === 'edit') {
                         data.mapZones.map(zone => {
                             const coordinates = (() => {
@@ -103,6 +105,20 @@ export default class Ratesheet extends Component {
         if(value === '' || value === undefined || value === 0)
             return true
         return false
+    }
+
+    handlePalletRateChange(event) {
+        const { name, value } = event.target
+        if(name === 'palletAdditionalWeightKgs')
+            this.setState({palletRate: {...this.state.palletRate, [name]: value, palletAdditionalWeightLbs: kilogramsToPounds(value)}})
+        else if (name === 'palletAdditionalWeightLbs')
+            this.setState({palletRate: {...this.state.palletRate, [name] : value, palletAdditionalWeightKgs: poundsToKilograms(value)}})
+        else if (name === 'palletBaseWeightKgs')
+            this.setState({palletRate: {...this.state.palletRate, [name]: value, palletBaseWeightLbs: kilogramsToPounds(value)}})
+        else if (name === 'palletBaseWeightLbs')
+            this.setState({palletRate: {...this.state.palletRate, [name]: value, palletBaseWeightKgs: poundsToKilograms(value)}})
+        else
+            this.setState({palletRate: {...this.state.palletRate, [name] : value}})
     }
 
     handleTimeRateChange(event, id) {
@@ -260,6 +276,7 @@ export default class Ratesheet extends Component {
             name: this.state.name,
             holidayRate: this.state.holidayRate,
             weekendRate: this.state.weekendRate,
+            palletRate: this.state.palletRate,
             ratesheetId : this.state.ratesheetId,
             useInternalZonesCalc: this.state.useInternalZonesCalc,
             deliveryTypes : this.state.deliveryTypes.slice(),
@@ -296,14 +313,17 @@ export default class Ratesheet extends Component {
                             <SettingsTab 
                                 name= {this.state.name}
                                 deliveryTypes= {this.state.deliveryTypes}
+                                palletRate={this.state.palletRate}
                                 timeRates = {this.state.timeRates} 
                                 weightRates= {this.state.weightRates}
                                 useInternalZonesCalc= {this.state.useInternalZonesCalc}
+                                zoneRates = {this.state.zoneRates}
+
                                 handleChange= {this.handleChange}
+                                handlePalletRateChange = {this.handlePalletRateChange}
                                 handleTimeRateChange = {this.handleTimeRateChange}
                                 handleWeightRateChange = {this.handleWeightRateChange}
                                 handleZoneRateChange = {this.handleZoneRateChange}
-                                zoneRates = {this.state.zoneRates}
                             />
                         </Tab>
                         <Tab eventKey='map' title={<h3><i className='fas fa-map'></i> Map</h3>}>
