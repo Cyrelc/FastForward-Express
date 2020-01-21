@@ -2,6 +2,8 @@
 /node_modules
 /public/storage
 /public/compiled_js
+/public/mix-manifest.json
+/public/css/app.css
 Homestead.yaml
 Homestead.json
 .env

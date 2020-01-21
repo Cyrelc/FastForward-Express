@@ -12,10 +12,11 @@
             @endif
         </title>
 
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
-        <script src='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js'></script>
-        <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyCsYKY4RmwIz_LqRgM5tng5ve-zo1HDr_U&libraries=places,drawing,geometry'></script>
-        <script type='text/javascript' src='/js/toastr.min.js'> </script>
+        <!--Global Scripts-->
+
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
+        <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,drawing,geometry"></script>
+        <script type='text/javascript' src='/js/toastr.min.js'></script>
         <script src="{{URL::to('/')}}/js/utils.js"></script>
 
         <!-- Fonts -->
@@ -24,12 +25,7 @@
 
         <!-- Styles -->
         <link href="{{asset('css/app.css')}}" rel='stylesheet' />
-        <link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css' />
         <link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
-
-        <!--Global Scripts-->
-        <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
-        <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
 
         @yield('head')
     </head>
