@@ -109,7 +109,7 @@ class EmployeeController extends Controller {
             $addressCollector = new \App\Http\Collectors\AddressCollector();
 
             $contact = $contactCollector->GetContact($req);
-            $address = $addressCollector->Collect($req, 'contact', true);
+            $address = $addressCollector->CollectForAccount($req, 'contact-address', true);
 
             $employeeId = $req->input('employee_id');
             $isEdit = $employeeId !== null && $employeeId > 0;
