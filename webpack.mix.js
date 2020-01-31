@@ -14,5 +14,5 @@ let mix = require('laravel-mix');
 mix.react('resources/assets/js/app.js', 'public/compiled_js')
    .react('resources/assets/js/components/ratesheets/Ratesheet.js', 'public/compiled_js')
    .react('resources/assets/js/components/ratesheets/Ratesheets.js', 'public/compiled_js')
-   // .react('resources/assets/js/components/bills/Bill.js', 'public/compiled_js')
+   .react('resources/assets/js/components/bills/Bill.js', 'public/compiled_js')
    .sass('resources/assets/sass/app.scss', 'public/css');

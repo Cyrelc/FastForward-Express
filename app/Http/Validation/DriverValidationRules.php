@@ -4,11 +4,12 @@ namespace app\Http\Validation;
 
 class DriverValidationRules {
     public function GetValidationRules() {
+        //legacy license plate regex (for documentation purposes only/no longer enforced): 'regex:/([A-Z]{3}-[0-9]{4})|([B-WY][A-Z]{2}-[0-9]{3})|([1-9]-[0-9]{5})|([B-DF-HJ-NP-TV-XZ]-[0-9]{5})|([0-9]{2}-[A-Z][0-9]{3})/'
         return [
             'rules' =>[
                 'pager_number' => ['regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
                 'DLN' => 'required',
-                'license_plate' => ['required', 'regex:/([A-Z]{3}-[0-9]{4})|([B-WY][A-Z]{2}-[0-9]{3})|([1-9]-[0-9]{5})|([B-DF-HJ-NP-TV-XZ]-[0-9]{5})|([0-9]{2}-[A-Z][0-9]{3})/'],
+                'license_plate' => ['required', 'string', 'between:1,8'],
                 'insurance' => 'required',
                 'license_expiration' => 'required|date',
                 'license_plate_expiration' => 'required|date',
