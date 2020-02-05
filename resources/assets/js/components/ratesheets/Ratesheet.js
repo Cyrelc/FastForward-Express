@@ -197,6 +197,7 @@ export default class Ratesheet extends Component {
         polygon.addListener('click', () => this.editZone(polygon.zIndex))
         google.maps.event.addListener(polygon.getPath(), 'insert_at', () => this.updateZone(polygon.zIndex))
         google.maps.event.addListener(polygon.getPath(), 'set_at', () => this.updateZone(polygon.zIndex))
+        google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
         var newZone = {
             id: polygon.zIndex, 
             name : zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex, 
@@ -218,6 +219,15 @@ export default class Ratesheet extends Component {
         this.setState({mapZones: this.state.mapZones.concat([newZone])})
         this.updateZone(polygon.zIndex)
         name === '' ? this.editZone(polygon.zIndex) : null;
+    }
+
+    deletePolyPoint(point, id) {
+        if(point.vertex != null)
+            this.state.mapZones.map((zone, index) => {
+                if(zone.id === id) {
+                    zone.polygon.getPath().removeAt(point.vertex);
+                }
+            })
     }
 
     deleteZone(id) {
