@@ -34,18 +34,9 @@ class BillController extends Controller {
         return $billRepo->ListAll($req);
     }
 
-    public function create(Request $req) {
+    public function view(Request $req) {
         // Check permissions
-        $bill_model_factory = new Bill\BillModelFactory();
-        $model = $bill_model_factory->GetCreateModel($req);
-        return view('bills.bill', compact('model'));
-    }
-
-    public function edit(Request $req, $bill_id) {
-        $billRepo = new Repos\BillRepo();
-        $factory = new Bill\BillModelFactory();
-        $model = $factory->GetEditModel($req, $bill_id);
-        return view('bills.bill', compact('model'));
+        return view('bills.bill');
     }
 
     public function delete(Request $req, $id) {
@@ -57,6 +48,15 @@ class BillController extends Controller {
             $billRepo->Delete($id);
             return redirect()->action('BillController@index');
         }
+    }
+
+    public function getModel(Request $req, $id = null) {
+        $billModelFactory = new Bill\BillModelFactory();
+        if($id)
+            $model = $billModelFactory->GetEditModel($req, $id);
+        else
+            $model = $billModelFactory->GetCreateModel($req);
+        return json_encode($model);
     }
 
     public function store(Request $req) {
@@ -81,56 +81,34 @@ class BillController extends Controller {
             $billCollector = new \App\Http\Collectors\BillCollector();
             $packageCollector = new \App\Http\Collectors\PackageCollector();
 
-            $pickupAddress = $addrCollector->CollectForAccount($req, 'pickup', false);
-            $deliveryAddress = $addrCollector->CollectForAccount($req, 'delivery', false);
+            $oldBill = $billRepo->getById($req->bill_id);
 
-            if ($req->bill_id) {
-                $pickupAddressId = $addrRepo->Update($pickupAddress)->address_id;
-                $deliveryAddressId = $addrRepo->Update($deliveryAddress)->address_id;
+            $pickupAddress = $addrCollector->CollectMinimal($req, 'pickup_address', $oldBill ? $oldBill->pickup_address_id : null);
+            $deliveryAddress = $addrCollector->CollectMinimal($req, 'delivery_address', $oldBill ? $oldBill->delivery_address_id : null);
+
+            if ($oldBill) {
+                $pickupAddressId = $addrRepo->UpdateMinimal($pickupAddress)->address_id;
+                $deliveryAddressId = $addrRepo->UpdateMinimal($deliveryAddress)->address_id;
             }
             else {
-                $pickupAddressId = $addrRepo->Insert($pickupAddress)->address_id;
-                $deliveryAddressId = $addrRepo->Insert($deliveryAddress)->address_id;
+                $pickupAddressId = $addrRepo->InsertMinimal($pickupAddress)->address_id;
+                $deliveryAddressId = $addrRepo->InsertMinimal($deliveryAddress)->address_id;
             }
 
-            $old_bill = isset($req->bill_id) ? $billRepo->getById($req->bill_id) : null;
-            $payment_id = $req->charge_type == '' ? null : $this->getPaymentId($old_bill, $req);
+            $payment_id = $req->payment_type ? $this->getPaymentId($oldBill, $req) : null;
 
             $bill = $billCollector->Collect($req, $pickupAddressId, $deliveryAddressId, $payment_id);
 
-            if($req->bill_id)
+            if($oldBill)
                 $bill = $billRepo->Update($bill);
             else
                 $bill = $billRepo->Insert($bill);
-
-            $packages = $packageCollector->Collect($req, $bill->bill_id);
-
-            if($bill->bill_id) {
-                $old_packages = $packageRepo->GetByBillId($bill->bill_id);
-                $old_package_ids = [];
-                $new_package_ids = [];
-                foreach($old_packages as $old_package)
-                    array_push($old_package_ids, $old_package->package_id);
-                foreach($packages as $package)
-                    array_push($new_package_ids, $package['package_id']);
-                $delete_package_ids = array_diff($old_package_ids, $new_package_ids);
-                foreach($delete_package_ids as $delete_id)
-                    $packageRepo->Delete($delete_id);
-            }
-
-            foreach($packages as $package) {
-                if ($package['package_id'] == 'null')
-                    $packageRepo->Insert($package);
-                else
-                    $packageRepo->Update($package);
-            }
-
             //if a previous payment method exists, that does not match the currently submitted payment method
             //then delete the old payment record if necessary
-            if($old_bill != null && $req->charge_type != 'prepaid' && $old_bill->payment_id != null)
-                $paymentRepo->Delete($old_bill->payment_id);
-            elseif($old_bill != null && $req->charge_type != 'driver' && $old_bill->chargeback_id != null)
-                $chargebackRepo->Delete($old_bill->chargeback_id);
+            if($oldBill != null && ($req->payment_type['name'] === 'Account' || $req->payment_type['name'] === 'Driver') && $oldBill->payment_id != null)
+                $paymentRepo->Delete($oldBill->payment_id);
+            elseif($oldBill != null && $req->payment_type['name'] != 'Driver' && $oldBill->chargeback_id != null)
+                $chargebackRepo->Delete($oldBill->chargeback_id);
 
             DB::commit();
 
@@ -153,10 +131,10 @@ class BillController extends Controller {
         $chargebackRepo = new Repos\ChargebackRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
-        switch ($req->charge_type) {
-            case 'account':
+        switch ($req->payment_type['name']) {
+            case 'Account':
                 return $req->charge_account_id;
-            case 'driver':
+            case 'Driver':
                 $amount = ($req->amount == '' ? 0 : $req->amount) + ($req->interliner_cost_to_customer == '' ? 0 : $req->interliner_cost_to_customer);
                 if($old_bill != null && $old_bill->chargeback_id != null) {
                     $data = new \Illuminate\Http\Request();
@@ -165,18 +143,18 @@ class BillController extends Controller {
                     return $old_bill->chargeback_id;
                 } else {
                     $chargeback = [
-                        'employee_id' => $req->charge_driver_id,
+                        'employee_id' => $req->charge_employee_id,
                         'amount' => $amount,
                         'gl_code' => null,
                         'name' => 'Bill Chargeback',
                         'description' => $req->description,
                         'continuous' => false,
-                        'count_remaining' => 0,
+                        'count_remaining' => 1,
                         'start_date' => (new \DateTime($req->input('start_date')))->format('Y-m-d')
                     ];
                     return ($chargebackRepo->CreateBillChargeback($chargeback))->chargeback_id;
                 }
-            case 'prepaid':
+            default:
                 if($old_bill != null && $old_bill->payment_id != null) {
                     $payment = (new \App\Http\Collectors\PaymentCollector())->CollectBillPayment($req);
                     return ($paymentRepo->Update($old_bill->payment_id, $payment))->payment_id;

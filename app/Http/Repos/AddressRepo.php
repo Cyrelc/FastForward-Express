@@ -47,6 +47,12 @@ class AddressRepo {
         return $new;
     }
 
+    public function InsertMinimal($address) {
+        $new = new Address;
+
+        return $new->create($address);
+    }
+
     public function Update($address) {
         $old = $this->GetById($address['address_id']);
 
@@ -60,6 +66,20 @@ class AddressRepo {
         $old->lat = $address['lat'];
         $old->lng = $address['lng'];
         $old->formatted = $address['formatted'];
+
+        $old->save();
+
+        return $old;
+    }
+
+    public function updateMinimal($address) {
+        $old = $this->GetById($address['address_id']);
+
+        $old->name = $address['name'];
+        $old->formatted = $address['formatted'];
+        $old->lat = $address['lat'];
+        $old->lng = $address['lng'];
+        $old->place_id = $address['place_id'];
 
         $old->save();
 

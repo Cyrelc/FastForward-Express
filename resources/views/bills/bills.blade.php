@@ -37,7 +37,6 @@
 				<td>Delivery Driver</td>
 				<td>Interliner</td>
 				<td>Description</td>
-				<td>Packages</td>
 				<td>Invoice</td>
 				<td>Pickup Manifest</td>
 				<td>Delivery Manifest</td>

@@ -68,6 +68,10 @@ function roundTimeToNextFifteenMinutes(time = null) {
     return rounded
 }
 
+function getDatetimeDifferenceInHours(datetime, datetime2) {
+    return Math.abs(datetime - datetime2) / 36e5
+}
+
 function poundsToKilograms(pounds){
     return +(pounds / 2.2046).toFixed(3);
 }

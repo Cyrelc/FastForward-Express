@@ -6,7 +6,6 @@ class BillFormModel {
     public $bill;
     public $accounts;
     public $drivers;
-    public $packages = [];
     public $interliners;
     public $charge_reference_name;
     public $pickup_reference_name;

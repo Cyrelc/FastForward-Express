@@ -49,6 +49,8 @@ class ActivityLogRepo {
         $activity = ActivityLog::where([['subject_type', 'App\Bill'], ['subject_id', $bill_id]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->pickup_address_id]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->delivery_address_id]])
+            ->orWhere([['subject_type', 'App\Payment'], ['subject_id', $bill->payment_id]])
+            ->orWhere([['subject_type', 'App\Chargeback'], ['subject_id', $bill->chargeback_id]])
             ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
             ->select('activity_log.updated_at',
                 'subject_type',

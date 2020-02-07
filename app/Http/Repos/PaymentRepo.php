@@ -2,6 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Payment;
+use App\PaymentType;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRepo {
@@ -37,9 +38,15 @@ class PaymentRepo {
         return;
     }
 
+    public function getPaymentTypes() {
+        $payment_types = PaymentType::All();
+
+        return $payment_types;
+    }
+
     public function Update($payment_id, $payment) {
         $old = Payment::where('payment_id', $payment_id)->first();
-        $fields = array('amount', 'payment_type', 'reference_value');
+        $fields = array('amount', 'payment_type_id', 'reference_value');
 
         foreach($fields as $field)
             $old->$field = $payment[$field];

@@ -1,5 +1,5 @@
 function storeGST(){
-    var data = $('#gst_form').serialize();
+	var data = $('#gst_form').serialize();
 	$.ajax({
 		'url': '/appsettings/storeGST',
 		'type': 'POST',

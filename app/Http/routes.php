@@ -47,14 +47,12 @@ Route::group(
             Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
             Route::get('/bills', 'BillController@index');
-            Route::get('/bills/create', 'BillController@create');
-            Route::get('/bills/edit/{id}', 'BillController@edit');
-            // Route::get('/bills/getModel/{id?}', 'BillController@getModel');
+            Route::get('/bills/getModel/{id?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/buildTable', 'BillController@buildTable');
-            // Route::get('/bills/{mode}', 'BillController@view');
-            // Route::get('/bills/{mode}/{id}', 'BillController@view');
+            Route::get('/bills/{mode}', 'BillController@view');
+            Route::get('/bills/{mode}/{id}', 'BillController@view');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');

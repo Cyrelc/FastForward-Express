@@ -68,12 +68,13 @@
 
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
+
 		    $acctRepo = new Repos\AccountRepo();
-		    $interlinersRepo = new Repos\InterlinerRepo();
-		    $selectionsRepo = new Repos\SelectionsRepo();
-		    $employeeRepo = new Repos\EmployeeRepo();
-		    $driverRepo = new Repos\DriverRepo();
 		    $contactsRepo = new Repos\ContactRepo();
+		    $driverRepo = new Repos\DriverRepo();
+		    $employeeRepo = new Repos\EmployeeRepo();
+			$interlinersRepo = new Repos\InterlinerRepo();
+			$paymentRepo = new Repos\PaymentRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
 		    $model->employees = $employeeRepo->ListAllDrivers();
@@ -84,18 +85,24 @@
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
 
+			$model->packages = array(['packageId' => 0, 'packageCount' => 1, 'packageWeight' => '', 'packageLength' => '', 'packageWidth' => '', 'packageHeight' => '']);
+
 			$model->pickupAddress = new \App\Address();
 			$model->deliveryAddress = new \App\Address();
 		    $model->charge_selection_submission = null;
 			$model->bill->time_call_received = date("U");
-		    $model->skip_invoicing = 'false';
-		    $model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
-			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
+			$model->skip_invoicing = false;
+
+			$model->payment_types = $paymentRepo->GetPaymentTypes();
 			$model->read_only = false;
-			$model->chargeback = new \App\Chargeback;
-			$model->payment = new \App\Payment;
-			
-		    return $model;
+
+			//set minimum and maximum pickup times based on config settings
+			$model = $this->setBusinessHours($model);
+			//ADMIN status and RATESHEET ID to be dynamically decided
+			$model->admin = true;
+			$model->ratesheet_id = 1;
+
+			return $model;
 		}
 
 		public function GetEditModel($req, $bill_id) {
@@ -109,7 +116,6 @@
 			$billRepo = new Repos\BillRepo();
 			$selectionsRepo = new Repos\SelectionsRepo();
 			$contactsRepo = new Repos\ContactRepo();
-			$packageRepo = new Repos\PackageRepo();
 			$paymentRepo = new Repos\PaymentRepo();
 			$chargebackRepo = new Repos\ChargebackRepo();
 			$activityLogRepo = new Repos\ActivityLogRepo();
@@ -121,20 +127,16 @@
 		    }
 
 			$model->bill = $billRepo->GetById($bill_id);
+			$model = $this->setBusinessHours($model);
 
-            $model->pickupAddress = $addrRepo->GetById($model->bill->pickup_address_id);
-            $model->deliveryAddress = $addrRepo->GetById($model->bill->delivery_address_id);
-			$model->bill->time_pickup_scheduled = strtotime($model->bill->time_pickup_scheduled);
-			$model->bill->time_delivery_scheduled = strtotime($model->bill->time_delivery_scheduled);
-			$model->bill->time_call_received = strtotime($model->bill->time_call_received);
-			isset($model->bill->time_dispatched) ? $model->bill->time_dispatched = strtotime($model->bill->time_dispatched) : '';
-			isset($model->bill->time_picked_up) ? $model->bill->time_picked_up = strtotime($model->bill->time_picked_up) : '';
-			isset($model->bill->time_delivered) ? $model->bill->time_delivered = strtotime($model->bill->time_delivered) : '';
+            $model->pickup_address = $addrRepo->GetById($model->bill->pickup_address_id);
+            $model->delivery_address = $addrRepo->GetById($model->bill->delivery_address_id);
 			$model->bill->pickup_driver_commission *= 100;
 			$model->bill->delivery_driver_commission *= 100;
-			$model->packages = $packageRepo->GetByBillId($model->bill->bill_id);
-			$model->chargeback = $model->bill->chargeback_id == null ? new \App\Chargeback : $chargebackRepo->GetById($model->bill->chargeback_id);
-			$model->payment = $model->bill->payment_id == null ? new \App\Payment : $paymentRepo->GetById($model->bill->payment_id);
+			$model->bill->percentage_complete *= 100;
+			$model->bill->packages = json_decode($model->bill->packages);
+			$model->chargeback = $model->bill->chargeback_id === null ? null : $chargebackRepo->GetById($model->bill->chargeback_id);
+			$model->payment = $model->bill->payment_id == null ? null : $paymentRepo->GetById($model->bill->payment_id);
 			$model->read_only = $billRepo->IsReadOnly($model->bill);
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
@@ -146,6 +148,23 @@
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
 			foreach($model->activity_log as $key => $log)
 				$model->activity_log[$key]->properties = json_decode($log->properties);
+
+			$model->admin = true;
+			$model->read_only = false;
+			$model->ratesheet_id = 1;
+			$model->payment_types = $paymentRepo->GetPaymentTypes();
+
+			return $model;
+		}
+
+		private function setBusinessHours($model) {
+			//set minimum and maximum pickup times based on config settings
+			$business_hours_open = explode(':', config('ffe_config.business_hours_open'));
+			$business_hours_close = explode(':', config('ffe_config.business_hours_close'));
+			$model->time_min = new \DateTime();
+			$model->time_min->setTime((int)$business_hours_open[0], (int)$business_hours_open[1]);
+			$model->time_max = new \DateTime();
+			$model->time_max->setTime((int)$business_hours_close[0], (int)$business_hours_close[1]);
 
 			return $model;
 		}
