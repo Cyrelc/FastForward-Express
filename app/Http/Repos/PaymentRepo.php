@@ -38,10 +38,23 @@ class PaymentRepo {
         return;
     }
 
-    public function getPaymentTypes() {
+    public function GetPaymentTypes() {
         $payment_types = PaymentType::All();
 
         return $payment_types;
+    }
+
+    public function UpdatePaymentType($paymentType) {
+        $old = PaymentType::where('payment_type_id', $paymentType['payment_type_id'])->first();
+
+        $fields = array('default_ratesheet_id');
+
+        foreach($fields as $field)
+            $old->$field = $paymentType[$field];
+
+        $old->save();
+
+        return $old;
     }
 
     public function Update($payment_id, $payment) {

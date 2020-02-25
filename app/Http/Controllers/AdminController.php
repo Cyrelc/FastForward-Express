@@ -2,25 +2,59 @@
 
     namespace App\Http\Controllers;
 
+    use Config;
+    use DB;
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\Hash;
 
     use App\Http\Models\Admin;
+    use App\Http\Repos;
 
     Class AdminController extends Controller {
-        public function load() {
-            $path = __DIR__."/../../../config/ffe_config/adminSettings.xml";
-            $xml = simplexml_load_file($path);
-            $factory = new Admin\AdminModelFactory();
-            $model = $factory->GetEditModel($xml->GST);
-            return view('admin.adminSettings', compact('model'));
+
+        public function getModel() {
+            $adminModelFactory = new Admin\AdminModelFactory();
+            $model = $adminModelFactory->GetAppSettingsModel();
+            return json_encode($model);
         }
 
-        public function storeGST(Request $req) {
-            $path = __DIR__."/../../../config/ffe_config/adminSettings.xml";
-            $xml = simplexml_load_file($path);
-            $xml->GST = $req->input('gst_percent');
-            $xml->asXML($path);
+        public function view() {
+            return view('admin.appSettings');
+        }
+
+        public function store(Request $req) {
+            DB::beginTransaction();
+            try {
+                $adminValidation = new \App\Http\Validation\AdminValidationRules();
+                $temp = $adminValidation->GetPaymentTypeValidationRules($req);
+
+                $validationRules = $temp['rules'];
+                $validationMessages = $temp['messages'];
+
+                $this->validate($req, $validationRules, $validationMessages);
+
+                $paymentRepo = new Repos\PaymentRepo;
+
+                foreach($req->paymentTypes as $paymentType)
+                    $paymentRepo->UpdatePaymentType($paymentType);
+
+                //todo: see about server "restart" or cache clear when updating config variables
+                // config(['ffe_config.gst' => (float)$req->gst]);
+                // Config::write('ffe_config.gst', (float)$req->gst);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                ]);
+            } catch (Exception $e) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
         
         public function hashPassword(Request $req) {

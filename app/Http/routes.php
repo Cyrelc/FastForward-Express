@@ -114,8 +114,9 @@ Route::group(
 
             Route::post('/contactus', 'HomeController@ContactUs');
 
-            Route::get('/appsettings', 'AdminController@load');
-            Route::post('/appsettings/storeGST', 'AdminController@storeGST');
+            Route::get('/appsettings', 'AdminController@view');
+            Route::get('/appsettings/get', 'AdminController@getModel');
+            Route::post('/appsettings/store', 'AdminController@store');
             Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
             Route::post('/users/changePassword/{id}', 'UserController@changePassword');
