@@ -21,7 +21,6 @@ export default function AccountingTab(props) {
                                 value={props.gst}
                                 name='gst'
                                 onChange={props.handleChange}
-                                className={'form-control-plaintext'}
                             />
                             <InputGroup.Append>
                                 <InputGroup.Text> %</InputGroup.Text>

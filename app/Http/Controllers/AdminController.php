@@ -2,6 +2,7 @@
 
     namespace App\Http\Controllers;
 
+    use Artisan;
     use Config;
     use DB;
     use Illuminate\Http\Request;
@@ -38,9 +39,9 @@
                 foreach($req->paymentTypes as $paymentType)
                     $paymentRepo->UpdatePaymentType($paymentType);
 
-                //todo: see about server "restart" or cache clear when updating config variables
-                // config(['ffe_config.gst' => (float)$req->gst]);
-                // Config::write('ffe_config.gst', (float)$req->gst);
+                Config::write('ffe_config.gst', (float)$req->gst);
+                // we have to clear the config cache after writing
+                Artisan::call('config:cache');
 
                 DB::commit();
 
