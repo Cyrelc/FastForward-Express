@@ -14,11 +14,13 @@ class PaymentRepo {
 
     public function listPaymentsByAccount($account_id) {
         $payments = Payment::where('account_id', $account_id)
+            ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
             ->select('payment_id',
                     'invoice_id',
                     'date',
                     DB::raw('format(amount, 2) as amount'),
-                    'payment_type',
+                    'payments.payment_type_id',
+                    'payment_types.name as payment_type',
                     'reference_value',
                     'comment');
 
