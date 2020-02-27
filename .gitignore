@@ -11,3 +11,4 @@ Homestead.json
 config/app.php
 config/database.php
 composer.lock
+package-lock.json
