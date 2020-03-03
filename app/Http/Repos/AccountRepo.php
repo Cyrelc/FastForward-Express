@@ -35,10 +35,17 @@ class AccountRepo {
                     'parent.account_id as parent_id',
                     'accounts.active',
                     'accounts.invoice_interval',
+                    'accounts.ratesheet_id',
                     'shipping_address.name as shipping_address_name',
+                    'shipping_address.formatted as shipping_address',
+                    'shipping_address.lat as shipping_address_lat',
+                    'shipping_address.lng as shipping_address_lng',
+                    'shipping_address.place_id as shipping_address_place_id',
                     'billing_address.name as billing_address_name',
-                    DB::raw('concat(shipping_address.street, " ", shipping_address.street2, ", ", shipping_address.city, ", ", shipping_address.state_province, ", ", shipping_address.country, " ", shipping_address.zip_postal) as shipping_address'),
-                    DB::raw('concat(billing_address.street, " ", billing_address.street2, ", ", billing_address.city, ", ", billing_address.state_province, ", ", billing_address.country, " ", billing_address.zip_postal) as billing_address'),
+                    'billing_address.formatted as billing_address',
+                    'billing_address.lat as billing_address_lat',
+                    'billing_address.lng as billing_address_lng',
+                    'billing_address.place_id as billing_address_place_id',
                     DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'));
 
         return $accounts->get();

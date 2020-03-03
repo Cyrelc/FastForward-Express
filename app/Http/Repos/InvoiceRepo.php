@@ -179,7 +179,7 @@ class InvoiceRepo {
             if ($account->gst_exempt)
                 $invoice->tax = number_format(0, 2, '.', '');
             else
-                $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * .05, 2), 2, '.', '');
+                $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
 
             $invoice->total_cost = $invoice->balance_owing = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
 

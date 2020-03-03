@@ -18,12 +18,13 @@ class CreatePaymentsTable extends Migration
             $table->unsignedInteger('invoice_id')->nullable();
             $table->date('date');
             $table->float('amount');
-            $table->string('payment_type');
+            $table->unsignedInteger('payment_type_id');
             $table->string('reference_value')->nullable();
             $table->string('comment')->nullable();
 
             $table->foreign('account_id')->references('account_id')->on('accounts');
             $table->foreign('invoice_id')->references('invoice_id')->on('invoices');
+            $table->foreign('payment_type_id')->references('payment_type_id')->on('payment_types');
         });
     }
 

@@ -16,7 +16,7 @@ class Payment extends Model
                             'invoice_id',
                             'date',
                             'amount',
-                            'payment_type',
+                            'payment_type_id',
                             'reference_value',
                             'comment'
                         ];

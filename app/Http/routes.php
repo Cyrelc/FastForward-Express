@@ -31,9 +31,7 @@ destroy
 Route::group(
         ['middleware' => 'auth'],
         function() {
-            Route::get('/', function() {
-                return view('welcome');
-            });
+            Route::get('/', 'HomeController@index');
 
             Route::get('/accounts', 'AccountController@index');
             Route::get('/accounts/create', 'AccountController@create');
@@ -47,14 +45,12 @@ Route::group(
             Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
             Route::get('/bills', 'BillController@index');
-            Route::get('/bills/create', 'BillController@create');
-            Route::get('/bills/edit/{id}', 'BillController@edit');
-            // Route::get('/bills/getModel/{id?}', 'BillController@getModel');
+            Route::get('/bills/getModel/{id?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/buildTable', 'BillController@buildTable');
-            // Route::get('/bills/{mode}', 'BillController@view');
-            // Route::get('/bills/{mode}/{id}', 'BillController@view');
+            Route::get('/bills/{mode}', 'BillController@view');
+            Route::get('/bills/{mode}/{id}', 'BillController@view');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');
@@ -116,8 +112,9 @@ Route::group(
 
             Route::post('/contactus', 'HomeController@ContactUs');
 
-            Route::get('/appsettings', 'AdminController@load');
-            Route::post('/appsettings/storeGST', 'AdminController@storeGST');
+            Route::get('/appsettings', 'AdminController@view');
+            Route::get('/appsettings/get', 'AdminController@getModel');
+            Route::post('/appsettings/store', 'AdminController@store');
             Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
             Route::post('/users/changePassword/{id}', 'UserController@changePassword');

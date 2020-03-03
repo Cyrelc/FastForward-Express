@@ -9,59 +9,72 @@ class BillValidationRules {
 					'time_dispatched' => 'date',
 					'time_picked_up' => 'date',
 					'time_delivered' => 'date',
+					'delivery_type' => 'required',
+					'payment_type' => 'required',
+					'is_min_weight_size' => 'required',
+					'is_pallet' => 'required',
+					'use_imperial' => 'required',
+					'skip_invoicing' => 'required',
 					// 'charge_reference_value' => 'sometimes|required',
 					// 'pickup_reference_value' => 'sometimes|required',
-					'delivery_reference_value' => 'sometimes|required'];
+					// 'delivery_reference_value' => 'sometimes|required'
+				];
 
     	$messages = ['time_pickup_scheduled.required' => 'Pickup date is required',
 					'time_pickup_scheduled.date' => 'Pickup date is in an incorrect format',
 					'time_delivery_scheduled.required' => 'Delivery date is required',
 					'time_delivery_scheduled.date' => 'Delivery date is in an incorrect format',
-					'time_call_received.required' => 'Call Received Time is requred',
+					'time_call_received.required' => 'Call Received Time is required',
 					'time_call_received.date' => 'Call received time is in an incorrect format',
+					'delivery_type.required' => 'Please select a delivery type',
+					'payment_type.required' => 'Please choose a payment type for this bill'
 					// 'charge_reference_value.required' => 'Charge Account requires a custom tracking field value',
 					// 'pickup_reference_value.required' => 'Pickup Account requires a custom tracking field value',
-					'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'];
+					//'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'
+				];
 
 		if($req->interliner_id != "") {
-			$rules = array_merge($rules, ['interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
+			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
 		}
 
-		if($req->charge_type == 'account') {
-			$rules = array_merge($rules, ['charge_account_id' => 'required']); //, 'charge_account_reference_value' => 'sometimes|required']);
+		if($req->pickup_address_type === 'Account') {
+			$rules = array_merge($rules, ['pickup_account_id' => 'required|numeric']);
+			$messages = array_merge($messages, ['pickup_account_id.required' => 'Pickup Account is required when address input type is Account']);
+		}
+
+		if($req->delivery_address_type === 'Account') {
+			$rules = array_merge($rules, ['delivery_account_id' => 'required|numeric']);
+			$messages = array_merge($messages, ['delivery_account_id.required' => 'Delivery Account is required when address input type is Account']);
+		}
+
+		if($req->payment_type == 'Account') {
+			$rules = array_merge($rules, ['charge_account_id' => 'required']);
 			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
-		} else if ($req->charge_type == 'driver') {
+		} else if ($req->payment_type == 'Driver') {
 			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
 			$messages = array_merge($messages, ['charge_driver_id.required' => 'Must select a driver to charge back to']);
-		} else if ($req->charge_type == 'prepaid') {
-			$rules = array_merge($rules, ['prepaid_type' => 'required', 'prepaid_reference_value' => 'sometimes|required|min:4']);
-			$messages = array_merge($messages, ['prepaid_type.required' => 'Must select a payment type for "prepaid"', 'prepaid_reference_value.required' => 'Selected prepaid type requires a reference value', 'prepaid_reference_value.min' => 'Prepaid reference value must be at least four characters in length']);
 		}
-
+		if($req->is_min_weight_size === 'false') {
+			$rules = array_merge($rules, [
+				'packages' => 'required',
+				'packages.*.packageCount' => 'required|integer|min:1',
+				'packages.*.packageWeight' => 'required|numeric|min:1',
+				'packages.*.packageLength' => 'required|numeric|min:1',
+				'packages.*.packageWidth' => 'required|numeric|min:1',
+				'packages.*.packageHeight' => 'required|numeric|min:1'
+			]);
+			$messages = array_merge($messages, []);
+		}
+		//TODO - transpose payment types required fields
 		$partialsRules = new \App\Http\Validation\PartialsValidationRules();
 		
-		$pickupAddress = $partialsRules->GetAddressValidationRules($req, 'pickup', 'Pickup');
+		$pickupAddress = $partialsRules->GetAddressMinValidationRules($req, 'pickup_address', 'Pickup');
 		$rules = array_merge($rules, $pickupAddress['rules']);
 		$messages = array_merge($messages, $pickupAddress['messages']);
 
-		$deliveryAddress = $partialsRules->GetAddressValidationRules($req, 'delivery', 'Delivery');
+		$deliveryAddress = $partialsRules->GetAddressMinValidationRules($req, 'delivery_address', 'Delivery');
 		$rules = array_merge($rules, $deliveryAddress['rules']);
 		$messages = array_merge($messages, $deliveryAddress['messages']);
-
-		$package_names = [];
-        foreach($req->all() as $key => $value) {
-            if(substr_compare($key, 'package', 0, 7) == 0 && !in_array(explode('_', $key, 2)[0], $package_names))
-                array_push($package_names, explode('_', $key, 2)[0]);
-		}
-		if(count($package_names) < 1) {
-			$rules = array_merge($rules, ['package' => 'required']);
-			$messages = array_merge($messages, ['package.required' => 'At least one package is required']);
-		}
-		// foreach($package_names as $package_name) {
-		// 	$package_validation = $partialsRules->GetPackageValidationRules($req, $package_name);
-		// 	$rules = array_merge($rules, $package_validation['rules']);
-		// 	$messages = array_merge($messages, $package_validation['messages']);
-		// }
 
     	return ['rules' => $rules, 'messages' => $messages];
     }

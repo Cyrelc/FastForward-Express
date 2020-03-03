@@ -2,6 +2,24 @@
 namespace app\Http\Validation;
 
 class PartialsValidationRules {
+
+    public function GetAddressMinValidationRules($req, $prefix, $prefix_name) {
+        return [
+            'rules' => [
+                $prefix . '_formatted' => 'required',
+                $prefix . '_name' => 'required',
+                $prefix . '_lat' => 'sometimes|required|numeric',
+                $prefix . '_lng' => 'sometimes|required|numeric',
+            ],
+            'messages' => [
+                $prefix . '_formatted.required' => $prefix_name . ' formatted address is required',
+                $prefix . '_name.required' => $prefix_name . ' address name is required',
+                $prefix . '_lat.required' => $prefix_name . ' latitude is in an incorrect format. Please contact support',
+                $prefix . '_lng.required' => $prefix_name . ' longitude is in an incorrect format. Please contact support'
+            ]
+        ];
+    }
+
     public function GetAddressValidationRules($req, $prefix, $prefix_name) {
         return [
             'rules' => [

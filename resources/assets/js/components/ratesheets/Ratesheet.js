@@ -254,7 +254,7 @@ export default class Ratesheet extends Component {
     }
 
     getCoordinates(polygon) {
-        return polygon.getPath().g.map(point => {return {lat: parseFloat(point.lat()).toFixed(this.state.latLngPrecision), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
+        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat()).toFixed(this.state.latLngPrecision), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
     updateZone(id) {

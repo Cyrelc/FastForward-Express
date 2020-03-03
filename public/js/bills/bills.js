@@ -51,12 +51,11 @@ $(document).ready(function() {
             {data: 'delivery_employee_name', className: 'delivery_employee_id'},
             {data: 'interliner_name', className: 'interliner_id', visible: false},
             {data: 'description', visible: false},
-            {data: 'package_count', visible: false},
             {data: 'invoice_id', className: 'invoice_id', visible: false},
             {data: 'pickup_manifest_id', className: 'pickup_manifest_id', visible: false},
             {data: 'delivery_manifest_id', className: 'delivery_manifest_id', visible: false},
             {data: 'amount'},
-            {data: 'charge_type', visible: false},
+            {data: 'payment_type', visible: false},
             {data: 'percentage_complete', className: 'percentage_complete'}
         ]
     })

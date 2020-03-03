@@ -23,6 +23,7 @@ class BillRepo {
                 ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'delivery_driver.employee_id')
                 ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
+                ->leftJoin('payment_types', 'bills.payment_type_id', '=', 'payment_types.payment_type_id')
                 ->select('bill_id',
                         'bill_number',
                         'time_pickup_scheduled',
@@ -39,13 +40,12 @@ class BillRepo {
                         'description',
                         'interliners.name as interliner_name',
                         'interliners.interliner_id',
-                        DB::raw('(select count(*) from packages where packages.bill_id = bills.bill_id) as package_count'),
                         'invoice_id',
                         'pickup_manifest_id',
                         'delivery_manifest_id',
                         'percentage_complete',
                         DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
-                        DB::raw('case when charge_account_id is not null then "account" when payment_id is not null then "prepaid" when chargeback_id is not null then "driver" end as charge_type'));
+                        'payment_types.name as payment_type');
 
             $filteredBills = QueryBuilder::for($bills)
                 ->allowedFilters(Filter::exact('charge_account_id'),
@@ -135,15 +135,13 @@ class BillRepo {
     public function Insert($bill) {
     	$new = new Bill;
 
-    	return ($new->create($bill));
+        return ($new->create($bill));
     }
 
     public function Delete($id) {
         $bill = $this->GetById($id);
         if($this->IsReadOnly($bill->bill_id))
             return false;
-        $packageRepo = new PackageRepo();
-        $packageRepo->DeleteByBillId($id);
 
         $bill->delete();
         return;
@@ -151,39 +149,50 @@ class BillRepo {
 
     public function Update($bill) {
         $old = $this->GetById($bill['bill_id']);
+        $fields = array(
+            'amount',
+            'bill_number',
+            'charge_account_id',
+            'charge_reference_value',
+            'chargeback_id',
+            'delivery_account_id',
+            'delivery_address_id',
+            'delivery_driver_commission',
+            'delivery_driver_id',
+            'delivery_reference_value',
+            'delivery_type',
+            'description',
+            'incomplete_fields',
+            'interliner_cost',
+            'interliner_cost_to_customer',
+            'interliner_id',
+            'interliner_reference_value',
+            'is_min_weight_size',
+            'is_pallet',
+            'packages',
+            'payment_id',
+            'payment_type_id',
+            'percentage_complete',
+            'pickup_account_id',
+            'pickup_address_id',
+            'pickup_driver_commission',
+            'pickup_driver_id',
+            'pickup_reference_value',
+            'skip_invoicing',
+            'time_call_received',
+            'time_dispatched',
+            'time_delivered',
+            'time_delivery_scheduled',
+            'time_picked_up',
+            'time_pickup_scheduled',
+            'use_imperial',
+        );
+
         if($this->IsReadOnly($old->bill_id))
             return false;
 
-        $old->charge_account_id = $bill['charge_account_id'];
-        $old->payment_id = $bill['payment_id'];
-        $old->chargeback_id = $bill['chargeback_id'];
-        $old->pickup_account_id = $bill['pickup_account_id'];
-        $old->delivery_account_id = $bill['delivery_account_id'];
-        $old->pickup_address_id = $bill['pickup_address_id'];
-        $old->delivery_address_id = $bill['delivery_address_id'];
-        $old->charge_reference_value = $bill['charge_reference_value'];
-        $old->pickup_reference_value = $bill['pickup_reference_value'];
-        $old->delivery_reference_value = $bill['delivery_reference_value'];
-        $old->pickup_driver_id = $bill['pickup_driver_id'];
-        $old->delivery_driver_id = $bill['delivery_driver_id'];
-        $old->pickup_driver_commission = $bill['pickup_driver_commission'];
-        $old->delivery_driver_commission = $bill['delivery_driver_commission'];
-        $old->interliner_id = $bill['interliner_id'];
-        $old->interliner_reference_value = $bill['interliner_reference_value'];
-        $old->interliner_cost = $bill['interliner_cost'];
-        $old->interliner_cost_to_customer = $bill['interliner_cost_to_customer'];
-        $old->skip_invoicing = $bill['skip_invoicing'];
-        $old->bill_number = $bill['bill_number'];
-        $old->description = $bill['description'];
-        $old->time_pickup_scheduled = $bill['time_pickup_scheduled'];
-        $old->time_delivery_scheduled = $bill['time_delivery_scheduled'];
-        $old->time_call_received = $bill['time_call_received'];
-        $old->time_dispatched = $bill['time_dispatched'];
-        $old->time_picked_up = $bill['time_picked_up'];
-        $old->time_delivered = $bill['time_delivered'];
-        $old->amount = $bill['amount'];
-        $old->delivery_type = $bill['delivery_type'];
-        $old->percentage_complete = $bill['percentage_complete'];
+        foreach($fields as $field)
+            $old->$field = $bill[$field];
 
         $old->save();
 

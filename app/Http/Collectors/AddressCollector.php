@@ -35,29 +35,16 @@ class AddressCollector {
         ];
     }
 
-    public function Remerge($req, $address, $prefix) {
-        if ($req->old($prefix . "-name") !== null)
-            $address->name = $req->old($prefix . "-name");
-
-        if ($req->old($prefix . "-street") !== null)
-            $address->street = $req->old($prefix . "-street");
-
-        if ($req->old($prefix . "-street2") !== null)
-            $address->street2 = $req->old($prefix . "-street2");
-
-        if ($req->old($prefix . "-city") !== null)
-            $address->city = $req->old($prefix . "-city");
-
-        if ($req->old($prefix . "-zip-postal") !== null)
-            $address->zip_postal = $req->old($prefix . "-zip-postal");
-
-        if ($req->old($prefix . "-state-province") !== null)
-            $address->state_province = $req->old($prefix . "-state-province");
-
-        if ($req->old($prefix . "-country") !== null)
-            $address->country = $req->old($prefix . "-country");
-
-        return $address;
+    public function CollectMinimal($req, $prefix, $address_id = null, $isPrimary = false) {
+        return [
+            'address_id'=>$address_id,
+            'name'=>$req->input($prefix . '_name'),
+            'formatted'=>$req->input($prefix . '_formatted'),
+            'lat'=>$req->input($prefix . '_lat'),
+            'lng'=>$req->input($prefix . '_lng'),
+            'place_id'=>$req->input($prefix . '_place_id'),
+            'is_primary'=>$isPrimary
+        ];
     }
 
     public function ToObject($array) {

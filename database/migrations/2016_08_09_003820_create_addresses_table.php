@@ -18,6 +18,7 @@ class CreateAddressesTable extends Migration
             $table->string('formatted');
             $table->float('lat')->nullable();
             $table->float('lng')->nullable();
+            $table->string('place_id')->nullable()->default(null);
             $table->string('street'); //to be deprecated
             $table->string('street2'); //to be deprecated
             $table->string('city'); //to be deprecated

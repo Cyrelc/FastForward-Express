@@ -28,14 +28,17 @@ class CreateBillsTable extends Migration
             $table->string('delivery_reference_value')->nullable();
             $table->string('delivery_type')->nullable();
             $table->string('description');
+            $table->string('incomplete_fields')->nullable();
             $table->decimal('interliner_cost')->nullable();
             $table->decimal('interliner_cost_to_customer')->nullable();
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('interliner_reference_value')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
-            $table->unsignedInteger('package_weight_id');
+            $table->bool('is_min_weight_size')->default(0);
+            $table->bool('is_pallet')->default(0);
+            $table->text('packages')->nullable();
             $table->unsignedInteger('payment_id')->nullable();
-            $table->unsignedInteger('payment_type');
+            $table->unsignedInteger('payment_type_id');
             $table->float('percentage_complete');
             $table->unsignedInteger('pickup_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id');
@@ -51,21 +54,22 @@ class CreateBillsTable extends Migration
             $table->datetime('time_dispatched')->nullable();
             $table->datetime('time_picked_up')->nullable();
             $table->datetime('time_pickup_scheduled');
+            $table->boolean('use_imperial')->default(false);
 
             $table->unique('bill_number');
             
             $table->foreign('charge_account_id')->references('account_id')->on('accounts');
-            $table->foreign('chargeback_id')->references('chargeback_id')->on('chargebacks')->onDelete('cascade');
+            $table->foreign('chargeback_id')->references('chargeback_id')->on('chargebacks');
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
-			$table->foreign('delivery_address_id')->references('address_id')->on('addresses')->onDelete('cascade');
+			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
             $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');
             $table->foreign('delivery_manifest_id')->references('manifest_id')->on('manifests');
 			$table->foreign('interliner_id')->references('interliner_id')->on('interliners');
 			$table->foreign('invoice_id')->references('invoice_id')->on('invoices');
-            $table->foreign('payment_id')->references('payment_id')->on('payments')->onDelete('cascade');
-            $table->foreign('payment_type')->references('payment_type_id')->on('payment_types');
+            $table->foreign('payment_id')->references('payment_id')->on('payments');
+            $table->foreign('payment_type_id')->references('payment_type_id')->on('payment_types');
 			$table->foreign('pickup_account_id')->references('account_id')->on('accounts');
-			$table->foreign('pickup_address_id')->references('address_id')->on('addresses')->onDelete('cascade');
+			$table->foreign('pickup_address_id')->references('address_id')->on('addresses');
 			$table->foreign('pickup_driver_id')->references('employee_id')->on('employees');
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
         });

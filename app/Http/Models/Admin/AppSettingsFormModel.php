@@ -2,8 +2,9 @@
 namespace app\Http\Models\Admin;
 
 
-class AdminFormModel {
+class AppSettingsFormModel {
     public $GST;
+    public $paymentTypes = [];
 }
 
 ?>

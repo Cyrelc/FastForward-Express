@@ -25,6 +25,7 @@
             $userRepo = new Repos\UserRepo();
             $contactModelFactory = new Models\Partials\ContactModelFactory();
 
+            $model->account_id = $userRepo->GetAccountUserByContactId($contact_id)->account_id;
             $model->contact = $contactModelFactory->GetEditModel($contact_id, false);
             
             return $model;
