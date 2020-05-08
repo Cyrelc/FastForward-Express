@@ -3,12 +3,14 @@
 namespace App\Http\Collectors;
 
 class BillCollector {
+	private $prepaidTypes = ['Cash', 'Visa', 'Mastercard', 'American Express', 'Cheque', 'Bank Transfer'];
+
 	public function Collect($req, $pickupAddressId, $deliveryAddressId, $charge_id) { 
 //TODO: Only collect some fields if user is not an admin
 		if($req->bill_id === "" && new \DateTime($req->time_dispatched) > new \DateTime($req->time_call_received))
 			$req->time_dispatched === $req->time_call_received;
 
-		$requiredFields = CheckRequiredFields($req);
+		$requiredFields = $this->CheckRequiredFields($req);
 
 		$percentage_complete = number_format((count($requiredFields['required']) - count($requiredFields['incomplete'])) / count($requiredFields['required']), 2);
 
@@ -34,7 +36,7 @@ class BillCollector {
 			'is_min_weight_size' => $req->is_min_weight_size === 'true' ? 1 : 0,
 			'is_pallet' => $req->is_pallet,
 			'packages' => $req->is_min_weight_size === true ? null : json_encode($req->packages),
-			'payment_id' => in_array($req->payment_type['name'], $prepaidTypes) ? $charge_id : null,
+			'payment_id' => in_array($req->payment_type['name'], $this->prepaidTypes) ? $charge_id : null,
 			'payment_type_id' => $req->payment_type['payment_type_id'],
 			'percentage_complete' => $percentage_complete,
 			'pickup_account_id' => $req->pickup_address_type === "Account" ? $req->pickup_account_id : null,
@@ -71,8 +73,6 @@ class BillCollector {
 			'use_imperial',
 		];
 
-		$prepaidTypes = ['Cash', 'Visa', 'Mastercard', 'American Express', 'Cheque', 'Bank Transfer'];
-
 		if($req->interliner_id != "")
 			$requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
 
@@ -80,7 +80,7 @@ class BillCollector {
 			$requiredFields = array_merge($requiredFields, ['charge_account_id']);
 		elseif($req->payment_type['name'] === 'Driver')
 			$requiredFields = array_merge($requiredFields, ['charge_driver_id']);
-		elseif(in_array($req->payment_type['name'], $prepaidTypes))
+		elseif(in_array($req->payment_type['name'], $this->prepaidTypes))
 			$requiredFields = array_merge($requiredFields, ['payment_id']);
 
 		$incompleteFields = [];

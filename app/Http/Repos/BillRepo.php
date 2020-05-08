@@ -144,6 +144,11 @@ class BillRepo {
             return false;
 
         $bill->delete();
+        $addressRepo = new AddressRepo();
+        $addressRepo->Delete($bill->pickup_address_id);
+        $addressRepo->Delete($bill->delivery_address_id);
+        //TODO: Delete associated chargebacks
+
         return;
     }
 
