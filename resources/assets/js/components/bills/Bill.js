@@ -243,11 +243,11 @@ export default class Bill extends Component {
             events['paymentType'] = ''
         } else {
             events[name] = account
-            events[prefix + 'AddressLat'] = account.billing_address ? account.billing_address_lat : account.shipping_address_lat
-            events[prefix + 'AddressLng'] = account.billing_address ? account.billing_address_lng : account.shipping_address_lng
-            events[prefix + 'AddressFormatted'] = account.billing_address ? account.billing_address : account.shipping_address
-            events[prefix + 'AddressName'] = account.billing_address ? account.billing_address_name : account.shipping_address_name
-            events[prefix + 'AddressPlaceId'] = account.billing_address ? account.billing_address_place_id : account.shipping_address_place_id
+            events[prefix + 'AddressLat'] = account.shipping_address ? account.shipping_address_lat : account.billing_address_lat
+            events[prefix + 'AddressLng'] = account.shipping_address ? account.shipping_address_lng : account.billing_address_lng
+            events[prefix + 'AddressFormatted'] = account.shipping_address ? account.shipping_address : account.billing_address
+            events[prefix + 'AddressName'] = account.shipping_address ? account.shipping_address_name : account.billing_address_name
+            events[prefix + 'AddressPlaceId'] = account.shipping_address ? account.shipping_address_place_id : account.billing_address_place_id
         }
         return events
     }
@@ -605,6 +605,7 @@ export default class Bill extends Component {
                         'progressBar': true,
                         'positionClass': 'toast-top-full-width',
                         'showDuration': 500,
+                        'onHidden': function(){location.reload()}
                     })
             },
             'error': response => handleErrorResponse(response)
