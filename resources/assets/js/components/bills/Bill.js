@@ -38,6 +38,7 @@ export default class Bill extends Component {
             deliveryManifestId: null,
             pickupManifestId: null,
             percentComplete: null,
+            incompleteFields: null,
             //delivery
             deliveryAccount: '',
             deliveryAddressFormatted: '',
