@@ -149,7 +149,7 @@ export default class Bill extends Component {
                 deliveryAddressPlaceId: data.delivery_address.place_id,
                 deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
                 deliveryEmployeeCommission: data.bill.delivery_driver_commission,
-                deliveryEmployee: data.employees.find(employee => employee.employee_id === data.bill.delivery_driver_id),
+                deliveryEmployee: data.employees.find(employee => employee.driver.driver_id === data.bill.delivery_driver_id),
                 deliveryReferenceValue: data.bill.delivery_reference_value,
                 deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
                 deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
@@ -161,7 +161,7 @@ export default class Bill extends Component {
                 pickupAddressName: data.pickup_address.name,
                 pickupAddressPlaceId: data.pickup_address.place_id,
                 pickupAddressType: data.bill.pickup_account_id === null ? 'Address' : 'Account',
-                pickupEmployee: data.employees.find(employee => employee.employee_id === data.bill.pickup_driver_id),
+                pickupEmployee: data.employees.find(employee => employee.driver.driver_id === data.bill.pickup_driver_id),
                 pickupEmployeeCommission: data.bill.pickup_driver_commission,
                 pickupReferenceValue: data.bill.pickup_reference_value,
                 pickupTimeActual: data.bill.time_picked_up ? Date.parse(data.bill.time_picked_up) : null,
@@ -243,11 +243,11 @@ export default class Bill extends Component {
             events['paymentType'] = ''
         } else {
             events[name] = account
-            events[prefix + 'AddressLat'] = account.billing_address ? account.billing_address_lat : account.shipping_address_lat
-            events[prefix + 'AddressLng'] = account.billing_address ? account.billing_address_lng : account.shipping_address_lng
-            events[prefix + 'AddressFormatted'] = account.billing_address ? account.billing_address : account.shipping_address
-            events[prefix + 'AddressName'] = account.billing_address ? account.billing_address_name : account.shipping_address_name
-            events[prefix + 'AddressPlaceId'] = account.billing_address ? account.billing_address_place_id : account.shipping_address_place_id
+            events[prefix + 'AddressLat'] = account.shipping_address ? account.shipping_address_lat : account.billing_address_lat
+            events[prefix + 'AddressLng'] = account.shipping_address ? account.shipping_address_lng : account.billing_address_lng
+            events[prefix + 'AddressFormatted'] = account.shipping_address ? account.shipping_address : account.billing_address
+            events[prefix + 'AddressName'] = account.shipping_address ? account.shipping_address_name : account.billing_address_name
+            events[prefix + 'AddressPlaceId'] = account.shipping_address ? account.shipping_address_place_id : account.billing_address_place_id
         }
         return events
     }
@@ -563,7 +563,7 @@ export default class Bill extends Component {
             delivery_address_place_id: this.state.deliveryAddressPlaceId,
             delivery_address_type: this.state.deliveryAddressType,
             delivery_driver_commission: this.state.deliveryEmployeeCommission,
-            delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.employee_id : null,
+            delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.driver.driver_id : null,
             delivery_type: this.state.deliveryType,
             delivery_reference_value: this.state.deliveryReferenceValue,
             description: this.state.description,
@@ -582,7 +582,7 @@ export default class Bill extends Component {
             pickup_address_name: this.state.pickupAddressName,
             pickup_address_place_id: this.state.pickupAddressPlaceId,
             pickup_address_type: this.state.pickupAddressType,
-            pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.employee_id : null,
+            pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.driver.driver_id : null,
             pickup_driver_commission: this.state.pickupEmployeeCommission,
             pickup_reference_value: this.state.pickupReferenceValue,
             skip_invoicing: this.state.skipInvoicing,
@@ -605,6 +605,7 @@ export default class Bill extends Component {
                         'progressBar': true,
                         'positionClass': 'toast-top-full-width',
                         'showDuration': 500,
+                        'onHidden': function(){location.reload()}
                     })
             },
             'error': response => handleErrorResponse(response)
