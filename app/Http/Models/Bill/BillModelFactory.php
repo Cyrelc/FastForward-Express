@@ -77,7 +77,7 @@
 			$paymentRepo = new Repos\PaymentRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
-		    $model->employees = $employeeRepo->ListAllDrivers();
+		    $model->employees = $employeeRepo->ListAllDrivers(true);
 		    foreach ($model->employees as $employee) {
 		    	$employee->driver = $driverRepo->GetByEmployeeId($employee->employee_id);
 		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
