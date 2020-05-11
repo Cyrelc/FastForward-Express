@@ -22,6 +22,7 @@ export default class Bill extends Component {
             chargeEmployee: undefined,
             deliveryType: 'regular',
             description: '',
+            formType: 'create',
             incompleteFields: '',
             key: 'basic',
             packages: [],
@@ -103,7 +104,7 @@ export default class Bill extends Component {
         this.setState({packages: packages})
     }
 
-    configureBill(data, edit = false) {
+    configureBill(data, formType = 'create') {
         // the setup that happens regardless of new or edit
         var setup = {
             accounts: data.accounts,
@@ -119,7 +120,7 @@ export default class Bill extends Component {
             readOnly: data.read_only,
             ratesheetId: data.ratesheet_id,
         }
-        if(edit)
+        if(formType === 'edit' || formType === 'view')
             setup = {...setup,
                 activityLog: data.activity_log,
                 amount: data.bill.amount,
@@ -129,6 +130,7 @@ export default class Bill extends Component {
                 chargeReferenceValue: data.bill.charge_reference_value,
                 chargeEmployee: data.chargeback ? data.employees.find(employee => employee.employee_id === data.chargeback.employee_id) : undefined,
                 description: data.bill.description,
+                formType: formType,
                 packages: data.bill.packages,
                 packageIsMinimum: data.bill.is_min_weight_size,
                 packageIsPallet: data.bill.is_pallet,
@@ -184,7 +186,7 @@ export default class Bill extends Component {
             document.title = formType === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
             fetch('/bills/getModel/' + window.location.href.split('/')[5])
             .then(response => {return response.json()})
-            .then(data => this.configureBill(data, true));
+            .then(data => this.configureBill(data, formType));
         } else {
             document.title = 'Create Bill - ' + document.title
             fetch('/bills/getModel') //fetch data necessary to populate the form
@@ -212,9 +214,12 @@ export default class Bill extends Component {
                     deliveryTypes: data.deliveryTypes,
                     deliveryType: deliveryType
                 }
-                this.setState(ratesheet,
-                    () => this.handleChanges({target: {name: 'deliveryTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes().addHours(this.state.deliveryType.time)}})
-                )
+                if(this.state.formType === 'create')
+                    this.setState(ratesheet,
+                        () => this.handleChanges({target: {name: 'deliveryTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes().addHours(this.state.deliveryType.time)}})
+                    )
+                else
+                    this.setState(ratesheet)
             });
     }
 
@@ -222,7 +227,7 @@ export default class Bill extends Component {
         const {name, value} = accountEvent.target
         const prefix = name === 'pickupAccount' ? 'pickup' : 'delivery'
         const account = value === '' ? null : value
-        if(account && this.state.chargeAccount === '' && this.state.pickupAccount === '' && this.state.deliveryAccount === '') {
+        if(account && !this.state.chargeAccount && !this.state.pickupAccount && !this.state.deliveryAccount) {
             events['chargeAccount'] = account
             events['paymentType'] = this.state.paymentTypes.filter(type => type.name === 'Account')[0]
             //default back to cash ratesheet where applicable
