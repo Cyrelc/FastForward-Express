@@ -28,13 +28,15 @@ class EmployeeRepo {
         return $employees->get();
     }
 
-    public function ListAllDrivers() {
+    public function ListAllDrivers($filterActive = false) {
         $driverRepo = new DriverRepo();
 
         $drivers = $driverRepo->ListAll();
         $employeesWhoAreDrivers = [];
         foreach($drivers as $driver) {
-            array_push($employeesWhoAreDrivers, $this->getById($driver->employee_id));
+            $employee = $this->getById($driver->employee_id);
+            if(!$filterActive || $filterActive && $employee->active)
+                array_push($employeesWhoAreDrivers, $employee);
         }
         return $employeesWhoAreDrivers;
     }
