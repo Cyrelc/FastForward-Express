@@ -132,7 +132,7 @@ export default function BasicTab(props) {
                             addressTypes={props.addressTypes}
                             minTimestamp={props.minTimestamp}
                             accounts={props.accounts}
-                            dateTimeReadOnly={!props.admin}
+                            dateTimeReadOnly={false}
                             readOnly={props.readOnly}
                             admin={props.admin}
                             timeTooltip={"The earliest time the driver will pick up the package. Please have the package ready by the time indicated."}
@@ -148,9 +148,10 @@ export default function BasicTab(props) {
                             addressTypes={props.addressTypes}
                             minTimestamp={props.minTimestamp}
                             accounts={props.accounts}
-                            dateTimeReadOnly={false}
+                            dateTimeReadOnly={!props.admin}
                             admin={props.admin}
                             readOnly={props.readOnly}
+                            timeTooltip={"The estimated time of delivery based on your selections. The time shown is not a guarantee"}
 
                             handleChanges={props.handleChanges}
                         />

@@ -121,7 +121,7 @@ export default function Pickup_Delivery(props) {
                     accounts={props.accounts}
                     accountId={props.data.accountId}
                     readOnly={props.readOnly}
-                    showAddressSearch={props.data.address.type === 'Address'}
+                    showAddressSearch={true}
 
                     admin={props.admin}
                 />
