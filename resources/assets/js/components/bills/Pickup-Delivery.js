@@ -37,10 +37,10 @@ export default function Pickup_Delivery(props) {
                                 readOnly={props.dateTimeReadOnly || props.readOnly}
                                 className='form-control'
                                 //Rules for non-admins only
-                                filterDate={!props.admin && isWeekday}
+                                filterDate={props.applyRestrictions && isWeekday}
                                 minDate={!props.admin && new Date()}
-                                minTime={!props.admin && props.data.timeMin}
-                                maxTime={!props.admin && props.data.timeMax}
+                                minTime={props.applyRestrictions && props.data.timeMin}
+                                maxTime={props.applyRestrictions && props.data.timeMax}
                             />
                             {props.timeTooltip && 
                                 <OverlayTrigger placement='right' overlay={<Tooltip>{props.timeTooltip}</Tooltip>}>
