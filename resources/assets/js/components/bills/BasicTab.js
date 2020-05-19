@@ -26,6 +26,7 @@ export default function BasicTab(props) {
                                         value={props.deliveryType}
                                         onChange={item => props.handleChanges({target: {name: 'deliveryType', type: 'text', value: item}})}
                                         isDisabled={props.readOnly}
+                                        isOptionDisabled={option => props.applyRestrictions ? option.isDisabled : false}
                                     />
                                 </InputGroup>
                             </Col>
@@ -128,6 +129,7 @@ export default function BasicTab(props) {
                         <Pickup_Delivery
                             id='pickup'
                             friendlyName='Pickup'
+                            applyRestrictions={props.applyRestrictions}
                             data={props.pickup}
                             addressTypes={props.addressTypes}
                             minTimestamp={props.minTimestamp}
@@ -144,11 +146,12 @@ export default function BasicTab(props) {
                         <Pickup_Delivery
                             id='delivery'
                             friendlyName='Delivery'
+                            applyRestrictions={props.applyRestrictions}
                             data={props.delivery}
                             addressTypes={props.addressTypes}
                             minTimestamp={props.minTimestamp}
                             accounts={props.accounts}
-                            dateTimeReadOnly={!props.admin}
+                            dateTimeReadOnly={props.applyRestrictions}
                             admin={props.admin}
                             readOnly={props.readOnly}
                             timeTooltip={"The estimated time of delivery based on your selections. The time shown is not a guarantee"}

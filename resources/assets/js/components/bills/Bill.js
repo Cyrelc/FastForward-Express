@@ -13,6 +13,7 @@ export default class Bill extends Component {
             //basic information
             admin: false,
             amount: '',
+            applyRestrictions: true,
             billId: null,
             billNumber: '',
             businessHoursMin: '',
@@ -257,6 +258,15 @@ export default class Bill extends Component {
         return events
     }
 
+    handleApplyRestrictionsEvent(temp, event) {
+        if(this.state.applyRestrictions) {
+            toastr.clear()
+            toastr.error('Restrictions lifted, some autocomplete functionality has been disabled. Please review all work carefully for accuracy before submitting', 'WARNING', {'timeOut' : 0, 'extendedTImeout' : 0, positionClass: 'toast-top-center'});
+        }
+
+        return {applyRestrictions: !this.state.applyRestrictions}
+    }
+
     handleChanges(events) {
         if(!Array.isArray(events))
             events = [events]
@@ -264,6 +274,9 @@ export default class Bill extends Component {
         events.forEach(event => {
             const {name, value, type, checked} = event.target
             switch(name) {
+                case 'applyRestrictions':
+                    temp = this.handleApplyRestrictionsEvent(temp, event);
+                    break;
                 case 'deliveryTimeExpected':
                 case 'deliveryType':
                 case 'pickupTimeExpected':
@@ -322,59 +335,62 @@ export default class Bill extends Component {
 
         events['deliveryType'] = name === 'deliveryType' ? value : this.state.deliveryType
         events['pickupTimeExpected'] = name === 'pickupTimeExpected' ? value : this.state.pickupTimeExpected
-        const sortedDeliveryTypes = this.state.deliveryTypes.sort((a, b) => a.time < b.time ? 1 : -1);
-        const minTimeDifference = sortedDeliveryTypes[sortedDeliveryTypes.length - 1].time
-        const today = new Date().setHours(0,0,0,0)
-        const pickupDate = new Date(events['pickupTimeExpected']).setHours(0,0,0,0)
-        const currentTime = today === pickupDate ? roundTimeToNextFifteenMinutes() : new Date(this.state.businessHoursMin)
-        //set parameters: min/max pickup and delivery times
-        //only today has special rules, as you can't ask for a time prior to when you are making the request (check against current time)
-        if(!this.state.billId) {
-            if(pickupDate === today) {
-                events['pickupTimeMin'] = currentTime > this.state.businessHoursMin ? currentTime : this.state.businessHoursMin
-                events['deliveryTimeMin'] = new Date(currentTime).addHours(minTimeDifference)
-                events['pickupTimeMax'] = new Date(this.state.businessHoursMax).addHours(-minTimeDifference)
-                events['deliveryTimeMax'] = this.state.businessHoursMax
-            } else {
-                events['pickupTimeMin'] = new Date(pickupDate).setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes())
-                events['deliveryTimeMin'] = new Date(pickupDate).setHours(this.state.businessHoursMin.getHours() + minTimeDifference, this.state.businessHoursMin.getMinutes())
-                events['pickupTimeMax'] = new Date(pickupDate).setHours(this.state.businessHoursMax.getHours() - minTimeDifference, this.state.businessHoursMin.getMinutes())
-                events['deliveryTimeMax'] = new Date(pickupDate).setHours(this.state.businessHoursMax.getHours(), this.state.businessHoursMax.getMinutes())
+        events['deliveryTimeExpected'] = name === 'deliveryTimeExpected' ? value : this.state.deliveryTimeExpected
+        if(this.state.applyRestrictions) {
+            const sortedDeliveryTypes = this.state.deliveryTypes.sort((a, b) => a.time < b.time ? 1 : -1);
+            const minTimeDifference = sortedDeliveryTypes[sortedDeliveryTypes.length - 1].time
+            const today = new Date().setHours(0,0,0,0)
+            const pickupDate = new Date(events['pickupTimeExpected']).setHours(0,0,0,0)
+            const currentTime = today === pickupDate ? roundTimeToNextFifteenMinutes() : new Date(this.state.businessHoursMin)
+            //set parameters: min/max pickup and delivery times
+            //only today has special rules, as you can't ask for a time prior to when you are making the request (check against current time)
+            if(!this.state.billId) {
+                if(pickupDate === today) {
+                    events['pickupTimeMin'] = currentTime > this.state.businessHoursMin ? currentTime : this.state.businessHoursMin
+                    events['deliveryTimeMin'] = new Date(currentTime).addHours(minTimeDifference)
+                    events['pickupTimeMax'] = new Date(this.state.businessHoursMax).addHours(-minTimeDifference)
+                    events['deliveryTimeMax'] = this.state.businessHoursMax
+                } else {
+                    events['pickupTimeMin'] = new Date(pickupDate).setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes())
+                    events['deliveryTimeMin'] = new Date(pickupDate).setHours(this.state.businessHoursMin.getHours() + minTimeDifference, this.state.businessHoursMin.getMinutes())
+                    events['pickupTimeMax'] = new Date(pickupDate).setHours(this.state.businessHoursMax.getHours() - minTimeDifference, this.state.businessHoursMin.getMinutes())
+                    events['deliveryTimeMax'] = new Date(pickupDate).setHours(this.state.businessHoursMax.getHours(), this.state.businessHoursMax.getMinutes())
+                }
+                /* Special cases:
+                *   1. User (or auto-fill on page load) has selected a time earlier than business hours, on a day that IS valid
+                *   2. User (or more likely auto-fill on page load) has selected either: a time after business hours where the next day is valid, or a valid time on a weekend day
+                *       In the event of case 2, we simply iterate through the "earliest" pickup times for the following days, until we find one which is valid by calling the function over again with the new attempt
+                *       This should allow for future checks, for example to see if dates fall on holidays
+                */
+                if(events['pickupTimeExpected'] < events['pickupTimeMin']) {
+                    console.log('pickupTime requested was too early.')
+                    nextAvailablePickupTime = events['pickupTimeMin']
+                    this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
+                    return
+                } else if (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() > 5 || new Date(events['pickupTimeExpected']).getDay() === 0) {
+                    console.log('pickupTime requested too late = ', events['pickupTimeExpected'] > events['pickuptTimeMax'], '   pickupTime day was   ', new Date(events['pickupTimeExpected']).getDay())
+                    const nextAvailablePickupTime = new Date().addDays(1).setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes(), 0, 0)
+                    this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
+                    return
+                }
+                /*
+                *   Iterate through the possible delivery type values, and disable those that are invalid (not an option) for the selected pickup time
+                *   In addition, set the delivery type automatically to the highest possible type that still fits within the window given
+                *   (i.e. at 3:00 PM with the business closing at 5:00, a 3 hr long delivery request is invalid, but a 2 or 1 hour long window is valid. Select the highest, and make it active)
+                */
+                const hoursBetweenRequestedPickupAndEndOfDay = getDatetimeDifferenceInHours(events['pickupTimeExpected'], events['deliveryTimeMax'])
+                events['deliveryTypes'] = sortedDeliveryTypes.map(type => {
+                    if(type.time > hoursBetweenRequestedPickupAndEndOfDay)
+                        return {...type, isDisabled: true}
+                    else
+                        return {...type, isDisabled: false}
+                })
+                if(name === 'pickupTimeExpected')
+                    events['deliveryType'] = events['deliveryTypes'].find(type => type.time <= hoursBetweenRequestedPickupAndEndOfDay)
             }
-            /* Special cases:
-            *   1. User (or auto-fill on page load) has selected a time earlier than business hours, on a day that IS valid
-            *   2. User (or more likely auto-fill on page load) has selected either: a time after business hours where the next day is valid, or a valid time on a weekend day
-            *       In the event of case 2, we simply iterate through the "earliest" pickup times for the following days, until we find one which is valid by calling the function over again with the new attempt
-            *       This should allow for future checks, for example to see if dates fall on holidays
-            */
-            if(events['pickupTimeExpected'] < events['pickupTimeMin']) {
-                console.log('pickupTime requested was too early')
-                nextAvailablePickupTime = events['pickupTimeMin']
-                this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
-                return
-            } else if (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() > 5 || new Date(events['pickupTimeExpected']).getDay() === 0) {
-                console.log('pickupTime requested too late = ', events['pickupTimeExpected'] > events['pickuptTimeMax'], '   pickupTime day was   ', new Date(events['pickupTimeExpected']).getDay())
-                const nextAvailablePickupTime = new Date().addDays(1).setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes(), 0, 0)
-                this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
-                return
-            }
-            /*
-            *   Iterate through the possible delivery type values, and disable those that are invalid (not an option) for the selected pickup time
-            *   In addition, set the delivery type automatically to the highest possible type that still fits within the window given
-            *   (i.e. at 3:00 PM with the business closing at 5:00, a 3 hr long delivery request is invalid, but a 2 or 1 hour long window is valid. Select the highest, and make it active)
-            */
-            const hoursBetweenRequestedPickupAndEndOfDay = getDatetimeDifferenceInHours(events['pickupTimeExpected'], events['deliveryTimeMax'])
-            events['deliveryTypes'] = sortedDeliveryTypes.map(type => {
-                if(type.time > hoursBetweenRequestedPickupAndEndOfDay)
-                    return {...type, isDisabled: true}
-                else
-                    return type
-            })
-            if(name === 'pickupTimeExpected')
-                events['deliveryType'] = events['deliveryTypes'].find(type => type.time <= hoursBetweenRequestedPickupAndEndOfDay)
-        }
 
-        events['deliveryTimeExpected'] = new Date(events['pickupTimeExpected']).addHours(events['deliveryType'].time)
+            events['deliveryTimeExpected'] = new Date(events['pickupTimeExpected']).addHours(events['deliveryType'].time)
+        }
 
         return events
     }
@@ -435,6 +451,20 @@ export default class Bill extends Component {
                             <ListGroup.Item variant='warning'><h4>Price: {this.state.amount}</h4></ListGroup.Item>
                         </ListGroup>
                     </Col>
+                    {
+                        this.state.admin &&
+                            <Button
+                                className='float-right'
+                                name='applyRestrictions'
+                                value={this.state.applyRestrictions}
+                                onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
+                                title='Toggle restrictions'
+                                type='checkbox'
+                                variant={this.state.applyRestrictions ? 'dark' : 'danger'}
+                            >
+                                <i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i>
+                            </Button>
+                    }
                     <Col md={11}>
                         <Tabs id='bill-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
                             <Tab eventKey='basic' title={<h4>Pickup/Delivery Info  <i className='fas fa-map-pin'></i></h4>}>
@@ -474,8 +504,9 @@ export default class Bill extends Component {
                                         useInternalZonesCalc: this.state.useInternalZonesCalc,
                                         weightRates: this.state.weightRates
                                     }}
-                                    addressTypes={this.state.addressTypes}
                                     accounts={this.state.accounts}
+                                    addressTypes={this.state.addressTypes}
+                                    applyRestrictions={this.state.applyRestrictions}
                                     deliveryType={this.state.deliveryType}
                                     description={this.state.description}
                                     packages={this.state.packages}
