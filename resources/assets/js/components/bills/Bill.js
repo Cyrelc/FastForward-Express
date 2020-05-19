@@ -322,7 +322,6 @@ export default class Bill extends Component {
 
         events['deliveryType'] = name === 'deliveryType' ? value : this.state.deliveryType
         events['pickupTimeExpected'] = name === 'pickupTimeExpected' ? value : this.state.pickupTimeExpected
-        events['deliveryTimeExpected'] = new Date(events['pickupTimeExpected']).addHours(events['deliveryType'].time)
         const sortedDeliveryTypes = this.state.deliveryTypes.sort((a, b) => a.time < b.time ? 1 : -1);
         const minTimeDifference = sortedDeliveryTypes[sortedDeliveryTypes.length - 1].time
         const today = new Date().setHours(0,0,0,0)
@@ -374,7 +373,9 @@ export default class Bill extends Component {
             if(name === 'pickupTimeExpected')
                 events['deliveryType'] = events['deliveryTypes'].find(type => type.time <= hoursBetweenRequestedPickupAndEndOfDay)
         }
-        
+
+        events['deliveryTimeExpected'] = new Date(events['pickupTimeExpected']).addHours(events['deliveryType'].time)
+
         return events
     }
 
