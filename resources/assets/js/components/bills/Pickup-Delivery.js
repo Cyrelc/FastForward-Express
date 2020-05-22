@@ -38,7 +38,7 @@ export default function Pickup_Delivery(props) {
                                 className='form-control'
                                 //Rules for non-admins only
                                 filterDate={props.applyRestrictions && isWeekday}
-                                minDate={!props.admin && new Date()}
+                                minDate={props.applyRestrictions && props.data.timeMin}
                                 minTime={props.applyRestrictions && props.data.timeMin}
                                 maxTime={props.applyRestrictions && props.data.timeMax}
                             />
