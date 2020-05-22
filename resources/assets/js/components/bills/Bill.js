@@ -364,7 +364,7 @@ export default class Bill extends Component {
                 */
                 if(events['pickupTimeExpected'] < events['pickupTimeMin']) {
                     console.log('pickupTime requested was too early.')
-                    nextAvailablePickupTime = events['pickupTimeMin']
+                    const nextAvailablePickupTime = events['pickupTimeMin']
                     this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
                     return
                 } else if (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() > 5 || new Date(events['pickupTimeExpected']).getDay() === 0) {
