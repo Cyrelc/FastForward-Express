@@ -55,7 +55,7 @@
 					$table->headers[$accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field] = 'charge_reference_value';
 				else if($model->parent->uses_custom_field)
 					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
-				$table->headers['Tracer #'] = 'bill_id';
+				$table->headers['Bill ID'] = 'bill_id';
 				$table->headers['Address'] = 'address';
 				$table->headers['Type'] = 'delivery_type';
 				$table->headers['Amount'] = 'amount';
