@@ -578,7 +578,7 @@ export default class Bill extends Component {
                         </Tabs>
                     </Col>
                     <Col md={11} className='text-center'>
-                        <Button variant='primary' onClick={this.store}>Submit</Button>
+                        <Button variant='primary' onClick={this.store} disabled={this.state.readOnly}>Submit</Button>
                     </Col>
                 </Row>
             )
@@ -637,13 +637,15 @@ export default class Bill extends Component {
                 toastr.clear()
                 if(this.state.billId)
                     toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
-                else
+                else {
+                    this.setState({readOnly: true})
                     toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
                         'progressBar': true,
                         'positionClass': 'toast-top-full-width',
                         'showDuration': 500,
                         'onHidden': function(){location.reload()}
                     })
+                }
             },
             'error': response => handleErrorResponse(response)
         })
