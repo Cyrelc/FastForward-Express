@@ -56,8 +56,8 @@
                                 <li><a href='/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a></li>
                             </ul>
                         </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">Dispatch</a>
+                        <li class="nav-item">
+                            <a class="nav-link" href='/dispatch'>Dispatch</a>
                         </li>
                         <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>

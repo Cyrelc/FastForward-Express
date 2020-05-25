@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use Spatie\QueryBuilder\QueryBuilder;
-use Spatie\QueryBuilder\Filter;
+use Spatie\QueryBuilder\AllowedFilter;
 
 use DB;
 use App\Account;
@@ -36,7 +36,7 @@ class InvoiceRepo {
                 DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
         $filteredInvoices = QueryBuilder::for($invoices)
-            ->allowedFilters(Filter::exact('account_id', 'invoices.account_id'));
+            ->allowedFilters(AllowedFilter::exact('account_id', 'invoices.account_id'));
 
         return $filteredInvoices->get();
     }

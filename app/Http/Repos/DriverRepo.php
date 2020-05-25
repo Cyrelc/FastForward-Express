@@ -16,6 +16,8 @@ class DriverRepo {
 				->leftJoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
 				->select('driver_id',
 						'employees.employee_id',
+						'employees.active',
+						'employees.employee_number',
 						DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'));
 
 		return $drivers->get();
