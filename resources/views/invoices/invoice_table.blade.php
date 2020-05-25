@@ -1,5 +1,5 @@
 @if(isset($is_pdf))
-    <link rel='stylesheet' type='text/css' href='./css/invoices/invoice_table.css' />
+    <link rel='stylesheet' type='text/css' href='./css/invoices/invoice_table_pdf.css' />
 @else
     <link rel='stylesheet' type='text/css' href='/css/invoices/invoice_table.css' />
 @endif
