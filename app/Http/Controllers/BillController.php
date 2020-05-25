@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Validator;
-use DB;
-
+use App\Events\BillCreated;
+use App\Events\BillUpdated;
 use App\Http\Repos;
 use App\Http\Models\Bill;
+use DB;
+use Illuminate\Http\Request;
+use Validator;
 
 class BillController extends Controller {
     public function __construct() {
@@ -123,6 +124,10 @@ class BillController extends Controller {
                 $chargebackRepo->Delete($oldBill->chargeback_id);
 
             DB::commit();
+            if($oldBill)
+                event(new BillUpdated($bill));
+            else
+                event(new BillCreated($bill));
 
             return response()->json([
                 'success' => true,

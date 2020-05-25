@@ -58,6 +58,11 @@ Route::group(
             Route::post('/chargebacks/store', 'ChargebackController@store');
             Route::post('/chargebacks/edit/{id}', 'ChargebackController@update');
 
+            Route::get('/dispatch', 'DispatchController@view');
+            Route::post('/dispatch/assignBillToDriver', 'DispatchController@AssignBillToDriver');
+            Route::get('/dispatch/GetDrivers', 'DispatchController@GetDrivers');
+            Route::post('/dispatch/setBillPickupOrDeliveryTime', 'DispatchController@SetBillPickupOrDeliveryTime');
+
             Route::get('/employees', 'EmployeeController@index');
             Route::get('/employees/create', 'EmployeeController@create');
             Route::post('/employees/store', 'EmployeeController@store');
