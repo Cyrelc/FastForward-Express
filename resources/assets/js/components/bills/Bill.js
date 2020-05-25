@@ -316,14 +316,13 @@ export default class Bill extends Component {
     handleDriverEvent(events, driverEvent) {
         const {name, value} = driverEvent.target
         if(name === 'pickupEmployee') {
-            if(!this.state.pickupEmployeeCommission)
-                events['pickupEmployeeCommission'] = value.driver.pickup_commission
-            if(!this.state.deliveryEmployee && !this.state.deliveryEmployeeCommission) {
+            events['pickupEmployeeCommission'] = value.driver.pickup_commission
+            if(!this.state.deliveryEmployee) {
                 events['deliveryEmployee'] = value
                 events['deliveryEmployeeCommission'] = value.driver.delivery_commission
                 events['timeDispatched'] = new Date()
             }
-        } else if (name === 'deliveryEmployee' && !this.state.deliveryEmployeeCommission) {
+        } else if (name === 'deliveryEmployee') {
             events['deliveryEmployeeCommission'] = value.driver.delivery_commission
         }
         events[name] = value
