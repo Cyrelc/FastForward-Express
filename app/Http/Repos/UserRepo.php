@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserRepo
 {
@@ -62,7 +63,7 @@ class UserRepo
         $new = new User;
 
         $user = array_merge($user, array(
-            'password' => Hash::make(str_random(15)),
+            'password' => Hash::make(Str::random(15)),
             'is_locked' => false,
             'login_attempts' => 0,
             'remember_token' => null
