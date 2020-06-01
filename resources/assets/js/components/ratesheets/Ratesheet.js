@@ -263,7 +263,7 @@ export default class Ratesheet extends Component {
             storeZone.cost = zone.cost
             storeZone.additionalTime = zone.additionalTime
         } else if(storeZone.type === 'outlying') {
-            storeZone.cost = zone.cost
+            storeZone.additionalTime = zone.additionalTime
             storeZone.directCost = zone.directCost
             storeZone.directRushCost = zone.directRushCost
             storeZone.rushCost = zone.rushCost
