@@ -257,6 +257,21 @@ export default class Ratesheet extends Component {
         return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat()).toFixed(this.state.latLngPrecision), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
+    prepareZoneForStore(zone) {
+        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice())}
+        if(storeZone.type === 'peripheral') {
+            storeZone.cost = zone.cost
+            storeZone.additionalTime = zone.additionalTime
+        } else if(storeZone.type === 'outlying') {
+            storeZone.cost = zone.cost
+            storeZone.directCost = zone.directCost
+            storeZone.directRushCost = zone.directRushCost
+            storeZone.rushCost = zone.rushCost
+            storeZone.regularCost = zone.regularCost
+        }
+        return storeZone
+    }
+
     updateZone(id) {
         const updated = this.state.mapZones.map(zone => {
             if(zone.id === id) {
@@ -268,7 +283,7 @@ export default class Ratesheet extends Component {
                                 return
                             compZone.polygon.getPath().forEach((coord2) => {
                                 if(google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2) < this.state.snapPrecision)
-                                    temp.g[i] = coord2
+                                    temp.i[i] = coord2
                             })
                         })
                     })
@@ -292,7 +307,7 @@ export default class Ratesheet extends Component {
             deliveryTypes : this.state.deliveryTypes.slice(),
             weightRates : this.state.weightRates.slice(),
             zoneRates : this.state.zoneRates.slice(),
-            mapZones : this.state.mapZones.map(zone => {return {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice())}}),
+            mapZones : this.state.mapZones.map(zone => this.prepareZoneForStore(zone)),
             timeRates: this.state.timeRates.slice(),
         }
         $.ajax({
