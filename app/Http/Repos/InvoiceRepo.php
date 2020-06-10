@@ -57,9 +57,11 @@ class InvoiceRepo {
     public function GetOutstandingByAccountId($account_id) {
         $invoices = Invoice::where('account_id', $account_id)
             ->where('balance_owing', '>', '0')
-            ->select('invoice_id',
-                'date',
-                'balance_owing');
+            ->select(
+                'balance_owing',
+                'bill_end_date',
+                'invoice_id',
+            );
 
         return $invoices->get();
     }
@@ -175,6 +177,8 @@ class InvoiceRepo {
             if($account->min_invoice_amount != null && $account->min_invoice_amount > $bill_cost)
                 $bill_cost = $account->min_invoice_amount;
             $invoice->bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
+            $invoice->bill_start_date = $start_date;
+            $invoice->bill_end_date = $end_date;
             $invoice->discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
             if ($account->gst_exempt)
                 $invoice->tax = number_format(0, 2, '.', '');

@@ -14,12 +14,14 @@ class Invoice extends Model
 
     public $fillable = [
         'account_id',
-        'date',
+        'balance_owing',
         'bill_cost',
-        'tax',
+        'bill_start_date',
+        'bill_end_date',
+        'date',
         'discount',
+        'tax',
         'total_cost',
-        'balance_owing'
     ];
     
     protected static $logFillable = true;

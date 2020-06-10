@@ -26,7 +26,7 @@
         <td width:'30%'>
             <h4>Account Number: {{$model->parent->account_number}}<br/>
                 Invoice Number: {{$model->invoice->invoice_id}}<br/>
-                Date: {{$model->invoice->date}}</h4>
+                Date: {{$model->invoice->bill_end_date}}</h4>
         </td>
         <td width:'40%' style='text-align: center;'>
             <h2>Fast Forward Express Ltd.</h2>
@@ -130,7 +130,7 @@
         @foreach($model->unpaid_invoices as $invoice)
             <tr>
                 <td><a href='/invoices/view/{{$invoice->invoice_id}}'>{{$invoice->invoice_id}}</a></td>
-                <td>{{$invoice->date}}</td>
+                <td>{{$invoice->bill_end_date}}</td>
                 <td>{{$invoice->total_cost}}</td>
                 <td>{{$invoice->balance_owing}}</td>
             </tr>

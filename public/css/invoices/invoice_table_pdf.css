@@ -74,7 +74,7 @@ table.totals td {
 td.basic, td.warn {
     border: grey solid;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     width: 20%;
 }
 td.basic {
@@ -87,6 +87,10 @@ td.warn {
     position: fixed;
     top: -90px;
 }
+/* .header * h4 , .header * hr, .header * h2{
+    margin-bottom: 0px;
+    margin-top: 0px;
+} */
 .footer {
     bottom: -15px;
     position: fixed;
