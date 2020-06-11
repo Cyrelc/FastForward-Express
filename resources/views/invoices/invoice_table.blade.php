@@ -7,7 +7,7 @@
 <hr/>
 <table style='overflow: visible'>
     <td style='width: 40%; text-align: center'>
-        <h2><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h2>
+        <h3><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h3>
     </td>
     <td class='basic' >
         <h4>Bill Count:<br/><br/>{{$model->invoice->bill_count}}</h4>
@@ -81,9 +81,9 @@
                             <td class='amount'>{{$bill->$value}}</td>
                         @elseif($value == 'address')
                             <td class='address'>
-                                @if($bill->charge_account_name != $bill->pickup_address_name)
+                                @if($bill->charge_account_id != $bill->pickup_account_id)
                                     {{$bill->pickup_address_name}}
-                                @elseif($bill->charge_account_name != $bill->delivery_address_name)
+                                @elseif($bill->charge_account_id != $bill->delivery_account_id)
                                     {{$bill->delivery_address_name}}
                                 @endif
                             </td>
@@ -139,10 +139,21 @@
 </table>
 @endif
 <table class='totals'>
+    @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
+        <thead>
+            <tr>
+                <td colspan='2'>Minimum Billing Applied</td>
+            </tr>
+        </thead>
+    @endif
     <tbody>
         <tr>
             <td>Bill Subtotal:</td>
-            <td>{{$model->invoice->bill_cost}}</td>
+            @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
+                <td>{{$model->invoice->min_invoice_amount}}</td>
+            @else
+                <td>{{$model->invoice->bill_cost}}</td>
+            @endif
         </tr>
         @if($model->invoice->discount != 0)
             <tr>

@@ -16,13 +16,18 @@ thead {
 table.totals {
     width: auto;
     max-width: 30%;
-	float: right;
-	background: rgb(37, 37, 37);
+    float: right;
+    /* border: grey solid; */
+}
+table.totals > thead {
+    background: red;
+}
+table.totals > tbody {
+    background: orange;
 }
 table.totals td {
 	padding: 5px;
-	color: #D3D3D3;
-	font-size: 16;
+	font-size: 14;
 	text-align: right;
 }
 .bill_list td {

@@ -20,6 +20,7 @@ class Invoice extends Model
         'bill_end_date',
         'date',
         'discount',
+        'min_invoice_amount',
         'tax',
         'total_cost',
     ];

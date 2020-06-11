@@ -58,9 +58,10 @@ class InvoiceRepo {
         $invoices = Invoice::where('account_id', $account_id)
             ->where('balance_owing', '>', '0')
             ->select(
-                'balance_owing',
+                DB::raw('format(balance_owing, 2) as balance_owing'),
                 'bill_end_date',
                 'invoice_id',
+                DB::raw('format(total_cost, 2) as total_cost')
             );
 
         return $invoices->get();
@@ -174,18 +175,25 @@ class InvoiceRepo {
             $invoice = Invoice::where('invoice_id', $value->invoice_id)->first();
             $account = $account_repo->GetById($invoice->account_id);
             $bill_cost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;});
-            if($account->min_invoice_amount != null && $account->min_invoice_amount > $bill_cost)
-                $bill_cost = $account->min_invoice_amount;
+            $applyMinInvoiceAmount = $account->min_invoice_amount != null && $account->min_invoice_amount > $bill_cost;
+            if($applyMinInvoiceAmount)
+                $invoice->min_invoice_amount = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
             $invoice->bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
+
+            //effective cost is used for all following calculations to prevent having to always check whether to compare against the minimum invoice amount
+            //if the minimum invoice amount is higher than the bill cost, then the minimum invoice amount should be used for all following calculations
+            //otherwise use bill cost as normal
+            $effectiveCost = $applyMinInvoiceAmount ? $invoice->min_invoice_amount : $bill_cost;
+
             $invoice->bill_start_date = $start_date;
             $invoice->bill_end_date = $end_date;
-            $invoice->discount = number_format(round(($bill_cost * $account->discount), 2), 2, '.', '');
+            $invoice->discount = number_format(round(($effectiveCost * $account->discount), 2), 2, '.', '');
             if ($account->gst_exempt)
                 $invoice->tax = number_format(0, 2, '.', '');
             else
-                $invoice->tax = number_format(round(($invoice->bill_cost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+                $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
 
-            $invoice->total_cost = $invoice->balance_owing = number_format(round($invoice->bill_cost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
+            $invoice->total_cost = $invoice->balance_owing = number_format(round($effectiveCost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
 
             $invoice->save();
         }
