@@ -137,7 +137,7 @@
 			$model->bill->packages = json_decode($model->bill->packages);
 			$model->chargeback = $model->bill->chargeback_id === null ? null : $chargebackRepo->GetById($model->bill->chargeback_id);
 			$model->payment = $model->bill->payment_id == null ? null : $paymentRepo->GetById($model->bill->payment_id);
-			$model->read_only = $billRepo->IsReadOnly($model->bill);
+			$model->read_only = $billRepo->IsReadOnly($model->bill->bill_id);
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
@@ -150,7 +150,6 @@
 				$model->activity_log[$key]->properties = json_decode($log->properties);
 
 			$model->admin = true;
-			$model->read_only = false;
 			$model->ratesheet_id = 1;
 			$model->payment_types = $paymentRepo->GetPaymentTypes();
 
