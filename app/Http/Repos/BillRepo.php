@@ -57,7 +57,7 @@ class BillRepo {
                     'time_pickup_scheduled',
                     'time_delivery_scheduled',
                     'time_picked_up',
-                    'time_delivered',
+                    'time_delivered'
                 );
 
             $filteredBills = QueryBuilder::for($bills)
