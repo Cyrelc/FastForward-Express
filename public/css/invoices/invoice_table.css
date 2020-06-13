@@ -23,7 +23,7 @@ table.totals > tbody {
     background-color: orange
 }
 table.totals > thead {
-    background-color: red;
+    background-color: tomato;
 }
 table.totals td {
 	padding: 5px;

@@ -20,7 +20,7 @@ table.totals {
     /* border: grey solid; */
 }
 table.totals > thead {
-    background: red;
+    background: tomato;
     border-bottom: none;
 }
 table.totals > tbody {
