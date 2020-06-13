@@ -21,6 +21,7 @@ table.totals {
 }
 table.totals > thead {
     background: red;
+    border-bottom: none;
 }
 table.totals > tbody {
     background: orange;
