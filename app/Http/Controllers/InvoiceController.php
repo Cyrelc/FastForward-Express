@@ -136,7 +136,7 @@ class InvoiceController extends Controller {
         foreach($req->checkboxes as $invoice_id => $value) {
             $invoiceModelFactory = new Invoice\InvoiceModelFactory();
             $model = $invoiceModelFactory->GetById($invoice_id);
-            $filename = $model->parent->name . '-' . $model->invoice->invoice_id;
+            $filename = $model->parent->name . '-' . $model->invoice->invoice_id . '.pdf';
             $is_pdf = 1;
             $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
             $pdf->save($path . $filename, $filename);
