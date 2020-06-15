@@ -63,7 +63,7 @@
 @endif
 <br/><br/>
 <div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Driver Statement</h3></div>
-<table id='manifest_overview' style='page-break-after: always;'>
+<table id='manifest_overview' @if($model->chargebacks == null) style='page-break-after: always;' @endif>
     <thead>
         <tr>
             <td>Date</td>
@@ -90,7 +90,7 @@
 
 @if($model->chargebacks != null)
 <div class='center'><h3>Chargebacks</h3></div>
-<table id='chargebacks'>
+<table id='chargebacks' style='page-break-after: always;'>
     <thead>
         <tr>
             <td>Name</td>
