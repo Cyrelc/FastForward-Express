@@ -260,13 +260,11 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)
-            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
             ->select(
                 'bill_id',
                 'bill_number',
                 'time_pickup_scheduled',
                 DB::raw('format(amount, 2) as amount'),
-                'accounts.name as account_name',
                 'charge_account_id',
                 'delivery_type',
                 DB::raw('case when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then "Pickup And Delivery" when pickup_manifest_id = ' . $manifest_id . ' then "Pickup Only" when delivery_manifest_id = ' . $manifest_id . ' then "Delivery Only" end as type'),

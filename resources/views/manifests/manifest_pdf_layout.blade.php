@@ -119,7 +119,6 @@
             <td>Bill ID</td>
             <td>Waybill Number</td>
             <td>Date</td>
-            <td>Account</td>
             <td>Delivery Type</td>
             <td>Direction</td>
             <td class='right'>Bill Gross</td>
@@ -132,14 +131,13 @@
             @if($temp != $bill->day)
                 <?php $temp = $bill->day; ?>
                 <tr>
-                    <td colspan='8' style='text-align:center'><b>{{$temp}}</b></td>
+                    <td colspan='7' style='text-align:center'><b>{{$temp}}</b></td>
                 </tr>
             @endif
             <tr>
                 <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
                 <td>{{$bill->bill_number}}</td>
                 <td>{{$bill->time_pickup_scheduled}}</td>
-                <td>{{$bill->account_name}}</td>
                 <td>{{$bill->delivery_type}}</td>
                 <td>{{$bill->type}}</td>
                 <td class='right'>{{$bill->amount}}</td>

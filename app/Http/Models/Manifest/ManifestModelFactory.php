@@ -11,7 +11,6 @@ class ManifestModelFactory{
     }
 
     public function GetById($manifest_id) {
-        $accountRepo = new Repos\AccountRepo();
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
