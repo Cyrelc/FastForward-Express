@@ -11,12 +11,13 @@ class ManifestModelFactory{
     }
 
     public function GetById($manifest_id) {
-        $manifestRepo = new Repos\ManifestRepo();
-        $billRepo = new Repos\BillRepo();
-        $driverRepo = new Repos\DriverRepo();
-        $addressRepo = new Repos\AddressRepo();
         $accountRepo = new Repos\AccountRepo();
+        $addressRepo = new Repos\AddressRepo();
+        $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
+        $driverRepo = new Repos\DriverRepo();
+        $manifestRepo = new Repos\ManifestRepo();
+        $phoneRepo = new Repos\PhoneNumberRepo();
 
         $model = new ManifestViewModel();
 
@@ -24,6 +25,8 @@ class ManifestModelFactory{
         $model->bill_count = $billRepo->CountByManifestId($manifest_id);
         $model->driver = $driverRepo->GetById($model->manifest->driver_id);
         $model->driver->contact = $driverRepo->GetContactByDriverId($model->driver->driver_id);
+        $model->driver->contact->primary_phone = $phoneRepo->GetContactPrimaryPhone($model->driver->contact->contact_id)->phone_number;
+        $model->driver->address = $addressRepo->GetByContactId($model->driver->contact->contact_id);
 
         $model->bills = $billRepo->GetByManifestId($manifest_id);
         $model->overview = $billRepo->GetManifestOverviewById($manifest_id);

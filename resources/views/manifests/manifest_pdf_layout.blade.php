@@ -27,7 +27,6 @@
         <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>www.fastforwardexpress.com</a></td>
     </table>
 </div>
-<br/><br/>
 @endif
 
 <hr/>
@@ -41,7 +40,28 @@
         </tr>
     </tbody>
 </table>
-
+@if(isset($is_pdf))
+<table id='address'>
+    <tr>
+        <td class='text-left'>
+            <strong>Address:</strong><br/>
+            @if($model->driver->address->street)
+            {{$model->driver->address->name}}<br/>
+            {{$model->driver->address->street}}<br/>
+            @if($model->driver->address->street2 != '')
+                {{$model->driver->address->street2}}<br/>
+            @endif
+            {{$model->driver->address->city}}, {{$model->driver->address->state_province}}, {{$model->driver->address->country}}<br/>
+            {{$model->driver->address->zip_postal}}
+            @else
+            {{$model->driver->address->formatted}}<br/>
+            @endif
+            {{$model->driver->contact->primary_phone}}
+        </td>
+    </tr>
+</table>
+@endif
+<br/><br/>
 <div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Driver Statement</h3></div>
 <table id='manifest_overview' style='page-break-after: always;'>
     <thead>
@@ -97,6 +117,7 @@
     <thead>
         <tr>
             <td>Bill ID</td>
+            <td>Waybill Number</td>
             <td>Date</td>
             <td>Account</td>
             <td>Delivery Type</td>
@@ -116,6 +137,7 @@
             @endif
             <tr>
                 <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
+                <td>{{$bill->bill_number}}</td>
                 <td>{{$bill->time_pickup_scheduled}}</td>
                 <td>{{$bill->account_name}}</td>
                 <td>{{$bill->delivery_type}}</td>

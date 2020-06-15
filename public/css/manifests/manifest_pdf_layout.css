@@ -12,6 +12,9 @@ thead {
 #manifest_full tr:nth-child(even), #manifest_overview tr:nth-child(even), #chargebacks tr:nth-child(even) {
 	background: #d6e0f5;
 }
+#manifest_full tr td {
+    font-size: 10px;
+}
 .right {
     text-align: right;
 }
