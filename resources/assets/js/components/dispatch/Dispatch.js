@@ -273,7 +273,7 @@ export default class Dispatch extends Component {
         const data = {
             bill_id: this.state.setTimeModalBillId,
             type: type,
-            time: this.state.setTimeModalTime
+            time: this.state.setTimeModalTime.toLocaleString("en-US")
         }
         $.ajax({
             'url': '/dispatch/setBillPickupOrDeliveryTime',

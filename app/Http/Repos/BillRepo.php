@@ -86,6 +86,8 @@ class BillRepo {
         $old->delivery_driver_commission = $driver->delivery_commission / 100;
         $old->time_dispatched = new \DateTime();
 
+        $old = $this->CheckRequiredFields($old);
+
         $old->save();
 
         return $old;
@@ -166,9 +168,10 @@ class BillRepo {
     }
     
     public function Insert($bill) {
-    	$new = new Bill;
+        $completeBill = $this->CheckRequiredFields($bill);
+        $new = new Bill;
 
-        return ($new->create($bill));
+        return ($new->create($completeBill));
     }
 
     public function Delete($id) {
@@ -186,6 +189,7 @@ class BillRepo {
     }
 
     public function Update($bill) {
+        $completeBill = $this->CheckRequiredFields((array) $bill);
         $old = $this->GetById($bill['bill_id']);
         $fields = array(
             'amount',
@@ -230,7 +234,7 @@ class BillRepo {
             throw new \Exception('Unable to edit bill after it has been invoiced or manifested');
 
         foreach($fields as $field)
-            $old->$field = $bill[$field];
+            $old->$field = $completeBill[$field];
 
         $old->save();
 
@@ -346,8 +350,71 @@ class BillRepo {
         else if ($type === 'delivery')
             $old->time_delivered = $time;
 
+        $old = $this->CheckRequiredFields($old);
         $old->save();
 
         return $old;
     }
+
+    // Private Functions
+
+    //Checks the completion level of the bill prior to each insert/update
+    //In order to support partial updates, such as assigning a driver or setting ONLY a pickup/delivery time, the function must support
+    //both objects and array form $bill parameters
+    private function CheckRequiredFields($bill) {
+		$requiredFields = [
+			'amount',
+			'bill_number',
+			'delivery_driver_commission',
+			'delivery_driver_id',
+			'delivery_type',
+			'pickup_driver_id',
+			'pickup_driver_commission',
+			'time_pickup_scheduled',
+			'time_delivery_scheduled',
+			'time_call_received',
+			'time_dispatched',
+		];
+
+        $paymentRepo = new PaymentRepo();
+
+        $interlinerId = is_object($bill) ? $bill->interlinerId : $bill['interliner_id'];
+        $paymentTypeId = is_object($bill) ? $bill->payment_type_id : $bill['payment_type_id'];
+
+        $paymentType = $paymentRepo->GetPaymentType($paymentTypeId);
+
+		if($interlinerId != "")
+			$requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
+
+		if($paymentType->name === 'Account')
+			$requiredFields = array_merge($requiredFields, ['charge_account_id']);
+		elseif($paymentType->name === 'Driver')
+			$requiredFields = array_merge($requiredFields, ['charge_driver_id']);
+		elseif($paymentType->is_prepaid)
+			$requiredFields = array_merge($requiredFields, ['payment_id']);
+
+        $incompleteFields = [];
+        if(is_object($bill))
+            foreach($requiredFields as $field) {
+                if(empty($bill->$field))
+                    array_push($incompleteFields, $field);
+            }
+        else
+            foreach($requiredFields as $field) {
+                if ($bill[$field] == null || $bill[$field] == '')
+                    array_push($incompleteFields, $field);
+            }
+
+        $percentageComplete = number_format((count($requiredFields) - count($incompleteFields)) / count($requiredFields), 2);
+
+        if(is_object($bill)) {
+            Activity('system_debug')->log('is_object');
+            $bill->percentage_complete = $percentageComplete;
+            $bill->incomplete_fields = $incompleteFields;
+            return $bill;
+        }
+        else {
+            return array_merge($bill, ['incomplete_fields' => $percentageComplete === 1 ? null : json_encode($incompleteFields), 'percentage_complete' => $percentageComplete]);
+        }
+	}
 }

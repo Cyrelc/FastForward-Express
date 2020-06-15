@@ -49,7 +49,7 @@ class DispatchController extends Controller {
         try {
             $billRepo = new Repos\BillRepo();
 
-            $billRepo->SetBillPickupOrDeliveryTime($req->bill_id, $req->type, $req->time);
+            $billRepo->SetBillPickupOrDeliveryTime($req->bill_id, $req->type, new \DateTime($req->time));
 
             DB::commit();
             return response()->json([

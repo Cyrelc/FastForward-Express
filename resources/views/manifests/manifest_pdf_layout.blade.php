@@ -45,7 +45,7 @@
     <tr>
         <td class='text-left'>
             <strong>Address:</strong><br/>
-            @if($model->driver->address->street)
+            @if(isset($model->driver->address->street))
             {{$model->driver->address->name}}<br/>
             {{$model->driver->address->street}}<br/>
             @if($model->driver->address->street2 != '')
