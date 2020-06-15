@@ -132,7 +132,7 @@
             @if($temp != $bill->day)
                 <?php $temp = $bill->day; ?>
                 <tr>
-                    <td colspan='7' style='text-align:center'><b>{{$temp}}</b></td>
+                    <td colspan='8' style='text-align:center'><b>{{$temp}}</b></td>
                 </tr>
             @endif
             <tr>
