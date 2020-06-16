@@ -29,8 +29,8 @@ $(document).ready(function() {
                         {'db_id_field' : 'delivery_employee_id','url' : '/employees/edit/', 'db_name_field' : 'delivery_employee_name'},
                         {'db_id_field' : 'interliner_id', 'url':'/interliners/edit/', 'db_name_field' : 'interliner_name'},
                         {'db_id_field' : 'invoice_id', 'url' : '/invoices/view/', 'db_name_field' : 'invoice_id'},
-                        {'db_id_field' : 'pickup_manifest_id', 'url' : '/manifests/view', 'db_name_field' : 'pickup_manfiest_id'},
-                        {'db_id_field' : 'delivery_manifest_id', 'url' : '/manifests/view', 'db_name_field' : 'delivery_manifest_id'}];
+                        {'db_id_field' : 'pickup_manifest_id', 'url' : '/manifests/view/', 'db_name_field' : 'pickup_manifest_id'},
+                        {'db_id_field' : 'delivery_manifest_id', 'url' : '/manifests/view/', 'db_name_field' : 'delivery_manifest_id'}];
             for(link in links) {
                 var cur_row = links[link];
                 if(data[cur_row['db_id_field']] != '' && data[cur_row['db_id_field']] != null)
