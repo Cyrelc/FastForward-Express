@@ -16,7 +16,7 @@ export default function BillingTab(props) {
                             getOptionLabel={type => type.name}
                             value={props.paymentType}
                             onChange={paymentType => props.handleChanges({target: {name: 'paymentType', type: 'text', value: paymentType}})}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>
@@ -44,7 +44,7 @@ export default function BillingTab(props) {
                             name='amount'
                             value={props.amount}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>
@@ -78,7 +78,7 @@ export default function BillingTab(props) {
                             isSearchable
                             onChange={account => props.handleChanges({target: {name: 'chargeAccount', type: 'object', value: account}})}
                             value={props.chargeAccount}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>
@@ -94,7 +94,7 @@ export default function BillingTab(props) {
                             name='chargeReferenceValue'
                             value={props.chargeReferenceValue}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup> 
                 </Col>
@@ -113,7 +113,7 @@ export default function BillingTab(props) {
                             getOptionLabel={driver => driver.employee_number + ' - ' + driver.contact.first_name + ' ' + driver.contact.last_name}
                             value={props.chargeEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'chargeEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.pickupManifestId || props.deliveryManifestId}
                         />
                     </InputGroup>
                 </Col>

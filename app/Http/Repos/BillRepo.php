@@ -161,7 +161,7 @@ class BillRepo {
     public function IsReadOnly($bill_id) {
         $bill = $this->GetById($bill_id);
 
-        if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
+        if(isset($bill->invoice_id) && isset($bill->pickup_manifest_id) && isset($bill->delivery_manifest_id))
             return true;
         else
             return false;

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import ReactDom from 'react-dom'
-import {Tabs, Tab, Row, Col, ListGroup, Button} from 'react-bootstrap'
+import {Button, Col, ListGroup, Modal, Row, Tab, Tabs, ToggleButton, ToggleButtonGroup, FormControl} from 'react-bootstrap'
 import BasicTab from './BasicTab'
 import DispatchTab from './DispatchTab'
 import BillingTab from './BillingTab'
@@ -448,28 +448,27 @@ export default class Bill extends Component {
                                 this.state.billId !== null &&
                                     <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>Percent Complete: {this.state.percentComplete}</h4></ListGroup.Item>
                             }
-                            {}
                             <ListGroup.Item variant='warning'><h4>Price: {this.state.amount}</h4></ListGroup.Item>
+                            {this.state.admin &&
+                                <ListGroup.Item>
+                                    <Button
+                                        className='float-right'
+                                        name='applyRestrictions'
+                                        value={this.state.applyRestrictions}
+                                        onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
+                                        title='Toggle restrictions'
+                                        type='checkbox'
+                                        variant={this.state.applyRestrictions ? 'dark' : 'danger'}
+                                    ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i></Button>
+                                </ListGroup.Item>
+                            }
                         </ListGroup>
                     </Col>
-                    {
-                        this.state.admin &&
-                            <Button
-                                className='float-right'
-                                name='applyRestrictions'
-                                value={this.state.applyRestrictions}
-                                onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
-                                title='Toggle restrictions'
-                                type='checkbox'
-                                variant={this.state.applyRestrictions ? 'dark' : 'danger'}
-                            >
-                                <i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i>
-                            </Button>
-                    }
                     <Col md={11}>
                         <Tabs id='bill-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
                             <Tab eventKey='basic' title={<h4>Pickup/Delivery Info  <i className='fas fa-map-pin'></i></h4>}>
-                                <BasicTab 
+                                <BasicTab
+                                    //mutable values
                                     delivery={{
                                         account: this.state.deliveryAccount,
                                         address: {
@@ -516,60 +515,79 @@ export default class Bill extends Component {
                                     timeRates={this.state.timeRates}
                                     useImperial={this.state.useImperial}
 
+                                    //functions
                                     addPackage={this.addPackage}
                                     deletePackage={this.deletePackage}
                                     handleChanges={this.handleChanges}
-                                    minTimestamp={this.state.minTimestamp}
-                                    readOnly={this.state.readOnly}
+
+                                    //value only (non-mutable by recipient function)
                                     admin={this.state.admin}
+                                    deliveryManifestId={this.state.deliveryManifestId}
+                                    invoiceId={this.state.invoiceId}
+                                    minTimestamp={this.state.minTimestamp}
+                                    pickupManifestId={this.state.pickupManifestId}
+                                    readOnly={this.state.readOnly}
                                 />
                             </Tab>
                             {this.state.admin &&
                                 <Tab eventKey='dispatch' title={<h4>Dispatch  <i className='fas fa-truck'></i></h4>}>
-                                    <DispatchTab 
-                                        drivers={this.state.drivers}
-                                        pickupEmployee={this.state.pickupEmployee}
-                                        pickupEmployeeCommission={this.state.pickupEmployeeCommission}
-                                        pickupTimeActual={this.state.pickupTimeActual}
+                                    <DispatchTab
+                                        //mutable values
                                         deliveryEmployee={this.state.deliveryEmployee}
                                         deliveryEmployeeCommission={this.state.deliveryEmployeeCommission}
                                         deliveryTimeActual={this.state.deliveryTimeActual}
+                                        interliner={this.state.interliner}
                                         interlinerActualCost={this.state.interlinerActualCost}
                                         interlinerCostToCustomer={this.state.interlinerCostToCustomer}
-                                        interliner={this.state.interliner}
-                                        interliners={this.state.interliners}
                                         interlinerTrackingId={this.state.interlinerTrackingId}
+                                        pickupEmployee={this.state.pickupEmployee}
+                                        pickupEmployeeCommission={this.state.pickupEmployeeCommission}
+                                        pickupTimeActual={this.state.pickupTimeActual}
                                         timeCallReceived={this.state.timeCallReceived}
                                         timeDispatched={this.state.timeDispatched}
-                                        readOnly={this.state.readOnly}
 
+                                        //functions
                                         handleChanges={this.handleChanges}
+
+                                        //value only (non-mutable by recipient function)
+                                        deliveryManifestId={this.state.deliveryManifestId}
+                                        drivers={this.state.drivers}
+                                        interliners={this.state.interliners}
+                                        invoiceId={this.state.invoiceId}
+                                        pickupManifestId={this.state.pickupManifestId}
+                                        readOnly={this.state.readOnly}
                                     />
                                 </Tab>
                             }
                             {this.state.admin && 
                                 <Tab eventKey='billing' title={<h4>Billing  <i className='fas fa-credit-card'></i></h4>}>
-                                    <BillingTab 
-                                        accounts={this.state.accounts}
-                                        drivers={this.state.drivers}
-                                        paymentTypes={this.state.paymentTypes}
-                                        
+                                    <BillingTab
+                                        //mutable values
                                         amount={this.state.amount}
                                         billNumber={this.state.billNumber}
                                         chargeAccount={this.state.chargeAccount}
                                         chargeReferenceValue={this.state.chargeReferenceValue}
                                         chargeEmployee={this.state.chargeEmployee}
                                         paymentType={this.state.paymentType}
+                                        pickupManifestId={this.state.pickupManifestId}
                                         prepaidReferenceField={this.state.prepaidReferenceField}
                                         prepaidReferenceValue={this.state.prepaidReferenceValue}
                                         skipInvoicing={this.state.skipInvoicing}
-                                        
-                                        readOnly={this.state.readOnly}
+
+                                        //functions
                                         handleChanges={this.handleChanges}
-                                        /> 
+
+                                        //value only (immutable by recipient function)
+                                        accounts={this.state.accounts}
+                                        deliveryManifestId={this.state.deliveryManifestId}
+                                        drivers={this.state.drivers}
+                                        invoiceId={this.state.invoiceId}
+                                        paymentTypes={this.state.paymentTypes}
+                                        readOnly={this.state.readOnly}
+                                    />
                                 </Tab>
                             }
-                            {(this.state.admin && this.state.activityLog) && 
+                            {(this.state.admin && this.state.activityLog) &&
                                 <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                                     <ActivityLogTab 
                                         activityLog={this.state.activityLog}

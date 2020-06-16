@@ -25,7 +25,7 @@ export default function BasicTab(props) {
                                         getOptionValue={type => type.id}
                                         value={props.deliveryType}
                                         onChange={item => props.handleChanges({target: {name: 'deliveryType', type: 'text', value: item}})}
-                                        isDisabled={props.readOnly}
+                                        isDisabled={props.readOnly || props.invoiceId}
                                         isOptionDisabled={option => props.applyRestrictions ? option.isDisabled : false}
                                     />
                                 </InputGroup>
@@ -38,7 +38,7 @@ export default function BasicTab(props) {
                                     label='Package is smaller than 30 cm&#179; (1 foot&#179;)'
                                     value={props.packageIsMinimum}
                                     checked={props.packageIsMinimum}
-                                    disabled={props.readOnly || props.packageIsPallet}
+                                    disabled={props.readOnly || props.packageIsPallet || props.invoiceId}
                                     onChange={props.handleChanges}
                                 />
                             </Col>
@@ -49,7 +49,7 @@ export default function BasicTab(props) {
                                         label='Is a pallet'
                                         value={props.packageIsPallet}
                                         checked={props.packageIsPallet}
-                                        disabled={props.readOnly}
+                                        disabled={props.readOnly || props.invoiceId}
                                         onChange={props.handleChanges}
                                     />
                                 </Col>
@@ -61,7 +61,7 @@ export default function BasicTab(props) {
                                         label='Use Imperial Measurements'
                                         value={props.useImperial}
                                         checked={props.useImperial}
-                                        disabled={props.readOnly}
+                                        disabled={props.readOnly || props.invoiceId}
                                         onChange={props.handleChanges}
                                     />
                                 </Col>
@@ -72,7 +72,7 @@ export default function BasicTab(props) {
                                         <thead>
                                             <tr>
                                                 <td style={{width:100}}>
-                                                    {!props.readOnly &&
+                                                    {(!props.readOnly && !props.invoiceId) &&
                                                         <Button variant='success' onClick={props.addPackage}>
                                                             <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-box'></i></span>
                                                         </Button>
@@ -95,7 +95,7 @@ export default function BasicTab(props) {
                                                     useImperial={props.useImperial}
                                                     package={parcel}
                                                     packageCount={props.packages.length}
-                                                    readOnly={props.readOnly}
+                                                    readOnly={props.readOnly || props.invoiceId}
                                                     
                                                     deletePackage={props.deletePackage}
                                                     handleChanges={props.handleChanges}
@@ -118,7 +118,7 @@ export default function BasicTab(props) {
                             name='description'
                             value={props.description}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                     </Col>
                 </Row>
@@ -135,7 +135,7 @@ export default function BasicTab(props) {
                             minTimestamp={props.minTimestamp}
                             accounts={props.accounts}
                             dateTimeReadOnly={false}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                             admin={props.admin}
                             timeTooltip={"The earliest time the driver will pick up the package. Please have the package ready by the time indicated."}
 
@@ -153,7 +153,7 @@ export default function BasicTab(props) {
                             accounts={props.accounts}
                             dateTimeReadOnly={props.applyRestrictions}
                             admin={props.admin}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                             timeTooltip={"The estimated time of delivery based on your selections. The time shown is not a guarantee"}
 
                             handleChanges={props.handleChanges}

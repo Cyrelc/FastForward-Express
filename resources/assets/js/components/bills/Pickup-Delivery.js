@@ -61,7 +61,8 @@ export default function Pickup_Delivery(props) {
                                 value={props.data.address.type}
                                 name={props.id + '.address.type'}
                                 disabled={props.readOnly}
-                                onChange={value => props.handleChanges({target: {name: props.id + 'AddressType', type: 'text', value: value}})} >
+                                onChange={value => props.handleChanges({target: {name: props.id + 'AddressType', type: 'text', value: value}})}
+                            >
                                 {props.addressTypes.map(type => 
                                     <ToggleButton value={type} key={type} variant='outline-secondary' disabled={props.readOnly}>{type}</ToggleButton>
                                 )}

@@ -19,7 +19,7 @@ export default function DispatchTab(props) {
                             isSearchable
                             value={props.pickupEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'pickupEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.pickupManifestId}
                         />
                     </InputGroup>
                 </Col>
@@ -35,7 +35,7 @@ export default function DispatchTab(props) {
                             value={props.pickupEmployeeCommission}
                             name='pickupEmployeeCommission'
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.pickupManifestId}
                         />
                         <InputGroup.Append>
                             <InputGroup.Text> %</InputGroup.Text>
@@ -56,7 +56,7 @@ export default function DispatchTab(props) {
                             dateFormat='MMMM d, yyyy h:mm aa'
                             selected={props.pickupTimeActual}
                             onChange={datetime => props.handleChanges({target: {name: 'pickupTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.pickupManifestId}
                             className='form-control'
                         />
                     </InputGroup>
@@ -76,7 +76,7 @@ export default function DispatchTab(props) {
                             isSearchable
                             value={props.deliveryEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'deliveryEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.deliveryManifestId}
                         />
                     </InputGroup>
                 </Col>
@@ -92,7 +92,7 @@ export default function DispatchTab(props) {
                             name='deliveryEmployeeCommission'
                             value={props.deliveryEmployeeCommission}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.deliveryManifestId}
                         />
                         <InputGroup.Append>
                             <InputGroup.Text> %</InputGroup.Text>
@@ -113,7 +113,7 @@ export default function DispatchTab(props) {
                             dateFormat='MMMM d, yyyy h:mm aa'
                             selected={props.deliveryTimeActual}
                             onChange={datetime => props.handleChanges({target: {name: 'deliveryTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.deliveryManifestId}
                             className='form-control'
                         />
                     </InputGroup>
@@ -129,13 +129,13 @@ export default function DispatchTab(props) {
                         <InputGroup.Prepend>
                             <InputGroup.Text>Interliner: </InputGroup.Text>
                         </InputGroup.Prepend>
-                        <Select 
+                        <Select
                             options={props.interliners}
                             getOptionLabel={interliner => interliner.name}
                             isSearchable
                             value={props.interliner}
                             onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}
-                            isDisabled={props.readOnly}
+                            isDisabled={props.readOnly || props.invoiceId}
                         />
                         <InputGroup.Prepend>
                             <InputGroup.Text>Tracking #</InputGroup.Text>
@@ -146,7 +146,7 @@ export default function DispatchTab(props) {
                             name='interlinerTrackingId'
                             value={props.interlinerTrackingId}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                         <InputGroup.Prepend>
                             <InputGroup.Text>Cost To Customer: </InputGroup.Text>
@@ -158,7 +158,7 @@ export default function DispatchTab(props) {
                             name='interlinerCostToCustomer'
                             value={props.interlinerCostToCustomer}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                         <InputGroup.Prepend>
                             <InputGroup.Text>Actual Cost: </InputGroup.Text>
@@ -170,7 +170,7 @@ export default function DispatchTab(props) {
                             name='interlinerActualCost'
                             value={props.interlinerActualCost}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>
