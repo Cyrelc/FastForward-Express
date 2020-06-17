@@ -9,7 +9,7 @@ class PaymentCollector {
             'account_id' => $req->input('account-id'),
             'date' => date('Y-m-d'),
             'amount' => $account_adjustment,
-            'payment_type' => $req->select_payment,
+            'payment_type_id' => $req->select_payment,
             'reference_value' => $req->reference_value,
             'comment' => $req->comment
         ];
@@ -21,7 +21,7 @@ class PaymentCollector {
             'invoice_id' => $invoice_id,
             'date' => date('Y-m-d'),
             'amount' => $req->input($invoice_id . '_payment_amount'),
-            'payment_type' => $req->select_payment,
+            'payment_type_id' => $req->select_payment,
             'reference_value' => $req->reference_value,
             'comment' => $req->comment
         ];

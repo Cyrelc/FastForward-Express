@@ -70,20 +70,22 @@
 
             $acctRepo = new Repos\AccountRepo();
             $activityLogRepo = new Repos\ActivityLogRepo();
+            $addressRepo = new Repos\AddressRepo();
             $employeesRepo = new Repos\EmployeeRepo();
-            $addRepo = new Repos\AddressRepo();
-            $selectionsRepo = new Repos\SelectionsRepo();
             $invoiceRepo = new Repos\InvoiceRepo();
+            $paymentRepo = new Repos\PaymentRepo();
             $ratesheetRepo = new Repos\RatesheetRepo();
+            $selectionsRepo = new Repos\SelectionsRepo();
 
             $contactsModelFactory = new Models\Partials\ContactsModelFactory();
 
             $model->account = $acctRepo->GetById($id);
             $model->account->start_date = strtotime($model->account->start_date);
             $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
-            $model->deliveryAddress = $addRepo->GetById($model->account->shipping_address_id);
-            $model->billingAddress = $addRepo->GetById($model->account->billing_address_id);
+            $model->deliveryAddress = $addressRepo->GetById($model->account->shipping_address_id);
+            $model->billingAddress = $addressRepo->GetById($model->account->billing_address_id);
             $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
+            $model->paymentTypes = $paymentRepo->GetPrepaidPaymentTypes();
             // $model->commissions = $dcRepo->ListByAccount($id);
             // $model->give_commission_1 = false;
             // $model->give_commission_2 = false;

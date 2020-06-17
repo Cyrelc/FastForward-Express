@@ -36,7 +36,7 @@ export default function BillingTab(props) {
                 <Col md={3}>
                     <InputGroup>
                         <InputGroup.Prepend>
-                            <InputGroup.Text>Driver Charge: </InputGroup.Text>
+                            <InputGroup.Text>Bill Cost to Customer: </InputGroup.Text>
                         </InputGroup.Prepend>
                         <FormControl 
                             type='number'
@@ -59,7 +59,7 @@ export default function BillingTab(props) {
                             onChange={props.handleChanges}
                             value={props.skipInvoicing}
                             name='skipInvoicing'
-                            disabled={props.readOnly}
+                            disabled={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>

@@ -14,7 +14,7 @@ class PaymentController extends Controller {
 
     public function GetPaymentsTableByAccount(Request $req) {
         $paymentsRepo = new Repos\PaymentRepo();
-        return json_encode($paymentsRepo->listPaymentsByAccount($req->input('account-id')));
+        return json_encode($paymentsRepo->listPaymentsByAccount($req->input('account_id')));
     }
 
     public function ProcessAccountPayment(Request $req) {

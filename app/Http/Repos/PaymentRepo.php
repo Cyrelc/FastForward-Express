@@ -52,6 +52,12 @@ class PaymentRepo {
         return $payment_types;
     }
 
+    public function GetPrepaidPaymentTypes() {
+        $paymentTypes = PaymentType::where('is_prepaid', true);
+
+        return $paymentTypes->get();
+    }
+
     public function UpdatePaymentType($paymentType) {
         $old = PaymentType::where('payment_type_id', $paymentType['payment_type_id'])->first();
 

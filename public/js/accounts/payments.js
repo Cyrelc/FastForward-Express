@@ -15,7 +15,7 @@ $(document).ready(function() {
         },
         columns: [
             {data:'invoice_id', className:'invoice_id'},
-            {data:'date'},
+            {data:'bill_end_date'},
             {data:'balance_owing'},
             {data:null, className:'payment_amount'}
         ]
@@ -51,26 +51,12 @@ $(document).ready(function() {
 });
 
 function handleReferenceValue() {
-    switch($('#select_payment').val()) {
-        case 'cheque':
-            $('#reference_value_div').removeClass('hidden');
-            $('#reference_value').attr('placeholder', 'Cheque Number');
-            break;
-        case 'bank_transfer':
-            $('#reference_value_div').removeClass('hidden');
-            $('#reference_value').prop('placeholder', 'Bank Transfer ID');
-            break;
-        case 'credit_card':
-            $('#reference_value_div').removeClass('hidden');
-            $('#reference_value').prop('placeholder', 'Last Four Digits');
-            break;
-        case 'account':
-            $('#reference_value_div').addClass('hidden');
-            $('#payment_amount').val($('#select_payment option:selected').attr('data-amount'));
-            break;
-        default:
-            $('#reference_value_div').addClass('hidden');
-            break;
+    const referenceValue = $('#select_payment').find(':selected').attr('reference_value')
+    if(referenceValue) {
+        $('#reference_value_div').removeClass('hidden');
+        $('#reference_value').attr('placeholder', referenceValue);
+    } else {
+        $('#reference_value_div').addClass('hidden');
     }
 }
 
