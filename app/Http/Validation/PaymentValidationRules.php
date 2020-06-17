@@ -17,8 +17,8 @@ class PaymentValidationRules {
 
         foreach($invoices as $invoice) {
             $invoice_total += $req->input($invoice->invoice_id . '_payment_amount');
-            $rules = array_merge($rules, [$invoice->invoice_id . '_payment_amount' => 'numeric|min:0|max:' . $invoice->balance_owing]);
-            $messages = array_merge($messages, [$invoice->invoice_id . '_payment_amount.max' => 'Maximum payment on invoice ' . $invoice->invoice_id . ' cannot exceed outstanding balance']);
+            $rules = array_merge($rules, [$invoice->invoice_id . '_payment_amount' => 'numeric|between:0,' . floatval(str_replace(',', '', $invoice->balance_owing))]);
+            // $messages = array_merge($messages, [$invoice->invoice_id . '_payment_amount.max' => 'Maximum payment on invoice ' . $invoice->invoice_id . ' cannot exceed outstanding balance']);
         }
 
         $rules = array_merge($rules, ['payment_amount' => 'required|numeric|min:' . $invoice_total]);

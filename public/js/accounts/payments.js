@@ -74,7 +74,7 @@ function autoCalculatePayments() {
                 return;
             }
         }
-        var max = $(this).attr('max');
+        var max = parseInt($(this).attr('max').replace(/\,/g,''));
         if(max > payment_amount) {
             if(auto_pay)
                 $(this).val(payment_amount.toFixed(2));
