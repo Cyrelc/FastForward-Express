@@ -28,7 +28,7 @@
         {{-- <li><a data-toggle='tab' href='#admin'>Admin</a></li> --}}
         <li><a data-toggle='tab' href='#advanced'><h4>Advanced</h4></a></li>
         @if(isset($model->account->account_id))
-            <li><a data-toggle='tab' href='#commissions'><h4>Commissions</h4></a></li>
+            {{-- <li><a data-toggle='tab' href='#commissions'><h4>Commissions</h4></a></li> --}}
             <li><a data-toggle='tab' href='#payments'><h4>Payments</h4></a></li>
             <li><a data-toggle='tab' href='#users'><h4>Users</h4></a></li>
             <li><a data-toggle='modal' href='#invoice_layout_modal'><h4>Invoice Layout</h4></a></li>

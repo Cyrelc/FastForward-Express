@@ -8,6 +8,7 @@ br {
 table {
     width: 100%;
     border-collapse: collapse;
+    page-break-inside: avoid;
 }
 thead {
     border-bottom: 2px solid black;
@@ -67,7 +68,7 @@ table.totals td {
     border-bottom: 2px solid black;
 }
 .subtotal td:first-child {
-    border-left: none;
+    border: none;
 }
 .text-left {
     padding-left: 5%;
