@@ -115,65 +115,67 @@
 <br/>
 <br/>
 @endforeach
-@if(count($model->unpaid_invoices) > 0)
-<h4>All Invoices with Balance Owing for Account {{$model->parent->name}}</h4>
-<table class='unpaid_invoices'>
-    <thead>
-        <tr>
-            <td>Invoice ID</td>
-            <td>Date</td>
-            <td>Invoice Total</td>
-            <td>Balance Owing</td>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($model->unpaid_invoices as $invoice)
-            <tr>
-                <td><a href='/invoices/view/{{$invoice->invoice_id}}'>{{$invoice->invoice_id}}</a></td>
-                <td>{{$invoice->bill_end_date}}</td>
-                <td>{{$invoice->total_cost}}</td>
-                <td>{{$invoice->balance_owing}}</td>
-            </tr>
-        @endforeach
-    </tbody>
-</table>
-@endif
-<table class='totals'>
-    @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
+<div style='page-break-inside: avoid'>
+    @if(count($model->unpaid_invoices) > 0)
+    <h4>All Invoices with Balance Owing for Account {{$model->parent->name}}</h4>
+    <table class='unpaid_invoices'>
         <thead>
             <tr>
-                <td colspan='2'>Minimum Billing Applied</td>
+                <td>Invoice ID</td>
+                <td>Date</td>
+                <td>Invoice Total</td>
+                <td>Balance Owing</td>
             </tr>
         </thead>
+        <tbody>
+            @foreach($model->unpaid_invoices as $invoice)
+                <tr>
+                    <td><a href='/invoices/view/{{$invoice->invoice_id}}'>{{$invoice->invoice_id}}</a></td>
+                    <td>{{$invoice->bill_end_date}}</td>
+                    <td>{{$invoice->total_cost}}</td>
+                    <td>{{$invoice->balance_owing}}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
     @endif
-    <tbody>
-        <tr>
-            <td>Bill Subtotal:</td>
-            @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
-                <td>{{$model->invoice->min_invoice_amount}}</td>
-            @else
-                <td>{{$model->invoice->bill_cost}}</td>
+    <table class='totals'>
+        @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
+            <thead>
+                <tr>
+                    <td colspan='2'>Minimum Billing Applied</td>
+                </tr>
+            </thead>
+        @endif
+        <tbody>
+            <tr>
+                <td>Bill Subtotal:</td>
+                @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
+                    <td>{{$model->invoice->min_invoice_amount}}</td>
+                @else
+                    <td>{{$model->invoice->bill_cost}}</td>
+                @endif
+            </tr>
+            @if($model->invoice->discount != 0)
+                <tr>
+                    <td>Discount:</td>
+                    <td>{{$model->invoice->discount}}</td>
+                </tr>
             @endif
-        </tr>
-        @if($model->invoice->discount != 0)
+            @if($model->invoice->fuel_surcharge != 0)
+                <tr>
+                    <td>Discount:</td>
+                    <td>{{$model->invoice->discount}}</td>
+                </tr>
+            @endif
             <tr>
-                <td>Discount:</td>
-                <td>{{$model->invoice->discount}}</td>
+                <td>Tax:</td>
+                <td>{{$model->invoice->tax}}</td>
             </tr>
-        @endif
-        @if($model->invoice->fuel_surcharge != 0)
             <tr>
-                <td>Discount:</td>
-                <td>{{$model->invoice->discount}}</td>
+                <td>Invoice Total:</td>
+                <td>{{$model->invoice->total_cost}}</td>
             </tr>
-        @endif
-        <tr>
-            <td>Tax:</td>
-            <td>{{$model->invoice->tax}}</td>
-        </tr>
-        <tr>
-            <td>Invoice Total:</td>
-            <td>{{$model->invoice->total_cost}}</td>
-        </tr>
-    <tbody>
-</table>
+        <tbody>
+    </table>
+</div>
