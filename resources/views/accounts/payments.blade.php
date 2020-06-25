@@ -52,6 +52,7 @@
                                     @endif
                                     {{-- TODO add option to give account credit (admins only) --}}
                                     {{-- TODO: if account has credit cards on file, list each active CC --}}
+                                    <option></option>
                                     @foreach($model->paymentTypes as $paymentType)
                                         <option value={{$paymentType->payment_type_id}} reference_value={{$paymentType->required_field}}>{{$paymentType->name}}</option>
                                     @endforeach

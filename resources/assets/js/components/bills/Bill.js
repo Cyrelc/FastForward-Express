@@ -627,7 +627,7 @@ export default class Bill extends Component {
             interliner_cost_to_customer: this.state.interlinerCostToCustomer,
             interliner_id: this.state.interliner ? this.state.interliner.interliner_id : undefined,
             interliner_reference_value: this.state.interlinerTrackingId,
-            is_min_weight_size: this.state.packageIsMinimum,
+            is_min_weight_size: this.state.packageIsMinimum ? true : false,
             is_pallet: this.state.packageIsPallet,
             packages: this.state.packages ? this.state.packages.slice() : null,
             payment_type: this.state.paymentType,
