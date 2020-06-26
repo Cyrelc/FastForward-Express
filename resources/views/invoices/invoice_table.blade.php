@@ -87,6 +87,8 @@
                                     {{$bill->delivery_address_name}}
                                 @endif
                             </td>
+                        @elseif($value == 'bill_id')
+                            <td class='bill_id'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
                         @else
                             <td>{{$bill->$value}}</td>
                         @endif
