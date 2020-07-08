@@ -46,6 +46,12 @@ class PaymentRepo {
         return $payment_type->first();
     }
 
+    public function GetPaymentTypeByName($paymentTypeName) {
+        $payment_type = PaymentType::where('name', $paymentTypeName);
+
+        return $payment_type->first();
+    }
+
     public function GetPaymentTypes() {
         $payment_types = PaymentType::All();
 

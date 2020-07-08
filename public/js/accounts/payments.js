@@ -43,15 +43,16 @@ $(document).ready(function() {
     });
 
     $('#payment_amount').blur(autoCalculatePayments);
+    $('input[id$=_payment_amount]').blur(autoCalculatePayments);
 
-    $('#select_payment').change(handleReferenceValue);
+    $('#payment_type_id').change(handleReferenceValue);
     handleReferenceValue();
 
     stickyTabs();
 });
 
 function handleReferenceValue() {
-    const referenceValue = $('#select_payment').find(':selected').attr('reference_value')
+    const referenceValue = $('#payment_type_id').find(':selected').attr('reference_value')
     if(referenceValue) {
         $('#reference_value_div').removeClass('hidden');
         $('#reference_value').attr('placeholder', referenceValue);
@@ -85,8 +86,27 @@ function autoCalculatePayments() {
             (payment_amount -= Number(max)).toFixed(2);
         }
     })
-
     $('#on_account').val(payment_amount.toFixed(2));
+}
+
+function submitCredit() {
+    var data = $('#account_credit_form').serialize();
+    data += '&account_id=' + $('#account_id').val();
+
+    $.ajax({
+        'url' : '/accounts/giveCredit',
+        'type' : 'post',
+        'data': data,
+        'success': function() {
+            $('#account_credit_modal').modal('hide');
+            toastr.success('Account credited successfully', 'Success', {
+                'progressBar': true,
+                'showDuration': 500,
+                'onHidden': function(){location.reload()}
+            })
+        },
+        'error': function(response){handleErrorResponse(response)}
+    })
 }
 
 function submitPayment() {
@@ -101,7 +121,6 @@ function submitPayment() {
             $('#payment_modal').modal('hide');
             toastr.success('Payment successfully submitted', 'Success', {
                 'progressBar': true,
-                'positionClass': 'toast-top-full-width',
                 'showDuration': 500,
                 'onHidden': function(){location.reload()}
             });

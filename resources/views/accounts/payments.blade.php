@@ -9,9 +9,14 @@
 
 <div class='panel panel-default'>
     <div class='panel-heading clearfix'>
-        <div class='col-md-12'>
+        <div class='col-md-3'>
             <button type='button' class='btn btn-primary' data-toggle='modal' data-target='#credit_card_modal' disabled><i class='fa fa-credit-card'></i>&nbsp&nbspAdd New Credit Card</button>
             <button type='button' class='btn btn-success' data-toggle='modal' data-target='#payment_modal'><i class='far fa-money-bill-alt'></i>&nbsp&nbspNew Payment</button>
+        </div>
+        <div class='col-md-6'></div>
+        <div class='col-md-3'>
+            <button type='button' class='btn btn-success' data-toggle='modal' data-target='#account_credit_modal'><i class='fas fa-hand-holding-usd'>&nbsp&nbspGive Account Credit</i></button>
+            <label>Credit Balance: ${{$model->account->account_balance}}</label>
         </div>
     </div>
     <div class='panel-body'>
@@ -32,6 +37,49 @@
     </div>
 </div>
 
+<!-- account credit modal -->
+<div id='account_credit_modal' class='modal fade' role='dialog'>
+    <div class='modal-dialog'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <button type='button' class='close' data-dismiss='modal'>&times;</button>
+                <h3 class='modal-title'>Credit Account</h3>
+            </div>
+            <div class='modal-body'>
+                <div class='clearfix'>
+                    <form id='account_credit_form'>
+                        <div class='row'>
+                            <div class='col-md-6'>
+                                <div class='input-group bottom15'>
+                                    <span class='input-group-addon'>Credit Amount: $</span>
+                                    <input type='number' min='0' step='0.01' class='form-control' id='credit_amount' name='credit_amount' placeholder='Credit Amount' />
+                                </div>
+                            </div>
+                            <div class='col-md-6'>
+                                <div class='input-group'>
+                                    <span class='input-group-addon'>Bill ID: </span>
+                                    <input type='number' min='0' class='form-control' id='bill_id' name='bill_id' placeholder='Please enter a valid bill_id' />
+                                </div>
+                            </div>
+                            <div class='col-md-12'>
+                                <div class='input-group'>
+                                    <span class='input-group-addon'>Reason: </span>
+                                    <input type='text' class='form-control bottom15' id='description' name='description' placeholder='Reason' />
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+			<div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type='button' class="btn btn-success" onclick='submitCredit()'>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- payment modal -->
 <div id='payment_modal' class='modal fade' role='dialog'>
     <div class='modal-dialog'>
@@ -46,13 +94,13 @@
                         <div class='col-md-8'>
                             <div class='input-group bottom15'>
                                 <span class='input-group-addon'>Payment Method</span>
-                                <select id='select_payment' name='select_payment' class='form-control selectpicker' >
+                                <select id='payment_type_id' name='payment_type_id' class='form-control selectpicker' >
+                                    <option></option>
                                     @if($model->account->account_balance > 0)
-                                        <option value='account' data-amount='{{$model->account->account_balance}}'>Account Balance (${{$model->account->account_balance}})</option>
+                                        <option value={{$model->accountPaymentType->payment_type_id}} data-amount='{{$model->account->account_balance}}' selected>Account Balance (${{$model->account->account_balance}})</option>
                                     @endif
                                     {{-- TODO add option to give account credit (admins only) --}}
                                     {{-- TODO: if account has credit cards on file, list each active CC --}}
-                                    <option></option>
                                     @foreach($model->paymentTypes as $paymentType)
                                         <option value={{$paymentType->payment_type_id}} reference_value={{$paymentType->required_field}}>{{$paymentType->name}}</option>
                                     @endforeach

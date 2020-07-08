@@ -45,6 +45,42 @@ class AccountController extends Controller {
         return view('accounts.account', compact('model'));
     }
 
+    public function giveAccountCredit(Request $req) {
+        DB::beginTransaction();
+        try {
+            $accountValidationRules = new Validation\AccountValidationRules();
+
+            $validationRules = [];
+            $validationMessages = [];
+
+            $creditRules = $accountValidationRules->GetAccountCreditRules($req);
+            $validationRules = $creditRules['rules'];
+            $validationMessages = $creditRules['messages'];
+
+            $this->validate($req, $validationRules, $validationMessages);
+
+            $accountRepo = new Repos\AccountRepo();
+            $paymentCollector = new \App\Http\Collectors\PaymentCollector();
+            $paymentRepo = new Repos\PaymentRepo();
+
+            $accountCreditPayment = $paymentCollector->CollectAccountCredit($req);
+            $accountRepo->AdjustBalance($req->account_id, $req->credit_amount);
+            $paymentRepo->Insert($accountCreditPayment);
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+            ]);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
     public function store(Request $req) {
         DB::beginTransaction();
         try {
@@ -134,7 +170,6 @@ class AccountController extends Controller {
 
         } catch(Exception $e) {
             DB::rollBack();
-            dd(response());
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()

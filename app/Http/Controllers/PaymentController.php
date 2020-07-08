@@ -29,32 +29,30 @@ class PaymentController extends Controller {
             $paymentValidation = new \App\Http\Validation\PaymentValidationRules();
 
             $account_id = $req->input('account-id');
+            $accountPaymentTypeId = $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id;
             $outstanding_invoices = $invoiceRepo->GetOutstandingByAccountId($account_id);
 
             $temp = $paymentValidation->GetPaymentOnAccountRules($req, $outstanding_invoices);
+
             $this->validate($req, $temp['rules'], $temp['messages']);
-            
-            $account_adjustment = $req->input('select_payment') == 'account' ? 0 : $req->input('payment_amount');
+
+            if($req->input('payment_type_id') == $accountPaymentTypeId)
+                $account_adjustment = -(float)$req->input('payment_amount');
+            else
+                $account_adjustment = (float)$req->input('payment_amount');
 
             foreach($outstanding_invoices as $invoice) {
                 $payment_amount = $req->input($invoice->invoice_id . '_payment_amount');
                 if($payment_amount > 0) {
                     $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $account_id, $invoice->invoice_id));
                     $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$payment_amount);
-                    $account_adjustment -= $req->input($invoice->invoice_id . '_payment_amount');
+                    if($req->payment_type_id != $accountPaymentTypeId)
+                        $account_adjustment -= $req->input($invoice->invoice_id . '_payment_amount');
                 }
             }
 
-            if($req->payment_type == 'account') {
-                $accountRepo->AdjustBalance($account_id, -$req->payment_amount);
-            }
-
-            $accountRepo->AdjustBalance($account_id, $account_adjustment);
-
-            if($req->input('select_payment') != 'account' && $account_adjustment > 0) {
-                $account_payment = $paymentCollector->CollectAccountPayment($req, $account_adjustment);
-                $paymentRepo->insert($account_payment);
-            }
+            if($account_adjustment != 0)
+                $accountRepo->AdjustBalance($account_id, $account_adjustment);
 
             DB::commit();
             return response()->json(['success' => true]);

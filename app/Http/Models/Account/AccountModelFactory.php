@@ -86,6 +86,7 @@
             $model->billingAddress = $addressRepo->GetById($model->account->billing_address_id);
             $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
             $model->paymentTypes = $paymentRepo->GetPrepaidPaymentTypes();
+            $model->accountPaymentType = $paymentRepo->GetPaymentTypeByName('Account');
             // $model->commissions = $dcRepo->ListByAccount($id);
             // $model->give_commission_1 = false;
             // $model->give_commission_2 = false;

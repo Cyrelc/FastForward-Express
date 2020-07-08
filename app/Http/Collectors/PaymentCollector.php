@@ -2,14 +2,29 @@
 
 namespace App\Http\Collectors;
 
+use App\Http\Repos;
+
 class PaymentCollector {
+
+    public function CollectAccountCredit($req) {
+        $paymentRepo = new Repos\PaymentRepo();
+
+        return [
+            'account_id' => $req->account_id,
+            'date' => date('Y-m-d'),
+            'amount' => $req->credit_amount,
+            'payment_type_id' => $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id,
+            'reference_value' => 'ACCOUNT CREDIT - PRICE ADJUSTMENT ON BILL ' . $req->bill_id,
+            'comment' => $req->description
+        ];
+    }
 
     public function CollectAccountPayment($req, $account_adjustment) {
         return [
             'account_id' => $req->input('account-id'),
             'date' => date('Y-m-d'),
             'amount' => $account_adjustment,
-            'payment_type_id' => $req->select_payment,
+            'payment_type_id' => $req->payment_type_id,
             'reference_value' => $req->reference_value,
             'comment' => $req->comment
         ];
@@ -21,7 +36,7 @@ class PaymentCollector {
             'invoice_id' => $invoice_id,
             'date' => date('Y-m-d'),
             'amount' => $req->input($invoice_id . '_payment_amount'),
-            'payment_type_id' => $req->select_payment,
+            'payment_type_id' => $req->payment_type_id,
             'reference_value' => $req->reference_value,
             'comment' => $req->comment
         ];
