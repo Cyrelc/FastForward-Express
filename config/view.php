@@ -30,5 +30,5 @@ return [
 
     'compiled' => realpath(storage_path('framework/views')),
 
-    'version' => 2020.06-18
+    'version' => 2020.07-08
 ];
