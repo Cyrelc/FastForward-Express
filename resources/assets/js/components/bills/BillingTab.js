@@ -36,9 +36,37 @@ export default function BillingTab(props) {
                 <Col md={3}>
                     <InputGroup>
                         <InputGroup.Prepend>
-                            <InputGroup.Text>Bill Cost to Customer: </InputGroup.Text>
+                            <InputGroup.Text>Skip Invoicing</InputGroup.Text>
                         </InputGroup.Prepend>
-                        <FormControl 
+                        <InputGroup.Checkbox
+                            type='checkbox'
+                            checked={props.skipInvoicing}
+                            onChange={props.handleChanges}
+                            value={props.skipInvoicing}
+                            name='skipInvoicing'
+                            disabled={props.readOnly || props.invoiceId}
+                        />
+                    </InputGroup>
+                </Col>
+                <Col md={3}>
+                    <InputGroup>
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Total Cost: </InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
+                            type='number'
+                            min={0}
+                            name='total'
+                            value={(parseInt(props.amount ? props.amount : 0) + parseInt(props.interlinerCostToCustomer ? props.interlinerCostToCustomer : 0)).toFixed(2)}
+                            readOnly={true}
+                            className='form-control-plaintext'
+                        />
+                    </InputGroup>
+                    <InputGroup>
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Driver Charge: </InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
                             type='number'
                             min={0}
                             name='amount'
@@ -47,19 +75,17 @@ export default function BillingTab(props) {
                             readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
-                </Col>
-                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Prepend>
-                            <InputGroup.Text>Skip Invoicing</InputGroup.Text>
+                            <InputGroup.Text>Interliner Cost to Customer: </InputGroup.Text>
                         </InputGroup.Prepend>
-                        <InputGroup.Checkbox
-                            type='checkbox' 
-                            checked={props.skipInvoicing}
-                            onChange={props.handleChanges}
-                            value={props.skipInvoicing}
-                            name='skipInvoicing'
-                            disabled={props.readOnly || props.invoiceId}
+                        <FormControl
+                            type='number'
+                            min={0}
+                            name='amount'
+                            value={props.interlinerCostToCustomer}
+                            readOnly={true}
+                            className='form-control-plaintext'
                         />
                     </InputGroup>
                 </Col>

@@ -448,7 +448,7 @@ export default class Bill extends Component {
                                 this.state.billId !== null &&
                                     <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>Percent Complete: {this.state.percentComplete}</h4></ListGroup.Item>
                             }
-                            <ListGroup.Item variant='warning'><h4>Price: {this.state.amount}</h4></ListGroup.Item>
+                            <ListGroup.Item variant='warning'><h4>Price: {(parseFloat(this.state.amount ? this.state.amount : 0) + parseFloat(this.state.interlinerCostToCustomer ? this.state.interlinerCostToCustomer : 0)).toFixed(2)}</h4></ListGroup.Item>
                             {this.state.admin &&
                                 <ListGroup.Item>
                                     <Button
@@ -568,6 +568,7 @@ export default class Bill extends Component {
                                         chargeAccount={this.state.chargeAccount}
                                         chargeReferenceValue={this.state.chargeReferenceValue}
                                         chargeEmployee={this.state.chargeEmployee}
+                                        interlinerCostToCustomer={this.state.interlinerCostToCustomer}
                                         paymentType={this.state.paymentType}
                                         pickupManifestId={this.state.pickupManifestId}
                                         prepaidReferenceField={this.state.prepaidReferenceField}
