@@ -3,11 +3,8 @@ import ReactDom from 'react-dom'
 import {ReactTabulator} from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Row, Table, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
-import QueryBuilder from 'react-querybuilder'
 
 import TableFilters from '../partials/TableFilters'
-import DateBetweenFilter from '../tableFilters/DateBetweenFilter'
-// import {SelectFilter, DateFilterBetween} from '../partials/TableFilters'
 
 const filters = [
     {
