@@ -10,6 +10,8 @@ use App\Bill;
 use App\Invoice;
 use App\AccountInvoiceSortEntries;
 use App\InvoiceSortOptions;
+use App\Http\Filters\DateBetween;
+use App\Http\Filters\NumberBetween;
 
 class InvoiceRepo {
 
@@ -29,14 +31,23 @@ class InvoiceRepo {
             ->select('invoices.invoice_id',
                 'accounts.account_id',
                 'accounts.name as account_name',
+                'account_number',
                 'date',
-                DB::raw('format(balance_owing, 2) as balance_owing'),
-                DB::raw('format(bill_cost, 2) as bill_cost'),
-                DB::raw('format(total_cost, 2) as total_cost'),
+                'bill_start_date',
+                'bill_end_date',
+                'balance_owing',
+                'bill_cost',
+                'total_cost',
                 DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
 
         $filteredInvoices = QueryBuilder::for($invoices)
-            ->allowedFilters(AllowedFilter::exact('account_id', 'invoices.account_id'));
+            ->allowedFilters([
+                AllowedFilter::exact('account_id', 'invoices.account_id'),
+                'account_number',
+                AllowedFilter::custom('balance_owing', new NumberBetween),
+                AllowedFilter::custom('bill_end_date', new DateBetween),
+                AllowedFilter::custom('date', new DateBetween),
+            ]);
 
         return $filteredInvoices->get();
     }
@@ -187,7 +198,7 @@ class InvoiceRepo {
 
             $invoice->bill_start_date = $start_date;
             $invoice->bill_end_date = $end_date;
-            $invoice->discount = number_format(round(($effectiveCost * $account->discount), 2), 2, '.', '');
+            $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
             if ($account->gst_exempt)
                 $invoice->tax = number_format(0, 2, '.', '');
             else

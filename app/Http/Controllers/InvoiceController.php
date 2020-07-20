@@ -33,9 +33,9 @@ class InvoiceController extends Controller {
         return view('invoices.invoices');
     }
 
-    public function buildTable(Request $req) {
+    public function buildTable() {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-        $model = $invoiceModelFactory->ListAll($req);
+        $model = $invoiceModelFactory->ListAll();
         return json_encode($model);
     }
 

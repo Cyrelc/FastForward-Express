@@ -1,0 +1,74 @@
+import React, {Component} from 'react'
+import {Col, InputGroup, FormControl} from 'react-bootstrap'
+
+export default class NumberBetween extends Component {
+    constructor() {
+        super()
+        this.state = {
+            lowerBound: '',
+            upperBound: ''
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+
+    componentDidMount() {
+        if(window.location.search.includes('filter[' + this.props.filter.value + ']=')) {
+            const filterValue = window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0]
+            const bounds = filterValue.split(',')
+            const lowerBound = bounds[0] ? bounds[0] : ''
+            const upperBound = bounds[1] ? bounds[1] : ''
+            const filterQueryString = 'filter[' + this.props.filter.value + ']=' + lowerBound + ',' + upperBound
+            this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
+            this.setState({lowerBound: lowerBound, upperBound: upperBound})
+        } else if (this.props.filter.defaultLowerBound || this.props.filter.defaultUpperBound) {
+            lowerBound = this.props.filter.defaultLowerBound ? this.props.filter.defaultLowerBound : ''
+            upperBound = this.props.filter.defaultUpperBound ? this.props.filter.defaultUpperBound : ''
+            const filterQueryString = 'filter[' + this.props.filter.value + ']=' + lowerBound + ',' + upperBound
+            this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
+            this.setState({lowerBound: lowerBound, upperBound: upperBound})
+        }
+    }
+
+    handleChange(event) {
+        const {name, value, type} = event.target
+        var filterQueryString = null
+        if(name == 'lowerBound')
+            filterQueryString = 'filter[' + this.props.filter.value + ']=' + value + ',' + this.state.upperBound
+        else
+            filterQueryString = 'filter[' + this.props.filter.value + ']=' + this.state.lowerBound + ',' + value
+        console.log(name, value, type)
+        this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
+        this.setState({[name]: value})
+    }
+
+    render() {
+        return(
+            <Col md={4}>
+                <InputGroup>
+                    <InputGroup.Prepend>
+                        <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
+                    </InputGroup.Prepend>
+                    <FormControl
+                        type='number'
+                        step={this.props.filter.step}
+                        value={this.state.lowerBound}
+                        name='lowerBound'
+                        onChange={this.handleChange}
+                    />
+                    <InputGroup.Append>
+                        <InputGroup.Text> and </InputGroup.Text>
+                    </InputGroup.Append>
+                    <FormControl
+                        type='number'
+                        step={this.props.filter.step}
+                        value={this.state.upperBound}
+                        name='upperBound'
+                        onChange={this.handleChange}
+                    />
+                </InputGroup>
+            </Col>
+        )
+    }
+}
+
+
