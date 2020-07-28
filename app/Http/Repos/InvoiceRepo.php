@@ -38,7 +38,9 @@ class InvoiceRepo {
                 'balance_owing',
                 'bill_cost',
                 'total_cost',
-                DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'));
+                DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'),
+                DB::raw('(select count(*) from payments where invoice_id = invoices.invoice_id) as payment_count')
+            );
 
         $filteredInvoices = QueryBuilder::for($invoices)
             ->allowedFilters([

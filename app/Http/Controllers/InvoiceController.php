@@ -58,11 +58,23 @@ class InvoiceController extends Controller {
     }
 
     public function delete(Request $req, $id) {
-        $invoiceRepo = new Repos\InvoiceRepo();
+        DB::beginTransaction();
+        try{
+            $invoiceRepo = new Repos\InvoiceRepo();
 
-        $invoiceRepo->delete($id);
+            $invoiceRepo->delete($id);
+            DB::commit();
+            return response()->json([
+                'success' => true
+            ]);
+        } catch(Exception $e) {
+            DB::rollBack();
 
-        return redirect()->action('InvoiceController@index');
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     public function getAccountsToInvoice(Request $req) {
