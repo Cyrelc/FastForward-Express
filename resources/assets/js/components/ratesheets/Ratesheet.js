@@ -199,25 +199,28 @@ export default class Ratesheet extends Component {
         google.maps.event.addListener(polygon.getPath(), 'set_at', () => this.updateZone(polygon.zIndex))
         google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
         var newZone = {
-            id: polygon.zIndex, 
-            name : zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex, 
-            type: type, 
+            id: polygon.zIndex,
+            name : zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex,
+            type: type,
             polygon: polygon,
             viewDetails: false,
             coordinates: this.getCoordinates(polygon),
+            zoneId: zone ? zone.zone_id : null
         }
         if(type === 'peripheral') {
-            newZone.cost = zone ? zone.cost : ''
-            newZone.additionalTime = zone ? zone.additionalTime : ''
+            const cost = zone ? JSON.parse(zone.additional_costs) : null
+            newZone.regularCost = cost ? cost.regular : ''
+            newZone.additionalTime = zone ? zone.additional_time : ''
         } else if (type === 'outlying') {
-            newZone.regularCost = zone ? zone.regularCost : ''
-            newZone.rushCost = zone ? zone.rushCost : ''
-            newZone.directCost = zone ? zone.directCost : ''
-            newZone.directRushCost = zone ? zone.directRushCost : ''
-            newZone.additionalTime = zone ? zone.additionalTime : ''
+            const costs = zone ? JSON.parse(zone.additional_costs) : null
+            newZone.regularCost = costs ? costs.regular : ''
+            newZone.rushCost = costs ? costs.rush : ''
+            newZone.directCost = costs ? costs.direct : ''
+            newZone.directRushCost = costs ? costs.directRush : ''
+            newZone.additionalTime = zone ? zone.additional_time : ''
         }
         this.setState({mapZones: this.state.mapZones.concat([newZone])})
-        this.updateZone(polygon.zIndex)
+        this.updateZone(polygon.zIndex, !zone)
         name === '' ? this.editZone(polygon.zIndex) : null;
     }
 
@@ -254,13 +257,13 @@ export default class Ratesheet extends Component {
     }
 
     getCoordinates(polygon) {
-        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat()).toFixed(this.state.latLngPrecision), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
+        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
     prepareZoneForStore(zone) {
-        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice())}
+        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice()), zoneId: zone.zoneId}
         if(storeZone.type === 'peripheral') {
-            storeZone.cost = zone.cost
+            storeZone.regularCost = zone.regularCost
             storeZone.additionalTime = zone.additionalTime
         } else if(storeZone.type === 'outlying') {
             storeZone.additionalTime = zone.additionalTime
@@ -272,18 +275,22 @@ export default class Ratesheet extends Component {
         return storeZone
     }
 
-    updateZone(id) {
+    updateZone(id, useSnapping = true) {
         const updated = this.state.mapZones.map(zone => {
             if(zone.id === id) {
-                if(this.state.snapPrecision > 0) {
+                if(useSnapping && this.state.snapPrecision > 0) {
                     var temp = zone.polygon.getPath()
                     zone.polygon.getPath().forEach((coord1, i) => {
+                        var currentClosestDistance = this.state.snapPrecision;
                         this.state.mapZones.map((compZone) => {
                             if(compZone.id === id)
                                 return
                             compZone.polygon.getPath().forEach((coord2) => {
-                                if(google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2) < this.state.snapPrecision)
+                                const distanceBetween = google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2);
+                                if(distanceBetween < currentClosestDistance) {
+                                    currentClosestDistance = distanceBetween;
                                     temp.i[i] = coord2
+                                }
                             })
                         })
                     })

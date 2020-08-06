@@ -59,10 +59,10 @@ class RatesheetValidationRules {
                 $rules['mapZones.' . $key . '.name'] = 'required';
                 $messages['mapZones.' . $key . '.name.required'] = 'You must enter a name for new map zone #' . ($key + 1);
                 if($zone['type'] === 'peripheral') {
-                    $rules['mapZones.' . $key . '.cost'] = 'required|numeric|min:0';
+                    $rules['mapZones.' . $key . '.regularCost'] = 'required|numeric|min:0';
                     $rules['mapZones.' . $key . '.additionalTime'] = 'required|numeric|min:0';
-                    $messages['mapZones.' . $key . '.cost.required'] = 'You must enter a cost associated with peripheral zone: ' . $zone['name'];
-                    $messages['mapZones.' . $key . '.cost.additionalTime'] = 'You must enter a time associated with peripheral zone: ' . $zone['name'];
+                    $messages['mapZones.' . $key . '.regularCost.required'] = 'You must enter a cost associated with peripheral zone: ' . $zone['name'];
+                    $messages['mapZones.' . $key . '.regularCost.additionalTime'] = 'You must enter a time associated with peripheral zone: ' . $zone['name'];
                     $count['peripheral']++;
                 } else if ($zone['type'] === 'outlying') {
                     foreach(['additionalTime' => 'time', 'regularCost' => 'Regular cost', 'rushCost' => 'Rush cost', 'directCost' => 'Direct cost', 'directRushCost' => 'Direct Rush cost'] as $field => $message) {

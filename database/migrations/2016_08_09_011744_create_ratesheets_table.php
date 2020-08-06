@@ -18,7 +18,6 @@ class CreateRatesheetsTable extends Migration
 
             $table->text('delivery_types');
             $table->float('holiday_rate');
-            $table->mediumText('map_zones');
             $table->string('name');
             $table->text('pallet_rate');
             $table->text('time_rates')->nullable();

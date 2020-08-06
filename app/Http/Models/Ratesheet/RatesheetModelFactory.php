@@ -46,7 +46,9 @@ class RatesheetModelFactory {
         $model->timeRates = json_decode($ratesheet->time_rates);
         $model->weightRates = json_decode($ratesheet->weight_rates);
         $model->zoneRates = json_decode($ratesheet->zone_rates);
-        $model->mapZones = json_decode($ratesheet->map_zones);
+        $model->mapZones = $ratesheetRepo->GetMapZones($ratesheet_id);
+        foreach($model->mapZones as $mapZone)
+            $mapZone->coordinates = json_decode($mapZone->coordinates);
 
         return $model;
     }

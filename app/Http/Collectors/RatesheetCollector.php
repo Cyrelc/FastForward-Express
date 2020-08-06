@@ -15,8 +15,7 @@ class RatesheetCollector {
             'pallet_rate' => json_encode($req->palletRate),
             'time_rates' => json_encode($req->timeRates),
             'weight_rates' => json_encode($req->weightRates),
-            'zone_rates' => json_encode($req->zoneRates),
-            'map_zones' => json_encode($req->mapZones)
+            'zone_rates' => json_encode($req->zoneRates)
         ];
     }
 }

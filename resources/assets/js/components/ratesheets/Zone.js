@@ -44,7 +44,7 @@ export default function Zone(props) {
                         <InputGroup.Prepend>
                             <InputGroup.Text>Additional Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>
-                        <FormControl type='number' step={0.01} min={0.00} name='cost' value={props.zone.cost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        <FormControl type='number' step={0.01} min={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
                     </InputGroup>
                 }
                 {props.zone.type !== 'outlying' ? null :
