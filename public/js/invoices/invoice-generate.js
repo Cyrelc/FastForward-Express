@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    $('#start_date, #end_date').datetimepicker({format: 'MMMM Do, YYYY', useCurrent: false});
+	$('#start_date, #end_date').datetimepicker({format: 'MMMM Do, YYYY', useCurrent: false});
 });
 
 function getAccountsToInvoice(){
@@ -8,7 +8,7 @@ function getAccountsToInvoice(){
 	var temp_date = new Date($('#start_date').data('DateTimePicker').date());
 	var legacy_date = temp_date.getFullYear() + '-' + (temp_date.getMonth() + 1) + '-' + temp_date.getDate();
 	var invoice_intervals = $("#invoice_intervals").val();
-	var _token = $("input[name='_token").val();
+	// var _token = $("input[name='_token").val();
 
     $.ajax({
     	type: "POST",
@@ -71,7 +71,7 @@ function generateInvoices(){
 				'progressBar': true,
 				'positionClass': 'toast-top-full-width',
 				'showDuration': 500,
-				'onHidden': function(){location.replace('/invoices')}
+				'onHidden': function(){location.replace('/invoices?filter[balance_owing]=0,')}
 			})
 		},
 		'error': function(response){handleErrorResponse(response)}

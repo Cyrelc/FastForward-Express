@@ -86,7 +86,7 @@ export default class Invoices extends Component {
     }
 
     deleteInvoice(e, cell) {
-        if(confirm('Are you sure you wish to delete invoice ' + cell.getRow().getData().invoice_id + '?\nThis action can not be undone')) {
+        if(cell.getRow().getData().payment_count == 0 && confirm('Are you sure you wish to delete invoice ' + cell.getRow().getData().invoice_id + '?\nThis action can not be undone')) {
             fetch('/invoices/delete/' + cell.getRow().getData().invoice_id)
             .then(response => {return response.json()})
             .then(data => {

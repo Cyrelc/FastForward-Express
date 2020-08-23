@@ -217,6 +217,10 @@ class InvoiceRepo {
     public function Delete($invoiceId) {
         $bills = Bill::where('invoice_id', '=', $invoiceId)->get();
         $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
+        $payments = Payment::where('invoice_id', $invoiceId);
+
+        if($payments)
+            throw new Exception('Unable to delete invoice: payments have already been made');
 
         foreach($bills as $bill) {
             $bill->invoice_id = null;
