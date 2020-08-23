@@ -28,7 +28,7 @@
                 <li class='nav-item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-invoices' data-toggle='dropdown'>Invoices</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/invoices"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/invoices?filter[balance_owing]=0,"><i class="fa fa-list"></i> List</a>
                         <a class='dropdown-item' href="/invoices/generate"><i class='fa fa-plus-square'></i> Generate Invoices</a>
                     </div>
                 </li>

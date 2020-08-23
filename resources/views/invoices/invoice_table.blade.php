@@ -25,7 +25,7 @@
     <table>
         <td width:'30%'>
             <h4>Account Number: {{$model->parent->account_number}}<br/>
-                Invoice Number: {{$model->invoice->invoice_id}}<br/>
+                Invoice ID: {{$model->invoice->invoice_id}}<br/>
                 Date: {{$model->invoice->bill_end_date}}</h4>
         </td>
         <td width:'40%' style='text-align: center;'>

@@ -49,6 +49,7 @@ class InvoiceRepo {
                 AllowedFilter::custom('balance_owing', new NumberBetween),
                 AllowedFilter::custom('bill_end_date', new DateBetween),
                 AllowedFilter::custom('date', new DateBetween),
+                AllowedFilter::exact('invoice_id')
             ]);
 
         return $filteredInvoices->get();

@@ -6,7 +6,7 @@ function getAccountsToInvoice(){
 	var start_date = $("#start_date").val();
 	var end_date = $('#end_date').val();
 	var temp_date = new Date($('#start_date').data('DateTimePicker').date());
-	var legacy_date = temp_date.getFullYear() + '-' + temp_date.getMonth() + '-' + temp_date.getDate();
+	var legacy_date = temp_date.getFullYear() + '-' + (temp_date.getMonth() + 1) + '-' + temp_date.getDate();
 	var invoice_intervals = $("#invoice_intervals").val();
 	var _token = $("input[name='_token").val();
 

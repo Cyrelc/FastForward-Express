@@ -323,8 +323,9 @@ export default class Ratesheet extends Component {
             'data': data,
             'success': () => {
                 toastr.clear()
-                if(this.state.formType === 'edit')
-                    toastr.success(this.state.name + ' was successfully updated!', 'Success')
+                if(this.state.formType === 'edit') {
+                    toastr.success(this.state.name + ' was successfully updated!', 'Success', {'onHidden': function(){location.reload()}})
+                }
                 else
                     toastr.success(this.state.name + ' was successfully created', 'Success', {
                         'progressBar': true,

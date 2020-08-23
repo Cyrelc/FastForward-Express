@@ -39,6 +39,18 @@ const filters = [
         type: 'NumberBetweenFilter',
         queryString: '',
         step: 0.01,
+    },
+    {
+        active: false,
+        creatable: true,
+        filterOptions: undefined,
+        isMulti: true,
+        name: 'Invoice ID',
+        optionName: 'invoice_id',
+        optionValue: 'invoice_id',
+        queryString: '',
+        type: 'SelectFilter',
+        value: 'invoice_id'
     }
 ]
 
@@ -62,7 +74,7 @@ export default class Invoices extends Component {
         fetch('/accounts/buildTable')
         .then(response => {return response.json()})
         .then(data => {
-            const accounts = data.map(account => {return {value: account.account_id, label: account.account_id + ' - ' + account.name}})
+            const accounts = data.map(account => {return {value: account.account_id, label: account.account_number + ' - ' + account.name}})
             const filters = this.state.filters.map(filter => {
                 if(filter.value === 'account_id')
                     return {...filter, filterOptions: accounts}
@@ -128,15 +140,15 @@ export default class Invoices extends Component {
     render() {
         const columns = [
             {formatter: (cell) => {if(cell.getRow().getData().payment_count == 0) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, align:'center', cellClick:(e, cell) => this.deleteInvoice(e, cell)},
-            {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams:{labelField:'invoice_id', urlPrefix:'/invoices/view/'}},
+            {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams:{labelField:'invoice_id', urlPrefix:'/invoices/view/'}, sorter:'number'},
             {title: 'Account', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_name', urlPrefix:'accounts/edit/'}},
-            {title: 'Date Run', field: 'date'},
-            {title: 'Bill Start Date', field: 'bill_start_date'},
-            {title: 'Bill End Date', field: 'bill_end_date'},
-            {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', bottomCalc:"sum", bottomCalcParams:{precision:2}},
-            {title: 'Bill Cost', field: 'bill_cost', formatter: 'money'},
-            {title: 'Total Cost', field: 'total_cost', formatter: 'money', bottomCalc:"sum", bottomCalcParams:{precision:2}},
-            {title: 'Bill Count', field: 'bill_count'}
+            {title: 'Date Run', field: 'date', sorter:'date'},
+            {title: 'Bill Start Date', field: 'bill_start_date', sorter:'date'},
+            {title: 'Bill End Date', field: 'bill_end_date', sorter:'date'},
+            {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', bottomCalc:"sum", bottomCalcParams:{precision:2}, sorter:'number'},
+            {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', sorter:'number'},
+            {title: 'Total Cost', field: 'total_cost', formatter: 'money', bottomCalc:"sum", bottomCalcParams:{precision:2}, sorter:'number'},
+            {title: 'Bill Count', field: 'bill_count', sorter: 'number'}
         ]
         return (
             <Row>
@@ -186,13 +198,14 @@ export default class Invoices extends Component {
                                 id={'invoicesTable'}
                                 columns={columns}
                                 data={this.state.invoices}
+                                initialSort={[{column:'invoice_id', dir:'desc'}]}
                                 options={{
-                                    layout: 'fitColumns',
-                                    print: this.state.print,
                                     groupBy: this.state.groupByAccountId ? 'account_id' : null,
                                     groupHeader: (value, count, data, group) => {
                                         return data[0].account_name
-                                    }
+                                    },
+                                    layout: 'fitColumns',
+                                    print: this.state.print,
                                 }}
                             />
                         </Card.Footer>
