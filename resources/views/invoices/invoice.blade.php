@@ -23,9 +23,11 @@
 		<div class='bottom15'>
 			<a class='btn btn-info bottom15' href='/invoices/print/{{$model->invoice->invoice_id}}' target='blank'><i class='fa fa-print'> Create PDF</i></a>
 		</div>
-		<div class='bottom15'>
-			<a class='btn btn-info bottom15' href='/invoices/print/{{$model->invoice->invoice_id}}?amendments_only' target='blank'><i class='fa fa-print'> Create PDF (Amendments Only)</i></a>
-		</div>
+		@if(isset($model->amendments))
+			<div class='bottom15'>
+				<a class='btn btn-info bottom15' href='/invoices/print/{{$model->invoice->invoice_id}}?amendments_only' target='blank'><i class='fa fa-print'> Create PDF (Amendments Only)</i></a>
+			</div>
+		@endif
 		{{-- todo - needs is_admin checks --}}
 		<button type='button' class='btn btn-warning' data-toggle='modal' data-target='#amendmentModal'><i class='fas fa-eraser'> Create Amendment</i></a>
 	</div>
