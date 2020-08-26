@@ -17,16 +17,29 @@
 		public function GetById($id) {
 			$model = new InvoiceViewModel();
 
-			$invoiceRepo = new Repos\InvoiceRepo();
 			$accountRepo = new Repos\AccountRepo();
 			$addressRepo = new Repos\AddressRepo();
+			$amendmentRepo = new Repos\AmendmentRepo();
 			$billRepo = new Repos\BillRepo();
+			$invoiceRepo = new Repos\InvoiceRepo();
 
 			$model->invoice = $invoiceRepo->GetById($id);
 			$model->invoice->bill_count = $billRepo->CountByInvoiceId($id);
 			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing', 'min_invoice_amount');
 			foreach ($invoice_numbers as $identifier) {
 				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
+			}
+
+			$amendments = $amendmentRepo->GetByInvoiceId($id);
+			if(count($amendments)) {
+				$billEndDate = new \DateTime($model->invoice->bill_end_date);
+				$currentDate = new \DateTime('now');
+				$diff = $currentDate->diff($billEndDate, true);
+				if($diff->days < (int)config('ffe_config.days_invoice_editable'))
+					$model->can_edit_amendments = true;
+				else
+					$model->can_edit_amendments = false;
+				$model->amendments = $amendments;
 			}
 
 			$model->parent = $accountRepo->GetById($model->invoice->account_id);

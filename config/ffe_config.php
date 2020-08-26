@@ -8,6 +8,7 @@ return [
     'gst' => 5,
     'business_hours_open' => '8:00',
     'business_hours_close' => '17:00',
+    'days_invoice_editable' => 90,
 ]
 
 ?>

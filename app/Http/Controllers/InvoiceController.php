@@ -123,12 +123,13 @@ class InvoiceController extends Controller {
         }
     }
 
-    public function print($invoice_id) {
+    public function print(Request $req, $invoice_id) {
         //TODO check if invoice $id exists
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetById($invoice_id);
         $is_pdf = 1;
-        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
+        $amendments_only = $req->amendments_only === null ? 0 : 1;
+        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf', 'amendments_only'));
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 

@@ -6,10 +6,11 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 use DB;
 use App\Account;
+use App\AccountInvoiceSortEntries;
 use App\Bill;
 use App\Invoice;
-use App\AccountInvoiceSortEntries;
 use App\InvoiceSortOptions;
+use App\Payment;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 
@@ -19,11 +20,28 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', $invoice_id)
             ->first();
 
-        $invoice->balance_owing += $amount;
+        $invoice->balance_owing += floatval($amount);
 
         $invoice->save();
 
         return $invoice;
+    }
+
+    public function AdjustBillSubtotal($invoice_id, $amount) {
+        $invoice = Invoice::where('invoice_id', $invoice_id)
+            ->leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
+            ->first();
+
+        $payments = Payment::where('invoice_id', $invoice_id)->get();
+
+        $invoice->bill_cost += floatval($amount);
+        if(!$invoice->gst_exempt)
+            $invoice->tax = number_format(round($invoice->bill_cost * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+        $newTotal = number_format($invoice->bill_cost + $invoice->tax, 2);
+        $invoice->balance_owing += $newTotal - $invoice->total_cost;
+        $invoice->total_cost = $newTotal;
+
+        $invoice->save();
     }
 
     public function ListAll() {
@@ -215,12 +233,18 @@ class InvoiceRepo {
     }
 
     public function Delete($invoiceId) {
+        $amendments = Amendment::where('invoice_id', $invoiceId)->get();
         $bills = Bill::where('invoice_id', '=', $invoiceId)->get();
         $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
         $payments = Payment::where('invoice_id', $invoiceId);
 
+        $amendmentRepo = new AmendmentRepo();
+
         if($payments)
             throw new Exception('Unable to delete invoice: payments have already been made');
+
+        foreach($amendments as $amendment)
+            $amendmentRepo->Delete($amendment->amendment_id);
 
         foreach($bills as $bill) {
             $bill->invoice_id = null;

@@ -64,59 +64,90 @@
 
 <hr/><p>{{$model->parent->invoice_comment}}</p><hr/>
 </br>
-@foreach($model->tables as $table_key => $table)
-    <table class='bill_list'>
-        <thead>
-            <tr>
-                @foreach($table->headers as $key => $value)
-                    <td class='{{$value}}'> {{$key}} </td>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($table->bills as $bill)
+@if(!isset($amendments_only) || !$amendments_only)
+    @foreach($model->tables as $table_key => $table)
+        <table class='bill_list'>
+            <thead>
                 <tr>
                     @foreach($table->headers as $key => $value)
-                        @if($value == 'amount')
-                            <td class='amount'>{{$bill->$value}}</td>
-                        @elseif($value == 'address')
-                            <td class='address'>
-                                @if($bill->charge_account_id != $bill->pickup_account_id)
-                                    {{$bill->pickup_address_name}}
-                                @elseif($bill->charge_account_id != $bill->delivery_account_id)
-                                    {{$bill->delivery_address_name}}
-                                @endif
-                            </td>
-                        @elseif($value == 'bill_id')
-                            <td class='bill_id'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
-                        @else
-                            <td>{{$bill->$value}}</td>
-                        @endif
+                        <td class='{{$value}}'> {{$key}} </td>
                     @endforeach
                 </tr>
-            @endforeach
-            @if(count($model->tables) > 1)
-                <tr class='subtotal'>
-                    <td class='center' colspan='{{count($table->headers) - 2}}'>Subtotal for {{$table_key}}</td>
-                    <td class='right'>Bill Subtotal:</td>
-                    <td class='right'>{{$table->subtotal}}</td>
-                </tr>
-                <tr class='subtotal'>
-                    <td colspan='{{count($table->headers) - 2}}'></td>
-                    <td class='right'>Tax:</td>
-                    <td class='right'>{{$table->tax}}</td>
-                </tr>
-                <tr class='subtotal'>
-                    <td colspan='{{count($table->headers) - 2}}'></td>
-                    <td class='right'>Subtotal:</td>
-                    <td class='right'>{{$table->total}}</td>
-                </tr>
+            </thead>
+            <tbody>
+                @foreach($table->bills as $bill)
+                    <tr>
+                        @foreach($table->headers as $key => $value)
+                            @if($value == 'amount')
+                                <td class='amount'>{{$bill->$value}}</td>
+                            @elseif($value == 'address')
+                                <td class='address'>
+                                    @if($bill->charge_account_id != $bill->pickup_account_id)
+                                        {{$bill->pickup_address_name}}
+                                    @elseif($bill->charge_account_id != $bill->delivery_account_id)
+                                        {{$bill->delivery_address_name}}
+                                    @endif
+                                </td>
+                            @elseif($value == 'bill_id')
+                                <td class='bill_id'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
+                            @else
+                                <td>{{$bill->$value}}</td>
+                            @endif
+                        @endforeach
+                    </tr>
+                @endforeach
+                @if(count($model->tables) > 1)
+                    <tr class='subtotal'>
+                        <td class='center' colspan='{{count($table->headers) - 2}}'>Subtotal for {{$table_key}}</td>
+                        <td class='right'>Bill Subtotal:</td>
+                        <td class='right'>{{$table->subtotal}}</td>
+                    </tr>
+                    <tr class='subtotal'>
+                        <td colspan='{{count($table->headers) - 2}}'></td>
+                        <td class='right'>Tax:</td>
+                        <td class='right'>{{$table->tax}}</td>
+                    </tr>
+                    <tr class='subtotal'>
+                        <td colspan='{{count($table->headers) - 2}}'></td>
+                        <td class='right'>Subtotal:</td>
+                        <td class='right'>{{$table->total}}</td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+    <br/>
+    <br/>
+    @endforeach
+@endif
+@if(isset($model->amendments))
+<h4>Amendments</h4>
+<table>
+    <thead>
+        <tr>
+            {{-- todo - need is_admin checks --}}
+            @if(!isset($is_pdf) && $model->can_edit_amendments)
+                <td>Delete</td>
             @endif
-        </tbody>
-    </table>
-<br/>
-<br/>
-@endforeach
+            <td>Bill ID</td>
+            <td>Description</td>
+            <td>Adjustment Amount</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($model->amendments as $amendment)
+            <tr>
+                {{-- todo - need is_admin checks --}}
+                @if(!isset($is_pdf) && $model->can_edit_amendments)
+                    <td><button class='btn btn-danger' onClick='deleteAmendment({{$amendment->amendment_id}})'><i class='fa fa-trash'></i></a></td>
+                @endif
+                <td>{{$amendment->bill_id}}</td>
+                <td>{{$amendment->description}}</td>
+                <td>{{$amendment->amount}}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
 <div style='page-break-inside: avoid'>
     @if(count($model->unpaid_invoices) > 0)
     <h4>All Invoices with Balance Owing for Account {{$model->parent->name}}</h4>
