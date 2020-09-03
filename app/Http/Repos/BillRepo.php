@@ -158,6 +158,29 @@ class BillRepo {
         return $bills;
     }
 
+    public function GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy = false) {
+
+        $bills = Bill::whereDate('time_pickup_scheduled', '>=', $startDate)
+            ->whereDate('time_pickup_scheduled', '<=', $endDate)
+            ->leftJoin('drivers', 'drivers.driver_id', '=', 'bills.pickup_driver_id')
+            ->leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+            ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+            ->select(
+                DB::raw('sum(amount) as amount'),
+                DB::raw('count(*) as count'),
+                'charge_account_id',
+                DB::raw('date_format(time_pickup_scheduled, "%Y-%m-%d") as day'),
+                'delivery_type',
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
+                DB::raw('concat(year(time_pickup_scheduled), "/", month(time_pickup_scheduled), " - ", monthname(time_pickup_scheduled)) as month'),
+                'pickup_driver_id',
+                DB::raw('date_format(time_pickup_scheduled, "%Y") as year')
+            );
+        $bills->groupBy($dateGroupBy, $groupBy);
+
+        return $bills->get();
+    }
+
     public function IsReadOnly($bill_id) {
         $bill = $this->GetById($bill_id);
 

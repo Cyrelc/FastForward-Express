@@ -56,6 +56,7 @@
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-admin' data-toggle='dropdown'>Administration</a>
                     <div class='dropdown-menu'>
                         <a class='dropdown-item' href="/appsettings">Application Settings</a>
+                        <a class='dropdown-item' href="/charts"><i class='fas fa-chart-pie'></i> Charts</a>
                         <a class='dropdown-item' href='/ratesheets'>Rate Sheets</a>
                         <a class='dropdown-item' href="/interliners"><i class="fa fa-list"></i> List Interliners</a>
                         <a class='dropdown-item' href="/interliners/create"><i class="fa fa-plus-square"></i> New Interliner</a>

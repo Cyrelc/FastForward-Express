@@ -1,0 +1,155 @@
+import React, {Component} from 'react'
+import ReactDom from 'react-dom'
+import {Card, Col, Row, InputGroup, ToastHeader} from 'react-bootstrap'
+import { ResponsiveBar } from '@nivo/bar'
+import DatePicker from 'react-datepicker'
+import Select from 'react-select'
+
+export default class Charts extends Component {
+    constructor() {
+        super()
+        this.state = {
+            data: [],
+            dateGroupBy: {label: 'Month', value: 'month'},
+            dateGroupOptions: [{label: 'Year', value: 'year'}, {label: 'Month', value: 'month'}, {label: 'Day', value: 'day'}],
+            endDate: new Date(),
+            groupBy: {label: 'Employee', value: 'employee_name'},
+            groupOptions: [{label: 'Employee', value: 'employee_name'}, {label: 'Delivery Type', value: 'delivery_type'}],
+            keys: [],
+            startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+            summationOptions: [{label: 'Count', value: 'count'}, {label: 'Total Cost', value: 'amount'}],
+            summationType: {label: 'Count', value: 'count'}
+        }
+        this.fetchChart = this.fetchChart.bind(this)
+        this.handleChange = this.handleChange.bind(this)
+    }
+
+    componentDidMount() {
+        this.fetchChart();
+    }
+
+    fetchChart() {
+        var url = '/charts?type=monthlyBills'
+        url += '&dateGroupBy=' + this.state.dateGroupBy.value
+        url += '&startDate=' + this.state.startDate.toISOString().substring(0, 10) 
+        if(this.state.dateGroupBy != 'day')
+            url += '&endDate=' + this.state.endDate.toISOString().substring(0, 10)
+        url += '&summationType=' + this.state.summationType.value
+        if(this.state.groupBy)
+            url += ('&groupBy=' + this.state.groupBy.value)
+        fetch(url)
+        .then(response => {return response.json()})
+        .then(data => {
+            if(data.bills) {
+                const results = Object.values(data.bills).map(value => {return value})
+                this.setState({data: results, keys: data.keys, legend: data.legend}, console.log(results))
+            } else
+                toastr.error('No bills found for the selected time period. Please try again')
+        });
+    }
+
+    handleChange(event) {
+        const {name, value, type, checked} = event.target
+        this.setState({[name]: type === 'checkbox' ? checked : value}, () => this.fetchChart())
+    }
+
+    render() {
+        return (
+            <Row className='justify-content-md-center'>
+                <Col md={11} className='d-flex justify-content-center'>
+                    <Card border='dark'>
+                        <Card.Header>
+                            <Row>
+                                <Col md={3}>
+                                    <InputGroup>
+                                        <InputGroup.Prepend><InputGroup.Text>Bill </InputGroup.Text></InputGroup.Prepend>
+                                        <Select
+                                            onChange={item => this.handleChange({target: {name: 'summationType', type: 'select', value: item}})}
+                                            options={this.state.summationOptions}
+                                            value={this.state.summationType}
+                                        />
+                                        <InputGroup.Append><InputGroup.Text> Per </InputGroup.Text></InputGroup.Append>
+                                        <Select
+                                            onChange={item => this.handleChange({target: {name: 'dateGroupBy', type: 'select', value: item}})}
+                                            options={this.state.dateGroupOptions}
+                                            value={this.state.dateGroupBy}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <InputGroup>
+                                        <InputGroup.Prepend><InputGroup.Text>Start Date:</InputGroup.Text></InputGroup.Prepend>
+                                        <DatePicker
+                                            className='form-control'
+                                            dateFormat="MMMM, yyyy"
+                                            selected={this.state.startDate}
+                                            showMonthYearPicker
+                                            onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                <InputGroup>
+                                    <InputGroup.Prepend><InputGroup.Text>End Date:</InputGroup.Text></InputGroup.Prepend>
+                                        <DatePicker
+                                            className='form-control'
+                                            dateFormat="MMMM, yyyy"
+                                            selected={this.state.endDate}
+                                            showMonthYearPicker
+                                            onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
+                                            readOnly={this.state.dateGroupBy.value === 'day'}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <InputGroup>
+                                        <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
+                                        <Select
+                                            onChange={item => this.handleChange({target: {name: 'groupBy', type: 'select', value: item}})}
+                                            options={this.state.groupOptions}
+                                            value={this.state.groupBy}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                            </Row>
+                        </Card.Header>
+                        <Card.Body>
+                            <div style={{height: '75vh', width: '90vw'}}>
+                                <ResponsiveBar
+                                    data={this.state.data}
+                                    keys={this.state.keys}
+                                    indexBy='indexKey'
+                                    labelFormat={this.state.summationType.value === 'amount' ? '$.2f' : ''}
+                                    legends={[{
+                                        dataFrom: 'keys',
+                                        anchor: 'bottom-right',
+                                        direction: 'column', 
+                                        justify: false,
+                                        translateX: 120, 
+                                        translateY: 0,
+                                        itemsSpacing: 2,
+                                        itemWidth: 100,
+                                        itemHeight: 20,
+                                        itemDirection: 'left-to-right',
+                                        itemOpacity: 0.85,
+                                        symbolSize: 20,
+                                    }]}
+                                    margin={{ top: 50, right: 150, bottom: 50, left: 60}}
+                                    tooltip={data => {
+                                        console.log(data)
+                                        if(this.state.summationType.value === 'amount')
+                                            return data.id + ' - $' + data.value.toLocaleString()
+                                        else
+                                            return data.id + ' : ' + data.value
+                                    }}
+                                />
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        )
+    }
+}
+
+ReactDom.render(<Charts />, document.getElementById('charts'))

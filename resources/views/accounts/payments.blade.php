@@ -26,7 +26,7 @@
                 <tr>
                     <td>Payment id</td>
                     <td>Invoice ID</td>
-                    <td>Date</td>
+                    <td>Payment Date</td>
                     <td>Amount</td>
                     <td>Payment Method</td>
                     <td>Reference Number</td>

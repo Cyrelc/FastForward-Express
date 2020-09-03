@@ -9,9 +9,28 @@
     use Illuminate\Support\Facades\Hash;
 
     use App\Http\Models\Admin;
+    use App\Http\Models\Chart;
     use App\Http\Repos;
 
     Class AdminController extends Controller {
+
+        public function getChart(Request $req) {
+            try {
+                $chartModelFactory = new Chart\ChartModelFactory();
+                $type = $req->type;
+                if($type) {
+                    $model = $chartModelFactory->GetMonthlyBills($req->dateGroupBy, $req->startDate, $req->endDate, $req->groupBy, $req->summationType);
+                    return json_encode($model);
+                } else {
+                    return view('admin.charts');
+                }
+            } catch (Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
         public function getModel() {
             $adminModelFactory = new Admin\AdminModelFactory();
