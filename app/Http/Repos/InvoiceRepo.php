@@ -7,6 +7,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use DB;
 use App\Account;
 use App\AccountInvoiceSortEntries;
+use App\Amendment;
 use App\Bill;
 use App\Invoice;
 use App\InvoiceSortOptions;
