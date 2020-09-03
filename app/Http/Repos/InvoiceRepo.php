@@ -237,12 +237,12 @@ class InvoiceRepo {
         $amendments = Amendment::where('invoice_id', $invoiceId)->get();
         $bills = Bill::where('invoice_id', '=', $invoiceId)->get();
         $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
-        $payments = Payment::where('invoice_id', $invoiceId);
+        $payments = Payment::where('invoice_id', $invoiceId)->get();
 
         $amendmentRepo = new AmendmentRepo();
 
-        if($payments)
-            throw new Exception('Unable to delete invoice: payments have already been made');
+        if(sizeof($payments) != 0)
+            throw new \Exception('Unable to delete invoice: payments have already been made');
 
         foreach($amendments as $amendment)
             $amendmentRepo->Delete($amendment->amendment_id);
