@@ -176,7 +176,10 @@ class BillRepo {
                 'pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year')
             );
-        $bills->groupBy($dateGroupBy, $groupBy);
+        if($groupBy === 'none')
+            $bills->groupBy($dateGroupBy);
+        else
+            $bills->groupBy($dateGroupBy, $groupBy);
 
         return $bills->get();
     }

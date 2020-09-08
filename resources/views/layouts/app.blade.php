@@ -23,6 +23,7 @@
                             <ul class="dropdown-menu">
                                 <li><a href="/bills"><i class="fa fa-list"></i> List</li>
                                 <li><a href="/bills/create"><i class="fa fa-plus-square"></i> New</a></li>
+                                <li><a href='/charts'><i class='fas fa-chart-bar'></i> Trend</a>
                             </ul>
                         </li>
                         <li class="dropdown" disabled>
@@ -64,7 +65,6 @@
                                 <ul class="dropdown-menu">
                                     <li><a href="/appsettings">Application Settings</a></li>
                                     <li><a href='/ratesheets'>Rate Sheets</a></li>
-                                    <li><a href='/charts'><i class='fas fa-chart-pie'></i> Charts</a>
                                     <li><a href="/logout">Log Out</a></li>
                                 </ul>
                         </li>

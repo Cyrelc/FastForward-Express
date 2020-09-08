@@ -28,9 +28,10 @@ class ChartModelFactory {
 
         if(sizeof($bills) != 0) {
             foreach($bills as $billResult) {
-                $model->bills[$billResult->$dateGroupBy][strval($billResult->$groupBy)] = $billResult->$summationType;
-                if(!in_array($billResult->$groupBy, $model->keys))
-                    $model->keys = array_merge($model->keys, [$billResult->$groupBy]);
+                $groupByValue = $groupBy === 'none' ? $billResult->$dateGroupBy : $billResult->$groupBy;
+                $model->bills[$billResult->$dateGroupBy][strval($groupByValue)] = $billResult->$summationType;
+                if(!in_array($groupByValue, $model->keys))
+                    $model->keys = array_merge($model->keys, [$groupByValue]);
             }
             foreach($model->bills as $key => $value)
                 $model->bills[$key]['indexKey'] = $key;

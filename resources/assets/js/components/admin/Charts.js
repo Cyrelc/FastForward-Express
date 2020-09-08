@@ -14,7 +14,7 @@ export default class Charts extends Component {
             dateGroupOptions: [{label: 'Year', value: 'year'}, {label: 'Month', value: 'month'}, {label: 'Day', value: 'day'}],
             endDate: new Date(),
             groupBy: {label: 'Employee', value: 'employee_name'},
-            groupOptions: [{label: 'Employee', value: 'employee_name'}, {label: 'Delivery Type', value: 'delivery_type'}],
+            groupOptions: [{label: 'None', value: 'none'}, {label: 'Employee', value: 'employee_name'}, {label: 'Delivery Type', value: 'delivery_type'}],
             keys: [],
             startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
             summationOptions: [{label: 'Count', value: 'count'}, {label: 'Total Cost', value: 'amount'}],
@@ -134,9 +134,8 @@ export default class Charts extends Component {
                                         itemOpacity: 0.85,
                                         symbolSize: 20,
                                     }]}
-                                    margin={{ top: 50, right: 150, bottom: 50, left: 60}}
+                                    margin={{ top: 50, right: 160, bottom: 50, left: 60}}
                                     tooltip={data => {
-                                        console.log(data)
                                         if(this.state.summationType.value === 'amount')
                                             return data.id + ' - $' + data.value.toLocaleString()
                                         else
