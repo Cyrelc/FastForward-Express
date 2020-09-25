@@ -110,5 +110,3 @@ export default class AppSettings extends Component {
         })
     }
 }
-
-ReactDom.render(<AppSettings />, document.getElementById('appSettings'))

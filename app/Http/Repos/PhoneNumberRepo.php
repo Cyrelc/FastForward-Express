@@ -69,7 +69,7 @@ class PhoneNumberRepo {
     }
 
     public function DeleteByContact($cid) {
-        $pns = $this->ListByContactId($cid);
+        $pns = $this->GetByContactId($cid);
 
         foreach($pns as $pn) {
             $this->delete($pn->phone_number_id);

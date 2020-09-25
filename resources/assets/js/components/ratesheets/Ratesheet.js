@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import ReactDom from 'react-dom'
 import {Tabs, Tab, Row, Col, Button} from 'react-bootstrap'
 import MapTab from './MapTab'
 import SettingsTab from './SettingsTab'
@@ -44,6 +43,7 @@ export default class Ratesheet extends Component {
     }
 
     componentDidMount() {
+        const {match: {params}} = this.props
         const map = new google.maps.Map(document.getElementById('map'), {center: this.state.mapCenter, zoom: this.state.mapZoom, disableDefaultUI: true})
         const drawingManager = new google.maps.drawing.DrawingManager({
             drawingControlOptions: {
@@ -54,11 +54,9 @@ export default class Ratesheet extends Component {
         })
         drawingManager.setMap(map)
         google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
-        const formType = window.location.href.indexOf('create') > -1 ? 'create' : 'edit'
-        const ratesheetId = formType === 'edit' ? window.location.href.substring(window.location.href.lastIndexOf('/') + 1) : null
-        this.setState({map: map, mapDrawingManager: drawingManager, formType: formType, ratesheetId: ratesheetId}, () => {
-            document.title = formType === 'create' ? 'Create Ratesheet - ' + document.title : 'Edit Ratesheet ' + this.state.ratesheetId + ' - ' + document.title
-            fetch(ratesheetId === null ? '/ratesheets/getModel/' : '/ratesheets/getModel/' + ratesheetId)
+        this.setState({map: map, mapDrawingManager: drawingManager, formType: params.action, ratesheetId: params.ratesheetId}, () => {
+            document.title = params.action === 'create' ? 'Create Ratesheet - ' + document.title : 'Edit Ratesheet ' + params.ratesheetId + ' - ' + document.title
+            fetch(params.ratesheetId === null ? '/ratesheets/getModel/' : '/ratesheets/getModel/' + params.ratesheetId)
                 .then(response => {
                     return response.json()
                 })
@@ -67,7 +65,7 @@ export default class Ratesheet extends Component {
                         return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
                     })
                     this.setState({deliveryTypes: data.deliveryTypes, name: data.name, palletRate: data.palletRate, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
-                    if(formType === 'edit') {
+                    if(params.action === 'edit') {
                         data.mapZones.map(zone => {
                             const coordinates = (() => {
                                 try{
@@ -380,5 +378,3 @@ export default class Ratesheet extends Component {
         )
     }
 }
-
-ReactDom.render(<Ratesheet />, document.getElementById('ratesheet'))

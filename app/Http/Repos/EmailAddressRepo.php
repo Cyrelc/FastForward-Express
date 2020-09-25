@@ -51,7 +51,7 @@ class EmailAddressRepo {
     }
 
     public function DeleteByContact($cid) {
-        $eAddrs = $this->ListByContactId($cid);
+        $eAddrs = $this->GetByContactId($cid);
 
         if (!isset($eAddrs)) return;
 

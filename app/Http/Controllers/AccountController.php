@@ -22,10 +22,6 @@ class AccountController extends Controller {
         $this->class = new \App\Account;
     }
 
-    public function index(Request $req) {
-        return view('accounts.accounts');
-    }
-
     public function buildTable(Request $req) {
         $accountModelFactory = new Account\AccountModelFactory();
         $model = $accountModelFactory->ListAll($req);
@@ -40,6 +36,12 @@ class AccountController extends Controller {
     }
 
     public function edit($id) {
+        $id = strtoupper($id);
+        if($id[0] === 'N') {
+            $id = substr($id, 1);
+            $accountRepo = new Repos\AccountRepo();
+            $id = $accountRepo->GetAccountIdByAccountNumber($id);
+        }
         $factory = new Account\AccountModelFactory();
         $model = $factory->GetEditModel($id);
         return view('accounts.account', compact('model'));
@@ -199,20 +201,13 @@ class AccountController extends Controller {
         }
     }
 
-    public function deactivate($account_id) {
+    public function toggleActive($account_id) {
         $accountRepo = new Repos\AccountRepo();
 
-        $accountRepo->Deactivate($account_id);
-
-        return;
-    }
-
-    public function activate($account_id) {
-        $accountRepo = new Repos\AccountRepo();
-
-        $accountRepo->Activate($account_id);
-
-        return;
+        $accountRepo->ToggleActive($account_id);
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function is_unique(Request $req) {

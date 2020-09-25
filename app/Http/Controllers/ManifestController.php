@@ -50,10 +50,6 @@ class ManifestController extends Controller {
         return view('manifests.driver-list', compact('model'));
     }
 
-    public function index() {
-        return view('manifests.manifests');
-    }
-
     public function buildTable(Request $req) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
         $model = $manifestModelFactory->ListAll($req);

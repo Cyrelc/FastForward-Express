@@ -9,6 +9,16 @@ class SelectionsRepo {
 
 		return $selections->get();
 	}
+
+	public function GetSelectionsListByType($type) {
+		$selections = Selection::where('type', $type)
+			->select(
+				'name as label',
+				'selection_id as value'
+			);
+
+		return $selections->get();
+	}
 }
 
 ?>

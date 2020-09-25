@@ -8,7 +8,6 @@ export default class Address extends React.Component {
             map: '',
             search: '',
             marker: '',
-            accountTemp: undefined,
             loading: true
         }
     }

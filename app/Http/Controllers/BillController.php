@@ -21,37 +21,25 @@ class BillController extends Controller {
         $this->class = new \App\Bill;
     }
 
-    public function index() {
-        $billModelFactory = new Bill\BillModelFactory();
-        $driverRepo = new Repos\DriverRepo();
-        $model = $billModelFactory->GetBillAdvancedFiltersModel();
-        $drivers = $driverRepo->ListAllWithEmployeeAndContact();
-
-        return view('bills.bills', compact('model', 'drivers'));
-    }
-
     public function buildTable(Request $req) {
         $billRepo = new Repos\BillRepo();
         return $billRepo->ListAll($req);
-    }
-
-    public function view(Request $req) {
-        // Check permissions
-        return view('bills.bill');
     }
 
     public function delete(Request $req, $id) {
         $billRepo = new Repos\BillRepo();
 
         if ($billRepo->IsReadOnly($id)) {
-            return ('Unable to delete. Bill is locked');
+            throw new Exception('Unable to delete. Bill is locked');
         } else {
             DB::beginTransaction();
             try {
                 $billRepo->Delete($id);
 
                 DB::commit();
-                return redirect()->action('BillController@index');
+                return response()->json([
+                    'success' => true
+                ]);
             } catch(Exception $e) {
                 DB::rollBack();
 

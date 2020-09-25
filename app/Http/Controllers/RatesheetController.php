@@ -13,24 +13,10 @@ use \App\Http\Validation;
 
 class RatesheetController extends Controller {
 
-    public function index(Request $req) {
-        return view('ratesheets.ratesheets');
-    }
-
     public function buildTable() {
         $ratesheetModelFactory = new Ratesheet\RatesheetModelFactory();
         $model = $ratesheetModelFactory->ListAll();
         return json_encode($model);
-    }
-
-    public function create() {
-        //Check permissions
-        return view('ratesheets.ratesheet');
-    }
-
-    public function edit($id) {
-        //Check permissions
-        return view('ratesheets.ratesheet');
     }
 
     private function updateNeighbours($ratesheetId) {

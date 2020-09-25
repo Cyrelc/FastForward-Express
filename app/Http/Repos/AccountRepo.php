@@ -3,7 +3,10 @@ namespace App\Http\Repos;
 
 use App\Account;
 use App\AccountUser;
+use App\Http\Filters\IsNull;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class AccountRepo {
 
@@ -48,23 +51,48 @@ class AccountRepo {
                     'billing_address.place_id as billing_address_place_id',
                     DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'));
 
+        $filteredAccounts = QueryBuilder::for($accounts)
+            ->allowedFilters([
+                AllowedFilter::exact('active', 'accounts.active'),
+                AllowedFilter::custom('has_parent', new IsNull(), 'accounts.parent_account_id'),
+                AllowedFilter::exact('parent_id', 'accounts.parent_account_id'),
+                AllowedFilter::exact('invoice_interval')
+            ]);
+
+        return $filteredAccounts->get();
+    }
+
+    public function ToggleActive($account_id) {
+        $account = Account::where('account_id', $account_id)->first();
+
+        $account->active = !$account->active;
+        $account->save();
+        return;
+    }
+
+    public function GetAccountIdByAccountNumber($accountNumber) {
+        $account = Account::where('account_number', $accountNumber)->first();
+
+        return $account->account_id;
+    }
+
+    public function GetAccountList() {
+        $accounts = Account::select(
+            DB::raw('concat(account_number, " - ", name) as label'),
+            'account_id as value'
+        );
+
         return $accounts->get();
     }
 
-    public function Deactivate($account_id) {
-        $account = Account::where('account_id', $account_id)->first();
+    public function GetParentAccountsList() {
+        $parentAccounts = Account::where('can_be_parent', 1)
+            ->select(
+                DB::raw('concat(account_id, " - ", name) as label'),
+                'account_id as value'
+            );
 
-        $account->active = false;
-        $account->save();
-        return;
-    }
-
-    public function Activate($account_id) {
-        $account = Account::where('account_id', $account_id)->first();
-
-        $account->active = true;
-        $account->save();
-        return;
+        return $parentAccounts->get();
     }
 
     public function ListParents() {

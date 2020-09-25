@@ -29,10 +29,6 @@ class InvoiceController extends Controller {
         return response()->download($path . $filename)->deleteFileAfterSend(true);
     }
 
-    public function index() {
-        return view('invoices.invoices');
-    }
-
     public function buildTable() {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->ListAll();

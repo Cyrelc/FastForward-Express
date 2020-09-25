@@ -34,7 +34,7 @@ export default function ActivityLogTab(props) {
                                     {
                                         Object.keys(log.properties.attributes).map(key => {
                                             return (
-                                                <tr>
+                                                <tr key={index + '.' + key}>
                                                     <td><strong>{key}</strong></td>
                                                     {log.properties.old && <td>{log.properties.old[key]}</td>}
                                                     <td>{log.properties.attributes[key]}</td>

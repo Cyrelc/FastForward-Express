@@ -21,43 +21,43 @@
                 <li class='nav-item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-bills' data-toggle='dropdown'>Bills</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/bills"><i class="fa fa-list"></i> List</a>
-                        <a class='dropdown-item' href="/bills/create"><i class="fa fa-plus-square"></i> New</a>
-                        <a class='dropdown-item' href="/charts"><i class='fas fa-chart-bar'></i> Charts</a>
+                        <a class='dropdown-item' href="/app/bills?filter[percentage_complete]=,1"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/app/bills/create"><i class="fa fa-plus-square"></i> New</a>
+                        <a class='dropdown-item' href="/app/bills/charts"><i class='fas fa-chart-bar'></i> Charts</a>
                     </div>
                 </li>
                 <li class='nav-item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-invoices' data-toggle='dropdown'>Invoices</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/invoices?filter[balance_owing]=0,"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/app/invoices?filter[balance_owing]=0,"><i class="fa fa-list"></i> List</a>
                         <a class='dropdown-item' href="/invoices/generate"><i class='fa fa-plus-square'></i> Generate Invoices</a>
                     </div>
                 </li>
                 <li class='nav-item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-accounts' data-toggle='dropdown'>Accounts</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/accounts"><i class="fa fa-list"></i> List Accounts</a>
+                        <a class='dropdown-item' href="/app/accounts"><i class="fa fa-list"></i> List Accounts</a>
                         <a class='dropdown-item' href="/accounts/create"><i class="fa fa-plus-square"></i> New Account</a>
                     </div>
                 </li>
                 <li class='nav-item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-employees' data-toggle='dropdown'>Employees</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/employees"><i class="fa fa-list"></i> List</a>
-                        <a class='dropdown-item' href="/employees/create"><i class="fa fa-plus-square"></i> New</a>
+                        <a class='dropdown-item' href="/app/employees"><i class="fa fa-list"></i> List</a>
+                        <a class='dropdown-item' href="/app/employees/create"><i class="fa fa-plus-square"></i> New</a>
                         <a class='dropdown-item' href='/chargebacks'><i class='fa fa-tag'></i> Chargebacks</a>
-                        <a class='dropdown-item' href='/manifests'><i class='fas fa-clipboard-list'></i> Manifests</a>
+                        <a class='dropdown-item' href='/app/manifests'><i class='fas fa-clipboard-list'></i> Manifests</a>
                         <a class='dropdown-item' href='/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a>
                     </div>
                 </li>
                 <li class='nav-item'>
-                    <a class='nav-link' href='/dispatch'>Dispatch</a>
+                    <a class='nav-link' href='/app/dispatch'>Dispatch</a>
                 </li>
                 <li class='nav item dropdown'>
                     <a class='nav-link dropdown-toggle' href='#' id='navbar-admin' data-toggle='dropdown'>Administration</a>
                     <div class='dropdown-menu'>
-                        <a class='dropdown-item' href="/appsettings">Application Settings</a>
-                        <a class='dropdown-item' href='/ratesheets'>Rate Sheets</a>
+                        <a class='dropdown-item' href="/app/appsettings">Application Settings</a>
+                        <a class='dropdown-item' href='/app/ratesheets'>Rate Sheets</a>
                         <a class='dropdown-item' href="/interliners"><i class="fa fa-list"></i> List Interliners</a>
                         <a class='dropdown-item' href="/interliners/create"><i class="fa fa-plus-square"></i> New Interliner</a>
                     </div>

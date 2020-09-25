@@ -22,7 +22,6 @@ class ChartModelFactory {
 
         $model = new \stdClass();
         $model->keys = [];
-        $model->totals = [];
 
         $bills = $billRepo->GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy);
 

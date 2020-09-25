@@ -17,16 +17,20 @@ export default class DateFilterBetween extends Component {
     componentDidMount() {
         var dates = null
         if(window.location.search.includes('filter[' + this.props.filter.value + ']=')) {
-            //get everything between 'filter[db_field_name]=' and the next filter beginning with &
+            //get everything between 'filter[db_field_name]=' and the next filter (if there is one) beginning with &
             const filterValue = window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0]
             dates = filterValue.split(',')
         }
-        if(dates)
+        if(dates) {
+            const timezoneOffset = new Date().getTimezoneOffset();
+            const startDate = new Date(dates[0]).addMinutes(timezoneOffset)
+            const endDate = new Date(dates[1]).addMinutes(timezoneOffset)
             this.setState({
                 dbField: this.props.filter.value,
-                endDate: dates[1] ? new Date(dates[1]).addDays(1) : null,
-                startDate: dates[0] ? new Date(dates[0]).addDays(1) : null
+                endDate: dates[1] ? endDate : null,
+                startDate: dates[0] ? startDate : null
             }, () => this.handleDateFilterChange())
+        }
         else
             this.setState({
                 dbField: this.props.filter.value,
@@ -37,8 +41,8 @@ export default class DateFilterBetween extends Component {
         console.log(date, type)
         const startDate = type === 'startDate' ? date : this.state.startDate
         const endDate = type === 'endDate' ? date : this.state.endDate
-        const formattedStartDate = startDate === null ? '' : new Date(startDate).addDays(-1).toISOString().split('T')[0]
-        const formattedEndDate = endDate === null ? '' : new Date(endDate).addDays(-1).toISOString().split('T')[0]
+        const formattedStartDate = startDate === null ? '' : new Date(startDate).toISOString().split('T')[0]
+        const formattedEndDate = endDate === null ? '' : new Date(endDate).toISOString().split('T')[0]
         this.setState({startDate: startDate, endDate: endDate})
         var filterQueryString = null
         if(formattedStartDate || formattedEndDate)
@@ -58,6 +62,7 @@ export default class DateFilterBetween extends Component {
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
                         isClearable
+                        placeholderText='After'
                         selected={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'startDate')}
                         />
@@ -68,6 +73,7 @@ export default class DateFilterBetween extends Component {
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
                         isClearable
+                        placeholderText='Before'
                         selected={this.state.endDate}
                         onChange={date => this.handleDateFilterChange(date, 'endDate')}
                         />

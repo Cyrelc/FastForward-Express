@@ -54,6 +54,9 @@ export default class NumberBetween extends Component {
                         value={this.state.lowerBound}
                         name='lowerBound'
                         onChange={this.handleChange}
+                        placeholder='More than'
+                        min={this.props.filter.min ? this.props.filter.min : null}
+                        max={this.props.filter.max ? this.props.filter.max : null}
                     />
                     <InputGroup.Append>
                         <InputGroup.Text> and </InputGroup.Text>
@@ -64,6 +67,9 @@ export default class NumberBetween extends Component {
                         value={this.state.upperBound}
                         name='upperBound'
                         onChange={this.handleChange}
+                        placeholder='Less than'
+                        min={this.props.filter.min ? this.props.filter.min : null}
+                        max={this.props.filter.max ? this.props.filter.max : null}
                     />
                 </InputGroup>
             </Col>

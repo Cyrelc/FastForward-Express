@@ -17,6 +17,12 @@ class InterlinerRepo {
 	    return $interliner;
     }
 
+    public function GetInterlinersList() {
+        $interliners = Interliner::select('name as label', 'interliner_id as value');
+
+        return $interliners->get();
+    }
+
     public function Insert($interliner) {
     	$new = new Interliner;
 

@@ -140,7 +140,6 @@
 			$model->read_only = $billRepo->IsReadOnly($model->bill->bill_id);
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
-			$model->prepaid_options = $selectionsRepo->GetSelectionsByType('prepaid_option');
 
 			$model->accounts = $acctRepo->ListAll();
 			$model->interliners = $interlinersRepo->ListAll();

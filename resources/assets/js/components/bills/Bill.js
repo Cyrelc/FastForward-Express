@@ -181,13 +181,13 @@ export default class Bill extends Component {
     }
 
     componentDidMount() {
-        //check if create or edit or viewOnly
-        const formType = window.location.href.split('/')[4]
-        if(formType === 'edit' || formType === 'view') {
-            document.title = formType === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
-            fetch('/bills/getModel/' + window.location.href.split('/')[5])
+        const {match: {params}} = this.props
+
+        if(params.action === 'edit' || params.action === 'view') {
+            document.title = params.action === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
+            fetch('/bills/getModel/' + params.billId)
             .then(response => {return response.json()})
-            .then(data => this.configureBill(data, formType));
+            .then(data => this.configureBill(data, params.action));
         } else {
             document.title = 'Create Bill - ' + document.title
             fetch('/bills/getModel') //fetch data necessary to populate the form
@@ -672,4 +672,4 @@ export default class Bill extends Component {
     }
 }
 
-ReactDom.render(<Bill />, document.getElementById('bill'))
+// ReactDom.render(<Bill />, document.getElementById('bill'))

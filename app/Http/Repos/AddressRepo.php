@@ -81,6 +81,9 @@ class AddressRepo {
         $old->lng = $address['lng'];
         $old->place_id = $address['place_id'];
 
+        if (array_key_exists('contact_id', $address))
+            $old->contact_id = $address['contact_id'];
+
         $old->save();
 
         return $old;

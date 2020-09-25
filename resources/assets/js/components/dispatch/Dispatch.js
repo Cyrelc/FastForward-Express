@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import ReactDom from 'react-dom'
 import {Row, Col, InputGroup, Button, Modal, ToastHeader} from 'react-bootstrap'
 import * as moment from 'moment/moment'
 import DatePicker from 'react-datepicker'
@@ -302,7 +301,7 @@ export default class Dispatch extends Component {
     handleStartDateEvent(event) {
         const {name, value} = event.target
         this.setState({startDate: value}, () => {
-            fetch('/bills/buildTable?filter[dispatch]&filter[date_between]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'))
+            fetch('/bills/buildTable?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'))
             .then(response => {return response.json()})
             .then(data => {this.setState({bills: data}, this.refreshBills)})
         })
@@ -448,4 +447,4 @@ export default class Dispatch extends Component {
     }
 }
 
-ReactDom.render(<Dispatch />, document.getElementById('dispatch'))
+// ReactDom.render(<Dispatch />, document.getElementById('dispatch'))

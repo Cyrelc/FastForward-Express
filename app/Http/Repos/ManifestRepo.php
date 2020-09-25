@@ -4,8 +4,12 @@ namespace App\Http\Repos;
 use DB;
 use App\Bill;
 use App\Chargeback;
+use App\Employee;
 use App\Manifest;
 use App\DriverChargeback;
+use App\Http\Filters\DateBetween;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class ManifestRepo {
     public function Create($driver_ids, $start_date, $end_date) {
@@ -69,16 +73,27 @@ class ManifestRepo {
         $manifests = Manifest::leftJoin('drivers', 'drivers.driver_id', '=', 'manifests.driver_id')
                 ->leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
                 ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-                ->select('manifest_id',
+                ->select(
+                    'manifest_id',
                     'drivers.driver_id',
                     'employees.employee_id',
                     DB::raw('concat(first_name, " ", last_name) as employee_name'),
                     DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
                     'date_run',
                     'manifests.start_date',
-                    'end_date')
-                ->get();
-        return $manifests;
+                    'end_date',
+                    DB::raw('(select sum(case when pickup_manifest_id = manifest_id and delivery_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = manifest_id then round(amount * delivery_driver_commission, 2) end) from bills) as driver_income'),
+                    DB::raw('(select sum(amount) from chargebacks left join driver_chargebacks on driver_chargebacks.chargeback_id = chargebacks.chargeback_id where driver_chargebacks.manifest_id = manifests.manifest_id) as driver_chargeback_amount')
+                );
+
+        $filteredManifests = QueryBuilder::for($manifests)
+            ->allowedFilters([
+                AllowedFilter::exact('driver_id', 'manifests.driver_id'),
+                AllowedFilter::custom('start_date', new DateBetween),
+                AllowedFilter::custom('end_date', new DateBetween)
+            ]);
+
+        return $filteredManifests->get();
     }
 
     public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {

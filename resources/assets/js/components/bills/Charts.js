@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import ReactDom from 'react-dom'
 import {Card, Col, Row, InputGroup, ToastHeader} from 'react-bootstrap'
 import { ResponsiveBar } from '@nivo/bar'
 import DatePicker from 'react-datepicker'
@@ -17,7 +16,7 @@ export default class Charts extends Component {
             groupOptions: [{label: 'None', value: 'none'}, {label: 'Employee', value: 'employee_name'}, {label: 'Delivery Type', value: 'delivery_type'}],
             keys: [],
             startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
-            summationOptions: [{label: 'Count', value: 'count'}, {label: 'Total Cost', value: 'amount'}],
+            summationOptions: [{label: 'Count', value: 'count'}, {label: 'Total Cost', value: 'amount'}, {label: 'Employee Income', value: 'driver_income'}],
             summationType: {label: 'Count', value: 'count'}
         }
         this.fetchChart = this.fetchChart.bind(this)
@@ -29,7 +28,7 @@ export default class Charts extends Component {
     }
 
     fetchChart() {
-        var url = '/charts?type=monthlyBills'
+        var url = '/bills/chart?type=monthlyBills'
         url += '&dateGroupBy=' + this.state.dateGroupBy.value
         url += '&startDate=' + this.state.startDate.toISOString().substring(0, 10) 
         if(this.state.dateGroupBy != 'day')
@@ -119,7 +118,7 @@ export default class Charts extends Component {
                                     data={this.state.data}
                                     keys={this.state.keys}
                                     indexBy='indexKey'
-                                    labelFormat={this.state.summationType.value === 'amount' ? '$.2f' : ''}
+                                    labelFormat={(this.state.summationType.value === 'amount' || this.state.summationType.value === 'driver_income') ? '$.2f' : ''}
                                     legends={[{
                                         dataFrom: 'keys',
                                         anchor: 'bottom-right',
@@ -142,6 +141,10 @@ export default class Charts extends Component {
                                             return data.id + ' : ' + data.value
                                     }}
                                 />
+                                {
+                                    this.state.summationType.value === 'driver_income' &&
+                                    <label>Note: Driver income here is based on bills by date of delivery <strong>NOT</strong> date manifested. In addition, chargebacks are not considered here.</label>
+                                }
                             </div>
                         </Card.Body>
                     </Card>
@@ -150,5 +153,3 @@ export default class Charts extends Component {
         )
     }
 }
-
-ReactDom.render(<Charts />, document.getElementById('charts'))

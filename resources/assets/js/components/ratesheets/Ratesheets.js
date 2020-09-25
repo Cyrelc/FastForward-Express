@@ -1,5 +1,4 @@
 import React from 'react'
-import ReactDom from 'react-dom'
 import { ReactTabulator } from 'react-tabulator'
 import { Row, Col, Button } from 'react-bootstrap'
 
@@ -20,7 +19,7 @@ export default class Ratesheets extends React.Component {
 
     render() {
         const columns = [
-            {title: 'Ratesheet ID', field: 'ratesheet_id', formatter:'link', formatterParams:{labelField:'ratesheet_id', urlPrefix:'/ratesheets/edit/'}, width: 150},
+            {title: 'Ratesheet ID', field: 'ratesheet_id', formatter:'link', formatterParams:{labelField:'ratesheet_id', urlPrefix:'/app/ratesheets/edit/'}, width: 150},
             {title: 'Name', field: 'name', width: 150}
         ]
         return(
@@ -39,6 +38,4 @@ export default class Ratesheets extends React.Component {
         )
     }
 }
-
-ReactDom.render(<Ratesheets />, document.getElementById('ratesheets'))
 

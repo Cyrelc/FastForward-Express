@@ -58,6 +58,12 @@ class PaymentRepo {
         return $payment_types;
     }
 
+    public function GetPaymentTypesList() {
+        $paymentTypes = PaymentType::select('name as label', 'payment_type_id as value');
+
+        return $paymentTypes->get();
+    }
+
     public function GetPrepaidPaymentTypes() {
         $paymentTypes = PaymentType::where('is_prepaid', true);
 
