@@ -6,6 +6,10 @@
     padding: 15px;
 }
 
+.pac-container {
+    z-index: 999999999999999 !important;
+}
+
 .nav-tabs {
     padding-top: 20px;
 }

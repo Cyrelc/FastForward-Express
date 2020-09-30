@@ -8,20 +8,20 @@ export default function Driver(props) {
     return (
         <Row>
             <Col md={12}>
-                <p>{props.driver.employee_name} - {props.driver.employee_number}</p>
+                <p>{props.driver.first_name} {props.driver.last_name} - {props.driver.employee_number}</p>
             </Col>
             <Col md={12}>
                 <ReactTabulator
                     id={'driverTables'}
                     columns={props.billColumns}
-                    data-driverid={props.driver.driver_id}
-                    data={props.bills.filter(bill => (bill.pickup_driver_id === props.driver.driver_id || bill.delivery_driver_id === props.driver.driver_id))}
+                    data-employeeid={props.driver.employee_id}
+                    data={props.bills.filter(bill => (bill.pickup_driver_id === props.driver.employee_id || bill.delivery_driver_id === props.driver.employee_id))}
                     options={{
                         invalidOptionWarnings: false,
                         layout: 'fitColumns',
                         movableRows: true,
                         movableRowsConnectedTables: '#driverTables',
-                        movableRowsReceived: row => props.handleChange({target: {name: 'assignBill', type: 'number', value: row._row.data.bill_id, driver_id: props.driver.driver_id}}),
+                        movableRowsReceived: row => props.handleChange({target: {name: 'assignBill', type: 'number', value: row._row.data.bill_id, driver_id: props.driver.employee_id}}),
                         movableRowsSendingStart: () => props.handleChange({target: {name: 'rowInTransit', type: 'checkbox', checked: true}}),
                         movableRowsSendingStop: () => props.handleChange({target: {name: 'rowInTransit', type: 'checkbox', checked: false}}),
                         rowFormatter: props.rowFormatter,

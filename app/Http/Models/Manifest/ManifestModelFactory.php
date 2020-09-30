@@ -14,7 +14,8 @@ class ManifestModelFactory{
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
-        $driverRepo = new Repos\DriverRepo();
+        $contactRepo = new Repos\ContactRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
         $manifestRepo = new Repos\ManifestRepo();
         $phoneRepo = new Repos\PhoneNumberRepo();
 
@@ -22,10 +23,10 @@ class ManifestModelFactory{
 
         $model->manifest = $manifestRepo->GetById($manifest_id);
         $model->bill_count = $billRepo->CountByManifestId($manifest_id);
-        $model->driver = $driverRepo->GetById($model->manifest->driver_id);
-        $model->driver->contact = $driverRepo->GetContactByDriverId($model->driver->driver_id);
-        $model->driver->contact->primary_phone = $phoneRepo->GetContactPrimaryPhone($model->driver->contact->contact_id)->phone_number;
-        $model->driver->address = $addressRepo->GetByContactId($model->driver->contact->contact_id);
+        $model->employee = $employeeRepo->GetById($model->manifest->employee_id);
+        $model->employee->contact = $contactRepo->GetById($model->employee->contact_id);
+        $model->employee->contact->primary_phone = $phoneRepo->GetContactPrimaryPhone($model->employee->contact_id)->phone_number;
+        $model->employee->address = $addressRepo->GetByContactId($model->employee->contact_id);
 
         $model->bills = $billRepo->GetByManifestId($manifest_id);
         $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
@@ -43,6 +44,25 @@ class ManifestModelFactory{
         return $model;
     }
 
+    public function GetDriverListModel($startDate, $endDate) {
+        $billRepo = new Repos\BillRepo();
+        $contactRepo = new Repos\ContactRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
+
+        $model = new DriverListModel();
+
+        $drivers = $employeeRepo->ListAllDrivers();
+        foreach($drivers as $driver) {
+            $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->employee_id, date('Y-m-d', strtotime($startDate)), date('Y-m-d', strtotime($endDate)));
+            if($driver->bill_count == 0)
+                continue;
+            $driver->contact = $contactRepo->GetById($driver->contact_id);
+            array_push($model->drivers, $driver);
+        }
+
+        return $model;
+    }
+
     public function GetGenerateModel($start_date = null, $end_date = null) {
         if(isset($start_date) && isset($end_date)) {
             $start_date = (new \DateTime($start_date))->format('Y-m-d');
@@ -56,27 +76,6 @@ class ManifestModelFactory{
 
         $model->start_date = $start_date;
         $model->end_date = $end_date;
-
-        return $model;
-    }
-
-    public function GetDriverListModel($start_date, $end_date) {
-        $driverRepo = new Repos\DriverRepo();
-        $billRepo = new Repos\BillRepo();
-        $contactRepo = new Repos\ContactRepo();
-        $employeeRepo = new Repos\EmployeeRepo();
-
-        $model = new DriverListModel();
-
-        $drivers = $driverRepo->ListAll();
-        foreach($drivers as $driver) {
-            $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->driver_id, date('Y-m-d', strtotime($start_date)), date('Y-m-d', strtotime($end_date)));
-            if($driver->bill_count == 0)
-                continue;
-            $driver->employee = $employeeRepo->GetById($driver->employee_id);
-            $driver->contact = $contactRepo->GetById($driver->employee->contact_id);
-            array_push($model->drivers, $driver);
-        }
 
         return $model;
     }

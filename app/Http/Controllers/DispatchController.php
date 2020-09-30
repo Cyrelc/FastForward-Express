@@ -10,9 +10,9 @@ use App\Http\Repos;
 class DispatchController extends Controller {
 
     public function GetDrivers(Request $req) {
-        $driverRepo = new Repos\DriverRepo();
-        $drivers = $driverRepo->ListAllWithEmployeeAndContact();
-        return json_encode($drivers);
+        $employeeRepo = new Repos\EmployeeRepo();
+        $employees = $employeeRepo->GetActiveDriversWithContact();
+        return json_encode($employees);
     }
 
     public function view() {
@@ -24,10 +24,10 @@ class DispatchController extends Controller {
         DB::beginTransaction();
         try {
             $billRepo = new Repos\BillRepo();
-            $driverRepo = new Repos\DriverRepo();
-            $driver = $driverRepo->GetById($req->driver_id);
+            $employeeRepo = new Repos\EmployeeRepo();
+            $employee = $employeeRepo->GetById($req->employee_id);
 
-            $billRepo->AssignToDriver($req->bill_id, $driver);
+            $billRepo->AssignToDriver($req->bill_id, $employee);
 
             DB::commit();
             return response()->json([

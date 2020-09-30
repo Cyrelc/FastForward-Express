@@ -12,13 +12,13 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class ManifestRepo {
-    public function Create($driver_ids, $start_date, $end_date) {
+    public function Create($employee_ids, $start_date, $end_date) {
         $manifests = array();
         $chargebackRepo = new ChargebackRepo();
 
-        foreach($driver_ids as $driver_id) {
-            $manifest = $this->GenerateManifest($driver_id, $start_date, $end_date);
-            $this->ManifestBills($manifest->manifest_id, $driver_id, $start_date, $end_date);
+        foreach($employee_ids as $employee_id) {
+            $manifest = $this->GenerateManifest($employee_id, $start_date, $end_date);
+            $this->ManifestBills($manifest->manifest_id, $employee_id, $start_date, $end_date);
             $chargebackRepo->RunChargebacksForManifest($manifest);
             array_push($manifests, $manifest);
         }
@@ -54,9 +54,9 @@ class ManifestRepo {
         return;
     }
 
-    public function GenerateManifest($driver_id, $start_date, $end_date) {
+    public function GenerateManifest($employee_id, $start_date, $end_date) {
         $manifest = [
-            'driver_id' => $driver_id,
+            'employee_id' => $employee_id,
             'date_run' => date('Y-m-d'),
             'start_date' => $start_date,
             'end_date' => $end_date
@@ -70,12 +70,10 @@ class ManifestRepo {
     }
 
     public function ListAll() {
-        $manifests = Manifest::leftJoin('drivers', 'drivers.driver_id', '=', 'manifests.driver_id')
-                ->leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+        $manifests = Manifest::leftJoin('employees', 'employees.employee_id', '=', 'manifests.employee_id')
                 ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
                 ->select(
                     'manifest_id',
-                    'drivers.driver_id',
                     'employees.employee_id',
                     DB::raw('concat(first_name, " ", last_name) as employee_name'),
                     DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
@@ -88,7 +86,7 @@ class ManifestRepo {
 
         $filteredManifests = QueryBuilder::for($manifests)
             ->allowedFilters([
-                AllowedFilter::exact('driver_id', 'manifests.driver_id'),
+                AllowedFilter::exact('driver_id', 'manifests.employee_id'),
                 AllowedFilter::custom('start_date', new DateBetween),
                 AllowedFilter::custom('end_date', new DateBetween)
             ]);

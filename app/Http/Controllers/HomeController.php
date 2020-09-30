@@ -43,9 +43,14 @@ class HomeController extends Controller
                 $accounts = $accountRepo->GetAccountList();
                 return json_encode($accounts);
                 break;
+            case 'activeDrivers':
+                $employeeRepo = new Repos\EmployeeRepo();
+                $drivers = $employeeRepo->GetDriverList();
+                return json_encode($drivers);
+                break;
             case 'drivers':
-                $driverRepo = new Repos\DriverRepo();
-                $drivers = $driverRepo->GetDriverList();
+                $employeeRepo = new Repos\EmployeeRepo();
+                $drivers = $employeeRepo->GetDriverList(false);
                 return json_encode($drivers);
                 break;
             case 'employees':

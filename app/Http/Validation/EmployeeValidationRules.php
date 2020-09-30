@@ -4,22 +4,54 @@ namespace app\Http\Validation;
 
 class EmployeeValidationRules {
     public function GetValidationRules($req) {
-        return [
-            'rules' =>[
-                'SIN' => ['regex:/[0-9]{3} [0-9]{3} [0-9]{3}/'],
-                'startdate' => 'required|date',
-                'DOB' => 'required|date',
-                'employee_number' => 'required|unique:employees,employee_number,' . $req->employee_id . ',employee_id'
-            ],
-            'messages' => [
-                'SIN.regex' => 'SIN must be in the format "### ### ###"',
-                'startdate.required' => 'Start Date is required.',
-                'startdate.date' => 'Start Date must be a date.',
-                'DOB.required' => 'Date of Birth is required.',
-                'DOB.date' => 'Date of Birth must be a date.',
-                'employee_number.required' => 'Please provide an employee number',
-                'employee_numer.unique' => 'Employee number is taken. Please choose a unique employee number'
-            ]
+        $rules = [
+            'SIN' => ['regex:/[0-9]{3} [0-9]{3} [0-9]{3}/'],
+            'start_date' => 'required|date',
+            'birth_date' => 'required|date',
+            'employee_number' => 'required|unique:employees,employee_number,' . $req->employee_id . ',employee_id'
         ];
+
+        $messages = [
+            'SIN.regex' => 'SIN must be in the format "### ### ###"',
+            'start_date.required' => 'Start Date is required.',
+            'start_date.date' => 'Start Date must be a date.',
+            'birth_date.required' => 'Date of Birth is required.',
+            'birth_date.date' => 'Date of Birth must be a date.',
+            'employee_number.required' => 'Please provide an employee number',
+            'employee_numer.unique' => 'Employee number is taken. Please choose a unique employee number'
+        ];
+        if($req->is_driver === 'true') {
+            $rules = array_merge($rules, [
+                'pickup_commission' => 'required|numeric',
+                'delivery_commission' => 'required|numeric',
+                'drivers_license_number' => 'required',
+                'drivers_license_expiration_date' => 'required|date',
+                'license_plate_number' => 'required',
+                'license_plate_expiration_date' => 'required|date',
+                'insurance_number' => 'required',
+                'insurance_expiration_date' => 'required|date'
+            ]);
+
+            $messages = array_merge($messages, [
+                'drivers_license_number.required' => 'Driver License Number is required.',
+                'license_plate_number.required' => 'License Plate is required.',
+                'insurance_number.required' => 'Insurance Number is required.',
+                'drivers_license_expiration_date.required' => 'Drivers License Expiration Date is required.',
+                'drivers_license_expiration_date.date' => 'Drivers License Expiration Date must be a date.',
+                'license_plate_expiration_date.required' => 'License Plate Expiration Date is required.',
+                'license_plate_expiration_date.date' => 'License Plate Expiration Date must be a date.',
+                'insurance_expiration_date.required' => 'Insurance Expiration Date is required.',
+                'insurance_expiration_date.date' => 'Insurance Expiration Date must be a date.',
+                'pickup_commission.required' => 'Pickup Commission is required.',
+                'pickup_commission.numeric' => 'Pickup Commission must be a number.',
+                'delivery_commission.required' => 'Pickup Commission is required.',
+                'delivery_commission.numeric' => 'Pickup Commission must be a number.',
+            ]);
+        }
+
+        return ['rules' => $rules, 'messages' => $messages];
     }
+
+    //legacy license plate regex (for documentation purposes only/no longer enforced): 'regex:/([A-Z]{3}-[0-9]{4})|([B-WY][A-Z]{2}-[0-9]{3})|([1-9]-[0-9]{5})|([B-DF-HJ-NP-TV-XZ]-[0-9]{5})|([0-9]{2}-[A-Z][0-9]{3})/'
+    //legacy phone number regex (for possible future re-use): 'regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'
 }

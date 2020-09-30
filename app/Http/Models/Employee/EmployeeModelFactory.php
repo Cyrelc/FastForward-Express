@@ -42,19 +42,10 @@ class EmployeeModelFactory
             $model->friendlyMessage = 'Sorry, but an error has occurred. Please contact support.';
             $model->errorMessage = $e;
         }
-        // dd($model);
         return $model;
     }
 
-    public function ListEmergencyContacts($employee_id) {
-        $employeeRepo = new Repos\EmployeeRepo();
-
-        $emergencyContacts = $employeeRepo->ListEmergencyContacts($employee_id);
-
-        return $emergencyContacts;
-    }
-
-    public function GetCreateModel($request) {
+    public function GetCreateModel() {
         $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
 
         $model = new Employee\EmployeeFormModel();
@@ -62,47 +53,32 @@ class EmployeeModelFactory
         $model->employee = new \App\Employee();
         $model->contact = $contactModelFactory->GetCreateModel();
         $model->contact->emails->types = null;
-        $model->driver = new \App\Driver();
 
         $model->employee->dob = date('U');
         $model->employee->start_date = date('U');
-        $model->driver->license_expiration = date('U');
-        $model->license_plate_expiration = date('U');
-        $model->driver->insurance_expiration = date('U');
+        $model->employee->license_expiration = date('U');
+        $model->employee->license_plate_expiration = date('U');
+        $model->employee->insurance_expiration = date('U');
 
         $model->emergency_contacts = [];
-
-        unset($model->contact->contact_id);
 
         return $model;
     }
 
-    public function GetEditModel($request, $id) {
+    public function GetEditModel($employeeId) {
         $activityLogRepo = new Repos\ActivityLogRepo();
         $addressRepo = new Repos\AddressRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $phoneNumberRepo = new Repos\PhoneNumberRepo();
-        $driverRepo = new Repos\DriverRepo();
 
         $contactsFactory = new Models\Partials\ContactsModelFactory();
         $contactFactory = new Models\Partials\ContactModelFactory();
 
         $model = new EmployeeFormModel();
-        $model->employee = $employeeRepo->GetById($id);
+        $model->employee = $employeeRepo->GetById($employeeId);
+        $model->emergency_contacts = $employeeRepo->GetEmergencyContacts($employeeId);
         $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
-        $model->contact->emails->types = null;
         $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
-        $model->driver = $driverRepo->GetByEmployeeId($id);
-        if (!isset($model->driver))
-            $model->driver = new \App\Driver();
-
-        $model->employee->start_date = strtotime($model->employee->start_date);
-        $model->employee->dob = strtotime($model->employee->dob);
-        if(isset($model->driver)) {
-            $model->driver->license_expiration = strtotime($model->driver->license_expiration);
-            $model->driver->license_plate_expiration = strtotime($model->driver->license_plate_expiration);
-            $model->driver->insurance_expiration = strtotime($model->driver->insurance_expiration);
-        }
 
         $model->activity_log = $activityLogRepo->GetEmployeeActivityLog($model->employee->employee_id);
         foreach($model->activity_log as $key => $log)

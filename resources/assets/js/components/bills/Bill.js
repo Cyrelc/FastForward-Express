@@ -152,7 +152,7 @@ export default class Bill extends Component {
                 deliveryAddressPlaceId: data.delivery_address.place_id,
                 deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
                 deliveryEmployeeCommission: data.bill.delivery_driver_commission,
-                deliveryEmployee: data.employees.find(employee => employee.driver.driver_id === data.bill.delivery_driver_id),
+                deliveryEmployee: data.employees.find(employee => employee.employee_id === data.bill.delivery_driver_id),
                 deliveryReferenceValue: data.bill.delivery_reference_value,
                 deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
                 deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
@@ -164,7 +164,7 @@ export default class Bill extends Component {
                 pickupAddressName: data.pickup_address.name,
                 pickupAddressPlaceId: data.pickup_address.place_id,
                 pickupAddressType: data.bill.pickup_account_id === null ? 'Address' : 'Account',
-                pickupEmployee: data.employees.find(employee => employee.driver.driver_id === data.bill.pickup_driver_id),
+                pickupEmployee: data.employees.find(employee => employee.employee_id === data.bill.pickup_driver_id),
                 pickupEmployeeCommission: data.bill.pickup_driver_commission,
                 pickupReferenceValue: data.bill.pickup_reference_value,
                 pickupTimeActual: data.bill.time_picked_up ? Date.parse(data.bill.time_picked_up) : null,
@@ -316,14 +316,14 @@ export default class Bill extends Component {
     handleDriverEvent(events, driverEvent) {
         const {name, value} = driverEvent.target
         if(name === 'pickupEmployee') {
-            events['pickupEmployeeCommission'] = value.driver.pickup_commission
+            events['pickupEmployeeCommission'] = value.pickup_commission
             if(!this.state.deliveryEmployee) {
                 events['deliveryEmployee'] = value
-                events['deliveryEmployeeCommission'] = value.driver.delivery_commission
+                events['deliveryEmployeeCommission'] = value.delivery_commission
                 events['timeDispatched'] = new Date()
             }
         } else if (name === 'deliveryEmployee') {
-            events['deliveryEmployeeCommission'] = value.driver.delivery_commission
+            events['deliveryEmployeeCommission'] = value.delivery_commission
         }
         events[name] = value
         return events
@@ -620,7 +620,7 @@ export default class Bill extends Component {
             delivery_address_place_id: this.state.deliveryAddressPlaceId,
             delivery_address_type: this.state.deliveryAddressType,
             delivery_driver_commission: this.state.deliveryEmployeeCommission,
-            delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.driver.driver_id : null,
+            delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.employee_id : null,
             delivery_type: this.state.deliveryType,
             delivery_reference_value: this.state.deliveryReferenceValue,
             description: this.state.description,
@@ -639,7 +639,7 @@ export default class Bill extends Component {
             pickup_address_name: this.state.pickupAddressName,
             pickup_address_place_id: this.state.pickupAddressPlaceId,
             pickup_address_type: this.state.pickupAddressType,
-            pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.driver.driver_id : null,
+            pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.employee_id : null,
             pickup_driver_commission: this.state.pickupEmployeeCommission,
             pickup_reference_value: this.state.pickupReferenceValue,
             skip_invoicing: this.state.skipInvoicing,
@@ -671,5 +671,3 @@ export default class Bill extends Component {
         })
     }
 }
-
-// ReactDom.render(<Bill />, document.getElementById('bill'))

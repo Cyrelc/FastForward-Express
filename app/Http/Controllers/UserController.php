@@ -50,6 +50,24 @@ class UserController extends Controller {
             return response()->json(['message' => 'Minimum of one account user required', 'errors' => ['min_count' => ['Account must have at least one user']]], 403);
     }
 
+    public function generatePassword() {
+        $filePath = '../resources/assets/passwordSeed.txt';
+        $passwordSeedFile = fopen($filePath, 'r');
+        $passwordSeedString = fread($passwordSeedFile,filesize($filePath));
+        $wordDictionary = explode("\r\n", $passwordSeedString);
+        $suggestedPassword = "";
+        $randomNumber = rand(1, 12);
+        for($i = 0; $i < 4; $i++) {
+            if($i > 0)
+                $suggestedPassword .= " ";
+            if($randomNumber%($i + 1) === 0)
+                $suggestedPassword .= ucfirst($wordDictionary[rand(0, count($wordDictionary))]);
+            else
+                $suggestedPassword .= $wordDictionary[rand(0, count($wordDictionary))];
+        }
+        return json_encode($suggestedPassword);
+    }
+
     public function getAccountUsers(Request $req, $id) {
         $userModelFactory = new User\UserModelFactory();
         $model = $userModelFactory->getAccountUsers($id);

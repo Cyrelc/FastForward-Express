@@ -68,7 +68,7 @@ class ManifestController extends Controller {
         $model = $manifestModelFactory->GetById($manifest_id);
         $is_pdf = 1;
         $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
-        return $pdf->stream($model->driver->contact->first_name . '_' . $model->driver->contact->last_name . '.' . $model->manifest->date_run . '.pdf');
+        return $pdf->stream($model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '.' . $model->manifest->date_run . '.pdf');
     }
 
     public function printMass(Request $req) {
@@ -126,7 +126,7 @@ class ManifestController extends Controller {
             foreach($req->checkboxes as $driver)
                 array_push($drivers, $driver);
 
-            $manifestRepo->create($drivers, $start_date, $end_date);
+            $manifestRepo->Create($drivers, $start_date, $end_date);
 
             DB::commit();
 

@@ -21,6 +21,15 @@ class CreateEmployeeTable extends Migration
             $table->string('sin');
 			$table->date('dob');
             $table->boolean('active')->default(true);
+            $table->string('company_name')->nullable();
+            $table->float('pickup_commission')->nullable();
+            $table->float('delivery_commission')->nullable();
+            $table->string('drivers_license_number')->nullable();
+            $table->string('license_plate_number')->nullable();
+            $table->string('insurance_number')->nullable();
+            $table->datetime('drivers_license_expiration_date')->nullable();
+            $table->datetime('license_plate_expiration_date')->nullable();
+            $table->datetime('insurance_expiration_date')->nullable();
             
             $table->unique('employee_number');
             $table->foreign('contact_id')->references('contact_id')->on('contacts');

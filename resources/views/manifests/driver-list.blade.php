@@ -14,8 +14,8 @@
         <tbody>
             @foreach($model->drivers as $driver)
                 <tr>
-                    <td><input type='checkbox' checked name='checkboxes[{{$driver->driver_id}}]' value='{{$driver->driver_id}}' /></td>
-                    <td>{{$driver->employee->employee_number}}</td>
+                    <td><input type='checkbox' checked name='checkboxes[{{$driver->employee_id}}]' value='{{$driver->employee_id}}' /></td>
+                    <td>{{$driver->employee_number}}</td>
                     <td>{{$driver->contact->first_name}} {{$driver->contact->last_name}}</td>
                     <td>{{$driver->bill_count}}</td>
                 </tr>

@@ -78,9 +78,9 @@ class ChargebackRepo {
     }
 
     public function RunChargebacksForManifest($manifest) {
-        $driverRepo = new DriverRepo();
-        $employee_id = $driverRepo->GetById($manifest->driver_id)->employee_id;
-        $chargebacks = $this->GetActiveByEmployeeId($employee_id, $manifest->date_run);
+        $employeeRepo = new EmployeeRepo();
+        $employeeId = $employeeRepo->GetById($manifest->employee_id);
+        $chargebacks = $this->GetActiveByEmployeeId($employeeId, $manifest->date_run);
         foreach($chargebacks as $chargeback) {
             $new = new DriverChargeback;
             $new->chargeback_id = $chargeback->chargeback_id;

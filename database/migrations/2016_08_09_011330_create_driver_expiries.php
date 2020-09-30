@@ -14,10 +14,10 @@ class CreateDriverExpiries extends Migration
     {
         Schema::create('driver_expiries', function (Blueprint $table) {
             $table->increments('driver_expiry_id');
-            $table->unsignedInteger('driver_id');
+            $table->unsignedInteger('employee_id');
             $table->unsignedInteger('expiry_id');
 
-            $table->foreign('driver_id')->references('driver_id')->on('drivers');
+            $table->foreign('employee_id')->references('employee_id')->on('employees');
             $table->foreign('expiry_id')->references('expiry_id')->on('expiries');
             $table->unique(array('expiry_id', 'driver_id'));
         });

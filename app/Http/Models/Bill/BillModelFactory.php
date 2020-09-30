@@ -57,31 +57,20 @@
 
 		}
 
-		public function GetBillAdvancedFiltersModel() {
-			$model = new BillAdvancedFiltersModel();
-
-			$driverRepo = new Repos\DriverRepo();
-			$model->drivers = $driverRepo->ListAllWithEmployeeAndContact();
-
-			return $model;
-		}
-
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 
 		    $acctRepo = new Repos\AccountRepo();
 		    $contactsRepo = new Repos\ContactRepo();
-		    $driverRepo = new Repos\DriverRepo();
 		    $employeeRepo = new Repos\EmployeeRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$paymentRepo = new Repos\PaymentRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
-		    $model->employees = $employeeRepo->ListAllDrivers(true);
-		    foreach ($model->employees as $employee) {
-		    	$employee->driver = $driverRepo->GetByEmployeeId($employee->employee_id);
-		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
-		    }
+		    $model->employees = $employeeRepo->ListAllDrivers();
+		    foreach ($model->employees as $employee)
+				$employee->contact = $contactsRepo->GetById($employee->contact_id);
+
 		    $model->interliners = $interlinersRepo->ListAll();
 		    $model->bill = new \App\Bill();
 
@@ -111,7 +100,6 @@
 			$acctRepo = new Repos\AccountRepo();
 			$addrRepo = new Repos\AddressRepo();
 			$employeeRepo = new Repos\EmployeeRepo();
-			$driverRepo = new Repos\DriverRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$billRepo = new Repos\BillRepo();
 			$selectionsRepo = new Repos\SelectionsRepo();
@@ -121,10 +109,8 @@
 			$activityLogRepo = new Repos\ActivityLogRepo();
 
 		    $model->employees = $employeeRepo->ListAllDrivers();
-		    foreach ($model->employees as $employee) {
-		    	$employee->driver = $driverRepo->GetByEmployeeId($employee->employee_id);
-		    	$employee->contact = $contactsRepo->GetById($employee->contact_id);
-		    }
+		    foreach ($model->employees as $employee)
+				$employee->contact = $contactsRepo->GetById($employee->contact_id);
 
 			$model->bill = $billRepo->GetById($bill_id);
 			$model = $this->setBusinessHours($model);

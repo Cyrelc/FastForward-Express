@@ -51,7 +51,7 @@ export default class Dispatch extends Component {
                     headerSort: false,
                     formatter: (cell) => {return cell.getRow().getData().view ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye-slash"></i>'},
                     cellClick: (event, cell) => {this.handleChange({target: {name: 'viewBill', type: 'checkbox', value: cell.getRow().getData().bill_id}})},
-                    headerClick: (event, column) => {this.handleChange({target: {name: 'viewDriver', type: 'checkbox', value: column.getTable().element.getAttribute('data-driverid')}})},
+                    headerClick: (event, column) => {this.handleChange({target: {name: 'viewDriver', type: 'checkbox', value: column.getTable().element.getAttribute('data-employeeid')}})},
                 },
                 {title: '', field: 'timeUntilPickup', visible: false},
                 {title: '', field: 'timeUntilDelivery', visible: false},

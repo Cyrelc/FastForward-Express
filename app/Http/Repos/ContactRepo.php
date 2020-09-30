@@ -1,8 +1,9 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Contact;
 use App\AccountUser;
+use App\Contact;
+use App\EmployeeEmergencyContact;
 
 use Illuminate\Support\Facades\DB;
 
@@ -32,47 +33,6 @@ class ContactRepo {
         return $contact;
     }
 
-    public function HandleEmergencyContacts($contacts, $employee_id, $primary_emergency_contact_prefix) {
-        $employeeRepo = new EmployeeRepo();
-        $addressRepo = new AddressRepo();
-        foreach($contacts as $contact) {
-            if($contact['action'] == 'delete' && $contact['db-id'] != '') {
-                $this->Delete($contact['db-id']);
-            } else {
-                if($contact['action'] == 'create') {
-                    $temp = [
-                        'first_name'=>$contact['first_name'],
-                        'last_name'=>$contact['last_name'],
-                        'position'=>$contact['position']
-                    ];
-                    $contact_id = $this->Insert($temp)['contact_id'];
-                    $contact['address']['contact_id'] = $contact_id;
-                    $addressRepo->Insert($contact['address']);
-                    $employeeRepo->AddEmergencyContact($employee_id, $contact_id);
-                } else if ($contact['action'] =='update') {
-                    $contact_id = $this->Update($contact)->contact_id;
-                    $contact['address']['contact_id'] = $contact_id;
-                    $addressRepo->Update($contact['address']);
-                }
-                $phoneRepo = new PhoneNumberRepo();
-                foreach($contact['phone_numbers'] as $phone) {
-                    $phone['contact_id'] = $contact_id;
-                    $phoneRepo->Handle($phone, $contact_id);
-                }
-                $emailRepo = new EmailAddressRepo();
-                foreach($contact['emails'] as $email) {
-                    $email['contact_id'] = $contact_id;
-                    if(isset($email['email_address_id']))
-                        $emailRepo->Update($email);
-                    else
-                        $emailRepo->Insert($email);
-                }
-                if($contact['prefix'] == $primary_emergency_contact_prefix)
-                    $employeeRepo->ChangePrimary($employee_id, $contact_id);
-            }
-        }
-    }
-
     public function Insert($contact) {
         $new = new Contact;
 
@@ -84,9 +44,9 @@ class ContactRepo {
     public function Update($contact) {
         $old = $this->GetById($contact['contact_id']);
 
-        $old->first_name = $contact["first_name"];
-        $old->last_name = $contact["last_name"];
-        $old->position = $contact["position"];
+        $old->first_name = $contact['first_name'];
+        $old->last_name = $contact['last_name'];
+        $old->position = $contact['position'];
 
         $old->save();
 
@@ -108,4 +68,38 @@ class ContactRepo {
 
         $contact->delete();
     }
+
+    public function DeleteEmployeeEmergencyContact($employeeId, $contactId) {
+        $phoneRepo = new PhoneNumberRepo();
+        $emailRepo = new EmailAddressRepo();
+        $addressRepo = new AddressRepo();
+
+        $contact = $this->GetById($contactId);
+        $employeeEmergencyContact = EmployeeEmergencyContact::where('employee_id', $employeeId)
+            ->where('contact_id', $contactId)->first();
+        if($employeeEmergencyContact->is_primary)
+            throw new Exception('Unable to delete primary emergency contact. Please set another contact to primary, save, and try again.');
+        $employeeEmergencyContact->delete();
+
+        $addressRepo->DeleteByContact($contactId);
+        $emailRepo->DeleteByContact($contactId);
+        $phoneRepo->DeleteByContact($contactId);
+
+        $contact->delete();
+    }
+
+    // public function SetEmployeePrimaryEmergencyContact($employeeId, $contactId) {
+    //     $currentPrimary = EmployeeEmergencyContact::where('employee_id', $employeeId)
+    //         ->where('is_primary', 1)
+    //         ->first();
+
+    //     $currentPrimary->is_primary = 0;
+    //     $currentPrimary->save();
+
+    //     $newPrimary = EmployeeEmergencyContact::where('employee_id', $employeeId)
+    //         ->where('contact_id', $contactId)
+    //         ->first();
+    //     $newPrimary->is_primary = 1;
+    //     $newPrimary->save();
+    // }
 }

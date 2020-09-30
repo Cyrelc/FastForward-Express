@@ -15,11 +15,9 @@ class BillRepo {
         $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
                 ->leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
-                ->leftJoin('drivers as pickup_driver', 'pickup_driver.driver_id', '=', 'bills.pickup_driver_id')
-                ->leftJoin('drivers as delivery_driver', 'delivery_driver.driver_id', '=', 'bills.delivery_driver_id')
                 ->leftJoin('interliners', 'interliners.interliner_id', '=', 'bills.interliner_id')
-                ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'pickup_driver.employee_id')
-                ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'delivery_driver.employee_id')
+                ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'bills.pickup_driver_id')
+                ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'bills.pickup_driver_id')
                 ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
                 ->leftJoin('payment_types', 'bills.payment_type_id', '=', 'payment_types.payment_type_id')
@@ -37,8 +35,7 @@ class BillRepo {
                     'delivery_address.lat as delivery_address_lat',
                     'delivery_address.lng as delivery_address_lng',
                     'delivery_address.name as delivery_address_name',
-                    'delivery_driver.driver_id as delivery_driver_id',
-                    'delivery_employee.employee_id as delivery_employee_id',
+                    'delivery_driver_id',
                     DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
                     'delivery_manifest_id',
                     'selections.name as delivery_type',
@@ -57,8 +54,7 @@ class BillRepo {
                     'pickup_address.lat as pickup_address_lat',
                     'pickup_address.lng as pickup_address_lng',
                     'pickup_address.name as pickup_address_name',
-                    'pickup_driver.driver_id as pickup_driver_id',
-                    'pickup_employee.employee_id as pickup_employee_id',
+                    'pickup_driver_id',
                     DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
                     'pickup_manifest_id',
                     'time_pickup_scheduled',
@@ -72,6 +68,7 @@ class BillRepo {
                     AllowedFilter::custom('amount', new NumberBetween),
                     AllowedFilter::exact('charge_account_id'),
                     AllowedFilter::custom('dispatch', new Dispatch),
+                    AllowedFilter::exact('delivery_driver_id'),
                     AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                     AllowedFilter::exact('invoice_id'),
                     AllowedFilter::exact('invoice_interval'),
@@ -171,8 +168,7 @@ class BillRepo {
 
         $bills = Bill::whereDate('time_pickup_scheduled', '>=', $startDate)
             ->whereDate('time_pickup_scheduled', '<=', $endDate)
-            ->leftJoin('drivers', 'drivers.driver_id', '=', 'bills.pickup_driver_id')
-            ->leftJoin('employees', 'employees.employee_id', '=', 'drivers.employee_id')
+            ->leftJoin('employees', 'employees.employee_id', '=', 'bills.pickup_driver_id')
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->select(
                 DB::raw('sum(amount) as amount'),
@@ -181,11 +177,11 @@ class BillRepo {
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m-%d (%a)") as day'),
                 'delivery_type',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
-                'driver_id',
+                'employee_id',
                 DB::raw('concat(year(time_pickup_scheduled), "/", month(time_pickup_scheduled), " - ", monthname(time_pickup_scheduled)) as month'),
                 'pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
-                DB::raw('sum(case when pickup_driver_id = driver_id and delivery_driver_id = driver_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_driver_id = driver_id then round(amount * pickup_driver_commission, 2) when delivery_driver_id = driver_id then round(amount * delivery_driver_id, 2) end) as driver_income')
+                DB::raw('sum(case when pickup_driver_id = employee_id and delivery_driver_id = employee_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_driver_id = employee_id then round(amount * pickup_driver_commission, 2) when delivery_driver_id = employee_id then round(amount * delivery_driver_id, 2) end) as driver_income')
             );
         if($groupBy === 'none')
             $bills->groupBy($dateGroupBy);

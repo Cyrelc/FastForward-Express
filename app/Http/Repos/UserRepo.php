@@ -101,8 +101,9 @@ class UserRepo
         $old = $this->GetById($user['user_id']);
 
         // no support for usernames atm
-        // $old->username = $user['username'];
-        $old->is_locked = $user['is_locked'];
+        $old->username = $user['username'];
+        if(isset($user->is_locked))
+            $old->is_locked = $user['is_locked'];
         $old->email = $user['email'];
 
         $old->save();

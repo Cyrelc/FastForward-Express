@@ -64,11 +64,9 @@ class ActivityLogRepo {
     }
 
     public function GetEmployeeActivityLog($employee_id) {
-        $driverRepo = new DriverRepo();
         $employeeRepo = new EmployeeRepo();
         $employee = $employeeRepo->GetById($employee_id);
         $relevantIds = $employeeRepo->GetEmployeeRelevantIds($employee_id);
-        $driver = $driverRepo->GetByEmployeeId($employee_id);
 
         $activity = ActivityLog::where([['subject_type', 'App\Employee'], ['subject_id', $employee_id]])
             ->orWhere(function($contacts) use ($relevantIds) {
@@ -87,9 +85,6 @@ class ActivityLogRepo {
                 $phones->where('subject_type', 'App\Phone');
                 $phones->whereIn('subject_id', $relevantIds['phone_ids']);
             });
-
-        if(isset($driver->driver_id))
-            $activity->orWhere([['subject_type', 'App\Driver'], ['subject_id', $driver->driver_id]]);
 
         return $activity->get();
     }

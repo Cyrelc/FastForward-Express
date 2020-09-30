@@ -8,7 +8,7 @@
 <div class='header'>
     <table>
         <td width:'30%'>
-            <h4>Driver: {{$model->driver->contact->first_name}} {{$model->driver->contact->last_name}}<br/>
+            <h4>Driver: {{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}<br/>
                 Manifest ID: {{$model->manifest->manifest_id}}<br/>
                 Date: {{$model->manifest->date_run}}</h4>
         </td>
@@ -36,7 +36,7 @@
             <td class='basic' style='width: 20%'><h4>Driver Gross:<br/><br/>${{$model->driver_total}}</h4></td>
             <td class='warn' style='width:20%'><h4>Chargebacks:<br/><br/>${{$model->chargeback_total}}</h4></td>
             <td class='basic' style='width: 20%'><h4>Driver Income:<br/><br/>${{$model->driver_income}}</h4></td>
-            <td style='width: 40%; text-align: center'><a href='/employees/edit/{{$model->driver->employee_id}}' ><h2>{{$model->driver->contact->first_name}} {{$model->driver->contact->last_name}}</h2></a></td>
+            <td style='width: 40%; text-align: center'><a href='/employees/edit/{{$model->employee->employee_id}}' ><h2>{{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}</h2></a></td>
         </tr>
     </tbody>
 </table>
@@ -45,18 +45,18 @@
     <tr>
         <td class='text-left'>
             <strong>Address:</strong><br/>
-            @if(isset($model->driver->address->street))
-            {{$model->driver->address->name}}<br/>
-            {{$model->driver->address->street}}<br/>
-            @if($model->driver->address->street2 != '')
-                {{$model->driver->address->street2}}<br/>
+            @if(isset($model->employee->address->street))
+            {{$model->employee->address->name}}<br/>
+            {{$model->employee->address->street}}<br/>
+            @if($model->employee->address->street2 != '')
+                {{$model->employee->address->street2}}<br/>
             @endif
-            {{$model->driver->address->city}}, {{$model->driver->address->state_province}}, {{$model->driver->address->country}}<br/>
-            {{$model->driver->address->zip_postal}}
+            {{$model->employee->address->city}}, {{$model->employee->address->state_province}}, {{$model->employee->address->country}}<br/>
+            {{$model->employee->address->zip_postal}}
             @else
-            {{$model->driver->address->formatted}}<br/>
+            {{$model->employee->address->formatted}}<br/>
             @endif
-            {{$model->driver->contact->primary_phone}}
+            {{$model->employee->contact->primary_phone}}
         </td>
     </tr>
 </table>

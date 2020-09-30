@@ -68,6 +68,41 @@ class PartialsValidationRules {
             return ['rules' => $rules, 'messages' => $messages];
     }
 
+    public function GetContactValidationRulesV2($req, $userId = null, $contactId = null) {
+        $rules = [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'emails' => 'required',
+            'phone_numbers' => 'required',
+            'emails.*.email' => 'required|email|unique:email_addresses,email,' . $req->contact_id . ',contact_id' . ($userId ? '|unique:users,email,' . $userId . ',user_id' : ''),
+            'emails.*.is_primary' => 'required',
+            'phone_numbers.*.phone_number' => 'required|numeric',
+            'phone_numbers.*.is_primary' => 'required',
+            'phone_numbers.*.type' => 'required'
+        ];
+        if($userId || $contactId)
+            $rules = array_merge($rules, ['emails.*.email' => 'unique:email_addresses,email,' . $contactId . ',contact_id|unique:users,email,' . $userId . ',user_id']);
+        $messages = [
+            'first_name.required' => 'User first name field can not be empty',
+            'last_name.required' => 'User last name field can not be empty',
+        ];
+
+        if(isset($req->address_formatted)) {
+            $rules = array_merge($rules, [
+                'address_formatted' => 'required',
+                'address_lat' => 'required|numeric|not_in:0',
+                'address_lng' => 'required|numeric|not_in:0',
+                'address_place_id' => 'required',
+                'address_name' => 'required'
+            ]);
+        }
+
+        return [
+            'rules' => $rules,
+            'messages' => $messages
+        ];
+    }
+
     public function GetCommissionValidationRules($prefix, $prefix_name, $hasDepreciation) {
         $validationRules = [
             $prefix . '-employee-id' => 'required',

@@ -32,25 +32,28 @@ Route::group(
         ['middleware' => 'auth'],
         function() {
             Route::get('/', 'HomeController@index');
+            Route::get('/getList/{type}/{parameter?}', 'HomeController@getList');
 
-            Route::get('/accounts', 'AccountController@index');
             Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/edit/{id}', 'AccountController@edit');
             Route::post('/accounts/is_unique', 'AccountController@is_unique');
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
-            Route::post('/accounts/deactivate/{id}', 'AccountController@deactivate');
-            Route::post('/accounts/activate/{id}', 'AccountController@activate');
+            Route::get('/accounts/toggleActive/{id}', 'AccountController@toggleActive');
             Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
+            Route::post('/accounts/giveCredit', 'AccountController@giveAccountCredit');
             Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
-            Route::get('/bills', 'BillController@index');
+            Route::get('/amendments/delete/{id}', 'AmendmentController@delete');
+            Route::post('/amendments/store', 'AmendmentController@store');
+
+            Route::get('/app/{route}', 'HomeController@index');
+
+            Route::get('/bills/buildTable', 'BillController@buildTable');
+            Route::get('/bills/chart', 'AdminController@getChart');
+            Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/getModel/{id?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
-            Route::get('/bills/delete/{id}', 'BillController@delete');
-            Route::get('/bills/buildTable', 'BillController@buildTable');
-            Route::get('/bills/{mode}', 'BillController@view');
-            Route::get('/bills/{mode}/{id}', 'BillController@view');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');
@@ -58,22 +61,18 @@ Route::group(
             Route::post('/chargebacks/store', 'ChargebackController@store');
             Route::post('/chargebacks/edit/{id}', 'ChargebackController@update');
 
-            Route::get('/dispatch', 'DispatchController@view');
             Route::post('/dispatch/assignBillToDriver', 'DispatchController@AssignBillToDriver');
             Route::get('/dispatch/GetDrivers', 'DispatchController@GetDrivers');
             Route::post('/dispatch/setBillPickupOrDeliveryTime', 'DispatchController@SetBillPickupOrDeliveryTime');
 
-            Route::get('/employees', 'EmployeeController@index');
-            Route::get('/employees/create', 'EmployeeController@create');
-            Route::post('/employees/store', 'EmployeeController@store');
-            Route::get('/employees/edit/{id}', 'EmployeeController@edit');
-            Route::post('/employees/action', 'EmployeeController@action');
             Route::get('/employees/buildTable', 'EmployeeController@buildTable');
-            Route::get('/employees/getEmergencyContacts/{id}', 'EmployeeController@getEmergencyContactsTable');
-            Route::get('/employees/editEmergencyContact/{id}', 'EmployeeController@editEmergencyContact');
-            Route::post('/employees/editEmergencyContact', 'EmployeeController@storeEmergencyContact');
-            Route::post('/employees/deleteEmergencyContact/{id}', 'EmployeeController@deleteEmergencyContact');
-            Route::get('/employees/createEmergencyContact/{id}', 'EmployeeController@createEmergencyContact');
+            Route::get('/employees/emergencyContacts/getModel/{id?}', 'EmployeeController@getEmergencyContactModel');
+            Route::post('/employees/emergencyContacts/store/{id?}', 'EmployeeController@storeEmergencyContact');
+            // Route::get('/employees/emergencyContacts/setPrimary/{employee_id}/{contact_id}', 'EmployeeController@setPrimaryEmergencyContact');
+            Route::post('/employees/emergencyContacts/delete', 'EmployeeController@deleteEmergencyContact');
+            Route::get('/employees/getModel/{id?}', 'EmployeeController@getModel');
+            Route::post('/employees/store', 'EmployeeController@store');
+            Route::get('/employees/toggleActive/{id}', 'EmployeeController@toggleActive');
 
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');
@@ -81,7 +80,6 @@ Route::group(
             Route::get('/interliners', 'InterlinerController@index');
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
-            Route::get('/invoices', 'InvoiceController@index');
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
             Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
@@ -96,7 +94,6 @@ Route::group(
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests/delete/{id}', 'ManifestController@delete');
-            Route::get('/manifests', 'ManifestController@index');
             Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
             Route::get('/manifests/print/{id}', 'ManifestController@print');
             Route::get('/manifests/buildTable', 'ManifestController@buildTable');
@@ -106,10 +103,7 @@ Route::group(
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
-            Route::get('/ratesheets', 'RatesheetController@index');
             Route::get('/ratesheets/REST/index', 'RatesheetController@buildTable');
-            Route::get('/ratesheets/edit/{id}', 'RatesheetController@edit');
-            Route::get('/ratesheets/create', 'RatesheetController@create');
             Route::post('/ratesheets/store', 'RatesheetController@store');
             Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
 
@@ -117,12 +111,12 @@ Route::group(
 
             Route::post('/contactus', 'HomeController@ContactUs');
 
-            Route::get('/appsettings', 'AdminController@view');
             Route::get('/appsettings/get', 'AdminController@getModel');
             Route::post('/appsettings/store', 'AdminController@store');
             Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
             Route::post('/users/changePassword/{id}', 'UserController@changePassword');
+            Route::get('/users/generatePassword', 'UserController@generatePassword');
             Route::get('/users/getAccountUsers/{id}', 'UserController@getAccountUsers');
             Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
             Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
@@ -134,10 +128,18 @@ Route::group(
         }
 );
 
+//Authenticated SPA
+Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
+    Route::get('/{any_path?}', 'HomeController@index');
+    Route::get('/{object}/{action}', 'HomeController@index');
+    Route::get('/{object}/{action}/{object_id?}', 'HomeController@index');
+});
+
 //Guest views
 Route::group(
         ['middleware' => 'guest'],
         function() {
+            Route::get('/about', 'GuestController@about');
             Route::get('/login', 'Auth\AuthController@getLogin');
             Route::post('/login', 'Auth\AuthController@postLogin');
         }

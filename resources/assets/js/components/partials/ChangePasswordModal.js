@@ -6,7 +6,7 @@ export default class ChangePasswordModal extends Component {
         super()
         this.state = {
             confirmPassword: '',
-            password: '',
+            newPassword: '',
             viewPassword: false
         }
         this.generatePassword = this.generatePassword.bind(this)
@@ -29,7 +29,7 @@ export default class ChangePasswordModal extends Component {
 
     submitChangePassword() {
         const data = {
-            password: this.state.password,
+            password: this.state.newPassword,
             password_confirm: this.state.confirmPassword
         }
         $.ajax({
@@ -71,7 +71,7 @@ export default class ChangePasswordModal extends Component {
                                 <FormControl
                                     name='newPassword'
                                     type={this.state.viewPassword ? '' : 'password'}
-                                    value={this.state.password}
+                                    value={this.state.newPassword}
                                     onChange={this.handleChange}
                                 />
                             </InputGroup>

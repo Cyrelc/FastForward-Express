@@ -1,15 +1,32 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jacks
- * Date: 6/28/2017
- * Time: 10:07 AM
- */
 
 namespace App\Http\Collectors;
 
+use App\Http\Repos;
 
 class UserCollector {
+    public function CollectUserForEmployee($req) {
+        $userId = null;
+        foreach($req->emails as $email)
+        if(filter_var($email['is_primary'], FILTER_VALIDATE_BOOLEAN)) {
+            $primaryEmail = $email['email'];
+            break;
+        }
+
+        if(isset($req->employee_id) && $req->employee_id !== '') {
+            $employeeRepo = new Repos\EmployeeRepo();
+            $userId = $employeeRepo->GetById($req->employee_id)->user_id;
+        }
+
+        $user = [
+            'username' => substr($req->first_name, 0, 1) . $req->last_name,
+            'email' => $primaryEmail,
+            'user_id' => $userId
+        ];
+
+        return $user;
+    }
+
     public function CollectEmployee($req, $prefix) {
         $user = [
             'username' => substr($req->input($prefix . '-first-name'), 0, 1) . $req->input($prefix . '-last-name'),
