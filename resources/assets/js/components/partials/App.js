@@ -12,6 +12,7 @@ import Charts from '../bills/Charts'
 import Dispatch from '../dispatch/Dispatch'
 import Employee from '../employees/Employee'
 import Employees from '../employees/Employees'
+import Interliners from '../interliners/Interliners'
 import Invoices from '../invoices/Invoices'
 import Manifests from '../manifests/Manifests'
 import Ratesheet from '../ratesheets/Ratesheet'
@@ -101,7 +102,7 @@ export default class App extends Component {
                                         onChange={this.handleChange}
                                         value={this.state.employeeId}
                                     />
-                                    <InputGroup.Append><Button href={'/employees/edit/' + this.state.employeeId}>Go</Button></InputGroup.Append>
+                                    <InputGroup.Append><Button href={'/app/employees/edit/' + this.state.employeeId}>Go</Button></InputGroup.Append>
                                     <InputGroup.Append><InputGroup.Text><i className="fas fa-question" title="To search by Employee Number instead, please enter N followed by the employee number, without spaces"></i></InputGroup.Text></InputGroup.Append>
                                 </InputGroup>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
@@ -118,7 +119,7 @@ export default class App extends Component {
                             <NavDropdown title='Administration' id='navbar-admin' alignRight>
                                 <LinkContainer to='/app/appSettings'><NavDropdown.Item><i className='fas fa-cogs'></i> App Settings</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/ratesheets'><NavDropdown.Item><i className='fas fa-dollar-sign'></i> Ratesheets</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/interliners'><NavDropdown.Item><i className='fa fa-list'></i> List Interliners</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/interliners'><NavDropdown.Item><i className='fa fa-list'></i> List Interliners</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/interliners/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Interliner</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/logout'><NavDropdown.Item><i className='fas fa-door-open'></i> Log Out</NavDropdown.Item></LinkContainer>
                             </NavDropdown>
@@ -132,6 +133,7 @@ export default class App extends Component {
                     <Route exact path='/app/bills' component={Bills}></Route>
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
+                    <Route path='/app/interliners' component={Interliners}></Route>
                     <Route path='/app/invoices' component={Invoices}></Route>
                     <Route path='/app/employees' exact component={Employees}></Route>
                     <Route path='/app/employees/:action/:employeeId?' component={Employee}></Route>

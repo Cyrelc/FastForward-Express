@@ -3,9 +3,6 @@ import { ReactTabulator } from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Dropdown, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
-// import DateBetweenFilter from '../tableFilters/DateBetweenFilter'
-// import SelectFilter from '../tableFilters/SelectFilter'
-// import NumberBetweenFilter from '../tableFilters/NumberBetweenFilter'
 import TableFilters from '../partials/TableFilters'
 
 export default class Table extends Component {
@@ -17,6 +14,7 @@ export default class Table extends Component {
             columns: [],
             data: [],
             filters: [],
+            groupByOptions: [],
             pageTitle: '',
             tableRef: createRef()
         }
@@ -142,6 +140,7 @@ export default class Table extends Component {
                                             options={this.state.groupByOptions}
                                             value={this.state.groupBy}
                                             onChange={value => this.handleGroupByChange(value)}
+                                            isDisabled={this.state.groupByOptions.length === 0}
                                         />
                                     </InputGroup>
                                 </Col>
@@ -155,10 +154,11 @@ export default class Table extends Component {
                                             value={this.state.filters.filter(filter => filter.active)}
                                             getOptionLabel={option => option.name}
                                             onChange={filters => this.handleChange({target: {name: 'activeFilters', type: 'array', value: filters}})}
+                                            isDisabled={this.state.filters.length === 0}
                                             isMulti
                                         />
                                         <InputGroup.Append>
-                                            <Button variant='success' onClick={this.refreshTable}>Apply Filters</Button>
+                                            <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
                                         </InputGroup.Append>
                                     </InputGroup>
                                 </Col>

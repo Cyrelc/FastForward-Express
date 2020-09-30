@@ -6,9 +6,15 @@ use App\Interliner;
 class InterlinerRepo {
 
     public function ListAll() {
-        $interliners = Interliner::All();
+        $interliners = Interliner::leftjoin('addresses', 'addresses.address_id', '=', 'interliners.address_id')
+        ->select(
+            'addresses.name as address_name',
+            'interliner_id',
+            'interliners.name as interliner_name',
+            'addresses.formatted as formatted'
+        );
 
-        return $interliners;
+        return $interliners->get();
     }
 
     public function GetById($id) {

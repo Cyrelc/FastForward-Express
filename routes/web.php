@@ -74,10 +74,10 @@ Route::group(
             Route::post('/employees/store', 'EmployeeController@store');
             Route::get('/employees/toggleActive/{id}', 'EmployeeController@toggleActive');
 
+            Route::get('/interliners/buildTable', 'InterlinerController@buildTable');
             Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');
             Route::get('/interliners/edit/{id}', 'InterlinerController@edit');
-            Route::get('/interliners', 'InterlinerController@index');
 
             Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');

@@ -10,11 +10,11 @@ use App\Http\Models\Interliner;
 
 class InterlinerController extends Controller {
 
-    public function index() {
-        $factory = new Interliner\InterlinerModelFactory();
-        $contents = $factory->ListAll();
+    public function buildTable() {
+        $interlinerRepo = new Repos\InterlinerRepo();
+        $interliners = $interlinerRepo->ListAll();
 
-        return view('interliners.interliners', compact('contents'));
+        return json_encode($interliners);
     }
 
     public function create(Request $req) {
