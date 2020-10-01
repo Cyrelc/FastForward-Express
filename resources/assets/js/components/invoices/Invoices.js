@@ -15,7 +15,7 @@ function deleteInvoice(cell) {
 }
 
 const columns = [
-    {formatter: (cell) => {if(cell.getRow().getData().payment_count == 0) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, align:'center', cellClick:(e, cell) => this.deleteInvoice(e, cell)},
+    {formatter: (cell) => {if(cell.getRow().getData().payment_count == 0) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, align:'center', cellClick:(e, cell) => deleteInvoice(cell)},
     {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams:{labelField:'invoice_id', urlPrefix:'/invoices/view/'}, sorter:'number'},
     {title: 'Account', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_name', urlPrefix:'accounts/edit/'}},
     {title: 'Date Run', field: 'date', sorter:'date', visible: false},

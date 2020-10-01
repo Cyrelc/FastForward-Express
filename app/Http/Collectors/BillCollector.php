@@ -39,7 +39,7 @@ class BillCollector {
 			'pickup_reference_value' => $req->pickup_address_type === 'Account' ? $req->pickup_reference_value : null,
 			'pickup_driver_id' => $req->pickup_driver_id == "" ? null : $req->pickup_driver_id,
 			'pickup_driver_commission' => $req->pickup_driver_commission == "" ? null : $req->pickup_driver_commission / 100,
-			'skip_invoicing' => $req->skip_invoicing,
+			'skip_invoicing' => filter_var($req->skip_invoicing, FILTER_VALIDATE_BOOLEAN),
 			'time_pickup_scheduled' => new \DateTime($req->time_pickup_scheduled),
 			'time_delivery_scheduled' => new \DateTime($req->time_delivery_scheduled),
 			'time_call_received' => new \DateTime($req->time_call_received),

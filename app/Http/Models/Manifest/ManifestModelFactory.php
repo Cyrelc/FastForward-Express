@@ -49,18 +49,17 @@ class ManifestModelFactory{
         $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
 
-        $model = new DriverListModel();
-
         $drivers = $employeeRepo->ListAllDrivers();
+        $driversWithBills = [];
         foreach($drivers as $driver) {
             $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->employee_id, date('Y-m-d', strtotime($startDate)), date('Y-m-d', strtotime($endDate)));
             if($driver->bill_count == 0)
                 continue;
             $driver->contact = $contactRepo->GetById($driver->contact_id);
-            array_push($model->drivers, $driver);
+            array_push($driversWithBills, $driver);
         }
 
-        return $model;
+        return $driversWithBills;
     }
 
     public function GetGenerateModel($start_date = null, $end_date = null) {

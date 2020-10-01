@@ -14,7 +14,9 @@ import Employee from '../employees/Employee'
 import Employees from '../employees/Employees'
 import Interliners from '../interliners/Interliners'
 import Invoices from '../invoices/Invoices'
+import InvoiceGenerate from '../invoices/InvoicesGenerate'
 import Manifests from '../manifests/Manifests'
+import ManifestsGenerate from '../manifests/ManifestsGenerate'
 import Ratesheet from '../ratesheets/Ratesheet'
 import Ratesheets from '../ratesheets/Ratesheets'
 
@@ -62,7 +64,7 @@ export default class App extends Component {
                             </NavDropdown>
                             <NavDropdown title='Invoices' id='navbar-invoices'>
                                 <LinkContainer to='/app/invoices'><NavDropdown.Item><i className='fa fa-list'></i> List Invoices</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/invoices/generate'><NavDropdown.Item><i className='fa fa-plus-square'></i> Generate Invoices</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/invoices/generate'><NavDropdown.Item><i className='fa fa-plus-square'></i> Generate Invoices</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Invoice ID: </InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
@@ -94,7 +96,7 @@ export default class App extends Component {
                                 <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Employee</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/chargebacks'><NavDropdown.Item><i className='fa fa-tag'></i> Chargebacks</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/manifests'><NavDropdown.Item><i className='fas fa-clipboard-list'></i> Manifests</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/manifests/create'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/manifests/generate'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Employee ID: </InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
@@ -134,10 +136,12 @@ export default class App extends Component {
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
                     <Route path='/app/interliners' component={Interliners}></Route>
-                    <Route path='/app/invoices' component={Invoices}></Route>
+                    <Route path='/app/invoices' exact component={Invoices}></Route>
+                    <Route path='/app/invoices/generate' exact component={InvoiceGenerate}></Route>
                     <Route path='/app/employees' exact component={Employees}></Route>
                     <Route path='/app/employees/:action/:employeeId?' component={Employee}></Route>
                     <Route path='/app/manifests' exact component={Manifests}></Route>
+                    <Route path='/app/manifests/generate' exact component={ManifestsGenerate}></Route>
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>
                     <Route path='/app/ratesheets/:action/:ratesheetId?' component={Ratesheet}></Route>
                     <Route render={() => <Redirect to={window.location} />} />

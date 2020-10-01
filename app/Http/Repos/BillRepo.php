@@ -6,6 +6,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
+use App\Http\Filters\IsNull;
 
 use App\Bill;
 use DB;
@@ -71,6 +72,7 @@ class BillRepo {
                     AllowedFilter::exact('delivery_driver_id'),
                     AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                     AllowedFilter::exact('invoice_id'),
+                    AllowedFilter::custom('invoiced', new IsNull, 'invoice_id'),
                     AllowedFilter::exact('invoice_interval'),
                     AllowedFilter::exact('skip_invoicing'),
                     AllowedFilter::custom('time_pickup_scheduled', new DateBetween),

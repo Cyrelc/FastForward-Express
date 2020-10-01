@@ -70,6 +70,11 @@ const filters = [
         isMulti: true
     },
     {
+        name: 'Invoiced',
+        type: 'BooleanFilter',
+        value: 'invoiced'
+    },
+    {
         fetchUrl: '/getList/payment_types',
         isMulti: true,
         name: 'Payment Type',
@@ -93,6 +98,11 @@ const filters = [
         name: 'Scheduled Delivery',
         type: 'DateBetweenFilter',
         value: 'time_delivery_scheduled',
+    },
+    {
+        name: 'Skip Invoicing',
+        type: 'BooleanFilter',
+        value: 'skip_invoicing'
     },
     {
         fetchUrl: '/getList/drivers',

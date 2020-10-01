@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import ReactDom from 'react-dom'
 import {Tabs, Tab, Nav, Row, Col, ListGroup, Button} from 'react-bootstrap'
 import AccountingTab from './AccountingTab'
 import MiscTab from './MiscTab'

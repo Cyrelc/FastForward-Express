@@ -75,22 +75,17 @@ class InvoiceController extends Controller {
 
     public function getAccountsToInvoice(Request $req) {
         $acctRepo = new Repos\AccountRepo();
-        $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
-        $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
-        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $start_date, $end_date);
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
+        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $startDate, $endDate);
         return $accounts;
     }
 
     public function store(Request $req) {
         DB::beginTransaction();
         try{
-            $validationRules = [];
-            $validationMessages = [];
-
-            if(count($req->checkboxes) < 1) {
-                $validationRules = array_merge($validationRules, ['accounts' => 'required']);
-                $validationMessages = array_merge($validationMessages, ['accounts.required' => 'You must select at least one account to invoice']);
-            }
+            $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
+            $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
 
             $this->validate($req, $validationRules, $validationMessages);
 
@@ -99,16 +94,9 @@ class InvoiceController extends Controller {
             $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
             $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
 
-            $accounts = array();
-            foreach($req->checkboxes as $account)
-                array_push($accounts, $account);
-
-            $invoiceRepo->create($accounts, $start_date, $end_date);
+            $invoiceRepo->create($req->accounts, $start_date, $end_date);
 
             DB::commit();
-
-            return redirect()->action('InvoiceController@index');
-            
         } catch(Exception $e) {
             DB::rollBack();
 

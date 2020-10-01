@@ -79,7 +79,6 @@ Route::group(
             Route::post('/interliners/store', 'InterlinerController@store');
             Route::get('/interliners/edit/{id}', 'InterlinerController@edit');
 
-            Route::get('/invoices/generate', 'InvoiceController@generate');
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
             Route::get('/invoices/view/{id}','InvoiceController@view');
             Route::post('/invoices/store', 'InvoiceController@store');
@@ -90,7 +89,6 @@ Route::group(
             Route::get('/invoices/download/{filename}', 'InvoiceController@download');
             Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
 
-            Route::get('/manifests/generate', 'ManifestController@generate');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests/delete/{id}', 'ManifestController@delete');

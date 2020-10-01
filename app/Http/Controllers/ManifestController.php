@@ -20,8 +20,6 @@ class ManifestController extends Controller {
             $manifestRepo->delete($manifest_id);
 
             DB::commit();
-
-            return redirect()->action('ManifestController@index');
         } catch(exception $e) {
             DB::rollBack();
 
@@ -37,17 +35,10 @@ class ManifestController extends Controller {
         return response()->download($path . $filename)->deleteFileAfterSend(true);
     }
 
-    public function generate() {
-        // Check permissions
-        $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $model = $manifestModelFactory->GetGenerateModel();
-        return view('manifests.manifest-generate', compact('model'));
-    }
-
     public function getDriversToManifest(Request $req) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $model = $manifestModelFactory->GetDriverListModel($req->start_date, $req->end_date);
-        return view('manifests.driver-list', compact('model'));
+        $drivers = $manifestModelFactory->GetDriverListModel($req->start_date, $req->end_date);
+        return json_encode($drivers);
     }
 
     public function buildTable(Request $req) {
@@ -107,13 +98,8 @@ class ManifestController extends Controller {
     public function store(Request $req) {
         DB::beginTransaction();
         try{
-            $validationRules = [];
-            $validationMessages = [];
-
-            if(count($req->checkboxes) < 1) {
-                $validationRules = array_merge($validationRules, ['drivers' => 'required']);
-                $validationMessages = array_merge($validationMessages, ['drivers.required' => 'You must select at least one driver to manifest']);
-            }
+            $validationRules = ['employees' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
+            $validationMessages = ['employees.required' => 'You must select at least one driver to manifest'];
 
             $this->validate($req, $validationRules, $validationMessages);
 
@@ -122,11 +108,7 @@ class ManifestController extends Controller {
             $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
             $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
 
-            $drivers = array();
-            foreach($req->checkboxes as $driver)
-                array_push($drivers, $driver);
-
-            $manifestRepo->Create($drivers, $start_date, $end_date);
+            $manifestRepo->Create($req->employees, $start_date, $end_date);
 
             DB::commit();
 

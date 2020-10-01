@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import ReactDom from 'react-dom'
 import {Button, Col, ListGroup, Modal, Row, Tab, Tabs, ToggleButton, ToggleButtonGroup, FormControl} from 'react-bootstrap'
 import BasicTab from './BasicTab'
 import DispatchTab from './DispatchTab'
