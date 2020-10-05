@@ -53,10 +53,6 @@
             return $model;
 		}
 
-		public function GetById() {
-
-		}
-
 		public function GetCreateModel($req) {
 			$model = new BillFormModel();
 

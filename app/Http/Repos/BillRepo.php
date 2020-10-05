@@ -311,6 +311,38 @@ class BillRepo {
         return $bills->get();
     }
 
+    public function GetPrepaidMonthlyTotals($date) {
+        $paymentRepo = new PaymentRepo();
+        $prepaidOptions = $paymentRepo->GetPrepaidPaymentTypes();
+        $prepaidOptionIds = [];
+        foreach($prepaidOptions as $option) {
+            array_push($prepaidOptionIds, $option->payment_type_id);
+        }
+
+        $bills = Bill::whereDate('time_pickup_scheduled', '>=', $date)
+        ->whereIn('payment_type_id', $prepaidOptionIds)
+        ->select(
+            DB::raw('sum(amount) as prepaid_income'),
+            DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month')
+        )
+        ->groupBy('month');
+
+        return $bills->get();
+    }
+
+    public function GetMonthlyTotals($date) {
+        $bills = Bill::whereDate('time_pickup_scheduled', '>=', $date)
+        ->select(
+            DB::raw('sum(amount) as income'),
+            DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month'),
+            DB::raw('sum(interliner_cost) as interliner_cost'),
+            DB::raw('sum(interliner_cost_to_customer) as interliner_cost_to_customer')
+        )
+        ->groupBy('month');
+
+        return $bills->get();
+    }
+
     public function GetManifestOverviewById($manifest_id) {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)

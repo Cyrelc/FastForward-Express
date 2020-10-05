@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Models;
 use App\Http\Repos;
 use App\Http\Requests;
 use Illuminate\Http\Request;
@@ -34,6 +35,14 @@ class HomeController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function getDashboard() {
+        //Get dashboard type based on assigned roles
+        $dashboardModelFactory = new Models\Dashboard\DashboardModelFactory();
+        $model = $dashboardModelFactory->GetAdminDashboardModel();
+
+        return json_encode($model);
     }
 
     public function getList($type, $parameter = null) {
@@ -93,5 +102,4 @@ class HomeController extends Controller
     {
         return view('home');
     }
-
 }

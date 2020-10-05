@@ -65,6 +65,22 @@ class ManifestRepo {
         return $new->create($manifest);
     }
 
+    public function GetMonthlyEmployeePay($date) {
+        $income = Bill::whereNotNull('delivery_manifest_id')
+        ->whereNotNull('pickup_manifest_id')
+        ->leftjoin('manifests as pickup_manifest', 'pickup_manifest.manifest_id', '=', 'bills.pickup_manifest_id')
+        ->leftjoin('manifests as delivery_manifest', 'delivery_manifest.manifest_id', '=', 'bills.delivery_manifest_id')
+        ->whereDate('pickup_manifest.end_date', '>=', $date)
+        ->whereDate('delivery_manifest.end_date', '>=', $date)
+        ->select(
+            DB::raw('sum(round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2)) as employee_income'),
+            DB::raw('date_format(pickup_manifest.end_date, "%Y-%m") as month')
+        )
+        ->groupBy('month');
+
+        return $income->get();
+    }
+
     public function GetById($manifest_id) {
         return Manifest::where('manifest_id', $manifest_id)->first();
     }

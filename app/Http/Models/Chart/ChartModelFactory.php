@@ -6,6 +6,46 @@ use App\Http\Repos;
 use App\Http\Models\Chart;
 
 class ChartModelFactory {
+    public function GetAdminDashboardChart() {
+        $billRepo = new Repos\BillRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $manifestRepo = new Repos\ManifestRepo();
+
+        $comparisonDate = date('Y-m-01');
+        $comparisonDate = date('Y-m-01', strtotime($comparisonDate . ' - 1 year'));
+
+        $accountsPayable = $manifestRepo->GetMonthlyEmployeePay($comparisonDate);
+        $prepaidBillTotals = $billRepo->GetPrepaidMonthlyTotals($comparisonDate);
+        $allBillTotals = $billRepo->GetMonthlyTotals($comparisonDate);
+
+        $model = [];
+        if(sizeof($accountsPayable) > 0) {
+            $employeePay = [];
+            foreach($accountsPayable as $payable)
+                array_push($employeePay, ['x' => $payable->month, 'y' => $payable->employee_income]);
+            array_push($model, ['id' => 'Employee Pay', 'data' => $employeePay]);
+        }
+        if(sizeof($prepaidBillTotals) > 0) {
+            $prepaidData = [];
+            foreach($prepaidBillTotals as $total)
+                array_push($prepaidData, ['x' => $total->month, 'y' => $total->prepaid_income]);
+            array_push($model, ['id' => 'Prepaid Income', 'data' => $prepaidData]);
+        }
+        $billTotals = [];
+        $interlinerCost = [];
+        $interlinerCostToCustomer = [];
+        foreach($allBillTotals as $total) {
+            array_push($billTotals, ['x' => $total->month, 'y' => $total->income]);
+            array_push($interlinerCost, ['x' => $total->month, 'y' => $total->interliner_cost]);
+            array_push($interlinerCostToCustomer, ['x' => $total->month, 'y' => $total->interliner_cost_to_customer]);
+        }
+        array_push($model, ['id' => 'Total Income', 'data' => $billTotals]);
+        array_push($model, ['id' => 'Interliner Cost', 'data' => $interlinerCost]);
+        array_push($model, ['id' => 'Interliner Cost to Customer', 'data' => $interlinerCostToCustomer]);
+
+        return $model;
+    }
+
     public function GetMonthlyBills($dateGroupBy, $startDate, $endDate, $groupBy, $summationType) {
         if($dateGroupBy === 'day') {
             $startDate = date("Y-m-01", strtotime($startDate));
@@ -38,5 +78,6 @@ class ChartModelFactory {
 
         return $model;
     }
+
 }
 

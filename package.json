@@ -30,6 +30,7 @@
     },
     "dependencies": {
         "@nivo/bar": "^0.62.0",
+        "@nivo/line": "^0.62.0",
         "@react-native-community/netinfo": "^5.9.7",
         "cross-env": "^5.2.1",
         "datejs": "^1.0.0-rc3",

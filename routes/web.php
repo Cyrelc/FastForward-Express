@@ -33,6 +33,7 @@ Route::group(
         function() {
             Route::get('/', 'HomeController@index');
             Route::get('/getList/{type}/{parameter?}', 'HomeController@getList');
+            Route::get('/getDashboard', 'HomeController@getDashboard');
 
             Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');

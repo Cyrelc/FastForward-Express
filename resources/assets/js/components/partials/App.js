@@ -5,6 +5,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import { Button, FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
 
 import Accounts from '../accounts/Accounts'
+import AdminDashboard from '../dashboards/AdminDashboard'
 import AppSettings from '../admin/AppSettings'
 import Bill from '../bills/Bill'
 import Bills from '../bills/Bills'
@@ -42,7 +43,7 @@ export default class App extends Component {
         return (
             <BrowserRouter>
                 <Navbar variant='dark' bg='dark' className={'navbar-expand-lg', 'navbar'}>
-                    <LinkContainer to='/home'>
+                    <LinkContainer to='/'>
                         <Navbar.Brand>Fast Forward Express v2.0</Navbar.Brand>
                     </LinkContainer>
                     <Navbar.Toggle aria-controls='responsive-navbar-nav' />
@@ -138,6 +139,7 @@ export default class App extends Component {
                     <Route exact path='/app/bills' component={Bills}></Route>
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
+                    <Route path='/' exact component={AdminDashboard}></Route>
                     <Route path='/app/interliners' component={Interliners}></Route>
                     <Route path='/app/invoices' exact component={Invoices}></Route>
                     <Route path='/app/invoices/generate' exact component={InvoiceGenerate}></Route>
@@ -147,7 +149,6 @@ export default class App extends Component {
                     <Route path='/app/manifests/generate' exact component={ManifestsGenerate}></Route>
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>
                     <Route path='/app/ratesheets/:action/:ratesheetId?' component={Ratesheet}></Route>
-                    <Route render={() => <Redirect to={window.location} />} />
                 </Switch>
             </BrowserRouter>
         )

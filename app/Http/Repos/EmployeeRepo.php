@@ -97,6 +97,38 @@ class EmployeeRepo {
         return $employees->get();
     }
 
+    public function GetEmployeeBirthdays() {
+        $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+        ->where('active', true)
+        ->whereMonth('dob', date('m'))
+        ->select(
+            DB::raw('concat(first_name, " ", last_name) as employee_name'),
+            DB::raw("date_format(dob, '%M %D') as birthday")
+        );
+
+        return $employees->get();
+    }
+
+    public function GetEmployeesWithExpiries($date) {
+        $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+        ->where('active', 1)
+        ->where('is_driver', 1)
+        ->where(function($query) use ($date) {
+            $query->where('drivers_license_expiration_date', '<', $date)
+            ->orWhere('license_plate_expiration_date', '<', $date)
+            ->orWhere('insurance_expiration_date', '<', $date);
+        })
+        ->select(
+            'drivers_license_expiration_date',
+            'license_plate_expiration_date',
+            'insurance_expiration_date',
+            DB::raw('concat (first_name, " ", last_name) as employee_name'),
+            'employee_id'
+        );
+
+        return $employees->get();
+    }
+
     public function Insert($employee) {
         $new = new Employee;
         $new = $new->create($employee);
