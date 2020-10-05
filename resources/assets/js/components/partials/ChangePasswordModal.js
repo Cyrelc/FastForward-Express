@@ -15,9 +15,7 @@ export default class ChangePasswordModal extends Component {
     }
 
     generatePassword() {
-        fetch('/users/generatePassword')
-        .then(response => {return response.json()})
-        .then(data => {
+        makeFetchRequest('/users/generatePassword', data => {
             this.setState({password: data, confirmPassword: data, viewPassword: true})
         })
     }
@@ -32,16 +30,10 @@ export default class ChangePasswordModal extends Component {
             password: this.state.newPassword,
             password_confirm: this.state.confirmPassword
         }
-        $.ajax({
-            'url': '/users/changePassword/' + this.props.userId,
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                this.props.toggleModal()
-                toastr.success('Password was successfull changed', 'Success')
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/users/changePassword/' + this.props.userId, 'POST', data, response => {
+            toastr.clear()
+            this.props.toggleModal()
+            toastr.success('Password was successfull changed', 'Success')
         })
     }
 

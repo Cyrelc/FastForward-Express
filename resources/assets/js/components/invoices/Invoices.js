@@ -3,13 +3,8 @@ import Table from '../partials/Table'
 
 function deleteInvoice(cell) {
     if(cell.getRow().getData().payment_count == 0 && confirm('Are you sure you wish to delete invoice ' + cell.getRow().getData().invoice_id + '?\nThis action can not be undone')) {
-        fetch('/invoices/delete/' + cell.getRow().getData().invoice_id)
-        .then(response => {return response.json()})
-        .then(data => {
-            if(data.success)
-                location.reload()
-            else
-                handleErrorResponse(JSON.stringify(data))
+        makeFetchRequest('/invoices/delete/' + cell.getRow().getData().invoice_id, data => {
+            location.reload()
         })
     }
 }

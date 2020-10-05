@@ -28,10 +28,10 @@
 @endif
 <!--Emails-->
 <div class='col-lg-12 bottom15'>
-    @include('partials.emails', ['emails' => $contact->emails, 'email_types' => $contact->emails->types])
+    @include('partials.emails', ['emails' => $contact->emails, 'email_types' => $contact->email_types])
 </div>
 <!--Phones-->
 <div class="col-lg-12 bottom15">
-    @include('partials.phone_numbers', ['phone_numbers'=> $contact->phone_numbers, 'phone_types'=> $contact->phone_numbers->types])
+    @include('partials.phone_numbers', ['phone_numbers'=> $contact->phone_numbers, 'phone_types'=> $contact->phone_types])
 </div>
     

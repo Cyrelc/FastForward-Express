@@ -18,11 +18,13 @@ export default class AppSettings extends Component {
 
     componentDidMount() {
         document.title = 'Application Settings - ' + document.title
-        fetch('/appsettings/get')
-        .then(response => {return response.json()})
-        .then(data => this.setState({gst: data.gst,
-            paymentTypes: data.paymentTypes,
-            ratesheets: data.ratesheets}))
+        makeFetchRequest('/appsettings/get', data => {
+            this.setState({
+                gst: data.gst,
+                paymentTypes: data.paymentTypes,
+                ratesheets: data.ratesheets
+            })
+        })
     }
 
     handleChange(event) {
@@ -97,15 +99,9 @@ export default class AppSettings extends Component {
             gst: this.state.gst,
             paymentTypes: this.state.paymentTypes
         }
-        $.ajax({
-            'url': '/appsettings/store',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                toastr.success('Settings successfully applied')
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/appsettings/store', 'POST', data, response => {
+            toastr.clear()
+            toastr.success('Settings successfully applied')
         })
     }
 }

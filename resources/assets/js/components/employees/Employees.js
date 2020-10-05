@@ -7,13 +7,8 @@ function toggleEmployeeActive(cell) {
     const {active, employee_id, employee_name, employee_number} = cell.getRow().getData()
     if(confirm('Are you sure you wish to ' + (active ? 'DEACTIVATE' : 'ACTIVATE') + ' employee' + employee_number + ' - ' + employee_name)) {
         const url = '/employees/toggleActive/' + employee_id
-        fetch(url)
-        .then(response => {return response.json()})
-        .then(data => {
-            if(data.success)
-                location.reload()
-            else
-                handleErrorResponse(JSON.stringify(data))
+        makeFetchRequest(url, data => {
+            location.reload()
         })
     }
 }
@@ -44,7 +39,6 @@ export default class Employees extends Component {
 
 
     toggleChangePasswordModal(cell = null) {
-        console.log('toggleChangePasswordModal')
         if(this.state.showChangePasswordModal)
             this.setState({showChangePasswordModal: false})
         else if(cell)

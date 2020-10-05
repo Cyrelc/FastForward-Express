@@ -106,9 +106,9 @@ export default class Table extends Component {
         else if(!anyActiveFilters && window.location.search)
             window.location.search = ''
         const route = this.state.baseRoute + window.location.search
-        fetch(route)
-        .then(response => {return response.json()})
-        .then(data => {this.setState({data: data})})
+        makeFetchRequest(route, data => {
+            this.setState({data: data})
+        })
     }
 
     render() {

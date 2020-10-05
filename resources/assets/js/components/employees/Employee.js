@@ -75,10 +75,7 @@ export default class Employee extends Component {
         } else {
             document.title = 'Create Employee - ' + document.title
         }
-        fetch(fetchUrl)
-        .then(response => {return response.json()})
-        .then(data => {
-            console.log(data)
+        makeFetchRequest(fetchUrl, data => {
             var setup = {
                 ...initialState,
                 action: params.action,
@@ -238,25 +235,19 @@ export default class Employee extends Component {
             sin: this.state.SIN,
             start_date: this.state.startDate.toLocaleString('en-us'),
         }
-        $.ajax({
-            'url': '/employees/store',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                if(this.state.employeeId)
-                    toastr.success('Employee ' + this.state.employeeId + ' was successfully updated!', 'Success')
-                else {
-                    this.setState({readOnly:true})
-                    toastr.success('Employee ' + response.id + ' was successfully created', 'Success', {
-                        'progressBar': true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 500,
-                        'onHidden': function(){location.reload()}
-                    })
-                }
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/employees/store', 'POST', data, response => {
+            toastr.clear()
+            if(this.state.employeeId)
+                toastr.success('Employee ' + this.state.employeeId + ' was successfully updated!', 'Success')
+            else {
+                this.setState({readOnly:true})
+                toastr.success('Employee ' + response.id + ' was successfully created', 'Success', {
+                    'progressBar': true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 500,
+                    'onHidden': function(){location.reload()}
+                })
+            }
         })
     }
 }

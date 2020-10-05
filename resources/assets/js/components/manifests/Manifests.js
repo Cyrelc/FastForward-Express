@@ -4,13 +4,8 @@ import Table from '../partials/Table'
 function deleteManifest(cell) {
     const manifestId = cell.getRow().getData().manifest_id 
     if(confirm('Are you sure you want to delete manifest ' + manifestId + '?\nThis action can not be undone')) {
-        fetch('/manifests/delete/' + manifestId)
-        .then(response => {return response.json()})
-        .then(data => {
-            if(data.success)
-                location.reload()
-            else
-                handleErrorResponse(JSON.stringify(data))
+        makeFetchRequest('/manifests/delete/' + manifestId, data => {
+            location.reload()
         })
     }
 }

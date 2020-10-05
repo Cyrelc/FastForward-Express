@@ -25,9 +25,7 @@ export default class InvoicesGenerate extends Component {
         const firstDayOfPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
         //note the following line MODIFIES currentDate - so if you use it subsequently, beware!!
         const lastDayOfPreviousMonth = new Date(currentDate.moveToFirstDayOfMonth().setHours(-1))
-        fetch('/getList/selections/invoice_interval')
-        .then(response => {return response.json()})
-        .then(data => {
+        makeFetchRequest('/getList/selections/invoice_interval', data => {
             this.setState({
                 invoiceIntervals: data,
                 startDate: firstDayOfPreviousMonth,
@@ -52,15 +50,9 @@ export default class InvoicesGenerate extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        $.ajax({
-            'url': '/invoices/getAccountsToInvoice',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                this.setState({accounts: response})
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/invoices/getAccountsToInvoice', 'POST', data, response => {
+            toastr.clear()
+            this.setState({accounts: response})
         })
     }
 
@@ -74,20 +66,14 @@ export default class InvoicesGenerate extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        $.ajax({
-            'url': '/invoices/store',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                toastr.success('Successfully generated invoices', 'Success', {
-                    'progressBar' : true,
-                    'showDuration': 500,
-                    'onHidden': window.location = '/app/invoices',
-                    'positionClass': 'toast-top-center'
-                })
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/invoices/store', 'POST', data, response => {
+            toastr.clear()
+            toastr.success('Successfully generated invoices', 'Success', {
+                'progressBar' : true,
+                'showDuration': 500,
+                'onHidden': window.location = '/app/invoices',
+                'positionClass': 'toast-top-center'
+            })
         })
     }
 

@@ -1,3 +1,5 @@
+const { type } = require("jquery");
+
 function numberFilter(e) {
     // Allow: backspace, delete, tab, escape, enter
     if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110]) !== -1 ||
@@ -122,3 +124,41 @@ function cleave() {
     });
 }
 
+/**
+ * 
+ * @param {string} url 
+ * @param {string} type 
+ * @param {object} data 
+ * @param {function} callback 
+ * 
+ * Born out of a need to determine whether the Laravel session has expired, to redirect user to login page, instead of failing silently
+ * All functions must use the following wrappers to perform Ajax or Fetch requests
+ */
+
+function makeAjaxRequest(url, type, data, callback) {
+    $.ajax({
+        'url': url,
+        'type': type,
+        'data': data,
+        'success': response => {
+            if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
+                location.reload()
+                return Promise.reject(response)
+            }
+            callback(response)
+        },
+        'error': response => handleErrorResponse(response)
+    })
+}
+
+function makeFetchRequest(url, callback) {
+    fetch(url)
+    .then(response => {
+        if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
+            location.reload()
+            return Promise.reject(response)
+        }
+        return response.json()
+    })
+    .then(data => callback(data))
+}

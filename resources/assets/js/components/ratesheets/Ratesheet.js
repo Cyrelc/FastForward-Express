@@ -56,33 +56,29 @@ export default class Ratesheet extends Component {
         google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
         this.setState({map: map, mapDrawingManager: drawingManager, formType: params.action, ratesheetId: params.ratesheetId}, () => {
             document.title = params.action === 'create' ? 'Create Ratesheet - ' + document.title : 'Edit Ratesheet ' + params.ratesheetId + ' - ' + document.title
-            fetch(params.ratesheetId === null ? '/ratesheets/getModel/' : '/ratesheets/getModel/' + params.ratesheetId)
-                .then(response => {
-                    return response.json()
+            makeFetchRequest(params.action === 'create' ? '/ratesheets/getModel' : '/ratesheets/getModel/' + params.ratesheetId, data => {
+                var timeRates = data.timeRates.map(rate => {
+                    return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
                 })
-                .then((data) => {
-                    var timeRates = data.timeRates.map(rate => {
-                        return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
+                this.setState({deliveryTypes: data.deliveryTypes, name: data.name, palletRate: data.palletRate, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
+                if(params.action === 'edit') {
+                    data.mapZones.map(zone => {
+                        const coordinates = (() => {
+                            try{
+                                return JSON.parse(zone.coordinates)
+                            } catch (e) {
+                                return zone.coordinates
+                            }
+                        })()
+                        const polygon = new google.maps.Polygon({
+                                paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
+                            })
+                        polygon.setMap(this.state.map)
+                        this.createPolygon(polygon, zone)
                     })
-                    this.setState({deliveryTypes: data.deliveryTypes, name: data.name, palletRate: data.palletRate, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
-                    if(params.action === 'edit') {
-                        data.mapZones.map(zone => {
-                            const coordinates = (() => {
-                                try{
-                                    return JSON.parse(zone.coordinates)
-                                } catch (e) {
-                                    return zone.coordinates
-                                }
-                            })()
-                            const polygon = new google.maps.Polygon({
-                                    paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
-                                })
-                            polygon.setMap(this.state.map)
-                            this.createPolygon(polygon, zone)
-                        })
-                        this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: data.mapZones.length + 1}});
-                    }
-                })
+                    this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: data.mapZones.length + 1}});
+                }
+            })
         })
     }
 
@@ -315,23 +311,17 @@ export default class Ratesheet extends Component {
             mapZones : this.state.mapZones.map(zone => this.prepareZoneForStore(zone)),
             timeRates: this.state.timeRates.slice(),
         }
-        $.ajax({
-            'url': '/ratesheets/store',
-            'type': 'POST',
-            'data': data,
-            'success': () => {
-                toastr.clear()
-                if(this.state.formType === 'edit') {
-                    toastr.success(this.state.name + ' was successfully updated!', 'Success', {'onHidden': function(){location.reload()}})
-                }
-                else
-                    toastr.success(this.state.name + ' was successfully created', 'Success', {
-                        'progressBar': true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 500,
-                    })
-            },
-            'error': (response) => handleErrorResponse(response)
+        makeAjaxRequest('/ratesheets/store', 'POST', data, response => {
+            toastr.clear()
+            if(this.state.formType === 'edit') {
+                toastr.success(this.state.name + ' was successfully updated!', 'Success', {'onHidden': function(){location.reload()}})
+            }
+            else
+                toastr.success(this.state.name + ' was successfully created', 'Success', {
+                    'progressBar': true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 500,
+                })
         })
     }
 

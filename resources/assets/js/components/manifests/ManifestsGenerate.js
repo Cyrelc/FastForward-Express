@@ -35,16 +35,10 @@ export default class ManifestsGenerate extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        $.ajax({
-            'url': '/manifests/getDriversToManifest',
-            'type': 'GET',
-            'data': data,
-            'success': response => {
-                this.setState({
-                    employees: JSON.parse(response)
-                })
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/manifests/getDriversToManifest', data => {
+            this.setState({
+                employees: JSON.parse(response)
+            })
         })
     }
 
@@ -59,19 +53,14 @@ export default class ManifestsGenerate extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        $.ajax({
-            'url': '/manifests/store',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                toastr.success('Successfully generated manifests', 'Success', {
-                    'progressBar': true,
-                    'showDuration': 500,
-                    'onHidden': window.location = '/app/manifests',
-                    'positionClass': 'toast-top-center'
-                })
-            }
+        makeAjaxRequest('/manifests/store', 'POST', data, response => {
+            toastr.clear()
+            toastr.success('Successfully generated manifests', 'Success', {
+                'progressBar': true,
+                'showDuration': 500,
+                'onHidden': window.location = '/app/manifests',
+                'positionClass': 'toast-top-center'
+            })
         })
     }
 

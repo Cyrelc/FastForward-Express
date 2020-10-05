@@ -64,10 +64,10 @@ export default class Dispatch extends Component {
     }
 
     componentDidMount() {
-        fetch('/dispatch/GetDrivers')
-        .then(response => {return response.json()})
-        .then(data => {return data.map(driver => {return {...driver, view: true}})})
-        .then(data => this.setState({drivers: data}, this.handleStartDateEvent({target: {name: 'startDate', type: 'date', value: new Date()}})))
+        makeFetchRequest('/dispatch/GetDrivers', data => {
+            const drivers = data.map(driver => {return {...driver, view: true}})
+            this.setState({drivers: drivers}, this.handleStartDateEvent({target: {name: 'startDate', type: 'date', value: new Date()}}))
+        })
 
         var timer = setInterval(() => {this.refreshBills()}, 20000)
 
@@ -83,9 +83,7 @@ export default class Dispatch extends Component {
         echo.private('dispatch').listen('BillCreated', e => {
             const startDate = moment(this.state.startDate)
             if(moment(e.time_pickup_scheduled.date).isSame(startDate, 'day') || moment(e.time_delivery_scheduled.date).isSame(startDate, 'day')) {
-                fetch('/bills/getModel/' + e.bill_id)
-                .then(response => {return response.json()})
-                .then(data => {
+                makeFetchRequest('/bills/getModel' + e.bill_id, data => {
                     const bill = this.formatNewBill(data)
                     const bills = this.state.bills
                     bills[bills.length] = bill
@@ -105,9 +103,7 @@ export default class Dispatch extends Component {
             */
             if(bill[0] && matchesCurrentDate) {
                 console.log('Bill found. Date matches. Updating data')
-                fetch('/bills/getModel/' + e.bill_id)
-                .then(response => {return response.json()})
-                .then(data => {
+                makeFetchRequest('/bills/getModel' + e.bill_id, data => {
                     const bills = this.state.bills.map(b => {
                         if(b.bill_id === e.bill_id)
                             return this.updateBill(b, data)
@@ -122,9 +118,7 @@ export default class Dispatch extends Component {
                 this.setState({bills: bills})
             } else if (matchesCurrentDate) {
                 console.log('Bill not found. Date matches. Adding to view')
-                fetch('/bills/getModel/' + e.bill_id)
-                .then(response => {return response.json()})
-                .then(data => {
+                makeFetchRequest('/bills/getModel/' + e.bill_id, data => {
                     var bills = this.state.bills
                     bills[bills.length] = this.formatNewBill(data)
                     this.setState({bills: bills})
@@ -163,7 +157,6 @@ export default class Dispatch extends Component {
     }
 
     refreshBills() {
-        console.log('refresh bills called. Row in transit: ' + this.state.rowInTransit)
         if(this.state.rowInTransit)
             return
         const bills = this.state.bills.map(bill => {
@@ -194,10 +187,7 @@ export default class Dispatch extends Component {
     //change handlers
 
     handleAssignBillEvent(event) {
-        const csrfToken = document.head.querySelector("[name~=csrf-token][content]").content
         const {value, driver_id} = event.target
-
-        console.log(value, driver_id)
 
         const bills = this.state.bills.map(bill => {
             if(bill.bill_id === value)
@@ -206,20 +196,13 @@ export default class Dispatch extends Component {
                 return bill
         })
 
-        fetch('/dispatch/assignBillToDriver', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-            },
-            body: JSON.stringify({driver_id: driver_id, bill_id: value})
-        }).then(response => {
-            if(!response.ok) {
-                toastr.clear()
-                toastr.error(response.statusText, 'Error', {'timeOut': 0, 'extendedTImeout': 0})
-            }
+        data = {
+            driver_id: driver_id,
+            bill_id: value
+        }
+
+        makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {
+            toastr.clear()
         })
 
         return {bills: bills}
@@ -250,7 +233,6 @@ export default class Dispatch extends Component {
             default:
                 temp[name] = type === 'checkbox' ? checked : value
         }
-        console.log(name, temp)
         this.setState(temp)
     }
 
@@ -274,14 +256,8 @@ export default class Dispatch extends Component {
             type: type,
             time: this.state.setTimeModalTime.toLocaleString("en-US")
         }
-        $.ajax({
-            'url': '/dispatch/setBillPickupOrDeliveryTime',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-            },
-            'error': response => handleErrorReponse(response)
+        makeAjaxRequest('/dispatch/setBillPickupOrDeliveryTime', 'POST', data, response => {
+            toastr.clear()
         })
 
         var bills = this.state.bills.map(bill => {
@@ -301,9 +277,10 @@ export default class Dispatch extends Component {
     handleStartDateEvent(event) {
         const {name, value} = event.target
         this.setState({startDate: value}, () => {
-            fetch('/bills/buildTable?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'))
-            .then(response => {return response.json()})
-            .then(data => {this.setState({bills: data}, this.refreshBills)})
+
+            makeFetchRequest('/bills/buildTable?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'), data => {
+                this.setState({bills: data}, this.refreshBills)
+            })
         })
     }
 
@@ -321,7 +298,6 @@ export default class Dispatch extends Component {
 
     handleViewDriverEvent(event) {
         const {name, value, type, checked} = event.target
-        console.log(value)
         var viewUnassigned = value === null ? !this.state.viewUnassigned : this.state.viewUnassigned
         var view = viewUnassigned
         const drivers = this.state.drivers.map(driver => {

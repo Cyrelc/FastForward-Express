@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
-import { BrowserRouter as Router, Switch, Redirect, Route, Link, BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, Switch, Redirect, Route, Link } from 'react-router-dom'
 import { LinkContainer } from 'react-router-bootstrap'
 import { Button, FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
 
@@ -24,15 +24,17 @@ export default class App extends Component {
     constructor() {
         super()
         this.state =  {
+            accountId: '',
             billId: '',
-            invoiceId: ''
+            employeeId: '',
+            invoiceId: '',
+            manifestId: ''
         }
         this.handleChange = this.handleChange.bind(this)
     }
 
     handleChange(event) {
         const {name, checked, value, type} = event.target
-        console.log(name, value)
         this.setState({[name]: type === 'checkbox' ? checked : value})
     }
 
@@ -79,7 +81,7 @@ export default class App extends Component {
                             </NavDropdown>
                             <NavDropdown title='Accounts' id='navbar-accounts'>
                                 <LinkContainer to='/app/accounts'><NavDropdown.Item><i className='fa fa-list'></i> List Accounts</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/accounts/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item></LinkContainer>
+                                <NavDropdown.Item href='/accounts/create'><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Account ID: </InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
@@ -94,7 +96,7 @@ export default class App extends Component {
                             <NavDropdown title='Employees' id='navbar-employees' alignRight>
                                 <LinkContainer to='/app/employees'><NavDropdown.Item><i className='fa fa-list'></i> List Employees</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Employee</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/chargebacks'><NavDropdown.Item><i className='fa fa-tag'></i> Chargebacks</NavDropdown.Item></LinkContainer>
+                                <NavDropdown.Item href='/chargebacks'>Chargebacks</NavDropdown.Item>
                                 <LinkContainer to='/app/manifests'><NavDropdown.Item><i className='fas fa-clipboard-list'></i> Manifests</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/manifests/generate'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
@@ -121,9 +123,10 @@ export default class App extends Component {
                             <NavDropdown title='Administration' id='navbar-admin' alignRight>
                                 <LinkContainer to='/app/appSettings'><NavDropdown.Item><i className='fas fa-cogs'></i> App Settings</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/ratesheets'><NavDropdown.Item><i className='fas fa-dollar-sign'></i> Ratesheets</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/ratesheets/create'><NavDropdown.Item>Create Ratesheet</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/interliners'><NavDropdown.Item><i className='fa fa-list'></i> List Interliners</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/interliners/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Interliner</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to='/logout'><NavDropdown.Item><i className='fas fa-door-open'></i> Log Out</NavDropdown.Item></LinkContainer>
+                                <NavDropdown.Item href='/interliners/create'><i className='fa fa-plus-square'></i> New Interliner</NavDropdown.Item>
+                                <NavDropdown.Item href='/logout'><i className='fas fa-door-open'></i> Log Out</NavDropdown.Item>
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>

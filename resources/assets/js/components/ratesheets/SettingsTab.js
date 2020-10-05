@@ -227,12 +227,12 @@ export default function SettingsTab(props) {
                                 <tbody>
                                     {props.deliveryTypes.map(type => 
                                         <RateOption 
-                                        key={type.id}
-                                        friendlyName={type.friendlyName} 
-                                        time={type.time} 
-                                        cost={type.cost}
-                                        id={type.id} 
-                                        handleChange={props.handleChange}
+                                            key={type.id}
+                                            friendlyName={type.friendlyName}
+                                            time={type.time}
+                                            cost={type.cost}
+                                            id={type.id}
+                                            handleChange={props.handleChange}
                                         />
                                     )}
                                 </tbody>

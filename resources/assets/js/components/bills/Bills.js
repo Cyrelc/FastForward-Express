@@ -3,14 +3,7 @@ import Table from '../partials/Table'
 
 function deleteBill(cell) {
     if(confirm('Are you sure you wish to delete bill ' + cell.getRow().getData().bill_id + '?\nThis action can not be undone')) {
-        fetch('/bills/delete/' + cell.getRow().getData().bill_id)
-        .then(response => {return response.json()})
-        .then(data => {
-            if(data.success)
-                location.reload()
-            else
-                handleErrorResponse(JSON.stringify(data))
-        })
+        makeFetchRequest('/bills/delete/' + cell.getRow().getData().bill_id, data => location.reload())
     }
 }
 

@@ -5,13 +5,8 @@ function toggleAccountActive(cell) {
     const active = cell.getRow().getData().active
     if(confirm('Are you sure you wish to ' + (active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + cell.getRow().getData().name + '?')) {
         const url = '/accounts/toggleActive/' + cell.getRow().getData().account_id
-        fetch(url)
-        .then(response => {return response.json()})
-        .then(data => {
-            if(data.success)
-                location.reload()
-            else
-                handleErrorResponse(JSON.stringify(data))
+        makeFetchRequest(url, data => {
+            location.reload()
         })
     }
 }

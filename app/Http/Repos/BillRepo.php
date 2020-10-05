@@ -277,11 +277,10 @@ class BillRepo {
     }
 
     public function CountByInvoiceId($invoiceId) {
-        $bills = \DB::table("bills")->select(\DB::raw('count(bill_id) as bill_count'))
-            ->where('invoice_id', '=', $invoiceId)
-            ->get();
+        $billCount = Bill::where('invoice_id', '=', $invoiceId)
+            ->count();
 
-        return $bills[0]->bill_count;
+        return $billCount;
     }
 
     public function CountByManifestId($manifest_id) {

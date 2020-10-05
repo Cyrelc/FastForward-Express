@@ -101,7 +101,7 @@ Route::group(
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
 
-            Route::get('/ratesheets/REST/index', 'RatesheetController@buildTable');
+            Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
             Route::post('/ratesheets/store', 'RatesheetController@store');
             Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
 

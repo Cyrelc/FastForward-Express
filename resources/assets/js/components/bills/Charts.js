@@ -36,15 +36,13 @@ export default class Charts extends Component {
         url += '&summationType=' + this.state.summationType.value
         if(this.state.groupBy)
             url += ('&groupBy=' + this.state.groupBy.value)
-        fetch(url)
-        .then(response => {return response.json()})
-        .then(data => {
+        makeFetchRequest(url, data => {
             if(data.bills) {
                 const results = Object.values(data.bills).map(value => {return value})
                 this.setState({data: results, keys: data.keys, legend: data.legend}, console.log(results))
             } else
                 toastr.error('No bills found for the selected time period. Please try again')
-        });
+        })
     }
 
     handleChange(event) {

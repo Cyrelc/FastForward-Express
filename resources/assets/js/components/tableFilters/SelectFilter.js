@@ -22,9 +22,7 @@ export default class SelectFilter extends Component {
         const filterValue = window.location.search.includes('filter[' + this.props.filter.value + ']=') ? window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0] : undefined
         const selectedValues = filterValue === undefined ? [] : filterValue.split(',').filter(value => value)
         if(this.props.filter.fetchUrl)
-            fetch(this.props.filter.fetchUrl)
-            .then(response => {return response.json()})
-            .then(data => {
+            makeFetchRequest(this.props.filter.fetchUrl, data => {
                 var options = data
                 if(this.props.filter.optionName || this.props.filter.optionValue)
                     options = data.map(option => {

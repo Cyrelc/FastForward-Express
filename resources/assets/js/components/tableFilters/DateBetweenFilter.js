@@ -38,7 +38,6 @@ export default class DateFilterBetween extends Component {
     }
 
     handleDateFilterChange(date = null, type = null) {
-        console.log(date, type)
         const startDate = type === 'startDate' ? date : this.state.startDate
         const endDate = type === 'endDate' ? date : this.state.endDate
         const formattedStartDate = startDate === null ? '' : new Date(startDate).toISOString().split('T')[0]

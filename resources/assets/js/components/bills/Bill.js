@@ -184,14 +184,14 @@ export default class Bill extends Component {
 
         if(params.action === 'edit' || params.action === 'view') {
             document.title = params.action === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
-            fetch('/bills/getModel/' + params.billId)
-            .then(response => {return response.json()})
-            .then(data => this.configureBill(data, params.action));
+            makeFetchRequest('/bills/getModel/' + params.billId, data => {
+                this.configureBill(data, params.action)
+            })
         } else {
             document.title = 'Create Bill - ' + document.title
-            fetch('/bills/getModel') //fetch data necessary to populate the form
-            .then(response => {return response.json()})
-            .then(data => this.configureBill(data));
+            makeFetchRequest('/bills/getModel', data => {
+                this.configureBill(data)
+            })
         }
     }
 
@@ -203,24 +203,22 @@ export default class Bill extends Component {
     }
 
     getRatesheet(id, initialize = false) {
-        fetch('/ratesheets/getModel/' + id)
-            .then(response => {return response.json()})
-            .then(data => {
-                var deliveryType
-                if(initialize)
-                    deliveryType = data.deliveryTypes.find(type => type.id === this.state.deliveryType)
+        makeFetchRequest('/ratesheets/getModel/' + id, data => {
+            var deliveryType
+            if(initialize)
+                deliveryType = data.deliveryTypes.find(type => type.id === this.state.deliveryType)
 
-                const ratesheet = {
-                    deliveryTypes: data.deliveryTypes,
-                    deliveryType: deliveryType
-                }
-                if(this.state.formType === 'create')
-                    this.setState(ratesheet,
-                        () => this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes()}})
-                    )
-                else
-                    this.setState(ratesheet)
-            });
+            const ratesheet = {
+                deliveryTypes: data.deliveryTypes,
+                deliveryType: deliveryType
+            }
+            if(this.state.formType === 'create')
+                this.setState(ratesheet,
+                    () => this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes()}})
+                )
+            else
+                this.setState(ratesheet)
+        })
     }
 
     handleAccountEvent(events, accountEvent) {
@@ -648,25 +646,19 @@ export default class Bill extends Component {
             time_pickup_scheduled: this.state.pickupTimeExpected.toLocaleString("en-US"),
             use_imperial: this.state.useImperial,
         }
-        $.ajax({
-            'url': '/bills/store',
-            'type': 'POST',
-            'data': data,
-            'success': response => {
-                toastr.clear()
-                if(this.state.billId)
-                    toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
-                else {
-                    this.setState({readOnly: true})
-                    toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
-                        'progressBar': true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 500,
-                        'onHidden': function(){location.reload()}
-                    })
-                }
-            },
-            'error': response => handleErrorResponse(response)
+        makeAjaxRequest('/bills/store', 'POST', data, response => {
+            toastr.clear()
+            if(this.state.billId)
+                toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
+            else {
+                this.setState({readOnly: true})
+                toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
+                    'progressBar': true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 500,
+                    'onHidden': function(){location.reload()}
+                })
+            }
         })
     }
 }
