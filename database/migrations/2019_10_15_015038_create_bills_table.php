@@ -34,8 +34,8 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('interliner_reference_value')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
-            $table->bool('is_min_weight_size')->default(0);
-            $table->bool('is_pallet')->default(0);
+            $table->boolean('is_min_weight_size')->default(0);
+            $table->boolean('is_pallet')->default(0);
             $table->text('packages')->nullable();
             $table->unsignedInteger('payment_id')->nullable();
             $table->unsignedInteger('payment_type_id');
