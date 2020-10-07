@@ -61,6 +61,7 @@
 		    $employeeRepo = new Repos\EmployeeRepo();
 			$interlinersRepo = new Repos\InterlinerRepo();
 			$paymentRepo = new Repos\PaymentRepo();
+			$selectionsRepo = new Repos\SelectionsRepo();
 
 		    $model->accounts = $acctRepo->ListAll();
 		    $model->employees = $employeeRepo->ListAllDrivers();
@@ -77,6 +78,7 @@
 		    $model->charge_selection_submission = null;
 			$model->bill->time_call_received = date("U");
 			$model->skip_invoicing = false;
+			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
 
 			$model->payment_types = $paymentRepo->GetPaymentTypes();
 			$model->read_only = false;
@@ -120,6 +122,7 @@
 			$model->chargeback = $model->bill->chargeback_id === null ? null : $chargebackRepo->GetById($model->bill->chargeback_id);
 			$model->payment = $model->bill->payment_id == null ? null : $paymentRepo->GetById($model->bill->payment_id);
 			$model->read_only = $billRepo->IsReadOnly($model->bill->bill_id);
+			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 

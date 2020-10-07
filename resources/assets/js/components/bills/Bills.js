@@ -14,19 +14,20 @@ const columns = [
     {title: 'Account', field: 'charge_account_number', formatter: 'link', formatterParams:{labelField:'charge_account_name', urlPrefix:'/accounts/edit/'}},
     {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
     {title: 'Delivery Driver', field: 'delivery_employee_id', formatter: 'link', formatterParams:{labelField:'delivery_employee_name', urlPrefix:'/app/employees/edit/'}, visible: false},
-    {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: false},
+    {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', formatter: 'link', formatterParams: {urlPrefix:'/manifests/view/'}, visible: false},
     {title: 'Editable', field: 'editable', visible: false},
     {title: 'Interliner', field: 'interliner_id', formatter: 'link', formatterParams:{labelField:'interliner_name', urlPrefix:'/interliners/edit/'}, visible: false},
     {title: 'Interliner Cost', field: 'interliner_cost', formatter: 'money', formatterParams:{thousand:',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, visible: false},
     {title: 'Interliner Cost to Customer', field: 'interliner_cost_to_customer', formatter: 'money', formatterParams:{thousand:',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, visible: false},
-    {title: 'Invoice ID', field: 'invoice_id', visible: false},
+    {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams: {urlPrefix: '/invoices/view/'}, visible: false},
     {title: 'Parent Account', field: 'parent_account', visible: false},
     {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
     {title: 'Pickup Driver', field: 'pickup_employee_id', formatter: 'link', formatterParams:{labelField:'pickup_employee_name', urlPrefix:'/app/employees/edit/'}},
-    {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: false},
+    {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', formatter: 'link', formatterParams: {urlPrefix: '/manifests/view/'}, visible: false},
     {title: 'Payment Type', field: 'payment_type', visible: false},
     {title: 'Scheduled Pickup', field: 'time_pickup_scheduled'},
     {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false},
+    {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false},
     {title: 'Type', field: 'delivery_type'},
     {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}},
     {title: 'Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:1, legend: value => {return (value * 100) + ' %'}, color: value => {
@@ -110,6 +111,13 @@ const filters = [
         name: 'Delivery Type',
         type: 'SelectFilter',
         value: 'delivery_type'
+    },
+    {
+        fetchUrl: '/getList/selections/repeat_interval',
+        isMulti: true,
+        name: 'Repeat Interval',
+        type: 'SelectFilter',
+        value: 'repeat_interval'
     }
 ]
 

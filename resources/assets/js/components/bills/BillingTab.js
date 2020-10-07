@@ -2,6 +2,11 @@ import React from 'react'
 import {Card, Col, Row, FormControl, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
+const repeatingBillsTitleText = 'Daily bills will be generated on and assigned to every weekday until disabled\n' +
+'Weekly bills will be generated Sundays, and will be assigned for pickup and delivery on the same day of the week as the original\n' +
+'Monthly bills will be generated on and assigned to the first business day of each month\n\n' +
+'All repeating bills will have all filled fields copied with the notable exceptions of Waybill Number and Interliner Tracking Number'
+
 export default function BillingTab(props) {
     return(
         <Card border='dark'>
@@ -103,6 +108,24 @@ export default function BillingTab(props) {
                                 </InputGroup>
                             </Col>
                         }
+                    </Row>
+                    <Row>
+                        <Col>
+                            <InputGroup>
+                                <InputGroup.Prepend><InputGroup.Text>Repeat Interval: </InputGroup.Text></InputGroup.Prepend>
+                                <Select
+                                    options={props.repeatIntervals}
+                                    isClearable
+                                    isSearchable
+                                    getOptionLabel={interval => interval.name}
+                                    getOptionValue={interval => interval.selection_id}
+                                    onChange={interval => props.handleChanges({target: {name: 'repeatInterval', type: 'object', value: interval}})}
+                                    isDisabled={props.readOnly}
+                                    value={props.repeatInterval}
+                                />
+                                <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title={repeatingBillsTitleText}></i></InputGroup.Text></InputGroup.Append>
+                            </InputGroup>
+                        </Col>
                     </Row>
                 </Col>
                 <Col md={3}>

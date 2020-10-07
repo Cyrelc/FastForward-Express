@@ -43,6 +43,7 @@ class Bill extends Model
                             'pickup_driver_id',
                             'pickup_manifest_id',
                             'pickup_reference_value',
+                            'repeat_interval',
                             'skip_invoicing',
                             'time_pickup_scheduled',
                             'time_delivery_scheduled',

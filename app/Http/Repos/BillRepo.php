@@ -23,7 +23,8 @@ class BillRepo {
                 ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
                 ->leftJoin('payment_types', 'bills.payment_type_id', '=', 'payment_types.payment_type_id')
                 ->leftJoin('accounts as parent_accounts', 'accounts.parent_account_id', '=', 'parent_accounts.account_id')
-                ->leftJoin('selections', 'selections.value', '=', 'bills.delivery_type')
+                ->leftJoin('selections as deliveryType', 'deliveryType.value', '=', 'bills.delivery_type')
+                ->leftJoin('selections as repeatInterval', 'repeatInterval.selection_id', '=', 'bills.repeat_interval')
                 ->select(
                     DB::raw('format(amount, 2) as amount'),
                     'bill_id',
@@ -39,7 +40,7 @@ class BillRepo {
                     'delivery_driver_id',
                     DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
                     'delivery_manifest_id',
-                    'selections.name as delivery_type',
+                    'deliveryType.name as delivery_type',
                     'description',
                     DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
                     'interliner_cost',
@@ -58,6 +59,8 @@ class BillRepo {
                     'pickup_driver_id',
                     DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
                     'pickup_manifest_id',
+                    'repeat_interval',
+                    'repeatInterval.name as repeat_interval_name',
                     'time_pickup_scheduled',
                     'time_delivery_scheduled',
                     'time_picked_up',
@@ -79,7 +82,8 @@ class BillRepo {
                     AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
                     AllowedFilter::exact('payment_type_id', 'bills.payment_type_id'),
                     AllowedFilter::custom('percentage_complete', new NumberBetween),
-                    AllowedFilter::exact('pickup_driver_id')
+                    AllowedFilter::exact('pickup_driver_id'),
+                    AllowedFilter::exact('repeat_interval')
                 ]);
 
             return $filteredBills->get();
@@ -102,7 +106,7 @@ class BillRepo {
     }
 
     public function GetById($id) {
-	    $bill = Bill::where('bill_id', '=', $id)->first();
+	    $bill = Bill::where('bill_id', $id)->first();
 
 	    return $bill;
     }
@@ -206,7 +210,7 @@ class BillRepo {
         $completeBill = $this->CheckRequiredFields($bill);
         $new = new Bill;
 
-        return ($new->create($completeBill));
+        return $new->create($completeBill);
     }
 
     public function Delete($id) {
@@ -255,6 +259,7 @@ class BillRepo {
             'pickup_driver_commission',
             'pickup_driver_id',
             'pickup_reference_value',
+            'repeat_interval',
             'skip_invoicing',
             'time_call_received',
             'time_dispatched',
@@ -326,6 +331,12 @@ class BillRepo {
             DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month')
         )
         ->groupBy('month');
+
+        return $bills->get();
+    }
+
+    public function GetRepeatingBills($repeatIntervalId) {
+        $bills = Bill::where('repeat_interval', '=', $repeatIntervalId);
 
         return $bills->get();
     }

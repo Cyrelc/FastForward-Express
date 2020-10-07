@@ -5,7 +5,7 @@ import Select from 'react-select'
 export default function AccountingTab(props) {
     return (
         <Card border='dark'>
-            <Card.Header><h2 className='text-muted'>Accounting</h2></Card.Header>
+            <Card.Header><Card.Title>Accounting</Card.Title></Card.Header>
             <Card.Body>
                 <Row>
                     <Col md={2}><h4 className='text-muted'>Taxes</h4></Col>

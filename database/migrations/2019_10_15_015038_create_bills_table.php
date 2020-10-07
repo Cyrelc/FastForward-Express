@@ -47,6 +47,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_manifest_id')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->text('price_line_items');
+            $table->unsignedInterger('repeat_interval')->nullable();
             $table->boolean('skip_invoicing')->default(false);
             $table->datetime('time_call_received');
             $table->datetime('time_delivered')->nullable();
@@ -72,6 +73,7 @@ class CreateBillsTable extends Migration
 			$table->foreign('pickup_address_id')->references('address_id')->on('addresses');
 			$table->foreign('pickup_driver_id')->references('employee_id')->on('employees');
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
+            $table->foreign('repeat_interval')->references('selection_id')->on('selections');
         });
     }
 

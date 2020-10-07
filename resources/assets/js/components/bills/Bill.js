@@ -30,6 +30,7 @@ export default class Bill extends Component {
             packageIsPallet: false,
             paymentType: '',
             readOnly: true,
+            repeatIntervals: [],
             skipInvoicing: false,
             timeCallReceived: null,
             timeDispatched: null,
@@ -40,6 +41,7 @@ export default class Bill extends Component {
             pickupManifestId: null,
             percentComplete: null,
             incompleteFields: null,
+            repeatIntervals: {},
             //delivery
             deliveryAccount: '',
             deliveryAddressFormatted: '',
@@ -119,6 +121,7 @@ export default class Bill extends Component {
             paymentTypes: data.payment_types,
             readOnly: data.read_only,
             ratesheetId: data.ratesheet_id,
+            repeatIntervals: data.repeat_intervals
         }
         if(formType === 'edit' || formType === 'view')
             setup = {...setup,
@@ -169,6 +172,7 @@ export default class Bill extends Component {
                 pickupTimeActual: data.bill.time_picked_up ? Date.parse(data.bill.time_picked_up) : null,
                 pickupTimeExpected: Date.parse(data.bill.time_pickup_scheduled),
                 readOnly: data.read_only,
+                repeatInterval: data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval),
                 skipInvoicing: data.bill.skip_invoicing,
                 interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
                 interlinerActualCost: data.bill.interliner_cost,
@@ -570,6 +574,7 @@ export default class Bill extends Component {
                                         pickupManifestId={this.state.pickupManifestId}
                                         prepaidReferenceField={this.state.prepaidReferenceField}
                                         prepaidReferenceValue={this.state.prepaidReferenceValue}
+                                        repeatInterval={this.state.repeatInterval}
                                         skipInvoicing={this.state.skipInvoicing}
 
                                         //functions
@@ -582,6 +587,7 @@ export default class Bill extends Component {
                                         invoiceId={this.state.invoiceId}
                                         paymentTypes={this.state.paymentTypes}
                                         readOnly={this.state.readOnly}
+                                        repeatIntervals={this.state.repeatIntervals}
                                     />
                                 </Tab>
                             }
@@ -639,6 +645,7 @@ export default class Bill extends Component {
             pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.employee_id : null,
             pickup_driver_commission: this.state.pickupEmployeeCommission,
             pickup_reference_value: this.state.pickupReferenceValue,
+            repeat_interval: this.state.repeatInterval ? this.state.repeatInterval.selection_id : null,
             skip_invoicing: this.state.skipInvoicing,
             time_call_received: this.state.timeCallReceived ? this.state.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
             time_delivery_scheduled: this.state.deliveryTimeExpected.toLocaleString("en-US"),

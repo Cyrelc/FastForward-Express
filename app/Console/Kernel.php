@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Console\Commands\GenerateRepeatingBills;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,7 +25,23 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->call(function () {
+            $generateRepeatingBills = new GenerateRepeatingBills;
+            $generateRepeatingBills('daily');
+        })->dailyAt('4:00')->weekdays();
+        $schedule->call(function () {
+            $generateRepeatingBills = new GenerateRepeatingBills;
+            $generateRepeatingBills('weekly');
+        })->weeklyOn(7, '4:30');
+        $schedule->call(function() {
+            $generateRepeatingBills = new GenerateRepeatingBills;
+            $generateRepeatingBills('monthly');
+        })->dailyAt('5:00')->when(function() {
+            $today = new \DateTime();
+            $firstWeekdayOfMonth = new \DateTime('+0 weekday ' . $today->format('F Y'));
+            if($today->format('Y-m-d') === $firstWeekdayOfMonth->format('Y-m-d'))
+                return true;
+            return false;
+        });
     }
 }
