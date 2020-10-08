@@ -78,7 +78,7 @@ class ContactRepo {
         $employeeEmergencyContact = EmployeeEmergencyContact::where('employee_id', $employeeId)
             ->where('contact_id', $contactId)->first();
         if($employeeEmergencyContact->is_primary)
-            throw new Exception('Unable to delete primary emergency contact. Please set another contact to primary, save, and try again.');
+            throw new \Exception('Unable to delete primary emergency contact. Please set another contact to primary, save, and try again.');
         $employeeEmergencyContact->delete();
 
         $addressRepo->DeleteByContact($contactId);

@@ -11,7 +11,7 @@ const columns = [
     {formatter: (cell) => {if(cell.getRow().getData().editable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, align:'center', cellClick:(e, cell) => deleteBill(cell), headerSort: false, print: false},
     {title: 'Bill ID', field: 'bill_id', formatter: 'link', formatterParams:{labelField:'bill_id', urlPrefix:'/app/bills/edit/'}, sorter:'number'},
     {title: 'Waybill #', field: 'bill_number'},
-    {title: 'Account', field: 'charge_account_number', formatter: 'link', formatterParams:{labelField:'charge_account_name', urlPrefix:'/accounts/edit/'}},
+    {title: 'Account', field: 'charge_account_id', formatter: 'link', formatterParams:{labelField:'charge_account_name', urlPrefix:'/accounts/edit/'}},
     {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
     {title: 'Delivery Driver', field: 'delivery_employee_id', formatter: 'link', formatterParams:{labelField:'delivery_employee_name', urlPrefix:'/app/employees/edit/'}, visible: false},
     {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', formatter: 'link', formatterParams: {urlPrefix:'/manifests/view/'}, visible: false},

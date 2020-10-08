@@ -87,7 +87,7 @@ class BillRepo {
                 ]);
 
             return $filteredBills->get();
-	}
+    }
 
     public function AssignToDriver($bill_id, $driver) {
         $old = $this->GetById($bill_id);
@@ -215,7 +215,7 @@ class BillRepo {
 
     public function Delete($id) {
         $bill = $this->GetById($id);
-        if($this->IsReadOnly($bill->bill_id))
+        if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
             throw new \Exception('Unable to delete bill after it has been invoiced or manifested');
 
         $bill->delete();
@@ -271,7 +271,7 @@ class BillRepo {
         );
 
         if($this->IsReadOnly($old->bill_id))
-            throw new \Exception('Unable to edit bill after it has been invoiced or manifested');
+            throw new \Exception('Unable to edit bill after it has been invoiced and manifested');
 
         foreach($fields as $field)
             $old->$field = $completeBill[$field];

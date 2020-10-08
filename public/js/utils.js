@@ -157,6 +157,10 @@ function makeFetchRequest(url, callback) {
         if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
             location.reload()
             return Promise.reject(response)
+        } if (!response.ok) {
+            toastr.clear()
+            toastr.error(response.error, '', {'timeOut' : 0, 'extendedTImeout' : 0});
+            return Promise.reject(response)
         }
         return response.json()
     })

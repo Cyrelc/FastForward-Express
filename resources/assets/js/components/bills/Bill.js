@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
-import {Button, Col, ListGroup, Modal, Row, Tab, Tabs, ToggleButton, ToggleButtonGroup, FormControl} from 'react-bootstrap'
+import {Button, Col, Dropdown, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
+
 import BasicTab from './BasicTab'
 import DispatchTab from './DispatchTab'
 import BillingTab from './BillingTab'
@@ -159,6 +160,10 @@ export default class Bill extends Component {
                 deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
                 deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
                 deliveryType: data.bill.delivery_type,
+                interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
+                interlinerActualCost: data.bill.interliner_cost,
+                interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
+                interlinerTrackingId: data.bill.interliner_reference_value,
                 pickupAccount: data.bill.pickup_account_id ? data.accounts.find(account => account.account_id === data.bill.pickup_account_id) : '',
                 pickupAddressFormatted: data.pickup_address.formatted,
                 pickupAddressLat: data.pickup_address.lat,
@@ -174,10 +179,6 @@ export default class Bill extends Component {
                 readOnly: data.read_only,
                 repeatInterval: data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval),
                 skipInvoicing: data.bill.skip_invoicing,
-                interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
-                interlinerActualCost: data.bill.interliner_cost,
-                interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
-                interlinerTrackingId: data.bill.interliner_reference_value,
             }
 
         this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
@@ -233,8 +234,8 @@ export default class Bill extends Component {
             events['chargeAccount'] = account
             events['paymentType'] = this.state.paymentTypes.filter(type => type.name === 'Account')[0]
             //default back to cash ratesheet where applicable
-            if(this.state.ratesheetId != account.ratesheet_id)
-                this.getRatesheet(account.ratesheet_id)
+            // if(this.state.ratesheetId != account.ratesheet_id)
+            //     this.getRatesheet(account.ratesheet_id)
         }
         if (account === null && this.state[prefix + 'Account'] === this.state.chargeAccount) {
             events[name] = ''
@@ -452,15 +453,55 @@ export default class Bill extends Component {
                             <ListGroup.Item variant='warning'><h4>Price: {(parseFloat(this.state.amount ? this.state.amount : 0) + parseFloat(this.state.interlinerCostToCustomer ? this.state.interlinerCostToCustomer : 0)).toFixed(2)}</h4></ListGroup.Item>
                             {this.state.admin &&
                                 <ListGroup.Item>
-                                    <Button
-                                        className='float-right'
-                                        name='applyRestrictions'
-                                        value={this.state.applyRestrictions}
-                                        onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
-                                        title='Toggle restrictions'
-                                        type='checkbox'
-                                        variant={this.state.applyRestrictions ? 'dark' : 'danger'}
-                                    ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i></Button>
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant='primary' id='bill_functions' align='right'>Admin Functions</Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item
+                                                key='applyRestrictions'
+                                                variant={this.state.applyRestrictions ? 'dark' : 'danger'}
+                                                onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
+                                                style={{backgroundColor: this.state.applyRestrictions ? 'tomato' : 'black', color: this.state.applyRestrictions ? 'black' : 'white'}}
+                                                title='Toggle restrictions'
+                                                type='checkbox'
+                                            ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> Toggle Restrictions</Dropdown.Item>
+                                            {(this.state.percentComplete === 100 && this.state.invoiceId === null) &&
+                                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '450px'}}>
+                                                    <FormControl
+                                                        name='assignBillToInvoiceId'
+                                                        type='number'
+                                                        value={this.state.assignBillToInvoiceId}
+                                                        onChange={this.handleChanges}
+                                                    />
+                                                    <InputGroup.Append>
+                                                        <Button
+                                                            disabled={!this.state.assignBillToInvoiceId}
+                                                            onClick={() => makeFetchRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, () => {
+                                                                console.log('success but only in theory apparently')
+                                                                toastr.clear()
+                                                                toastr.success('Bill linked to invoice ' + this.state.assignBillToInvoiceId, 'Success', {
+                                                                    'progressBar': true,
+                                                                    'showDuration': 500,
+                                                                    'onHidden': function(){location.reload()}
+                                                                })
+                                                            })}
+                                                        ><i className='fas fa-link'></i> Assign Bill To Invoice</Button>
+                                                    </InputGroup.Append>
+                                                </InputGroup>
+                                            }
+                                            {this.state.invoiceId != null &&
+                                                <Dropdown.Item
+                                                    name='detatchBillFromInvoice'
+                                                    onClick={() => makeFetchRequest('/bills/removeFromInvoice/' + this.state.billId,
+                                                        () => {toastr.clear(); toastr.success('Bill successfully removed from invoice', 'Success', {
+                                                            'progressBar': true,
+                                                            'showDuration': 500,
+                                                            'onHidden': function(){location.reload()}
+                                                        }
+                                                    )})}
+                                                ><i className='fas fa-unlink'></i> Detach Bill From Invoice</Dropdown.Item>
+                                            }
+                                        </Dropdown.Menu>
+                                    </Dropdown>
                                 </ListGroup.Item>
                             }
                         </ListGroup>

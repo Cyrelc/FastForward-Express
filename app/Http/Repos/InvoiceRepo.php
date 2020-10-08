@@ -45,6 +45,24 @@ class InvoiceRepo {
         $invoice->save();
     }
 
+    public function AssignBillToInvoice($invoiceId, $billId) {
+        $bill = Bill::where('bill_id', $billId)->first();
+        $invoice = Invoice::where('invoice_id', $invoiceId)->first();
+        $account = Account::where('account_id', $bill->charge_account_id)->first();
+
+        if($bill->percentage_complete != 1)
+            throw new \Exception('Bill must be completed before invoicing');
+        if($bill->invoice_id != null)
+            throw new \Exception('Bill has already been assigned to an invoice');
+        if($bill->charge_account_id != $invoice->account_id && $account->parent_account_id != $invoice->account_id)
+            throw new \Exception('Bills can only be assigned to invoices with the same account id or to those with their parent account id; $charge_account_id = ' . $bill->charge_account_id . ' $invoice_account-id = ' . $invoice->account_id . ' $parent_account_id = ' . $account->parent_account_id);
+        $bill->invoice_id = $invoice->invoice_id;
+        $bill->save();
+
+        $invoice = $this->CalculateInvoiceBalances($invoice);
+        return $invoice;
+    }
+
     public function ListAll() {
         $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
             ->select('invoices.invoice_id',
@@ -134,6 +152,20 @@ class InvoiceRepo {
         return $sort_options;
     }
 
+    public function RemoveBillFromInvoice($billId) {
+        $bill = Bill::where('bill_id', $billId)->first();
+        if($bill->invoice_id === null)
+            throw new \Exception('Bill has not been invoiced - Invalid request');
+
+        $invoice = Invoice::where('invoice_id', $bill->invoice_id)->first();
+        $bill->invoice_id = null;
+
+        $bill->save();
+        $invoice = $this->CalculateInvoiceBalances($invoice);
+
+        return $invoice;
+    }
+
     public function StoreSortOrder($req, $id) {
         $account_invoice_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
 
@@ -169,14 +201,14 @@ class InvoiceRepo {
         }
     }
 
-    public function Create($account_ids, $start_date, $end_date) {
+    public function Create($accountIds, $startDate, $endDate) {
         $invoices = array();
 
-        foreach($account_ids as $account_id) {
-            $account = Account::where('account_id', $account_id)->first(['has_parent', 'parent_account_id']);
-            $bills = Bill::where('charge_account_id', '=', $account_id)
-                        ->whereDate('time_pickup_scheduled', '>=', $start_date)
-                        ->whereDate('time_pickup_scheduled', '<=', $end_date)
+        foreach($accountIds as $accountId) {
+            $account = Account::where('account_id', $accountId)->first(['has_parent', 'parent_account_id']);
+            $bills = Bill::where('charge_account_id', '=', $accountId)
+                        ->whereDate('time_pickup_scheduled', '>=', $startDate)
+                        ->whereDate('time_pickup_scheduled', '<=', $endDate)
                         ->where('invoice_id', null)
                         ->where('skip_invoicing', '=', 0)
                         ->where('percentage_complete', 1)
@@ -185,16 +217,16 @@ class InvoiceRepo {
             if(count($bills) > 0) {
                 if($account->has_parent) {
                     if(!array_key_exists($account->parent_account_id, $invoices))
-                        $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id);
+                        $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id, $startDate, $endDate);
                     foreach($bills as $bill) {
                         $bill->invoice_id = $invoices[$account->parent_account_id]->invoice_id;
                         $bill->save();
                     }
                 } else {
-                    if(!array_key_exists($account_id, $invoices))
-                        $invoices[$account_id] = $this->GenerateInvoice($account_id);
+                    if(!array_key_exists($accountId, $invoices))
+                        $invoices[$accountId] = $this->GenerateInvoice($accountId, $startDate, $endDate);
                     foreach($bills as $bill) {
-                        $bill->invoice_id = $invoices[$account_id]->invoice_id;
+                        $bill->invoice_id = $invoices[$accountId]->invoice_id;
                         $bill->save();
                     }
                 }
@@ -202,34 +234,9 @@ class InvoiceRepo {
         }
 
         foreach($invoices as $key => $value) {
-            //TODO: use variable tax cost rather than hard coded
-            //TODO: fuel surcharge logic
-            $account_repo = new AccountRepo();
-            $invoice = Invoice::where('invoice_id', $value->invoice_id)->first();
-            $account = $account_repo->GetById($invoice->account_id);
-            $bill_cost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;});
-            $applyMinInvoiceAmount = $account->min_invoice_amount != null && $account->min_invoice_amount > $bill_cost;
-            if($applyMinInvoiceAmount)
-                $invoice->min_invoice_amount = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
-            $invoice->bill_cost = number_format(round($bill_cost, 2), 2, '.', '');
-
-            //effective cost is used for all following calculations to prevent having to always check whether to compare against the minimum invoice amount
-            //if the minimum invoice amount is higher than the bill cost, then the minimum invoice amount should be used for all following calculations
-            //otherwise use bill cost as normal
-            $effectiveCost = $applyMinInvoiceAmount ? $invoice->min_invoice_amount : $bill_cost;
-
-            $invoice->bill_start_date = $start_date;
-            $invoice->bill_end_date = $end_date;
-            $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
-            if ($account->gst_exempt)
-                $invoice->tax = number_format(0, 2, '.', '');
-            else
-                $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
-
-            $invoice->total_cost = $invoice->balance_owing = number_format(round($effectiveCost - $invoice->discount + $invoice->tax, 2), 2, '.', '');
-
-            $invoice->save();
+            $invoices[$key] = $this->CalculateInvoiceBalances($value);
         }
+
         return $invoices;
     }
 
@@ -257,9 +264,11 @@ class InvoiceRepo {
         return;
     }
 
-    public function GenerateInvoice($account_id) {
+    public function GenerateInvoice($accountId, $startDate, $endDate) {
         $invoice = [
-            'account_id' => $account_id,
+            'account_id' => $accountId,
+            'bill_start_date' => $startDate,
+            'bill_end_date' => $endDate,
             'date' => date('Y-m-d'),
             'bill_cost' => 0,
             'discount' => 0,
@@ -267,7 +276,31 @@ class InvoiceRepo {
             'total_cost' => 0,
             'balance_owing' => 0
         ];
+
         $new = new Invoice();
         return $new->create($invoice);
+    }
+
+    private function CalculateInvoiceBalances($invoice) {
+        $account = Account::where('account_id', $invoice->account_id)->first();
+        $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
+
+        // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be eqal to that, otherwise
+        // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation
+        $billCost = $effectiveCost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;});
+        if($account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
+            $invoice->min_invoice_amount = $effectiveCost = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
+
+        $invoice->bill_cost = number_format($billCost, 2, '.', '');
+        $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
+        if ($account->gst_exempt)
+            $invoice->tax = number_format(0, 2, '.', '');
+        else
+            $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+        $invoice->total_cost = $effectiveCost + $invoice->tax;
+        $invoice->balance_owing = $invoice->total_cost - $invoice->discount - $paymentTotal;
+
+        $invoice->save();
+        return $invoice;
     }
 }

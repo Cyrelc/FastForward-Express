@@ -62,6 +62,29 @@ class AccountRepo {
         return $filteredAccounts->get();
     }
 
+    public function ListAllForBillsPage() {
+        $accounts = Account::leftjoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
+            ->leftjoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
+            ->select(
+                'accounts.name',
+                'account_id',
+                'account_number',
+                'billing_address.lat as billing_address_lat',
+                'billing_address.lng as billing_address_lng',
+                'billing_address.formatted as billing_address',
+                'billing_address.name as billing_address_name',
+                'billing_address.place_id as billing_address_place_id',
+                'ratesheet_id',
+                'shipping_address.lat as shipping_address_lat',
+                'shipping_address.lng as shipping_address_lng',
+                'shipping_address.formatted as shipping_address',
+                'shipping_address.name as shipping_address_name',
+                'shipping_address.place_id as shipping_address_place_id',
+            );
+
+        return $accounts->get();
+    }
+
     public function ToggleActive($account_id) {
         $account = Account::where('account_id', $account_id)->first();
 

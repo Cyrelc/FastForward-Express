@@ -63,7 +63,7 @@
 			$paymentRepo = new Repos\PaymentRepo();
 			$selectionsRepo = new Repos\SelectionsRepo();
 
-		    $model->accounts = $acctRepo->ListAll();
+		    $model->accounts = $acctRepo->ListAllForBillsPage();
 		    $model->employees = $employeeRepo->ListAllDrivers();
 		    foreach ($model->employees as $employee)
 				$employee->contact = $contactsRepo->GetById($employee->contact_id);
@@ -126,7 +126,7 @@
 
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 
-			$model->accounts = $acctRepo->ListAll();
+			$model->accounts = $acctRepo->ListAllForBillsPage();
 			$model->interliners = $interlinersRepo->ListAll();
 
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);

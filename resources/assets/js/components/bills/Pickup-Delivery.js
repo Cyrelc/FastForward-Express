@@ -96,7 +96,7 @@ export default function Pickup_Delivery(props) {
                         </Col>
                     </Row>
                 }
-                {(props.data.address.type === 'Account' && props.data.account !== '' && props.data.account.custom_field !== null) &&
+                {(props.data.address.type === 'Account' && props.data.account !== '' && props.data.account.custom_field) &&
                     <Row>
                         <Col md={11}>
                             <InputGroup>
