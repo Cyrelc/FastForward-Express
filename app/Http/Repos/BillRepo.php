@@ -316,6 +316,15 @@ class BillRepo {
         return $bills->get();
     }
 
+    public function GetCalendarHeatChart($accountId) {
+        $bills = Bill::select(
+            DB::raw('date_format(time_pickup_scheduled, "%Y-%m-%d") as day'),
+            DB::raw('count(*) as value')
+        )->groupBy('day');
+
+        return $bills->get();
+    }
+
     public function GetPrepaidMonthlyTotals($date) {
         $paymentRepo = new PaymentRepo();
         $prepaidOptions = $paymentRepo->GetPrepaidPaymentTypes();

@@ -55,6 +55,8 @@ Route::group(
             Route::get('/bills/delete/{id}', 'BillController@delete');
             Route::get('/bills/getModel/{id?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
+            Route::get('/bills/assignToInvoice/{billId}/{invoiceId}', 'BillController@assignToInvoice');
+            Route::get('/bills/removeFromInvoice/{billId}', 'BillController@removeFromInvoice');
 
             Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
             Route::get('/chargebacks/edit', 'ChargebackController@edit');

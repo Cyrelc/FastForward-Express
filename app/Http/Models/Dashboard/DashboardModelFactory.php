@@ -26,6 +26,7 @@ class DashboardModelFactory{
         }
         $model->employee_birthdays = $employeeRepo->GetEmployeeBirthdays();
         $model->ytd_chart = $chartModelFactory->GetAdminDashboardChart();
+        $model->calendar_heat_chart = $chartModelFactory->GetCalendarHeatChart();
 
         return $model;
     }

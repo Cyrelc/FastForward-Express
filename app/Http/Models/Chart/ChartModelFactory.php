@@ -46,6 +46,13 @@ class ChartModelFactory {
         return $model;
     }
 
+    public function GetCalendarHeatChart($accountId = null) {
+        $billRepo = new Repos\BillRepo();
+        $bills = $billRepo->GetCalendarHeatChart($accountId);
+
+        return $bills;
+    }
+
     public function GetMonthlyBills($dateGroupBy, $startDate, $endDate, $groupBy, $summationType) {
         if($dateGroupBy === 'day') {
             $startDate = date("Y-m-01", strtotime($startDate));
