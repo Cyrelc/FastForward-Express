@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Button, Col, Tab, Tabs, Row} from 'react-bootstrap'
+import {Button, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
@@ -113,6 +113,12 @@ export default class Employee extends Component {
                     insuranceNumber: data.employee.insurance_number,
                     insuranceExpirationDate: Date.parse(data.employee.insurance_expiration_date)
                 }
+                if(setup.driversLicenseExpirationDate < new Date())
+                    toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(setup.licensePlateExpirationDate < new Date())
+                    toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(setup.insuranceExpirationDate < new Date())
+                    toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
             }
             this.setState(setup)
         })
@@ -133,6 +139,21 @@ export default class Employee extends Component {
         return (
             <span>
                 <Row md={11} className='justify-content-md-center'>
+                    {this.state.driver &&
+                        <Col md={11}>
+                            <ListGroup className='list-group-horizontal' as='ul'>
+                                {this.state.driversLicenseExpirationDate < new Date() &&
+                                    <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
+                                }
+                                {this.state.licensePlateExpirationDate < new Date() &&
+                                    <ListGroup.Item variant='danger'>License Plate Expired</ListGroup.Item>
+                                }
+                                {this.state.insuranceExpirationDate < new Date() &&
+                                    <ListGroup.Item variant='danger'>Insurance Expired</ListGroup.Item>
+                                }
+                            </ListGroup>
+                        </Col>
+                    }
                     <Col md={11}>
                         <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
                             <Tab eventKey='basic' title={<h4>Basic</h4>}>

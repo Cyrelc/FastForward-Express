@@ -76,7 +76,7 @@ class PartialsValidationRules {
             'phone_numbers' => 'required',
             'emails.*.email' => 'required|email|unique:email_addresses,email,' . $req->contact_id . ',contact_id' . ($userId ? '|unique:users,email,' . $userId . ',user_id' : ''),
             'emails.*.is_primary' => 'required',
-            'phone_numbers.*.phone_number' => 'required|numeric',
+            'phone_numbers.*.phone_number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
             'phone_numbers.*.is_primary' => 'required',
             'phone_numbers.*.type' => 'required'
         ];
