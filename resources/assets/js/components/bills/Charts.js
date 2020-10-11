@@ -82,6 +82,7 @@ export default class Charts extends Component {
                                             selected={this.state.startDate}
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
+                                            readOnly={this.state.dateGroupBy.value === 'day'}
                                         />
                                     </InputGroup>
                                 </Col>
@@ -94,7 +95,6 @@ export default class Charts extends Component {
                                             selected={this.state.endDate}
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
-                                            readOnly={this.state.dateGroupBy.value === 'day'}
                                         />
                                     </InputGroup>
                                 </Col>

@@ -25,6 +25,7 @@ class CreateInvoicesTable extends Migration
             $table->float('fuel_surcharge');
             $table->float('discount')->nullable();
             $table->float('min_invoice_amount')->nullable();
+            $table->boolean('finalized')->default(0);
 
 			$table->foreign('account_id')->references('account_id')->on('accounts');
         });

@@ -61,12 +61,13 @@ export default class App extends Component {
                                         type='number'
                                         min='1'
                                         value={this.state.billId}
+                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.billId) window.location.href = '/app/bills/edit/' + this.state.billId}}
                                     />
                                     <InputGroup.Append><Button href={'/app/bills/edit/' + this.state.billId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
                             </NavDropdown>
                             <NavDropdown title='Invoices' id='navbar-invoices'>
-                                <LinkContainer to='/app/invoices'><NavDropdown.Item><i className='fa fa-list'></i> List Invoices</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/invoices?filter[finalized]=false'><NavDropdown.Item><i className='fa fa-list'></i> List Invoices</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/invoices/generate'><NavDropdown.Item><i className='fa fa-plus-square'></i> Generate Invoices</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Invoice ID: </InputGroup.Text></InputGroup.Prepend>
@@ -76,6 +77,7 @@ export default class App extends Component {
                                         type='number'
                                         min='1'
                                         value={this.state.invoiceId}
+                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.invoiceId) window.location.href = '/invoices/view/' + this.state.invoiceId}}
                                     />
                                     <InputGroup.Append><Button href={'/invoices/view/' + this.state.invoiceId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
@@ -89,6 +91,7 @@ export default class App extends Component {
                                         name={'accountId'}
                                         onChange={this.handleChange}
                                         value={this.state.accountId}
+                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.accountId) window.location.href = '/accounts/edit/' + this.state.accountId}}
                                     />
                                     <InputGroup.Append><Button href={'/accounts/edit/' + this.state.accountId}>Go</Button></InputGroup.Append>
                                     <InputGroup.Append><InputGroup.Text><i className="fas fa-question" title="To search by Account Number instead, please enter N followed by the account number, without spaces"></i></InputGroup.Text></InputGroup.Append>
@@ -106,6 +109,7 @@ export default class App extends Component {
                                         name={'employeeId'}
                                         onChange={this.handleChange}
                                         value={this.state.employeeId}
+                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.employeeId) window.location.href = '/app/employees/edit/' + this.state.employeeId}}
                                     />
                                     <InputGroup.Append><Button href={'/app/employees/edit/' + this.state.employeeId}>Go</Button></InputGroup.Append>
                                     <InputGroup.Append><InputGroup.Text><i className="fas fa-question" title="To search by Employee Number instead, please enter N followed by the employee number, without spaces"></i></InputGroup.Text></InputGroup.Append>
@@ -116,6 +120,7 @@ export default class App extends Component {
                                         name={'manifestId'}
                                         onChange={this.handleChange}
                                         value={this.state.manifestId}
+                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.manifestId) window.location.href = '/manifests/view/' + this.state.manifestId}}
                                     />
                                     <InputGroup.Append><Button href={'/manifests/view/' + this.state.manifestId}>Go</Button></InputGroup.Append>
                                 </InputGroup>

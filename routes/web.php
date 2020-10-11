@@ -71,7 +71,6 @@ Route::group(
             Route::get('/employees/buildTable', 'EmployeeController@buildTable');
             Route::get('/employees/emergencyContacts/getModel/{id?}', 'EmployeeController@getEmergencyContactModel');
             Route::post('/employees/emergencyContacts/store/{id?}', 'EmployeeController@storeEmergencyContact');
-            // Route::get('/employees/emergencyContacts/setPrimary/{employee_id}/{contact_id}', 'EmployeeController@setPrimaryEmergencyContact');
             Route::post('/employees/emergencyContacts/delete', 'EmployeeController@deleteEmergencyContact');
             Route::get('/employees/getModel/{id?}', 'EmployeeController@getModel');
             Route::post('/employees/store', 'EmployeeController@store');
@@ -88,9 +87,10 @@ Route::group(
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
-            Route::post('/invoices/printMass', 'InvoiceController@printMass');
+            Route::get('/invoices/printMass/{invoiceIdArray}', 'InvoiceController@printMass');
             Route::get('/invoices/download/{filename}', 'InvoiceController@download');
             Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
+            Route::get('/invoices/finalize/{invoiceIdArray}', 'InvoiceController@finalize');
 
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');

@@ -60,11 +60,13 @@ export default class DateFilterBetween extends Component {
                     <DatePicker
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
+                        endDate={this.state.endDate}
                         isClearable
                         placeholderText='After'
+                        selectsStart
                         selected={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'startDate')}
-                        />
+                    />
                     <InputGroup.Append>
                         <InputGroup.Text>And</InputGroup.Text>
                     </InputGroup.Append>
@@ -73,9 +75,12 @@ export default class DateFilterBetween extends Component {
                         dateFormat='MMMM d, yyyy'
                         isClearable
                         placeholderText='Before'
+                        minDate={this.state.startDate}
                         selected={this.state.endDate}
+                        selectsEnd
+                        startDate={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'endDate')}
-                        />
+                    />
                 </InputGroup>
             </Col>
         )

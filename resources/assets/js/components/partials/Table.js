@@ -164,7 +164,19 @@ export default class Table extends Component {
                                 </Col>
                                 <Col md={2}>
                                     <ButtonGroup>
-                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()} title='Print all items currently visible on the page'>Print <i className='fas fa-print'></i></Button>
+                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
+                                        {this.props.withSelected &&
+                                            <Dropdown>
+                                                <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    {this.props.withSelected.map(menuItem =>
+                                                        <Dropdown.Item
+                                                            onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
+                                                        >{menuItem.label}</Dropdown.Item>
+                                                    )}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        }
                                     </ButtonGroup>
                                 </Col>
                             </Row>
@@ -186,7 +198,6 @@ export default class Table extends Component {
                                 ref={this.state.tableRef}
                                 columns={this.props.columns}
                                 data={this.state.data}
-                                id='dataTable'
                                 initialSort={this.props.initialSort}
                                 maxHeight='80vh'
                                 options={{
@@ -197,6 +208,8 @@ export default class Table extends Component {
                                 }}
                                 printAsHtml={true}
                                 printStyled={true}
+                                selectable={this.props.selectable}
+                                selectableCheck={() => {console.log(this.props.selectable); return this.props.selectable ? true : false}}
                             />
                         </Card.Footer>
                     </Card>

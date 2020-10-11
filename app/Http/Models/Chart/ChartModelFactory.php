@@ -55,8 +55,8 @@ class ChartModelFactory {
 
     public function GetMonthlyBills($dateGroupBy, $startDate, $endDate, $groupBy, $summationType) {
         if($dateGroupBy === 'day') {
-            $startDate = date("Y-m-01", strtotime($startDate));
-            $endDate = date("Y-m-t", strtotime($startDate));
+            $startDate = date("Y-m-01", strtotime($endDate));
+            $endDate = date("Y-m-t", strtotime($endDate));
         } else if ($dateGroupBy === 'month') {
             $startDate = date("Y-m-01", strtotime($startDate));
             $endDate = date("Y-m-t", strtotime($endDate));

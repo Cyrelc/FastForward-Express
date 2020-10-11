@@ -79,7 +79,7 @@ export default class InvoicesGenerate extends Component {
 
     render() {
         function isAccountValidForInvoicing(cell) {
-            const data = cell.getRow().getData()
+            const data = cell.getData()
             if(data.bill_count === 0) {
                 cell.getElement().style.backgroundColor = 'salmon'
                 return 'False - No valid bills'

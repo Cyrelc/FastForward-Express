@@ -56,6 +56,8 @@ class InvoiceRepo {
             throw new \Exception('Bill has already been assigned to an invoice');
         if($bill->charge_account_id != $invoice->account_id && $account->parent_account_id != $invoice->account_id)
             throw new \Exception('Bills can only be assigned to invoices with the same account id or to those with their parent account id; $charge_account_id = ' . $bill->charge_account_id . ' $invoice_account-id = ' . $invoice->account_id . ' $parent_account_id = ' . $account->parent_account_id);
+        if($invoice->finalized === 1)
+            throw new \Exception('Invoice has been finalized and may have been released to the customer already - unable to add bill');
         $bill->invoice_id = $invoice->invoice_id;
         $bill->save();
 
@@ -65,19 +67,23 @@ class InvoiceRepo {
 
     public function ListAll() {
         $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
-            ->select('invoices.invoice_id',
+            ->leftjoin('bills', 'bills.invoice_id', '=', 'invoices.invoice_id')
+            ->leftjoin('payments', 'payments.invoice_id', '=', 'invoices.invoice_id')
+            ->select(
+                'invoices.invoice_id',
                 'accounts.account_id',
                 'accounts.name as account_name',
                 'account_number',
-                'date',
+                'invoices.date as date_run',
                 'bill_start_date',
                 'bill_end_date',
                 'balance_owing',
                 'bill_cost',
                 'total_cost',
-                DB::raw('(select count(*) from bills where invoice_id = invoices.invoice_id) as bill_count'),
-                DB::raw('(select count(*) from payments where invoice_id = invoices.invoice_id) as payment_count')
-            );
+                'finalized',
+                DB::raw('count(distinct bills.bill_id) as bill_count'),
+                DB::raw('count(distinct payments.payment_id) as payment_count')
+            )->groupBy('invoices.invoice_id');
 
         $filteredInvoices = QueryBuilder::for($invoices)
             ->allowedFilters([
@@ -85,8 +91,9 @@ class InvoiceRepo {
                 'account_number',
                 AllowedFilter::custom('balance_owing', new NumberBetween),
                 AllowedFilter::custom('bill_end_date', new DateBetween),
-                AllowedFilter::custom('date', new DateBetween),
-                AllowedFilter::exact('invoice_id')
+                AllowedFilter::custom('date_run', new DateBetween, 'invoices.date'),
+                AllowedFilter::exact('invoice_id'),
+                AllowedFilter::exact('finalized')
             ]);
 
         return $filteredInvoices->get();
@@ -302,5 +309,12 @@ class InvoiceRepo {
 
         $invoice->save();
         return $invoice;
+    }
+
+    public function toggleFinalized($invoiceId) {
+        $invoice = $this->GetById($invoiceId);
+        $invoice->finalized = !filter_var($invoice->finalized, FILTER_VALIDATE_BOOLEAN);
+
+        $invoice->save();
     }
 }

@@ -8,12 +8,6 @@
 
 	class InvoiceModelFactory{
 
-		public function ListAll() {
-			$invoiceRepo = new Repos\InvoiceRepo();
-
-			return $invoiceRepo->ListAll();
-		}
-
 		public function GetById($id) {
 			$model = new InvoiceViewModel();
 

@@ -30,9 +30,17 @@ class InvoiceController extends Controller {
     }
 
     public function buildTable() {
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-        $model = $invoiceModelFactory->ListAll();
-        return json_encode($model);
+        $invoiceRepo = new Repos\InvoiceRepo();
+        return json_encode($invoiceRepo->ListAll());
+    }
+
+    public function finalize($invoiceIds) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoiceIdArray = explode(',', $invoiceIds);
+        foreach($invoiceIdArray as $invoiceId)
+            $invoiceRepo->toggleFinalized($invoiceId);
+
+        return response()->json(['success' => true]);
     }
 
     public function view(Request $req, $id) {
@@ -117,7 +125,7 @@ class InvoiceController extends Controller {
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 
-    public function printMass(Request $req) {
+    public function printMass($invoiceIds) {
         $storagepath = storage_path() . '/app/public/';
         $foldername = 'invoices.' . time();
         mkdir($storagepath . $foldername);
@@ -130,15 +138,15 @@ class InvoiceController extends Controller {
 
         $toBeUnlinked =  array();
 
-        foreach($req->checkboxes as $invoice_id => $value) {
+        foreach(explode(',', $invoiceIds) as $invoiceId) {
             $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-            $model = $invoiceModelFactory->GetById($invoice_id);
+            $model = $invoiceModelFactory->GetById($invoiceId);
             $filename = $model->parent->name . '-' . $model->invoice->invoice_id . '.pdf';
             $is_pdf = 1;
             $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
             $pdf->save($path . $filename, $filename);
             $zip->addFile($path . $filename, $filename);
-            $toBeUnlinked[$invoice_id] = $path . $filename;
+            $toBeUnlinked[$invoiceId] = $path . $filename;
         }
 
         $zip->close();
@@ -147,6 +155,7 @@ class InvoiceController extends Controller {
             unlink($file);
         rmdir($storagepath . $foldername);
 
-        return $foldername . '.zip';
+        // return $foldername . '.zip';
+        return \Response::download($zipfile);
     }
 }
