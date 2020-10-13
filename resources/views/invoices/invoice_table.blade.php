@@ -7,7 +7,7 @@
 <hr/>
 <table style='overflow: visible'>
     <td style='width: 40%; text-align: center'>
-        <h3><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->name}}</a></h3>
+        <h3><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->account_number}} - {{$model->parent->name}}</a></h3>
     </td>
     <td class='basic' >
         <h4>Bill Count:<br/><br/>{{$model->invoice->bill_count}}</h4>

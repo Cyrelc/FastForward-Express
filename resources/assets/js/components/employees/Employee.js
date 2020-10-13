@@ -120,6 +120,8 @@ export default class Employee extends Component {
                     toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
                 if(setup.insuranceExpirationDate < new Date())
                     toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(setup.emergencyContacts.length < 2)
+                    toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
             }
             this.setState(setup)
         })
@@ -153,6 +155,9 @@ export default class Employee extends Component {
                                 }
                                 {this.state.insuranceExpirationDate < new Date() &&
                                     <ListGroup.Item variant='danger'>Insurance Expired</ListGroup.Item>
+                                }
+                                {this.state.emergencyContacts.length < 2 &&
+                                    <ListGroup.Item variant='danger'>Minimum 2 Emergency Contacts Required</ListGroup.Item>
                                 }
                             </ListGroup>
                         </Col>

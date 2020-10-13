@@ -3,6 +3,7 @@ import ReactDom from 'react-dom'
 import { BrowserRouter, Switch, Redirect, Route, Link } from 'react-router-dom'
 import { LinkContainer } from 'react-router-bootstrap'
 import { Button, FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
+import Select from 'react-select'
 
 import Accounts from '../accounts/Accounts'
 import AdminDashboard from '../dashboards/AdminDashboard'
@@ -25,13 +26,25 @@ export default class App extends Component {
     constructor() {
         super()
         this.state =  {
-            accountId: '',
+            account: {},
+            accounts: [],
             billId: '',
             employeeId: '',
             invoiceId: '',
             manifestId: ''
         }
         this.handleChange = this.handleChange.bind(this)
+    }
+
+    componentDidMount() {
+        var accounts = []
+        var employees = []
+        makeFetchRequest('/getList/accounts', response => {
+            this.setState({accounts: response})
+        })
+        makeFetchRequest('/getList/employees', response => {
+            this.setState({employees: response})
+        })
     }
 
     handleChange(event) {
@@ -82,19 +95,15 @@ export default class App extends Component {
                                     <InputGroup.Append><Button href={'/invoices/view/' + this.state.invoiceId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
                             </NavDropdown>
-                            <NavDropdown title='Accounts' id='navbar-accounts'>
+                            <NavDropdown title='Accounts' id='navbar-accounts' alignRight>
                                 <LinkContainer to='/app/accounts'><NavDropdown.Item><i className='fa fa-list'></i> List Accounts</NavDropdown.Item></LinkContainer>
                                 <NavDropdown.Item href='/accounts/create'><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item>
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
+                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '500px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Account ID: </InputGroup.Text></InputGroup.Prepend>
-                                    <FormControl
-                                        name={'accountId'}
-                                        onChange={this.handleChange}
-                                        value={this.state.accountId}
-                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.accountId) window.location.href = '/accounts/edit/' + this.state.accountId}}
+                                    <Select
+                                        options={this.state.accounts}
+                                        onChange={value => window.location.href = '/accounts/edit/' + value.value}
                                     />
-                                    <InputGroup.Append><Button href={'/accounts/edit/' + this.state.accountId}>Go</Button></InputGroup.Append>
-                                    <InputGroup.Append><InputGroup.Text><i className="fas fa-question" title="To search by Account Number instead, please enter N followed by the account number, without spaces"></i></InputGroup.Text></InputGroup.Append>
                                 </InputGroup>
                             </NavDropdown>
                             <NavDropdown title='Employees' id='navbar-employees' alignRight>
@@ -104,17 +113,6 @@ export default class App extends Component {
                                 <LinkContainer to='/app/manifests'><NavDropdown.Item><i className='fas fa-clipboard-list'></i> Manifests</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/manifests/generate'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
-                                    <InputGroup.Prepend><InputGroup.Text>Employee ID: </InputGroup.Text></InputGroup.Prepend>
-                                    <FormControl
-                                        name={'employeeId'}
-                                        onChange={this.handleChange}
-                                        value={this.state.employeeId}
-                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.employeeId) window.location.href = '/app/employees/edit/' + this.state.employeeId}}
-                                    />
-                                    <InputGroup.Append><Button href={'/app/employees/edit/' + this.state.employeeId}>Go</Button></InputGroup.Append>
-                                    <InputGroup.Append><InputGroup.Text><i className="fas fa-question" title="To search by Employee Number instead, please enter N followed by the employee number, without spaces"></i></InputGroup.Text></InputGroup.Append>
-                                </InputGroup>
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Manifest ID: </InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
                                         name={'manifestId'}
@@ -123,6 +121,13 @@ export default class App extends Component {
                                         onKeyPress={event => {if(event.key === 'Enter' && this.state.manifestId) window.location.href = '/manifests/view/' + this.state.manifestId}}
                                     />
                                     <InputGroup.Append><Button href={'/manifests/view/' + this.state.manifestId}>Go</Button></InputGroup.Append>
+                                </InputGroup>
+                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
+                                    <InputGroup.Prepend><InputGroup.Text>Employee ID: </InputGroup.Text></InputGroup.Prepend>
+                                    <Select
+                                        options={this.state.employees}
+                                        onChange={value => window.location.href = '/app/employees/edit/' + value.value}
+                                    />
                                 </InputGroup>
                             </NavDropdown>
                             <LinkContainer to='/app/dispatch'><NavLink>Dispatch</NavLink></LinkContainer>
