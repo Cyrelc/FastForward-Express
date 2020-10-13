@@ -35,9 +35,9 @@ export default class ManifestsGenerate extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        makeAjaxRequest('/manifests/getDriversToManifest', data => {
+        makeAjaxRequest('/manifests/getDriversToManifest', 'GET', data, result => {
             this.setState({
-                employees: JSON.parse(response)
+                employees: JSON.parse(result)
             })
         })
     }
