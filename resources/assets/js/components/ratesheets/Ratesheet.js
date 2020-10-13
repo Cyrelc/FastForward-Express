@@ -60,7 +60,16 @@ export default class Ratesheet extends Component {
                 var timeRates = data.timeRates.map(rate => {
                     return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
                 })
-                this.setState({deliveryTypes: data.deliveryTypes, name: data.name, palletRate: data.palletRate, timeRates: timeRates, weightRates: data.weightRates, zoneRates: data.zoneRates, useInternalZonesCalc: data.useInternalZonesCalc})
+                this.setState({
+                    deliveryTypes: data.deliveryTypes,
+                    key: window.location.hash ? window.location.hash.substr(1) : 'settings',
+                    name: data.name,
+                    palletRate: data.palletRate,
+                    timeRates: timeRates,
+                    weightRates: data.weightRates,
+                    zoneRates: data.zoneRates,
+                    useInternalZonesCalc: data.useInternalZonesCalc
+                })
                 if(params.action === 'edit') {
                     data.mapZones.map(zone => {
                         const coordinates = (() => {
@@ -82,6 +91,12 @@ export default class Ratesheet extends Component {
         })
     }
 
+    componentDidUpdate(prevProps) {
+        const {match: {params}} = this.props
+        if(prevProps.match.params.ratesheetId != params.ratesheetId || prevProps.match.params.action != params.action)
+            window.location.reload()
+    }
+
     handleChange(event, section, id) {
         const {name, value, type, checked} = event.target
         if(section) {
@@ -92,6 +107,8 @@ export default class Ratesheet extends Component {
             })
             this.setState({[section] : updated})
         } else
+        if(name === 'key')
+            window.location.hash = value
         type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value})
     }
 
@@ -329,7 +346,7 @@ export default class Ratesheet extends Component {
         return (
             <Row md={11} className='justify-content-md-center'>
                 <Col md={11}>
-                    <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
+                    <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChange({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='settings' title={<h3><i className='fas fa-cog'></i> Settings</h3>}>
                             <SettingsTab 
                                 name= {this.state.name}

@@ -80,6 +80,7 @@ export default class Employee extends Component {
                 ...initialState,
                 action: params.action,
                 emailTypes: data.contact.email_types,
+                key: window.location.hash ? window.location.hash.substr(1) : 'basic',
                 phoneTypes: data.contact.phone_types,
             }
             if(params.action === 'edit' || params.action === 'view') {
@@ -130,6 +131,8 @@ export default class Employee extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, value, type, checked} = event.target
+            if(name === 'key')
+                window.location.hash = value
             temp[name] = type === 'checkbox' ? checked : value
         })
         this.setState(temp)
@@ -155,7 +158,7 @@ export default class Employee extends Component {
                         </Col>
                     }
                     <Col md={11}>
-                        <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
+                        <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                             <Tab eventKey='basic' title={<h4>Basic</h4>}>
                                 <BasicTab
                                     address={{

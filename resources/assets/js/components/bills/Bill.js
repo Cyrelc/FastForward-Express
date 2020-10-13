@@ -122,7 +122,8 @@ export default class Bill extends Component {
             paymentTypes: data.payment_types,
             readOnly: data.read_only,
             ratesheetId: data.ratesheet_id,
-            repeatIntervals: data.repeat_intervals
+            repeatIntervals: data.repeat_intervals,
+            key: window.location.hash ? window.location.hash.substr(1) : 'basic'
         }
         if(formType === 'edit' || formType === 'view')
             setup = {...setup,
@@ -200,6 +201,12 @@ export default class Bill extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        const {match: {params}} = this.props
+        if(prevProps.match.params.billId != params.billId || prevProps.match.params.action != params.action)
+            window.location.reload()
+    }
+
     deletePackage(packageId) {
         if(this.state.packages.length <= 1)
             return
@@ -275,6 +282,7 @@ export default class Bill extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, value, type, checked} = event.target
+            console.log(name, value)
             switch(name) {
                 case 'applyRestrictions':
                     temp = this.handleApplyRestrictionsEvent(temp, event);
@@ -288,6 +296,10 @@ export default class Bill extends Component {
                 case 'deliveryReferenceValue':
                 case 'chargeReferenceValue':
                     temp = this.handleReferenceValueEvent(temp, event)
+                    break
+                case 'key':
+                    temp = {'key': value}
+                    window.location.hash = value
                     break
                 case 'packageCount':
                 case 'packageWeight':
@@ -507,7 +519,7 @@ export default class Bill extends Component {
                         </ListGroup>
                     </Col>
                     <Col md={11}>
-                        <Tabs id='bill-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.setState({key})}>
+                        <Tabs id='bill-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                             <Tab eventKey='basic' title={<h4>Pickup/Delivery Info  <i className='fas fa-map-pin'></i></h4>}>
                                 <BasicTab
                                     //mutable values

@@ -30,26 +30,28 @@ class AccountRepo {
                     ->where('account_users.is_primary', '=', 1);
             })
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
-            ->select('accounts.account_id',
-                    'accounts.custom_field as custom_field',
-                    'accounts.name',
-                    'accounts.account_number',
-                    'parent.name as parent_name',
-                    'parent.account_id as parent_id',
-                    'accounts.active',
-                    'accounts.invoice_interval',
-                    'accounts.ratesheet_id',
-                    'shipping_address.name as shipping_address_name',
-                    'shipping_address.formatted as shipping_address',
-                    'shipping_address.lat as shipping_address_lat',
-                    'shipping_address.lng as shipping_address_lng',
-                    'shipping_address.place_id as shipping_address_place_id',
-                    'billing_address.name as billing_address_name',
-                    'billing_address.formatted as billing_address',
-                    'billing_address.lat as billing_address_lat',
-                    'billing_address.lng as billing_address_lng',
-                    'billing_address.place_id as billing_address_place_id',
-                    DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'));
+            ->select(
+                'accounts.account_id',
+                'accounts.custom_field as custom_field',
+                'accounts.name',
+                'accounts.account_number',
+                'parent.name as parent_name',
+                'parent.account_id as parent_id',
+                'accounts.active',
+                'accounts.invoice_interval',
+                'accounts.ratesheet_id',
+                'shipping_address.name as shipping_address_name',
+                'shipping_address.formatted as shipping_address',
+                'shipping_address.lat as shipping_address_lat',
+                'shipping_address.lng as shipping_address_lng',
+                'shipping_address.place_id as shipping_address_place_id',
+                'billing_address.name as billing_address_name',
+                'billing_address.formatted as billing_address',
+                'billing_address.lat as billing_address_lat',
+                'billing_address.lng as billing_address_lng',
+                'billing_address.place_id as billing_address_place_id',
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name')
+            );
 
         $filteredAccounts = QueryBuilder::for($accounts)
             ->allowedFilters([
