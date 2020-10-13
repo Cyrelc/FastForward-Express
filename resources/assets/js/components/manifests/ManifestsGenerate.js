@@ -66,6 +66,7 @@ export default class ManifestsGenerate extends Component {
 
     render() {
         const columns = [
+            {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
             {title: 'Employee ID', field: 'employee_id'},
             {title: 'Employee Number', field: 'employee_number'},
             {title: 'Employee Name', formatter: (cell) => {return cell.getRow().getData().contact.first_name + ' ' + cell.getRow().getData().contact.last_name}},
@@ -128,7 +129,8 @@ export default class ManifestsGenerate extends Component {
                                 layout: 'fitColumns',
                                 maxHeight: '80vh'
                             }}
-                            selectable={true}
+                            selectable='highlight'
+                            selectableCheck={() => {return true}}
                         />
                     }
                 </Card.Footer>
