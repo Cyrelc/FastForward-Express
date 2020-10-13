@@ -49,11 +49,15 @@ class ChargebackRepo {
         return;
     }
 
-    public function GetActiveByEmployeeId($employee_id, $start_date = '9999-01-01') {
-        $chargebacks = Chargeback::where('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('count_remaining', '>', 0)
-                        ->orWhere('employee_id', $employee_id)->whereDate('start_date', '<=', $start_date)->where('continuous', true)->get();
+    public function GetActiveByEmployeeId($employeeId, $startDate = '9999-12-31') {
+        $chargebacks = Chargeback::where('employee_id', $employeeId)
+            ->whereDate('start_date', '<=', $startDate)
+            ->where(function($query) {
+                $query->where('count_remaining', '>', 0)
+                ->orWhere('continuous', 1);
+            });
 
-        return $chargebacks;
+        return $chargebacks->get();
     }
 
     public function GetById($chargeback_id) {
@@ -79,8 +83,7 @@ class ChargebackRepo {
 
     public function RunChargebacksForManifest($manifest) {
         $employeeRepo = new EmployeeRepo();
-        $employeeId = $employeeRepo->GetById($manifest->employee_id);
-        $chargebacks = $this->GetActiveByEmployeeId($employeeId, $manifest->date_run);
+        $chargebacks = $this->GetActiveByEmployeeId($manifest->employee_id, $manifest->date_run);
         foreach($chargebacks as $chargeback) {
             $new = new DriverChargeback;
             $new->chargeback_id = $chargeback->chargeback_id;
