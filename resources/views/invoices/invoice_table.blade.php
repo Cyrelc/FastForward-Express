@@ -79,7 +79,7 @@
                     <tr>
                         @foreach($table->headers as $key => $value)
                             @if($value == 'amount')
-                                <td class='amount'>{{$bill->$value}}</td>
+                                <td class='amount' width='10%'>{{$bill->$value}}</td>
                             @elseif($value == 'address')
                                 <td class='address'>
                                     @if($bill->charge_account_id != $bill->pickup_account_id)
@@ -89,9 +89,9 @@
                                     @endif
                                 </td>
                             @elseif($value == 'bill_id')
-                                <td class='bill_id'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
+                                <td class='bill_id' width='10%'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
                             @else
-                                <td>{{$bill->$value}}</td>
+                                <td width='10%'>{{$bill->$value}}</td>
                             @endif
                         @endforeach
                     </tr>

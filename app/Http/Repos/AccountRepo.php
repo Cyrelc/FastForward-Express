@@ -30,6 +30,10 @@ class AccountRepo {
                     ->where('account_users.is_primary', '=', 1);
             })
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('phone_numbers', function($join) {
+                $join->on('phone_numbers.contact_id', '=', 'contacts.contact_id')
+                ->where('phone_numbers.is_primary', 1);
+            })
             ->select(
                 'accounts.account_id',
                 'accounts.custom_field as custom_field',
@@ -50,11 +54,13 @@ class AccountRepo {
                 'billing_address.lat as billing_address_lat',
                 'billing_address.lng as billing_address_lng',
                 'billing_address.place_id as billing_address_place_id',
-                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name')
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'),
+                'phone_numbers.phone_number as primary_contact_phone'
             );
 
         $filteredAccounts = QueryBuilder::for($accounts)
             ->allowedFilters([
+                AllowedFilter::exact('account_id', 'accounts.account_id'),
                 AllowedFilter::exact('active', 'accounts.active'),
                 AllowedFilter::custom('has_parent', new IsNull(), 'accounts.parent_account_id'),
                 AllowedFilter::exact('parent_id', 'accounts.parent_account_id'),

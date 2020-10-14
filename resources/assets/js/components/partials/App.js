@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
-import { BrowserRouter, Switch, Redirect, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect, withRouter } from 'react-router-dom'
 import { LinkContainer } from 'react-router-bootstrap'
 import { Button, FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
 import Select from 'react-select'
@@ -15,6 +15,7 @@ import Dispatch from '../dispatch/Dispatch'
 import Employee from '../employees/Employee'
 import Employees from '../employees/Employees'
 import Interliners from '../interliners/Interliners'
+import Invoice from '../invoices/Invoice'
 import Invoices from '../invoices/Invoices'
 import InvoiceGenerate from '../invoices/InvoicesGenerate'
 import Manifests from '../manifests/Manifests'
@@ -66,7 +67,7 @@ export default class App extends Component {
                                 <LinkContainer to='/app/bills?filter[percentage_complete]=,1'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '250px'}}>
+                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Bill ID: </InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
                                         name={'billId'}
@@ -74,9 +75,11 @@ export default class App extends Component {
                                         type='number'
                                         min='1'
                                         value={this.state.billId}
-                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.billId) window.location.href = '/app/bills/edit/' + this.state.billId}}
+                                        onKeyPress={event => {
+                                            if(event.key === 'Enter' && this.state.billId)
+                                                this.setState({redirect: '/app/bills/edit/' + this.state.billId, billId: ''})
+                                        }}
                                     />
-                                    <InputGroup.Append><Button href={'/app/bills/edit/' + this.state.billId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
                             </NavDropdown>
                             <NavDropdown title='Invoices' id='navbar-invoices'>
@@ -90,9 +93,11 @@ export default class App extends Component {
                                         type='number'
                                         min='1'
                                         value={this.state.invoiceId}
-                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.invoiceId) window.location.href = '/invoices/view/' + this.state.invoiceId}}
+                                        onKeyPress={event => {
+                                            if(event.key === 'Enter' && this.state.invoiceId)
+                                                this.setState({redirect: '/invoices/view/' + this.state.invoiceId, invoiceId: ''})
+                                        }}
                                     />
-                                    <InputGroup.Append><Button href={'/invoices/view/' + this.state.invoiceId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
                             </NavDropdown>
                             <NavDropdown title='Accounts' id='navbar-accounts' alignRight>
@@ -118,15 +123,18 @@ export default class App extends Component {
                                         name={'manifestId'}
                                         onChange={this.handleChange}
                                         value={this.state.manifestId}
-                                        onKeyPress={event => {if(event.key === 'Enter' && this.state.manifestId) window.location.href = '/manifests/view/' + this.state.manifestId}}
+                                        onKeyPress={event => {
+                                            if(event.key === 'Enter' && this.state.manifestId)
+                                                window.location.href = '/manifests/view/' + this.state.manifestId
+                                                // this.setState({redirect: '/manifests/view/' + this.state.manifestId, manifestId: ''})
+                                        }}
                                     />
-                                    <InputGroup.Append><Button href={'/manifests/view/' + this.state.manifestId}>Go</Button></InputGroup.Append>
                                 </InputGroup>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Employee ID: </InputGroup.Text></InputGroup.Prepend>
                                     <Select
                                         options={this.state.employees}
-                                        onChange={value => window.location.href = '/app/employees/edit/' + value.value}
+                                        onChange={value => this.setState({redirect: '/app/employees/edit/' + value.value})}
                                     />
                                 </InputGroup>
                             </NavDropdown>
@@ -153,6 +161,7 @@ export default class App extends Component {
                     <Route path='/app/interliners' component={Interliners}></Route>
                     <Route path='/app/invoices' exact component={Invoices}></Route>
                     <Route path='/app/invoices/generate' exact component={InvoiceGenerate}></Route>
+                    <Route path='/app/invoices/view/:invoiceId' component={Invoice}></Route>
                     <Route path='/app/employees' exact component={Employees}></Route>
                     <Route path='/app/employees/:action/:employeeId?' component={Employee}></Route>
                     <Route path='/app/manifests' exact component={Manifests}></Route>
@@ -160,6 +169,9 @@ export default class App extends Component {
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>
                     <Route path='/app/ratesheets/:action/:ratesheetId?' component={Ratesheet}></Route>
                 </Switch>
+                {this.state.redirect &&
+                    <Redirect to={this.state.redirect}></Redirect>
+                }
             </BrowserRouter>
         )
     }

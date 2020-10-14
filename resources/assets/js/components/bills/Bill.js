@@ -1,96 +1,100 @@
 import React, {Component} from 'react'
 import {Button, Col, Dropdown, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
+import {Redirect} from 'react-router-dom'
 
 import BasicTab from './BasicTab'
 import DispatchTab from './DispatchTab'
 import BillingTab from './BillingTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
 
+const initialState = {
+    //basic information
+    admin: false,
+    amount: '',
+    applyRestrictions: true,
+    billId: null,
+    billNumber: '',
+    businessHoursMin: '',
+    businessHoursMax: '',
+    chargeAccount: undefined,
+    chargeReferenceValue: '',
+    chargeEmployee: undefined,
+    deliveryType: 'regular',
+    description: '',
+    incompleteFields: '',
+    key: 'basic',
+    packages: [],
+    packageIsMinimum: false,
+    packageIsPallet: false,
+    paymentType: '',
+    readOnly: true,
+    repeatIntervals: [],
+    skipInvoicing: false,
+    timeCallReceived: null,
+    timeDispatched: null,
+    useImperial: false,
+    //editONLY
+    invoiceId: null,
+    deliveryManifestId: null,
+    pickupManifestId: null,
+    percentComplete: null,
+    incompleteFields: null,
+    repeatIntervals: {},
+    //delivery
+    deliveryAccount: '',
+    deliveryAddressFormatted: '',
+    deliveryAddressLat: '',
+    deliveryAddressLng: '',
+    deliveryAddressName: '',
+    deliveryAddressPlaceId: null,
+    deliveryAddressType: 'Address',
+    deliveryEmployeeCommission: '',
+    deliveryEmployee: null,
+    deliveryReferenceValue: '',
+    deliveryTimeActual: null,
+    deliveryTimeExpected: null,
+    deliveryTimeMax: null,
+    deliveryTimeMin: null,
+    //pickup
+    pickupAccount: '',
+    pickupAddressFormatted: '',
+    pickupAddressLat: '',
+    pickupAddressLng: '',
+    pickupAddressName: '',
+    pickupAddressPlaceId: null,
+    pickupAddressType: 'Address',
+    pickupEmployeeCommission: '',
+    pickupEmployee: null,
+    pickupReferenceValue: '',
+    pickupTimeActual: null,
+    pickupTimeExpected: null,
+    pickupTimeMax: null,
+    pickupTimeMin: null,
+    //interliner
+    interliner: undefined,
+    interlinerActualCost: '',
+    interlinerTrackingId: '',
+    interlinerCostToCustomer: '',
+    //ratesheet
+    deliveryTypes: undefined,
+    ratesheetId: '',
+    weightRates: undefined,
+    timeRates: undefined,
+    //immutable lists
+    accounts: undefined,
+    activityLog: undefined,
+    addressTypes: ['Address', 'Account'],
+    drivers: undefined,
+    timeRates: undefined,
+    interliners: undefined,
+    paymentTypes: undefined,
+}
+
 export default class Bill extends Component {
     constructor() {
         super()
         this.state = {
-            //basic information
-            admin: false,
-            amount: '',
-            applyRestrictions: true,
-            billId: null,
-            billNumber: '',
-            businessHoursMin: '',
-            businessHoursMax: '',
-            chargeAccount: undefined,
-            chargeReferenceValue: '',
-            chargeEmployee: undefined,
-            deliveryType: 'regular',
-            description: '',
-            formType: 'create',
-            incompleteFields: '',
-            key: 'basic',
-            packages: [],
-            packageIsMinimum: false,
-            packageIsPallet: false,
-            paymentType: '',
-            readOnly: true,
-            repeatIntervals: [],
-            skipInvoicing: false,
-            timeCallReceived: null,
-            timeDispatched: null,
-            useImperial: false,
-            //editONLY
-            invoiceId: null,
-            deliveryManifestId: null,
-            pickupManifestId: null,
-            percentComplete: null,
-            incompleteFields: null,
-            repeatIntervals: {},
-            //delivery
-            deliveryAccount: '',
-            deliveryAddressFormatted: '',
-            deliveryAddressLat: '',
-            deliveryAddressLng: '',
-            deliveryAddressName: '',
-            deliveryAddressPlaceId: null,
-            deliveryAddressType: 'Address',
-            deliveryEmployeeCommission: '',
-            deliveryEmployee: null,
-            deliveryReferenceValue: '',
-            deliveryTimeActual: null,
-            deliveryTimeExpected: null,
-            deliveryTimeMax: null,
-            deliveryTimeMin: null,
-            //pickup
-            pickupAccount: '',
-            pickupAddressFormatted: '',
-            pickupAddressLat: '', 
-            pickupAddressLng: '',
-            pickupAddressName: '',
-            pickupAddressPlaceId: null,
-            pickupAddressType: 'Address',
-            pickupEmployeeCommission: '',
-            pickupEmployee: null,
-            pickupReferenceValue: '',
-            pickupTimeActual: null,
-            pickupTimeExpected: null,
-            pickupTimeMax: null,
-            pickupTimeMin: null,
-            //interliner
-            interliner: undefined,
-            interlinerActualCost: '',
-            interlinerTrackingId: '',
-            interlinerCostToCustomer: '',
-            //ratesheet
-            deliveryTypes: undefined,
-            ratesheetId: '',
-            weightRates: undefined,
-            timeRates: undefined,
-            //immutable lists
-            accounts: undefined,
-            activityLog: undefined,
-            addressTypes: ['Address', 'Account'],
-            drivers: undefined,
-            timeRates: undefined,
-            interliners: undefined,
-            paymentTypes: undefined,
+            ...initialState
         }
         this.addPackage = this.addPackage.bind(this)
         this.deletePackage = this.deletePackage.bind(this)
@@ -107,104 +111,102 @@ export default class Bill extends Component {
         this.setState({packages: packages})
     }
 
-    configureBill(data, formType = 'create') {
-        // the setup that happens regardless of new or edit
-        var setup = {
-            accounts: data.accounts,
-            admin: data.admin,
-            businessHoursMin: Date.parse(data.time_min.date),
-            businessHoursMax: Date.parse(data.time_max.date),
-            drivers: data.employees, 
-            deliveryTypes: data.delivery_types,
-            interliners: data.interliners,
-            packages: data.packages,
-            packageIsMinimum: data.admin,
-            paymentTypes: data.payment_types,
-            readOnly: data.read_only,
-            ratesheetId: data.ratesheet_id,
-            repeatIntervals: data.repeat_intervals,
-            key: window.location.hash ? window.location.hash.substr(1) : 'basic'
-        }
-        if(formType === 'edit' || formType === 'view')
-            setup = {...setup,
-                activityLog: data.activity_log,
-                amount: data.bill.amount,
-                billId: data.bill.bill_id,
-                billNumber: data.bill.bill_number,
-                chargeAccount: data.accounts.find(account => account.account_id === data.bill.charge_account_id),
-                chargeReferenceValue: data.bill.charge_reference_value,
-                chargeEmployee: data.chargeback ? data.employees.find(employee => employee.employee_id === data.chargeback.employee_id) : undefined,
-                description: data.bill.description,
-                formType: formType,
-                packages: data.bill.packages,
-                packageIsMinimum: data.bill.is_min_weight_size,
-                packageIsPallet: data.bill.is_pallet,
-                paymentType: data.payment_types.find(payment_type => payment_type.payment_type_id === data.bill.payment_type_id),
-                timeCallReceived: Date.parse(data.bill.time_call_received),
-                timeDispatched: data.bill.time_dispatched ? Date.parse(data.bill.time_dispatched) : null,
-                useImperial: data.bill.use_imperial,
-                incompleteFields: data.bill.incomplete_fields,
-                invoiceId: data.bill.invoice_id,
-                deliveryManifestId: data.bill.delivery_manifest_id,
-                pickupManifestId: data.bill.pickup_manifest_id,
-                percentComplete: data.bill.percentage_complete,
-                deliveryAccount: data.bill.delivery_account_id ? data.accounts.find(account => account.account_id === data.bill.delivery_account_id) : '',
-                deliveryAddressFormatted: data.delivery_address.formatted,
-                deliveryAddressLat: data.delivery_address.lat,
-                deliveryAddressLng: data.delivery_address.lng,
-                deliveryAddressName: data.delivery_address.name,
-                deliveryAddressPlaceId: data.delivery_address.place_id,
-                deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
-                deliveryEmployeeCommission: data.bill.delivery_driver_commission,
-                deliveryEmployee: data.employees.find(employee => employee.employee_id === data.bill.delivery_driver_id),
-                deliveryReferenceValue: data.bill.delivery_reference_value,
-                deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
-                deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
-                deliveryType: data.bill.delivery_type,
-                interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
-                interlinerActualCost: data.bill.interliner_cost,
-                interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
-                interlinerTrackingId: data.bill.interliner_reference_value,
-                pickupAccount: data.bill.pickup_account_id ? data.accounts.find(account => account.account_id === data.bill.pickup_account_id) : '',
-                pickupAddressFormatted: data.pickup_address.formatted,
-                pickupAddressLat: data.pickup_address.lat,
-                pickupAddressLng: data.pickup_address.lng,
-                pickupAddressName: data.pickup_address.name,
-                pickupAddressPlaceId: data.pickup_address.place_id,
-                pickupAddressType: data.bill.pickup_account_id === null ? 'Address' : 'Account',
-                pickupEmployee: data.employees.find(employee => employee.employee_id === data.bill.pickup_driver_id),
-                pickupEmployeeCommission: data.bill.pickup_driver_commission,
-                pickupReferenceValue: data.bill.pickup_reference_value,
-                pickupTimeActual: data.bill.time_picked_up ? Date.parse(data.bill.time_picked_up) : null,
-                pickupTimeExpected: Date.parse(data.bill.time_pickup_scheduled),
-                readOnly: data.read_only,
-                repeatInterval: data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval),
-                skipInvoicing: data.bill.skip_invoicing,
-            }
+    configureBill() {
+        const {match: {params}} = this.props
 
-        this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
+        var fetchUrl = '/bills/getModel'
+        if(params.action === 'edit' || params.action === 'view') {
+            document.title = params.action === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
+            fetchUrl += '/' + params.billId
+        } else {
+            document.title = 'Create Bill - ' + document.title
+        }
+        makeAjaxRequest(fetchUrl, 'GET', null, data => {
+            data = JSON.parse(data)
+            // the setup that happens regardless of new or edit
+            var setup = {
+                ...initialState,
+                accounts: data.accounts,
+                admin: data.admin,
+                businessHoursMin: Date.parse(data.time_min.date),
+                businessHoursMax: Date.parse(data.time_max.date),
+                drivers: data.employees,
+                deliveryTypes: data.delivery_types,
+                interliners: data.interliners,
+                packages: data.packages,
+                packageIsMinimum: data.admin,
+                paymentTypes: data.payment_types,
+                readOnly: data.read_only,
+                ratesheetId: data.ratesheet_id,
+                repeatIntervals: data.repeat_intervals,
+                key: window.location.hash ? window.location.hash.substr(1) : 'basic'
+            }
+            if(params.action === 'edit' || params.action === 'view')
+                setup = {...setup,
+                    activityLog: data.activity_log,
+                    amount: data.bill.amount,
+                    billId: data.bill.bill_id,
+                    billNumber: data.bill.bill_number,
+                    chargeAccount: data.accounts.find(account => account.account_id === data.bill.charge_account_id),
+                    chargeReferenceValue: data.bill.charge_reference_value,
+                    chargeEmployee: data.chargeback ? data.employees.find(employee => employee.employee_id === data.chargeback.employee_id) : undefined,
+                    description: data.bill.description,
+                    packages: data.bill.packages,
+                    packageIsMinimum: data.bill.is_min_weight_size,
+                    packageIsPallet: data.bill.is_pallet,
+                    paymentType: data.payment_types.find(payment_type => payment_type.payment_type_id === data.bill.payment_type_id),
+                    timeCallReceived: Date.parse(data.bill.time_call_received),
+                    timeDispatched: data.bill.time_dispatched ? Date.parse(data.bill.time_dispatched) : null,
+                    useImperial: data.bill.use_imperial,
+                    incompleteFields: data.bill.incomplete_fields,
+                    invoiceId: data.bill.invoice_id,
+                    deliveryManifestId: data.bill.delivery_manifest_id,
+                    pickupManifestId: data.bill.pickup_manifest_id,
+                    percentComplete: data.bill.percentage_complete,
+                    deliveryAccount: data.bill.delivery_account_id ? data.accounts.find(account => account.account_id === data.bill.delivery_account_id) : '',
+                    deliveryAddressFormatted: data.delivery_address.formatted,
+                    deliveryAddressLat: data.delivery_address.lat,
+                    deliveryAddressLng: data.delivery_address.lng,
+                    deliveryAddressName: data.delivery_address.name,
+                    deliveryAddressPlaceId: data.delivery_address.place_id,
+                    deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
+                    deliveryEmployeeCommission: data.bill.delivery_driver_commission,
+                    deliveryEmployee: data.employees.find(employee => employee.employee_id === data.bill.delivery_driver_id),
+                    deliveryReferenceValue: data.bill.delivery_reference_value,
+                    deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
+                    deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
+                    deliveryType: data.bill.delivery_type,
+                    interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
+                    interlinerActualCost: data.bill.interliner_cost,
+                    interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
+                    interlinerTrackingId: data.bill.interliner_reference_value,
+                    pickupAccount: data.bill.pickup_account_id ? data.accounts.find(account => account.account_id === data.bill.pickup_account_id) : '',
+                    pickupAddressFormatted: data.pickup_address.formatted,
+                    pickupAddressLat: data.pickup_address.lat,
+                    pickupAddressLng: data.pickup_address.lng,
+                    pickupAddressName: data.pickup_address.name,
+                    pickupAddressPlaceId: data.pickup_address.place_id,
+                    pickupAddressType: data.bill.pickup_account_id === null ? 'Address' : 'Account',
+                    pickupEmployee: data.employees.find(employee => employee.employee_id === data.bill.pickup_driver_id),
+                    pickupEmployeeCommission: data.bill.pickup_driver_commission,
+                    pickupReferenceValue: data.bill.pickup_reference_value,
+                    pickupTimeActual: data.bill.time_picked_up ? Date.parse(data.bill.time_picked_up) : null,
+                    pickupTimeExpected: Date.parse(data.bill.time_pickup_scheduled),
+                    readOnly: data.read_only,
+                    repeatInterval: data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval),
+                    skipInvoicing: data.bill.skip_invoicing,
+                }
+                this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
+            })
     }
 
     componentDidMount() {
-        const {match: {params}} = this.props
-
-        if(params.action === 'edit' || params.action === 'view') {
-            document.title = params.action === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
-            makeFetchRequest('/bills/getModel/' + params.billId, data => {
-                this.configureBill(data, params.action)
-            })
-        } else {
-            document.title = 'Create Bill - ' + document.title
-            makeFetchRequest('/bills/getModel', data => {
-                this.configureBill(data)
-            })
-        }
+        this.configureBill()
     }
 
     componentDidUpdate(prevProps) {
-        const {match: {params}} = this.props
-        if(prevProps.match.params.billId != params.billId || prevProps.match.params.action != params.action)
-            window.location.reload()
+        if(prevProps.location != this.props.location)
+            this.configureBill()
     }
 
     deletePackage(packageId) {
@@ -215,7 +217,8 @@ export default class Bill extends Component {
     }
 
     getRatesheet(id, initialize = false) {
-        makeFetchRequest('/ratesheets/getModel/' + id, data => {
+        makeAjaxRequest('/ratesheets/getModel/' + id + '?withoutMapZones', 'GET', null, data => {
+            data = JSON.parse(data)
             var deliveryType
             if(initialize)
                 deliveryType = data.deliveryTypes.find(type => type.id === this.state.deliveryType)
@@ -224,7 +227,7 @@ export default class Bill extends Component {
                 deliveryTypes: data.deliveryTypes,
                 deliveryType: deliveryType
             }
-            if(this.state.formType === 'create')
+            if(this.props.match.params.action === 'create')
                 this.setState(ratesheet,
                     () => this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes()}})
                 )
@@ -483,18 +486,19 @@ export default class Bill extends Component {
                                                         type='number'
                                                         value={this.state.assignBillToInvoiceId}
                                                         onChange={this.handleChanges}
+                                                        onKeyPress={event => {
+                                                            if(event.key === 'Enter' && this.state.assignBillToInvoiceId)
+                                                                makeAjaxRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, 'GET', null, response => {
+                                                                    this.setState({invoiceId: this.state.assignBillToInvoiceId})
+                                                                })
+                                                        }}
                                                     />
                                                     <InputGroup.Append>
                                                         <Button
                                                             disabled={!this.state.assignBillToInvoiceId}
-                                                            onClick={() => makeFetchRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, () => {
-                                                                console.log('success but only in theory apparently')
+                                                            onClick={() => makeAjaxRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, 'GET', null, () => {
                                                                 toastr.clear()
-                                                                toastr.success('Bill linked to invoice ' + this.state.assignBillToInvoiceId, 'Success', {
-                                                                    'progressBar': true,
-                                                                    'showDuration': 500,
-                                                                    'onHidden': function(){location.reload()}
-                                                                })
+                                                                toastr.success('Bill linked to invoice ' + this.state.assignBillToInvoiceId, 'Success')
                                                             })}
                                                         ><i className='fas fa-link'></i> Assign Bill To Invoice</Button>
                                                     </InputGroup.Append>
@@ -503,13 +507,11 @@ export default class Bill extends Component {
                                             {this.state.invoiceId != null &&
                                                 <Dropdown.Item
                                                     name='detatchBillFromInvoice'
-                                                    onClick={() => makeFetchRequest('/bills/removeFromInvoice/' + this.state.billId,
-                                                        () => {toastr.clear(); toastr.success('Bill successfully removed from invoice', 'Success', {
-                                                            'progressBar': true,
-                                                            'showDuration': 500,
-                                                            'onHidden': function(){location.reload()}
-                                                        }
-                                                    )})}
+                                                    onClick={() => makeAjaxRequest('/bills/removeFromInvoice/' + this.state.billId, 'GET', null, response => {
+                                                        toastr.clear();
+                                                        this.setState({invoiceId: null})
+                                                        toastr.success('Bill successfully removed from invoice', 'Success')
+                                                    })}
                                                 ><i className='fas fa-unlink'></i> Detach Bill From Invoice</Dropdown.Item>
                                             }
                                         </Dropdown.Menu>

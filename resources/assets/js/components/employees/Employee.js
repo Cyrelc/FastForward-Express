@@ -67,9 +67,8 @@ export default class Employee extends Component {
 
     configureEmployee() {
         const {match: {params}} = this.props
-        console.log('Params.employeeId = ' + params.employeeId)
         var fetchUrl = '/employees/getModel'
-        if(params.action ==='edit' || params.action === 'view') {
+        if(params.action === 'edit' || params.action === 'view') {
             document.title = params.action === 'edit' ? 'Edit Employee - ' + document.title : 'View Employee - ' + document.title
             fetchUrl += '/' + params.employeeId
         } else {
@@ -114,6 +113,7 @@ export default class Employee extends Component {
                     insuranceNumber: data.employee.insurance_number,
                     insuranceExpirationDate: Date.parse(data.employee.insurance_expiration_date)
                 }
+                toastr.clear()
                 if(setup.driversLicenseExpirationDate < new Date())
                     toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
                 if(setup.licensePlateExpirationDate < new Date())

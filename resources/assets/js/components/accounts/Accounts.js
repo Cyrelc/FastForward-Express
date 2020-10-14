@@ -25,6 +25,7 @@ const columns = [
     {title: 'Account Name', field: 'name', formatter: 'link', formatterParams:{url: (cell) => {return '/accounts/edit/' + cell.getRow().getData().account_id}}},
     {title: 'Invoice Interval', field: 'invoice_interval'},
     {title: 'Primary Contact', field: 'primary_contact_name'},
+    {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
     {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
     {title: 'Shipping Address', field: 'shipping_address', visible: false},
     {title: 'Billing Address Name', field: 'billing_address_name'},
@@ -32,6 +33,13 @@ const columns = [
 ]
 
 const filters = [
+    {
+        name: 'Account',
+        value: 'account_id',
+        type: 'SelectFilter',
+        isMulti: true,
+        fetchUrl: '/getList/accounts'
+    },
     {
         name: 'Active',
         value: 'active',

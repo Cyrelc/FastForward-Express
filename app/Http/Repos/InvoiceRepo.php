@@ -50,6 +50,8 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', $invoiceId)->first();
         $account = Account::where('account_id', $bill->charge_account_id)->first();
 
+        if($invoice === null)
+            throw new \Exception('Invoice does not exist');
         if($bill->percentage_complete != 1)
             throw new \Exception('Bill must be completed before invoicing');
         if($bill->invoice_id != null)

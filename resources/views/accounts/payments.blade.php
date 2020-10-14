@@ -52,7 +52,7 @@
                             <div class='col-md-6'>
                                 <div class='input-group bottom15'>
                                     <span class='input-group-addon'>Credit Amount: $</span>
-                                    <input type='number' min='0' step='0.01' class='form-control' id='credit_amount' name='credit_amount' placeholder='Credit Amount' />
+                                    <input type='number' step='0.01' class='form-control' id='credit_amount' name='credit_amount' placeholder='Credit Amount' />
                                 </div>
                             </div>
                             <div class='col-md-6'>
@@ -78,7 +78,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- payment modal -->
 <div id='payment_modal' class='modal fade' role='dialog'>
