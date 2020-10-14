@@ -60,8 +60,7 @@ export default class Employee extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const {match: {params}} = this.props
-        if(params.action != this.state.action || (params.employeeId != this.state.employeeId && params.employeeId.toUpperCase() != 'N' + this.state.employeeNumber))
+        if(prevProps.location.pathname != this.props.location.pathname)
             this.configureEmployee()
     }
 

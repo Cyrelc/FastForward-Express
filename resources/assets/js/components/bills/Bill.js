@@ -205,7 +205,7 @@ export default class Bill extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if(prevProps.location != this.props.location)
+        if(prevProps.location.pathname != this.props.location.pathname)
             this.configureBill()
     }
 
