@@ -24,8 +24,11 @@ export default class Address extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if(this.props.address.lat !== prevProps.address.lat || this.props.address.lng != prevProps.address.lng)
+        if(this.props.address.lat !== prevProps.address.lat || this.props.address.lng != prevProps.address.lng) {
+            if(this.props.address.lat === '' && this.props.address.lng === '')
+                $('#' + this.props.id + '-search').val('')
             this.drawMap()
+        }
         if(prevProps.address.type !== this.props.address.type)
             if(this.props.address.type === 'Address' && this.props.address.formatted !== '') {
                 this.props.handleChanges({target: {name: this.props.id + 'AccountId', value: ''}})
