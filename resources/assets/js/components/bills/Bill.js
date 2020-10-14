@@ -285,7 +285,6 @@ export default class Bill extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, value, type, checked} = event.target
-            console.log(name, value)
             switch(name) {
                 case 'applyRestrictions':
                     temp = this.handleApplyRestrictionsEvent(temp, event);
@@ -717,8 +716,11 @@ export default class Bill extends Component {
                 toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
-                    'showDuration': 500,
-                    'onHidden': function(){location.reload()}
+                    'showDuration': 300,
+                    'onHidden': () => {
+                        this.handleChanges({target: {name: 'key', type: 'string', value: 'basic'}})
+                        this.configureBill()
+                    }
                 })
             }
         })
