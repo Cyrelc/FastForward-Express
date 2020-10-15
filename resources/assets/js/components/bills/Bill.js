@@ -141,6 +141,7 @@ export default class Bill extends Component {
                 repeatIntervals: data.repeat_intervals,
                 key: window.location.hash ? window.location.hash.substr(1) : 'basic'
             }
+            this.setState(setup);
             if(params.action === 'edit' || params.action === 'view')
                 setup = {...setup,
                     activityLog: data.activity_log,
