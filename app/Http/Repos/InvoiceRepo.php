@@ -34,7 +34,7 @@ class InvoiceRepo {
 
         if($invoice === null)
             throw new \Exception('Invoice does not exist');
-        if($bill->percentage_complete != 1)
+        if($bill->percentage_complete != 100)
             throw new \Exception('Bill must be completed before invoicing');
         if($bill->invoice_id != null)
             throw new \Exception('Bill has already been assigned to an invoice');
@@ -214,7 +214,7 @@ class InvoiceRepo {
                         ->whereDate('time_pickup_scheduled', '<=', $endDate)
                         ->where('invoice_id', null)
                         ->where('skip_invoicing', '=', 0)
-                        ->where('percentage_complete', 1)
+                        ->where('percentage_complete', 100)
                         ->get();
 
             if(count($bills) > 0) {

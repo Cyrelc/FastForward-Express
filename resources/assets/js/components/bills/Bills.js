@@ -30,12 +30,12 @@ const columns = [
     {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false},
     {title: 'Type', field: 'delivery_type'},
     {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}},
-    {title: 'Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:1, legend: value => {return (value * 100) + ' %'}, color: value => {
-        if(value <= 0.33)
+    {title: 'Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:1, legend: value => {return value + ' %'}, color: value => {
+        if(value <= 33)
             return 'red'
-        else if (value <= 0.66)
+        else if (value <= 66)
             return 'gold'
-        else if (value == 1)
+        else if (value == 100)
             return 'mediumseagreen'
         else
             return 'mediumturquoise'
@@ -81,7 +81,7 @@ const filters = [
         value: 'percentage_complete',
         step: 0.01,
         min: 0,
-        max: 1
+        max: 100
     },
     {
         name: 'Scheduled Pickup',

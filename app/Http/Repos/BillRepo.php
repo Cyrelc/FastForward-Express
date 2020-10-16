@@ -394,7 +394,7 @@ class BillRepo {
     public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
         $count = Bill::whereDate('time_pickup_scheduled', '>=', $start_date)
                 ->whereDate('time_pickup_scheduled', '<=', $end_date)
-                ->where('percentage_complete', 1)
+                ->where('percentage_complete', 100)
                 ->where(function($query) use ($driver_id) {
                     $query->where('pickup_driver_id', '=', $driver_id)
                     ->where('pickup_manifest_id', null)
@@ -491,7 +491,7 @@ class BillRepo {
                     array_push($incompleteFields, $field);
             }
 
-        $percentageComplete = number_format((count($requiredFields) - count($incompleteFields)) / count($requiredFields), 2);
+        $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);
 
         if(is_object($bill)) {
             Activity('system_debug')->log('is_object');
@@ -500,7 +500,7 @@ class BillRepo {
             return $bill;
         }
         else {
-            return array_merge($bill, ['incomplete_fields' => $percentageComplete === 1 ? null : json_encode($incompleteFields), 'percentage_complete' => $percentageComplete]);
+            return array_merge($bill, ['incomplete_fields' => $percentageComplete === 100 ? null : json_encode($incompleteFields), 'percentage_complete' => $percentageComplete]);
         }
 	}
 }

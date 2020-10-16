@@ -141,8 +141,8 @@ class AccountRepo {
                     'accounts.invoice_interval',
                     'accounts.name',
                     'selections.selection_id as invoice_interval_selection_id',
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled >= "' . $start_date . '" and time_pickup_scheduled <= "' . $end_date . '" and skip_invoicing = 0 and percentage_complete = 1 and invoice_id IS NULL) as bill_count'),
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled >= "' . $start_date . '" and time_pickup_scheduled <= "' . $end_date . '" and skip_invoicing = 0 and percentage_complete != 1) as incomplete_bill_count'),
+                    DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled >= "' . $start_date . '" and time_pickup_scheduled <= "' . $end_date . '" and skip_invoicing = 0 and percentage_complete = 100 and invoice_id IS NULL) as bill_count'),
+                    DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled >= "' . $start_date . '" and time_pickup_scheduled <= "' . $end_date . '" and skip_invoicing = 0 and percentage_complete < 100) as incomplete_bill_count'),
                     DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled < "' . $start_date . '" and skip_invoicing = 0 and invoice_id IS NULL) as legacy_bill_count'),
                     DB::raw('(select count(*) from bills where charge_account_id = account_id and time_pickup_scheduled >= "' . $start_date . '" and time_pickup_scheduled <= "' . $end_date . '" and skip_invoicing = 1) as skipped_bill_count')
             )->groupBy('accounts.account_id')

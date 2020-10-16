@@ -39,7 +39,7 @@ class CreateBillsTable extends Migration
             $table->text('packages')->nullable();
             $table->unsignedInteger('payment_id')->nullable();
             $table->unsignedInteger('payment_type_id');
-            $table->float('percentage_complete');
+            $table->int('percentage_complete');
             $table->unsignedInteger('pickup_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id');
             $table->float('pickup_driver_commission')->nullable();

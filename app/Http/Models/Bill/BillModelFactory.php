@@ -119,7 +119,6 @@
             $model->delivery_address = $addrRepo->GetById($model->bill->delivery_address_id);
 			$model->bill->pickup_driver_commission *= 100;
 			$model->bill->delivery_driver_commission *= 100;
-			$model->bill->percentage_complete *= 100;
 			$model->bill->packages = json_decode($model->bill->packages);
 			$model->chargeback = $model->bill->chargeback_id === null ? null : $chargebackRepo->GetById($model->bill->chargeback_id);
 			$model->payment = $model->bill->payment_id == null ? null : $paymentRepo->GetById($model->bill->payment_id);

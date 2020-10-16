@@ -64,7 +64,7 @@ export default class App extends Component {
                     <Navbar.Collapse id='responsive-navbar-nav'>
                         <Nav className='ml-auto'>
                             <NavDropdown title='Bills' id='navbar-bills'>
-                                <LinkContainer to='/app/bills?filter[percentage_complete]=,1'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/bills?filter[percentage_complete]=,100'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
@@ -114,7 +114,7 @@ export default class App extends Component {
                             <NavDropdown title='Employees' id='navbar-employees' alignRight>
                                 <LinkContainer to='/app/employees'><NavDropdown.Item><i className='fa fa-list'></i> List Employees</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Employee</NavDropdown.Item></LinkContainer>
-                                <NavDropdown.Item href='/chargebacks'>Chargebacks</NavDropdown.Item>
+                                <NavDropdown.Item href='/chargebacks'><i className='fas fa-cash-register'></i> Chargebacks</NavDropdown.Item>
                                 <LinkContainer to='/app/manifests'><NavDropdown.Item><i className='fas fa-clipboard-list'></i> Manifests</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/manifests/generate'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>

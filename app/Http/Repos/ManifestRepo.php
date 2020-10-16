@@ -116,7 +116,7 @@ class ManifestRepo {
             ->whereDate('time_pickup_scheduled', '<=', $end_date)
             ->where('pickup_driver_id', $driver_id)
             ->where('pickup_manifest_id', null)
-            ->where('percentage_complete', 1);
+            ->where('percentage_complete', 100);
         })->get();
 
         $delivery_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date){
@@ -124,7 +124,7 @@ class ManifestRepo {
             ->whereDate('time_pickup_scheduled', '<=', $end_date)
             ->where('delivery_driver_id', $driver_id)
             ->where('delivery_manifest_id', null)
-            ->where('percentage_complete', 1);
+            ->where('percentage_complete', 100);
         })->get();
 
         foreach($pickup_bills as $bill) {

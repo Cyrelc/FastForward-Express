@@ -464,7 +464,7 @@ export default class Bill extends Component {
                             }
                             {
                                 this.state.billId !== null &&
-                                    <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>Percent Complete: {this.state.percentComplete}</h4></ListGroup.Item>
+                                <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>{this.state.percentComplete}% Complete</h4></ListGroup.Item>
                             }
                             <ListGroup.Item variant='warning'><h4>Price: {(parseFloat(this.state.amount ? this.state.amount : 0) + parseFloat(this.state.interlinerCostToCustomer ? this.state.interlinerCostToCustomer : 0)).toFixed(2)}</h4></ListGroup.Item>
                             {this.state.admin &&
