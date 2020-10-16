@@ -68,7 +68,7 @@
 		    foreach ($model->employees as $employee)
 				$employee->contact = $contactsRepo->GetById($employee->contact_id);
 
-		    $model->interliners = $interlinersRepo->ListAll();
+		    $model->interliners = $interlinersRepo->GetInterlinersList();
 		    $model->bill = new \App\Bill();
 
 			$model->packages = array(['packageId' => 0, 'packageCount' => 1, 'packageWeight' => '', 'packageLength' => '', 'packageWidth' => '', 'packageHeight' => '']);
@@ -106,11 +106,13 @@
 			$chargebackRepo = new Repos\ChargebackRepo();
 			$activityLogRepo = new Repos\ActivityLogRepo();
 
+			$model->bill = $billRepo->GetById($bill_id);
+			if($model->bill === null)
+				throw new \Exception('Invalid ID: Unable to find the bill requested', 404);
 		    $model->employees = $employeeRepo->ListAllDrivers();
 		    foreach ($model->employees as $employee)
 				$employee->contact = $contactsRepo->GetById($employee->contact_id);
 
-			$model->bill = $billRepo->GetById($bill_id);
 			$model = $this->setBusinessHours($model);
 
             $model->pickup_address = $addrRepo->GetById($model->bill->pickup_address_id);
@@ -127,7 +129,7 @@
 			$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 
 			$model->accounts = $acctRepo->ListAllForBillsPage();
-			$model->interliners = $interlinersRepo->ListAll();
+			$model->interliners = $interlinersRepo->GetInterlinersList();
 
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
 			foreach($model->activity_log as $key => $log)

@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
-import { BrowserRouter, Switch, Route, Redirect, withRouter } from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
 import { LinkContainer } from 'react-router-bootstrap'
-import { Button, FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
+import { FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
 import Select from 'react-select'
 
 import Accounts from '../accounts/Accounts'
@@ -95,7 +95,7 @@ export default class App extends Component {
                                         value={this.state.invoiceId}
                                         onKeyPress={event => {
                                             if(event.key === 'Enter' && this.state.invoiceId)
-                                                this.setState({redirect: '/invoices/view/' + this.state.invoiceId, invoiceId: ''})
+                                                this.setState({redirect: '/app/invoices/view/' + this.state.invoiceId, invoiceId: ''})
                                         }}
                                     />
                                 </InputGroup>

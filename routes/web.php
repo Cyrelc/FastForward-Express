@@ -45,9 +45,6 @@ Route::group(
             Route::post('/accounts/giveCredit', 'AccountController@giveAccountCredit');
             Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
-            Route::get('/amendments/delete/{id}', 'AmendmentController@delete');
-            Route::post('/amendments/store', 'AmendmentController@store');
-
             Route::get('/app/{route}', 'HomeController@index');
 
             Route::get('/bills/buildTable', 'BillController@buildTable');
@@ -82,15 +79,16 @@ Route::group(
             Route::get('/interliners/edit/{id}', 'InterlinerController@edit');
 
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
-            Route::get('/invoices/view/{id}','InvoiceController@view');
+            Route::get('/invoices/getModel/{invoiceId}','InvoiceController@getModel');
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
             Route::get('/invoices/print/{id}', 'InvoiceController@print');
             Route::get('/invoices/printMass/{invoiceIdArray}', 'InvoiceController@printMass');
-            Route::get('/invoices/download/{filename}', 'InvoiceController@download');
             Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
             Route::get('/invoices/finalize/{invoiceIdArray}', 'InvoiceController@finalize');
+            Route::post('/invoices/createAmendment', 'InvoiceController@createAmendment');
+            Route::get('/invoices/deleteAmendment/{amendmentId}', 'InvoiceController@deleteAmendment');
 
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
@@ -147,5 +145,3 @@ Route::group(
 );
 
 Route::auth();
-
-// Route::get('/home', 'HomeController@index');

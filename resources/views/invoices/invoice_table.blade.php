@@ -1,8 +1,4 @@
-@if(isset($is_pdf))
-    <link rel='stylesheet' type='text/css' href='./css/invoices/invoice_table_pdf.css' />
-@else
-    <link rel='stylesheet' type='text/css' href='/css/invoices/invoice_table.css' />
-@endif
+<link rel='stylesheet' type='text/css' href='./css/invoices/invoice_table_pdf.css' />
 
 <hr/>
 <table style='overflow: visible'>
@@ -20,7 +16,6 @@
     </td>
 </table>
 
-@if(isset($is_pdf))
 <div class='header'>
     <table>
         <td width:'30%'>
@@ -60,10 +55,14 @@
     </tr>
 </table>
 <br/><br/>
-@endif
 
-<hr/><p>{{$model->parent->invoice_comment}}</p><hr/>
-</br>
+<hr/>
+@if($model->invoice->finalized === 0)
+    <div id="watermark">Invoice Not Finalized</div>
+@endif
+@if($model->parent->invoice_comment != '')
+    <p>{{$model->parent->invoice_comment}}</p><hr/><br/>
+@endif
 @if(!isset($amendments_only) || !$amendments_only)
     @foreach($model->tables as $table_key => $table)
         <table class='bill_list'>
@@ -79,7 +78,7 @@
                     <tr>
                         @foreach($table->headers as $key => $value)
                             @if($value == 'amount')
-                                <td class='amount' width='10%'>{{$bill->$value}}</td>
+                                <td class='amount right' width='10%'>{{$bill->$value}}</td>
                             @elseif($value == 'address')
                                 <td class='address'>
                                     @if($bill->charge_account_id != $bill->pickup_account_id)
@@ -90,6 +89,8 @@
                                 </td>
                             @elseif($value == 'bill_id')
                                 <td class='bill_id' width='10%'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
+                            @elseif($value == 'delivery_type')
+                                <td width='13%'>{{$bill->$value}}</td>
                             @else
                                 <td width='10%'>{{$bill->$value}}</td>
                             @endif
@@ -98,19 +99,19 @@
                 @endforeach
                 @if(count($model->tables) > 1)
                     <tr class='subtotal'>
-                        <td class='center' colspan='{{count($table->headers) - 2}}'>Subtotal for {{$table_key}}</td>
-                        <td class='right'>Bill Subtotal:</td>
-                        <td class='right'>{{$table->subtotal}}</td>
+                        <td class='center' colspan='{{count($table->headers) - 2}}'><b>Subtotal for {{$table_key}}</b></td>
+                        <td class='right' style='padding-right: 3px; padding-left: 3px'><b>Bill Subtotal:</b></td>
+                        <td class='right'><b>{{$table->subtotal}}</b></td>
                     </tr>
                     <tr class='subtotal'>
                         <td colspan='{{count($table->headers) - 2}}'></td>
-                        <td class='right'>Tax:</td>
-                        <td class='right'>{{$table->tax}}</td>
+                        <td class='right' style='padding-right: 3px'><b>Tax:</b></td>
+                        <td class='right'><b>{{$table->tax}}</b></td>
                     </tr>
                     <tr class='subtotal'>
                         <td colspan='{{count($table->headers) - 2}}'></td>
-                        <td class='right'>Subtotal:</td>
-                        <td class='right'>{{$table->total}}</td>
+                        <td class='right' style='padding-right: 3px'><b>Subtotal:</b></td>
+                        <td class='right'><b>{{$table->total}}</b></td>
                     </tr>
                 @endif
             </tbody>
@@ -124,10 +125,6 @@
 <table>
     <thead>
         <tr>
-            {{-- todo - need is_admin checks --}}
-            @if(!isset($is_pdf) && $model->can_edit_amendments)
-                <td>Delete</td>
-            @endif
             <td>Bill ID</td>
             <td>Description</td>
             <td>Adjustment Amount</td>
@@ -136,10 +133,6 @@
     <tbody>
         @foreach($model->amendments as $amendment)
             <tr>
-                {{-- todo - need is_admin checks --}}
-                @if(!isset($is_pdf) && $model->can_edit_amendments)
-                    <td><button class='btn btn-danger' onClick='deleteAmendment({{$amendment->amendment_id}})'><i class='fa fa-trash'></i></a></td>
-                @endif
                 <td>{{$amendment->bill_id}}</td>
                 <td>{{$amendment->description}}</td>
                 <td>{{$amendment->amount}}</td>

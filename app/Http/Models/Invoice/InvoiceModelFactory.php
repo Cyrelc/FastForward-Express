@@ -13,7 +13,6 @@
 
 			$accountRepo = new Repos\AccountRepo();
 			$addressRepo = new Repos\AddressRepo();
-			$amendmentRepo = new Repos\AmendmentRepo();
 			$billRepo = new Repos\BillRepo();
 			$invoiceRepo = new Repos\InvoiceRepo();
 
@@ -21,10 +20,12 @@
 			$model->invoice->bill_count = $billRepo->CountByInvoiceId($id);
 			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing', 'min_invoice_amount');
 			foreach ($invoice_numbers as $identifier) {
+				if($model->invoice->$identifier == null)
+					continue;
 				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
 			}
 
-			$amendments = $amendmentRepo->GetByInvoiceId($id);
+			$amendments = $invoiceRepo->GetAmendmentsByInvoiceId($id);
 			if(count($amendments)) {
 				$billEndDate = new \DateTime($model->invoice->bill_end_date);
 				$currentDate = new \DateTime('now');

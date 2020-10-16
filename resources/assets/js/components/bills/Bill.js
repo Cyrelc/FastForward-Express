@@ -116,10 +116,11 @@ export default class Bill extends Component {
 
         var fetchUrl = '/bills/getModel'
         if(params.action === 'edit' || params.action === 'view') {
-            document.title = params.action === 'edit' ? 'Edit Bill - ' + document.title : 'View bill - ' + document.title
+            const titleAppend = params.billId + ' - Fast Forward Express'
+            document.title = params.action === 'edit' ? 'Edit Bill: ' + titleAppend : 'View bill: ' + titleAppend
             fetchUrl += '/' + params.billId
         } else {
-            document.title = 'Create Bill - ' + document.title
+            document.title = 'Create Bill - Fast Forward Express'
         }
         makeAjaxRequest(fetchUrl, 'GET', null, data => {
             data = JSON.parse(data)
@@ -177,7 +178,7 @@ export default class Bill extends Component {
                     deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : null,
                     deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
                     deliveryType: data.bill.delivery_type,
-                    interliner: data.interliners.find(interliner => interliner.interliner_id === data.bill.interliner_id),
+                    interliner: data.interliners.find(interliner => interliner.value === data.bill.interliner_id),
                     interlinerActualCost: data.bill.interliner_cost,
                     interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
                     interlinerTrackingId: data.bill.interliner_reference_value,
@@ -684,7 +685,7 @@ export default class Bill extends Component {
             description: this.state.description,
             interliner_cost: this.state.interlinerActualCost,
             interliner_cost_to_customer: this.state.interlinerCostToCustomer,
-            interliner_id: this.state.interliner ? this.state.interliner.interliner_id : undefined,
+            interliner_id: this.state.interliner ? this.state.interliner.value : undefined,
             interliner_reference_value: this.state.interlinerTrackingId,
             is_min_weight_size: this.state.packageIsMinimum ? true : false,
             is_pallet: this.state.packageIsPallet,

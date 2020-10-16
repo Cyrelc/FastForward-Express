@@ -8,6 +8,7 @@ use DB;
 use View;
 use PDF;
 use ZipArchive;
+use App\Http\Collectors;
 use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Models\Invoice;
@@ -22,6 +23,43 @@ class InvoiceController extends Controller {
         $this->maxCount = env('DEFAULT_INVOICE_COUNT', $this->maxCount);
         $this->itemAge = env('DEFAULT_INVOICE_AGE', '6 month');
         $this->class = new \App\Invoice;
+    }
+
+    public function createAmendment(Request $req) {
+        DB::beginTransaction();
+        $amendmentValidation = new \App\Http\Validation\AmendmentValidationRules();
+        $validationRules = $amendmentValidation->GetValidationRules($req);
+
+        $this->validate($req, $validationRules['rules'], $validationRules['messages']);
+
+        $amendmentCollector = new Collectors\AmendmentCollector();
+        $amendment = $amendmentCollector->collect($req);
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+        if($diff->days < (int)config('ffe_config.days_invoice_editable'))
+            $invoiceRepo->InsertAmendment($amendment);
+        else
+            throw new \Exception('Invoices older than ' . config('ffe_config.days_invoice_editable') . ' days old can no longer be edited.');
+
+        DB::commit();
+    }
+
+    public function deleteAmendment($amendmentId) {
+        DB::beginTransaction();
+        $invoiceRepo = new Repos\InvoiceRepo();
+
+        $amendment = $invoiceRepo->GetAmendmentById($amendmentId);
+        $invoice = $invoiceRepo->GetById($amendment->invoice_id);
+
+        $billEndDate = new \DateTime($invoice->bill_end_date);
+        $currentDate = new \DateTime('now');
+        $diff = $currentDate->diff($billEndDate, true);
+        if($diff->days < (int)config('ffe_config.days_invoice_editable'))
+            $invoiceRepo->DeleteAmendment($amendmentId);
+        else
+            throw new \Exception('Invoices older than ' . config('ffe_config.days_invoice_editable') . ' days old can no longer be edited.');
+
+        DB::commit();
     }
 
     public function download($filename) {
@@ -43,10 +81,10 @@ class InvoiceController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    public function view(Request $req, $id) {
+    public function getModel(Request $req, $id) {
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetById($id);
-        return view('invoices.invoice', compact('model'));
+        return json_encode($model);
     }
 
     public function generate(Request $req) {
@@ -119,9 +157,9 @@ class InvoiceController extends Controller {
         //TODO check if invoice $id exists
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetById($invoice_id);
-        $is_pdf = 1;
         $amendments_only = $req->amendments_only === null ? 0 : 1;
-        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf', 'amendments_only'));
+
+        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendments_only'));
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 

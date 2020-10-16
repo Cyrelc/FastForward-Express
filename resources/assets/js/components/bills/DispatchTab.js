@@ -131,7 +131,6 @@ export default function DispatchTab(props) {
                         </InputGroup.Prepend>
                         <Select
                             options={props.interliners}
-                            getOptionLabel={interliner => interliner.name}
                             isSearchable
                             value={props.interliner}
                             onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}

@@ -1,6 +1,18 @@
 @page {
     margin: 100px 40px;
 }
+#watermark {
+    display: block;
+    position: fixed;
+    left: 100px;
+    transform: rotate(-45deg);
+    transform-origin: 50% 50%;
+    opacity: .7;
+    font-size: 100px;
+    color: #d9d9d9;
+    width: 480px;
+    text-align: center;
+}
 br {
     display: block;
     margin: 10px;
@@ -61,7 +73,6 @@ table.totals td {
     padding-right: 10px;
     padding-top: 2px;
     padding-bottom: 2px;
-    font-size: 14px;
 }
 .subtotal td.right {
     border-bottom: 2px solid black;
@@ -93,10 +104,7 @@ td.warn {
     position: fixed;
     top: -90px;
 }
-/* .header * h4 , .header * hr, .header * h2{
-    margin-bottom: 0px;
-    margin-top: 0px;
-} */
+
 .footer {
     bottom: -15px;
     position: fixed;

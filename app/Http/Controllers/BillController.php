@@ -23,21 +23,12 @@ class BillController extends Controller {
 
     public function assignToInvoice($billId, $invoiceId) {
         DB::beginTransaction();
-        try{
-            $invoiceRepo = new Repos\InvoiceRepo();
-            $invoiceRepo->AssignBillToInvoice($invoiceId, $billId);
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoiceId = $invoiceRepo->AssignBillToInvoice($invoiceId, $billId)->invoice_id;
 
-            DB::commit();
-            return response()->json(['success' => true]);
-        } catch(\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
-}
+        DB::commit();
+        return $invoiceId;
+    }
 
     public function buildTable(Request $req) {
         $billRepo = new Repos\BillRepo();
@@ -62,6 +53,7 @@ class BillController extends Controller {
                 DB::rollBack();
 
                 return response()->json([
+                    'ok' => false,
                     'success' => false,
                     'error' => $e->getMessage()
                 ]);
@@ -80,20 +72,11 @@ class BillController extends Controller {
 
     public function removeFromInvoice($billId) {
         DB::beginTransaction();
-        try {
-            $invoiceRepo = new Repos\InvoiceRepo();
-            $invoiceRepo->RemoveBillFromInvoice($billId);
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoiceRepo->RemoveBillFromInvoice($billId);
 
-            DB::commit();
-            return response()->json(['success' => true]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        DB::commit();
+        return response()->json(['success' => true]);
     }
 
     public function store(Request $req) {
@@ -158,7 +141,7 @@ class BillController extends Controller {
                 'id' => $bill->bill_id
             ]);
             
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             DB::rollBack();
 
             return response()->json([

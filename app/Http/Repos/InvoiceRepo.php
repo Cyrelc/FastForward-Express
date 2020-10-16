@@ -16,7 +16,6 @@ use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 
 class InvoiceRepo {
-
     public function AdjustBalanceOwing($invoice_id, $amount) {
         $invoice = Invoice::where('invoice_id', $invoice_id)
             ->first();
@@ -26,23 +25,6 @@ class InvoiceRepo {
         $invoice->save();
 
         return $invoice;
-    }
-
-    public function AdjustBillSubtotal($invoice_id, $amount) {
-        $invoice = Invoice::where('invoice_id', $invoice_id)
-            ->leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
-            ->first();
-
-        $payments = Payment::where('invoice_id', $invoice_id)->get();
-
-        $invoice->bill_cost += floatval($amount);
-        if(!$invoice->gst_exempt)
-            $invoice->tax = number_format(round($invoice->bill_cost * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
-        $newTotal = number_format($invoice->bill_cost + $invoice->tax, 2);
-        $invoice->balance_owing += $newTotal - $invoice->total_cost;
-        $invoice->total_cost = $newTotal;
-
-        $invoice->save();
     }
 
     public function AssignBillToInvoice($invoiceId, $billId) {
@@ -106,6 +88,18 @@ class InvoiceRepo {
             ->sum('balance_owing');
 
         return $balance_owing;
+    }
+
+    public function GetAmendmentsByInvoiceId($invoiceId) {
+        $amendments = Amendment::where('invoice_id', $invoiceId);
+
+        return $amendments->get();
+    }
+
+    public function GetAmendmentById($amendmentId) {
+        $amendment = Amendment::where('amendment_id', $amendmentId);
+
+        return $amendment->first();
     }
 
     public function GetById($id) {
@@ -255,13 +249,11 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
         $payments = Payment::where('invoice_id', $invoiceId)->get();
 
-        $amendmentRepo = new AmendmentRepo();
-
         if(sizeof($payments) != 0)
             throw new \Exception('Unable to delete invoice: payments have already been made');
 
         foreach($amendments as $amendment)
-            $amendmentRepo->Delete($amendment->amendment_id);
+            $this->DeleteAmendment($amendment->amendment_id);
 
         foreach($bills as $bill) {
             $bill->invoice_id = null;
@@ -270,6 +262,15 @@ class InvoiceRepo {
         }
 
         $invoice->delete();
+        return;
+    }
+
+    public function DeleteAmendment($amendmentId) {
+        $amendment = Amendment::where('amendment_id', $amendmentId)->first();
+        $invoice = $this->GetById($amendment->invoice_id);
+
+        $amendment->delete();
+        $this->CalculateInvoiceBalances($invoice);
         return;
     }
 
@@ -290,15 +291,28 @@ class InvoiceRepo {
         return $new->create($invoice);
     }
 
+    public function InsertAmendment($amendment) {
+        $new = new Amendment;
+
+        $new->create($amendment);
+        $invoice = $this->GetById($amendment['invoice_id']);
+
+        $this->CalculateInvoiceBalances($invoice);
+
+        return;
+    }
+
     private function CalculateInvoiceBalances($invoice) {
         $account = Account::where('account_id', $invoice->account_id)->first();
         $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
-
+        $amendmentTotal = Amendment::where('invoice_id', $invoice->invoice_id)->sum('amount');
         // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be eqal to that, otherwise
         // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation
-        $billCost = $effectiveCost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;});
+        $billCost = $effectiveCost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;}) + $amendmentTotal;
         if($account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
             $invoice->min_invoice_amount = $effectiveCost = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
+        else
+            $invoice->min_invoice_amount = null;
 
         $invoice->bill_cost = number_format($billCost, 2, '.', '');
         $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');

@@ -25,11 +25,12 @@ export default class InvoicesGenerate extends Component {
         const firstDayOfPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
         //note the following line MODIFIES currentDate - so if you use it subsequently, beware!!
         const lastDayOfPreviousMonth = new Date(currentDate.moveToFirstDayOfMonth().setHours(-1))
-        makeFetchRequest('/getList/selections/invoice_interval', data => {
+        makeAjaxRequest('/getList/selections/invoice_interval', 'GET', null, response => {
+            response = JSON.parse(response)
             this.setState({
-                invoiceIntervals: data,
+                invoiceIntervals: response,
                 startDate: firstDayOfPreviousMonth,
-                endDate: lastDayOfPreviousMonth
+                endDate: lastDayOfPreviousMonth,
             })
         })
     }
@@ -110,7 +111,7 @@ export default class InvoicesGenerate extends Component {
             {title: 'Skipped Bills', field: 'skipped_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[skip_invoicing]=1'}}, sorter: 'number'},
             {title: 'Legacy Bills', field: 'legacy_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[time_pickup_scheduled]=,' + this.state.startDate.toISOString().split('T')[0] + '&filter[invoiced]=0'}}, sorter: 'number'}
         ]
-    
+
         return (
             <Card>
                 <Card.Header>
@@ -120,7 +121,7 @@ export default class InvoicesGenerate extends Component {
                 </Card.Header>
                 <Card.Body>
                     <Row>
-                        <Col md={4}>
+                        <Col md={5}>
                             <InputGroup>
                                 <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
                                 <Select
@@ -131,7 +132,7 @@ export default class InvoicesGenerate extends Component {
                                 />
                             </InputGroup>
                         </Col>
-                        <Col md={3}>
+                        <Col md={5}>
                             <InputGroup>
                                 <InputGroup.Prepend><InputGroup.Text>Start Date: </InputGroup.Text></InputGroup.Prepend>
                                 <DatePicker
@@ -141,12 +142,10 @@ export default class InvoicesGenerate extends Component {
                                     placeholderText='After'
                                     selected={this.state.startDate}
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
+                                    selectsStart
+                                    endDate={this.state.endDate}
                                 />
-                            </InputGroup>
-                        </Col>
-                        <Col md={3}>
-                            <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>End Date: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Append><InputGroup.Text> End Date: </InputGroup.Text></InputGroup.Append>
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
@@ -154,6 +153,9 @@ export default class InvoicesGenerate extends Component {
                                     placeholderText='Before'
                                     selected={this.state.endDate}
                                     onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
+                                    selectsEnd
+                                    startDate={this.state.startDate}
+                                    minDate={this.state.startDate}
                                 />
                             </InputGroup>
                         </Col>
@@ -179,6 +181,7 @@ export default class InvoicesGenerate extends Component {
                                         table.selectRow(row)
                                     })
                             }}
+                            initialSort='account_number'
                             options={{
                                 layout: 'fitColumns',
                                 maxHeight: '80vh'
