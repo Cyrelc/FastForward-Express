@@ -87,7 +87,8 @@ class AccountRepo {
                 'shipping_address.lng as shipping_address_lng',
                 'shipping_address.formatted as shipping_address',
                 'shipping_address.name as shipping_address_name',
-                'shipping_address.place_id as shipping_address_place_id'
+                'shipping_address.place_id as shipping_address_place_id',
+                'custom_field'
             );
 
         return $accounts->get();
