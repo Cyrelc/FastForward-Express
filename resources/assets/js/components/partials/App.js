@@ -11,6 +11,7 @@ import AppSettings from '../admin/AppSettings'
 import Bill from '../bills/Bill'
 import Bills from '../bills/Bills'
 import Charts from '../bills/Charts'
+import Chargebacks from '../employees/Chargebacks'
 import Dispatch from '../dispatch/Dispatch'
 import Employee from '../employees/Employee'
 import Employees from '../employees/Employees'
@@ -114,7 +115,7 @@ export default class App extends Component {
                             <NavDropdown title='Employees' id='navbar-employees' alignRight>
                                 <LinkContainer to='/app/employees'><NavDropdown.Item><i className='fa fa-list'></i> List Employees</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Employee</NavDropdown.Item></LinkContainer>
-                                <NavDropdown.Item href='/chargebacks'><i className='fas fa-cash-register'></i> Chargebacks</NavDropdown.Item>
+                                <NavDropdown.Item href='/app/chargebacks'><i className='fas fa-cash-register'></i> Chargebacks</NavDropdown.Item>
                                 <LinkContainer to='/app/manifests'><NavDropdown.Item><i className='fas fa-clipboard-list'></i> Manifests</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/manifests/generate'><NavDropdown.Item><i className='fas fa-clipboard'></i> Generate Manifests</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
@@ -156,6 +157,7 @@ export default class App extends Component {
                     <Route path='/app/bills/trend' component={Charts}></Route>
                     <Route exact path='/app/bills' component={Bills}></Route>
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
+                    <Route path='/app/chargebacks' exact component={Chargebacks}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
                     <Route path='/' exact component={AdminDashboard}></Route>
                     <Route path='/app/interliners' component={Interliners}></Route>

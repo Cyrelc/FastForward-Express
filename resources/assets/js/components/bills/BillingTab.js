@@ -76,7 +76,7 @@ export default function BillingTab(props) {
                             </Col>
                         }
                         {((props.chargeAccount && props.chargeAccount.custom_field !== null)
-                            || (props.paymentType !== '' && props.paymentType.required_field !== null)) && 
+                            || (props.paymentType !== '' && props.paymentType.required_field !== null)) &&
                             <Col md={6}>
                                 <InputGroup>
                                     <InputGroup.Prepend>

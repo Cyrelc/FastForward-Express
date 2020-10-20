@@ -14,12 +14,14 @@ export default class Table extends Component {
             columns: [],
             data: [],
             filters: [],
+            groupBy: undefined,
             groupByOptions: [],
             pageTitle: '',
             tableRef: createRef()
         }
         this.handleActiveFiltersChange = this.handleActiveFiltersChange.bind(this)
         this.handleChange = this.handleChange.bind(this)
+        this.handleGroupByChange = this.handleGroupByChange.bind(this)
         this.refreshTable = this.refreshTable.bind(this)
     }
 
@@ -38,11 +40,19 @@ export default class Table extends Component {
             baseRoute: this.props.baseRoute,
             columns: this.props.columns,
             filters: filters,
-            groupBy: this.props.groupBy ? this.props.groupBy : undefined,
+            groupBy: this.props.groupBy ? this.props.groupByOptions.filter(option => option.value = this.props.groupBy) : undefined,
             groupByOptions: this.props.groupByOptions ? this.props.groupByOptions : [],
             pageTitle: this.props.pageTitle
         }, this.refreshTable)
-        document.title = this.props.pageTitle + ' - ' + document.title
+        document.title = this.props.pageTitle + ' - Fast Forward Express'
+    }
+
+    componentDidUpdate(prevProps) {
+        if(this.props.refreshTable === true) {
+            console.log('attempting to refresh table')
+            this.refreshTable()
+            this.props.toggleRefreshTable()
+        }
     }
 
     handleActiveColumnsChange(columnField) {
@@ -87,6 +97,7 @@ export default class Table extends Component {
         }
         else
             this.state.tableRef.current.table.setGroupBy()
+        this.setState({groupBy: event})
     }
 
     refreshTable() {
@@ -101,13 +112,18 @@ export default class Table extends Component {
         })
         // if the query is not blank, and the window location does not already match the query
         if(query && window.location.search != query)
-            window.location.search = query
+            this.props.history.push({pathname: this.props.location.pathname, search: query})
         // else if there are no active filters, and the window location search is not ALREADY blank (without the latter check, the page will reload indefinitely)
         else if(!anyActiveFilters && window.location.search)
-            window.location.search = ''
+            this.props.history.push({pathname: this.props.location.pathname, search: ''})
         const route = this.state.baseRoute + window.location.search
         makeFetchRequest(route, data => {
-            this.setState({data: data})
+            this.setState({data: data}, () => {
+                if(this.props.groupBy) {
+                    const groupBy = this.state.groupByOptions.filter(option => option.value = this.props.groupBy);
+                    this.handleGroupByChange(groupBy[0])
+                }
+            })
         })
     }
 
@@ -120,18 +136,6 @@ export default class Table extends Component {
                             <Row>
                                 <Col md={1}>
                                     <Card.Title>{this.state.pageTitle}</Card.Title>
-                                </Col>
-                                <Col md={1}>
-                                    <Dropdown>
-                                        <Dropdown.Toggle variant='primary' id='column_select'>View Columns</Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            {
-                                                this.state.columns.map(column =>
-                                                    <Dropdown.Item key={column.field} style={{color: column.visible === false  ? 'red' : 'black'}} onClick={() => this.handleActiveColumnsChange(column.field)}>{column.title}</Dropdown.Item>
-                                                )
-                                            }
-                                        </Dropdown.Menu>
-                                    </Dropdown>
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>
@@ -162,8 +166,18 @@ export default class Table extends Component {
                                         </InputGroup.Append>
                                     </InputGroup>
                                 </Col>
-                                <Col md={2}>
+                                <Col md={3}>
                                     <ButtonGroup>
+                                        <Dropdown>
+                                            <Dropdown.Toggle variant='dark' id='column_select'>View Columns</Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                {
+                                                    this.state.columns.map(column =>
+                                                        <Dropdown.Item key={column.field} style={{color: column.visible === false  ? 'red' : 'black'}} onClick={() => this.handleActiveColumnsChange(column.field)}>{column.title}</Dropdown.Item>
+                                                    )
+                                                }
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                         <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
                                         {this.props.withSelected &&
                                             <Dropdown>
@@ -176,6 +190,9 @@ export default class Table extends Component {
                                                     )}
                                                 </Dropdown.Menu>
                                             </Dropdown>
+                                        }
+                                        {this.props.createObjectFunction &&
+                                            <Button variant='success' onClick={this.props.createObjectFunction}><i className='fas fa-square-plus'></i>Create {this.props.pageTitle}</Button>
                                         }
                                     </ButtonGroup>
                                 </Col>
@@ -201,7 +218,6 @@ export default class Table extends Component {
                                 initialSort={this.props.initialSort}
                                 maxHeight='80vh'
                                 options={{
-                                    groupBy: this.state.groupBy,
                                     layout: 'fitColumns',
                                     pagination:'local',
                                     paginationSize:50,

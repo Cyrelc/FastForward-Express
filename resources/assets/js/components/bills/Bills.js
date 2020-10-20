@@ -30,7 +30,7 @@ const columns = [
     {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false},
     {title: 'Type', field: 'delivery_type'},
     {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}},
-    {title: 'Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:1, legend: value => {return value + ' %'}, color: value => {
+    {title: 'Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:100, legend: value => {return value + ' %'}, color: value => {
         if(value <= 33)
             return 'red'
         else if (value <= 66)
@@ -141,6 +141,8 @@ export default function Bills(props) {
             filters={filters}
             groupByOptions={groupByOptions}
             initialSort={initialSort}
+            location={props.location}
+            history={props.history}
             // groupBy={groupBy}
             pageTitle='Bills'
         />

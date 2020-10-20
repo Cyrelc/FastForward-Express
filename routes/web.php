@@ -55,11 +55,9 @@ Route::group(
             Route::get('/bills/assignToInvoice/{billId}/{invoiceId}', 'BillController@assignToInvoice');
             Route::get('/bills/removeFromInvoice/{billId}', 'BillController@removeFromInvoice');
 
-            Route::post('/chargebacks/deactivate/{id}', 'ChargebackController@deactivate');
-            Route::get('/chargebacks/edit', 'ChargebackController@edit');
-            Route::get('/chargebacks', 'ChargebackController@manage');
+            Route::get('/chargebacks/buildTable', 'ChargebackController@buildTable');
             Route::post('/chargebacks/store', 'ChargebackController@store');
-            Route::post('/chargebacks/edit/{id}', 'ChargebackController@update');
+            Route::get('/chargebacks/delete/{id}', 'ChargebackController@delete');
 
             Route::post('/dispatch/assignBillToDriver', 'DispatchController@AssignBillToDriver');
             Route::get('/dispatch/GetDrivers', 'DispatchController@GetDrivers');

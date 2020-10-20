@@ -78,6 +78,7 @@ export default function DriverTab(props) {
                                         showYearDropdown
                                         monthDropdownItemNumber={15}
                                         scrollableMonthDropdown
+                                        scrollableYearDropdown
                                         selected={props.driversLicenseExpirationDate}
                                         className='form-control'
                                     />
@@ -110,6 +111,7 @@ export default function DriverTab(props) {
                                         showYearDropdown
                                         monthDropdownItemNumber={15}
                                         scrollableMonthDropdown
+                                        scrollableYearDropdown
                                         selected={props.licensePlateExpirationDate}
                                         className='form-control'
                                     />
@@ -142,6 +144,7 @@ export default function DriverTab(props) {
                                         showYearDropdown
                                         monthDropdownItemNumber={15}
                                         scrollableMonthDropdown
+                                        scrollableYearDropdown
                                         selected={props.insuranceExpirationDate}
                                         className='form-control'
                                     />

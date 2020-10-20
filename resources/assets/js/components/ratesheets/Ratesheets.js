@@ -11,7 +11,7 @@ const filters = []
 
 const groupByOptions = []
 
-const initialSort =[{column: 'ratesheet_id', dir: 'desc'}]
+const initialSort = [{column: 'ratesheet_id', dir: 'desc'}]
 
 export default function Ratesheets(props) {
     return (

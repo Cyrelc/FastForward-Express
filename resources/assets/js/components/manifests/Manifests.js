@@ -58,6 +58,8 @@ export default function Manifests(props) {
             filters={filters}
             groupByOptions={groupByOptions}
             initialSort={initialSort}
+            location={props.location}
+            history={props.history}
             pageTitle='Manifests'
         />
     )

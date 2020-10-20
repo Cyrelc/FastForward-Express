@@ -6,9 +6,29 @@ use App\Chargeback;
 use App\DriverChargeback;
 
 class ChargebackRepo {
+    public function ListAll() {
+        $chargebacks = Chargeback::where('continuous', 1)
+            ->orWhere('count_remaining', '>', 0)
+            ->leftjoin('employees', 'employees.employee_id', '=', 'chargebacks.employee_id')
+            ->leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+            ->select(
+                'chargeback_id',
+                DB::raw('concat(first_name, " ", last_name) as employee_name'),
+                'employees.employee_id',
+                'employee_number',
+                'chargebacks.start_date as chargeback_start_date',
+                'chargebacks.name as chargeback_name',
+                'continuous',
+                'count_remaining',
+                'gl_code',
+                'amount'
+            );
+
+        return $chargebacks->get();
+    }
 
     public function CreateChargebacks($req) {
-        foreach($req->employees as $employee) {
+        foreach($req->employee_ids as $employee) {
             $new = new Chargeback;
             $chargeback = [
                 'employee_id' => $employee,
@@ -16,8 +36,8 @@ class ChargebackRepo {
                 'gl_code' => $req->gl_code == '' ? null : $req->gl_code,
                 'name' => $req->name,
                 'description' => $req->description == '' ? null : $req->description,
-                'continuous' => isset($req->continuous),
-                'count_remaining' => $req->continuous == true ? 0 : $req->charge_count,
+                'continuous' => filter_var($req->continuous, FILTER_VALIDATE_BOOLEAN),
+                'count_remaining' => filter_var($req->continuous, FILTER_VALIDATE_BOOLEAN) ? 0 : $req->count_remaining,
                 'start_date' => (new \DateTime($req->input('start_date')))->format('Y-m-d')
             ];
 
@@ -33,17 +53,8 @@ class ChargebackRepo {
         return $new;
     }
 
-    public function DeactivateById($id) {
-        $chargeback = $this->GetById($id);
-        $chargeback->count_remaining = 0;
-        $chargeback->continuous = 0;
-
-        $chargeback->save();
-        return;
-    }
-
-    public function Delete($id) {
-        $old =  $this->GetById($id);
+    public function Delete($chargebackId) {
+        $old = Chargeback::where('chargeback_id', $chargebackId)->first();
 
         $old->delete();
         return;
@@ -60,23 +71,23 @@ class ChargebackRepo {
         return $chargebacks->get();
     }
 
-    public function GetById($chargeback_id) {
-        $chargeback = Chargeback::where('chargeback_id', $chargeback_id)->first();
+    public function GetById($chargebackId) {
+        $chargeback = Chargeback::where('chargeback_id', $chargebackId);
 
-        return $chargeback;
+        return $chargeback->first();
     }
 
     public function GetByManifestId($manifest_id) {
         return DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
-                ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
-                ->select('name', 'gl_code', 'description', DB::raw('format(amount, 2) as amount'))
-                ->get();
+            ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
+            ->select('name', 'gl_code', 'description', DB::raw('format(amount, 2) as amount'))
+            ->get();
     }
 
     public function GetChargebackTotalByManifestId($manifest_id) {
         $amount = DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
-                ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
-                ->sum('amount');
+            ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
+            ->sum('amount');
 
         return $amount;
     }
@@ -97,15 +108,18 @@ class ChargebackRepo {
         return;
     }
 
-    public function Update($id, $req) {
-        $fields = array('name', 'start_date', 'amount', 'gl_code', 'count_remaining');
-        $chargeback = $this->GetById($id);
+    public function Update($req) {
+        $fields = array('name', 'amount', 'count_remaining', 'description');
+        $chargeback = $this->GetById($req->chargeback_id);
 
         foreach($fields as $field)
             if(isset($req->$field))
                 $chargeback->$field = $req->$field;
 
-        $chargeback->continuous = isset($req->continuous);
+        $chargeback->description = $req->description ? null : $req->description;
+        $chargeback->gl_code = $req->gl_code === '' ? null : $req->gl_code;
+        $chargeback->start_date = new \DateTime($req->start_date);
+        $chargeback->continuous = filter_var($req->continuous, FILTER_VALIDATE_BOOLEAN);
         if($chargeback->continuous)
             $chargeback->count_remaining = 0;
 

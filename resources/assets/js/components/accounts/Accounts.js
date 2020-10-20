@@ -80,6 +80,8 @@ export default function Accounts(props) {
             filters={filters}
             groupByOptions={groupByOptions}
             initialSort={initialSort}
+            location={props.location}
+            history={props.history}
             pageTitle='Accounts'
         />
     )

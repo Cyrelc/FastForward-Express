@@ -26,6 +26,8 @@ export default function Interliners(props) {
             columns={columns}
             filters={filters}
             initialSort={initialSort}
+            location={props.location}
+            history={props.history}
             pageTitle='Interliners'
         />
     )

@@ -6,10 +6,11 @@ function cellContextMenu(cell) {
     const data = cell.getData()
     if(!data.invoice_id)
         return undefined
-    var menuItems = []
-    menuItems.push({label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)})
-    menuItems.push({label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => toggleInvoiceFinalized([cell.getRow()]), disabled: (data.payment_count !== 0)})
-    menuItems.push({label: 'Print', action: () => printInvoices([cell.getRow()]), disabled: data.finalized === 0})
+    var menuItems = [
+        {label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)},
+        {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => toggleInvoiceFinalized([cell.getRow()]), disabled: (data.payment_count !== 0)},
+        {label: 'Print', action: () => printInvoices([cell.getRow()]), disabled: data.finalized === 0}
+    ]
 
     return menuItems
 }
@@ -73,7 +74,7 @@ const columns = [
     {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, sorter:'number'},
     {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, sorter:'number'},
     {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
-    {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: (cell) => {return cell.getValue() === 1 ? '<i class="far fa-check-circle" style="color: green"></i>' : '<i class="far fa-times-circle" style="color: tomato"></i>'}, width: 100}
+    {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
 ]
 
 const filters = [
@@ -145,6 +146,8 @@ export default function Invoices(props) {
             initialSort={initialSort}
             pageTitle='Invoices'
             selectable='highlight'
+            location={props.location}
+            history={props.history}
             withSelected={withSelected}
         />
     )
