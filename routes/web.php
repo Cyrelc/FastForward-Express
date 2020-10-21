@@ -91,11 +91,10 @@ Route::group(
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests/delete/{id}', 'ManifestController@delete');
-            Route::get('/manifests/view/{manifest_id}', 'ManifestController@view');
+            Route::get('/manifests/getModel/{manifest_id}', 'ManifestController@getModel');
             Route::get('/manifests/print/{id}', 'ManifestController@print');
             Route::get('/manifests/buildTable', 'ManifestController@buildTable');
-            Route::post('/manifests/printMass', 'ManifestController@printMass');
-            Route::get('/manifests/download/{filename}', 'ManifestController@download');
+            Route::get('/manifests/printMass/{manifestIdArray}', 'ManifestController@printMass');
 
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');

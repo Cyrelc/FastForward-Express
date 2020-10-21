@@ -301,13 +301,14 @@ class BillRepo {
     public function GetByManifestId($manifest_id) {
         $bills = Bill::where('pickup_manifest_id', $manifest_id)
             ->orWhere('delivery_manifest_id', $manifest_id)
+            ->leftjoin('selections', 'selections.value', '=', 'delivery_type')
             ->select(
                 'bill_id',
                 'bill_number',
                 'time_pickup_scheduled',
                 DB::raw('format(amount, 2) as amount'),
                 'charge_account_id',
-                'delivery_type',
+                'selections.name as delivery_type',
                 DB::raw('case when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then "Pickup And Delivery" when pickup_manifest_id = ' . $manifest_id . ' then "Pickup Only" when delivery_manifest_id = ' . $manifest_id . ' then "Delivery Only" end as type'),
                 DB::raw('DATE_FORMAT(time_pickup_scheduled, "%Y-%m-%d") as day'),
                 DB::raw('case when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) end as driver_income')

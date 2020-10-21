@@ -21,8 +21,8 @@ class CreateChargebacksV2 extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->boolean('continuous')->default(false);
-            $table->unsignedInteger('count_remaining');
-            $table->date('start_date');
+            $table->unsignedInteger('count_remaining')->nullable()->default(null);
+            $table->date('start_date')->nullable()->default(null);
 
             $table->foreign('employee_id')->references('employee_id')->on('employees');
             $table->foreign('manifest_id')->references('manifest_id')->on('manifests');

@@ -13,26 +13,12 @@ use Illuminate\Http\Request;
 
 class ManifestController extends Controller {
     public function delete(Request $req, $manifest_id) {
-        $manifestRepo = new Repos\ManifestRepo();
-
         DB::beginTransaction();
-        try{
-            $manifestRepo->delete($manifest_id);
 
-            DB::commit();
-        } catch(exception $e) {
-            DB::rollBack();
+        $manifestRepo = new Repos\ManifestRepo();
+        $manifestRepo->delete($manifest_id);
 
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function download($filename) {
-        $path = storage_path() . '/app/public/';
-        return response()->download($path . $filename)->deleteFileAfterSend(true);
+        DB::commit();
     }
 
     public function getDriversToManifest(Request $req) {
@@ -47,22 +33,22 @@ class ManifestController extends Controller {
         return json_encode($model);
     }
 
-    public function view($manifest_id) {
+    public function getModel($manifest_id) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
         $model = $manifestModelFactory->GetById($manifest_id);
-        return view('manifests.manifest', compact('model'));
+        return json_encode($model);
     }
 
-    public function print($manifest_id) {
+    public function print(Request $req, $manifest_id) {
         //TODO check if invoice $id exists
         $manifestModelFactory = new Manifest\ManifestModelFactory();
         $model = $manifestModelFactory->GetById($manifest_id);
-        $is_pdf = 1;
-        $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
+        $without_bills = isset($req->without_bills);
+        $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'without_bills'));
         return $pdf->stream($model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '.' . $model->manifest->date_run . '.pdf');
     }
 
-    public function printMass(Request $req) {
+    public function printMass(Request $req, $manifestIds) {
         $storagepath = storage_path() . '/app/public/';
         $foldername = 'manifests.' . time();
         mkdir($storagepath . $foldername);
@@ -75,15 +61,15 @@ class ManifestController extends Controller {
 
         $toBeUnlinked = array();
 
-        foreach($req->checkboxes as $manifest_id => $value) {
+        foreach(explode(',', $manifestIds) as $manifestId) {
             $manifestModelFactory = new Manifest\ManifestModelFactory();
-            $model = $manifestModelFactory->GetById($manifest_id);
-            $filename = $model->driver->contact->first_name . '.' . $model->driver->contact->last_name . '.' . 'manifest.' . $model->manifest->date_run . '.pdf';
-            $is_pdf = 1;
-            $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'is_pdf'));
+            $model = $manifestModelFactory->GetById($manifestId);
+            $filename = $model->employee->contact->first_name . '.' . $model->employee->contact->last_name . '.' . 'manifest.' . $model->manifest->end_date . '.pdf';
+            $without_bills = isset($req->without_bills);
+            $pdf = PDF::loadView('manifests.manifest_pdf_layout', compact('model', 'without_bills'));
             $pdf->save($path . $filename);
             $zip->addFile($path . $filename, $filename);
-            $toBeUnlinked[$manifest_id] = $path . $filename;
+            $toBeUnlinked[$manifestId] = $path . $filename;
         }
 
         $zip->close();
@@ -92,7 +78,7 @@ class ManifestController extends Controller {
             unlink($file);
         rmdir($storagepath . $foldername);
 
-        return $foldername . '.zip';
+        return \Response::download($zipfile);
     }
 
     public function store(Request $req) {

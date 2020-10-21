@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import {Badge, Button, ButtonGroup, Col, Row, Table} from 'react-bootstrap'
-import {LinkContainer} from 'react-router-bootstrap'
 
 import InvoiceAmendmentModal from './InvoiceAmendmentModal'
 

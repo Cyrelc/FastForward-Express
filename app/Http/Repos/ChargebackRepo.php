@@ -78,15 +78,19 @@ class ChargebackRepo {
     }
 
     public function GetByManifestId($manifest_id) {
-        return DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
-            ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
-            ->select('name', 'gl_code', 'description', DB::raw('format(amount, 2) as amount'))
-            ->get();
+        $chargebacks = Chargeback::where('chargebacks.manifest_id', $manifest_id)
+            ->select(
+                'name',
+                'gl_code',
+                'description',
+                DB::raw('format(amount, 2) as amount')
+            );
+
+        return $chargebacks->get();
     }
 
     public function GetChargebackTotalByManifestId($manifest_id) {
-        $amount = DriverChargeback::where('driver_chargebacks.manifest_id', $manifest_id)
-            ->join('chargebacks', 'chargebacks.chargeback_id', '=', 'driver_chargebacks.chargeback_id')
+        $amount = Chargeback::where('chargebacks.manifest_id', $manifest_id)
             ->sum('amount');
 
         return $amount;
@@ -96,9 +100,12 @@ class ChargebackRepo {
         $employeeRepo = new EmployeeRepo();
         $chargebacks = $this->GetActiveByEmployeeId($manifest->employee_id, $manifest->date_run);
         foreach($chargebacks as $chargeback) {
-            $new = new DriverChargeback;
-            $new->chargeback_id = $chargeback->chargeback_id;
+            $new = new Chargeback;
             $new->manifest_id = $manifest->manifest_id;
+            $new->amount = $chargeback->amount;
+            $new->name = $chargeback->name;
+            $new->description = $chargeback->description;
+            $new->employee_id = $chargeback->employee_id;
             $new->save();
             if($chargeback->continuous == false) {
                 $chargeback->count_remaining--;

@@ -110,7 +110,7 @@ export default function BillingTab(props) {
                         }
                     </Row>
                     <Row>
-                        <Col md={3}>
+                        <Col md={6}>
                             <InputGroup>
                                 <InputGroup.Prepend><InputGroup.Text>Repeat Interval: </InputGroup.Text></InputGroup.Prepend>
                                 <Select

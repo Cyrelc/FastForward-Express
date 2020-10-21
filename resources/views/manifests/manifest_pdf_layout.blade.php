@@ -1,10 +1,5 @@
-@if(isset($is_pdf))
-    <link rel='stylesheet' type='text/css' href='./css/manifests/manifest_pdf_layout.css' />
-@else
-    <link rel='stylesheet' type='text/css' href='/css/manifests/manifest_pdf_layout.css' />
-@endif
+<link rel='stylesheet' type='text/css' href='./css/manifests/manifest_pdf_layout.css' />
 
-@if(isset($is_pdf))
 <div class='header'>
     <table>
         <td width:'30%'>
@@ -27,7 +22,6 @@
         <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>www.fastforwardexpress.com</a></td>
     </table>
 </div>
-@endif
 
 <hr/>
 <table style='overflow: visible'>
@@ -40,7 +34,6 @@
         </tr>
     </tbody>
 </table>
-@if(isset($is_pdf))
 <table id='address'>
     <tr>
         <td class='text-left'>
@@ -60,7 +53,6 @@
         </td>
     </tr>
 </table>
-@endif
 <br/><br/>
 <div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Driver Statement</h3></div>
 <table id='manifest_overview' @if($model->chargebacks == null) style='page-break-after: always;' @endif>
@@ -112,6 +104,7 @@
 </table>
 @endif
 
+@if(!$without_bills)
 <div class='col center'><h3>Detailed</h3></div>
 <table id='manifest_full'>
     <thead>
@@ -146,3 +139,4 @@
         @endforeach
     </tbody>
 </table>
+@endif

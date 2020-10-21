@@ -29,7 +29,7 @@ class ManifestRepo {
     public function Delete($manifest_id) {
         $pickupBills = Bill::where('pickup_manifest_id', $manifest_id)->get();
         $deliveryBills = Bill::where('delivery_manifest_id', $manifest_id)->get();
-        $chargebacks = DriverChargeback::where('manifest_id', $manifest_id)->get();
+        $chargebacks = Chargeback::where('manifest_id', $manifest_id)->get();
         $manifest = Manifest::where('manifest_id', $manifest_id);
 
         foreach($pickupBills as $bill) {
@@ -87,18 +87,18 @@ class ManifestRepo {
 
     public function ListAll() {
         $manifests = Manifest::leftJoin('employees', 'employees.employee_id', '=', 'manifests.employee_id')
-                ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-                ->select(
-                    'manifest_id',
-                    'employees.employee_id',
-                    DB::raw('concat(first_name, " ", last_name) as employee_name'),
-                    DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
-                    'date_run',
-                    'manifests.start_date',
-                    'end_date',
-                    DB::raw('(select sum(case when pickup_manifest_id = manifest_id and delivery_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = manifest_id then round(amount * delivery_driver_commission, 2) end) from bills) as driver_income'),
-                    DB::raw('(select sum(amount) from chargebacks left join driver_chargebacks on driver_chargebacks.chargeback_id = chargebacks.chargeback_id where driver_chargebacks.manifest_id = manifests.manifest_id) as driver_chargeback_amount')
-                );
+            ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+            ->select(
+                'manifest_id',
+                'employees.employee_id',
+                DB::raw('concat(first_name, " ", last_name) as employee_name'),
+                DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
+                'date_run',
+                'manifests.start_date',
+                'end_date',
+                DB::raw('(select sum(case when pickup_manifest_id = manifest_id and delivery_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = manifest_id then round(amount * delivery_driver_commission, 2) end) from bills) as driver_income'),
+                DB::raw('(select sum(amount) from chargebacks where manifests.manifest_id = chargebacks.manifest_id) as driver_chargeback_amount')
+            );
 
         $filteredManifests = QueryBuilder::for($manifests)
             ->allowedFilters([

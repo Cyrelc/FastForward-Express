@@ -19,6 +19,7 @@ import Interliners from '../interliners/Interliners'
 import Invoice from '../invoices/Invoice'
 import Invoices from '../invoices/Invoices'
 import InvoiceGenerate from '../invoices/InvoicesGenerate'
+import Manifest from '../manifests/Manifest'
 import Manifests from '../manifests/Manifests'
 import ManifestsGenerate from '../manifests/ManifestsGenerate'
 import Ratesheet from '../ratesheets/Ratesheet'
@@ -126,8 +127,7 @@ export default class App extends Component {
                                         value={this.state.manifestId}
                                         onKeyPress={event => {
                                             if(event.key === 'Enter' && this.state.manifestId)
-                                                window.location.href = '/manifests/view/' + this.state.manifestId
-                                                // this.setState({redirect: '/manifests/view/' + this.state.manifestId, manifestId: ''})
+                                                this.setState({redirect: '/app/manifests/view/' + this.state.manifestId, manifestId: ''})
                                         }}
                                     />
                                 </InputGroup>
@@ -166,6 +166,7 @@ export default class App extends Component {
                     <Route path='/app/invoices/view/:invoiceId' component={Invoice}></Route>
                     <Route path='/app/employees' exact component={Employees}></Route>
                     <Route path='/app/employees/:action/:employeeId?' component={Employee}></Route>
+                    <Route path='/app/manifests/view/:manifestId' exact component={Manifest}></Route>
                     <Route path='/app/manifests' exact component={Manifests}></Route>
                     <Route path='/app/manifests/generate' exact component={ManifestsGenerate}></Route>
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>

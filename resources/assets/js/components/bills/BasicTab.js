@@ -114,7 +114,7 @@ export default function BasicTab(props) {
                     <Col md={10}>
                         <FormControl 
                             as='textarea'
-                            placeholder='Oversized or unusually shaped delivery? Special delivery instructions? Let us know here!'
+                            placeholder='Oversized or unusually shaped delivery? Special delivery instructions? Contact information on delivery? Let us know here!'
                             name='description'
                             value={props.description}
                             onChange={props.handleChanges}
