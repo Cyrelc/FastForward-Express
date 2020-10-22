@@ -47,7 +47,7 @@ class AccountController extends Controller {
         return view('accounts.account', compact('model'));
     }
 
-    public function giveAccountCredit(Request $req) {
+    public function adjustAccountCredit(Request $req) {
         DB::beginTransaction();
         try {
             $accountValidationRules = new Validation\AccountValidationRules();

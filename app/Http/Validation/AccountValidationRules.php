@@ -29,13 +29,12 @@ class AccountValidationRules {
         $rules = [
             'bill_id' => 'required|numeric|exists:bills,bill_id',
             'account_id' => 'required|exists:accounts,account_id',
-            'credit_amount' => 'required|numeric|gt:0'
+            'credit_amount' => 'required|numeric'
         ];
         $messages = [
             'bill_id.required' => 'You must credit against a bill id',
             'bill_id.exists' => 'Invalid bill id entered',
             'account_id.exists' => 'Invalid account id',
-            'credit_amount.gt' => 'Credit amount must be greater than zero'
         ];
 
         return ['rules' => $rules, 'messages' => $messages];

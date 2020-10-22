@@ -94,12 +94,12 @@ function submitCredit() {
     data += '&account_id=' + $('#account_id').val();
 
     $.ajax({
-        'url' : '/accounts/giveCredit',
+        'url' : '/accounts/adjustCredit',
         'type' : 'post',
         'data': data,
         'success': function() {
             $('#account_credit_modal').modal('hide');
-            toastr.success('Account credited successfully', 'Success', {
+            toastr.success('Account credit adjusted successfully', 'Success', {
                 'progressBar': true,
                 'showDuration': 500,
                 'onHidden': function(){location.reload()}

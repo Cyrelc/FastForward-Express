@@ -15,7 +15,7 @@
         </div>
         <div class='col-md-6'></div>
         <div class='col-md-3'>
-            <button type='button' class='btn btn-success' data-toggle='modal' data-target='#account_credit_modal'><i class='fas fa-hand-holding-usd'>&nbsp&nbspGive Account Credit</i></button>
+            <button type='button' class='btn btn-success' data-toggle='modal' data-target='#account_credit_modal'><i class='fas fa-hand-holding-usd'>&nbsp&nbspAdjust Account Credit</i></button>
             <label>Credit Balance: ${{$model->account->account_balance}}</label>
         </div>
     </div>

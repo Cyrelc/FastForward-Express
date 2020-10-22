@@ -42,7 +42,7 @@ Route::group(
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
             Route::get('/accounts/toggleActive/{id}', 'AccountController@toggleActive');
             Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
-            Route::post('/accounts/giveCredit', 'AccountController@giveAccountCredit');
+            Route::post('/accounts/adjustCredit', 'AccountController@adjustAccountCredit');
             Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
 
             Route::get('/app/{route}', 'HomeController@index');
