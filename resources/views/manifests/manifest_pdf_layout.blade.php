@@ -54,6 +54,24 @@
     </tr>
 </table>
 <br/><br/>
+@if($model->warnings != [])
+<div style='text-align: center'>
+    <table style='width: 100%'>
+        <thead>
+            <tr>
+                @foreach($model->warnings as $warning)
+                    @if($warning['type'] === 'error')
+                        <th style='background: tomato; border: 2px solid black;'>{{$warning['friendlyString']}}</td>
+                    @else
+                        <th style='background: gold; border: 2px solid black;'>{{$warning['friendlyString']}}</td>
+                    @endif
+                @endforeach
+            </tr>
+        </thead>
+    </table>
+    <h4>Please contact the office with your up-to-date information as soon as possible</h4>
+</div>
+@endif
 <div class='center'><h3>{{$model->manifest->start_date}} to {{$model->manifest->end_date}}<br/>Driver Statement</h3></div>
 <table id='manifest_overview' @if($model->chargebacks == null) style='page-break-after: always;' @endif>
     <thead>

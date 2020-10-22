@@ -67,6 +67,20 @@ export default class Manifest extends Component {
                     <Col md={11}>
                         <hr/>
                     </Col>
+                    {
+                        this.state.data.warnings &&
+                        <Col md={11}>
+                            <table style={{width: '100%'}}>
+                                <thead>
+                                    <tr>
+                                        {this.state.data.warnings.map(warning =>
+                                            <th style={{border: '1px solid black', textAlign: 'center', background: warning.type === 'error' ? 'tomato' : 'gold'}} width={(1 / this.state.data.warnings.length * 100) + '%'}>{warning.friendlyString}</th>
+                                        )}
+                                    </tr>
+                                </thead>
+                            </table>
+                        </Col>
+                    }
                     <Col md={11} style={{textAlign: 'center'}}>
                         <h4>{this.state.data.manifest.start_date + ' to ' + this.state.data.manifest.end_date}</h4>
                         <h4>Driver Statement</h4>

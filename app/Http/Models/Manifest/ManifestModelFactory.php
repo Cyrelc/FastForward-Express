@@ -41,6 +41,17 @@ class ManifestModelFactory{
 
         $model->driver_income = number_format($driver_total - $chargeback_total, 2);
 
+        // handle checking whether anything has expired, or is soon to expire
+        $expirations = ['drivers_license_expiration_date' => 'Drivers License', 'license_plate_expiration_date' => 'License Plate', 'insurance_expiration_date' => 'Vehicle Insurance'];
+        $model->warnings = [];
+        $currentDate = new \DateTime();
+        $datePlusNinetyDays = date('Y-m-d', strtotime($currentDate->format('Y-m-d') . ' + 90 days'));
+        foreach($expirations as $dbName => $friendlyString)
+            if(new \DateTime($model->employee->$dbName) < $currentDate)
+                array_push($model->warnings, ['friendlyString' => $friendlyString . ' has expired', 'type' => 'error']);
+            else if(new \DateTime($model->employe->$dbName) < $datePlusNinetyDays)
+                array_push($model->warnings, ['friendlyString' => $friendlyString . ' will expire soon', 'type' => 'warning']);
+
         return $model;
     }
 
