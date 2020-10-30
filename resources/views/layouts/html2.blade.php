@@ -7,9 +7,6 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>
             FastForwardExpress
-            @if(array_key_exists('title', View::getSections()))
-                - @yield('title')
-            @endif
         </title>
 
         <!--Global Scripts-->
@@ -30,7 +27,7 @@
         @yield('head')
     </head>
 
-    <body style='min-height: 100%'>
+    <body style='min-height: 100%; width: 99.2vw'>
         @yield('body')
     </body>
 

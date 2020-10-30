@@ -54,7 +54,7 @@ export default function BasicTab(props) {
                                     />
                                 </Col>
                             }
-                            {!props.packageIsMinimum && 
+                            {!props.packageIsMinimum &&
                                 <Col md={4}>
                                     <FormCheck
                                         name='useImperial'

@@ -193,7 +193,6 @@ class InvoiceController extends Controller {
             unlink($file);
         rmdir($storagepath . $foldername);
 
-        // return $foldername . '.zip';
         return \Response::download($zipfile);
     }
 }

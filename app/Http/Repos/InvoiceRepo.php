@@ -144,7 +144,7 @@ class InvoiceRepo {
 
         foreach($sort_options as $key => $option) {
             $contingent_field = $option->contingent_field;
-            if($contingent_field != NULL && $account->$contingent_field == false) {
+            if(filter_var($contingent_field, FILTER_VALIDATE_BOOLEAN) && $account->$contingent_field == false) {
                 unset($sort_options[$key]);
                 continue;
             }

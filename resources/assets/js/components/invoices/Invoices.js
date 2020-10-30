@@ -48,6 +48,7 @@ function toggleInvoiceFinalized(selectedRows = null) {
 function printInvoices(selectedRows = null) {
     if(!selectedRows || selectedRows.length === 0) {
         toastr.warning('Please select at least one row to operate on')
+        return
     }
     const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
     if(selectedRows.length === 1)

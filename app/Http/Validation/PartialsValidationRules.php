@@ -14,8 +14,8 @@ class PartialsValidationRules {
             'messages' => [
                 $prefix . '_formatted.required' => $prefix_name . ' formatted address is required',
                 $prefix . '_name.required' => $prefix_name . ' address name is required',
-                $prefix . '_lat.required' => $prefix_name . ' latitude is in an incorrect format. Please contact support',
-                $prefix . '_lng.required' => $prefix_name . ' longitude is in an incorrect format. Please contact support'
+                $prefix . '_lat.required' => $prefix_name . ' requires a Latitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location',
+                $prefix . '_lng.required' => $prefix_name . ' requires a Longitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location'
             ]
         ];
     }
@@ -129,25 +129,6 @@ class PartialsValidationRules {
         return [
             'rules' => $validationRules,
             'messages' => $validationMessages
-        ];
-    }
-
-    public function GetPackageValidationRules($req, $package_name) {
-        return [
-            'rules' => [
-                $package_name . '_count' => 'required|numeric|min:1',
-                $package_name . '_weight' => 'required|numeric|min:0.001',
-                $package_name . '_height' => 'required|numeric|min:0.1',
-                $package_name . '_length' => 'required|numeric|min:0.1',
-                $package_name . '_width' => 'required|numeric|min:0.1'
-            ],
-            'messages' => [
-                $package_name . '_count.min' => 'Must include at least one instance of package',
-                $package_name . '_weight.min' => 'Package weight must be greater than zero',
-                $package_name . '_height.min' => 'Package height must be greater than zero',
-                $package_name . '_length.min' => 'Package length must be greater than zero',
-                $package_name . '_width.min' => 'Package width must be greater than zero'
-            ]
         ];
     }
 

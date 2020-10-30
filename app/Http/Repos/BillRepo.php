@@ -124,6 +124,7 @@ class BillRepo {
                 ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
                 ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
                 ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+                ->join('selections', 'selections.value', '=', 'bills.delivery_type')
                 ->select(
                     'bill_id',
                     DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
@@ -133,7 +134,7 @@ class BillRepo {
                     'pickup_account_id',
                     'delivery_account_id',
                     'charge_reference_value',
-                    'delivery_type',
+                    'selections.name as delivery_type',
                     'pickup.name as pickup_address_name',
                     'delivery.name as delivery_address_name',
                     'accounts.name as charge_account_name'

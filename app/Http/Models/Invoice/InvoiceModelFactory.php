@@ -58,7 +58,7 @@
 				}
 			}
 			foreach($model->tables as $table) {
-				$table->headers = array('Date' => 'time_pickup_scheduled', 'Waybill Number' => 'bill_number');
+				$table->headers = array('Date' => 'time_pickup_scheduled', 'Bill ID' => 'bill_id', 'Waybill Number' => 'bill_number');
 				if($subtotal_by != NULL && $subtotal_by->database_field_name == 'charge_account_id') {
 					$customField = $accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field;
 					if($customField)
@@ -66,7 +66,6 @@
 				}
 				else if($model->parent->uses_custom_field)
 					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
-				$table->headers['Bill ID'] = 'bill_id';
 				$table->headers['Address'] = 'address';
 				$table->headers['Type'] = 'delivery_type';
 				$table->headers['Amount'] = 'amount';

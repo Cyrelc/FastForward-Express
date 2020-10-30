@@ -48,7 +48,6 @@ export default class Invoice extends Component {
     getInvoice() {
         makeAjaxRequest('/invoices/getModel/' + this.props.match.params.invoiceId, 'GET', null, response => {
             response = JSON.parse(response)
-            console.log(response)
             document.title = 'View Invoice ' + response.invoice.invoice_id
             this.setState({
                 accountId: response.invoice.account_id,
@@ -102,7 +101,7 @@ export default class Invoice extends Component {
                 <Col md={11}>
                     <table style={{width: '100%'}}>
                         <tr>
-                            <td style={{width: '40%'}}><h3><a href={'/accounts/edit' + this.state.accountId}>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></h3></td>
+                            <td style={{width: '40%'}}><h3><a href={'/accounts/edit/' + this.state.accountId}>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></h3></td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && this.state.invoice.total_cost)}</td>
                             <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + this.state.accountOwing}</td>
@@ -147,9 +146,11 @@ export default class Invoice extends Component {
                                                     case 'amount':
                                                         return <td width='10%' style={{textAlign: 'right'}}>{bill.amount}</td>
                                                     case 'bill_id':
-                                                        return <td width='10%'><a href={'/app/bills/edit/' + bill.bill_id}>{bill.bill_id}</a></td>
+                                                        return <td width='8%'><a href={'/app/bills/edit/' + bill.bill_id}>{bill.bill_id}</a></td>
                                                     case 'bill_number':
                                                         return null
+                                                    case 'time_pickup_scheduled':
+                                                        return <td width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
                                                     default:
                                                         return <td width='10%'>{bill[headerValue]}</td>
                                                 }
