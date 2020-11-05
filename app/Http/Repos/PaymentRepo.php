@@ -12,17 +12,19 @@ class PaymentRepo {
         return $payment;
     }
 
-    public function listPaymentsByAccount($account_id) {
-        $payments = Payment::where('account_id', $account_id)
+    public function GetPaymentsByAccountId($accountId) {
+        $payments = Payment::where('account_id', $accountId)
             ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
-            ->select('payment_id',
-                    'invoice_id',
-                    'date',
-                    DB::raw('format(amount, 2) as amount'),
-                    'payments.payment_type_id',
-                    'payment_types.name as payment_type',
-                    'reference_value',
-                    'comment');
+            ->select(
+                'payment_id',
+                'invoice_id',
+                'date',
+                'amount',
+                'payments.payment_type_id',
+                'payment_types.name as payment_type',
+                'reference_value',
+                'comment'
+            );
 
         return $payments->get();
     }
@@ -60,6 +62,13 @@ class PaymentRepo {
 
     public function GetPaymentTypesList() {
         $paymentTypes = PaymentType::select('name as label', 'payment_type_id as value');
+
+        return $paymentTypes->get();
+    }
+
+    public function GetPaymentTypesForAccounts() {
+        $paymentTypes = PaymentType::where('is_prepaid', true)
+            ->orWhere('name', 'Account');
 
         return $paymentTypes->get();
     }

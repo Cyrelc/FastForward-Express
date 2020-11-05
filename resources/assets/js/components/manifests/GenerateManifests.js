@@ -3,7 +3,7 @@ import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 import { ReactTabulator } from 'react-tabulator'
 
-export default class ManifestsGenerate extends Component {
+export default class GenerateManifests extends Component {
     constructor() {
         super()
         this.state = {

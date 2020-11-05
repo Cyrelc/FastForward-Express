@@ -58,6 +58,15 @@ class RatesheetRepo {
         return $ratesheets->get();
     }
 
+    public function GetRatesheetSelectList() {
+        $ratesheets = Ratesheet::select(
+            'name as label',
+            'ratesheet_id as value'
+        );
+
+        return $ratesheets->get();
+    }
+
     public function SetZoneNeighbours($zoneId, $neighbours) {
         $zone = Zone::where('zone_id', $zoneId)->first();
 

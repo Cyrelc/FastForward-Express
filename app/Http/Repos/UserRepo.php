@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Repos;
 
+use App\AccountUser;
 use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class UserRepo
 {
@@ -34,6 +36,17 @@ class UserRepo
         return $count;
     }
 
+    public function DeleteAccountUserByContactId($contactId) {
+        $accountUser = AccountUser::where('contact_id', $contactId)->first();
+        $user = User::where('user_id', $accountUser->user_id)->first();
+
+        $user->delete();
+        $accountUser->delete();
+
+        $contactRepo = new ContactRepo();
+        $contactRepo->Delete($contactId);
+    }
+
     public function GetAccountUserByContactId($contact_id) {
         $accountUser = \App\AccountUser::where('contact_id', $contact_id);
 
@@ -45,6 +58,27 @@ class UserRepo
         $user = \App\User::where('user_id', $employee->user_id)->first();
 
         return $user;
+    }
+
+    public function GetAccountUsers($account_id) {
+        $accountUsers = AccountUser::where('account_id', '=', $account_id)
+            ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('users', 'account_users.user_id', '=', 'users.user_id')
+            ->leftJoin('email_addresses', 'account_users.contact_id', '=', 'email_addresses.contact_id')
+            ->leftJoin('phone_numbers', 'account_users.contact_id', '=', 'phone_numbers.contact_id')
+            ->where('email_addresses.is_primary', true)
+            ->where('phone_numbers.is_primary', true)
+            ->select(
+                'account_users.contact_id',
+                'users.user_id',
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as name'),
+                'email_addresses.email as primary_email',
+                'phone_numbers.phone_number as primary_phone',
+                'contacts.position as position',
+                'account_users.is_primary as is_primary'
+            );
+
+        return $accountUsers->get();
     }
 
     public function GetAccountUserIds ($account_id) {
@@ -101,7 +135,7 @@ class UserRepo
         $old = $this->GetById($user['user_id']);
 
         // no support for usernames atm
-        $old->username = $user['username'];
+        // $old->username = $user['username'];
         if(isset($user->is_locked))
             $old->is_locked = $user['is_locked'];
         $old->email = $user['email'];

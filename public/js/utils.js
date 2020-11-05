@@ -1,5 +1,3 @@
-const { type } = require("jquery");
-
 function numberFilter(e) {
     // Allow: backspace, delete, tab, escape, enter
     if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110]) !== -1 ||
@@ -140,29 +138,41 @@ function makeAjaxRequest(url, type, data, callback) {
         'url': url,
         'type': type,
         'data': data,
-        'success': response => {
-            if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
-                location.reload()
-                return Promise.reject(response)
-            }
+        'success': (response, textStatus, xhr) => {
+            console.log(xhr.status)
             callback(response)
         },
-        'error': response => handleErrorResponse(response)
+        'error': (response, textStatus, xhr) => {
+            console.log(xhr.status)
+            if(response.message === 'CSRF token mismatch.')
+                location.reload()
+            handleErrorResponse(response)
+        }
     })
 }
 
 function makeFetchRequest(url, callback) {
     fetch(url)
     .then(response => {
+        console.log(response)
         if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
             location.reload()
             return Promise.reject(response)
-        } if (!response.ok) {
+        } else if (!response.ok) {
+            if(response.statusCode === 404)
+                window.location.href = '/'
             toastr.clear()
             toastr.error(response.error, '', {'timeOut' : 0, 'extendedTImeout' : 0});
             return Promise.reject(response)
         }
+
         return response.json()
     })
     .then(data => callback(data))
+}
+
+Date.prototype.addDays = function(days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
 }

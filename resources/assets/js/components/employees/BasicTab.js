@@ -8,26 +8,22 @@ export default function BasicTab(props) {
     return (
         <Card border='dark'>
             <Card.Header>
-                <Row>
-                    <Col md={2}><h4 className='text-muted'>Contact Info</h4></Col>
-                    <Col md={10}>
-                        <Contact
-                            key={props.contact_id}
-                            addressId={'employee'}
-                            firstName={props.firstName}
-                            lastName={props.lastName}
-                            position={props.position}
-                            address={props.address}
-                            phoneNumbers={props.phoneNumbers}
-                            phoneNumbersToDelete={props.phoneNumbersToDelete}
-                            phoneTypes={props.phoneTypes}
-                            emailAddresses={props.emailAddresses}
-                            emailAddressesToDelete={props.emailAddressesToDelete}
-                            handleChanges={props.handleChanges}
-                            readOnly={props.readOnly}
-                        />
-                    </Col>
-                </Row>
+                <Contact
+                    key={props.contact_id}
+                    addressId={'employee'}
+                    firstName={props.firstName}
+                    lastName={props.lastName}
+                    position={props.position}
+                    address={props.address}
+                    phoneNumbers={props.phoneNumbers}
+                    phoneNumbersToDelete={props.phoneNumbersToDelete}
+                    phoneTypes={props.phoneTypes}
+                    emailAddresses={props.emailAddresses}
+                    emailAddressesToDelete={props.emailAddressesToDelete}
+                    handleChanges={props.handleChanges}
+                    readOnly={props.readOnly}
+                    showAddress
+                />
             </Card.Header>
             {props.emergencyContacts && 
                 <Card.Body>

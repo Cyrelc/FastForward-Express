@@ -7,7 +7,7 @@ export default function Zone(props) {
             <Card.Header style={{backgroundColor: props.colour}}>
                 <Row>
                     <Col>
-                        <InputGroup>
+                        <InputGroup size='sm'>
                             <InputGroup.Prepend>
                                 <InputGroup.Text>Name: </InputGroup.Text>
                             </InputGroup.Prepend>
@@ -30,7 +30,7 @@ export default function Zone(props) {
             {(props.zone.type === 'peripheral' || props.zone.type === 'outlying') &&
             <Collapse in={props.zone.viewDetails}>
                 <Card.Body>
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Additional Time: </InputGroup.Text>
                         </InputGroup.Prepend>
@@ -40,7 +40,7 @@ export default function Zone(props) {
                         </InputGroup.Append>
                     </InputGroup>
                 {props.zone.type !== 'peripheral' ? null : 
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Additional Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>
@@ -49,25 +49,25 @@ export default function Zone(props) {
                 }
                 {props.zone.type !== 'outlying' ? null :
                 <div>
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Regular Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>
                         <FormControl type='number' step={0.01} min ={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
                     </InputGroup>
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Rush Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>
                         <FormControl type='number' step={0.01} min ={0.00} name='rushCost' value={props.zone.rushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
                     </InputGroup>
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Direct Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>
                         <FormControl type='number' step={0.01} min ={0.00} name='directCost' value={props.zone.directCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
                     </InputGroup>
-                    <InputGroup>
+                    <InputGroup size='sm'>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Direct Rush Cost: $</InputGroup.Text>
                         </InputGroup.Prepend>

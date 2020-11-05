@@ -35,15 +35,12 @@ Route::group(
             Route::get('/getList/{type}/{parameter?}', 'HomeController@getList');
             Route::get('/getDashboard', 'HomeController@getDashboard');
 
-            Route::get('/accounts/create', 'AccountController@create');
             Route::post('/accounts/store', 'AccountController@store');
-            Route::get('/accounts/edit/{id}', 'AccountController@edit');
-            Route::post('/accounts/is_unique', 'AccountController@is_unique');
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
-            Route::get('/accounts/toggleActive/{id}', 'AccountController@toggleActive');
+            Route::get('/accounts/toggleActive/{accountId}', 'AccountController@toggleActive');
             Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
             Route::post('/accounts/adjustCredit', 'AccountController@adjustAccountCredit');
-            Route::post('/accounts/{id}/storeInvoiceLayout', 'AccountController@storeInvoiceLayout');
+            Route::get('/accounts/getModel/{accountId?}', 'AccountController@getModel');
 
             Route::get('/app/{route}', 'HomeController@index');
 
@@ -97,7 +94,7 @@ Route::group(
             Route::get('/manifests/printMass/{manifestIdArray}', 'ManifestController@printMass');
 
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
-            Route::get('/payments/getPaymentsTableByAccount', 'PaymentController@GetPaymentsTableByAccount');
+            Route::get('/payments/getModelByAccountId/{accountId}', 'PaymentController@GetModelByAccountId');
 
             Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
             Route::post('/ratesheets/store', 'RatesheetController@store');
@@ -117,7 +114,8 @@ Route::group(
             Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
             Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
             Route::get('/users/createAccountUser/{id}', 'UserController@createAccountUser');
-            Route::post('/users/deleteAccountUser', 'UserController@deleteAccountUser');
+            Route::get('/users/deleteAccountUser/{contactId}', 'UserController@deleteAccountUser');
+            Route::get('/users/getAccountUserModel/{contactId}', 'UserController@getAccountUserModel');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

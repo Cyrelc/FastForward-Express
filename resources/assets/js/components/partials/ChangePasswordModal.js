@@ -16,7 +16,7 @@ export default class ChangePasswordModal extends Component {
 
     generatePassword() {
         makeFetchRequest('/users/generatePassword', data => {
-            this.setState({password: data, confirmPassword: data, viewPassword: true})
+            this.setState({newPassword: data, confirmPassword: data, viewPassword: true})
         })
     }
 
@@ -33,7 +33,7 @@ export default class ChangePasswordModal extends Component {
         makeAjaxRequest('/users/changePassword/' + this.props.userId, 'POST', data, response => {
             toastr.clear()
             this.props.toggleModal()
-            toastr.success('Password was successfull changed', 'Success')
+            toastr.success('Password was successfully changed', 'Success')
         })
     }
 
@@ -83,9 +83,9 @@ export default class ChangePasswordModal extends Component {
                 </Modal.Body>
                 <Modal.Footer className='justify-content-md-center'>
                     <ButtonGroup>
-                        <Button variant='dark' size='lg' onClick={this.generatePassword}><i className='fas fa-dice-d20 fa-lg'></i> Generate Password</Button>
-                        <Button variant='light' size='lg' onClick={this.props.toggleModal}>Cancel</Button>
-                        <Button variant='success' size='lg' onClick={this.submitChangePassword}><i className='fas fa-save'></i> Submit</Button>
+                        <Button variant='dark' onClick={this.generatePassword}><i className='fas fa-dice-d20 fa-lg'></i> Generate Password</Button>
+                        <Button variant='light' onClick={this.props.toggleModal}>Cancel</Button>
+                        <Button variant='success' onClick={this.submitChangePassword}><i className='fas fa-save'></i> Submit</Button>
                     </ButtonGroup>
                 </Modal.Footer>
             </Modal>

@@ -3,7 +3,7 @@
 <hr/>
 <table style='overflow: visible'>
     <td style='width: 40%; text-align: center'>
-        <h3><a href='/accounts/edit/{{$model->parent->account_id}}'>{{$model->parent->account_number}} - {{$model->parent->name}}</a></h3>
+        <h3>{{$model->parent->account_number}} - {{$model->parent->name}}</h3>
     </td>
     <td class='basic' >
         <h4>Bill Count:<br/><br/>{{$model->invoice->bill_count}}</h4>
@@ -44,12 +44,9 @@
         <td class='{{$address == "billing_address" ? 'text-left' : 'text-right' }}'>
             <strong>{{$name}}:</strong><br/>
             {{$model->parent->$address->name}}<br/>
-            {{$model->parent->$address->street}}<br/>
-            @if($model->parent->$address->street2 != '')
-                {{$model->parent->$address->street2}}<br/>
-            @endif
-            {{$model->parent->$address->city}}, {{$model->parent->$address->state_province}}, {{$model->parent->$address->country}}<br/>
-            {{$model->parent->$address->zip_postal}}
+            @foreach(explode(',', $model->parent->$address->formatted) as $addressLine)
+                {{$addressLine}}<br/>
+            @endforeach
         </td>
         @endforeach
     </tr>
@@ -91,6 +88,8 @@
                                 <td class='bill_id' width='10%'><a href='/bills/edit/{{$bill->bill_id}}'>{{$bill->$value}}</a></td>
                             @elseif($value == 'delivery_type')
                                 <td width='13%'>{{$bill->$value}}</td>
+                            @elseif($value == 'time_pickup_scheduled')
+                                <td width='15%'>{{substr($bill->$value, 0, 16)}}</td>
                             @else
                                 <td width='10%'>{{$bill->$value}}</td>
                             @endif
@@ -156,7 +155,7 @@
         <tbody>
             @foreach($model->unpaid_invoices as $invoice)
                 <tr>
-                    <td><a href='/invoices/view/{{$invoice->invoice_id}}'>{{$invoice->invoice_id}}</a></td>
+                    <td>{{$invoice->invoice_id}}</td>
                     <td>{{$invoice->bill_end_date}}</td>
                     <td>{{$invoice->total_cost}}</td>
                     <td>{{$invoice->balance_owing}}</td>

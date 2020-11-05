@@ -9,34 +9,31 @@ class Account extends Model
 {
     use LogsActivity;
 
-    public $primaryKey = "account_id";
+    public $primaryKey = 'account_id';
     public $timestamps = false;
 
-    protected $fillable = ['ratesheet_id',
-                    'has_parent',
-                    'parent_account_id',
-                    'billing_address_id',
-                    'shipping_address_id',
-                    'account_number',
-                    'invoice_interval',
-                    'invoice_comment',
-                    'stripe_id',
-                    'name',
-                    'start_date',
-                    'send_bills',
-                    'send_invoices',
-                    'is_master',
-                    'has_discount',
-                    'discount',
-                    'gst_exempt',
-                    'charge_interest',
-                    'fuel_surcharge',
-                    'can_be_parent',
-                    'custom_field',
-                    'uses_custom_field',
-                    'active',
-                    'min_invoice_amount',
-                    'use_parent_ratesheet'];
+    protected $fillable = [
+        'active',
+        'account_number',
+        'billing_address_id',
+        'can_be_parent',
+        'custom_field',
+        'discount',
+        'gst_exempt',
+        'invoice_interval',
+        'invoice_comment',
+        'invoice_sort_order',
+        'min_invoice_amount',
+        'name',
+        'parent_account_id',
+        'ratesheet_id',
+        'send_bills',
+        'send_email_invoices',
+        'send_paper_invoices',
+        'shipping_address_id',
+        'start_date',
+        'use_parent_ratesheet'
+    ];
 
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;

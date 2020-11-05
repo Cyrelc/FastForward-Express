@@ -20,8 +20,8 @@ class ContactModelFactory {
         $contact->phone_numbers[0] = new \App\PhoneNumber();
         $contact->phone_numbers[0]->is_primary = true;
         $contact->phone_numbers[0]->action = 'create';
-        $contact->phone_types = $selectionsRepo->GetSelectionsByType('phone_type');
-        $contact->email_types = $selectionsRepo->GetSelectionsByType('contact_type');
+        $contact->phone_types = $selectionsRepo->GetSelectionsListByType('phone_type');
+        $contact->email_types = $selectionsRepo->GetSelectionsListByType('contact_type');
 
         return $contact;
     }
@@ -37,8 +37,8 @@ class ContactModelFactory {
 
         $contact->phone_numbers = $phoneNumberRepo->GetByContactId($contact->contact_id);
         $contact->emails = $emailAddressRepo->GetByContactId($contact->contact_id);
-        $contact->phone_types = $selectionsRepo->GetSelectionsByType('phone_type');
-        $contact->email_types = $selectionsRepo->GetSelectionsByType('contact_type');
+        $contact->phone_types = $selectionsRepo->GetSelectionsListByType('phone_type');
+        $contact->email_types = $selectionsRepo->GetSelectionsListByType('contact_type');
 
         if ($getAddress)
             $contact->address = $addressRepo->GetByContactId($contact->contact_id);

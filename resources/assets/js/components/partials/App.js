@@ -5,6 +5,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import { FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
 import Select from 'react-select'
 
+import Account from '../accounts/Account'
 import Accounts from '../accounts/Accounts'
 import AdminDashboard from '../dashboards/AdminDashboard'
 import AppSettings from '../admin/AppSettings'
@@ -15,13 +16,13 @@ import Chargebacks from '../employees/Chargebacks'
 import Dispatch from '../dispatch/Dispatch'
 import Employee from '../employees/Employee'
 import Employees from '../employees/Employees'
+import GenerateInvoices from '../invoices/GenerateInvoices'
+import GenerateManifests from '../manifests/GenerateManifests'
 import Interliners from '../interliners/Interliners'
 import Invoice from '../invoices/Invoice'
 import Invoices from '../invoices/Invoices'
-import InvoiceGenerate from '../invoices/InvoicesGenerate'
 import Manifest from '../manifests/Manifest'
 import Manifests from '../manifests/Manifests'
-import ManifestsGenerate from '../manifests/ManifestsGenerate'
 import Ratesheet from '../ratesheets/Ratesheet'
 import Ratesheets from '../ratesheets/Ratesheets'
 
@@ -66,7 +67,8 @@ export default class App extends Component {
                     <Navbar.Collapse id='responsive-navbar-nav'>
                         <Nav className='ml-auto'>
                             <NavDropdown title='Bills' id='navbar-bills'>
-                                <LinkContainer to='/app/bills?filter[percentage_complete]=,100'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/bills?filter[percentage_complete]=,100'><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Incomplete</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to={'/app/bills?filter[time_pickup_scheduled]=' + new Date().addDays(-45).toISOString()}><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Last 45 days</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
@@ -104,12 +106,12 @@ export default class App extends Component {
                             </NavDropdown>
                             <NavDropdown title='Accounts' id='navbar-accounts' alignRight>
                                 <LinkContainer to='/app/accounts'><NavDropdown.Item><i className='fa fa-list'></i> List Accounts</NavDropdown.Item></LinkContainer>
-                                <NavDropdown.Item href='/accounts/create'><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item>
+                                <NavDropdown.Item href='/app/accounts/create'><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '500px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Account ID: </InputGroup.Text></InputGroup.Prepend>
                                     <Select
                                         options={this.state.accounts}
-                                        onChange={value => window.location.href = '/accounts/edit/' + value.value}
+                                        onChange={value => this.setState({redirect: '/app/accounts/edit/' + value.value})}
                                     />
                                 </InputGroup>
                             </NavDropdown>
@@ -152,6 +154,7 @@ export default class App extends Component {
                     </Navbar.Collapse>
                 </Navbar>
                 <Switch>
+                    <Route path='/app/accounts/:action/:accountId?' component={Account}></Route>
                     <Route path='/app/accounts' exact component={Accounts}></Route>
                     <Route path='/app/appSettings' exact component={AppSettings}></Route>
                     <Route path='/app/bills/trend' component={Charts}></Route>
@@ -162,13 +165,13 @@ export default class App extends Component {
                     <Route path='/' exact component={AdminDashboard}></Route>
                     <Route path='/app/interliners' component={Interliners}></Route>
                     <Route path='/app/invoices' exact component={Invoices}></Route>
-                    <Route path='/app/invoices/generate' exact component={InvoiceGenerate}></Route>
+                    <Route path='/app/invoices/generate' exact component={GenerateInvoices}></Route>
                     <Route path='/app/invoices/view/:invoiceId' component={Invoice}></Route>
                     <Route path='/app/employees' exact component={Employees}></Route>
                     <Route path='/app/employees/:action/:employeeId?' component={Employee}></Route>
                     <Route path='/app/manifests/view/:manifestId' exact component={Manifest}></Route>
                     <Route path='/app/manifests' exact component={Manifests}></Route>
-                    <Route path='/app/manifests/generate' exact component={ManifestsGenerate}></Route>
+                    <Route path='/app/manifests/generate' exact component={GenerateManifests}></Route>
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>
                     <Route path='/app/ratesheets/:action/:ratesheetId?' component={Ratesheet}></Route>
                 </Switch>

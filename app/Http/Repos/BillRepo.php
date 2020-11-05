@@ -105,68 +105,72 @@ class BillRepo {
         return $old;
     }
 
-    public function GetById($id) {
-	    $bill = Bill::where('bill_id', $id)->first();
+    public function GetById($billId) {
+	    $bill = Bill::where('bill_id', $billId)->first();
 
 	    return $bill;
     }
 
-    public function GetByInvoiceId($id) {
+    public function GetByInvoiceId($invoiceId) {
         $invoiceRepo = new InvoiceRepo();
         $accountRepo = new AccountRepo();
 
-        $account_id = $invoiceRepo->GetById($id)->account_id;
+        $invoice = $invoiceRepo->GetById($invoiceId);
 
-        $sort_options = $invoiceRepo->GetSortOrderById($account_id);
-        $subtotal_by = $invoiceRepo->GetSubtotalById($account_id);
+        $invoiceSortOptions = $accountRepo->GetInvoiceSortOrder($invoice->account_id);
 
-        $bill_query = Bill::where('invoice_id', $id)
-                ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
-                ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
-                ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-                ->join('selections', 'selections.value', '=', 'bills.delivery_type')
-                ->select(
-                    'bill_id',
-                    DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
-                    'bill_number',
-                    'time_pickup_scheduled',
-                    'charge_account_id',
-                    'pickup_account_id',
-                    'delivery_account_id',
-                    'charge_reference_value',
-                    'selections.name as delivery_type',
-                    'pickup.name as pickup_address_name',
-                    'delivery.name as delivery_address_name',
-                    'accounts.name as charge_account_name'
-                );
+        $subtotalBy = null;
+        foreach($invoiceSortOptions as $invoiceSortOption)
+            if(filter_var($invoiceSortOption->group_by, FILTER_VALIDATE_BOOLEAN))
+                $subtotalBy = $invoiceSortOption;
+
+        $billQuery = Bill::where('invoice_id', $invoiceId)
+            ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+            ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->join('selections', 'selections.value', '=', 'bills.delivery_type')
+            ->select(
+                'bill_id',
+                DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
+                'bill_number',
+                'time_pickup_scheduled',
+                'charge_account_id',
+                'pickup_account_id',
+                'delivery_account_id',
+                'charge_reference_value',
+                'selections.name as delivery_type',
+                'pickup.name as pickup_address_name',
+                'delivery.name as delivery_address_name',
+                'accounts.name as charge_account_name'
+            );
 
         $bills = array();
-        if($subtotal_by == NULL) {
-            foreach($sort_options as $option) {
-                $bill_query->orderBy($option->database_field_name);
+        if($subtotalBy == NULL) {
+            foreach($invoiceSortOptions as $option) {
+                $billQuery->orderBy($option->database_field_name);
             }
 
             $bills[0] = new \stdClass();
-            $bills[0]->bills = $bill_query->get();
+            $bills[0]->bills = $billQuery->get();
         } else {
-            $subtotal_ids = Bill::where('invoice_id', $id)->groupBy($subtotal_by->database_field_name)->pluck($subtotal_by->database_field_name);
+            $subtotalIds = Bill::where('invoice_id', $invoiceId)->groupBy($subtotalBy->database_field_name)->pluck($subtotalBy->database_field_name);
 
-            foreach($subtotal_ids as $subtotal_id) {
-                $subtotal_query = clone $bill_query;
-                $subtotal_query->where($subtotal_by->database_field_name, $subtotal_id);
-                if($subtotal_by->database_field_name == 'charge_account_id') {
-                    $sort_options = $invoiceRepo->GetSortOrderById($subtotal_id);
-                    $temp_account = $accountRepo->GetById($subtotal_id);
-                    $subtotal_string = $temp_account->account_number . ' ' . $temp_account->name;
-                } else if($subtotal_by->database_field_name == 'charge_reference_value') {
-                    $subtotal_string = $accountRepo->GetById($account_id)->custom_field . ' ' . $subtotal_id;
+            foreach($subtotalIds as $subtotalId) {
+                $subtotalQuery = clone $billQuery;
+                $subtotalQuery->where($subtotalBy->database_field_name, $subtotalId);
+                if($subtotalBy->database_field_name == 'charge_account_id') {
+                    $sortOptions = $accountRepo->GetInvoiceSortOrder($subtotalId);
+                    $tempAccount = $accountRepo->GetById($subtotalId);
+                    $subtotalString = $tempAccount->accountNumber . ' ' . $tempAccount->name;
+                } else if($subtotalBy->database_field_name == 'charge_reference_value') {
+                    $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ' ' . $subtotalId;
                 } else
-                    $subtotal_string = $subtotal_by->friendly_name . ' ' . $subtotal_id;
-                foreach($sort_options as $option) {
-                    $subtotal_query->orderBy($option->database_field_name);
+                    $subtotalString = $subtotalBy->friendly_name . ' ' . $subtotalId;
+                foreach($sortOptions as $option) {
+                    $subtotalQuery->orderBy($option->database_field_name);
                 }
-                $bills[$subtotal_string] = new \stdClass();
-                $bills[$subtotal_string]->bills = $subtotal_query->get();
+                $bills[$subtotalString] = new \stdClass();
+                $bills[$subtotalString]->bills = $subtotalQuery->get();
             }
         }
 

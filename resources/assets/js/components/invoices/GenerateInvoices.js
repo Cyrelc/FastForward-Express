@@ -4,7 +4,7 @@ import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 import {ReactTabulator} from 'react-tabulator'
 
-export default class InvoicesGenerate extends Component {
+export default class GenerateInvoices extends Component {
     constructor() {
         super()
         this.state = {

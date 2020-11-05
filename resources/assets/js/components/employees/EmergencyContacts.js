@@ -34,7 +34,6 @@ export default class EmergencyContacts extends Component {
         fetch('/employees/emergencyContacts/getModel')
         .then(response => {return response.json()})
         .then(data => {
-            console.log(data)
             this.setState({
                 contactId: '',
                 emailAddresses: data.emails,
@@ -143,7 +142,7 @@ export default class EmergencyContacts extends Component {
                 <Row>
                     <Col md={2}><h4 className='text-muted'>Emergency Contacts</h4></Col>
                     <Col md={10}>
-                        <Table striped bordered>
+                        <Table striped bordered size='sm'>
                             <thead>
                                 <tr>
                                     <td><Button size='sm' variant='success' onClick={this.addEmergencyContact}><i className='fas fa-user-plus'></i></Button></td>
@@ -156,8 +155,8 @@ export default class EmergencyContacts extends Component {
                             <tbody>
                                 {this.props.emergencyContacts.map((emergencyContact, index) =>
                                     <tr key={index}>
-                                        <td>
-                                            <ButtonGroup>
+                                        <td align='center' width='5%'>
+                                            <ButtonGroup size='sm'>
                                                 <Button title='Delete' variant='danger' disabled={this.props.emergencyContacts.length <= 1 || this.props.readOnly} onClick={() => this.deleteEmergencyContact(emergencyContact.contact_id)}><i className='fas fa-trash'></i></Button>
                                                 <Button title='Edit' variant='warning' disabled={this.props.readOnly} onClick={() => this.editEmergencyContact(emergencyContact.contact_id)}><i className='fas fa-edit'></i></Button>
                                             </ButtonGroup>
@@ -195,6 +194,7 @@ export default class EmergencyContacts extends Component {
                             emailAddresses={this.state.emailAddresses}
                             handleChanges={this.handleChanges}
                             readOnly={this.props.readOnly}
+                            showAddress={true}
                         />
                     </Modal.Body>
                     <Modal.Footer className='justify-content-md-right'>

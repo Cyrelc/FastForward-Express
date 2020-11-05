@@ -21,6 +21,12 @@ class AccountRepo {
         return $account;
     }
 
+    public function CountChildAccounts($accountId) {
+        $childCount = Account::where('parent_account_id', $accountId);
+
+        return $childCount->count();
+    }
+
     public function ListAll() {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
@@ -185,34 +191,35 @@ class AccountRepo {
         return $new;
     }
 
-    public function Update($acct) {
-        $old = $this->GetById($acct["account_id"]);
+    public function Update($account) {
+        $old = $this->GetById($account["account_id"]);
+        $fields = array(
+            'account_number',
+            'billing_address_id',
+            'can_be_parent',
+            'custom_field',
+            'discount',
+            'gst_exempt',
+            'invoice_interval',
+            'invoice_sort_order',
+            'min_invoice_amount',
+            'name',
+            'parent_account_id',
+            'ratesheet_id',
+            'send_bills',
+            'send_email_invoices',
+            'send_paper_invoices',
+            'shipping_address_id',
+            'start_date',
+            'use_parent_ratesheet'
+        );
 
-        $old->ratesheet_id = $acct["ratesheet_id"];
-        $old->billing_address_id = $acct["billing_address_id"];
-        $old->shipping_address_id = $acct["shipping_address_id"];
-        $old->account_number = $acct["account_number"];
-        $old->invoice_interval = $acct["invoice_interval"];
-        $old->stripe_id = $acct["stripe_id"];
-        $old->name = $acct["name"];
-        $old->start_date = $acct["start_date"];
-        $old->send_bills = $acct["send_bills"];
-        $old->send_invoices = $acct["send_invoices"];
-        $old->has_parent = $acct["has_parent"];
-        $old->parent_account_id = $acct["parent_account_id"];
-        $old->has_discount = $acct["has_discount"];
-        $old->discount = $acct["discount"];
-        $old->gst_exempt = $acct["gst_exempt"];
-        $old->charge_interest = $acct["charge_interest"];
-        $old->fuel_surcharge = $acct["fuel_surcharge"];
-        $old->can_be_parent = $acct["can_be_parent"];
-        $old->uses_custom_field = $acct["uses_custom_field"];
-        $old->custom_field = $acct["custom_field"];
-        $old->active = $acct["active"];
-        $old->min_invoice_amount = $acct['min_invoice_amount'];
-        $old->use_parent_ratesheet = $acct['use_parent_ratesheet'];
+        foreach($fields as $field)
+            $old->$field = $account[$field];
 
         $old->save();
+
+        return $old;
     }
 
     public function GetAccountPrimaryUserId($accountId) {
@@ -221,27 +228,31 @@ class AccountRepo {
         return $primaryContact;
     }
 
-    public function ChangePrimary($accountId, $contactId) {
-        //Manually do this cause Laravel sucks, ensure parameters are valid
-        if ($accountId == null || !is_numeric($accountId) || $accountId <= 0 || $contactId == null || !is_numeric($contactId) || $contactId <= 0) return;
-        \DB::update('update account_users set is_primary = 0 where account_id = ' . $accountId . ' and is_primary = 1;');
-        \DB::update('update account_users set is_primary = 1 where account_id = ' . $accountId . ' and contact_id = ' . $contactId . ';');
-    }
-
     public function IsUnique($accountNumber) {
         $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
         return $result;
     }
 
-    public function AddContact($contactId, $accountId) {
-        $account = $this->GetById($accountId);
-        $account->contacts()->attach($contactId, ['is_primary' => 'false']);
+    public function GetInvoiceSortOrder($accountId) {
+        /* To properly access the sort order we must:
+         * 1) Pull it from the account, and parse as JSON
+         * 2) Filter any with an empty priority (invalid for this account based on account settings)
+         * 3) Sort by priority
+         * Then return
+         */
+        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
+        $sortOrder = json_decode($sortOrder[0]);
+        $sortOrder = array_filter($sortOrder, function($var) {return $var->priority != "";});
+        usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
+
+        return $sortOrder;
     }
 
-    public function UpdateInvoiceComment($comment, $accountId) {
-        $account = $this->GetById($accountId);
-        $account->invoice_comment = $comment;
+    public function GetSubtotalByField($accountId) {
+        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
+        $sortOrder = json_decode(json_decode($sortOrder)[0]);
+        $sortOrder = array_filter($sortOrder, function($var) {return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);});
 
-        $account->save();
+        return array_pop($sortOrder);
     }
 }

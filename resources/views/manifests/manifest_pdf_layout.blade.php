@@ -30,7 +30,7 @@
             <td class='basic' style='width: 20%'><h4>Driver Gross:<br/><br/>${{$model->driver_total}}</h4></td>
             <td class='warn' style='width:20%'><h4>Chargebacks:<br/><br/>${{$model->chargeback_total}}</h4></td>
             <td class='basic' style='width: 20%'><h4>Driver Income:<br/><br/>${{$model->driver_income}}</h4></td>
-            <td style='width: 40%; text-align: center'><a href='/employees/edit/{{$model->employee->employee_id}}' ><h2>{{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}</h2></a></td>
+            <td style='width: 40%; text-align: center'><h2>{{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}</h2></td>
         </tr>
     </tbody>
 </table>
@@ -38,18 +38,9 @@
     <tr>
         <td class='text-left'>
             <strong>Address:</strong><br/>
-            @if(isset($model->employee->address->street))
-            {{$model->employee->address->name}}<br/>
-            {{$model->employee->address->street}}<br/>
-            @if($model->employee->address->street2 != '')
-                {{$model->employee->address->street2}}<br/>
-            @endif
-            {{$model->employee->address->city}}, {{$model->employee->address->state_province}}, {{$model->employee->address->country}}<br/>
-            {{$model->employee->address->zip_postal}}
-            @else
-            {{$model->employee->address->formatted}}<br/>
-            @endif
-            {{$model->employee->contact->primary_phone}}
+            @foreach(explode(',', $model->employee->address->formatted) as $addressLine)
+                {{$addressLine}}<br/>
+            @endforeach
         </td>
     </tr>
 </table>
@@ -146,7 +137,7 @@
                 </tr>
             @endif
             <tr>
-                <td><a href='/bills/view/{{$bill->bill_id}}'>{{$bill->bill_id}}</a></td>
+                <td>{{$bill->bill_id}}</td>
                 <td>{{$bill->bill_number}}</td>
                 <td>{{$bill->time_pickup_scheduled}}</td>
                 <td>{{$bill->delivery_type}}</td>

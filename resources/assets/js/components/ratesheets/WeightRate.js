@@ -5,7 +5,7 @@ export default function WeightRate(props) {
     return(
         <tr>
             <td>
-                <InputGroup>
+                <InputGroup size='sm'>
                     <InputGroup.Prepend>
                         <InputGroup.Text key={props.id + '-kgmin'}>{props.kgmin} kg to </InputGroup.Text>
                     </InputGroup.Prepend>
@@ -16,14 +16,15 @@ export default function WeightRate(props) {
                         step={0.1}
                         name='kgmax'
                         value={props.kgmax}
-                        onChange={(event) => props.handleWeightRateChange(event, props.id)} />
+                        onChange={(event) => props.handleWeightRateChange(event, props.id)}
+                    />
                     <InputGroup.Append>
                         <InputGroup.Text>kg</InputGroup.Text>
                     </InputGroup.Append>
                 </InputGroup>
             </td>
             <td>
-                <InputGroup>
+                <InputGroup size='sm'>
                     <InputGroup.Prepend>
                         <InputGroup.Text key={props.id + '-lbmin'}>{props.lbmin} lb to </InputGroup.Text>
                     </InputGroup.Prepend>
@@ -34,14 +35,15 @@ export default function WeightRate(props) {
                         step={0.1} 
                         name='lbmax' 
                         value={props.lbmax} 
-                        onChange={(event) => props.handleWeightRateChange(event, props.id)} />
+                        onChange={(event) => props.handleWeightRateChange(event, props.id)}
+                    />
                     <InputGroup.Append>
                         <InputGroup.Text>lb</InputGroup.Text>
                     </InputGroup.Append>
                 </InputGroup>
             </td>
             <td>
-                <InputGroup>
+                <InputGroup size='sm'>
                     <InputGroup.Prepend>
                         <InputGroup.Text>Price: $</InputGroup.Text>
                     </InputGroup.Prepend>
@@ -52,7 +54,8 @@ export default function WeightRate(props) {
                         step={0.01} 
                         name='cost' 
                         value={props.cost} 
-                        onChange={(event) => props.handleChange(event, 'weightRates', props.id)} />
+                        onChange={(event) => props.handleChange(event, 'weightRates', props.id)}
+                    />
                 </InputGroup>
             </td>
         </tr>

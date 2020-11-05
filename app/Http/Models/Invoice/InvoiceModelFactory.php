@@ -8,7 +8,7 @@
 
 	class InvoiceModelFactory{
 
-		public function GetById($id) {
+		public function GetById($invoiceId) {
 			$model = new InvoiceViewModel();
 
 			$accountRepo = new Repos\AccountRepo();
@@ -16,8 +16,8 @@
 			$billRepo = new Repos\BillRepo();
 			$invoiceRepo = new Repos\InvoiceRepo();
 
-			$model->invoice = $invoiceRepo->GetById($id);
-			$model->invoice->bill_count = $billRepo->CountByInvoiceId($id);
+			$model->invoice = $invoiceRepo->GetById($invoiceId);
+			$model->invoice->bill_count = $billRepo->CountByInvoiceId($invoiceId);
 			$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing', 'min_invoice_amount');
 			foreach ($invoice_numbers as $identifier) {
 				if($model->invoice->$identifier == null)
@@ -25,7 +25,7 @@
 				$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
 			}
 
-			$amendments = $invoiceRepo->GetAmendmentsByInvoiceId($id);
+			$amendments = $invoiceRepo->GetAmendmentsByInvoiceId($invoiceId);
 			if(count($amendments)) {
 				$billEndDate = new \DateTime($model->invoice->bill_end_date);
 				$currentDate = new \DateTime('now');
@@ -45,12 +45,12 @@
 			else
 				$model->parent->billing_address = $model->parent->shipping_address;
 
-			$model->tables = $billRepo->GetByInvoiceId($id);
-			$subtotal_by = $invoiceRepo->GetSubtotalById($model->parent->account_id);
+			$model->tables = $billRepo->GetByInvoiceId($invoiceId);
+			$subtotal_by = $accountRepo->GetSubtotalByField($model->parent->account_id);
 			if(count($model->tables) > 1) {
 				foreach($model->tables as $bill_sub_table) {
 					$subtotal_database_field_name = $subtotal_by->database_field_name;
-					$bill_sub_table->subtotal = $billRepo->GetInvoiceSubtotalByField($id, $subtotal_database_field_name, $bill_sub_table->bills[0]->$subtotal_database_field_name);
+					$bill_sub_table->subtotal = $billRepo->GetInvoiceSubtotalByField($invoiceId, $subtotal_database_field_name, $bill_sub_table->bills[0]->$subtotal_database_field_name);
 					$bill_sub_table->tax = $bill_sub_table->subtotal * 0.05;
 					$bill_sub_table->total = number_format($bill_sub_table->subtotal + $bill_sub_table->tax, 2);
 					$bill_sub_table->subtotal = number_format($bill_sub_table->subtotal, 2);
@@ -64,7 +64,7 @@
 					if($customField)
 						$table->headers[$customField] = 'charge_reference_value';
 				}
-				else if($model->parent->uses_custom_field)
+				else if($model->parent->custom_field)
 					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
 				$table->headers['Address'] = 'address';
 				$table->headers['Type'] = 'delivery_type';

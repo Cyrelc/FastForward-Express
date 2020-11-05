@@ -50,19 +50,19 @@ export default function Phones(props) {
     }
 
     return (
-        <Table striped bordered>
+        <Table striped bordered size='sm'>
             <thead>
                 <tr>
-                    <td style={{width:'10%'}}>
+                    <td style={{minWidth: '90px', width: '90px'}}>
                         {!props.readOnly &&
-                            <Button variant='success' onClick={addPhone}>
+                            <Button variant='success' onClick={addPhone} size='sm'>
                                 <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-phone'></i></span>
                             </Button>
                         }
                     </td>
-                    <td style={{width: '35%'}}>Phone</td>
-                    <td style={{width: '25%'}}>Extension</td>
-                    <td style={{width: '30%'}}>Type</td>
+                    <td style={{minWidth: '170px'}}>Phone</td>
+                    <td>Extension</td>
+                    <td style={{minWidth: '150px'}}>Type</td>
                 </tr>
             </thead>
             <tbody>
@@ -71,7 +71,7 @@ export default function Phones(props) {
                         return (
                             <tr key={index}>
                                 <td>
-                                    <ButtonGroup>
+                                    <ButtonGroup size='sm'>
                                         <Button title='Set as primary' disabled={phone.is_primary || props.readOnly} onClick={() => setPrimaryPhone(index)}><i className={phone.is_primary ? 'fas fa-star' : 'far fa-star'}></i></Button>
                                         <Button title='Delete' variant='danger' disabled={phone.is_primary || props.readOnly} onClick={() => deletePhone(index)}><i className='fas fa-trash'></i></Button>
                                     </ButtonGroup>
@@ -99,9 +99,7 @@ export default function Phones(props) {
                                 <td>
                                     <Select
                                         options={props.phoneTypes}
-                                        getOptionLabel={type => type.name}
-                                        getOptionValue={type => type.value}
-                                        value={phone.type ? props.phoneTypes.filter(type => type.value == phone.type) : undefined}
+                                        value={phone.type ? props.phoneTypes.find(type => type.value == phone.type) : undefined}
                                         onChange={value => handlePhoneChange({target: {name: 'type', type: 'string', value: value.value, dataset: {phoneIndex: index}}})}
                                     />
                                 </td>

@@ -338,11 +338,12 @@ export default class Bill extends Component {
             if(!this.state.deliveryEmployee) {
                 events['deliveryEmployee'] = value
                 events['deliveryEmployeeCommission'] = value.delivery_commission
-                events['timeDispatched'] = new Date()
             }
         } else if (name === 'deliveryEmployee') {
             events['deliveryEmployeeCommission'] = value.delivery_commission
         }
+        if(this.state.timeDispatched === null)
+            events['timeDispatched'] = new Date()
         events[name] = value
         return events
     }

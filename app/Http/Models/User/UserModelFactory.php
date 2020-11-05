@@ -7,18 +7,6 @@
 	use App\Http\Models\User;
 
 	class UserModelFactory {
-        public function getAccountUsers($account_id) {
-            try {
-                $contactRepo = new Repos\ContactRepo();
-                $accountUsers = $contactRepo->getAccountUsers($account_id);
-            }
-            catch (exception $e) {
-
-            }
-
-            return $accountUsers;
-        }
-
         public function getAccountUserByContactId($contact_id) {
             $model = new AccountUserFormModel();
 

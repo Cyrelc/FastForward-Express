@@ -2,14 +2,13 @@
 namespace app\Http\Validation;
 
 class PartialsValidationRules {
-
     public function GetAddressMinValidationRules($req, $prefix, $prefix_name) {
         return [
             'rules' => [
                 $prefix . '_formatted' => 'required',
                 $prefix . '_name' => 'required',
-                $prefix . '_lat' => 'sometimes|required|numeric',
-                $prefix . '_lng' => 'sometimes|required|numeric',
+                $prefix . '_lat' => 'required|numeric',
+                $prefix . '_lng' => 'required|numeric',
             ],
             'messages' => [
                 $prefix . '_formatted.required' => $prefix_name . ' formatted address is required',
@@ -20,61 +19,13 @@ class PartialsValidationRules {
         ];
     }
 
-    public function GetAddressValidationRules($req, $prefix, $prefix_name) {
-        return [
-            'rules' => [
-                $prefix . '-street' => 'required',
-                $prefix . '-city' => 'required',
-                //Regex used found here: http://regexlib.com/REDetails.aspx?regexp_id=417
-                $prefix . '-zip-postal' => ['required', 'regex:/^[ABCEGHJKLMNPRSTVXY][0-9][ABCEGHJKLMNPRSTVWXYZ][ -]?[0-9][ABCEGHJKLMNPRSTVWXYZ][0-9]/'],
-                $prefix . '-state-province' => 'required',
-                $prefix . '-country' => 'required',
-            ],
-            'messages' => [
-                $prefix . '-street.required' => $prefix_name . ' Address Street is required.',
-                $prefix . '-city.required' => $prefix_name . ' Address City is required.',
-                $prefix . '-zip-postal.required' => $prefix_name . ' Address Postal Code is required.',
-                $prefix . '-zip-postal.regex' => $prefix_name . ' Postal Code must be in the format "Q4B 5C5", "501-342", or "123324".',
-                $prefix . '-state-province.required' => $prefix_name . ' Province is required.',
-                $prefix . '-country.required' => $prefix_name . ' Country is required.',
-            ]
-        ];
-    }
-
-    public function GetContactValidationRules($req, $withEmails = false, $withPhones = false, $withAddress = false) {
-            $rules = [
-                'first_name' => 'required',
-                'last_name' => 'required',
-            ];
-            $messages = [
-                'first_name.required' => 'User first name field can not be empty',
-                'last_name.required' => 'User last name field can not be empty',
-            ];
-
-            if($withEmails) {
-                $temp = $this->GetEmailValidationRules($req);
-                $rules = array_merge($rules, $temp['rules']);
-                $messages = array_merge($messages, $temp['messages']);
-            }
-            if($withPhones) {
-                $temp = $this->GetPhoneValidationRules($req);
-                $rules = array_merge($rules, $temp['rules']);
-                $messages = array_merge($messages, $temp['messages']);
-            }
-            if($withAddress) {
-//add optional support for address
-            }
-
-            return ['rules' => $rules, 'messages' => $messages];
-    }
-
     public function GetContactValidationRulesV2($req, $userId = null, $contactId = null) {
         $rules = [
             'first_name' => 'required',
             'last_name' => 'required',
             'emails' => 'required',
             'phone_numbers' => 'required',
-            'emails.*.email' => 'required|email|unique:email_addresses,email,' . $req->contact_id . ',contact_id' . ($userId ? '|unique:users,email,' . $userId . ',user_id' : ''),
+            'emails.*.email' => 'required|email|unique:email_addresses,email,' . $req->contact_id . ',contact_id', //. ($userId ? '|unique:users,email,' . $userId . ',user_id' : ''),
             'emails.*.is_primary' => 'required',
             'phone_numbers.*.phone_number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
             'phone_numbers.*.is_primary' => 'required',

@@ -4,7 +4,7 @@ import WeightRate from './WeightRate'
 
 export default function WeightRates(props) {
     return(
-        <Table>
+        <Table size='sm'>
             <tbody>
                 {props.weightRates.map(rate => 
                     <WeightRate

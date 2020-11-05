@@ -19,7 +19,7 @@ const columns = [
         else
             return "<button class='btn btn-sm btn-success'  title='Activate'><i class='far fa-check-circle'></i></button>"
     }, width: 50, align: 'center', cellClick:(e, cell) => toggleAccountActive(cell), headerSort: false, print: false},
-    {title: 'Account ID', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_id', urlPrefix:'/accounts/edit/'}, sorter: 'number'},
+    {title: 'Account ID', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_id', urlPrefix:'/app/accounts/edit/'}, sorter: 'number'},
     {title: 'Account Number', field: 'account_number'},
     {title: 'Parent Account', field: 'parent_id', formatter: 'link', formatterParams:{labelField: 'parent_name', urlPrefix:'/accounts/edit/'}},
     {title: 'Account Name', field: 'name', formatter: 'link', formatterParams:{url: (cell) => {return '/accounts/edit/' + cell.getRow().getData().account_id}}},

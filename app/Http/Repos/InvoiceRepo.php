@@ -6,7 +6,6 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 use DB;
 use App\Account;
-use App\AccountInvoiceSortEntries;
 use App\Amendment;
 use App\Bill;
 use App\Invoice;
@@ -108,51 +107,23 @@ class InvoiceRepo {
         return $invoice;
     }
 
+    public function GetSortOptions() {
+        $sortOptions = InvoiceSortOptions::all();
+
+        return $sortOptions;
+    }
+
     public function GetOutstandingByAccountId($account_id) {
         $invoices = Invoice::where('account_id', $account_id)
             ->where('balance_owing', '>', '0')
             ->select(
-                DB::raw('format(balance_owing, 2) as balance_owing'),
+                'balance_owing',
                 'bill_end_date',
                 'invoice_id',
                 DB::raw('format(total_cost, 2) as total_cost')
             );
 
         return $invoices->get();
-    }
-
-    public function GetSubtotalById($account_id) {
-        $subtotal = AccountInvoiceSortEntries::where('account_id', $account_id)
-                ->where('subtotal', true)
-                ->join('invoice_sort_options', 'invoice_sort_options.invoice_sort_option_id', '=', 'account_invoice_sort_entries.invoice_sort_option_id')
-                ->first();
-
-        return isset($subtotal) ? $subtotal : NULL;
-    }
-
-    public function GetSortOrderById($id) {
-        $accountRepo = new AccountRepo();
-
-        $sort_options = InvoiceSortOptions::leftJoin('account_invoice_sort_entries', function($join) use ($id) {
-                    $join->on('account_invoice_sort_entries.invoice_sort_option_id', '=', 'invoice_sort_options.invoice_sort_option_id')
-                        ->where('account_invoice_sort_entries.account_id', '=', $id);
-                })
-                ->orderBy('priority', 'asc')
-                ->get();
-
-        $account = $accountRepo->GetById($id);
-
-        foreach($sort_options as $key => $option) {
-            $contingent_field = $option->contingent_field;
-            if(filter_var($contingent_field, FILTER_VALIDATE_BOOLEAN) && $account->$contingent_field == false) {
-                unset($sort_options[$key]);
-                continue;
-            }
-            if($option->database_field_name == 'charge_reference_value')
-                $sort_options[$key]->friendly_name = $account->custom_field;
-        }
-
-        return $sort_options;
     }
 
     public function RemoveBillFromInvoice($billId) {
@@ -167,41 +138,6 @@ class InvoiceRepo {
         $invoice = $this->CalculateInvoiceBalances($invoice);
 
         return $invoice;
-    }
-
-    public function StoreSortOrder($req, $id) {
-        $account_invoice_sort_options = AccountInvoiceSortEntries::where('account_id', '=', $id)->orderBy('priority', 'asc')->get();
-
-        $sort_options = InvoiceSortOptions::All();
-        foreach($sort_options as $option) {
-            //If the field was submitted as a sort option
-            if($req->input($option->database_field_name) !== null) {
-                //If the account previously had that sort option set, update it 
-                $existing_sort_option = AccountInvoiceSortEntries::where('account_id', $id)->where('invoice_sort_option_id', $option->invoice_sort_option_id)->first();
-                if(isset($existing_sort_option)){
-                    if($option->database_field_name == 'charge_reference_value' && Account::select('uses_custom_field')->where('account_id', $id)->first()->uses_custom_field == 0) {
-                        $existing_sort_option->delete();
-                    } else {
-                        $existing_sort_option->priority = $req->input($option->database_field_name);
-                        if($option->can_be_subtotaled) {
-                            $existing_sort_option->subtotal = !empty($req->input('subtotal_' . $option->database_field_name));
-                        }
-                        $existing_sort_option->save();
-                    }
-                //otherwise create it
-                } else {
-                    $temp = [
-                        'account_id' => $id,
-                        'invoice_sort_option_id' => $option->invoice_sort_option_id,
-                        'priority' => $req->input($option->database_field_name)
-                    ];
-                    if($option->can_be_subtotaled)
-                        $temp['subtotal'] = !empty($req->input('subtotal_' . $option->database_field_name));
-                    $new = new AccountInvoiceSortEntries();
-                    $new->create($temp);
-                }
-            }
-        }
     }
 
     public function Create($accountIds, $startDate, $endDate) {

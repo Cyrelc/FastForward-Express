@@ -19,7 +19,7 @@ class UserCollector {
         }
 
         $user = [
-            'username' => substr($req->first_name, 0, 1) . $req->last_name,
+            // 'username' => substr($req->first_name, 0, 1) . $req->last_name,
             'email' => $primaryEmail,
             'user_id' => $userId
         ];
@@ -36,21 +36,12 @@ class UserCollector {
         return $user;
     }
 
-    public function Collect($req) {
-        $user = [
-            'email' => $req->email[$req->email_is_primary[0]],
-            'is_locked' => !$req->enabled
-        ];
-
-        return $user;
-    }
-
-    public function CollectAccountUser($account_id, $contact_id, $is_primary, $user_id = null) {
+    public function CollectAccountUser($accountId, $contactId, $primaryEmail, $userId = null) {
         $account_user = [
-            'account_id' => $account_id,
-            'contact_id' => $contact_id,
-            'is_primary' => $is_primary,
-            'user_id' => $user_id
+            'account_id' => $accountId,
+            'contact_id' => $contactId,
+            'user_id' => $userId,
+            'email' => $primaryEmail
         ];
 
         return $account_user;

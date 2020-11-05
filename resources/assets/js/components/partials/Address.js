@@ -1,5 +1,5 @@
 import React from 'react'
-import {InputGroup, Row, Col, FormControl} from 'react-bootstrap'
+import {Button, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 
 export default class Address extends React.Component {
     constructor() {
@@ -8,8 +8,11 @@ export default class Address extends React.Component {
             map: '',
             search: '',
             marker: '',
+            manual: false,
             loading: true
         }
+        this.handleChange = this.handleChange.bind(this)
+        this.handleMapClickEvent = this.handleMapClickEvent.bind(this)
     }
 
     componentDidMount() {
@@ -19,6 +22,7 @@ export default class Address extends React.Component {
         const search = new google.maps.places.Autocomplete(document.getElementById(this.props.id + '-search'));
         search.setFields(['geometry', 'name', 'formatted_address', 'place_id']);
         search.addListener('place_changed', () => this.updateAddress());
+        map.addListener('click', event => this.handleMapClickEvent(event))
 
         this.setState({map: map, search: search, marker: marker, loading: false}, () => this.drawMap());
     }
@@ -44,11 +48,16 @@ export default class Address extends React.Component {
         const lat = this.props.address.lat === '' ? 53.544389 : this.props.address.lat
         const lng = this.props.address.lng === '' ? -113.49072669 : this.props.address.lng
         const position = new google.maps.LatLng(lat, lng);
-    
+
         this.state.map.setCenter(position);
         this.state.map.setZoom(zoom);
         this.state.marker.setPosition(position);
         this.state.marker.setMap((this.props.address.lat === '' && this.props.address.lng === '') ? null : this.state.map);
+    }
+
+    handleChange(event) {
+        const {name, type, value, checked} = event.target
+        this.setState({[name]: type === 'checkbox' ? checked : value})
     }
 
     handleLegacyAddress() {
@@ -67,6 +76,21 @@ export default class Address extends React.Component {
                 })
             }
         })
+    }
+
+    handleMapClickEvent(event) {
+        if(this.state.manual) {
+            const lat = event.latLng.lat()
+            const lng = event.latLng.lng()
+            console.log(lat, lng)
+            this.props.handleChanges([
+                {target: {name: this.props.id + 'AddressLat', type: 'text', value: lat}},
+                {target: {name: this.props.id + 'AddressLng', type: 'text', value: lng}},
+                {target: {name: this.props.id + 'AddressPlaceId', type: 'text', value: 'MAN:lat:' + lat + ':lng:' + lng}}
+            ])
+        }
+        else
+            return
     }
 
     updateAddress() {
@@ -99,6 +123,9 @@ export default class Address extends React.Component {
                             name='formatted'
                             readOnly={this.props.readOnly}
                         />
+                        <InputGroup.Append>
+                            <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})}>Manual</Button>
+                        </InputGroup.Append>
                     </InputGroup>
                 </Col>
                 }
@@ -126,7 +153,7 @@ export default class Address extends React.Component {
                             name={this.props.id + 'AddressFormatted'}
                             value={this.props.address.formatted}
                             onChange={event => this.props.handleChanges(event)}
-                            readOnly={ !this.props.admin || this.props.readOnly }
+                            readOnly={ !this.props.admin || this.props.readOnly || !this.state.manual }
                         />
                     </InputGroup>
                 </Col>

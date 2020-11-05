@@ -166,7 +166,7 @@ export default function SettingsTab(props) {
                             <Row className='justify-content-md-center'>
                                 <h4 className='text-muted'>Zone Distance Costs</h4>
                             </Row>
-                            <Table>
+                            <Table size='sm'>
                                 <thead>
                                     <tr>
                                         {props.deliveryTypes.map(type => 
@@ -176,7 +176,7 @@ export default function SettingsTab(props) {
                                     <tr>
                                         {props.deliveryTypes.map(type =>
                                             <td>
-                                                <InputGroup>
+                                                <InputGroup size='sm'>
                                                     <InputGroup.Prepend>
                                                         <InputGroup.Text>Time Est. </InputGroup.Text>
                                                     </InputGroup.Prepend>

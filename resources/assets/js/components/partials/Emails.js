@@ -2,10 +2,14 @@ import React from 'react'
 import {FormControl, ButtonGroup, Button, Table} from 'react-bootstrap'
 import Select from 'react-select'
 
+const emailTypesTitle = 'Email types are used to identify which users would like communications.\n\n' +
+'Want to receive emails when your invoice is ready? Set yourself to "Billing".\n\n' +
+'Are you the point of contact for when we have trouble making a delivery? Set yourself to "Support"'
+
 export default function Emails(props) {
     function addEmail() {
         const emails = props.emailAddresses
-        emails[emails.length] = {email: '', is_primary: emails.length === 0}
+        emails[emails.length] = {email: '', is_primary: emails.length === 0, type: ''}
         props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
     }
 
@@ -50,19 +54,19 @@ export default function Emails(props) {
     }
 
     return (
-        <Table striped bordered>
+        <Table striped bordered size='sm'>
             <thead>
                 <tr>
-                    <td style={{width:100}}>
+                    <td style={{minWidth: '90px', width: '90px'}}>
                         {!props.readOnly &&
-                            <Button variant='success' onClick={addEmail}>
+                            <Button variant='success' onClick={addEmail} size='sm'>
                                 <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-at'></i></span>
                             </Button>
                         }
                     </td>
                     <td><label>Email address</label></td>
                     {props.emailTypes && 
-                        <td><label>Type</label></td>
+                        <td><label>Type <i className='fas fa-question-circle' title={emailTypesTitle}></i></label></td>
                     }
                 </tr>
             </thead>
@@ -72,7 +76,7 @@ export default function Emails(props) {
                         return (
                             <tr key={index}>
                                 <td>
-                                    <ButtonGroup>
+                                    <ButtonGroup size='sm'>
                                         <Button title='Set as primary' disabled={email.is_primary || props.readOnly} onClick={() => setPrimaryEmail(index)}><i className={email.is_primary ? 'fas fa-star' : 'far fa-star'}></i></Button>
                                         <Button title='Delete' variant='danger' disabled={email.is_primary || props.readOnly} onClick={() => deleteEmail(index)}><i className='fas fa-trash'></i></Button>
                                     </ButtonGroup>
@@ -88,13 +92,12 @@ export default function Emails(props) {
                                     />
                                 </td>
                                 {props.emailTypes &&
-                                    <td>
+                                    <td width='40%'>
                                         <Select
                                             options={props.emailTypes}
-                                            getOptionLabel={type => type.name}
-                                            getOptionValue={type => type.value}
-                                            value={props.emailTypes.filter(type = type.value == email.type)}
-                                            onChange={value => handleEmailChange({target: {name: 'type', type: 'string', value: value.value}})}
+                                            value={props.emailTypes.find(type => type.value == email.type)}
+                                            onChange={value => handleEmailChange({target: {name: 'type', type: 'string', value: value.value, dataset: {emailIndex: index}}})}
+                                            isMulti
                                         />
                                     </td>
                                 }

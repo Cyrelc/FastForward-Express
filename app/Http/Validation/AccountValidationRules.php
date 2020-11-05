@@ -7,11 +7,10 @@ class AccountValidationRules {
             'account_number' => 'required|unique:accounts,account_number,' . $req->account_id . ',account_id',
             'account_name' => 'required',
             'invoice_interval' => 'required|exists:selections,value',
-            'parent-account-id' => 'exists:accounts,account_id',
+            'parent_account_id' => 'exists:accounts,account_id',
             'discount' => 'nullable|numeric|between:0,100',
             'start_date' => 'required|date',
             'min_invoice_amount' => 'nullable|numeric',
-            'fuel_surcharge' => 'nullable|numeric',
         ];
 
         $messages = [

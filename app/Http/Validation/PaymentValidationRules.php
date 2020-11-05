@@ -4,30 +4,33 @@ namespace App\Http\Validation;
 use App\Http\Repos;
 
 class PaymentValidationRules {
-    public function GetPaymentOnAccountRules($req, $invoices) {
+    public function GetPaymentOnAccountRules($req) {
         $paymentRepo = new Repos\PaymentRepo();
         $accountRepo = new Repos\AccountRepo();
 
         $account = $accountRepo->GetById($req->input('account-id'));
-        $accountPaymentType = $paymentRepo->GetPaymentTypeByName("Account");
+        $accountPaymentType = $paymentRepo->GetPaymentTypeByName('Account');
         $paymentType = $paymentRepo->GetPaymentType($req->payment_type_id);
 
         $rules = [
-            'account-id' => 'required',
+            'account_id' => 'required',
             'payment_type_id' => 'required',
         ];
 
         $messages = [
-            'account-id.required' => 'Account Id invalid. Please try again',
-            'payment_type_id.required' => 'Please select a valid payment method',
+            'account_id.required' => 'Account Id invalid. Please try again',
+            'payment_type_id.required' => 'Please select a valid payment method'
         ];
 
         $invoice_total = 0;
 
-        foreach($invoices as $invoice) {
-            $invoice_total += $req->input($invoice->invoice_id . '_payment_amount');
-            $rules = array_merge($rules, [$invoice->invoice_id . '_payment_amount' => 'numeric|between:0,' . floatval(str_replace(',', '', $invoice->balance_owing))]);
-            $messages = array_merge($messages, [$invoice->invoice_id . '_payment_amount.between' => 'Payment on invoice ' . $invoice->invoice_id . ' cannot exceed outstanding balance']);
+        foreach($req->outstanding_invoices as $key => $invoice) {
+            $invoice_total += floatval($invoice['payment_amount']);
+            $rules = array_merge($rules, [
+                'outstanding_invoices.' . $key . '.payment_amount' => 'numeric|between:0,' . floatval(str_replace(',', '', $invoice['balance_owing'])),
+                'outstanding_invoices.' . $key . '.invoice_id' => 'required|numeric|exists:invoices,invoice_id'
+            ]);
+            $messages = array_merge($messages, [$invoice['invoice_id'] . '' . $key . '.between' => 'Payment on invoice ' . $invoice['invoice_id'] . ' cannot exceed outstanding balance']);
         }
 
         if($paymentType->payment_type_id === $accountPaymentType->payment_type_id) {
