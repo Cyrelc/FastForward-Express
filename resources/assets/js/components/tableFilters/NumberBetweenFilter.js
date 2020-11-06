@@ -36,7 +36,6 @@ export default class NumberBetween extends Component {
             filterQueryString = 'filter[' + this.props.filter.value + ']=' + value + ',' + this.state.upperBound
         else
             filterQueryString = 'filter[' + this.props.filter.value + ']=' + this.state.lowerBound + ',' + value
-        console.log(name, value, type)
         this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
         this.setState({[name]: value})
     }

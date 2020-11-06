@@ -27,7 +27,6 @@ export default class InvoiceAmendmentModal extends Component {
             bill_id: this.state.billId,
             amount: this.state.amount
         }
-        console.log(data)
         makeAjaxRequest('/invoices/createAmendment', 'POST', data, response => {
             toastr.clear()
             toastr.success('Amendment created', 'Success')

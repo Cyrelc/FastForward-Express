@@ -17,7 +17,7 @@ export default function InvoicingTab(props) {
         {title: 'Group By', field: 'group_by', formatter: 'tickCross', hozAlign: 'center', headerSort: false, width: 50, cellClick: ((e, cell) => {
             const data = cell.getRow().getData()
             const invoiceSortOrder = props.invoiceSortOrder.map(option => {
-                if(option.database_field_name === data.database_field_name)
+                if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
                     return {...option, group_by: true}
                 return {...option, group_by: false}
             })

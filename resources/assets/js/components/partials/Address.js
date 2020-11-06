@@ -82,7 +82,6 @@ export default class Address extends React.Component {
         if(this.state.manual) {
             const lat = event.latLng.lat()
             const lng = event.latLng.lng()
-            console.log(lat, lng)
             this.props.handleChanges([
                 {target: {name: this.props.id + 'AddressLat', type: 'text', value: lat}},
                 {target: {name: this.props.id + 'AddressLng', type: 'text', value: lng}},
@@ -124,7 +123,10 @@ export default class Address extends React.Component {
                             readOnly={this.props.readOnly}
                         />
                         <InputGroup.Append>
-                            <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})}>Manual</Button>
+                            <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})} disabled={this.props.readOnly}>Manual</Button>
+                        </InputGroup.Append>
+                        <InputGroup.Append>
+                            <InputGroup.Text><i className='fas fa-question-circle' title='Having trouble finding an address in search? Enter "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.'></i></InputGroup.Text>
                         </InputGroup.Append>
                     </InputGroup>
                 </Col>
@@ -153,7 +155,7 @@ export default class Address extends React.Component {
                             name={this.props.id + 'AddressFormatted'}
                             value={this.props.address.formatted}
                             onChange={event => this.props.handleChanges(event)}
-                            readOnly={ !this.props.admin || this.props.readOnly || !this.state.manual }
+                            readOnly={ this.props.readOnly || !this.state.manual }
                         />
                     </InputGroup>
                 </Col>

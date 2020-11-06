@@ -26,7 +26,6 @@ export default class Manifest extends Component {
     getManifest() {
         makeAjaxRequest('/manifests/getModel/' + this.props.match.params.manifestId, 'GET', null, response => {
             response = JSON.parse(response)
-            console.log(response)
             document.title = 'View Manifest - ' + response.manifest.manifest_id
             this.setState({data: response})
         })

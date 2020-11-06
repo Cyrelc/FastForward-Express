@@ -138,7 +138,6 @@ export default class Account extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, type, value, checked} = event.target
-            console.log(name)
             if(name === 'parentAccount' && this.state.parentAccount == '') {
                 temp['useParentRatesheet'] = true
             }
