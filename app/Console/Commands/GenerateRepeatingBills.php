@@ -5,28 +5,22 @@ namespace App\Console\Commands;
 use App\Http\Repos;
 
 class GenerateRepeatingBills {
-    public function __invoke($repeatIntervalString) {
+    public function __invoke() {
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
-        $selectionsRepo = new Repos\SelectionsRepo();
-        $repeatIntervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
-        $repeatInterval = '';
-        foreach($repeatIntervals as $interval)
-            if($interval->value === $repeatIntervalString)
-                $repeatInterval = $interval;
 
-        $repeatingBills = $billRepo->GetRepeatingBills($repeatInterval->selection_id);
-        activity('generateRepeatingBills')->log($repeatIntervalString);
+        $repeatingBills = $billRepo->GetRepeatingBillsForToday();
+        activity('generateRepeatingBills')->log('Running daily and weekly recurring bills');
         if(!$repeatingBills)
             return;
         foreach($repeatingBills as $repeatingBill) {
             // handle addresses
             $pickupAddress = $this->makeNewAddress($repeatingBill->pickup_address_id);
             $deliveryAddress = $this->makeNewAddress($repeatingBill->delivery_address_id);
-            $pickupAddressId = $addressRepo->Insert($pickupAddress)->address_id;
-            $deliveryAddressId = $addressRepo->Insert($deliveryAddress)->address_id;
+            $pickupAddressId = $addressRepo->InsertMinimal($pickupAddress)->address_id;
+            $deliveryAddressId = $addressRepo->InsertMinimal($deliveryAddress)->address_id;
             // handle bill
-            $bill = $this->makeNewBill($repeatingBill, $pickupAddressId, $deliveryAddressId, $repeatIntervalString);
+            $bill = $this->makeNewBill($repeatingBill, $pickupAddressId, $deliveryAddressId);
             $billRepo->Insert($bill);
         }
     }
@@ -36,12 +30,6 @@ class GenerateRepeatingBills {
         $address = $addressRepo->GetById($addressId);
         return [
             'name' => $address->name,
-            'street' => $address->street,
-            'street2' => $address->street2,
-            'city' => $address->city,
-            'zip_postal' => $address->zip_postal,
-            'state_province' => $address->state_province,
-            'country' => $address->country,
             'is_primary' => false,
             'contact_id' => null,
             'lat' => $address->lat,
@@ -51,16 +39,16 @@ class GenerateRepeatingBills {
         ];
     }
 
-    private function makeNewBill($oldBill, $pickupAddressId, $deliveryAddressId, $repeatIntervalString) {
+    private function makeNewBill($oldBill, $pickupAddressId, $deliveryAddressId) {
         // handle new times
         $pickupTime = new \DateTime();
         $deliveryTime = new \DateTime();
         $originalPickupTime = new \DateTime($oldBill->time_pickup_scheduled);
         $originalDeliveryTime = new \DateTime($oldBill->time_delivery_scheduled);
-        if($repeatIntervalString === 'weekly') {
-            $pickupTime = new \DateTime('next ' . $originalPickupTime->format('l'));
-            $deliveryTime = new \DateTime('next ' . $originalDeliveryTime->format('l'));
-        }
+        // if($repeatIntervalString === 'weekly') {
+        //     $pickupTime = new \DateTime('next ' . $originalPickupTime->format('l'));
+        //     $deliveryTime = new \DateTime('next ' . $originalDeliveryTime->format('l'));
+        // }
         $pickupTime->setTime($originalPickupTime->format('H'), $originalPickupTime->format('i'));
         $deliveryTime->setTime($originalDeliveryTime->format('H'), $originalDeliveryTime->format('i'));
         activity('time-debug')->log($pickupTime->format('Y-m-d H:i:s'));

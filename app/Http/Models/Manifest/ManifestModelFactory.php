@@ -49,7 +49,7 @@ class ManifestModelFactory{
         foreach($expirations as $dbName => $friendlyString)
             if(new \DateTime($model->employee->$dbName) < $currentDate)
                 array_push($model->warnings, ['friendlyString' => $friendlyString . ' has expired', 'type' => 'error']);
-            else if(new \DateTime($model->employe->$dbName) < $datePlusNinetyDays)
+            else if(new \DateTime($model->employee->$dbName) < $datePlusNinetyDays)
                 array_push($model->warnings, ['friendlyString' => $friendlyString . ' will expire soon', 'type' => 'warning']);
 
         return $model;

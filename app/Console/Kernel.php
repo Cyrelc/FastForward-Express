@@ -25,23 +25,20 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        activity('schedule')->log('Schedule run');
         $schedule->call(function () {
             $generateRepeatingBills = new GenerateRepeatingBills;
-            $generateRepeatingBills('daily');
+            $generateRepeatingBills();
         })->dailyAt('4:00')->weekdays();
-        $schedule->call(function () {
-            $generateRepeatingBills = new GenerateRepeatingBills;
-            $generateRepeatingBills('weekly');
-        })->weeklyOn(7, '4:30');
-        $schedule->call(function() {
-            $generateRepeatingBills = new GenerateRepeatingBills;
-            $generateRepeatingBills('monthly');
-        })->dailyAt('5:00')->when(function() {
-            $today = new \DateTime();
-            $firstWeekdayOfMonth = new \DateTime('+0 weekday ' . $today->format('F Y'));
-            if($today->format('Y-m-d') === $firstWeekdayOfMonth->format('Y-m-d'))
-                return true;
-            return false;
-        });
+        // $schedule->call(function() {
+        //     $generateRepeatingBills = new GenerateRepeatingBills;
+        //     $generateRepeatingBills('monthly');
+        // })->dailyAt('5:00')->when(function() {
+        //     $today = new \DateTime();
+        //     $firstWeekdayOfMonth = new \DateTime('+0 weekday ' . $today->format('F Y'));
+        //     if($today->format('Y-m-d') === $firstWeekdayOfMonth->format('Y-m-d'))
+        //         return true;
+        //     return false;
+        // });
     }
 }

@@ -358,6 +358,21 @@ class BillRepo {
         return $bills->get();
     }
 
+    public function GetRepeatingBillsForToday() {
+        $selectionsRepo = new SelectionsRepo();
+        $dailyId = $selectionsRepo->GetSelectionByTypeAndValue('repeat_interval', 'daily')->selection_id;
+        $weeklyId = $selectionsRepo->GetSelectionByTypeAndValue('repeat_interval', 'weekly')->selection_id;
+
+        $recurringBills = Bill::where('repeat_interval', $dailyId)
+            ->orWhere(function ($query) use ($weeklyId) {
+                $currentDayOfTheWeek = date('w') + 1;
+                $query->where('repeat_interval', $weeklyId)
+                    ->whereRaw('dayofweek(time_pickup_scheduled) = ' . $currentDayOfTheWeek);
+            });
+
+        return $recurringBills->get();
+    }
+
     public function GetMonthlyTotals($date) {
         $bills = Bill::whereDate('time_pickup_scheduled', '>=', $date)
         ->select(

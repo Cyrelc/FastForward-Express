@@ -10,6 +10,13 @@ class SelectionsRepo {
 		return $selections->get();
 	}
 
+	public function GetSelectionByTypeAndValue($type, $value) {
+		$selection = Selection::where('type', $type)
+			->where('value', $value);
+
+		return $selection->first();
+	}
+
 	public function GetSelectionsListByType($type) {
 		$selections = Selection::where('type', $type)
 			->select(
