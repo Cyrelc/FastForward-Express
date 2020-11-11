@@ -69,6 +69,7 @@ export default function InvoicingTab(props) {
                     </Col>
                     <Col md={10}>
                         <FormControl
+                            name='invoiceComment'
                             as='textarea'
                             rows={3}
                             value={props.invoiceComment}
