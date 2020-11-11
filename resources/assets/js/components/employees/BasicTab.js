@@ -25,7 +25,7 @@ export default function BasicTab(props) {
                     showAddress
                 />
             </Card.Header>
-            {props.emergencyContacts && 
+            {(props.action != 'create' && props.emergencyContacts) &&
                 <Card.Body>
                     <EmergencyContacts
                         emergencyContacts={props.emergencyContacts}

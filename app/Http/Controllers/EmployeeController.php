@@ -112,70 +112,66 @@ class EmployeeController extends Controller {
 
     public function store(Request $req) {
         DB::beginTransaction();
-        try {
-            $employeeValidator = new Validation\EmployeeValidationRules();
-            $partialsValidator = new Validation\PartialsValidationRules();
 
-            $contactRepo = new Repos\ContactRepo();
-            $employeeRepo = new Repos\EmployeeRepo();
-            $userRepo = new Repos\UserRepo();
+        $employeeValidator = new Validation\EmployeeValidationRules();
+        $partialsValidator = new Validation\PartialsValidationRules();
 
-            $employeeId = $req->input('employee_id');
-            $employee = $employeeRepo->GetById($employeeId);
-            $userId = $employeeId ? $userRepo->GetUserByEmployeeId($employeeId)->user_id : null;
-            $contactId = $employeeId ? $contactRepo->GetById($employee->contact_id)->contact_id : null;
-            $isEdit = isset($req->employee_id) && $req->employee_id !== '';
+        $contactRepo = new Repos\ContactRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
+        $userRepo = new Repos\UserRepo();
 
-            $employeeRules = $employeeValidator->GetValidationRules($req);
-            $contactRules = $partialsValidator->GetContactValidationRulesv2($req, $userId, $contactId);
+        $employeeId = $req->input('employee_id');
+        $employee = $employeeRepo->GetById($employeeId);
+        $userId = $employeeId ? $userRepo->GetUserByEmployeeId($employeeId)->user_id : null;
+        $contactId = $employeeId ? $contactRepo->GetById($employee->contact_id)->contact_id : null;
+        $isEdit = isset($req->employee_id) && $req->employee_id !== '';
 
-            $validationRules = [];
-            $validationMessages = [];
+        $employeeRules = $employeeValidator->GetValidationRules($req);
+        $contactRules = $partialsValidator->GetContactValidationRulesv2($req, $userId, $contactId);
 
-            $validationRules = array_merge($validationRules, $contactRules['rules']);
-            $validationMessages = array_merge($validationMessages, $contactRules['messages']);
-            $validationRules = array_merge($validationRules, $employeeRules['rules']);
-            $validationMessages = array_merge($validationMessages, $employeeRules['messages']);
+        $validationRules = [];
+        $validationMessages = [];
 
-            $this->validate($req, $validationRules, $validationMessages);
+        $validationRules = array_merge($validationRules, $contactRules['rules']);
+        $validationMessages = array_merge($validationMessages, $contactRules['messages']);
+        $validationRules = array_merge($validationRules, $employeeRules['rules']);
+        $validationMessages = array_merge($validationMessages, $employeeRules['messages']);
 
-            $contactCollector = new Collectors\ContactCollector();
-            $employeeCollector = new Collectors\EmployeeCollector();
+        $this->validate($req, $validationRules, $validationMessages);
 
-            $contact = $contactCollector->GetContact($req, $contactId);
+        $contactCollector = new Collectors\ContactCollector();
+        $employeeCollector = new Collectors\EmployeeCollector();
 
-            $userCollector = new Collectors\UserCollector();
-            $user = $userCollector->CollectUserForEmployee($req);
+        $contact = $contactCollector->GetContact($req, $contactId);
 
-            //Begin User
-            if($isEdit) {
-                $userId = $userRepo->Update($user)->user_id;
-                $contactId = $contactRepo->Update($contact)->contact_id;
-            } else {
-                $userId = $userRepo->Insert($user)->user_id;
-                $contactId = $contactRepo->Insert($contact)->contact_id;
-            }
+        $userCollector = new Collectors\UserCollector();
+        $user = $userCollector->CollectUserForEmployee($req);
 
-            $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
-            $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
-            $contactCollector->ProcessAddressForContact($req, $contactId);
-
-            $employee = $employeeCollector->Collect($req, $contactId, $userId);
-            if ($isEdit) {
-                $employeeRepo->Update($employee);
-            } else {
-                $employeeRepo->Insert($employee);
-            }
-
-            DB::commit();
-        } catch(Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
+        //Begin User
+        if($isEdit) {
+            $userId = $userRepo->Update($user)->user_id;
+            $contactId = $contactRepo->Update($contact)->contact_id;
+        } else {
+            $userId = $userRepo->Insert($user)->user_id;
+            $contactId = $contactRepo->Insert($contact)->contact_id;
         }
+
+        $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
+        $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
+        $contactCollector->ProcessAddressForContact($req, $contactId);
+
+        $employee = $employeeCollector->Collect($req, $contactId, $userId);
+        if ($isEdit) {
+            $employeeRepo->Update($employee);
+        } else {
+            $employeeId = $employeeRepo->Insert($employee)->employee_id;
+        }
+
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'employee_id' => $employeeId
+        ]);
     }
 
     public function toggleActive($employeeId) {

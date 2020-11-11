@@ -143,7 +143,7 @@ export default class Employee extends Component {
         return (
             <span>
                 <Row md={11} className='justify-content-md-center'>
-                    {this.state.driver &&
+                    {(this.state.action != 'create' && this.state.driver) &&
                         <Col md={11}>
                             <ListGroup className='list-group-horizontal' as='ul'>
                                 {this.state.driversLicenseExpirationDate < new Date() &&
@@ -269,7 +269,7 @@ export default class Employee extends Component {
                 toastr.success('Employee ' + this.state.employeeId + ' was successfully updated!', 'Success')
             else {
                 this.setState({readOnly:true})
-                toastr.success('Employee ' + response.id + ' was successfully created', 'Success', {
+                toastr.success('Employee ' + response.employee_id + ' was successfully created', 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
                     'showDuration': 500,

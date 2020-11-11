@@ -131,9 +131,8 @@ class EmployeeRepo {
 
     public function Insert($employee) {
         $new = new Employee;
-        $new = $new->create($employee);
 
-        return $new;
+        return $new->create($employee);
     }
 
     public function Update($employee) {
