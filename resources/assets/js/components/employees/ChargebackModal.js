@@ -7,7 +7,7 @@ const initialState = {
     chargebackId: '',
     chargebackName: '',
     continuous: true,
-    countRemaining: 0,
+    countRemaining: 1,
     amount: '',
     glCode: '',
     startDate: new Date(),
