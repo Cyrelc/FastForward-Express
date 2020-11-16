@@ -88,8 +88,8 @@ export default class AccountsReceivable extends Component {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {this.state.accountsReceivable.map(account =>
-                                        <tr>
+                                    {this.state.accountsReceivable && this.state.accountsReceivable.map(account =>
+                                        <tr key={account.account_number}>
                                             <td>{account.name}</td>
                                             <td>{account.account_number}</td>
                                             <td style={{textAlign: 'right'}}>{account.total_cost.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
@@ -98,8 +98,8 @@ export default class AccountsReceivable extends Component {
                                     )}
                                 </tbody>
                                 <tbody>
-                                    {this.state.prepaidAccountsReceivable.map(paymentType =>
-                                        <tr>
+                                    {this.state.prepaidAccountsReceivable && this.state.prepaidAccountsReceivable.map(paymentType =>
+                                        <tr key={paymentType.payment_type_name}>
                                             <td>{paymentType.payment_type_name}</td>
                                             <td></td>
                                             <td style={{textAlign: 'right'}}>{paymentType.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
