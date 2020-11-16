@@ -42,6 +42,8 @@ Route::group(
             Route::post('/accounts/adjustCredit', 'AccountController@adjustAccountCredit');
             Route::get('/accounts/getModel/{accountId?}', 'AccountController@getModel');
 
+            Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
+
             Route::get('/app/{route}', 'HomeController@index');
 
             Route::get('/bills/buildTable', 'BillController@buildTable');

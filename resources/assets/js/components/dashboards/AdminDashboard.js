@@ -11,7 +11,9 @@ export default class AdminDashboard extends Component {
             calendarHeatChart: [],
             employeeBirthdays: [],
             employeeExpiries: [],
-            ytdChart: []
+            ytdChart: [],
+            calendarStartDate: new Date(),
+            calendarEndDate: new Date()
         }
     }
 

@@ -27,6 +27,119 @@ class AccountRepo {
         return $childCount->count();
     }
 
+    public function GetAccountIdByAccountNumber($accountNumber) {
+        $account = Account::where('account_number', $accountNumber)->first();
+
+        return $account->account_id;
+    }
+
+    public function GetAccountList() {
+        $accounts = Account::select(
+            DB::raw('concat(account_number, " - ", name) as label'),
+            'account_id as value'
+        );
+
+        return $accounts->get();
+    }
+
+    public function GetAccountPrimaryUserId($accountId) {
+        $primaryContact = AccountUser::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
+
+        return $primaryContact;
+    }
+
+    public function GetAccountsReceivable($startDate, $endDate) {
+        $accounts = Account::leftjoin('invoices', 'invoices.account_id', '=', 'accounts.account_id')
+            ->where('bill_end_date', '>=', $startDate->format('Y-m-01'))
+            ->where('bill_end_date', '<=', $endDate->format('Y-m-t'))
+            ->select(
+                'accounts.account_id',
+                'account_number',
+                'name',
+                DB::raw('sum(total_cost) as total_cost'),
+                DB::raw('sum(balance_owing) as balance_owing'),
+                'bill_end_date'
+            )->groupBy('account_id')
+            ->where('total_cost', '>', 0)
+            ->orderBy('account_id');
+
+        return $accounts->get();
+    }
+
+    public function GetById($id) {
+        $account = Account::where('account_id', '=', $id)->first();
+
+        return $account;
+    }
+
+    public function GetInvoiceSortOrder($accountId) {
+        /* To properly access the sort order we must:
+         * 1) Pull it from the account, and parse as JSON
+         * 2) Filter any with an empty priority (invalid for this account based on account settings)
+         * 3) Sort by priority
+         * Then return
+         */
+        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
+        $sortOrder = json_decode($sortOrder[0]);
+        $sortOrder = array_filter($sortOrder, function($var) {return $var->priority != "";});
+        usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
+
+        return $sortOrder;
+    }
+
+    public function GetNameById($account_id) {
+        $account = Account::where('account_id', $account_id)->first();
+
+        return $account['name'];
+    }
+
+    public function GetNextActiveById($id) {
+        $next = Account::where('account_id', '>', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->min();
+        return $next;
+    }
+
+    public function GetPrevActiveById($id) {
+        $prev = Account::where('account_id', '<', $id)
+            ->where('active', true)
+            ->pluck('account_id')
+            ->max();
+        return $prev;
+    }
+
+    public function GetParentAccountsList() {
+        $parentAccounts = Account::where('can_be_parent', 1)
+            ->select(
+                DB::raw('concat(account_id, " - ", name) as label'),
+                'account_id as value'
+            );
+
+        return $parentAccounts->get();
+    }
+
+    public function GetSubtotalByField($accountId) {
+        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
+        $sortOrder = json_decode(json_decode($sortOrder)[0]);
+        $sortOrder = array_filter($sortOrder, function($var) {return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);});
+
+        return array_pop($sortOrder);
+    }
+
+    public function Insert($acct) {
+        $new = new Account;
+
+        $new = $new->create($acct);
+
+        return $new;
+    }
+
+    public function IsUnique($accountNumber) {
+        $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
+        return $result;
+    }
+
     public function ListAll() {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
@@ -100,53 +213,21 @@ class AccountRepo {
         return $accounts->get();
     }
 
-    public function ToggleActive($account_id) {
-        $account = Account::where('account_id', $account_id)->first();
-
-        $account->active = !$account->active;
-        $account->save();
-        return;
-    }
-
-    public function GetAccountIdByAccountNumber($accountNumber) {
-        $account = Account::where('account_number', $accountNumber)->first();
-
-        return $account->account_id;
-    }
-
-    public function GetAccountList() {
-        $accounts = Account::select(
-            DB::raw('concat(account_number, " - ", name) as label'),
-            'account_id as value'
-        );
-
-        return $accounts->get();
-    }
-
-    public function GetParentAccountsList() {
-        $parentAccounts = Account::where('can_be_parent', 1)
-            ->select(
-                DB::raw('concat(account_id, " - ", name) as label'),
-                'account_id as value'
-            );
-
-        return $parentAccounts->get();
-    }
-
     public function ListAllWithUninvoicedBillsByInvoiceInterval($invoiceIntervals, $startDate, $endDate) {
         $accounts = Account::leftjoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
             ->whereIn('selections.selection_id', $invoiceIntervals)
             ->where('active', true)
-            ->select('accounts.account_id',
-                    'accounts.account_number',
-                    'accounts.invoice_interval',
-                    'accounts.name',
-                    'selections.selection_id as invoice_interval_selection_id',
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete = 100 and invoice_id IS NULL) as bill_count'),
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete < 100) as incomplete_bill_count'),
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) < "' . $startDate . '" and skip_invoicing = 0 and invoice_id IS NULL) as legacy_bill_count'),
-                    DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 1) as skipped_bill_count')
-            )->groupBy('accounts.account_id')
+            ->select(
+                'accounts.account_id',
+                'accounts.account_number',
+                'accounts.invoice_interval',
+                'accounts.name',
+                'selections.selection_id as invoice_interval_selection_id',
+                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete = 100 and invoice_id IS NULL) as bill_count'),
+                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete < 100) as incomplete_bill_count'),
+                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) < "' . $startDate . '" and skip_invoicing = 0 and invoice_id IS NULL) as legacy_bill_count'),
+                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 1) as skipped_bill_count'
+            ))->groupBy('accounts.account_id')
             ->havingRaw('bill_count > 0')
             ->orHavingRaw('incomplete_bill_count > 0')
             ->orHavingRaw('legacy_bill_count > 0')
@@ -155,40 +236,12 @@ class AccountRepo {
         return $accounts->get();
     }
 
-    public function GetById($id) {
-        $account = Account::where('account_id', '=', $id)->first();
-
-        return $account;
-    }
-
-    public function GetNextActiveById($id) {
-        $next = Account::where('account_id', '>', $id)
-            ->where('active', true)
-            ->pluck('account_id')
-            ->min();
-        return $next;
-    }
-
-    public function GetPrevActiveById($id) {
-        $prev = Account::where('account_id', '<', $id)
-            ->where('active', true)
-            ->pluck('account_id')
-            ->max();
-        return $prev;
-    }
-
-    public function GetNameById($account_id) {
+    public function ToggleActive($account_id) {
         $account = Account::where('account_id', $account_id)->first();
 
-        return $account['name'];
-    }
-
-    public function Insert($acct) {
-        $new = new Account;
-
-        $new = $new->create($acct);
-
-        return $new;
+        $account->active = !$account->active;
+        $account->save();
+        return;
     }
 
     public function Update($account) {
@@ -220,39 +273,5 @@ class AccountRepo {
         $old->save();
 
         return $old;
-    }
-
-    public function GetAccountPrimaryUserId($accountId) {
-        $primaryContact = AccountUser::where([['account_id', '=', $accountId], ['is_primary','=','1']])->first();
-
-        return $primaryContact;
-    }
-
-    public function IsUnique($accountNumber) {
-        $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
-        return $result;
-    }
-
-    public function GetInvoiceSortOrder($accountId) {
-        /* To properly access the sort order we must:
-         * 1) Pull it from the account, and parse as JSON
-         * 2) Filter any with an empty priority (invalid for this account based on account settings)
-         * 3) Sort by priority
-         * Then return
-         */
-        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
-        $sortOrder = json_decode($sortOrder[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return $var->priority != "";});
-        usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
-
-        return $sortOrder;
-    }
-
-    public function GetSubtotalByField($accountId) {
-        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
-        $sortOrder = json_decode(json_decode($sortOrder)[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);});
-
-        return array_pop($sortOrder);
     }
 }

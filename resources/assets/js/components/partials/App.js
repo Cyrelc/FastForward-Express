@@ -7,6 +7,7 @@ import Select from 'react-select'
 
 import Account from '../accounts/Account'
 import Accounts from '../accounts/Accounts'
+import AccountsReceivable from '../admin/AccountsReceivable'
 import AdminDashboard from '../dashboards/AdminDashboard'
 import AppSettings from '../admin/AppSettings'
 import Bill from '../bills/Bill'
@@ -35,7 +36,8 @@ export default class App extends Component {
             billId: '',
             employeeId: '',
             invoiceId: '',
-            manifestId: ''
+            manifestId: '',
+            redirect: false
         }
         this.handleChange = this.handleChange.bind(this)
     }
@@ -143,6 +145,7 @@ export default class App extends Component {
                             </NavDropdown>
                             <LinkContainer to='/app/dispatch'><NavLink>Dispatch</NavLink></LinkContainer>
                             <NavDropdown title='Administration' id='navbar-admin' alignRight>
+                                <LinkContainer to='/app/accountsReceivable'><NavDropdown.Item><i className=''></i> Accounts Receivable</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/appSettings'><NavDropdown.Item><i className='fas fa-cogs'></i> App Settings</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/ratesheets'><NavDropdown.Item><i className='fas fa-dollar-sign'></i> Ratesheets</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/ratesheets/create'><NavDropdown.Item>Create Ratesheet</NavDropdown.Item></LinkContainer>
@@ -156,6 +159,7 @@ export default class App extends Component {
                 <Switch>
                     <Route path='/app/accounts/:action/:accountId?' component={Account}></Route>
                     <Route path='/app/accounts' exact component={Accounts}></Route>
+                    <Route path='/app/accountsReceivable' exact component={AccountsReceivable}></Route>
                     <Route path='/app/appSettings' exact component={AppSettings}></Route>
                     <Route path='/app/bills/trend' component={Charts}></Route>
                     <Route exact path='/app/bills' component={Bills}></Route>

@@ -16,5 +16,16 @@
             $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
             return $model;
         }
+
+        public function GetAccountsReceivableModel($startDate, $endDate) {
+            $billRepo = new Repos\BillRepo();
+            $accountRepo = new Repos\AccountRepo();
+
+            $model = new \stdClass();
+            $model->accounts_receivable = $accountRepo->GetAccountsReceivable($startDate, $endDate);
+            $model->prepaid_accounts_receivable = $billRepo->GetPrepaidAccountsReceivable($startDate, $endDate);
+
+            return $model;
+        }
     }
 ?>
