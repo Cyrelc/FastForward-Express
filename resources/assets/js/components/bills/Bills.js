@@ -134,6 +134,11 @@ export default function Bills(props) {
         }}},
     ]
 
+    function redirect(cell) {
+        const bill_id = cell.getData().bill_id
+        props.handleAppChange({target: {name: 'redirect', type: 'url', value: '/app/bills/edit/' + bill_id}})
+    }
+
     return (
         <Table
             baseRoute='/bills/buildTable'
