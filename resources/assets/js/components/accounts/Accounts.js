@@ -21,7 +21,7 @@ const columns = [
     }, width: 50, align: 'center', cellClick:(e, cell) => toggleAccountActive(cell), headerSort: false, print: false},
     {title: 'Account ID', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_id', urlPrefix:'/app/accounts/edit/'}, sorter: 'number'},
     {title: 'Account Number', field: 'account_number'},
-    {title: 'Parent Account', field: 'parent_id', formatter: 'link', formatterParams:{labelField: 'parent_name', urlPrefix:'/accounts/edit/'}},
+    {title: 'Parent Account', field: 'parent_id', formatter: 'link', formatterParams:{labelField: 'parent_name', urlPrefix:'/app/accounts/edit/'}},
     {title: 'Account Name', field: 'name', formatter: 'link', formatterParams:{url: (cell) => {return '/accounts/edit/' + cell.getRow().getData().account_id}}},
     {title: 'Invoice Interval', field: 'invoice_interval'},
     {title: 'Primary Contact', field: 'primary_contact_name'},

@@ -128,9 +128,7 @@ export default class Invoice extends Component {
                                 <thead>
                                     <tr>
                                         {Object.keys(this.state.tables[key].headers).map(headerKey => {
-                                            if(headerKey === 'Waybill Number')
-                                                return null
-                                            else if(headerKey === 'Amount')
+                                            if(headerKey === 'Amount')
                                                 return <td style={{textAlign: 'right'}}>{headerKey}</td>
                                             return <td>{headerKey}</td>
                                         })}
@@ -147,8 +145,6 @@ export default class Invoice extends Component {
                                                         return <td width='10%' style={{textAlign: 'right'}}>{bill.amount}</td>
                                                     case 'bill_id':
                                                         return <td width='8%'><a href={'/app/bills/edit/' + bill.bill_id}>{bill.bill_id}</a></td>
-                                                    case 'bill_number':
-                                                        return null
                                                     case 'time_pickup_scheduled':
                                                         return <td width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
                                                     default:

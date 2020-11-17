@@ -269,7 +269,7 @@ class BillRepo {
             ->select(
                 'bills.payment_type_id',
                 'payment_types.name as payment_type_name',
-                DB::raw('sum(amount) as amount')
+                DB::raw('sum(case when amount is null then 0 else amount) as amount')
             )->groupBy('payment_type_id');
 
         return $bills->get();

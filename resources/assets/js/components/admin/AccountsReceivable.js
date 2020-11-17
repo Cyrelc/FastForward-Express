@@ -88,7 +88,7 @@ export default class AccountsReceivable extends Component {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {this.state.accountsReceivable && this.state.accountsReceivable.map(account =>
+                                    {this.state.accountsReceivable.map(account =>
                                         <tr key={account.account_number}>
                                             <td>{account.name}</td>
                                             <td>{account.account_number}</td>
@@ -98,7 +98,7 @@ export default class AccountsReceivable extends Component {
                                     )}
                                 </tbody>
                                 <tbody>
-                                    {this.state.prepaidAccountsReceivable && this.state.prepaidAccountsReceivable.map(paymentType =>
+                                    {this.state.prepaidAccountsReceivable.map(paymentType =>
                                         <tr key={paymentType.payment_type_name}>
                                             <td>{paymentType.payment_type_name}</td>
                                             <td></td>
