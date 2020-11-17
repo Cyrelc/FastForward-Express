@@ -6,10 +6,13 @@ class AccountCollector {
     public function Collect($req, $billingId, $shippingId) {
         $canBeParent = filter_var($req->can_be_parent, FILTER_VALIDATE_BOOLEAN);
         $useParentRatesheet = filter_var($req->use_parent_ratesheet, FILTER_VALIDATE_BOOLEAN);
+
+        $parentAccountId = $req->parent_account_id;
+        if($canBeParent || $req->parent_account_id === "")
+            $parentAccountId = null;
+
         $ratesheetId = $req->ratesheet_id;
-        if($useParentRatesheet)
-            $ratesheetId = null;
-        if($req->ratesheet_id == '')
+        if($useParentRatesheet || $req->ratesheet_id == '')
             $ratesheetId = null;
 
         return [
@@ -26,7 +29,7 @@ class AccountCollector {
             'invoice_sort_order'=>json_encode($req->invoice_sort_order),
             'min_invoice_amount'=>$req->min_invoice_amount == '' ? 0 : $req->min_invoice_amount,
             'name'=>$req->account_name,
-            'parent_account_id'=>$canBeParent ? null : $req->parent_account_id,
+            'parent_account_id'=>$parentAccountId,
             'ratesheet_id'=>$ratesheetId,
             'send_bills'=>filter_var($req->send_bills, FILTER_VALIDATE_BOOLEAN),
             'send_email_invoices'=>filter_var($req->send_email_invoices, FILTER_VALIDATE_BOOLEAN),

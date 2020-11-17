@@ -25,6 +25,7 @@ export default function AdvancedTab(props) {
                         <InputGroup>
                             <InputGroup.Prepend><InputGroup.Text>Parent Account</InputGroup.Text></InputGroup.Prepend>
                             <Select
+                                isClearable
                                 options={props.parentAccounts}
                                 value={props.parentAccount}
                                 onChange={value => props.handleChanges({target: {name: 'parentAccount', type: 'object', value: value}})}
