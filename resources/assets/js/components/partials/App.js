@@ -162,7 +162,7 @@ export default class App extends Component {
                     <Route path='/app/accountsReceivable' exact component={AccountsReceivable}></Route>
                     <Route path='/app/appSettings' exact component={AppSettings}></Route>
                     <Route path='/app/bills/trend' component={Charts}></Route>
-                    <Route exact path='/app/bills' component={Bills}></Route>
+                    <Route exact path='/app/bills' render={() => <Bills handleAppChange={this.handleChange}/>}></Route>
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
                     <Route path='/app/chargebacks' exact component={Chargebacks}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
