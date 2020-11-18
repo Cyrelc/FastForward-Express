@@ -101,7 +101,7 @@ const initialSort = [{column:'bill_id', dir: 'desc'}]
 export default function Bills(props) {
     const columns = [
         {formatter: (cell) => {if(cell.getRow().getData().editable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, hozAlign:'center', cellClick:(e, cell) => deleteBill(cell), headerSort: false, print: false},
-        {title: 'Bill ID', field: 'bill_id', formatter: 'link', formatterParams:{url:''}, cellClick:(e, cell) => redirect(cell), sorter:'number'},
+        {title: 'Bill ID', field: 'bill_id', formatter: 'link', formatterParams:{urlPrefix:'/app/bills/edit/'}, sorter:'number'},
         {title: 'Waybill #', field: 'bill_number'},
         {title: 'Account', field: 'charge_account_id', formatter: 'link', formatterParams:{labelField:'charge_account_name', urlPrefix:'/app/accounts/edit/'}},
         {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
@@ -133,11 +133,6 @@ export default function Bills(props) {
                 return 'mediumturquoise'
         }}},
     ]
-
-    function redirect(cell) {
-        const bill_id = cell.getData().bill_id
-        props.handleAppChange({target: {name: 'redirect', type: 'url', value: '/app/bills/edit/' + bill_id}})
-    }
 
     return (
         <Table
