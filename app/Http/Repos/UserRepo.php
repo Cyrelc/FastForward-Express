@@ -9,12 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class UserRepo
 {
-    public function GetById($id) {
-        $user = User::where('user_id', '=', $id)->first();
-
-        return $user;
-    }
-
     public function AddUserToAccountUser($contact_id, $user_id) {
         $accountUser = \App\AccountUser::where('contact_id', $contact_id)->first();
 
@@ -53,11 +47,16 @@ class UserRepo
         return $accountUser->first();
     }
 
-    public function GetUserByEmployeeId($employeeId) {
-        $employee = \App\Employee::where('employee_id', $employeeId)->first();
-        $user = \App\User::where('user_id', $employee->user_id)->first();
+    public function GetAccountUserIds ($account_id) {
+        $query = \App\AccountUser::where('account_id', $account_id)
+            ->leftJoin('email_addresses', 'email_addresses.contact_id', '=', 'account_users.contact_id')
+            ->leftJoin('phone_numbers', 'phone_numbers.contact_id', '=', 'account_users.contact_id');
+        $accountUsers['contact_ids'] = $query->pluck('account_users.contact_id');
+        $accountUsers['user_ids'] = $query->pluck('user_id');
+        $accountUsers['email_ids'] = $query->pluck('email_address_id');
+        $accountUsers['phone_ids'] = $query->pluck('phone_number_id');
 
-        return $user;
+        return $accountUsers;
     }
 
     public function GetAccountUsers($account_id) {
@@ -81,16 +80,17 @@ class UserRepo
         return $accountUsers->get();
     }
 
-    public function GetAccountUserIds ($account_id) {
-        $query = \App\AccountUser::where('account_id', $account_id)
-            ->leftJoin('email_addresses', 'email_addresses.contact_id', '=', 'account_users.contact_id')
-            ->leftJoin('phone_numbers', 'phone_numbers.contact_id', '=', 'account_users.contact_id');
-        $accountUsers['contact_ids'] = $query->pluck('account_users.contact_id');
-        $accountUsers['user_ids'] = $query->pluck('user_id');
-        $accountUsers['email_ids'] = $query->pluck('email_address_id');
-        $accountUsers['phone_ids'] = $query->pluck('phone_number_id');
+    public function GetById($id) {
+        $user = User::where('user_id', '=', $id)->first();
 
-        return $accountUsers;
+        return $user;
+    }
+
+    public function GetUserByEmployeeId($employeeId) {
+        $employee = \App\Employee::where('employee_id', $employeeId)->first();
+        $user = \App\User::where('user_id', $employee->user_id)->first();
+
+        return $user;
     }
 
     public function Insert($user) {

@@ -25,19 +25,11 @@ class EmployeeController extends Controller {
 
     public function deleteEmergencyContact(Request $req) {
         DB::beginTransaction();
-        try {
-            $contactRepo = new Repos\ContactRepo();
-            $contactRepo->DeleteEmployeeEmergencyContact($req->employee_id, $req->contact_id);
 
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
+        $contactRepo = new Repos\ContactRepo();
+        $contactRepo->DeleteEmployeeEmergencyContact($req->employee_id, $req->contact_id);
 
-            return response()->json([
-                'success'=> false,
-                'error'=>$e->getMessage()
-            ]);
-        }
+        DB::commit();
     }
 
     public function getEmergencyContactModel($id = null) {
@@ -72,42 +64,35 @@ class EmployeeController extends Controller {
 
     public function storeEmergencyContact(Request $req) {
         DB::beginTransaction();
-        try {
-            $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
 
-            $temp = $partialsValidation->GetContactValidationRulesV2($req);
+        $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
 
-            $this->validate($req, $temp['rules'], $temp['messages']);
+        $temp = $partialsValidation->GetContactValidationRulesV2($req);
 
-            $contactCollector = new \App\Http\Collectors\ContactCollector();
+        $this->validate($req, $temp['rules'], $temp['messages']);
 
-            //Begin Contact
-            $contactId = $req->contact_id;
-            $contactRepo = new Repos\ContactRepo();
-            $contact = $contactCollector->GetContact($req);
-            if($contactId)
-                $contactRepo->Update($contact);
-            else {
-                $contactId = $contactRepo->Insert($contact)->contact_id;
-                $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
-                $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $contactId);
-                $employeeRepo = new Repos\EmployeeRepo();
-                $employeeRepo->AddEmergencyContact($employeeEmergencyContact);
-            }
-            //End Contact
-            $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
-            $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
-            $contactCollector->ProcessAddressForContact($req, $contactId);
+        $contactCollector = new \App\Http\Collectors\ContactCollector();
 
-            DB::commit();
-        } catch (exception $e) {
-            DB::rollBack();
+        //Begin Contact
+        $contactId = $req->contact_id;
+        $contactRepo = new Repos\ContactRepo();
+        $contact = $contactCollector->GetContact($req, $contactId);
 
-            return response()->json([
-                'success'=> false,
-                'error'=>$e->getMessage()
-            ]);
+        if($contactId)
+            $contactRepo->Update($contact);
+        else {
+            $contactId = $contactRepo->Insert($contact)->contact_id;
+            $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
+            $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $contactId);
+            $employeeRepo = new Repos\EmployeeRepo();
+            $employeeRepo->AddEmergencyContact($employeeEmergencyContact);
         }
+        //End Contact
+        $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
+        $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
+        $contactCollector->ProcessAddressForContact($req, $contactId);
+
+        DB::commit();
     }
 
     public function store(Request $req) {

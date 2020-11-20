@@ -98,9 +98,9 @@ class AccountController extends Controller {
         $useSeparateBillingAddress = !filter_var($req->use_shipping_for_billing_address, FILTER_VALIDATE_BOOLEAN);
 
         if ($useSeparateBillingAddress) {
-            $billAddressRules = $partialsRules->GetAddressMinValidationRules($req, 'billing_address', 'Billing');
-            $validationRules = array_merge($validationRules, $billAddressRules['rules']);
-            $validationMessages = array_merge($validationMessages, $billAddressRules['messages']);
+            $billingAddressRules = $partialsRules->GetAddressMinValidationRules($req, 'billing_address', 'Billing');
+            $validationRules = array_merge($validationRules, $billingAddressRules['rules']);
+            $validationMessages = array_merge($validationMessages, $billingAddressRules['messages']);
         }
 
         $this->validate($req, $validationRules, $validationMessages);
@@ -125,7 +125,7 @@ class AccountController extends Controller {
             $billing = $addrCollector->CollectMinimal($req, 'billing_address', $oldAccount ? $oldAccount->billing_address_id : null);
 
             if ($billing['address_id'])
-                $addressRepo->UpdateMinimal($billing);
+                $billingId = $addressRepo->UpdateMinimal($billing)->address_id;
             else
                 $billingId = $addressRepo->InsertMinimal($billing)->address_id;
         } else {
@@ -136,19 +136,20 @@ class AccountController extends Controller {
         //END billing address
         //BEGIN account
         $acctCollector = new \App\Http\Collectors\AccountCollector();
-        $account = $acctCollector->Collect($req, $billingId, $shippingId);
+        $account = $acctCollector->Collect($req, $shippingId, $billingId);
 
         $accountId = $req->input('account_id');
         if ($isEdit)
             $accountRepo->Update($account);
         else
-            $accountRepo->Insert($account);
+            $accountId = $accountRepo->Insert($account)->account_id;
 
         DB::commit();
         //END account
 
         return response()->json([
             'success' => true,
+            'account_id' => $accountId
         ]);
     }
 

@@ -8,8 +8,8 @@ use App\EmployeeEmergencyContact;
 use Illuminate\Support\Facades\DB;
 
 class ContactRepo {
-    public function GetById($id) {
-        $contact = Contact::where('contact_id', '=', $id)->first();
+    public function GetById($contactId) {
+        $contact = Contact::where('contact_id', $contactId)->first();
 
         return $contact;
     }
@@ -34,18 +34,16 @@ class ContactRepo {
         return $old;
     }
 
-    public function Delete($cid) {
-        $contact = $this->GetById($cid);
+    public function Delete($contactId) {
+        $contact = $this->GetById($contactId);
 
         $phoneRepo = new PhoneNumberRepo();
         $addressRepo = new AddressRepo();
         $emailRepo = new EmailAddressRepo();
 
-        $contact->accounts()->detach();
-        $contact->employees()->detach();
-        $phoneRepo->DeleteByContact($cid);
-        $addressRepo->DeleteByContact($cid);
-        $emailRepo->DeleteByContact($cid);
+        $phoneRepo->DeleteByContact($contactId);
+        $addressRepo->DeleteByContact($contactId);
+        $emailRepo->DeleteByContact($contactId);
 
         $contact->delete();
     }

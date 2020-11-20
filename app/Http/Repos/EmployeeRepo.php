@@ -187,10 +187,10 @@ class EmployeeRepo {
         return $emergency_contacts->get();
     }
 
-    public function AddEmergencyContact($emergency_contact) {
+    public function AddEmergencyContact($emergencyContact) {
         $new = new EmployeeEmergencyContact;
-        $new = $new->create($emergency_contact);
-        return $new;
+
+        return $new->create($emergencyContact);
     }
 
     public function ToggleActive($employeeId) {

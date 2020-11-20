@@ -3,7 +3,7 @@
 namespace App\Http\Collectors;
 
 class AccountCollector {
-    public function Collect($req, $billingId, $shippingId) {
+    public function Collect($req, $shippingId, $billingId) {
         $canBeParent = filter_var($req->can_be_parent, FILTER_VALIDATE_BOOLEAN);
         $useParentRatesheet = filter_var($req->use_parent_ratesheet, FILTER_VALIDATE_BOOLEAN);
 
