@@ -192,7 +192,7 @@ export default class Account extends Component {
 
         makeAjaxRequest('/accounts/store', 'POST', data, response => {
             toastr.clear()
-            toastr.success('Account successfully ' + this.state.action === 'create' ? 'created' : 'updated', 'Success')
+            toastr.success('Account ' + response.account_id + 'successfully ' + this.state.action === 'create' ? 'created' : 'updated', 'Success')
         })
     }
 

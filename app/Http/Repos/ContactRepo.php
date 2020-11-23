@@ -8,6 +8,13 @@ use App\EmployeeEmergencyContact;
 use Illuminate\Support\Facades\DB;
 
 class ContactRepo {
+    public function GetContactByEmailAddress($email) {
+        $contact = Contact::leftjoin('email_addresses', 'email_addresses.contact_id', '=', 'contacts.contact_id')
+            ->where('email', $email);
+
+        return $contact->first();
+    }
+
     public function GetById($contactId) {
         $contact = Contact::where('contact_id', $contactId)->first();
 

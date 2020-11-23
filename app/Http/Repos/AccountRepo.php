@@ -9,7 +9,6 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class AccountRepo {
-
     public function AdjustBalance($account_id, $amount) {
         $account = Account::where('account_id', $account_id)
             ->first();
@@ -130,9 +129,7 @@ class AccountRepo {
     public function Insert($acct) {
         $new = new Account;
 
-        $new = $new->create($acct);
-
-        return $new;
+        return $new->create($acct);
     }
 
     public function IsUnique($accountNumber) {

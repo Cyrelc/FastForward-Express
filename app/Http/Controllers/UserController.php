@@ -26,6 +26,18 @@ class UserController extends Controller {
         ]);
     }
 
+    public function checkIfEmailTaken(Request $req, $email) {
+        $contactRepo = new Repos\ContactRepo();
+        $contact = $contactRepo->GetContactByEmailAddress($email);
+
+        return response()->json([
+            'success' => true,
+            'email_in_use' => $contact != null,
+            'contact_id' => $contact ? $contact->contact_id : null,
+            'name' => $contact ? $contact->first_name . ' ' . $contact->last_name : null
+        ]);
+    }
+
     public function deleteAccountUser($contactId) {
         //Do I have permission?
         DB::beginTransaction();
@@ -86,7 +98,7 @@ class UserController extends Controller {
         $oldUser = $userRepo->GetAccountUserByContactId($req->contact_id);
         $userId = $oldUser ? $oldUser->user_id : null;
 
-        $temp = $partialsValidation->GetContactValidationRulesV2($req, $userId, $req->contact_id);
+        $temp = $partialsValidation->GetContactValidationRules($req, $userId, $req->contact_id);
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 

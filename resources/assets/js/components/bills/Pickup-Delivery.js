@@ -70,7 +70,7 @@ export default function Pickup_Delivery(props) {
                         </InputGroup>
                     </Col>
                 </Row>
-                {props.data.address.type === 'Account' && 
+                {props.data.address.type === 'Account' &&
                     <Row>
                         <Col md={11}>
                             <InputGroup>

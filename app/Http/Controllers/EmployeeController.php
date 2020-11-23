@@ -67,7 +67,7 @@ class EmployeeController extends Controller {
 
         $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
 
-        $temp = $partialsValidation->GetContactValidationRulesV2($req);
+        $temp = $partialsValidation->GetContactValidationRules($req);
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
@@ -112,7 +112,7 @@ class EmployeeController extends Controller {
         $isEdit = isset($req->employee_id) && $req->employee_id !== '';
 
         $employeeRules = $employeeValidator->GetValidationRules($req);
-        $contactRules = $partialsValidator->GetContactValidationRulesv2($req, $userId, $contactId);
+        $contactRules = $partialsValidator->GetContactValidationRules($req, $userId, $contactId);
 
         $validationRules = [];
         $validationMessages = [];

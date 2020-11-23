@@ -119,7 +119,7 @@ const groupByOptions = [
     {label: 'Bill End Date', value: 'bill_end_date'}
 ]
 
-const initialSort = [{column:'invoice_id', dir: 'desc'}]
+const initialSort = [{column:'bill_end_date', dir: 'desc'},{column:'account_number', dir:'asc'}]
 
 const withSelected = [
     {

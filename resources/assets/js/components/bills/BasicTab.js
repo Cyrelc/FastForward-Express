@@ -1,7 +1,6 @@
 import React from 'react'
 import {Card, Row, Col, InputGroup, FormControl, FormCheck, Table, Button} from 'react-bootstrap'
 import Select from 'react-select'
-import makeAnimated from 'react-select/animated'
 
 import Pickup_Delivery from './Pickup-Delivery'
 import Package from './Package'
@@ -140,7 +139,7 @@ export default function BasicTab(props) {
                             timeTooltip={"The earliest time the driver will pick up the package. Please have the package ready by the time indicated."}
 
                             handleChanges={props.handleChanges}
-                            />
+                        />
                     </Col>
                     <Col md={6}>
                         <Pickup_Delivery

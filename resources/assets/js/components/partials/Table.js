@@ -16,6 +16,7 @@ export default class Table extends Component {
             filters: [],
             groupBy: undefined,
             groupByOptions: [],
+            initialized: false,
             pageTitle: '',
             tableRef: createRef()
         }
@@ -25,17 +26,10 @@ export default class Table extends Component {
         this.refreshTable = this.refreshTable.bind(this)
     }
 
-    // On mount we have to parse the query string in the URL to see if any values were set. 
+    // On mount we have to parse the query string in the URL to see if any values were set.
     // Those filters that are matched, are set to active
     componentDidMount() {
-        const search = window.location.search
-        if(search.includes('%5B') || search.includes('%5D') || search.includes('%2C'))
-            window.location.search = search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',')
-        const filters = this.props.filters.map(filter => {
-            if(search.includes('filter[' + filter.value + ']='))
-                return {...filter, active: true}
-            return {...filter, active: false}
-        })
+        const filters = this.parseFilters()
         this.setState({
             baseRoute: this.props.baseRoute,
             columns: this.props.columns,
@@ -49,9 +43,10 @@ export default class Table extends Component {
 
     componentDidUpdate(prevProps) {
         if(this.props.refreshTable === true) {
-            console.log('attempting to refresh table')
             this.refreshTable()
             this.props.toggleRefreshTable()
+        } else if (this.props.location && this.props.location.search != prevProps.location.search) {
+            this.setState({filters: this.parseFilters()}, this.refreshTable)
         }
     }
 
@@ -100,6 +95,17 @@ export default class Table extends Component {
         this.setState({groupBy: event})
     }
 
+    parseFilters() {
+        const search = window.location.search
+        if(search.includes('%5B') || search.includes('%5D') || search.includes('%2C'))
+            window.location.search = search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',')
+        return this.props.filters.map(filter => {
+            if(search.includes('filter[' + filter.value + ']='))
+                return {...filter, active: true}
+            return {...filter, active: false}
+        })
+    }
+
     refreshTable() {
         var query = ''
         const anyActiveFilters = this.state.filters.some(filter => filter.active);
@@ -118,7 +124,7 @@ export default class Table extends Component {
             this.props.history.push({pathname: this.props.location.pathname, search: ''})
         const route = this.state.baseRoute + window.location.search
         makeFetchRequest(route, data => {
-            this.setState({data: data}, () => {
+            this.setState({data: data, initialized: true}, () => {
                 if(this.props.groupBy) {
                     const groupBy = this.state.groupByOptions.filter(option => option.value = this.props.groupBy);
                     this.handleGroupByChange(groupBy[0])
@@ -173,7 +179,11 @@ export default class Table extends Component {
                                             <Dropdown.Menu>
                                                 {
                                                     this.state.columns.map(column =>
-                                                        <Dropdown.Item key={column.field} style={{color: column.visible === false  ? 'red' : 'black'}} onClick={() => this.handleActiveColumnsChange(column.field)}>{column.title}</Dropdown.Item>
+                                                        <Dropdown.Item
+                                                            key={column.field}
+                                                            style={{color: column.visible === false  ? 'red' : 'black'}}
+                                                            onClick={() => this.handleActiveColumnsChange(column.field)}
+                                                        >{column.title}</Dropdown.Item>
                                                     )
                                                 }
                                             </Dropdown.Menu>
@@ -185,6 +195,7 @@ export default class Table extends Component {
                                                 <Dropdown.Menu>
                                                     {this.props.withSelected.map(menuItem =>
                                                         <Dropdown.Item
+                                                            key={menuItem.label}
                                                             onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
                                                         >{menuItem.label}</Dropdown.Item>
                                                     )}
@@ -225,7 +236,7 @@ export default class Table extends Component {
                                 printAsHtml={true}
                                 printStyled={true}
                                 selectable={this.props.selectable}
-                                selectableCheck={() => {console.log(this.props.selectable); return this.props.selectable ? true : false}}
+                                selectableCheck={() => {return this.props.selectable ? true : false}}
                             />
                         </Card.Footer>
                     </Card>

@@ -19,24 +19,26 @@ class PartialsValidationRules {
         ];
     }
 
-    public function GetContactValidationRulesV2($req, $userId = null, $contactId = null) {
+    public function GetContactValidationRules($req, $userId = null) {
         $rules = [
             'first_name' => 'required',
             'last_name' => 'required',
             'emails' => 'required',
             'phone_numbers' => 'required',
-            'emails.*.email' => 'required|email|unique:email_addresses,email,' . $req->contact_id . ',contact_id', //. ($userId ? '|unique:users,email,' . $userId . ',user_id' : ''),
+            'emails.*.email' => 'required|email',
             'emails.*.is_primary' => 'required',
             'phone_numbers.*.phone_number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
             'phone_numbers.*.is_primary' => 'required',
             'phone_numbers.*.type' => 'required'
         ];
-        if($userId || $contactId)
-            $rules = array_merge($rules, ['emails.*.email' => 'unique:email_addresses,email,' . $contactId . ',contact_id|unique:users,email,' . $userId . ',user_id']);
         $messages = [
             'first_name.required' => 'User first name field can not be empty',
             'last_name.required' => 'User last name field can not be empty',
         ];
+        if($userId) {
+            $rules = array_merge($rules, ['emails.*.email' => 'unique:users,email,' . $userId . ',user_id']);
+            $messages = array_merge($messages, ['emails.*.email.unique' => 'Requested email address is being used for login. Please select another']);
+        }
 
         if(isset($req->address_formatted)) {
             $rules = array_merge($rules, [
