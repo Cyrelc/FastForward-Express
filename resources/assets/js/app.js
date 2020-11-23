@@ -1,4 +1,8 @@
 
+import React from 'react'
+import ReactDom from 'react-dom'
+import App from './components/partials/App'
+import { createStore } from 'redux'
 /**
  * First we will load all of this project's JavaScript dependencies which
  * includes React and other helpers. It's a great starting point while
@@ -13,3 +17,5 @@ require('datejs')
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
+
+ReactDom.render(<App />, document.getElementById('reactDiv'))
