@@ -45,13 +45,14 @@ export default class GenerateInvoices extends Component {
             this.setState({accounts: []})
             return
         }
-        
+
         const data = {
             invoice_intervals: this.state.selectedInvoiceIntervals.map(interval => {return interval.value}),
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
         makeAjaxRequest('/invoices/getAccountsToInvoice', 'POST', data, response => {
+            response = JSON.parse(response)
             toastr.clear()
             this.setState({accounts: response})
         })

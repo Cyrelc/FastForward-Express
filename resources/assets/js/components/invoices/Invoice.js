@@ -101,7 +101,7 @@ export default class Invoice extends Component {
                 <Col md={11}>
                     <table style={{width: '100%'}}>
                         <tr>
-                            <td style={{width: '40%'}}><h3><a href={'/accounts/edit/' + this.state.accountId}>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></h3></td>
+                            <td style={{width: '40%'}}><h3><a href={'/app/accounts/edit/' + this.state.accountId}>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></h3></td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && this.state.invoice.total_cost)}</td>
                             <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + this.state.accountOwing}</td>
@@ -155,21 +155,19 @@ export default class Invoice extends Component {
                                     )}
                                     {Object.keys(this.state.tables).length > 1 &&
                                         <tr>
-                                            <td colSpan={Object.values(this.state.tables[key].headers).includes('charge_reference_value') ? 4 : 3} style={{textAlign: 'center'}}><b>Subtotal for {key}</b></td>
+                                            <td colSpan={Object.keys(this.state.tables[key].headers).length - 2} rowSpan={3} style={{textAlign: 'center', verticalAlign: 'middle'}}><b>Subtotal for {key}</b></td>
                                             <td><b>Bill Subtotal: </b></td>
                                             <td style={{textAlign: 'right'}}><b>{this.state.tables[key].subtotal}</b></td>
                                         </tr>
                                     }
                                     {Object.keys(this.state.tables).length > 1 &&
                                         <tr>
-                                            <td colSpan={Object.values(this.state.tables[key].headers).includes('charge_reference_value') ? 4 : 3}></td>
                                             <td><b>Tax: </b></td>
                                             <td style={{textAlign: 'right'}}><b>{this.state.tables[key].tax}</b></td>
                                         </tr>
                                     }
                                     {Object.keys(this.state.tables).length > 1 &&
                                         <tr>
-                                            <td colSpan={Object.values(this.state.tables[key].headers).includes('charge_reference_value') ? 4 : 3}></td>
                                             <td><b>Subtotal: </b></td>
                                             <td style={{textAlign: 'right'}}><b>{this.state.tables[key].total}</b></td>
                                         </tr>

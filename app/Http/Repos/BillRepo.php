@@ -134,20 +134,29 @@ class BillRepo {
             $bills[0] = new \stdClass();
             $bills[0]->bills = $billQuery->get();
         } else {
-            $subtotalIds = Bill::where('invoice_id', $invoiceId)->groupBy($subtotalBy->database_field_name)->pluck($subtotalBy->database_field_name);
+            if($subtotalBy->database_field_name === 'time_pickup_scheduled')
+                $subtotalIds = Bill::where('invoice_id', $invoiceId)->select(DB::raw('date(time_pickup_scheduled) as pickup_date'))->groupBy('pickup_date')->pluck('pickup_date');
+            else
+                $subtotalIds = Bill::where('invoice_id', $invoiceId)->groupBy($subtotalBy->database_field_name)->pluck($subtotalBy->database_field_name);
 
             foreach($subtotalIds as $subtotalId) {
                 $subtotalQuery = clone $billQuery;
-                $subtotalQuery->where($subtotalBy->database_field_name, $subtotalId);
+                if($subtotalBy->database_field_name === 'time_pickup_scheduled')
+                    $subtotalQuery->whereDate($subtotalBy->database_field_name, $subtotalId);
+                else
+                    $subtotalQuery->where($subtotalBy->database_field_name, $subtotalId);
+
                 if($subtotalBy->database_field_name == 'charge_account_id') {
-                    $sortOptions = $accountRepo->GetInvoiceSortOrder($subtotalId);
+                    $invoiceSortOptions = $accountRepo->GetInvoiceSortOrder($subtotalId);
                     $tempAccount = $accountRepo->GetById($subtotalId);
                     $subtotalString = $tempAccount->accountNumber . ' ' . $tempAccount->name;
-                } else if($subtotalBy->database_field_name == 'charge_reference_value') {
-                    $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ' ' . $subtotalId;
-                } else
-                    $subtotalString = $subtotalBy->friendly_name . ' ' . $subtotalId;
-                foreach($sortOptions as $option) {
+                } else {
+                    if($subtotalBy->database_field_name == 'charge_reference_value')
+                        $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ' ' . $subtotalId;
+                    else
+                        $subtotalString = $subtotalBy->friendly_name . ' ' . $subtotalId;
+                }
+                foreach($invoiceSortOptions as $option) {
                     $subtotalQuery->orderBy($option->database_field_name);
                 }
                 $bills[$subtotalString] = new \stdClass();
@@ -226,12 +235,15 @@ class BillRepo {
         return $total[0];
     }
 
-    public function GetInvoiceSubtotalByField($invoice_id, $field_name, $field_value) {
-        $subtotal = Bill::where('invoice_id', $invoice_id)
-            ->where($field_name, $field_value)
-            ->value(DB::raw('round(sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end), 2)'));
+    public function GetInvoiceSubtotalByField($invoiceId, $fieldName, $fieldValue) {
+        $subtotal = Bill::where('invoice_id', $invoiceId);
 
-        return $subtotal;
+        if($fieldName === 'time_pickup_scheduled')
+            $subtotal->whereDate($fieldName, explode(" ", $fieldValue)[0]);
+        else
+            $subtotal->where($fieldName, $fieldValue);
+
+        return $subtotal->sum(DB::raw('round(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2)'));
     }
 
     public function GetManifestOverviewById($manifest_id) {

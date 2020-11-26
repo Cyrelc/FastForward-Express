@@ -98,17 +98,15 @@
                 @endforeach
                 @if(count($model->tables) > 1)
                     <tr class='subtotal'>
-                        <td class='center' colspan='{{count($table->headers) - 2}}'><b>Subtotal for {{$table_key}}</b></td>
+                        <td class='center' colspan='{{count($table->headers) - 2}}' rowspan='3'><b>Subtotal for {{$table_key}}</b></td>
                         <td class='right' style='padding-right: 3px; padding-left: 3px'><b>Bill Subtotal:</b></td>
                         <td class='right'><b>{{$table->subtotal}}</b></td>
                     </tr>
                     <tr class='subtotal'>
-                        <td colspan='{{count($table->headers) - 2}}'></td>
                         <td class='right' style='padding-right: 3px'><b>Tax:</b></td>
                         <td class='right'><b>{{$table->tax}}</b></td>
                     </tr>
                     <tr class='subtotal'>
-                        <td colspan='{{count($table->headers) - 2}}'></td>
                         <td class='right' style='padding-right: 3px'><b>Subtotal:</b></td>
                         <td class='right'><b>{{$table->total}}</b></td>
                     </tr>

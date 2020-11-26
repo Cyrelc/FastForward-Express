@@ -84,7 +84,7 @@ class InvoiceRepo {
         $invoices = array();
 
         foreach($accountIds as $accountId) {
-            $account = Account::where('account_id', $accountId)->first('parent_account_id');
+            $account = Account::where('account_id', $accountId)->first(['parent_account_id']);
             $bills = Bill::where('charge_account_id', '=', $accountId)
                         ->whereDate('time_pickup_scheduled', '>=', $startDate)
                         ->whereDate('time_pickup_scheduled', '<=', $endDate)
@@ -94,7 +94,7 @@ class InvoiceRepo {
                         ->get();
 
             if(count($bills) > 0) {
-                if($account->has_parent) {
+                if($account->parent_account_id != null) {
                     if(!array_key_exists($account->parent_account_id, $invoices))
                         $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id, $startDate, $endDate);
                     foreach($bills as $bill) {

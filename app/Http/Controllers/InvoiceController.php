@@ -69,7 +69,8 @@ class InvoiceController extends Controller {
 
     public function buildTable() {
         $invoiceRepo = new Repos\InvoiceRepo();
-        return json_encode($invoiceRepo->ListAll());
+        $invoices = $invoiceRepo->ListAll();
+        return json_encode($invoices);
     }
 
     public function finalize($invoiceIds) {
@@ -85,13 +86,6 @@ class InvoiceController extends Controller {
         $invoice_model_factory = new Invoice\InvoiceModelFactory();
         $model = $invoice_model_factory->GetById($id);
         return json_encode($model);
-    }
-
-    public function generate(Request $req) {
-        // Check permissions
-        $invoice_model_factory = new Invoice\InvoiceModelFactory();
-        $model = $invoice_model_factory->GetCreateModel($req);
-        return view('invoices.invoice-generate', compact('model'));
     }
 
     public function getOutstandingByAccountId(Request $req) {
@@ -124,33 +118,25 @@ class InvoiceController extends Controller {
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
         $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $startDate, $endDate);
-        return $accounts;
+        return json_encode($accounts);
     }
 
     public function store(Request $req) {
         DB::beginTransaction();
-        try{
-            $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
-            $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
 
-            $this->validate($req, $validationRules, $validationMessages);
+        $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
+        $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
 
-            $invoiceRepo = new Repos\InvoiceRepo();
+        $this->validate($req, $validationRules, $validationMessages);
 
-            $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
-            $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+        $invoiceRepo = new Repos\InvoiceRepo();
 
-            $invoiceRepo->create($req->accounts, $start_date, $end_date);
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-            DB::commit();
-        } catch(Exception $e) {
-            DB::rollBack();
+        $invoiceRepo->create($req->accounts, $startDate, $endDate);
 
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        DB::commit();
     }
 
     public function print(Request $req, $invoice_id) {
