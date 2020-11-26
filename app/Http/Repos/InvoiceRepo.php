@@ -84,7 +84,7 @@ class InvoiceRepo {
         $invoices = array();
 
         foreach($accountIds as $accountId) {
-            $account = Account::where('account_id', $accountId)->first(['has_parent', 'parent_account_id']);
+            $account = Account::where('account_id', $accountId)->first('parent_account_id');
             $bills = Bill::where('charge_account_id', '=', $accountId)
                         ->whereDate('time_pickup_scheduled', '>=', $startDate)
                         ->whereDate('time_pickup_scheduled', '<=', $endDate)
