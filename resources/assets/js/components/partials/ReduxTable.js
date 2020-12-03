@@ -1,73 +1,45 @@
-import React, {Component, createRef} from 'react'
+import React, {Component} from 'react'
 import { ReactTabulator } from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Dropdown, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
-import TableFilters from '../partials/TableFilters'
+import TableFilters from './TableFilters'
 
-export default class Table extends Component {
+export default class ReduxTable extends Component {
     constructor() {
         super()
         this.state = {
-            activeColumns: [],
-            baseRoute: undefined,
-            columns: [],
-            data: [],
-            filters: [],
-            groupBy: undefined,
-            groupByOptions: [],
-            initialized: false,
-            pageTitle: '',
-            tableRef: createRef()
+            filters: []
         }
         this.handleActiveFiltersChange = this.handleActiveFiltersChange.bind(this)
         this.handleChange = this.handleChange.bind(this)
-        this.handleGroupByChange = this.handleGroupByChange.bind(this)
+        this.parseFilters = this.parseFilters.bind(this)
         this.refreshTable = this.refreshTable.bind(this)
     }
-
     // On mount we have to parse the query string in the URL to see if any values were set.
     // Those filters that are matched, are set to active
     componentDidMount() {
-        const filters = this.parseFilters()
+        // console.log("COMPONENT DID MOUNT")
+        if(window.location.search == '' && this.props.reduxQueryString)
+            this.props.redirect(window.location.pathname + this.props.reduxQueryString)
         this.setState({
-            baseRoute: this.props.baseRoute,
-            columns: this.props.columns,
-            filters: filters,
-            groupBy: this.props.groupBy ? this.props.groupByOptions.filter(option => option.value = this.props.groupBy) : undefined,
-            groupByOptions: this.props.groupByOptions ? this.props.groupByOptions : [],
-            pageTitle: this.props.pageTitle
+            filters: this.parseFilters()
         }, this.refreshTable)
         document.title = this.props.pageTitle + ' - Fast Forward Express'
     }
 
     componentDidUpdate(prevProps) {
+        console.log("COMPONENT DID UPDATE")
         if(this.props.refreshTable === true) {
             this.refreshTable()
             this.props.toggleRefreshTable()
-        } else if (this.props.location && this.props.location.search != prevProps.location.search) {
-            this.setState({filters: this.parseFilters()}, this.refreshTable)
-        }
+        } else if (prevProps.reduxQueryString != this.props.reduxQueryString)
+            this.refreshTable()
     }
 
-    handleActiveColumnsChange(columnField) {
-        this.state.tableRef.current.table.toggleColumn(columnField)
-        this.state.tableRef.current.table.redraw()
-        const columns = this.state.columns.map(column => {
-            if(column.field === columnField)
-                if(column.visible === undefined)
-                    return {...column, visible: false}
-                else
-                    return {...column, visible: !column.visible}
-            return column
-        })
-        this.setState({columns: columns})
-    }
-
-    handleActiveFiltersChange(event) {
-        const activeFilters = event.target.value
+    handleActiveFiltersChange(activeFilters) {
         const filters = this.state.filters.map(filter => {
-            if(activeFilters && activeFilters.some(activeFilter => activeFilter.value == filter.value))
+            if(activeFilters && activeFilters.find(activeFilter => activeFilter.value == filter.value))
                 return {...filter, active: true}
             return {...filter, active: false}
         })
@@ -82,27 +54,13 @@ export default class Table extends Component {
             this.setState({[name]: value})
     }
 
-    handleGroupByChange(event) {
-        if(event.value) {
-            this.state.tableRef.current.table.setGroupBy(event.value)
-            if(event.groupHeader)
-                this.state.tableRef.current.table.setGroupHeader(event.groupHeader)
-            else
-                this.state.tableRef.current.table.setGroupHeader()
-        }
-        else
-            this.state.tableRef.current.table.setGroupBy()
-        this.setState({groupBy: event})
-    }
-
     parseFilters() {
-        const search = window.location.search
-        if(search.includes('%5B') || search.includes('%5D') || search.includes('%2C'))
-            window.location.search = search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',')
+        const queryStrings = window.location.search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',').split('?')[1].split('&')
         return this.props.filters.map(filter => {
-            if(search.includes('filter[' + filter.value + ']='))
-                return {...filter, active: true}
-            return {...filter, active: false}
+            const queryString = queryStrings.find(testString => testString.startsWith('filter[' + filter.value + ']='))
+            if(queryString)
+                return {...filter, active: true, queryString: queryString}
+            return {...filter, active: false, queryString: ''}
         })
     }
 
@@ -112,25 +70,26 @@ export default class Table extends Component {
         this.state.filters.forEach(filter => {
             if(filter.active && filter.queryString && filter.queryString.includes("="))
                 if(query === '')
-                    query += filter.queryString
+                    query += '?' + filter.queryString
                 else
                     query += '&' + filter.queryString
         })
         // if the query is not blank, and the window location does not already match the query
-        if(query && window.location.search != query)
-            this.props.history.push({pathname: this.props.location.pathname, search: query})
+        if(query && window.location.search != query) {
+            // console.log("FIRST - Query exists, window location does not match requested query - REDIRECTING")
+            this.props.setReduxQueryString(query)
+            this.props.redirect(window.location.pathname + query)
+        }
         // else if there are no active filters, and the window location search is not ALREADY blank (without the latter check, the page will reload indefinitely)
-        else if(!anyActiveFilters && window.location.search)
-            this.props.history.push({pathname: this.props.location.pathname, search: ''})
-        const route = this.state.baseRoute + window.location.search
-        makeFetchRequest(route, data => {
-            this.setState({data: data, initialized: true}, () => {
-                if(this.props.groupBy) {
-                    const groupBy = this.state.groupByOptions.filter(option => option.value = this.props.groupBy);
-                    this.handleGroupByChange(groupBy[0])
-                }
-            })
-        })
+        else if(!anyActiveFilters && window.location.search) {
+            // console.log("SECOND - No active filters - clearing query string and REDIRECTING")
+            this.props.setReduxQueryString('')
+            this.props.redirect(window.location.pathname)
+        } else {
+            // console.log("THIRD - ANY OTHER CASE")
+            this.props.setReduxQueryString(query)
+            this.props.fetchTableData()
+        }
     }
 
     render() {
@@ -141,16 +100,16 @@ export default class Table extends Component {
                         <Card.Header>
                             <Row>
                                 <Col md={1}>
-                                    <Card.Title>{this.state.pageTitle}</Card.Title>
+                                    <Card.Title>{this.props.pageTitle}</Card.Title>
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>
                                         <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
                                         <Select
-                                            options={this.state.groupByOptions}
-                                            value={this.state.groupBy}
-                                            onChange={value => this.handleGroupByChange(value)}
-                                            isDisabled={this.state.groupByOptions.length === 0}
+                                            options={this.props.groupByOptions}
+                                            value={this.props.groupBy}
+                                            onChange={value => this.props.updateGroupByOptions(value)}
+                                            isDisabled={this.props.groupByOptions.length === 0}
                                         />
                                     </InputGroup>
                                 </Col>
@@ -163,12 +122,12 @@ export default class Table extends Component {
                                             options={this.state.filters}
                                             value={this.state.filters.filter(filter => filter.active)}
                                             getOptionLabel={option => option.name}
-                                            onChange={filters => this.handleChange({target: {name: 'activeFilters', type: 'array', value: filters}})}
-                                            isDisabled={this.state.filters.length === 0}
+                                            onChange={filters => this.handleActiveFiltersChange(filters)}
+                                            isDisabled={this.props.filters.length === 0}
                                             isMulti
                                         />
                                         <InputGroup.Append>
-                                            <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
+                                            <Button variant='success' onClick={this.refreshTable} disabled={!this.state.filters.some(filter => filter.active)}>Apply Filters</Button>
                                         </InputGroup.Append>
                                     </InputGroup>
                                 </Col>
@@ -177,16 +136,16 @@ export default class Table extends Component {
                                         <Dropdown>
                                             <Dropdown.Toggle variant='dark' id='column_select'>View Columns</Dropdown.Toggle>
                                             <Dropdown.Menu>
-                                                {this.state.columns.map(column =>
+                                                {this.props.columns.filter(column => column.field != undefined).map(column =>
                                                     <Dropdown.Item
                                                         key={column.field}
                                                         style={{color: column.visible === false  ? 'red' : 'black'}}
-                                                        onClick={() => this.handleActiveColumnsChange(column.field)}
+                                                        onClick={() => this.props.toggleColumnVisibility(column)}
                                                     >{column.title}</Dropdown.Item>
                                                 )}
                                             </Dropdown.Menu>
                                         </Dropdown>
-                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
+                                        <Button variant='primary' onClick={() => this.props.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
                                         {this.props.withSelected &&
                                             <Dropdown>
                                                 <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
@@ -194,7 +153,7 @@ export default class Table extends Component {
                                                     {this.props.withSelected.map(menuItem =>
                                                         <Dropdown.Item
                                                             key={menuItem.label}
-                                                            onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
+                                                            onClick={() => menuItem.onClick(this.props.tableRef.current.table.getSelectedRows())}
                                                         >{menuItem.label}</Dropdown.Item>
                                                     )}
                                                 </Dropdown.Menu>
@@ -207,7 +166,7 @@ export default class Table extends Component {
                                 </Col>
                             </Row>
                         </Card.Header>
-                        {this.state.filters.some(filter => filter.active) && 
+                        {this.state.filters.some(filter => filter.active) &&
                             <Card.Body>
                                 <Row>
                                     <Col md={12}>
@@ -221,15 +180,26 @@ export default class Table extends Component {
                         }
                         <Card.Footer>
                             <ReactTabulator
-                                ref={this.state.tableRef}
-                                columns={this.props.columns}
-                                data={this.state.data}
+                                ref={this.props.tableRef}
+                                columns={this.props.columns.map(column => {
+                                    if(column.formatterParams && column.formatterParams.type === 'fakeLink' && column.formatterParams.urlPrefix != undefined)
+                                        return {...column, cellClick: (event, cell) => {console.log(this); this.props.redirect(column.formatterParams.urlPrefix + cell.getValue())}}
+                                    return column
+                                })}
+                                data={this.props.tableData}
+                                dataSorted={(sorters, rows) => {
+                                    if(rows.length > 0) {
+                                        const sortedList = rows.map(row => row.getData()[this.props.indexName])
+                                        this.props.setSortedList(sortedList)
+                                    }
+                                }}
+                                groupBy={this.props.groupBy}
                                 initialSort={this.props.initialSort}
                                 maxHeight='80vh'
                                 options={{
                                     layout: 'fitColumns',
                                     pagination:'local',
-                                    paginationSize:50,
+                                    paginationSize:25,
                                 }}
                                 printAsHtml={true}
                                 printStyled={true}

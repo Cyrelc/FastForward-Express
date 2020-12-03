@@ -210,7 +210,7 @@ class BillRepo {
                 'delivery_type',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
                 'employee_id',
-                DB::raw('concat(year(time_pickup_scheduled), "/", month(time_pickup_scheduled), " - ", monthname(time_pickup_scheduled)) as month'),
+                DB::raw('date_format(time_pickup_scheduled, "%Y-%m - %b") as month'),
                 'pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
                 DB::raw('sum(case when pickup_driver_id = employee_id and delivery_driver_id = employee_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_driver_id = employee_id then round(amount * pickup_driver_commission, 2) when delivery_driver_id = employee_id then round(amount * delivery_driver_id, 2) end) as driver_income')

@@ -1,9 +1,11 @@
 import React, { Component } from 'react'
-import ReactDom from 'react-dom'
-import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom'
+import { Redirect, Route, Switch } from 'react-router-dom'
 import { LinkContainer } from 'react-router-bootstrap'
 import { FormControl, InputGroup, Navbar, Nav, NavDropdown, NavLink } from 'react-bootstrap'
+import { connect } from 'react-redux'
+import { fetchAccountsSelectionList, fetchEmployeesSelectionList } from '../../store/reducers/app'
 import Select from 'react-select'
+import { ConnectedRouter, push } from 'connected-react-router'
 
 import Account from '../accounts/Account'
 import Accounts from '../accounts/Accounts'
@@ -27,30 +29,20 @@ import Manifests from '../manifests/Manifests'
 import Ratesheet from '../ratesheets/Ratesheet'
 import Ratesheets from '../ratesheets/Ratesheets'
 
-export default class App extends Component {
+class App extends Component {
     constructor() {
         super()
         this.state =  {
-            account: {},
-            accounts: [],
             billId: '',
-            employeeId: '',
             invoiceId: '',
-            manifestId: '',
-            redirect: false
+            manifestId: ''
         }
         this.handleChange = this.handleChange.bind(this)
     }
 
     componentDidMount() {
-        var accounts = []
-        var employees = []
-        makeFetchRequest('/getList/accounts', response => {
-            this.setState({accounts: response})
-        })
-        makeFetchRequest('/getList/employees', response => {
-            this.setState({employees: response})
-        })
+        this.props.fetchAccountsSelectionList()
+        this.props.fetchEmployeesSelectionList()
     }
 
     handleChange(event) {
@@ -60,7 +52,7 @@ export default class App extends Component {
 
     render() {
         return (
-            <BrowserRouter>
+            <ConnectedRouter history={this.props.history}>
                 <Navbar variant='dark' bg='dark' className={'navbar-expand-lg', 'navbar'}>
                     <LinkContainer to='/'>
                         <Navbar.Brand>Fast Forward Express v2.0</Navbar.Brand>
@@ -70,7 +62,7 @@ export default class App extends Component {
                         <Nav className='ml-auto'>
                             <NavDropdown title='Bills' id='navbar-bills'>
                                 <LinkContainer to='/app/bills?filter[percentage_complete]=,100'><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Incomplete</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to={'/app/bills?filter[time_pickup_scheduled]=' + new Date().addDays(-45).toISOString()}><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Last 45 days</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to={'/app/bills?filter[time_pickup_scheduled]=' + new Date().addDays(-45).toISOString().split('T')[0]}><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Last 45 days</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
@@ -82,14 +74,16 @@ export default class App extends Component {
                                         min='1'
                                         value={this.state.billId}
                                         onKeyPress={event => {
-                                            if(event.key === 'Enter' && this.state.billId)
-                                                this.setState({redirect: '/app/bills/edit/' + this.state.billId, billId: ''})
+                                            if(event.key === 'Enter' && this.state.billId) {
+                                                const billId = this.state.billId
+                                                this.setState({billId: ''}, () => this.props.redirect('/app/bills/edit/' + billId))
+                                            }
                                         }}
                                     />
                                 </InputGroup>
                             </NavDropdown>
                             <NavDropdown title='Invoices' id='navbar-invoices'>
-                                <LinkContainer to='/app/invoices?filter[finalized]=false'><NavDropdown.Item><i className='fa fa-list'></i> List Invoices</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/invoices'><NavDropdown.Item><i className='fa fa-list'></i> List Invoices</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/invoices/generate'><NavDropdown.Item><i className='fa fa-plus-square'></i> Generate Invoices</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Invoice ID: </InputGroup.Text></InputGroup.Prepend>
@@ -100,8 +94,10 @@ export default class App extends Component {
                                         min='1'
                                         value={this.state.invoiceId}
                                         onKeyPress={event => {
-                                            if(event.key === 'Enter' && this.state.invoiceId)
-                                                this.setState({redirect: '/app/invoices/view/' + this.state.invoiceId, invoiceId: ''})
+                                            if(event.key === 'Enter' && this.state.invoiceId) {
+                                                const invoiceId = this.state.invoiceId
+                                                this.setState({invoiceId: ''}, this.props.redirect('/app/invoices/view/' + invoiceId))
+                                            }
                                         }}
                                     />
                                 </InputGroup>
@@ -112,8 +108,8 @@ export default class App extends Component {
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '500px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Account ID: </InputGroup.Text></InputGroup.Prepend>
                                     <Select
-                                        options={this.state.accounts}
-                                        onChange={value => this.setState({redirect: '/app/accounts/edit/' + value.value})}
+                                        options={this.props.accounts}
+                                        onChange={value => this.props.redirect('/app/accounts/edit/' + value.value)}
                                     />
                                 </InputGroup>
                             </NavDropdown>
@@ -130,16 +126,18 @@ export default class App extends Component {
                                         onChange={this.handleChange}
                                         value={this.state.manifestId}
                                         onKeyPress={event => {
-                                            if(event.key === 'Enter' && this.state.manifestId)
-                                                this.setState({redirect: '/app/manifests/view/' + this.state.manifestId, manifestId: ''})
+                                            if(event.key === 'Enter' && this.state.manifestId) {
+                                                const manifestId = this.state.manifestId
+                                                this.setState({manifestId: ''}, () => this.props.redirect('/app/manifests/view/' + this.state.manifestId))
+                                            }
                                         }}
                                     />
                                 </InputGroup>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '350px'}}>
                                     <InputGroup.Prepend><InputGroup.Text>Employee ID: </InputGroup.Text></InputGroup.Prepend>
                                     <Select
-                                        options={this.state.employees}
-                                        onChange={value => this.setState({redirect: '/app/employees/edit/' + value.value})}
+                                        options={this.props.employees}
+                                        onChange={value => this.props.redirect('/app/employees/edit/' + value.value)}
                                     />
                                 </InputGroup>
                             </NavDropdown>
@@ -162,7 +160,7 @@ export default class App extends Component {
                     <Route path='/app/accountsReceivable' exact component={AccountsReceivable}></Route>
                     <Route path='/app/appSettings' exact component={AppSettings}></Route>
                     <Route path='/app/bills/trend' component={Charts}></Route>
-                    <Route exact path='/app/bills' render={() => <Bills handleAppChange={this.handleChange}/>}></Route>
+                    <Route exact path='/app/bills' component={Bills}></Route>
                     <Route path='/app/bills/:action/:billId?' component={Bill}></Route>
                     <Route path='/app/chargebacks' exact component={Chargebacks}></Route>
                     <Route path='/app/dispatch' component={Dispatch}></Route>
@@ -179,12 +177,24 @@ export default class App extends Component {
                     <Route path='/app/ratesheets' exact component={Ratesheets}></Route>
                     <Route path='/app/ratesheets/:action/:ratesheetId?' component={Ratesheet}></Route>
                 </Switch>
-                {this.state.redirect &&
-                    <Redirect to={this.state.redirect}></Redirect>
-                }
-            </BrowserRouter>
+            </ConnectedRouter>
         )
     }
 }
 
-ReactDom.render(<App />, document.getElementById('reactDiv'))
+const matchDispatchToProps = dispatch => {
+    return {
+        fetchAccountsSelectionList: () => dispatch(fetchAccountsSelectionList),
+        fetchEmployeesSelectionList: () => dispatch(fetchEmployeesSelectionList),
+        redirect: url => dispatch(push(url))
+    }
+}
+
+const mapStateToProps = store => {
+    return {
+        accounts: store.app.accounts,
+        employees: store.app.employees
+    }
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(App)

@@ -1,5 +1,7 @@
 import React, {Component} from 'react'
 import {Badge, Button, ButtonGroup, Col, Row, Table} from 'react-bootstrap'
+import { LinkContainer } from 'react-router-bootstrap'
+import { connect } from 'react-redux'
 
 import InvoiceAmendmentModal from './InvoiceAmendmentModal'
 
@@ -17,7 +19,7 @@ function getCorrectAddress(bill) {
     return bill.delivery_address_formatted
 }
 
-export default class Invoice extends Component {
+class Invoice extends Component {
     constructor() {
         super()
         this.state = {
@@ -49,6 +51,9 @@ export default class Invoice extends Component {
         makeAjaxRequest('/invoices/getModel/' + this.props.match.params.invoiceId, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = 'View Invoice ' + response.invoice.invoice_id
+            const thisInvoiceIndex = this.props.sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)
+            const prevInvoiceId = thisInvoiceIndex <= 0 ? null : this.props.sortedInvoices[thisInvoiceIndex - 1]
+            const nextInvoiceId = (thisInvoiceIndex < 0 || thisInvoiceIndex === this.props.sortedInvoices.length - 1) ? null : this.props.sortedInvoices[thisInvoiceIndex + 1]
             this.setState({
                 accountId: response.invoice.account_id,
                 accountOwing: response.account_owing,
@@ -56,7 +61,9 @@ export default class Invoice extends Component {
                 amount: response.amount,
                 bill_count: response.bill_count,
                 invoice: response.invoice,
+                nextInvoiceId: nextInvoiceId,
                 parent: response.parent,
+                prevInvoiceId: prevInvoiceId,
                 tables: response.tables,
                 unpaidInvoices: response.unpaid_invoices
             })
@@ -85,7 +92,17 @@ export default class Invoice extends Component {
                         {this.state.amendments && <Badge variant='warning'>Amended</Badge>}
                     </h4>
                 </Col>
-                <Col md={7} style={{textAlign: 'right'}}>
+                <Col md={2}>
+                    <ButtonGroup>
+                        {this.state.prevInvoiceId &&
+                            <LinkContainer to={'/app/invoices/view/' + this.state.prevInvoiceId}><Button variant='info'><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevInvoiceId}</Button></LinkContainer>
+                        }
+                        {this.state.nextInvoiceId &&
+                            <LinkContainer to={'/app/invoices/view/' + this.state.nextInvoiceId}><Button variant='info'>Next - {this.state.nextInvoiceId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                        }
+                    </ButtonGroup>
+                </Col>
+                <Col md={5} style={{textAlign: 'right'}}>
                     <ButtonGroup>
                         <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id : null} target='_blank' variant='success'><i className='fas fa-print'> Generate PDF</i></Button>
                         {this.state.amendments && <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id + '?amendments_only': null} variant='success'><i className='fas fa-print'> Generate PDF - Amendments Only</i></Button>}
@@ -101,7 +118,7 @@ export default class Invoice extends Component {
                 <Col md={11}>
                     <table style={{width: '100%'}}>
                         <tr>
-                            <td style={{width: '40%'}}><h3><a href={'/app/accounts/edit/' + this.state.accountId}>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></h3></td>
+                            <td style={{width: '40%'}}><h3><LinkContainer to={'/app/accounts/edit/' + this.state.accountId}><a>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></LinkContainer></h3></td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && this.state.invoice.total_cost)}</td>
                             <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + this.state.accountOwing}</td>
@@ -144,7 +161,7 @@ export default class Invoice extends Component {
                                                     case 'amount':
                                                         return <td width='10%' style={{textAlign: 'right'}}>{bill.amount}</td>
                                                     case 'bill_id':
-                                                        return <td width='8%'><a href={'/app/bills/edit/' + bill.bill_id}>{bill.bill_id}</a></td>
+                                                        return <td width='8%'><LinkContainer to={'/app/bills/edit/' + bill.bill_id}><a>{bill.bill_id}</a></LinkContainer></td>
                                                     case 'time_pickup_scheduled':
                                                         return <td width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
                                                     default:
@@ -265,3 +282,10 @@ export default class Invoice extends Component {
     }
 }
 
+const mapStateToProps = store => {
+    return {
+        sortedInvoices: store.invoices.sortedList
+    }
+}
+
+export default connect(mapStateToProps)(Invoice)

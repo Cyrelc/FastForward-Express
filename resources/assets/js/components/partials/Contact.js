@@ -70,6 +70,7 @@ export default function Contact(props) {
                             emailAddresses={props.emailAddresses}
                             emailTypes={props.emailTypes}
                             handleChanges={props.handleChanges}
+                            handleExistingEmailAddress={props.handleExistingEmailAddress ? props.handleExistingEmailAddress : false}
                             readOnly={props.readOnly}
                         />
                     </Col>

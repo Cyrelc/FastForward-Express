@@ -21,3 +21,13 @@
 .css-2b097c-container, .css-14jk2my-container {
     flex: 1
 }
+
+.fakeLink {
+    cursor:pointer;
+    color:blue;
+}
+
+.fakeLink:hover {
+    text-decoration:underline;
+    color:darkblue;
+}

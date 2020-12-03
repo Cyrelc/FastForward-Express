@@ -13,6 +13,15 @@ export default function Emails(props) {
         props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
     }
 
+    function checkIfExists(event) {
+        if(!props.handleExistingEmailAddress)
+            return
+        const {name, type, value} = event.target
+        makeAjaxRequest('/users/checkIfEmailTaken/' + value, 'GET', null, response => {
+            if(response.email_in_use)
+                props.handleExistingEmailAddress(response)
+        })
+    }
     /**
      * If the email exists in database (has email_address_id) then mark it as to be deleted,
      * Otherwise if it is a new email_address that they have changed their mind about, simply filter it out
@@ -86,6 +95,7 @@ export default function Emails(props) {
                                         data-email-index={index}
                                         name='email'
                                         onChange={handleEmailChange}
+                                        onBlur={checkIfExists}
                                         placeholder='email@address.domain'
                                         readOnly={props.readOnly}
                                         value={email.email}
