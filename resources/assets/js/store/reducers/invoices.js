@@ -140,7 +140,7 @@ const reducer = (state = initialState, action) => {
         case actionTypes.TOGGLE_INVOICES_COLUMN_VISIBILITY:
             return {...state, columns: commonTableFunctions.toggleColumnVisibility(state.columns, action)}
         case actionTypes.UPDATE_INVOICES_TABLE:
-            return {...state, invoiceTable: action.payload.invoices}
+            return {...state, invoiceTable: action.payload}
         case actionTypes.UPDATE_INVOICES_GROUP_BY:
             return {...state, groupBy: commonTableFunctions.updateGroupBy(state.tableRef, state.groupByOptions, action)}
     }
@@ -151,7 +151,7 @@ export async function fetchInvoices(dispatch, getState) {
     console.log(getState().invoices.queryString)
     makeAjaxRequest('/invoices/buildTable' + getState().invoices.queryString, 'GET', null, response => {
         const invoices = JSON.parse(response)
-        dispatch({type: actionTypes.UPDATE_INVOICES_TABLE, payload: {invoices: invoices == undefined ? [] : invoices}})
+        dispatch({type: actionTypes.UPDATE_INVOICES_TABLE, payload: invoices == undefined ? [] : invoices})
     })
 }
 
