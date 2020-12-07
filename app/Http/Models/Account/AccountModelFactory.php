@@ -38,11 +38,7 @@ class AccountModelFactory {
         $model->account->send_invoices = 1;
         $model->ratesheets = $ratesheetRepo->GetRatesheetSelectList();
 
-        $model->account->invoice_sort_order = array();
-        $allSortOptions = $invoiceRepo->GetSortOptions();
-        foreach($allSortOptions as $sortOption) {
-            $model->account->invoice_sort_order = array_merge($model->account->invoice_sort_order, [$sortOption]);
-        }
+        $model->account->invoice_sort_order = $this->composeInvoiceSortOptions();
 
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
@@ -75,15 +71,7 @@ class AccountModelFactory {
 
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
         $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($accountId);
-
-        $allSortOptions = $invoiceRepo->GetSortOptions();
-        foreach($allSortOptions as $sortOption) {
-            foreach($model->account->invoice_sort_order as $invoiceSortOrder)
-                if($sortOption->database_field_name === $invoiceSortOrder->database_field_name)
-                    continue 2;
-            $sortOption->priority = count($model->account->invoice_sort_order);
-            $model->account->invoice_sort_order = array_merge($model->account->invoice_sort_order, [$sortOption]);
-        }
+        $model->account->invoice_sort_order = $this->composeInvoiceSortOptions($model->account->invoice_sort_order);
 
         $model->activity_log = $activityLogRepo->GetAccountActivityLog($model->account->account_id);
         foreach($model->activity_log as $key => $log)
@@ -93,6 +81,38 @@ class AccountModelFactory {
         // $model->next_id = $accountRepo->GetNextActiveById($accountId);
 
         return $model;
+    }
+
+    private function composeInvoiceSortOptions($accountInvoiceSortOptions = []) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $allSortOptions = $invoiceRepo->GetSortOptions();
+
+        /**
+         * First we iterate through the existing list, and remove any sort options we already have entries for
+         */
+        foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
+            foreach($allSortOptions as $key => $sortOption)
+                if($sortOption->invoice_sort_option_id == $accountInvoiceSortOption->invoice_sort_option_id)
+                    unset($allSortOptions[$key]);
+
+        /**
+         * Then we can add the "missing" (or new) ones
+         */
+        $counter = count($accountInvoiceSortOptions);
+        foreach($allSortOptions as $sortOption) {
+            $sortOption['priority'] = $counter;
+            array_push($accountInvoiceSortOptions, $sortOption);
+            $counter ++;
+        }
+
+        foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
+            if($accountInvoiceSortOption->can_be_subtotaled) {
+                if(!isset($accountInvoiceSortOption->group_by))
+                    $accountInvoiceSortOption->group_by = false;
+            } else
+                $accountInvoiceSortOption->group_by = null;
+
+        return $accountInvoiceSortOptions;
     }
 }
 

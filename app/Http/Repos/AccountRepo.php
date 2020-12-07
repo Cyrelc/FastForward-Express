@@ -80,7 +80,7 @@ class AccountRepo {
          */
         $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
         $sortOrder = json_decode($sortOrder[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return $var->priority != "";});
+        $sortOrder = array_filter($sortOrder, function($var) {return isset($var->priority);});
         usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
 
         return $sortOrder;
@@ -121,7 +121,11 @@ class AccountRepo {
     public function GetSubtotalByField($accountId) {
         $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
         $sortOrder = json_decode(json_decode($sortOrder)[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);});
+        $sortOrder = array_filter($sortOrder, function($var) {
+            if(isset($var->group_by))
+                return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);
+            return false;
+        });
 
         return array_pop($sortOrder);
     }

@@ -15,7 +15,7 @@ class BillValidationRules {
 					'is_pallet' => 'required',
 					'use_imperial' => 'required',
 					'skip_invoicing' => 'required',
-					'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
+					'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id'
 					// 'charge_reference_value' => 'sometimes|required',
 					// 'pickup_reference_value' => 'sometimes|required',
 					// 'delivery_reference_value' => 'sometimes|required'

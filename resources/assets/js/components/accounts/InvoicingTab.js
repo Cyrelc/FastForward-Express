@@ -14,12 +14,12 @@ export default function InvoicingTab(props) {
         {title: 'InvoiceSortOptionId', field: 'invoice_sort_option_id', headerSort: false, visible: false},
         {title: 'Contingent Field', field: 'contingent_field', headerSort: false, visible: false},
         {title: 'Priority', field: 'priority', headerSort: false, visible: false},
-        {title: 'Group By', field: 'group_by', formatter: 'tickCross', hozAlign: 'center', headerSort: false, width: 50, cellClick: ((e, cell) => {
+        {title: 'Group By', field: 'group_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, hozAlign: 'center', headerSort: false, width: 50, cellClick: ((e, cell) => {
             const data = cell.getRow().getData()
             const invoiceSortOrder = props.invoiceSortOrder.map(option => {
                 if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
-                    return {...option, group_by: true}
-                return {...option, group_by: false}
+                    return {...option, group_by: option.group_by == true ? false : true}
+                return {...option, group_by: option.can_be_subtotaled == '1' ? false : null}
             })
             props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: invoiceSortOrder}})
         })}

@@ -102,7 +102,7 @@ class BillRepo {
 
         $subtotalBy = null;
         foreach($invoiceSortOptions as $invoiceSortOption)
-            if(filter_var($invoiceSortOption->group_by, FILTER_VALIDATE_BOOLEAN))
+            if(isset($invoiceSortOption->group_by) && filter_var($invoiceSortOption->group_by, FILTER_VALIDATE_BOOLEAN))
                 $subtotalBy = $invoiceSortOption;
 
         $billQuery = Bill::where('invoice_id', $invoiceId)

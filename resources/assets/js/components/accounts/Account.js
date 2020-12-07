@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Badge, Button, Card, Col, Row, Tab, Tabs} from 'react-bootstrap'
+import {Badge, Button, Col, Row, Tab, Tabs} from 'react-bootstrap'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdvancedTab from './AdvancedTab'
