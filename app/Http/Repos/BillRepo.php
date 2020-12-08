@@ -149,7 +149,7 @@ class BillRepo {
                 if($subtotalBy->database_field_name == 'charge_account_id') {
                     $invoiceSortOptions = $accountRepo->GetInvoiceSortOrder($subtotalId);
                     $tempAccount = $accountRepo->GetById($subtotalId);
-                    $subtotalString = $tempAccount->accountNumber . ' ' . $tempAccount->name;
+                    $subtotalString = $tempAccount->account_number . ' ' . $tempAccount->name;
                 } else {
                     if($subtotalBy->database_field_name == 'charge_reference_value')
                         $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ' ' . $subtotalId;
