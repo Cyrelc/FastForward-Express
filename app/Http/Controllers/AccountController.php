@@ -129,10 +129,9 @@ class AccountController extends Controller {
             else
                 $billingId = $addressRepo->InsertMinimal($billing)->address_id;
         } else {
-            if ($oldAccount && $oldAccount->billing_address_id != null)
-                $addressRepo->Delete($billingId);
             $billingId = null;
         }
+
         //END billing address
         //BEGIN account
         $acctCollector = new \App\Http\Collectors\AccountCollector();
@@ -143,6 +142,9 @@ class AccountController extends Controller {
             $accountRepo->Update($account);
         else
             $accountId = $accountRepo->Insert($account)->account_id;
+        // Due to foreign key constraints, we check whether the billing address needs to be deleted AFTER updating the account and setting it to NULL
+        if ($oldAccount && !$useSeparateBillingAddress && $oldAccount->billing_address_id != null)
+            $addressRepo->Delete($oldAccount->billing_address_id);
 
         DB::commit();
         //END account

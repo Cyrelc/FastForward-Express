@@ -199,10 +199,10 @@ export default class Account extends Component {
     render() {
         return (
             <Row className='justify-content-md-center' style={{paddingTop: '20px'}}>
-                <Col md={3}>
+                <Col md={2}>
                     <h3>{this.state.action === 'edit' ? 'Edit Account ' + this.state.accountId : 'Create Account'}</h3>
                 </Col>
-                <Col md={8} >
+                <Col md={3} >
                     <h4>
                         {
                             this.state.accountBalance &&
@@ -214,6 +214,12 @@ export default class Account extends Component {
                         }
                     </h4>
                 </Col>
+                {this.state.accountId &&
+                    <Col md={6}>
+                        <Button href={'/app/invoices?filter[account_id]=' + this.state.accountId}>Invoices</Button>
+                        <Button href={'/app/bills?filter[charge_account_id]=' + this.state.accountId}>Bills</Button>
+                    </Col>
+                }
                 <Col md={11}>
                     <Tabs id='accountTabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='basic' title={<h4>Basic Info</h4>}>
