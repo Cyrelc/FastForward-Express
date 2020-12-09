@@ -114,7 +114,7 @@ export default function InvoicingTab(props) {
                         <FormControl
                             as='textarea'
                             rows={5}
-                            value={props.shippingAddressFormatted.replaceAll(',', '\n')}
+                            value={props.accountName + '\n' + props.shippingAddressFormatted.replaceAll(',', '\n')}
                             disabled={true}
                         />
                     </Col>
@@ -125,7 +125,7 @@ export default function InvoicingTab(props) {
                             <FormControl
                                 as='textarea'
                                 rows={5}
-                                value={props.billingAddressFormatted.replaceAll(',', '\n')}
+                                value={props.accountName + '\n' + props.billingAddressFormatted.replaceAll(',', '\n')}
                                 disabled={true}
                             />
                         </Col>

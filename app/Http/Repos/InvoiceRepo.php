@@ -189,7 +189,7 @@ class InvoiceRepo {
         $invoices = Invoice::where('account_id', $account_id)
             ->where('balance_owing', '>', '0')
             ->select(
-                'balance_owing',
+                DB::raw('format(balance_owing, 2) as balance_owing'),
                 'bill_end_date',
                 'invoice_id',
                 DB::raw('format(total_cost, 2) as total_cost')

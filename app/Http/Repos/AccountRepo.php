@@ -80,7 +80,7 @@ class AccountRepo {
          */
         $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
         $sortOrder = json_decode($sortOrder[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return isset($var->priority);});
+        $sortOrder = array_filter($sortOrder, function($var) {return isset($var->priority) && $var->priority != "";});
         usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
 
         return $sortOrder;

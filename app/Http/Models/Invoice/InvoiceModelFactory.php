@@ -18,8 +18,8 @@ class InvoiceModelFactory{
 
 		$model->invoice = $invoiceRepo->GetById($invoiceId);
 		$model->invoice->bill_count = $billRepo->CountByInvoiceId($invoiceId);
-		$invoice_numbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing', 'min_invoice_amount');
-		foreach ($invoice_numbers as $identifier) {
+		$invoiceNumbers = array('bill_cost', 'tax', 'discount', 'total_cost', 'fuel_surcharge', 'balance_owing', 'min_invoice_amount');
+		foreach ($invoiceNumbers as $identifier) {
 			if($model->invoice->$identifier == null)
 				continue;
 			$model->invoice->$identifier = number_format($model->invoice->$identifier, 2);
