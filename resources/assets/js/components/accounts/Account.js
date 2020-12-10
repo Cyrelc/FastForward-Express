@@ -216,8 +216,8 @@ export default class Account extends Component {
                 </Col>
                 {this.state.accountId &&
                     <Col md={6}>
-                        <Button href={'/app/invoices?filter[account_id]=' + this.state.accountId}>Invoices</Button>
-                        <Button href={'/app/bills?filter[charge_account_id]=' + this.state.accountId}>Bills</Button>
+                        <Button variant='secondary' href={'/app/invoices?filter[account_id]=' + this.state.accountId}>Invoices</Button>
+                        <Button variant='secondary' href={'/app/bills?filter[charge_account_id]=' + this.state.accountId}>Bills</Button>
                     </Col>
                 }
                 <Col md={11}>
@@ -250,13 +250,14 @@ export default class Account extends Component {
                         </Tab>
                         <Tab eventKey='invoicing' title={<h4>Invoicing</h4>}>
                             <InvoicingTab
-                                accountName={this.state.accountName}
+                                billingAddressName={this.state.billingAddressname}
                                 canBeParent={this.state.canBeParent}
                                 customTrackingField={this.state.customTrackingField}
                                 billingAddressFormatted={this.state.billingAddressFormatted}
                                 shippingAddressFormatted={this.state.shippingAddressFormatted}
                                 invoiceComment={this.state.invoiceComment}
                                 invoiceSortOrder={this.state.invoiceSortOrder}
+                                shippingAddressName={this.state.shippingAddressName}
                                 showInvoiceLayoutModal={this.state.showInvoiceLayoutModal}
                                 useShippingForBillingAddress={this.state.useShippingForBillingAddress}
                                 sendPaperInvoices={this.state.sendPaperInvoices}

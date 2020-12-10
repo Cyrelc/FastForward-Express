@@ -114,18 +114,17 @@ export default function InvoicingTab(props) {
                         <FormControl
                             as='textarea'
                             rows={5}
-                            value={props.accountName + '\n' + props.shippingAddressFormatted.replaceAll(',', '\n')}
+                            value={props.shippingAddressName + '\n' + props.shippingAddressFormatted.replaceAll(',', '\n')}
                             disabled={true}
                         />
                     </Col>
-                    {
-                        !props.useShippingForBillingAddress &&
+                    {!props.useShippingForBillingAddress &&
                         <Col md={5}>
                             <strong>Billing Address Formatted Preview</strong>
                             <FormControl
                                 as='textarea'
                                 rows={5}
-                                value={props.accountName + '\n' + props.billingAddressFormatted.replaceAll(',', '\n')}
+                                value={props.billingAddressName + '\n' + props.billingAddressFormatted.replaceAll(',', '\n')}
                                 disabled={true}
                             />
                         </Col>
