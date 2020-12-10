@@ -2,11 +2,13 @@ import { applyMiddleware, combineReducers, compose, createStore } from 'redux'
 import thunkMiddleware from 'redux-thunk'
 import { connectRouter, routerMiddleware } from 'connected-react-router'
 
+import AccountsReducer from './reducers/accounts'
 import AppReducer from './reducers/app'
 import InvoicesReducer from './reducers/invoices'
 
 const createRootReducer = history => combineReducers({
         router: connectRouter(history),
+        accounts: AccountsReducer,
         app: AppReducer,
         invoices: InvoicesReducer
     })

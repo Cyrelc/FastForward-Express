@@ -1,5 +1,7 @@
 import React, {Component} from 'react'
-import {Badge, Button, Col, Row, Tab, Tabs} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Row, Tab, Tabs} from 'react-bootstrap'
+import { connect } from 'react-redux'
+import { LinkContainer } from 'react-router-bootstrap'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdvancedTab from './AdvancedTab'
@@ -27,9 +29,11 @@ const initialState = {
     invoiceSortOrder: [],
     isGstExempt: false,
     minInvoiceAmount: '',
+    nextAccountIndex: null,
     parentAccount: '',
     parentAccounts: [],
     payments: [],
+    prevAccountIndex: null,
     ratesheet: '',
     ratesheets: [],
     sendBills: true,
@@ -47,7 +51,7 @@ const initialState = {
     users: []
 }
 
-export default class Account extends Component {
+class Account extends Component {
     constructor() {
         super()
         this.state = {
@@ -80,7 +84,10 @@ export default class Account extends Component {
                 invoiceSortOrder: response.account.invoice_sort_order
             }
             this.setState(setup)
-            if(params.action === 'edit' || params.action === 'view')
+            if(params.action === 'edit' || params.action === 'view') {
+                const thisAccountIndex = this.props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
+                const prevAccountIndex = thisAccountIndex <= 0 ? null : this.props.sortedAccounts[thisAccountIndex - 1]
+                const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === this.props.sortedAccounts.length - 1) ? null : this.props.sortedAccounts[thisAccountIndex + 1]
                 setup ={
                     ...setup,
                     accountBalance: response.account.account_balance,
@@ -98,8 +105,10 @@ export default class Account extends Component {
                     invoiceInterval: response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === response.account.invoice_interval),
                     isGstExempt: response.account.gst_exempt,
                     minInvoiceAmount: response.account.minInvoiceAmount,
+                    nextAccountIndex: nextAccountIndex,
                     ratesheet: response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id),
                     parentAccount: response.account.parent_account_id ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : {},
+                    prevAccountIndex: prevAccountIndex,
                     shippingAddressFormatted: response.shipping_address.formatted,
                     shippingAddressLat: response.shipping_address.lat,
                     shippingAddressLng: response.shipping_address.lng,
@@ -109,6 +118,7 @@ export default class Account extends Component {
                     useShippingForBillingAddress: response.account.billing_address_id === null,
                     useParentRatesheet: response.account.use_parent_ratesheet
                 }
+            }
             if(response.billing_address != null)
                 setup = {
                     ...setup,
@@ -204,20 +214,20 @@ export default class Account extends Component {
                 </Col>
                 <Col md={3} >
                     <h4>
-                        {
-                            this.state.accountBalance &&
+                        {this.state.accountBalance &&
                             <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '20px'}}>Account Credit: ${this.state.accountBalance.toLocaleString()}</Badge>
                         }
-                        {
-                            this.state.balanceOwing &&
+                        {this.state.balanceOwing &&
                             <Badge variant='danger'>Balance Owing: ${this.state.balanceOwing.toLocaleString()}</Badge>
                         }
                     </h4>
                 </Col>
                 {this.state.accountId &&
                     <Col md={6}>
-                        <Button variant='secondary' href={'/app/invoices?filter[account_id]=' + this.state.accountId}>Invoices</Button>
-                        <Button variant='secondary' href={'/app/bills?filter[charge_account_id]=' + this.state.accountId}>Bills</Button>
+                        <ButtonGroup>
+                            <LinkContainer to={'/app/invoices?filter[account_id]=' + this.state.accountId}><Button variant='secondary'>Invoices</Button></LinkContainer>
+                            <LinkContainer to={'/app/bills?filter[charge_account_id]=' + this.state.accountId}><Button variant='secondary'>Bills</Button></LinkContainer>
+                        </ButtonGroup>
                     </Col>
                 }
                 <Col md={11}>
@@ -315,10 +325,22 @@ export default class Account extends Component {
                         }
                     </Tabs>
                 </Col>
-                <Col md={2} style={{textAlign: 'center'}}>
-                    <Button variant='primary' onClick={this.storeAccount}>Submit</Button>
+                <Col md={4} style={{textAlign: 'center'}}>
+                    <ButtonGroup>
+                        <LinkContainer to={'/app/accounts/edit/' + this.state.prevAccountIndex}><Button variant='info' disabled={!this.state.prevAccountIndex}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}</Button></LinkContainer>
+                        <Button variant='primary' onClick={this.storeAccount}>Submit</Button>
+                        <LinkContainer to={'/app/accounts/edit/' + this.state.nextAccountIndex}><Button variant='info' disabled={!this.state.nextAccountIndex}>Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                    </ButtonGroup>
                 </Col>
             </Row>
         )
     }
 }
+
+const mapStateToProps = store => {
+    return {
+        sortedAccounts: store.accounts.sortedList
+    }
+}
+
+export default connect(mapStateToProps)(Account)

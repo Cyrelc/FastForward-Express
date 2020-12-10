@@ -94,12 +94,8 @@ class Invoice extends Component {
                 </Col>
                 <Col md={2}>
                     <ButtonGroup>
-                        {this.state.prevInvoiceId &&
-                            <LinkContainer to={'/app/invoices/view/' + this.state.prevInvoiceId}><Button variant='info'><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevInvoiceId}</Button></LinkContainer>
-                        }
-                        {this.state.nextInvoiceId &&
-                            <LinkContainer to={'/app/invoices/view/' + this.state.nextInvoiceId}><Button variant='info'>Next - {this.state.nextInvoiceId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
-                        }
+                        <LinkContainer to={'/app/invoices/view/' + this.state.prevInvoiceId}><Button variant='info' disabled={!this.state.prevInvoiceId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevInvoiceId}</Button></LinkContainer>
+                        <LinkContainer to={'/app/invoices/view/' + this.state.nextInvoiceId}><Button variant='info' disabled={!this.state.nextInvoiceId}>Next - {this.state.nextInvoiceId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
                     </ButtonGroup>
                 </Col>
                 <Col md={5} style={{textAlign: 'right'}}>

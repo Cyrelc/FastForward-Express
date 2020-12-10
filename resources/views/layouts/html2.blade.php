@@ -10,7 +10,6 @@
         </title>
 
         <!--Global Scripts-->
-
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
         <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,drawing,geometry"></script>
         <script type='text/javascript' src='/js/toastr.min.js'></script>
@@ -21,7 +20,7 @@
         <link href='https://fonts.googleapis.com/css?family=Lato:100,300,400,700' rel='stylesheet' type='text/css' />
 
         <!-- Styles -->
-        <link href="{{asset('css/app.css')}}" rel='stylesheet' />
+        <link href="{{asset('css/app.css')}}?{{config('view.version')}}" rel='stylesheet' />
         <link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 
         @yield('head')

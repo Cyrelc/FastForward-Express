@@ -1,9 +1,13 @@
 export const fakeLinkFormatter = (cell, formatterParams) => {
     if(formatterParams && formatterParams.labelField) {
         const data = cell.getRow().getData()
-        return '<span class="fakeLink">' + data[formatterParams.labelField] + '</span>'
+        if(data[formatterParams.labelField])
+            return '<span class="fakeLink">' + data[formatterParams.labelField] + '</span>'
+        return null
+    } else if (formatterParams && formatterParams.url) {
+        return '<span class="fakeLink">' + formatterParams.url + '</span>'
     }
-    return "<span class='fakeLink'>" + cell.getValue() + "</span>"
+    return '<span class="fakeLink">' + cell.getValue() + '</span>'
 }
 
 export const setSortedList = (tableRef, idColumn) => {

@@ -1,36 +1,10 @@
 import React from 'react'
-import Table from '../partials/Table'
+import { connect } from 'react-redux'
+import { push } from 'connected-react-router'
+import ReduxTable from '../partials/ReduxTable'
 
-function toggleAccountActive(cell) {
-    const active = cell.getRow().getData().active
-    if(confirm('Are you sure you wish to ' + (active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + cell.getRow().getData().name + '?')) {
-        const url = '/accounts/toggleActive/' + cell.getRow().getData().account_id
-        makeFetchRequest(url, data => {
-            location.reload()
-        })
-    }
-}
-
-const columns = [
-    {formatter: (cell) => {
-        const active = cell.getRow().getData().active;
-        if(active)
-            return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
-        else
-            return "<button class='btn btn-sm btn-success'  title='Activate'><i class='far fa-check-circle'></i></button>"
-    }, width: 50, align: 'center', cellClick:(e, cell) => toggleAccountActive(cell), headerSort: false, print: false},
-    {title: 'Account ID', field: 'account_id', formatter: 'link', formatterParams:{labelField:'account_id', urlPrefix:'/app/accounts/edit/'}, sorter: 'number'},
-    {title: 'Account Number', field: 'account_number'},
-    {title: 'Parent Account', field: 'parent_id', formatter: 'link', formatterParams:{labelField: 'parent_name', urlPrefix:'/app/accounts/edit/'}},
-    {title: 'Account Name', field: 'name', formatter: 'link', formatterParams:{url: (cell) => {return '/accounts/edit/' + cell.getRow().getData().account_id}}},
-    {title: 'Invoice Interval', field: 'invoice_interval'},
-    {title: 'Primary Contact', field: 'primary_contact_name'},
-    {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
-    {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
-    {title: 'Shipping Address', field: 'shipping_address', visible: false},
-    {title: 'Billing Address Name', field: 'billing_address_name'},
-    {title: 'Billing Address', field: 'billing_address', visible: false}
-]
+import { fetchAccounts } from '../../store/reducers/accounts'
+import * as actionTypes from '../../store/actions'
 
 const filters = [
     {
@@ -66,23 +40,52 @@ const filters = [
     }
 ]
 
-const groupByOptions = [
-    {label: 'Parent Account', value: 'parent_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].parent_name}},
-]
-
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
-export default function Accounts(props) {
+function Accounts(props) {
     return (
-        <Table
-            baseRoute='/accounts/buildTable'
-            columns={columns}
+        <ReduxTable
+            columns={props.columns}
+            fetchTableData={props.fetchTableData}
             filters={filters}
-            groupByOptions={groupByOptions}
+            groupBy={props.groupBy}
+            groupByOptions={props.groupByOptions}
+            indexName='account_id'
             initialSort={initialSort}
-            location={props.location}
-            history={props.history}
             pageTitle='Accounts'
+            reduxQueryString={props.reduxQueryString}
+            redirect={props.redirect}
+            selectable={false}
+            setReduxQueryString={props.setQueryString}
+            setSortedList={props.setSortedList}
+            tableData={props.accountsTable}
+            tableRef={props.tableRef}
+            toggleColumnVisibility={props.toggleColumnVisibility}
+            updateGroupByOptions={props.updateGroupByOptions}
         />
     )
 }
+
+const matchDispatchToProps = dispatch => {
+    return {
+        fetchTableData: () => dispatch(fetchAccounts),
+        redirect: url => {dispatch(push(url))},
+        setQueryString: queryString => dispatch({type: actionTypes.SET_ACCOUNTS_QUERY_STRING, payload: queryString}),
+        setSortedList: sortedList => dispatch({type: actionTypes.SET_ACCOUNTS_SORTED_LIST, payload: sortedList}),
+        toggleColumnVisibility: column => dispatch({type: actionTypes.TOGGLE_ACCOUNTS_COLUMN_VISIBILITY, payload: column}),
+        updateGroupByOptions: option => dispatch({type: actionTypes.UPDATE_ACCOUNTS_GROUP_BY, payload: option})
+    }
+}
+
+const mapStateToProps = store => {
+    return {
+        columns: store.accounts.columns,
+        groupBy: store.accounts.groupBy,
+        groupByOptions: store.accounts.groupByOptions,
+        accountsTable: store.accounts.accountsTable,
+        reduxQueryString: store.accounts.queryString,
+        tableRef: store.invoices.tableRef
+    }
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(Accounts)

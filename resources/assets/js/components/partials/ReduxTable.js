@@ -183,7 +183,11 @@ export default class ReduxTable extends Component {
                                 ref={this.props.tableRef}
                                 columns={this.props.columns.map(column => {
                                     if(column.formatterParams && column.formatterParams.type === 'fakeLink' && column.formatterParams.urlPrefix != undefined)
-                                        return {...column, cellClick: (event, cell) => {console.log(this); this.props.redirect(column.formatterParams.urlPrefix + cell.getValue())}}
+                                            return {...column, cellClick: (event, cell) => {
+                                                const value = cell.getValue()
+                                                if(value)
+                                                    this.props.redirect(column.formatterParams.urlPrefix + value)}
+                                            }
                                     return column
                                 })}
                                 data={this.props.tableData}
