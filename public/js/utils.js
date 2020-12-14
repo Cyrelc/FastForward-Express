@@ -139,7 +139,7 @@ function makeAjaxRequest(url, type, data, callback) {
         'type': type,
         'data': data,
         'success': (response, textStatus, xhr) => {
-            console.log(xhr.status)
+            console.log('XHR.status: ' + xhr.status)
             callback(response)
         },
         'error': (response, textStatus, xhr) => {
@@ -176,4 +176,16 @@ Date.prototype.addDays = function(days) {
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);
     return date;
+}
+
+function fakeLinkFormatter(cell, formatterParams) {
+    if(formatterParams && formatterParams.labelField) {
+        const data = cell.getRow().getData()
+        if(data[formatterParams.labelField])
+            return '<span class="fakeLink">' + data[formatterParams.labelField] + '</span>'
+        return null
+    } else if (formatterParams && formatterParams.url) {
+        return '<span class="fakeLink">' + formatterParams.url + '</span>'
+    }
+    return '<span class="fakeLink">' + cell.getValue() + '</span>'
 }

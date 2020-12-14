@@ -4,12 +4,14 @@ import { connectRouter, routerMiddleware } from 'connected-react-router'
 
 import AccountsReducer from './reducers/accounts'
 import AppReducer from './reducers/app'
+import EmployeesReducer from './reducers/employees'
 import InvoicesReducer from './reducers/invoices'
 
 const createRootReducer = history => combineReducers({
         router: connectRouter(history),
         accounts: AccountsReducer,
         app: AppReducer,
+        employees: EmployeesReducer,
         invoices: InvoicesReducer
     })
 

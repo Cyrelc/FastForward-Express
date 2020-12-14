@@ -14,9 +14,10 @@ use Validator;
 
 class EmployeeController extends Controller {
 
-    public function buildTable() {
+    public function buildTable(Request $req) {
         $employeeRepo = new Repos\EmployeeRepo();
-        return $employeeRepo->ListAll();
+        $employees = $employeeRepo->ListAll($req);
+        return json_encode($employees);
     }
 
     public function __construct() {
@@ -161,22 +162,14 @@ class EmployeeController extends Controller {
 
     public function toggleActive($employeeId) {
         DB::beginTransaction();
-        try {
-            $employeeRepo = new Repos\EmployeeRepo();
 
-            $employeeRepo->ToggleActive($employeeId);
+        $employeeRepo = new Repos\EmployeeRepo();
 
-            DB::commit();
-            return response()->json([
-                'success' => true
-            ]);
-        } catch (Exception $e) {
-            DB::rollBack();
+        $employeeRepo->ToggleActive($employeeId);
 
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        DB::commit();
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

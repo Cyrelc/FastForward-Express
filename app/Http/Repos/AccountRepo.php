@@ -145,6 +145,7 @@ class AccountRepo {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
             ->leftJoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
+            ->leftJoin('selections as invoice_intervals', 'invoice_intervals.value', '=', 'accounts.invoice_interval')
             ->leftJoin('account_users', function($join) {
                 $join->on('account_users.account_id', '=', 'accounts.account_id')
                     ->where('account_users.is_primary', '=', 1);
@@ -162,7 +163,7 @@ class AccountRepo {
                 'parent.name as parent_name',
                 'parent.account_id as parent_id',
                 'accounts.active',
-                'accounts.invoice_interval',
+                'invoice_intervals.name as invoice_interval',
                 'accounts.ratesheet_id',
                 'shipping_address.name as shipping_address_name',
                 'shipping_address.formatted as shipping_address',

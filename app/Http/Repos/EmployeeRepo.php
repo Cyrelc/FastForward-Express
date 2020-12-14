@@ -10,7 +10,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class EmployeeRepo {
-    public function ListAll() {
+    public function ListAll($req) {
         $employees = Employee::leftjoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->leftjoin('phone_numbers', function($leftJoin) {
                 $leftJoin->on('phone_numbers.contact_id', '=', 'contacts.contact_id');

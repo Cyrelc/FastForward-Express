@@ -1,5 +1,7 @@
 import React, {Component} from 'react'
-import {Button, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
+import {Button, ButtonGroup, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
+import { LinkContainer } from 'react-router-bootstrap'
+import { connect } from 'react-redux'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
@@ -44,7 +46,7 @@ const initialState = {
     startDate: new Date(),
 }
 
-export default class Employee extends Component {
+class Employee extends Component {
     constructor() {
         super()
         this.state = {
@@ -78,10 +80,12 @@ export default class Employee extends Component {
                 ...initialState,
                 action: params.action,
                 emailTypes: data.contact.email_types,
-                key: window.location.hash ? window.location.hash.substr(1) : 'basic',
                 phoneTypes: data.contact.phone_types,
             }
             if(params.action === 'edit' || params.action === 'view') {
+                const thisEmployeeIndex = this.props.sortedEmployees.findIndex(employee_id => employee_id === data.employee.employee_id)
+                const prevEmployeeId = thisEmployeeIndex <= 0 ? null : this.props.sortedEmployees[thisEmployeeIndex - 1]
+                const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === this.props.sortedEmployees.length - 1) ? null : this.props.sortedEmployees[thisEmployeeIndex + 1]
                 setup = {...setup,
                     activityLog: data.activity_log,
                     birthDate: Date.parse(data.employee.dob),
@@ -97,8 +101,10 @@ export default class Employee extends Component {
                     employeeNumber: data.employee.employee_number,
                     firstName: data.contact.first_name,
                     lastName: data.contact.last_name,
+                    nextEmployeeId: nextEmployeeId,
                     phoneNumbers: data.contact.phone_numbers,
                     position: data.contact.position,
+                    prevEmployeeId: prevEmployeeId,
                     SIN: data.employee.sin,
                     startDate: Date.parse(data.employee.start_date),
                     //driverAttributes
@@ -132,8 +138,6 @@ export default class Employee extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, value, type, checked} = event.target
-            if(name === 'key')
-                window.location.hash = value
             temp[name] = type === 'checkbox' ? checked : value
         })
         this.setState(temp)
@@ -142,9 +146,9 @@ export default class Employee extends Component {
     render() {
         return (
             <span>
-                <Row md={11} className='justify-content-md-center'>
-                    {(this.state.action != 'create' && this.state.driver) &&
-                        <Col md={11}>
+                {(this.state.action != 'create' && this.state.driver) &&
+                    <Row md={11} className='justify-content-md-center'>
+                        <Col md={6}>
                             <ListGroup className='list-group-horizontal' as='ul'>
                                 {this.state.driversLicenseExpirationDate < new Date() &&
                                     <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
@@ -160,7 +164,13 @@ export default class Employee extends Component {
                                 }
                             </ListGroup>
                         </Col>
-                    }
+                        <Col md={5} style={{textAlign: 'right'}}>
+                            <LinkContainer to={'/app/manifests?filter[driver_id]=' + this.state.employeeId}><Button variant='secondary'>Manifests</Button></LinkContainer>
+                            <LinkContainer to={'/app/bills?filter[pickup_driver_id]=' + this.state.employeeId}><Button variant='secondary'>All Bills</Button></LinkContainer>
+                        </Col>
+                    </Row>
+                }
+                <Row md={11} className='justify-content-md-center'>
                     <Col md={11}>
                         <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                             <Tab eventKey='basic' title={<h4>Basic</h4>}>
@@ -227,7 +237,11 @@ export default class Employee extends Component {
                     </Col>
                 </Row>
                 <Row className='justify-content-md-center'>
-                    <Button variant='primary' onClick={this.storeEmployee} disabled={this.state.readOnly}><i className='fas fa-save'></i> Submit</Button>
+                    <ButtonGroup>
+                        <LinkContainer to={'/app/employees/edit/' + this.state.prevEmployeeId}><Button variant='info' disabled={!this.state.prevEmployeeId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevEmployeeId}</Button></LinkContainer>
+                        <Button variant='primary' onClick={this.storeEmployee} disabled={this.state.readOnly}><i className='fas fa-save'></i> Submit</Button>
+                        <LinkContainer to={'/app/employees/edit/' + this.state.nextEmployeeId}><Button variant='info' disabled={!this.state.nextEmployeeId}>Next - {this.state.nextEmployeeId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                    </ButtonGroup>
                 </Row>
             </span>
         )
@@ -279,3 +293,11 @@ export default class Employee extends Component {
         })
     }
 }
+
+const mapStateToProps = store => {
+    return {
+        sortedEmployees: store.employees.sortedList
+    }
+}
+
+export default connect(mapStateToProps)(Employee)

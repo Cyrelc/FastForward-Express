@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, createRef} from 'react'
 import { ReactTabulator } from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Dropdown, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
@@ -9,12 +9,14 @@ export default class ReduxTable extends Component {
     constructor() {
         super()
         this.state = {
-            filters: []
+            filters: [],
+            tableRef: createRef()
         }
         this.handleActiveFiltersChange = this.handleActiveFiltersChange.bind(this)
         this.handleChange = this.handleChange.bind(this)
         this.parseFilters = this.parseFilters.bind(this)
         this.refreshTable = this.refreshTable.bind(this)
+        this.handleGroupByChange = this.handleGroupByChange.bind(this)
     }
     // On mount we have to parse the query string in the URL to see if any values were set.
     // Those filters that are matched, are set to active
@@ -54,7 +56,22 @@ export default class ReduxTable extends Component {
             this.setState({[name]: value})
     }
 
+    handleGroupByChange(event) {
+        if(event.value) {
+            this.state.tableRef.current.table.setGroupBy(event.value)
+            if(event.groupHeader)
+                this.state.tableRef.current.table.setGroupHeader(event.groupHeader)
+            else
+                this.state.tableRef.current.table.setGroupHeader()
+        }
+        else
+            this.state.tableRef.current.table.setGroupBy()
+        this.setState({groupBy: event})
+    }
+
     parseFilters() {
+        if(!window.location.search)
+            return [];
         const queryStrings = window.location.search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',').split('?')[1].split('&')
         return this.props.filters.map(filter => {
             const queryString = queryStrings.find(testString => testString.startsWith('filter[' + filter.value + ']='))
@@ -108,7 +125,7 @@ export default class ReduxTable extends Component {
                                         <Select
                                             options={this.props.groupByOptions}
                                             value={this.props.groupBy}
-                                            onChange={value => this.props.updateGroupByOptions(value)}
+                                            onChange={value => this.handleGroupByChange(value)}
                                             isDisabled={this.props.groupByOptions.length === 0}
                                         />
                                     </InputGroup>
@@ -140,7 +157,7 @@ export default class ReduxTable extends Component {
                                                     <Dropdown.Item
                                                         key={column.field}
                                                         style={{color: column.visible === false  ? 'red' : 'black'}}
-                                                        onClick={() => this.props.toggleColumnVisibility(column)}
+                                                        onClick={() => this.props.toggleColumnVisibility(this.props.columns, column)}
                                                     >{column.title}</Dropdown.Item>
                                                 )}
                                             </Dropdown.Menu>
@@ -180,14 +197,14 @@ export default class ReduxTable extends Component {
                         }
                         <Card.Footer>
                             <ReactTabulator
-                                ref={this.props.tableRef}
+                                ref={this.state.tableRef}
                                 columns={this.props.columns.map(column => {
                                     if(column.formatterParams && column.formatterParams.type === 'fakeLink' && column.formatterParams.urlPrefix != undefined)
-                                            return {...column, cellClick: (event, cell) => {
-                                                const value = cell.getValue()
-                                                if(value)
-                                                    this.props.redirect(column.formatterParams.urlPrefix + value)}
-                                            }
+                                        return {...column, cellClick: (event, cell) => {
+                                            const value = cell.getValue()
+                                            if(value)
+                                                this.props.redirect(column.formatterParams.urlPrefix + value)}
+                                        }
                                     return column
                                 })}
                                 data={this.props.tableData}
@@ -207,7 +224,7 @@ export default class ReduxTable extends Component {
                                 }}
                                 printAsHtml={true}
                                 printStyled={true}
-                                selectable={this.props.selectable}
+                                selectable={this.props.selectable ? this.props.selectable : false}
                                 selectableCheck={() => {return this.props.selectable ? true : false}}
                             />
                         </Card.Footer>
