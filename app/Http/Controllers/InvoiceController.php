@@ -36,6 +36,13 @@ class InvoiceController extends Controller {
         $amendment = $amendmentCollector->collect($req);
 
         $invoiceRepo = new Repos\InvoiceRepo();
+
+        //check whether invoice is within date window for change
+        $invoice = $invoiceRepo->GetById($req->invoice_id);
+        $billEndDate = new \DateTime($invoice->bill_end_date);
+        $currentDate = new \DateTime('now');
+        $diff = $currentDate->diff($billEndDate, true);
+
         if($diff->days < (int)config('ffe_config.days_invoice_editable'))
             $invoiceRepo->InsertAmendment($amendment);
         else

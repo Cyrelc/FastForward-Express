@@ -44,7 +44,7 @@ export default class InvoiceAmendmentModal extends Component {
                 toastr.error('Bill requested does not exist. Please check input for errors', 'Error', {'timeOut' : 0, 'extendedTImeout' : 0})
             } else if(!bill.bill.invoice_id) {
                 toastr.error('Requested bill has not been invoiced yet. Unable to enter an amendment against an uninvoiced bill', 'Error', {'timeOut' : 0, 'extendedTImeout' : 0})
-            } else if(bill.bill.invoice_id != this.state.invoice_id) {
+            } else if(bill.bill.invoice_id != this.props.invoice.invoice_id) {
                 this.setState({disableSubmitButton: false})
                 toastr.warning('Bill is not part of the current invoice. This should only be performed if the bill was incorrectly assigned to another account and is being reassigned to this one.', 'Warning', {'timeOut' : 0, 'extendedTImeout' : 0})
             }
