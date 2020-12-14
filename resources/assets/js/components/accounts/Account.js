@@ -88,7 +88,7 @@ class Account extends Component {
                 const thisAccountIndex = this.props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
                 const prevAccountIndex = thisAccountIndex <= 0 ? null : this.props.sortedAccounts[thisAccountIndex - 1]
                 const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === this.props.sortedAccounts.length - 1) ? null : this.props.sortedAccounts[thisAccountIndex + 1]
-                setup ={
+                setup = {
                     ...setup,
                     accountBalance: response.account.account_balance,
                     accountId: response.account.account_id,
@@ -104,7 +104,7 @@ class Account extends Component {
                     invoiceComment: response.account.invoice_comment ? response.account.invoice_comment : '',
                     invoiceInterval: response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === response.account.invoice_interval),
                     isGstExempt: response.account.gst_exempt,
-                    minInvoiceAmount: response.account.minInvoiceAmount,
+                    minInvoiceAmount: response.account.min_invoice_amount,
                     nextAccountIndex: nextAccountIndex,
                     ratesheet: response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id),
                     parentAccount: response.account.parent_account_id ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : {},
@@ -214,8 +214,8 @@ class Account extends Component {
                 </Col>
                 <Col md={3} >
                     <h4>
-                        {this.state.accountBalance &&
-                            <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '20px'}}>Account Credit: ${this.state.accountBalance.toLocaleString()}</Badge>
+                        {this.state.accountBalance ?
+                            <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '20px'}}>Account Credit: ${this.state.accountBalance.toLocaleString()}</Badge> : null
                         }
                         {this.state.balanceOwing &&
                             <Badge variant='danger'>Balance Owing: ${this.state.balanceOwing.toLocaleString()}</Badge>

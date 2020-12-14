@@ -101,10 +101,10 @@ class Invoice extends Component {
                 <Col md={5} style={{textAlign: 'right'}}>
                     <ButtonGroup>
                         <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id : null} target='_blank' variant='success'><i className='fas fa-print'> Generate PDF</i></Button>
-                        {this.state.amendments && <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id + '?amendments_only': null} variant='success' target='_blank'><i className='fas fa-print'> Generate PDF - Amendments Only</i></Button>}
-                        {(this.state.invoice && this.state.invoice.finalized) && <Button variant='warning' onClick={this.toggleAmendmentModal}><i className='fas fa-eraser'></i> Create Amendment</Button>}
-                        {this.state.invoice &&
-                            this.state.invoice.finalized ? <Button variant='danger' onClick={this.toggleFinalized}><i className='fas fa-unlock'></i> Remove Finalize</Button> : <Button variant='success' onClick={this.toggleFinalized}><i className='fas fa-lock'></i> Finalize</Button>
+                        {this.state.amendments ? <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id + '?amendments_only': null} variant='success' target='_blank'><i className='fas fa-print'> Generate PDF - Amendments Only</i></Button> : null}
+                        {(this.state.invoice && this.state.invoice.finalized) ? <Button variant='warning' onClick={this.toggleAmendmentModal}><i className='fas fa-eraser'></i> Create Amendment</Button> : null}
+                        {this.state.invoice ?
+                            this.state.invoice.finalized ? <Button variant='danger' onClick={this.toggleFinalized}><i className='fas fa-unlock'></i> Remove Finalize</Button> : <Button variant='success' onClick={this.toggleFinalized}><i className='fas fa-lock'></i> Finalize</Button> : null
                         }
                     </ButtonGroup>
                 </Col>
