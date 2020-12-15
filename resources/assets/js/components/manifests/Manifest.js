@@ -1,10 +1,11 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import {Button, ButtonGroup, Card, Col, Row, Table} from 'react-bootstrap'
-import {LinkContainer} from 'react-router-bootstrap'
+import { LinkContainer } from 'react-router-bootstrap'
+import { connect } from 'react-redux'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 
-export default class Manifest extends Component {
+class Manifest extends Component {
     constructor() {
         super()
         this.state = {
@@ -27,7 +28,14 @@ export default class Manifest extends Component {
         makeAjaxRequest('/manifests/getModel/' + this.props.match.params.manifestId, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = 'View Manifest - ' + response.manifest.manifest_id
-            this.setState({data: response})
+            const thisManifestIndex = this.props.sortedManifests.findIndex(manifest_id => response.manifest.manifest_id === manifest_id)
+            const prevManifestId = thisManifestIndex <= 0 ? null : this.props.sortedManifests[thisManifestIndex - 1]
+            const nextManifestId = (thisManifestIndex < 0 || thisManifestIndex === this.props.sortedManifests.length - 1) ? null : this.props.sortedManifests[thisManifestIndex + 1]
+            this.setState({
+                data: response,
+                nextManifestId: nextManifestId,
+                prevManifestId: prevManifestId
+            })
         })
     }
 
@@ -38,7 +46,13 @@ export default class Manifest extends Component {
                     <Col md={2}>
                         <h3>Manifest {this.state.data.manifest.manifest_id}</h3>
                     </Col>
-                    <Col md={9} style={{textAlign: 'right'}}>
+                    <Col md={2}>
+                        <ButtonGroup>
+                            <LinkContainer to={'/app/manifests/view/' + this.state.prevManifestId}><Button variant='info' disabled={!this.state.prevManifestId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevManifestId}</Button></LinkContainer>
+                            <LinkContainer to={'/app/manifests/view/' + this.state.nextManifestId}><Button variant='info' disabled={!this.state.nextManifestId}>Next - {this.state.nextManifestId}<i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                        </ButtonGroup>
+                    </Col>
+                    <Col md={7} style={{textAlign: 'right'}}>
                         <ButtonGroup>
                             <Button variant='primary' href={'/manifests/print/' + this.state.data.manifest.manifest_id} target='_blank'><i className='fas fa-print'></i> Print</Button>
                             <Button variant='success' href={'/manifests/print/' + this.state.data.manifest.manifest_id + '?without_bills'}><i className='fas fa-print'></i> Print Without Bills</Button>
@@ -161,3 +175,11 @@ export default class Manifest extends Component {
         )
     }
 }
+
+const mapStateToProps = store => {
+    return {
+        sortedManifests: store.manifests.sortedList
+    }
+}
+
+export default connect(mapStateToProps)(Manifest)

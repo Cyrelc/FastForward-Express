@@ -103,7 +103,7 @@ class ManifestRepo {
         $filteredManifests = QueryBuilder::for($manifests)
             ->allowedFilters([
                 AllowedFilter::exact('driver_id', 'manifests.employee_id'),
-                AllowedFilter::custom('start_date', new DateBetween),
+                AllowedFilter::custom('start_date', new DateBetween, 'manifests.start_date'),
                 AllowedFilter::custom('end_date', new DateBetween)
             ]);
 

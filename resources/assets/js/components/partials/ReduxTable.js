@@ -25,7 +25,8 @@ export default class ReduxTable extends Component {
         if(window.location.search == '' && this.props.reduxQueryString)
             this.props.redirect(window.location.pathname + this.props.reduxQueryString)
         this.setState({
-            filters: this.parseFilters()
+            filters: this.parseFilters(),
+            groupBy: this.props.groupBy ? this.props.groupByOptions.find(option => option.value === this.props.groupBy) : null
         }, this.refreshTable)
         document.title = this.props.pageTitle + ' - Fast Forward Express'
     }
@@ -35,8 +36,11 @@ export default class ReduxTable extends Component {
         if(this.props.refreshTable === true) {
             this.refreshTable()
             this.props.toggleRefreshTable()
-        } else if (prevProps.reduxQueryString != this.props.reduxQueryString)
+        } else if (prevProps.reduxQueryString != this.props.reduxQueryString) {
             this.refreshTable()
+        }
+        if(this.props.tableData != prevProps.tableData && this.state.groupBy)
+            this.handleGroupByChange(this.state.groupBy)
     }
 
     handleActiveFiltersChange(activeFilters) {
@@ -57,22 +61,20 @@ export default class ReduxTable extends Component {
     }
 
     handleGroupByChange(event) {
+        console.log(event)
         if(event.value) {
             this.state.tableRef.current.table.setGroupBy(event.value)
             if(event.groupHeader)
                 this.state.tableRef.current.table.setGroupHeader(event.groupHeader)
             else
                 this.state.tableRef.current.table.setGroupHeader()
-        }
-        else
+        } else
             this.state.tableRef.current.table.setGroupBy()
         this.setState({groupBy: event})
     }
 
     parseFilters() {
-        if(!window.location.search)
-            return [];
-        const queryStrings = window.location.search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',').split('?')[1].split('&')
+        const queryStrings = window.location.search ? window.location.search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',').split('?')[1].split('&') : []
         return this.props.filters.map(filter => {
             const queryString = queryStrings.find(testString => testString.startsWith('filter[' + filter.value + ']='))
             if(queryString)
@@ -124,7 +126,7 @@ export default class ReduxTable extends Component {
                                         <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
                                         <Select
                                             options={this.props.groupByOptions}
-                                            value={this.props.groupBy}
+                                            value={this.state.groupBy}
                                             onChange={value => this.handleGroupByChange(value)}
                                             isDisabled={this.props.groupByOptions.length === 0}
                                         />
@@ -137,14 +139,14 @@ export default class ReduxTable extends Component {
                                         </InputGroup.Prepend>
                                         <Select
                                             options={this.state.filters}
-                                            value={this.state.filters.filter(filter => filter.active)}
+                                            value={this.state.filters.filter(filter => filter.active) || ''}
                                             getOptionLabel={option => option.name}
                                             onChange={filters => this.handleActiveFiltersChange(filters)}
                                             isDisabled={this.props.filters.length === 0}
                                             isMulti
                                         />
                                         <InputGroup.Append>
-                                            <Button variant='success' onClick={this.refreshTable} disabled={!this.state.filters.some(filter => filter.active)}>Apply Filters</Button>
+                                            <Button variant='success' onClick={this.refreshTable}>Apply Filters</Button>
                                         </InputGroup.Append>
                                     </InputGroup>
                                 </Col>
