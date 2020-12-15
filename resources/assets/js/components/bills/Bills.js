@@ -1,11 +1,10 @@
 import React from 'react'
-import Table from '../partials/Table'
+import { connect } from 'react-redux'
+import { push } from 'connected-react-router'
 
-function deleteBill(cell) {
-    if(confirm('Are you sure you wish to delete bill ' + cell.getRow().getData().bill_id + '?\nThis action can not be undone')) {
-        makeFetchRequest('/bills/delete/' + cell.getRow().getData().bill_id, data => location.reload())
-    }
-}
+import ReduxTable from '../partials/ReduxTable'
+import { fetchBills } from '../../store/reducers/bills'
+import * as actionTypes from '../../store/actions'
 
 const filters = [
     {
@@ -98,24 +97,32 @@ const groupByOptions = [
 
 const initialSort = [{column:'bill_id', dir: 'desc'}]
 
-export default function Bills(props) {
+function Bills(props) {
+    function deleteBill(cell) {
+        if(confirm('Are you sure you wish to delete bill ' + cell.getRow().getData().bill_id + '?\nThis action can not be undone')) {
+            makeAjaxRequest('/bills/delete/' + cell.getRow().getData().bill_id, 'GET', null, response => {
+                props.fetchTableData()
+            })
+        }
+    }
+
     const columns = [
         {formatter: (cell) => {if(cell.getRow().getData().editable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, hozAlign:'center', cellClick:(e, cell) => deleteBill(cell), headerSort: false, print: false},
-        {title: 'Bill ID', field: 'bill_id', formatter: 'link', formatterParams:{urlPrefix:'/app/bills/edit/'}, sorter:'number'},
+        {title: 'Bill ID', field: 'bill_id', formatter: fakeLinkFormatter, formatterParams:{type: 'fakeLink', urlPrefix:'/app/bills/edit/'}, sorter:'number'},
         {title: 'Waybill #', field: 'bill_number'},
-        {title: 'Account', field: 'charge_account_id', formatter: 'link', formatterParams:{labelField:'charge_account_name', urlPrefix:'/app/accounts/edit/'}},
+        {title: 'Account', field: 'charge_account_id', formatter: fakeLinkFormatter, formatterParams:{type: 'fakeLink', labelField:'charge_account_name', urlPrefix:'/app/accounts/edit/'}},
         {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
-        {title: 'Delivery Driver', field: 'delivery_driver_id', formatter: 'link', formatterParams:{labelField:'delivery_employee_name', urlPrefix:'/app/employees/edit/'}, visible: false},
-        {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', formatter: 'link', formatterParams: {urlPrefix:'/app/manifests/view/'}, visible: false},
+        {title: 'Delivery Driver', field: 'delivery_driver_id', formatter: fakeLinkFormatter, formatterParams:{labelField:'delivery_employee_name', urlPrefix:'/app/employees/edit/'}, visible: false},
+        {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', formatter: fakeLinkFormatter, formatterParams: {urlPrefix:'/app/manifests/view/'}, visible: false},
         {title: 'Editable', field: 'editable', visible: false},
-        {title: 'Interliner', field: 'interliner_id', formatter: 'link', formatterParams:{labelField:'interliner_name', urlPrefix:'/interliners/edit/'}, visible: false},
+        {title: 'Interliner', field: 'interliner_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'interliner_name', urlPrefix:'/interliners/edit/'}, visible: false},
         {title: 'Interliner Cost', field: 'interliner_cost', formatter: 'money', formatterParams:{thousand:',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, visible: false},
         {title: 'Interliner Cost to Customer', field: 'interliner_cost_to_customer', formatter: 'money', formatterParams:{thousand:',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, visible: false},
-        {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams: {urlPrefix: '/app/invoices/view/'}, visible: false},
+        {title: 'Invoice ID', field: 'invoice_id', formatter: fakeLinkFormatter, formatterParams: {type: 'fakeLink', urlPrefix: '/app/invoices/view/'}, visible: false},
         {title: 'Parent Account', field: 'parent_account', visible: false},
         {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
-        {title: 'Pickup Driver', field: 'pickup_driver_id', formatter: 'link', formatterParams:{labelField:'pickup_employee_name', urlPrefix:'/app/employees/edit/'}},
-        {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', formatter: 'link', formatterParams: {urlPrefix: '/app/manifests/view/'}, visible: false},
+        {title: 'Pickup Driver', field: 'pickup_driver_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'pickup_employee_name', urlPrefix:'/app/employees/edit/'}},
+        {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', formatter: fakeLinkFormatter, formatterParams: {type: 'fakeLink', urlPrefix: '/app/manifests/view/'}, visible: false},
         {title: 'Payment Type', field: 'payment_type', visible: false},
         {title: 'Scheduled Pickup', field: 'time_pickup_scheduled'},
         {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false},
@@ -135,16 +142,40 @@ export default function Bills(props) {
     ]
 
     return (
-        <Table
-            baseRoute='/bills/buildTable'
-            columns={columns}
+        <ReduxTable
+            columns={props.columns.length ? props.columns : columns}
+            fetchTableData={props.fetchTableData}
             filters={filters}
             groupByOptions={groupByOptions}
+            indexName='bill_id'
             initialSort={initialSort}
-            location={props.location}
-            history={props.history}
-            // groupBy={groupBy}
             pageTitle='Bills'
+            reduxQueryString={props.reduxQueryString}
+            redirect={props.redirect}
+            setReduxQueryString={props.setQueryString}
+            setSortedList={props.setSortedList}
+            tableData={props.billsTable}
+            toggleColumnVisibility={props.toggleColumnVisibility}
         />
     )
 }
+
+const matchDispatchToProps = dispatch => {
+    return {
+        fetchTableData: () => dispatch(fetchBills),
+        redirect: url=>dispatch(push(url)),
+        setQueryString: queryString => dispatch({type: actionTypes.SET_BILLS_QUERY_STRING, payload: queryString}),
+        setSortedList: sortedList => dispatch({type: actionTypes.SET_BILLS_SORTED_LIST, payload: sortedList}),
+        toggleColumnVisibility: (columns, toggleColumn) => dispatch({type: actionTypes.TOGGLE_BILLS_COLUMN_VISIBILITY, payload: {columns: columns, toggleColumn: toggleColumn}})
+    }
+}
+
+const mapStateToProps = store => {
+    return {
+        columns: store.bills.columns,
+        billsTable: store.bills.billsTable,
+        reduxQueryString: store.bills.queryString
+    }
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(Bills)

@@ -143,9 +143,8 @@ function makeAjaxRequest(url, type, data, callback) {
             callback(response)
         },
         'error': (response, textStatus, xhr) => {
-            console.log(xhr.status)
             console.log(response.status)
-            if(response.message === 'CSRF token mismatch.')
+            if(response.status === 401 || response.message === 'CSRF token mismatch.')
                 location.reload()
             handleErrorResponse(response)
         }

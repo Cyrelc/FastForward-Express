@@ -61,8 +61,7 @@ class App extends Component {
                     <Navbar.Collapse id='responsive-navbar-nav'>
                         <Nav className='ml-auto'>
                             <NavDropdown title='Bills' id='navbar-bills'>
-                                <LinkContainer to='/app/bills?filter[percentage_complete]=,100'><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Incomplete</NavDropdown.Item></LinkContainer>
-                                <LinkContainer to={'/app/bills?filter[time_pickup_scheduled]=' + new Date().addDays(-45).toISOString().split('T')[0]}><NavDropdown.Item><i className='fa fa-list'></i> List Bills - Last 45 days</NavDropdown.Item></LinkContainer>
+                                <LinkContainer to='/app/bills'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                 <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
                                 <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '300px'}}>

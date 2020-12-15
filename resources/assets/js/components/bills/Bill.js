@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
-import {Button, Col, Dropdown, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
-import {Redirect} from 'react-router-dom'
+import {Button, ButtonGroup, Col, Dropdown, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
+import { LinkContainer } from 'react-router-bootstrap'
+import { connect } from 'react-redux'
 
 import BasicTab from './BasicTab'
 import DispatchTab from './DispatchTab'
@@ -90,7 +91,7 @@ const initialState = {
     paymentTypes: undefined,
 }
 
-export default class Bill extends Component {
+class Bill extends Component {
     constructor() {
         super()
         this.state = {
@@ -139,11 +140,13 @@ export default class Bill extends Component {
                 paymentTypes: data.payment_types,
                 readOnly: data.read_only,
                 ratesheetId: data.ratesheet_id,
-                repeatIntervals: data.repeat_intervals,
-                key: window.location.hash ? window.location.hash.substr(1) : 'basic'
+                repeatIntervals: data.repeat_intervals
             }
             this.setState(setup);
-            if(params.action === 'edit' || params.action === 'view')
+            if(params.action === 'edit' || params.action === 'view') {
+                const thisBillIndex = this.props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
+                const prevBillId = thisBillIndex <= 0 ? null : this.props.sortedBills[thisBillIndex - 1]
+                const nextBillId = (thisBillIndex < 0 || thisBillIndex === this.props.sortedBills.length - 1) ? null : this.props.sortedBills[thisBillIndex + 1]
                 setup = {...setup,
                     activityLog: data.activity_log,
                     amount: data.bill.amount,
@@ -153,10 +156,12 @@ export default class Bill extends Component {
                     chargeReferenceValue: data.bill.charge_reference_value,
                     chargeEmployee: data.chargeback ? data.employees.find(employee => employee.employee_id === data.chargeback.employee_id) : undefined,
                     description: data.bill.description,
+                    nextBillId: nextBillId,
                     packages: data.bill.packages,
                     packageIsMinimum: data.bill.is_min_weight_size,
                     packageIsPallet: data.bill.is_pallet,
                     paymentType: data.payment_types.find(payment_type => payment_type.payment_type_id === data.bill.payment_type_id),
+                    prevBillId: prevBillId,
                     timeCallReceived: Date.parse(data.bill.time_call_received),
                     timeDispatched: data.bill.time_dispatched ? Date.parse(data.bill.time_dispatched) : null,
                     useImperial: data.bill.use_imperial,
@@ -198,8 +203,9 @@ export default class Bill extends Component {
                     repeatInterval: data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval),
                     skipInvoicing: data.bill.skip_invoicing,
                 }
-                this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
-            })
+            }
+            this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
+        })
     }
 
     componentDidMount() {
@@ -453,15 +459,15 @@ export default class Bill extends Component {
                             <ListGroup.Item variant='primary'><h4>Bill: {this.state.billId === null ? 'New' : this.state.billId}</h4></ListGroup.Item>
                             {
                                 this.state.invoiceId !== null && 
-                                    <ListGroup.Item variant='secondary'><h4>Invoice Id: <a href='/invoices/{this.state.invoiceId}'>{this.state.invoiceId}</a></h4></ListGroup.Item>
+                                    <LinkContainer to={'/app/invoices/view/' + this.state.invoiceId}><ListGroup.Item variant='secondary'><h4>Invoice Id: <a className='fakeLink'>{this.state.invoiceId}</a></h4></ListGroup.Item></LinkContainer>
                             }
                             {
                                 this.state.pickupManifestId !== null &&
-                                    <ListGroup.Item variant='secondary'><h4>Pickup Manifest ID: <a href='/?'>{this.state.pickupManifestId}</a></h4></ListGroup.Item>
+                                    <LinkContainer to={'/app/manifests/view/' + this.state.pickupManifestId}><ListGroup.Item variant='secondary'><h4>Pickup Manifest ID: <a className='fakeLink'>{this.state.pickupManifestId}</a></h4></ListGroup.Item></LinkContainer>
                             }
                             {
                                 this.state.deliveryManifestId !== null &&
-                                    <ListGroup.Item variant='secondary'><h4>Delivery Manifest ID: <a href='/?'>{this.state.deliveryManifestId}</a></h4></ListGroup.Item>
+                                    <LinkContainer to={'/app/manifests/view/' + this.state.deliveryManifestId}><ListGroup.Item variant='secondary'><h4>Delivery Manifest ID: <a className='fakeLink'>{this.state.deliveryManifestId}</a></h4></ListGroup.Item></LinkContainer>
                             }
                             {
                                 this.state.billId !== null &&
@@ -592,9 +598,6 @@ export default class Bill extends Component {
                                     <DispatchTab
                                         //mutable values
                                         deliveryEmployee={this.state.deliveryEmployee}
-                                        deliveryEmployeeCommission={this.state.deliveryEmployeeCommission}
-                                        deliveryTimeActual={this.state.deliveryTimeActual}
-                                        interliner={this.state.interliner}
                                         interlinerActualCost={this.state.interlinerActualCost}
                                         interlinerCostToCustomer={this.state.interlinerCostToCustomer}
                                         interlinerTrackingId={this.state.interlinerTrackingId}
@@ -658,7 +661,11 @@ export default class Bill extends Component {
                         </Tabs>
                     </Col>
                     <Col md={11} className='text-center'>
-                        <Button variant='primary' onClick={this.store} disabled={this.state.readOnly}>Submit</Button>
+                        <ButtonGroup>
+                            <LinkContainer to={'/app/bills/edit/' + this.state.prevBillId}><Button variant='secondary' disabled={!this.state.prevBillId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevBillId}</Button></LinkContainer>
+                            <Button variant='primary' onClick={this.store} disabled={this.state.readOnly}>Submit</Button>
+                            <LinkContainer to={'/app/bills/edit/' + this.state.nextBillId}><Button variant='secondary' disabled={!this.state.nextBillId}>Next - {this.state.nextBillId}<i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                        </ButtonGroup>
                     </Col>
                 </Row>
             )
@@ -729,3 +736,11 @@ export default class Bill extends Component {
         })
     }
 }
+
+const mapStateToProps = store => {
+    return {
+        sortedBills: store.bills.sortedList
+    }
+}
+
+export default connect(mapStateToProps)(Bill)
