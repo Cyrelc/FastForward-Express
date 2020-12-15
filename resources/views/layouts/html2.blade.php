@@ -13,7 +13,7 @@
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
         <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,drawing,geometry"></script>
         <script type='text/javascript' src='/js/toastr.min.js'></script>
-        <script src="{{URL::to('/')}}/js/utils.js"></script>
+        <script src="{{asset('/js/utils.js')}}?{{config('view.version')}}"></script>
 
         <!-- Fonts -->
         <link href='https://use.fontawesome.com/releases/v5.8.1/css/all.css' rel='stylesheet' type='text/css' />
