@@ -15,6 +15,13 @@ const filters = [
         value: 'charge_account_id'
     },
     {
+        fetchUrl: '/getList/parent_accounts',
+        isMulti: true,
+        name: 'Parent Account',
+        type: 'SelectFilter',
+        value: 'parent_account_id'
+    },
+    {
         name: 'Amount',
         value: 'amount',
         type: 'NumberBetweenFilter',
@@ -82,6 +89,11 @@ const filters = [
         name: 'Repeat Interval',
         type: 'SelectFilter',
         value: 'repeat_interval'
+    },
+    {
+        name: 'Waybill Number',
+        type: 'StringFilter',
+        value: 'bill_number'
     }
 ]
 

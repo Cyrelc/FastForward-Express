@@ -8,6 +8,7 @@ use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
 use App\Http\Filters\IsNull;
 
+use App\Account;
 use App\Bill;
 use DB;
 
@@ -381,6 +382,7 @@ class BillRepo {
                     'invoice_id',
                     'bills.payment_type_id',
                     'payment_types.name as payment_type',
+                    'parent_accounts.account_id as parent_account_id',
                     DB::raw('case when accounts.can_be_parent = 1 then concat(accounts.account_id, " - ", accounts.name) when accounts.can_be_parent = 0 then concat(accounts.parent_account_id, " - ", parent_accounts.name) end as parent_account'),
                     'percentage_complete',
                     'pickup_address.formatted as pickup_address_formatted',
@@ -401,6 +403,7 @@ class BillRepo {
             $filteredBills = QueryBuilder::for($bills)
                 ->allowedFilters([
                     AllowedFilter::custom('amount', new NumberBetween),
+                    'bill_number',
                     AllowedFilter::exact('charge_account_id'),
                     AllowedFilter::custom('dispatch', new Dispatch),
                     AllowedFilter::exact('delivery_driver_id'),
@@ -408,6 +411,7 @@ class BillRepo {
                     AllowedFilter::exact('invoice_id'),
                     AllowedFilter::custom('invoiced', new IsNull, 'invoice_id'),
                     AllowedFilter::exact('invoice_interval'),
+                    AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
                     AllowedFilter::exact('skip_invoicing'),
                     AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
                     AllowedFilter::custom('time_delivery_scheduled', new DateBetween),

@@ -5,6 +5,7 @@ import BooleanFilter from '../tableFilters/BooleanFilter'
 import DateBetweenFilter from '../tableFilters/DateBetweenFilter'
 import NumberBetweenFilter from '../tableFilters/NumberBetweenFilter'
 import SelectFilter from '../tableFilters/SelectFilter'
+import StringFilter from '../tableFilters/StringFilter'
 
 export default function TableFilters(props) {
     function handleFilterQueryStringChange(event) {
@@ -46,8 +47,12 @@ export default function TableFilters(props) {
                                 filter={filter}
                                 handleFilterQueryStringChange={handleFilterQueryStringChange}
                             />
-                        case 'StringSearchFilter':
-                            break
+                        case 'StringFilter':
+                            return <StringFilter
+                                key={filter.value}
+                                filter={filter}
+                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                            />
                         default:
                             break
                     }

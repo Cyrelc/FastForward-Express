@@ -111,7 +111,7 @@ class AccountRepo {
     public function GetParentAccountsList() {
         $parentAccounts = Account::where('can_be_parent', 1)
             ->select(
-                DB::raw('concat(account_id, " - ", name) as label'),
+                DB::raw('concat(account_number, " - ", name) as label'),
                 'account_id as value'
             );
 
