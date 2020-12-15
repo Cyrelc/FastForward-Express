@@ -135,6 +135,7 @@ class Bill extends Component {
                 drivers: data.employees,
                 deliveryTypes: data.delivery_types,
                 interliners: data.interliners,
+                key: this.state.key ? this.state.key : initialState.key,
                 packages: data.packages,
                 packageIsMinimum: data.admin,
                 paymentTypes: data.payment_types,
@@ -187,6 +188,7 @@ class Bill extends Component {
                     interlinerActualCost: data.bill.interliner_cost,
                     interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
                     interlinerTrackingId: data.bill.interliner_reference_value,
+                    // key: window.location.hash ? window.location.hash : 'basic',
                     pickupAccount: data.bill.pickup_account_id ? data.accounts.find(account => account.account_id === data.bill.pickup_account_id) : '',
                     pickupAddressFormatted: data.pickup_address.formatted,
                     pickupAddressLat: data.pickup_address.lat,
@@ -306,10 +308,6 @@ class Bill extends Component {
                 case 'deliveryReferenceValue':
                 case 'chargeReferenceValue':
                     temp = this.handleReferenceValueEvent(temp, event)
-                    break
-                case 'key':
-                    temp = {'key': value}
-                    window.location.hash = value
                     break
                 case 'packageCount':
                 case 'packageWeight':
@@ -598,6 +596,7 @@ class Bill extends Component {
                                     <DispatchTab
                                         //mutable values
                                         deliveryEmployee={this.state.deliveryEmployee}
+                                        deliveryEmployeeCommission={this.state.deliveryEmployeeCommission}
                                         interlinerActualCost={this.state.interlinerActualCost}
                                         interlinerCostToCustomer={this.state.interlinerCostToCustomer}
                                         interlinerTrackingId={this.state.interlinerTrackingId}
