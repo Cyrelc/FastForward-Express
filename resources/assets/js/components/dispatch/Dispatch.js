@@ -187,17 +187,17 @@ export default class Dispatch extends Component {
     //change handlers
 
     handleAssignBillEvent(event) {
-        const {value, driver_id} = event.target
+        const {value, employee_id} = event.target
 
         const bills = this.state.bills.map(bill => {
             if(bill.bill_id === value)
-                return {...bill, pickup_driver_id: driver_id, delivery_driver_id: driver_id}
+                return {...bill, pickup_driver_id: employee_id, delivery_driver_id: employee_id}
             else
                 return bill
         })
 
-        data = {
-            driver_id: driver_id,
+        const data = {
+            employee_id: employee_id,
             bill_id: value
         }
 

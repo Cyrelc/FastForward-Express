@@ -8,7 +8,6 @@ use DB;
 use App\Http\Repos;
 
 class DispatchController extends Controller {
-
     public function GetDrivers(Request $req) {
         $employeeRepo = new Repos\EmployeeRepo();
         $employees = $employeeRepo->GetActiveDriversWithContact();
@@ -20,27 +19,18 @@ class DispatchController extends Controller {
     }
 
     public function AssignBillToDriver(Request $req) {
-        //TODO: not calculating completion percentage
         DB::beginTransaction();
-        try {
-            $billRepo = new Repos\BillRepo();
-            $employeeRepo = new Repos\EmployeeRepo();
-            $employee = $employeeRepo->GetById($req->employee_id);
+        $billRepo = new Repos\BillRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
+        $employee = $employeeRepo->GetById($req->employee_id);
 
-            $billRepo->AssignToDriver($req->bill_id, $employee);
+        $billRepo->AssignToDriver($req->bill_id, $employee);
 
-            DB::commit();
-            return response()->json([
-                'success' => true
-            ]);
-        } catch (Exception $e) {
-            DB::rollBack();
+        DB::commit();
 
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function SetBillPickupOrDeliveryTime(Request $req) {

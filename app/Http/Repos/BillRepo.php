@@ -13,13 +13,13 @@ use App\Bill;
 use DB;
 
 class BillRepo {
-    public function AssignToDriver($bill_id, $driver) {
+    public function AssignToDriver($bill_id, $employee) {
         $old = $this->GetById($bill_id);
 
-        $old->pickup_driver_id = $driver->driver_id;
-        $old->delivery_driver_id = $driver->driver_id;
-        $old->pickup_driver_commission = $driver->pickup_commission / 100;
-        $old->delivery_driver_commission = $driver->delivery_commission / 100;
+        $old->pickup_driver_id = $employee->employee_id;
+        $old->delivery_driver_id = $employee->employee_id;
+        $old->pickup_driver_commission = $employee->pickup_commission / 100;
+        $old->delivery_driver_commission = $employee->delivery_commission / 100;
         $old->time_dispatched = new \DateTime();
 
         $old = $this->CheckRequiredFields($old);

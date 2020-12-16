@@ -21,7 +21,7 @@ export default function Driver(props) {
                         layout: 'fitColumns',
                         movableRows: true,
                         movableRowsConnectedTables: '#driverTables',
-                        movableRowsReceived: row => props.handleChange({target: {name: 'assignBill', type: 'number', value: row._row.data.bill_id, driver_id: props.driver.employee_id}}),
+                        movableRowsReceived: row => props.handleChange({target: {name: 'assignBill', type: 'number', value: row._row.data.bill_id, employee_id: props.driver.employee_id}}),
                         movableRowsSendingStart: () => props.handleChange({target: {name: 'rowInTransit', type: 'checkbox', checked: true}}),
                         movableRowsSendingStop: () => props.handleChange({target: {name: 'rowInTransit', type: 'checkbox', checked: false}}),
                         rowFormatter: props.rowFormatter,
