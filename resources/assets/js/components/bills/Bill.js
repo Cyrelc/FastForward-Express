@@ -17,9 +17,9 @@ const initialState = {
     billNumber: '',
     businessHoursMin: '',
     businessHoursMax: '',
-    chargeAccount: undefined,
+    chargeAccount: '',
     chargeReferenceValue: '',
-    chargeEmployee: undefined,
+    chargeEmployee: '',
     deliveryType: 'regular',
     description: '',
     incompleteFields: '',
@@ -50,7 +50,7 @@ const initialState = {
     deliveryAddressPlaceId: null,
     deliveryAddressType: 'Address',
     deliveryEmployeeCommission: '',
-    deliveryEmployee: null,
+    deliveryEmployee: '',
     deliveryReferenceValue: '',
     deliveryTimeActual: null,
     deliveryTimeExpected: null,
@@ -65,22 +65,22 @@ const initialState = {
     pickupAddressPlaceId: null,
     pickupAddressType: 'Address',
     pickupEmployeeCommission: '',
-    pickupEmployee: null,
+    pickupEmployee: '',
     pickupReferenceValue: '',
     pickupTimeActual: null,
     pickupTimeExpected: null,
     pickupTimeMax: null,
     pickupTimeMin: null,
     //interliner
-    interliner: undefined,
+    interliner: '',
     interlinerActualCost: '',
     interlinerTrackingId: '',
     interlinerCostToCustomer: '',
     //ratesheet
-    deliveryTypes: undefined,
+    deliveryTypes: '',
     ratesheetId: '',
-    weightRates: undefined,
-    timeRates: undefined,
+    // weightRates: undefined,
+    // timeRates: undefined,
     //immutable lists
     accounts: undefined,
     activityLog: undefined,
@@ -563,8 +563,8 @@ class Bill extends Component {
                                     }}
                                     ratesheet={{
                                         deliveryTypes: this.state.deliveryTypes,
-                                        useInternalZonesCalc: this.state.useInternalZonesCalc,
-                                        weightRates: this.state.weightRates
+                                        // useInternalZonesCalc: this.state.useInternalZonesCalc,
+                                        // weightRates: this.state.weightRates
                                     }}
                                     accounts={this.state.accounts}
                                     addressTypes={this.state.addressTypes}
