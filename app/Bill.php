@@ -17,6 +17,7 @@ class Bill extends Model
                             'charge_account_id',
                             'charge_reference_value',
                             'chargeback_id',
+                            'created_at',
     						'delivery_account_id',
                             'delivery_address_id',
     						'delivery_driver_commission',
@@ -51,6 +52,7 @@ class Bill extends Model
                             'time_dispatched',
                             'time_picked_up',
                             'time_delivered',
+                            'updated_at',
                             'use_imperial'
                         ];
 

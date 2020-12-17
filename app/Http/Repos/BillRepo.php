@@ -331,6 +331,7 @@ class BillRepo {
     public function Insert($bill) {
         $completeBill = $this->CheckRequiredFields($bill);
         $new = new Bill;
+        $new->created_at = $completeBill['updated_at'];
 
         return $new->create($completeBill);
     }
@@ -543,14 +544,21 @@ class BillRepo {
 
         $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);
 
+        $timestamp = date('Y-m-d H:i:s');
         if(is_object($bill)) {
-            Activity('system_debug')->log('is_object');
             $bill->percentage_complete = $percentageComplete;
             $bill->incomplete_fields = $incompleteFields;
+            $bill->updated_at = $timestamp;
+            if(!$bill->bill_id)
+                $bill->created_at = $timestamp;
             return $bill;
-        }
-        else {
-            return array_merge($bill, ['incomplete_fields' => $percentageComplete === 100 ? null : json_encode($incompleteFields), 'percentage_complete' => $percentageComplete]);
+        } else {
+            $dynamicFields = [
+                'incomplete_fields' => $percentageComplete === 100 ? null : json_encode($incompleteFields),
+                'percentage_complete' => $percentageComplete,
+                'updated_at' => $timestamp
+            ];
+            return array_merge($bill, $dynamicFields);
         }
 	}
 }

@@ -42,22 +42,13 @@ class BillController extends Controller {
             throw new Exception('Unable to delete. Bill is locked');
         } else {
             DB::beginTransaction();
-            try {
-                $billRepo->Delete($id);
 
-                DB::commit();
-                return response()->json([
-                    'success' => true
-                ]);
-            } catch(\Exception $e) {
-                DB::rollBack();
+            $billRepo->Delete($id);
 
-                return response()->json([
-                    'ok' => false,
-                    'success' => false,
-                    'error' => $e->getMessage()
-                ]);
-            }
+            DB::commit();
+            return response()->json([
+                'success' => true
+            ]);
         }
     }
 
@@ -82,8 +73,11 @@ class BillController extends Controller {
     public function store(Request $req) {
         DB::beginTransaction();
         try {
+            $billRepo = new Repos\BillRepo();
+            $oldBill = $billRepo->getById($req->bill_id);
+
             $billValidation = new \App\Http\Validation\BillValidationRules();
-            $temp = $billValidation->GetValidationRules($req);
+            $temp = $billValidation->GetValidationRules($req, $oldBill);
 
             $validationRules = $temp['rules'];
             $validationMessages = $temp['messages'];
@@ -91,7 +85,6 @@ class BillController extends Controller {
             $this->validate($req, $validationRules, $validationMessages);
 
             $acctRepo = new Repos\AccountRepo();
-            $billRepo = new Repos\BillRepo();
             $addrRepo = new Repos\AddressRepo();
             $packageRepo = new Repos\PackageRepo();
             $chargebackRepo = new Repos\ChargebackRepo();
@@ -101,7 +94,6 @@ class BillController extends Controller {
             $billCollector = new \App\Http\Collectors\BillCollector();
             $packageCollector = new \App\Http\Collectors\PackageCollector();
 
-            $oldBill = $billRepo->getById($req->bill_id);
 
             $pickupAddress = $addrCollector->CollectMinimal($req, 'pickup_address', $oldBill ? $oldBill->pickup_address_id : null);
             $deliveryAddress = $addrCollector->CollectMinimal($req, 'delivery_address', $oldBill ? $oldBill->delivery_address_id : null);
@@ -138,7 +130,8 @@ class BillController extends Controller {
 
             return response()->json([
                 'success' => true,
-                'id' => $bill->bill_id
+                'id' => $bill->bill_id,
+                'updated_at' => $bill->updated_at
             ]);
             
         } catch(Exception $e) {

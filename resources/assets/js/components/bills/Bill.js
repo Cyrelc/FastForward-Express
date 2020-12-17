@@ -89,6 +89,7 @@ const initialState = {
     timeRates: undefined,
     interliners: undefined,
     paymentTypes: undefined,
+    updatedAt: undefined
 }
 
 class Bill extends Component {
@@ -204,6 +205,7 @@ class Bill extends Component {
                     readOnly: data.read_only,
                     repeatInterval: data.bill.repeat_interval ? data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval) : '',
                     skipInvoicing: data.bill.skip_invoicing,
+                    updatedAt: data.bill.updated_at
                 }
             }
             this.setState(setup, () => this.getRatesheet(this.state.ratesheetId, true));
@@ -714,12 +716,15 @@ class Bill extends Component {
             time_delivery_scheduled: this.state.deliveryTimeExpected.toLocaleString("en-US"),
             time_dispatched: this.state.timeDispatched ? this.state.timeDispatched.toLocaleString("en-US") : null,
             time_pickup_scheduled: this.state.pickupTimeExpected.toLocaleString("en-US"),
+            updated_at: this.state.updatedAt,
             use_imperial: this.state.useImperial,
         }
         makeAjaxRequest('/bills/store', 'POST', data, response => {
             toastr.clear()
-            if(this.state.billId)
+            if(this.state.billId) {
                 toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
+                this.handleChanges({target: {name: 'updatedAt', type: 'string', value: response.updated_at}})
+            }
             else {
                 this.setState({readOnly: true})
                 toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {

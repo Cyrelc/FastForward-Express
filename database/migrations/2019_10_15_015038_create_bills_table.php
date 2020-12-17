@@ -39,7 +39,7 @@ class CreateBillsTable extends Migration
             $table->text('packages')->nullable();
             $table->unsignedInteger('payment_id')->nullable();
             $table->unsignedInteger('payment_type_id');
-            $table->int('percentage_complete');
+            $table->integer('percentage_complete');
             $table->unsignedInteger('pickup_account_id')->nullable();
             $table->unsignedInteger('pickup_address_id');
             $table->float('pickup_driver_commission')->nullable();
@@ -47,7 +47,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_manifest_id')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->text('price_line_items');
-            $table->unsignedInterger('repeat_interval')->nullable();
+            $table->unsignedInteger('repeat_interval')->nullable();
             $table->boolean('skip_invoicing')->default(false);
             $table->datetime('time_call_received');
             $table->datetime('time_delivered')->nullable();
@@ -57,6 +57,7 @@ class CreateBillsTable extends Migration
             $table->datetime('time_pickup_scheduled');
             $table->boolean('use_imperial')->default(false);
 
+            $table->timestamps();
             $table->unique('bill_number');
             
             $table->foreign('charge_account_id')->references('account_id')->on('accounts');

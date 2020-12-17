@@ -2,7 +2,7 @@
 namespace App\Http\Validation;
 
 class BillValidationRules {
-    public function GetValidationRules($req) {
+    public function GetValidationRules($req, $oldBill) {
 		$rules = [	'time_pickup_scheduled' => 'required|date',
 					'time_delivery_scheduled' => 'required|date',
 					'time_call_received' => 'required|date',
@@ -33,6 +33,11 @@ class BillValidationRules {
 					// 'pickup_reference_value.required' => 'Pickup Account requires a custom tracking field value',
 					//'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'
 				];
+
+		if($oldBill) {
+			$rules = array_merge($rules, ['updated_at' => 'required|date|date_equals:' . $oldBill->updated_at]);
+			$messages = array_merge($messages, ['updated_at.date_equals' => 'This bill has been modified since you loaded the page. Please re-load the bill and try again']);
+		}
 
 		if($req->interliner_id != "") {
 			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
