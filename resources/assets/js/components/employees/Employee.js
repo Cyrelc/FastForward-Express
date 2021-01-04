@@ -87,9 +87,10 @@ class Employee extends Component {
                 const prevEmployeeId = thisEmployeeIndex <= 0 ? null : this.props.sortedEmployees[thisEmployeeIndex - 1]
                 const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === this.props.sortedEmployees.length - 1) ? null : this.props.sortedEmployees[thisEmployeeIndex + 1]
                 setup = {...setup,
+                    active: data.employee.active,
                     activityLog: data.activity_log,
                     birthDate: Date.parse(data.employee.dob),
-                    driver: data.employee.is_driver === 1,
+                    driver: data.employee.is_driver,
                     emailAddresses: data.contact.emails,
                     emergencyContacts: data.emergency_contacts,
                     employeeAddressLat: data.contact.address.lat,
@@ -100,6 +101,7 @@ class Employee extends Component {
                     employeeId: data.employee.employee_id,
                     employeeNumber: data.employee.employee_number,
                     firstName: data.contact.first_name,
+                    key: this.state.key,
                     lastName: data.contact.last_name,
                     nextEmployeeId: nextEmployeeId,
                     phoneNumbers: data.contact.phone_numbers,
@@ -119,13 +121,13 @@ class Employee extends Component {
                     insuranceExpirationDate: Date.parse(data.employee.insurance_expiration_date)
                 }
                 toastr.clear()
-                if(setup.driversLicenseExpirationDate < new Date())
+                if(setup.driversLicenseExpirationDate < new Date() && data.employee.active)
                     toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.licensePlateExpirationDate < new Date())
+                if(setup.licensePlateExpirationDate < new Date() && data.employee.active)
                     toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.insuranceExpirationDate < new Date())
+                if(setup.insuranceExpirationDate < new Date() && data.employee.active)
                     toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.emergencyContacts.length < 2)
+                if(setup.emergencyContacts.length < 2 && data.employee.active)
                     toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
             }
             this.setState(setup)

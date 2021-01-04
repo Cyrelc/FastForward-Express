@@ -8,6 +8,7 @@ const initialState = {
     creditAgainstBillId: '',
     creditAmount: '',
     creditReason: '',
+    paymentAmount: '',
     paymentComment: '',
     invoicePayments: [],
     outstandingInvoices: [],
@@ -46,6 +47,7 @@ export default class PaymentsTab extends Component {
 
     handleChange(event) {
         const {name, value, type, checked} = event.target
+        console.log(name, value, type, checked)
         var temp = {[name] : type === 'checkbox' ? checked : value}
         if(name === 'paymentAmount' && this.state.autoCalc) {
             temp = this.handleAutoCalcChange(event, temp)
@@ -82,10 +84,10 @@ export default class PaymentsTab extends Component {
                         if(invoice.balance_owing > balance) {
                             const paymentAmount = balance
                             balance = 0
-                            return {...invoice, payment_amount: paymentAmount.toLocaleString()}
+                            return {...invoice, payment_amount: paymentAmount}
                         } else {
                             balance -= invoice.balance_owing
-                            return {...invoice, payment_amount: invoice.balance_owing.toLocaleString()}                                
+                            return {...invoice, payment_amount: invoice.balance_owing}
                         }
                     }
                 })
@@ -95,7 +97,7 @@ export default class PaymentsTab extends Component {
     }
 
     handleInvoicePaymentAmountChange(event, temp) {
-        const {name, value} = event.target
+        const value = event.target.value.replace(',|$', '')
         const invoiceId = event.target.dataset.invoiceId
         const outstandingInvoices = this.state.outstandingInvoices.map(invoice => {
             if(invoice.invoice_id == invoiceId) {
@@ -108,6 +110,7 @@ export default class PaymentsTab extends Component {
                 return invoice
         })
         temp = {outstandingInvoices: outstandingInvoices}
+        return temp
     }
 
     payOffInvoice(event) {
@@ -343,15 +346,14 @@ export default class PaymentsTab extends Component {
                                                 </td>
                                                 <td>{invoice.invoice_id}</td>
                                                 <td>{invoice.bill_end_date}</td>
-                                                <td style={{textAlign: 'right'}}>${invoice.balance_owing.toLocaleString()}</td>
+                                                <td style={{textAlign: 'right'}}>{invoice.balance_owing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</td>
                                                 <td>
                                                     <FormControl
                                                         name='invoicePaymentAmount'
                                                         data-invoice-id={invoice.invoice_id}
-                                                        value={invoice.payment_amount}
+                                                        value={invoice.payment_amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
                                                         disabled={this.state.autoCalc}
                                                         onChange={this.handleChange}
-                                                        onBlur={this.onBlurChangeTest}
                                                         size='sm'
                                                     />
                                                 </td>
