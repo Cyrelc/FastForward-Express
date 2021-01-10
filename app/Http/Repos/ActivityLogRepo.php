@@ -5,13 +5,13 @@ use App\ActivityLog;
 use DB;
 
 class ActivityLogRepo {
-    public function GetAccountActivityLog($account_id) {
+    public function GetAccountActivityLog($accountId) {
         $accountRepo = new AccountRepo();
         $userRepo = new UserRepo();
-        $account = $accountRepo->GetById($account_id);
-        $accountUserIds = $userRepo->GetAccountUserIds($account_id);
-        $activity = ActivityLog::where([['subject_type', 'App\Account'], ['subject_id', $account_id]])
-            ->orWhere(function($addresses) use ($account){
+        $account = $accountRepo->GetById($accountId);
+        $accountUserIds = $userRepo->GetAccountUserIds($accountId);
+        $activity = ActivityLog::where([['subject_type', 'App\Account'], ['subject_id', $accountId]])
+            ->orWhere(function($addresses) use ($account) {
                 $addresses->where('subject_type', 'App\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
             })
@@ -38,7 +38,7 @@ class ActivityLogRepo {
                 'users.email as user_name',
                 'description',
                 'properties'
-            );
+            )->orderBy('activity_log.updated_at', 'desc');
 
             return $activity->get();
     }
@@ -58,8 +58,8 @@ class ActivityLogRepo {
                 'users.email as user_name',
                 'description',
                 'properties'
-            )
-            ->orderBy('activity_log.updated_at', 'desc');
+            )->orderBy('activity_log.updated_at', 'desc');
+
         return $activity->get();
     }
 
@@ -84,7 +84,8 @@ class ActivityLogRepo {
             ->orWhere(function($phones) use ($relevantIds) {
                 $phones->where('subject_type', 'App\Phone');
                 $phones->whereIn('subject_id', $relevantIds['phone_ids']);
-            });
+            })
+            ->orderBy('activity_log.updated_at', 'desc');
 
         return $activity->get();
     }
