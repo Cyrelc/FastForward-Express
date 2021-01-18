@@ -148,7 +148,8 @@ class AccountRepo {
             ->leftJoin('selections as invoice_intervals', 'invoice_intervals.value', '=', 'accounts.invoice_interval')
             ->leftJoin('account_users', function($join) {
                 $join->on('account_users.account_id', '=', 'accounts.account_id')
-                    ->where('account_users.is_primary', '=', 1);
+                    ->where('account_users.is_primary', '=', 1)
+                    ->limit(1);
             })
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('phone_numbers', function($join) {
