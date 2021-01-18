@@ -215,12 +215,12 @@ export default class UsersTab extends Component {
                                             readOnly={this.props.readOnly}
                                         />
                                     </Tab>
-                                    <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
+                                    {/* <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
                                         <UserPermissionTab
                                             accounts={this.state.accounts}
                                             belongsTo={this.state.belongsTo}
                                         />
-                                    </Tab>
+                                    </Tab> */}
                                     {this.state.activityLog &&
                                         <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
                                             <ActivityLogTab
