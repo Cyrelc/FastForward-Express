@@ -3,18 +3,23 @@ import {Button, ButtonGroup, Card, Col, Modal, Row, Tab, Table, Tabs} from 'reac
 
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 
+import ActivityLogTab from '../partials/ActivityLogTab'
 import Contact from '../partials/Contact'
+import UserPermissionTab from './UserPermissionTab'
 
 const initialState = {
     firstName: '',
     key: 'contact',
     lastName: '',
     position: '',
+    accounts: [],
     accountUserAddressFormatted: '',
     accountUserAddressLat: '',
     accountUserAddressLng: '',
     accountUserAddressName: '',
     accountUserAddressPlaceId: '',
+    activityLog: [],
+    belongsTo: [],
     phoneNumbers: [{phone: '', extension: '', type: '', is_primary: true}],
     emailAddresses: [{email: '', type: '', is_primary: true}],
     mode: 'create',
@@ -85,6 +90,8 @@ export default class UsersTab extends Component {
                 ...initialState,
                 accountId: response.account_id,
                 accountUsers: this.state.accountUsers,
+                activityLog: response.activity_log,
+                belongsTo: response.belongs_to,
                 contactId: response.contact.contact_id,
                 firstName: response.contact.first_name,
                 lastName: response.contact.last_name,
@@ -92,7 +99,6 @@ export default class UsersTab extends Component {
                 phoneNumbers: response.contact.phone_numbers,
                 emailAddresses: response.contact.emails,
                 mode: 'edit',
-
                 showAccountUserModal: true
             }
             this.setState(userInfo)
@@ -115,12 +121,11 @@ export default class UsersTab extends Component {
     refreshAccountUsers() {
         makeAjaxRequest('/users/getAccountUsers/' + this.props.accountId, 'GET', null, response => {
             response = JSON.parse(response)
-            this.setState({accountUsers: response})
+            this.setState({accountUsers: response, showAccountUserModal: false})
         })
     }
 
     storeAccountUser() {
-        this.setState({showAccountUserModal: false})
         const data = {
             account_id: this.props.accountId,
             contact_id: this.state.contactId,
@@ -211,8 +216,18 @@ export default class UsersTab extends Component {
                                         />
                                     </Tab>
                                     <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
-                                        <h4>Permissions stuff will go here</h4>
+                                        <UserPermissionTab
+                                            accounts={this.state.accounts}
+                                            belongsTo={this.state.belongsTo}
+                                        />
                                     </Tab>
+                                    {this.state.activityLog &&
+                                        <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
+                                            <ActivityLogTab
+                                                activityLog={this.state.activityLog}
+                                            />
+                                        </Tab>
+                                    }
                                 </Tabs>
                             </Col>
                         </Row>

@@ -7,15 +7,23 @@
 	use App\Http\Models\User;
 
 	class UserModelFactory {
-        public function getAccountUserByContactId($contact_id) {
+        public function getAccountUserByContactId($contactId) {
             $model = new AccountUserFormModel();
 
+            $accountRepo = new Repos\AccountRepo();
+            $activityLogRepo = new Repos\ActivityLogRepo();
             $userRepo = new Repos\UserRepo();
             $contactModelFactory = new Models\Partials\ContactModelFactory();
 
-            $model->account_id = $userRepo->GetAccountUserByContactId($contact_id)->account_id;
-            $model->contact = $contactModelFactory->GetEditModel($contact_id, false);
-            
+            $accountUser = $userRepo->GetAccountUserByContactId($contactId);
+
+            $model->account_id = $accountUser->account_id;
+            $model->contact = $contactModelFactory->GetEditModel($contactId, false);
+            $model->belongs_to = $userRepo->GetAccountsUserBelongsTo($accountUser->user_id);
+            $model->activity_log = $activityLogRepo->GetAccountUserActivityLog($contactId);
+            foreach($model->activity_log as $key => $log)
+                $model->activity_log[$key]->properties = json_decode($log->properties);
+
             return $model;
         }
 

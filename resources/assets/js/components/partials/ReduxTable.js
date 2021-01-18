@@ -164,7 +164,7 @@ export default class ReduxTable extends Component {
                                                 )}
                                             </Dropdown.Menu>
                                         </Dropdown>
-                                        <Button variant='primary' onClick={() => this.props.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
+                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
                                         {this.props.withSelected &&
                                             <Dropdown>
                                                 <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
@@ -172,7 +172,7 @@ export default class ReduxTable extends Component {
                                                     {this.props.withSelected.map(menuItem =>
                                                         <Dropdown.Item
                                                             key={menuItem.label}
-                                                            onClick={() => menuItem.onClick(this.props.tableRef.current.table.getSelectedRows())}
+                                                            onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
                                                         >{menuItem.label}</Dropdown.Item>
                                                     )}
                                                 </Dropdown.Menu>

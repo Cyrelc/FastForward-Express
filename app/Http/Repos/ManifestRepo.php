@@ -95,9 +95,7 @@ class ManifestRepo {
                 DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
                 'date_run',
                 'manifests.start_date',
-                'end_date',
-                DB::raw('(select sum(case when pickup_manifest_id = manifest_id and delivery_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = manifest_id then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = manifest_id then round(amount * delivery_driver_commission, 2) end) from bills) as driver_income'),
-                DB::raw('(select sum(amount) from chargebacks where manifests.manifest_id = chargebacks.manifest_id) as driver_chargeback_amount')
+                'end_date'
             );
 
         $filteredManifests = QueryBuilder::for($manifests)

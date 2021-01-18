@@ -5,9 +5,18 @@ use App\Http\Repos;
 
 class ManifestModelFactory{
     public function ListAll() {
+        $billRepo = new Repos\BillRepo;
+        $chargebackRepo = new Repos\ChargebackRepo;
         $manifestRepo = new Repos\ManifestRepo();
 
-        return $manifestRepo->ListAll();
+        $manifests = $manifestRepo->ListAll();
+        foreach($manifests as $manifest) {
+            $manifest->driver_gross = $billRepo->GetDriverTotalByManifestId($manifest->manifest_id);
+            $manifest->driver_chargeback_amount = $chargebackRepo->GetChargebackTotalByManifestId($manifest->manifest_id);
+            $manifest->driver_income = $manifest->driver_gross - $manifest->driver_chargeback_amount;
+        }
+
+        return $manifests;
     }
 
     public function GetById($manifest_id) {

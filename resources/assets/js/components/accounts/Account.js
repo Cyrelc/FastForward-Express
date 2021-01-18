@@ -260,7 +260,7 @@ class Account extends Component {
                         </Tab>
                         <Tab eventKey='invoicing' title={<h4>Invoicing</h4>}>
                             <InvoicingTab
-                                billingAddressName={this.state.billingAddressname}
+                                billingAddressName={this.state.billingAddressName}
                                 canBeParent={this.state.canBeParent}
                                 customTrackingField={this.state.customTrackingField}
                                 billingAddressFormatted={this.state.billingAddressFormatted}
