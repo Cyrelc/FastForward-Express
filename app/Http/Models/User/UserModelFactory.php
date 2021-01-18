@@ -19,7 +19,7 @@
 
             $model->account_id = $accountUser->account_id;
             $model->contact = $contactModelFactory->GetEditModel($contactId, false);
-            $model->belongs_to = $userRepo->GetAccountsUserBelongsTo($accountUser->user_id);
+            // $model->belongs_to = $userRepo->GetAccountsUserBelongsTo($accountUser->user_id);
             $model->activity_log = $activityLogRepo->GetAccountUserActivityLog($contactId);
             foreach($model->activity_log as $key => $log)
                 $model->activity_log[$key]->properties = json_decode($log->properties);
