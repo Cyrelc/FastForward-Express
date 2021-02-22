@@ -254,6 +254,7 @@ class AccountRepo {
             'custom_field',
             'discount',
             'gst_exempt',
+            'invoice_comment',
             'invoice_interval',
             'invoice_sort_order',
             'min_invoice_amount',

@@ -33,9 +33,14 @@
 </div>
 <div class='footer'>
     <table>
-        <td style='width: 30%'>(780) 458-1074</td>
-        <td style='width: 40%; text-align: center;'>Page: <span class='pagenum'></span></td>
-        <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>Fastfex@telus.net</a></td>
+        <tr>
+            <td style='width: 30%'>(780) 458-1074</td>
+            <td style='width: 40%; text-align: center;'>Page: <span class='pagenum'></span></td>
+            <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>Fastfex@telus.net</a></td>
+        </tr>
+        <tr>
+            <td style='width: 30%'>GST# 133746107</td>
+        </tr>
     </table>
 </div>
 <table id='addresses'>
