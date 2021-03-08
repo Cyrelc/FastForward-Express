@@ -7,7 +7,7 @@ class BillCollector {
 	private $prepaidTypes = ['Cash', 'Visa', 'Mastercard', 'American Express', 'Cheque', 'Bank Transfer'];
 
 	public function Collect($req, $pickupAddressId, $deliveryAddressId, $charge_id) { 
-//TODO: Only collect some fields if user is not an admin
+	//TODO: Only collect some fields if user is not an admin
 		if($req->bill_id === "" && new \DateTime($req->time_dispatched) > new \DateTime($req->time_call_received))
 			$req->time_dispatched === $req->time_call_received;
 
@@ -15,6 +15,7 @@ class BillCollector {
 			'amount' => $req->amount == "" ? null : $req->amount,
 			'bill_id' => $req->bill_id,
 			'bill_number' => $req->bill_number == "" ? null : $req->bill_number,
+			'charge_employee_id' => $req->charge_employee_id == "" ? null : $req->charge_employee_id,
 			'charge_account_id' => $req->payment_type['name'] === 'Account' ? $charge_id : null,
 			'charge_reference_value' => ($req->payment_type['name'] === 'Account' || $req->payment_type['required_field'] != null) ? $req->charge_reference_value : null,
 			'chargeback_id' => $req->payment_type['name'] === 'Driver' ? $charge_id : null,
