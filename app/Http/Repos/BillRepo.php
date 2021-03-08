@@ -526,7 +526,7 @@ class BillRepo {
 		if($paymentType->name === 'Account')
 			$requiredFields = array_merge($requiredFields, ['charge_account_id']);
 		elseif($paymentType->name === 'Driver')
-			$requiredFields = array_merge($requiredFields, ['charge_driver_id']);
+			$requiredFields = array_merge($requiredFields, ['charge_employee_id']);
 		elseif($paymentType->is_prepaid)
 			$requiredFields = array_merge($requiredFields, ['payment_id']);
 
