@@ -52,13 +52,14 @@ class EmployeeRepo {
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->when($activeOnly, function($query) {
-                return $query->where('is_enabled', 1);
+                return $query->where('users.is_enabled', 1);
             })->select(
                 DB::raw('concat(employee_number, " - ", first_name, " ", last_name) as label'),
                 'employee_id as value',
                 'pickup_commission',
                 'delivery_commission',
-                'employee_id'
+                'employee_id',
+                'is_enabled as active'
             );
 
         return $drivers->get();

@@ -13,7 +13,7 @@ export default function DispatchTab(props) {
                         <InputGroup.Prepend>
                             <InputGroup.Text>Driver: </InputGroup.Text>
                         </InputGroup.Prepend>
-                        <Select 
+                        <Select
                             options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
                             isSearchable
                             value={props.pickupEmployee}

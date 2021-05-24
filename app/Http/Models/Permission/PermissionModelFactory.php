@@ -186,7 +186,7 @@ class PermissionModelFactory {
             /* Invoices */
             'viewInvoices' => $user ? $user->can('invoices.view.*.*') : false,
             'createInvoices' => $user ? $user->can('invoices.create') : false,
-            'editInvoices' => $user ? $user->can('invoices.update.*.*') : false,
+            'editInvoices' => $user ? $user->can('invoices.edit.*.*') : false,
             'deleteInvoices' => $user ? $user->can('invoices.delete') : false,
             /* Manifests */
             'createManifests' => $user ? $user->can('manifests.create') : false,
