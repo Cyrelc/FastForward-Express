@@ -42,6 +42,12 @@ class PaymentRepo {
         return;
     }
 
+    public function GetAccountPaymentType() {
+        $paymentType = PaymentType::where('name', 'Account');
+
+        return $paymentType->first();
+    }
+
     public function GetPaymentType($paymentTypeId) {
         $payment_type = PaymentType::where('payment_type_id', $paymentTypeId);
 

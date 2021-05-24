@@ -9,90 +9,50 @@
 @stop
 
 @section('body')
-<div class="row">
-    <div class="col-lg-12">
-        <div id='FFELogo'>
-        <nav id="menu" class="navbar navbar-inverse">
-            <div class="container-fluid">
-                <div class="nav navbar-nav">
-                    @if (Auth::guest())
-                        <li><a href="/login">Log In <i class="fa fa-sign-in"></i></a></li>
-                    @else
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown">Bills</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/app/bills"><i class="fa fa-list"></i> List</li>
-                                <li><a href="/app/bills/create"><i class="fa fa-plus-square"></i> New</a></li>
-                                <li><a href='/app/charts'><i class='fas fa-chart-bar'></i> Trend</a>
-                            </ul>
-                        </li>
-                        <li class="dropdown" disabled>
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/invoices">Invoices</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/app/invoices"><i class="fa fa-list"></i> List</li>
-                                <li><a href="/app/invoices/generate"><i class='fa fa-plus-square'></i> Generate Invoices</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Accounts</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/app/accounts"><i class="fa fa-list"></i> List Accounts</a></li>
-                                <li><a href="/accounts/create"><i class="fa fa-plus-square"></i> New Account</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Interliners</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/app/interliners"><i class="fa fa-list"></i> List Interliners</a></li>
-                                <li><a href="/interliners/create"><i class="fa fa-plus-square"></i> New Interliner</a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown">Employees</a>
-                            <ul class="dropdown-menu">
-                                <li><a href="/app/employees"><i class="fa fa-list"></i> List</a></li>
-                                <li><a href="/app/employees/create"><i class="fa fa-plus-square"></i> New</a></li>
-                                <li><a href='/chargebacks'><i class='fa fa-tag'></i> Chargebacks</a></li>
-                                <li><a href='/app/manifests'><i class='fas fa-clipboard-list'></i> Manifests</a></li>
-                                <li><a href='/app/manifests/generate'><i class='fa fa-clipboard'></i> Generate Manifests</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href='/dispatch'>Dispatch</a>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="/admin">Administration</a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="/app/appsettings">Application Settings</a></li>
-                                    <li><a href='/app/ratesheets'>Rate Sheets</a></li>
-                                    <li><a href="/logout">Log Out</a></li>
-                                </ul>
-                        </li>
-                    @endif
-
-                    <li>
-                        <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile"></i></a>
-                    </li>
-                </div>
-            </div>
-        </nav>
+<div class='container-fluid'>
+    <div class='row'>
+        <div class='col-md-12'>
+            <nav class='navbar navbar-dark bg-dark'>
+                <a class='navbar-brand' style='padding-left: 10px' href='/home'><h4>Fast Forward<br/>&nbsp&nbsp&nbsp&nbspExpress</h4></a>
+                <a class='nav-item nav-link' href='/about'><h4>About</h4></a>
+                <a class='nav-item nav-link' href='/services'><h4>Services</h4></a>
+                <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4></a>
+                <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4></a>
+                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4></a>
+                <a class='nav-item nav-link' href='/login'><h4><i class='fas fa-sign-in-alt'></i> Sign In</h4></a>
+            </nav>
+        </div>
     </div>
+    <div class='row'>
+        <div class='col-md-12' class='container-fluid'>
+            @yield('content')
+        </div>
+    </div>
+    <footer>
+        <div class='row'>
+            <div class='col-md-4'>
+                <h2 class='footerLabel'>Contact Us</h2>
+                <h4 class='footerLabel'>Address</h4>
+                <h4>201 - 18 Rayborn Crescent<br>St.Albert, AB T8N 4B1</h4>
+                <h4 class='footerLabel'>Phone Number</h4>
+                <h4>780-458-1074</h4>
+                <h4 class='footerLabel'>Email</h4>
+                <h4>fastfex@telus.net</h4>
+            </div>
+            <div class='col-md-8'>
+                <h4 style='padding-top:110px; padding-right: 50px'>
+                    On nonsedignam ratat remquas eos sitis qui auda volum dit aditatem eos magnati officto tem res volo molore re paria consend
+                    aeperum essunt eruptae velia nonse omnis restiae pore et aute
+                    nam eos pre laces quis comnimint voloresto optaquae nus solupic atempostium conse vidunt mos sed qui officit endipita velit,
+                    aute nis senis evenienti dolori con reici am laut utem faccus.
+                </h4>
+                <h2 style='float:right; padding-right: 50px'>Fast Forward Express</h2>
+            </div>
+        </div>
+    </footer>
 </div>
 
-<div class="row">
-    @if(View::hasSection('advFilter'))
-        <div id="advFilter" class="col-lg-2">
-                @yield('advFilter')
-        </div>
-        <div id='content' class="col-lg-10">
-            @yield('content')
-        </div>
-    @else
-        <div id='content' class="col-lg-12">
-            @yield('content')
-        </div>
-    @endif
-</div>
+{{-- <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile"></i></a> --}}
 
 <div id="contact-us-modal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">

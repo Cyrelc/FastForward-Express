@@ -78,7 +78,7 @@ export default class GenerateManifests extends Component {
             <Card>
                 <Card.Header>
                     <Row className='justify-content-md-center'>
-                        <h3>Generate Invoices</h3>
+                        <h3>Generate Manifests</h3>
                     </Row>
                 </Card.Header>
                 <Card.Body>

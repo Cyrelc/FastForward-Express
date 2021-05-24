@@ -11,66 +11,48 @@ use App\Http\Models\Interliner;
 class InterlinerController extends Controller {
 
     public function buildTable() {
+        if($req->user()->cannot('viewAny', Interliner::class))
+            abort(403);
+
         $interlinerRepo = new Repos\InterlinerRepo();
         $interliners = $interlinerRepo->ListAll();
 
         return json_encode($interliners);
     }
 
-    public function create(Request $req) {
-        // Check permissions
-        $interliner_model_factory = new Interliner\InterlinerModelFactory();
-        $model = $interliner_model_factory->GetCreateModel($req);
-        return view('interliners.interliner', compact('model'));
-    }
-
-    public function edit(Request $req, $id) {
-        $factory = new Interliner\InterlinerModelFactory();
-        $model = $factory->GetEditModel($req, $id);
-        return view('interliners.interliner', compact('model'));
-    }
-
     public function store(Request $req) {
-    	//TODO - does not handle edit
-    	//TODO - check permissions
+        $interlinerRepo = new Repos\InterlinerRepo();
+        $interliner = $interlinerRepo->GetById($req->interliner_id);
+        if($req->interliner_id ? $req->user()->cannot('update', $interliner) : $req->user()->cannot('create', Interliner::class))
+            abort(403);
+
         DB::beginTransaction();
-        try {
-            $interlinerValidation = new \App\Http\Validation\InterlinerValidationRules();
-            $temp = $interlinerValidation->GetValidationRules($req);
+        $interlinerValidation = new \App\Http\Validation\InterlinerValidationRules();
+        $temp = $interlinerValidation->GetValidationRules($req);
+        $this->validate($req, $temp['rules'], $temp['messages']);
 
-            $validationRules = $temp['rules'];
-            $validationMessages = $temp['messages'];
+        $addrCollector = new \App\Http\Collectors\AddressCollector();
+        $interlinerCollector = new \App\Http\Collectors\InterlinerCollector();
+        $addrRepo = new Repos\AddressRepo();
 
-            $addrCollector = new \App\Http\Collectors\AddressCollector();
-            $interlinerCollector = new \App\Http\Collectors\InterlinerCollector();
-            $addrRepo = new Repos\AddressRepo();
-            $interlinerRepo = new Repos\InterlinerRepo();
+        $address = $addrCollector->CollectMinimal($req, 'address');
+        if ($req->address_id)
+            $addressId = $addrRepo->Update($address)->address_id;
+        else
+            $addressId = $addrRepo->InsertMinimal($address)->address_id;
 
-            $address = $addrCollector->CollectForAccount($req, 'address');
-            if ($req->address_id) 
-                $addressId = $addrRepo->Update($address)->address_id;
-            else
-                $addressId = $addrRepo->Insert($address)->address_id;
+        $interliner = $interlinerCollector->Collect($req, $addressId);
 
-            $interliner = $interlinerCollector->Collect($req, $addressId);
+        if ($req->interliner_id)
+            $interliner = $interlinerRepo->Update($interliner);
+        else
+            $interliner = $interlinerRepo->Insert($interliner);
 
-            if ($req->interliner_id) {
-                $interliner = $interlinerRepo->Update($interliner);
-                DB::commit();
-                return redirect()->action('InterlinerController@index');
-            }
-            else {
-                $interliner = $interlinerRepo->Insert($interliner);
-                DB::commit();
-                return redirect()->action('InterlinerController@create');
-            }
-        } catch(Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        DB::commit();
+        return response()->json([
+            'success' => true,
+            'interliners' => $interlinerRepo->ListAll()
+        ]);
     }
 }
 

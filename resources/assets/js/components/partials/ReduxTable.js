@@ -21,7 +21,6 @@ export default class ReduxTable extends Component {
     // On mount we have to parse the query string in the URL to see if any values were set.
     // Those filters that are matched, are set to active
     componentDidMount() {
-        // console.log("COMPONENT DID MOUNT")
         if(window.location.search == '' && this.props.reduxQueryString)
             this.props.redirect(window.location.pathname + this.props.reduxQueryString)
         this.setState({
@@ -32,7 +31,6 @@ export default class ReduxTable extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        console.log("COMPONENT DID UPDATE")
         if(this.props.refreshTable === true) {
             this.refreshTable()
             this.props.toggleRefreshTable()
@@ -41,6 +39,8 @@ export default class ReduxTable extends Component {
         }
         if(this.props.tableData != prevProps.tableData && this.state.groupBy)
             this.handleGroupByChange(this.state.groupBy)
+        if(this.props.filters != prevProps.filters)
+            this.setState({filters: this.parseFilters()})
     }
 
     handleActiveFiltersChange(activeFilters) {
@@ -61,7 +61,6 @@ export default class ReduxTable extends Component {
     }
 
     handleGroupByChange(event) {
-        console.log(event)
         if(event.value) {
             this.state.tableRef.current.table.setGroupBy(event.value)
             if(event.groupHeader)
@@ -138,7 +137,7 @@ export default class ReduxTable extends Component {
                                             <InputGroup.Text>Select Active Filters: </InputGroup.Text>
                                         </InputGroup.Prepend>
                                         <Select
-                                            options={this.state.filters}
+                                            options={this.state.filters.filter(filter => filter.type != 'SelectFilter' || (filter.selections && filter.selections.length > 1))}
                                             value={this.state.filters.filter(filter => filter.active) || ''}
                                             getOptionLabel={option => option.name}
                                             onChange={filters => this.handleActiveFiltersChange(filters)}

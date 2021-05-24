@@ -146,7 +146,14 @@ function makeAjaxRequest(url, type, data, callback) {
             console.log(response.status)
             if(response.status === 401 || response.message === 'CSRF token mismatch.')
                 location.reload()
-            handleErrorResponse(response)
+            else if(response.status === 403) {
+                responseText = JSON.parse(response.responseText)
+                if(responseText.message)
+                    toastr.error(responseText.message, 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
+                else
+                    toastr.error('Authenticated User does not have permission to perform the requested action', 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
+            } else
+                handleErrorResponse(response)
         }
     })
 }

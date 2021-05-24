@@ -14,17 +14,26 @@ use \App\Http\Validation\Utils;
 class PaymentController extends Controller {
 
     public function GetModelByAccountId(Request $req, $accountId) {
+        $accountRepo = new Repos\AccountRepo();
+        $account = $accountRepo->GetById($accountId);
+        if($req->user()->cannot('viewPayments', $account))
+            abort(403);
+
         $paymentModelFactory = new Models\Payment\PaymentModelFactory();
         $paymentModel = $paymentModelFactory->GetModelByAccountId($accountId);
+
         return json_encode($paymentModel);
     }
 
     public function ProcessAccountPayment(Request $req) {
+        if($req->user()->cannot('create', Payment::class))
+            abort(403);
+
         DB::beginTransaction();
 
-        $paymentRepo = new Repos\PaymentRepo();
-        $invoiceRepo = new Repos\InvoiceRepo();
         $accountRepo = new Repos\AccountRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $paymentRepo = new Repos\PaymentRepo();
 
         $paymentCollector = new Collectors\PaymentCollector();
 

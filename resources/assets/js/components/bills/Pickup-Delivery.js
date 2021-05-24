@@ -77,21 +77,13 @@ export default function Pickup_Delivery(props) {
                                 <InputGroup.Prepend>
                                     <InputGroup.Text>Select Account: </InputGroup.Text>
                                 </InputGroup.Prepend>
-                                {props.readOnly ?
-                                    <FormControl 
-                                        readOnly={true}
-                                        value={props.data.account.account_number + ' - ' + props.data.account.name}
-                                    />
-                                    :
-                                    <Select 
-                                        options={props.accounts}
-                                        getOptionLabel={account => account.account_number + ' - ' + account.name}
-                                        getOptionValue={account => account.account_id}
-                                        isSearchable
-                                        value={props.data.account}
-                                        onChange={account => props.handleChanges({target: {name: props.id + 'Account', type: 'number', value: account}})}
-                                    />
-                                }
+                                <Select
+                                    options={props.accounts}
+                                    isSearchable
+                                    value={props.data.account}
+                                    onChange={account => props.handleChanges({target: {name: props.id + 'Account', type: 'number', value: account}})}
+                                    isDisabled={props.readOnly}
+                                />
                             </InputGroup>
                         </Col>
                     </Row>

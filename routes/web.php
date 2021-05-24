@@ -32,8 +32,8 @@ Route::group(
         ['middleware' => 'auth'],
         function() {
             Route::get('/', 'HomeController@index');
-            Route::get('/getList/{type}/{parameter?}', 'HomeController@getList');
             Route::get('/getDashboard', 'HomeController@getDashboard');
+            Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
 
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
@@ -48,8 +48,8 @@ Route::group(
 
             Route::get('/bills/buildTable', 'BillController@buildTable');
             Route::get('/bills/chart', 'AdminController@getChart');
-            Route::get('/bills/delete/{id}', 'BillController@delete');
-            Route::get('/bills/getModel/{id?}', 'BillController@getModel');
+            Route::get('/bills/delete/{billId}', 'BillController@delete');
+            Route::get('/bills/getModel/{billId?}', 'BillController@getModel');
             Route::post('/bills/store', 'BillController@store');
             Route::get('/bills/assignToInvoice/{billId}/{invoiceId}', 'BillController@assignToInvoice');
             Route::get('/bills/removeFromInvoice/{billId}', 'BillController@removeFromInvoice');
@@ -71,12 +71,10 @@ Route::group(
             Route::get('/employees/toggleActive/{id}', 'EmployeeController@toggleActive');
 
             Route::get('/interliners/buildTable', 'InterlinerController@buildTable');
-            Route::get('/interliners/create', 'InterlinerController@create');
             Route::post('/interliners/store', 'InterlinerController@store');
-            Route::get('/interliners/edit/{id}', 'InterlinerController@edit');
 
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
-            Route::get('/invoices/getModel/{invoiceId}','InvoiceController@getModel');
+            Route::get('/invoices/getModel/{invoiceId?}','InvoiceController@getModel');
             Route::post('/invoices/store', 'InvoiceController@store');
             Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
@@ -116,8 +114,11 @@ Route::group(
             Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
             Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
             Route::get('/users/createAccountUser/{id}', 'UserController@createAccountUser');
-            Route::get('/users/deleteAccountUser/{contactId}', 'UserController@deleteAccountUser');
-            Route::get('/users/getAccountUserModel/{contactId}', 'UserController@getAccountUserModel');
+            Route::get('/users/deleteAccountUser/{contactId}/{accountId}', 'UserController@deleteAccountUser');
+            Route::get('/users/getAccountUserModel/{accountId}/{contactId?}', 'UserController@getAccountUserModel');
+            Route::get('/users/checkIfEmailTaken/{email}', 'UserController@checkIfEmailTaken');
+            Route::post('/users/checkIfAccountUserExists', 'UserController@checkIfAccountUserExists');
+            Route::get('/users/linkAccountUser/{contactId}/{accountId}', 'UserController@LinkAccountUser');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);
@@ -136,8 +137,14 @@ Route::group(
         ['middleware' => 'guest'],
         function() {
             Route::get('/about', 'GuestController@about');
+            Route::get('/contact', 'GuestController@contact');
+            Route::get('/home', 'GuestController@home');
             Route::get('/login', 'Auth\AuthController@getLogin');
             Route::post('/login', 'Auth\AuthController@postLogin');
+            Route::get('/requestDelivery', 'GuestController@requestDelivery');
+            // Route::post('/requestDelivery', 'GuestController@requestDelivery');
+            Route::get('requestQuote', 'GuestController@requestQuote');
+            Route::get('/services', 'GuestController@services');
         }
 );
 

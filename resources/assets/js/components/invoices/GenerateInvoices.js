@@ -21,16 +21,16 @@ export default class GenerateInvoices extends Component {
     }
 
     componentDidMount() {
-        const currentDate = new Date()
-        const firstDayOfPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-        //note the following line MODIFIES currentDate - so if you use it subsequently, beware!!
-        const lastDayOfPreviousMonth = new Date(currentDate.moveToFirstDayOfMonth().setHours(-1))
-        makeAjaxRequest('/getList/selections/invoice_interval', 'GET', null, response => {
+        // const currentDate = new Date()
+        // const firstDayOfPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+        // note the following line MODIFIES currentDate - so if you use it subsequently, beware!!
+        // const lastDayOfPreviousMonth = new Date(currentDate.moveToFirstDayOfMonth().setHours(-1))
+        makeAjaxRequest('/invoices/getModel', 'GET', null, response => {
             response = JSON.parse(response)
             this.setState({
-                invoiceIntervals: response,
-                startDate: firstDayOfPreviousMonth,
-                endDate: lastDayOfPreviousMonth,
+                invoiceIntervals: response.invoice_intervals,
+                startDate: Date.parse(response.start_date),
+                endDate: Date.parse(response.end_date),
             })
         })
     }
@@ -54,7 +54,7 @@ export default class GenerateInvoices extends Component {
         makeAjaxRequest('/invoices/getAccountsToInvoice', 'POST', data, response => {
             response = JSON.parse(response)
             toastr.clear()
-            this.setState({accounts: response})
+            this.setState({accounts: response.accounts})
         })
     }
 
@@ -167,8 +167,7 @@ export default class GenerateInvoices extends Component {
                 </Card.Body>
                 <Card.Footer>
                     <p>The following accounts fit the selected criteria and have bills that are yet to be invoiced:</p>
-                    {
-                        this.state.accounts.length === 0 ?
+                    {this.state.accounts.length === 0 ?
                         <p style={{color: 'red'}}>Currently no accounts are selected to invoice</p> :
                         <ReactTabulator
                             ref={this.state.tableRef}

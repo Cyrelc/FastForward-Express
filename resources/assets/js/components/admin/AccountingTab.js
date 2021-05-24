@@ -30,9 +30,9 @@ export default function AccountingTab(props) {
                 </Row>
                 <hr/>
                 <Row>
-                    <Col md={2}><h4 className='text-muted'>Payment Types</h4></Col>
+                    <Col md={2}><h4 className='text-muted'>Default Ratesheets For Payment Types</h4></Col>
                     <Col md={10}>
-                        {Object.keys(props.paymentTypes).map(index => 
+                        {props.paymentTypes && Object.keys(props.paymentTypes).map(index =>
                             <InputGroup key={'paymentType' + index}>
                                 <InputGroup.Prepend style={{width: '20%'}}>
                                     <InputGroup.Text style={{width: '100%'}}>{props.paymentTypes[index].name}</InputGroup.Text>

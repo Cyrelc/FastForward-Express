@@ -5,19 +5,11 @@ namespace App\Http\Models\Account;
 use App\Http\Repos;
 use App\Http\Models;
 use App\Http\Models\Account;
+use App\Http\Models\Permission;
 use App\Http\Models\User;
 
 class AccountModelFactory {
-
-    public function ListAll() {
-        $model = new AccountsModel();
-
-        $accountRepo = new Repos\AccountRepo();
-
-        return $accountRepo->listAll();
-    }
-
-    public function GetCreateModel() {
+    public function GetCreateModel($permissions) {
         $model = new AccountFormModel();
         $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
@@ -37,6 +29,7 @@ class AccountModelFactory {
         $model->account->send_bills = 1;
         $model->account->send_invoices = 1;
         $model->ratesheets = $ratesheetRepo->GetRatesheetSelectList();
+        $model->permissions = $permissions;
 
         $model->account->invoice_sort_order = $this->composeInvoiceSortOptions();
 
@@ -45,37 +38,50 @@ class AccountModelFactory {
         return $model;
     }
 
-    public function GetEditModel($accountId) {
+    public function GetEditModel($accountId, $permissions) {
         $model = new AccountFormModel();
 
+        //Model factories
+        $contactsModelFactory = new Models\Partials\ContactsModelFactory();
+        $permissionModelFactory = new Permission\PermissionModelFactory();
+        $userModelFactory = new User\UserModelFactory();
+
+        //Repos
         $accountRepo = new Repos\AccountRepo();
         $activityLogRepo = new Repos\ActivityLogRepo();
         $addressRepo = new Repos\AddressRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
-        $userModelFactory = new User\UserModelFactory();
 
-        $contactsModelFactory = new Models\Partials\ContactsModelFactory();
+        $model->permissions = $permissions;
+        $model->account = $accountRepo->GetByIdWithPermissions($accountId, $permissions);
 
-        $model->account = $accountRepo->GetById($accountId);
         $model->account->invoice_sort_order = json_decode($model->account->invoice_sort_order);
+        $model->billing_address = $addressRepo->GetById($model->account->billing_address_id);
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
         $model->shipping_address = $addressRepo->GetById($model->account->shipping_address_id);
-        $model->billing_address = $addressRepo->GetById($model->account->billing_address_id);
-        $model->ratesheets = $ratesheetRepo->GetRatesheetSelectList();
-        $model->child_account_list = $accountRepo->CountChildAccounts($accountId);
-
-        if (isset($model->account->parent_account_id))
-            $model->parentAccount = $accountRepo->GetById($model->account->parent_account_id);
-
-        $model->parent_accounts = $accountRepo->GetParentAccountsList();
-        $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($accountId);
         $model->account->invoice_sort_order = $this->composeInvoiceSortOptions($model->account->invoice_sort_order);
 
-        $model->activity_log = $activityLogRepo->GetAccountActivityLog($model->account->account_id);
-        foreach($model->activity_log as $key => $log)
-            $model->activity_log[$key]->properties = json_decode($log->properties);
+        if($permissions['viewChildren'])
+            $model->child_account_list = $accountRepo->GetChildAccountList($accountId);
+
+        if($permissions['viewParent'])
+            $model->parent_accounts = $accountRepo->GetParentAccountsList($model->account->parent_account_id);
+
+        if($permissions['editAdvanced']) {
+            $model->ratesheets = $ratesheetRepo->GetRatesheetSelectList();
+            $model->parent_accounts = $accountRepo->GetParentAccountsList();
+        }
+
+        if($permissions['viewPayments'] || $permissions['editPayments'])
+            $model->balance_owing = $invoiceRepo->CalculateAccountBalanceOwing($accountId);
+
+        if($model->permissions['viewActivityLog']) {
+            $model->activity_log = $activityLogRepo->GetAccountActivityLog($model->account->account_id);
+            foreach($model->activity_log as $key => $log)
+                $model->activity_log[$key]->properties = json_decode($log->properties);
+        }
 
         // $model->prev_id = $accountRepo->GetPrevActiveById($accountId);
         // $model->next_id = $accountRepo->GetNextActiveById($accountId);

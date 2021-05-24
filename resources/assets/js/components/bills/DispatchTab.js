@@ -14,8 +14,7 @@ export default function DispatchTab(props) {
                             <InputGroup.Text>Driver: </InputGroup.Text>
                         </InputGroup.Prepend>
                         <Select 
-                            options={props.drivers}
-                            getOptionLabel={driver => driver.employee_number + ' - ' + driver.contact.first_name + ' ' + driver.contact.last_name}
+                            options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
                             isSearchable
                             value={props.pickupEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'pickupEmployee', type: 'object', value: driver}})}
@@ -71,8 +70,7 @@ export default function DispatchTab(props) {
                             <InputGroup.Text>Driver: </InputGroup.Text>
                         </InputGroup.Prepend>
                         <Select 
-                            options={props.drivers}
-                            getOptionLabel={driver => driver.employee_number + ' - ' + driver.contact.first_name + ' ' + driver.contact.last_name}
+                            options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
                             isSearchable
                             value={props.deliveryEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'deliveryEmployee', type: 'object', value: driver}})}
@@ -120,58 +118,17 @@ export default function DispatchTab(props) {
                 </Col>
             </Row>
             <hr/>
-            <Row> {/* Interliner */}
-                <Col md={2}>
-                    <h4 className='text-muted'>Interliner</h4>
-                </Col>
-                <Col md={9}>
-                    <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Interliner: </InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <Select
-                            options={props.interliners}
-                            isSearchable
-                            value={props.interliner}
-                            onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}
-                            isDisabled={props.readOnly || props.invoiceId}
-                        />
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Tracking #</InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl
-                            type='text'
-                            placeholder='Tracking Number'
-                            name='interlinerTrackingId'
-                            value={props.interlinerTrackingId}
-                            onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.invoiceId}
-                        />
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Cost To Customer: </InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl
-                            type='number'
-                            step={0.01}
-                            min={0}
-                            name='interlinerCostToCustomer'
-                            value={props.interlinerCostToCustomer}
-                            onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.invoiceId}
-                        />
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Actual Cost: </InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl
-                            type='number'
-                            step={0.01}
-                            min={0}
-                            name='interlinerActualCost'
-                            value={props.interlinerActualCost}
-                            onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.invoiceId}
-                        />
-                    </InputGroup>
+            <Row className='pad-top'>
+                <Col md={2}><h4 className='text-muted'>Internal Notes</h4></Col>
+                <Col md={10}>
+                    <FormControl
+                        as='textarea'
+                        placeholder='Internal notes are never meant to be seen by the client'
+                        name='internalNotes'
+                        value={props.internalNotes}
+                        onChange={props.handleChanges}
+                        readOnly={props.readOnly}
+                    />
                 </Col>
             </Row>
             <hr/>

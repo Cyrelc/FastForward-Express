@@ -85,7 +85,7 @@ class ManifestRepo {
         return Manifest::where('manifest_id', $manifest_id)->first();
     }
 
-    public function ListAll() {
+    public function ListAll($req, $employeeId = null) {
         $manifests = Manifest::leftJoin('employees', 'employees.employee_id', '=', 'manifests.employee_id')
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->select(
@@ -97,6 +97,9 @@ class ManifestRepo {
                 'manifests.start_date',
                 'end_date'
             );
+
+        if($employeeId)
+            $manifests->where('employees.employee_id', $employeeId);
 
         $filteredManifests = QueryBuilder::for($manifests)
             ->allowedFilters([

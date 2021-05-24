@@ -55,16 +55,17 @@ class ActivityLogRepo {
         return $activity->get();
     }
 
-    public function GetBillActivityLog($bill_id) {
+    public function GetBillActivityLog($billId) {
         $billRepo = new BillRepo();
-        $bill = $billRepo->GetById($bill_id);
-        $activity = ActivityLog::where([['subject_type', 'App\Bill'], ['subject_id', $bill_id]])
+        $bill = $billRepo->GetById($billId);
+        $activity = ActivityLog::where([['subject_type', 'App\Bill'], ['subject_id', $billId]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->pickup_address_id]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->delivery_address_id]])
             ->orWhere([['subject_type', 'App\Payment'], ['subject_id', $bill->payment_id]])
             ->orWhere([['subject_type', 'App\Chargeback'], ['subject_id', $bill->chargeback_id]])
             ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
-            ->select('activity_log.updated_at',
+            ->select(
+                'activity_log.updated_at',
                 'subject_type',
                 'subject_id',
                 'users.email as user_name',
@@ -96,6 +97,10 @@ class ActivityLogRepo {
             ->orWhere(function($phones) use ($relevantIds) {
                 $phones->where('subject_type', 'App\Phone');
                 $phones->whereIn('subject_id', $relevantIds['phone_ids']);
+            })
+            ->orWhere(function ($users) use ($employee) {
+                $users->where('subject_type', 'App\User');
+                $users->where('subject_id', $employee->user_id);
             })
             ->orderBy('activity_log.updated_at', 'desc');
 

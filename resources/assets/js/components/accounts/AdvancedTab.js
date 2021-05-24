@@ -112,7 +112,7 @@ export default function AdvancedTab(props) {
                             label='Can be Parent'
                             checked={props.canBeParent}
                             onChange={props.handleChanges}
-                            disabled={props.childAccountCount != 0}
+                            disabled={props.parentAccount || (props.childAccountList && props.childAccountList.length > 0)}
                         />
                     </Col>
                     <Col md={2}>

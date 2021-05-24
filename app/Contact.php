@@ -18,10 +18,18 @@ class Contact extends Model
     protected static $submitEmptyLogs = false;
 
     public function accounts() {
-        return $this->belongsToMany('App\Account', 'account_users');
+        return $this->belongsToMany(Account::class, 'account_users');
     }
 
     public function employees() {
-        return $this->belongsToMany('App\Employee', 'employee_emergency_contacts');
+        return $this->belongsToMany(Employee::class, 'employee_emergency_contacts');
+    }
+
+    public function email_addresses() {
+        return $this->hasMany(EmailAddress::class);
+    }
+
+    public function primary_email() {
+        return $this->hasOne(EmailAddress::class, 'contact_id')->where('is_primary', true);
     }
 }

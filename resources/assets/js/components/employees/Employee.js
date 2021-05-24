@@ -10,9 +10,6 @@ import DriverTab from './DriverTab'
 
 const initialState = {
     activityLog: undefined,
-    action: undefined,
-    active: true,
-    admin: true, // ????
     birthDate: new Date(),
     companyName: '',
     deliveryCommission: '',
@@ -30,6 +27,8 @@ const initialState = {
     employeeAddressPlaceId: '',
     employeeId: undefined,
     employeeNumber: '',
+    employeePermissions: [],
+    enabled: true,
     firstName: '',
     insuranceExpirationDate: new Date(),
     insuranceNumber: '',
@@ -37,6 +36,7 @@ const initialState = {
     lastName: '',
     licensePlateNumber: '',
     licensePlateExpirationDate: new Date(),
+    permissions: [],
     phoneNumbers: [{phone: '', extension: '', is_primary: true}],
     phoneNumbersToDelete: [],
     pickupCommission: '',
@@ -44,6 +44,7 @@ const initialState = {
     readOnly: false,
     SIN: '',
     startDate: new Date(),
+    updatedAt: ''
 }
 
 class Employee extends Component {
@@ -54,6 +55,7 @@ class Employee extends Component {
         }
         this.configureEmployee = this.configureEmployee.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
+        this.handlePermissionChange = this.handlePermissionChange.bind(this)
         this.storeEmployee = this.storeEmployee.bind(this)
     }
 
@@ -68,66 +70,65 @@ class Employee extends Component {
 
     configureEmployee() {
         const {match: {params}} = this.props
-        var fetchUrl = '/employees/getModel'
-        if(params.action === 'edit' || params.action === 'view') {
-            document.title = params.action === 'edit' ? 'Edit Employee - ' + document.title : 'View Employee - ' + document.title
-            fetchUrl += '/' + params.employeeId
-        } else {
-            document.title = 'Create Employee - ' + document.title
-        }
-        makeFetchRequest(fetchUrl, data => {
+        const fetchUrl = params.employeeId ? '/employees/getModel/' + params.employeeId : '/employees/getModel'
+        params.employeeId ? document.title = 'Edit Employee - ' + params.employeeId : 'Create Employee'
+
+        makeAjaxRequest(fetchUrl, 'GET', null, response => {
+            response = JSON.parse(response)
             var setup = {
                 ...initialState,
-                action: params.action,
-                emailTypes: data.contact.email_types,
-                phoneTypes: data.contact.phone_types,
+                emailTypes: response.contact.email_types,
+                employeePermissions: response.employee_permissions,
+                permissions: response.permissions,
+                phoneTypes: response.contact.phone_types,
             }
-            if(params.action === 'edit' || params.action === 'view') {
-                const thisEmployeeIndex = this.props.sortedEmployees.findIndex(employee_id => employee_id === data.employee.employee_id)
+            if(params.employeeId) {
+                const thisEmployeeIndex = this.props.sortedEmployees.findIndex(employee_id => employee_id === response.employee.employee_id)
                 const prevEmployeeId = thisEmployeeIndex <= 0 ? null : this.props.sortedEmployees[thisEmployeeIndex - 1]
                 const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === this.props.sortedEmployees.length - 1) ? null : this.props.sortedEmployees[thisEmployeeIndex + 1]
                 setup = {...setup,
-                    active: data.employee.active,
-                    activityLog: data.activity_log,
-                    birthDate: Date.parse(data.employee.dob),
-                    driver: data.employee.is_driver,
-                    emailAddresses: data.contact.emails,
-                    emergencyContacts: data.emergency_contacts,
-                    employeeAddressLat: data.contact.address.lat,
-                    employeeAddressLng: data.contact.address.lng,
-                    employeeAddressFormatted: data.contact.address.formatted,
-                    employeeAddressName: data.contact.address.name,
-                    employeeAddressPlaceId: data.contact.address.place_id,
-                    employeeId: data.employee.employee_id,
-                    employeeNumber: data.employee.employee_number,
-                    firstName: data.contact.first_name,
+                    activityLog: response.activity_log,
+                    birthDate: Date.parse(response.employee.dob),
+                    driver: response.employee.is_driver,
+                    emailAddresses: response.contact.emails,
+                    emergencyContacts: response.emergency_contacts,
+                    employeeAddressLat: response.contact.address.lat,
+                    employeeAddressLng: response.contact.address.lng,
+                    employeeAddressFormatted: response.contact.address.formatted,
+                    employeeAddressName: response.contact.address.name,
+                    employeeAddressPlaceId: response.contact.address.place_id,
+                    employeeId: response.employee.employee_id,
+                    employeeNumber: response.employee.employee_number,
+                    enabled: response.employee.is_enabled,
+                    firstName: response.contact.first_name,
                     key: this.state.key,
-                    lastName: data.contact.last_name,
+                    lastName: response.contact.last_name,
                     nextEmployeeId: nextEmployeeId,
-                    phoneNumbers: data.contact.phone_numbers,
-                    position: data.contact.position,
+                    phoneNumbers: response.contact.phone_numbers,
+                    position: response.contact.position,
                     prevEmployeeId: prevEmployeeId,
-                    SIN: data.employee.sin,
-                    startDate: Date.parse(data.employee.start_date),
+                    SIN: response.employee.sin,
+                    startDate: Date.parse(response.employee.start_date),
+                    updatedAt: response.employee.updated_at,
                     //driverAttributes
-                    companyName: data.employee.company_name === null ? undefined : data.employee.company_name,
-                    pickupCommission: data.employee.pickup_commission,
-                    deliveryCommission: data.employee.delivery_commission,
-                    licensePlateNumber: data.employee.license_plate_number,
-                    licensePlateExpirationDate: Date.parse(data.employee.license_plate_expiration_date),
-                    driversLicenseNumber: data.employee.drivers_license_number,
-                    driversLicenseExpirationDate: Date.parse(data.employee.drivers_license_expiration_date),
-                    insuranceNumber: data.employee.insurance_number,
-                    insuranceExpirationDate: Date.parse(data.employee.insurance_expiration_date)
+                    companyName: response.employee.company_name === null ? undefined : response.employee.company_name,
+                    deliveryCommission: response.employee.delivery_commission,
+                    driversLicenseNumber: response.employee.drivers_license_number,
+                    driversLicenseExpirationDate: Date.parse(response.employee.drivers_license_expiration_date),
+                    insuranceNumber: response.employee.insurance_number,
+                    insuranceExpirationDate: Date.parse(response.employee.insurance_expiration_date),
+                    licensePlateNumber: response.employee.license_plate_number,
+                    licensePlateExpirationDate: Date.parse(response.employee.license_plate_expiration_date),
+                    pickupCommission: response.employee.pickup_commission
                 }
                 toastr.clear()
-                if(setup.driversLicenseExpirationDate < new Date() && data.employee.active)
+                if(setup.driversLicenseExpirationDate < new Date() && response.employee.is_enabled)
                     toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.licensePlateExpirationDate < new Date() && data.employee.active)
+                if(setup.licensePlateExpirationDate < new Date() && response.employee.is_enabled)
                     toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.insuranceExpirationDate < new Date() && data.employee.active)
+                if(setup.insuranceExpirationDate < new Date() && response.employee.is_enabled)
                     toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.emergencyContacts.length < 2 && data.employee.active)
+                if(setup.emergencyContacts.length < 2 && response.employee.is_enabled)
                     toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
             }
             this.setState(setup)
@@ -145,10 +146,18 @@ class Employee extends Component {
         this.setState(temp)
     }
 
+    handlePermissionChange(event) {
+        const {name, value, checked} = event.target
+
+        const employeePermissions = {...this.state.employeePermissions, [name]: checked}
+
+        this.setState({employeePermissions: employeePermissions})
+    }
+
     render() {
         return (
             <span>
-                {(this.state.action != 'create' && this.state.driver) &&
+                {(this.state.employeeId && this.state.driver == 1) &&
                     <Row md={11} className='justify-content-md-center'>
                         <Col md={6}>
                             <ListGroup className='list-group-horizontal' as='ul'>
@@ -185,7 +194,6 @@ class Employee extends Component {
                                         lng: this.state.employeeAddressLng,
                                         placeId: this.state.employeeAddressPlaceId
                                     }}
-                                    admin={this.state.admin}
                                     emailAddresses={this.state.emailAddresses}
                                     emergencyContacts={this.state.emergencyContacts}
                                     employeeId={this.state.employeeId}
@@ -198,37 +206,41 @@ class Employee extends Component {
                                     handleChanges={this.handleChanges}
                                 />
                             </Tab>
-                            { this.state.driver &&
+                            {(this.state.permissions.viewAdvanced && this.state.driver == 1) &&
                                 <Tab eventKey='driver' title={<h4>Driver</h4>}>
                                     <DriverTab
-                                        admin={this.state.admin}
                                         companyName={this.state.companyName}
                                         pickupCommission={this.state.pickupCommission}
                                         deliveryCommission={this.state.deliveryCommission}
                                         driversLicenseNumber={this.state.driversLicenseNumber}
                                         driversLicenseExpirationDate={this.state.driversLicenseExpirationDate}
-                                        handleChanges={this.handleChanges}
                                         insuranceNumber={this.state.insuranceNumber}
                                         insuranceExpirationDate={this.state.insuranceExpirationDate}
                                         licensePlateNumber={this.state.licensePlateNumber}
                                         licensePlateExpirationDate={this.state.licensePlateExpirationDate}
-                                        readOnly={this.state.readOnly}
+
+                                        handleChanges={this.handleChanges}
+                                        readOnly={!this.state.permissions.editAdvanced}
                                     />
                                 </Tab>
                             }
-                            <Tab eventKey='admin' title={<h4>Administration</h4>}>
-                                <AdministrationTab
-                                    active={this.state.active}
-                                    admin={this.state.admin}
-                                    birthDate={this.state.birthDate}
-                                    driver={this.state.driver}
-                                    employeeNumber={this.state.employeeNumber}
-                                    handleChanges={this.handleChanges}
-                                    SIN={this.state.SIN}
-                                    startDate={this.state.startDate}
-                                />
-                            </Tab>
-                            {this.state.activityLog &&
+                            {this.state.permissions.editAdvanced &&
+                                <Tab eventKey='admin' title={<h4>Administration</h4>}>
+                                    <AdministrationTab
+                                        birthDate={this.state.birthDate}
+                                        driver={this.state.driver}
+                                        employeeNumber={this.state.employeeNumber}
+                                        employeePermissions={this.state.employeePermissions}
+                                        enabled={this.state.enabled}
+                                        SIN={this.state.SIN}
+                                        startDate={this.state.startDate}
+
+                                        handleChanges={this.handleChanges}
+                                        handlePermissionChange={this.handlePermissionChange}
+                                    />
+                                </Tab>
+                            }
+                            {(this.state.activityLog && this.state.permissions.viewActivityLog) &&
                                 <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                                     <ActivityLogTab
                                         activityLog={this.state.activityLog}
@@ -250,46 +262,59 @@ class Employee extends Component {
     }
 
     storeEmployee() {
-        const data = {
-            active: this.state.active,
+        if(!this.state.permissions.editBasic) {
+            toastr.error('Authenticated User does not have permission to update this employee', 'Error');
+            return;
+        }
+
+        var data = {
             address_formatted: this.state.employeeAddressFormatted,
             address_lat: this.state.employeeAddressLat,
             address_lng: this.state.employeeAddressLng,
             address_name: this.state.employeeAddressName,
             address_place_id: this.state.employeeAddressPlaceId,
-            birth_date: this.state.birthDate.toLocaleString('en-us'),
-            company_name: this.state.companyName,
-            delivery_commission: this.state.deliveryCommission,
-            is_driver: this.state.driver,
-            drivers_license_expiration_date: this.state.driversLicenseExpirationDate.toLocaleString('en-us'),
-            drivers_license_number: this.state.driversLicenseNumber,
+            employee_id: this.state.employeeId,
             emails: this.state.emailAddresses,
             emergency_contacts: this.state.emergencyContacts,
-            employee_id: this.state.employeeId ? this.state.employeeId : null,
-            employee_number: this.state.employeeNumber,
             first_name: this.state.firstName,
-            insurance_expiration_date: this.state.insuranceExpirationDate.toLocaleString('en-us'),
-            insurance_number: this.state.insuranceNumber,
             last_name: this.state.lastName,
-            license_plate_number: this.state.licensePlateNumber,
-            license_plate_expiration_date: this.state.licensePlateExpirationDate.toLocaleString('en-us'),
             phone_numbers: this.state.phoneNumbers,
-            pickup_commission: this.state.pickupCommission,
-            position: this.state.position,
-            sin: this.state.SIN,
-            start_date: this.state.startDate.toLocaleString('en-us'),
         }
+
+        if(this.state.permissions.editAdvanced)
+            data = {...data,
+                birth_date: this.state.birthDate.toLocaleString('en-us'),
+                company_name: this.state.companyName,
+                delivery_commission: this.state.deliveryCommission,
+                is_driver: this.state.driver,
+                is_enabled: this.state.enabled,
+                drivers_license_expiration_date: this.state.driversLicenseExpirationDate.toLocaleString('en-us'),
+                drivers_license_number: this.state.driversLicenseNumber,
+                employee_number: this.state.employeeNumber,
+                permissions: this.state.employeePermissions,
+                insurance_expiration_date: this.state.insuranceExpirationDate.toLocaleString('en-us'),
+                insurance_number: this.state.insuranceNumber,
+                license_plate_number: this.state.licensePlateNumber,
+                license_plate_expiration_date: this.state.licensePlateExpirationDate.toLocaleString('en-us'),
+                pickup_commission: this.state.pickupCommission,
+                position: this.state.position,
+                sin: this.state.SIN,
+                start_date: this.state.startDate.toLocaleString('en-us')
+            }
+
         makeAjaxRequest('/employees/store', 'POST', data, response => {
             toastr.clear()
-            if(this.state.employeeId)
+            if(this.state.employeeId) {
+                this.setState({updatedAt: response.updated_at})
                 toastr.success('Employee ' + this.state.employeeId + ' was successfully updated!', 'Success')
+            }
             else {
-                this.setState({readOnly:true})
+                this.setState({readOnly: true})
                 toastr.success('Employee ' + response.employee_id + ' was successfully created', 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
                     'showDuration': 500,
-                    'onHidden': function(){location.reload()}
+                    'onHidden': function(){this.configureEmployee()}
                 })
             }
         })

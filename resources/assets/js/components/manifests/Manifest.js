@@ -48,8 +48,8 @@ class Manifest extends Component {
                     </Col>
                     <Col md={2}>
                         <ButtonGroup>
-                            <LinkContainer to={'/app/manifests/view/' + this.state.prevManifestId}><Button variant='info' disabled={!this.state.prevManifestId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevManifestId}</Button></LinkContainer>
-                            <LinkContainer to={'/app/manifests/view/' + this.state.nextManifestId}><Button variant='info' disabled={!this.state.nextManifestId}>Next - {this.state.nextManifestId}<i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                            <LinkContainer to={'/app/manifests/' + this.state.prevManifestId}><Button variant='info' disabled={!this.state.prevManifestId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevManifestId}</Button></LinkContainer>
+                            <LinkContainer to={'/app/manifests/' + this.state.nextManifestId}><Button variant='info' disabled={!this.state.nextManifestId}>Next - {this.state.nextManifestId}<i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
                         </ButtonGroup>
                     </Col>
                     <Col md={7} style={{textAlign: 'right'}}>
@@ -69,7 +69,7 @@ class Manifest extends Component {
                                     <th style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Chargebacks\n$' + this.state.data.chargeback_total}</th>
                                     <th style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Driver Income\n$' + this.state.data.driver_income}</th>
                                     <th style={{width: '40%', textAlign: 'center'}}>
-                                        <LinkContainer to={'/app/employees/edit/' + this.state.data.employee.employee_id}>
+                                        <LinkContainer to={'/app/employees/' + this.state.data.employee.employee_id}>
                                             <h3><a href=''>{this.state.data.employee.employee_number + ' - ' + (this.state.data.employee.company_name === null ? this.state.data.employee.contact.first_name + ' ' + this.state.data.employee.contact.last_name : this.state.data.employee.company_name)}</a></h3>
                                         </LinkContainer>
                                     </th>
@@ -80,8 +80,7 @@ class Manifest extends Component {
                     <Col md={11}>
                         <hr/>
                     </Col>
-                    {
-                        this.state.data.warnings &&
+                    {this.state.data.warnings &&
                         <Col md={11}>
                             <table style={{width: '100%'}}>
                                 <thead>
@@ -155,18 +154,16 @@ class Manifest extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {
-                                    this.state.data.bills.map(bill =>
-                                        <tr>
-                                            <LinkContainer to={'/app/bills/view/' + bill.bill_id}><td><a href=''>{bill.bill_id}</a></td></LinkContainer>
-                                            <td>{bill.time_pickup_scheduled}</td>
-                                            <td>{bill.delivery_type}</td>
-                                            <td>{bill.type}</td>
-                                            <td>{'$' + parseFloat(bill.amount).toFixed(2)}</td>
-                                            <td>{'$' + bill.driver_income.toFixed(2)}</td>
-                                        </tr>
-                                    )
-                                }
+                                {this.state.data.bills.map(bill =>
+                                    <tr>
+                                        <LinkContainer to={'/app/bills/' + bill.bill_id}><td><a href=''>{bill.bill_id}</a></td></LinkContainer>
+                                        <td>{bill.time_pickup_scheduled}</td>
+                                        <td>{bill.delivery_type}</td>
+                                        <td>{bill.type}</td>
+                                        <td>{'$' + parseFloat(bill.amount).toFixed(2)}</td>
+                                        <td>{'$' + bill.driver_income.toFixed(2)}</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </Table>
                     </Col>

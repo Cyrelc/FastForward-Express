@@ -7,6 +7,7 @@ class RatesheetFormModel {
     public $weightRates;
     public $zoneRates;
     public $mapZones;
+    public $ratesheet;
     public $useInternalZonesCalc;
 }
 

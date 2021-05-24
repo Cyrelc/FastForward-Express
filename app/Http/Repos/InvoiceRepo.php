@@ -215,7 +215,7 @@ class InvoiceRepo {
         return;
     }
 
-    public function ListAll() {
+    public function ListAll($myAccounts) {
         $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
             ->leftjoin('bills', 'bills.invoice_id', '=', 'invoices.invoice_id')
             ->leftjoin('payments', 'payments.invoice_id', '=', 'invoices.invoice_id')
@@ -234,6 +234,9 @@ class InvoiceRepo {
                 DB::raw('count(distinct bills.bill_id) as bill_count'),
                 DB::raw('count(distinct payments.payment_id) as payment_count')
             )->groupBy('invoices.invoice_id');
+
+        if($myAccounts)
+            $invoices->whereIn('invoices.account_id', $myAccounts);
 
         $filteredInvoices = QueryBuilder::for($invoices)
             ->allowedFilters([
@@ -263,7 +266,7 @@ class InvoiceRepo {
         return $invoice;
     }
 
-    public function toggleFinalized($invoiceId) {
+    public function ToggleFinalized($invoiceId) {
         $invoice = $this->GetById($invoiceId);
         $invoice->finalized = !filter_var($invoice->finalized, FILTER_VALIDATE_BOOLEAN);
 

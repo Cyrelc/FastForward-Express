@@ -7,6 +7,9 @@ import { fetchEmployees } from '../../store/reducers/employees'
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 import ReduxTable from '../partials/ReduxTable'
 
+/**
+ * Table constants
+ */
 const filters = [
     {
         name: 'Active',
@@ -25,11 +28,44 @@ class Employees extends Component {
     constructor() {
         super()
         this.state = {
+            columns: [],
+            changePasswordModalUserId: null,
             showChangePasswordModal: false,
-            changePasswordModalUserId: null
         }
         this.toggleChangePasswordModal = this.toggleChangePasswordModal.bind(this)
         this.toggleEmployeeActive = this.toggleEmployeeActive.bind(this)
+    }
+
+    cellContextMenu(cell, canEdit = false) {
+        const data = cell.getData()
+        if(!data.employee_id)
+            return undefined
+        var menuItems = [
+            {label: data.active ? 'Disable' : 'Enable', action: () => this.toggleEmployeeActive(cell)},
+            {label: 'Change Password', action: () => this.toggleChangePasswordModal(cell), disabled: !data.active}
+        ]
+
+        return menuItems
+    }
+
+    cellContextMenuFormatter(cell) {
+        if(cell.getData().employee_id)
+            return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
+    }
+
+    componentDidMount() {
+        const adminColumns = this.props.frontEndPermissions.employees.edit ? [
+            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign:'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+        ] : []
+        const columns = [
+            {title: 'Employee ID', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/employees/'}, sorter: 'number'},
+            {title: 'Employee Number', field: 'employee_number', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix: '/app/employees/N'}},
+            {title: 'Employee Name', field: 'employee_name'},
+            {title: 'Primary Phone', field: 'primary_phone'},
+            {title: 'Primary Email', field: 'primary_email'},
+        ]
+
+        this.setState({columns: Array.prototype.concat(adminColumns, columns)})
     }
 
     toggleEmployeeActive(cell) {
@@ -50,29 +86,10 @@ class Employees extends Component {
     }
 
     render() {
-        const columns = [
-            {formatter: (cell) => {
-                const active = cell.getRow().getData().active
-                if(active)
-                    return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
-                else
-                    return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
-            }, width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleEmployeeActive(cell), headerSort: false, print: false},
-            {formatter: (cell) => {
-                if(cell.getRow().getData().active)
-                    return "<button class='btn btn-sm btn-warning' title='Reset Password'><i class='fas fa-key'></i></button>"
-            }, width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleChangePasswordModal(cell), headerSort: false, print: false},
-            {title: 'Employee ID', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/employees/edit/'}, sorter: 'number'},
-            {title: 'Employee Number', field: 'employee_number', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix: '/app/employees/edit/N'}},
-            {title: 'Employee Name', field: 'employee_name'},
-            {title: 'Primary Phone', field: 'primary_phone'},
-            {title: 'Primary Email', field: 'primary_email'},
-        ]
-
         return (
             <div>
                 <ReduxTable
-                    columns={this.props.columns.length ? this.props.columns : columns}
+                    columns={this.props.columns.length ? this.props.columns : this.state.columns}
                     fetchTableData={this.props.fetchTableData}
                     filters={filters}
                     groupByOptions={groupByOptions}
@@ -109,8 +126,9 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         columns: store.employees.columns,
-        tableData: store.employees.employeesTable,
-        reduxQueryString: store.employees.reduxQueryString
+        frontEndPermissions: store.app.frontEndPermissions,
+        reduxQueryString: store.employees.reduxQueryString,
+        tableData: store.employees.employeesTable
     }
 }
 

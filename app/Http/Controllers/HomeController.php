@@ -37,60 +37,21 @@ class HomeController extends Controller
         }
     }
 
-    public function getDashboard() {
-        //Get dashboard type based on assigned roles
-        $dashboardModelFactory = new Models\Dashboard\DashboardModelFactory();
-        $model = $dashboardModelFactory->GetAdminDashboardModel();
+    public function getAppConfiguration(Request $req) {
+        $homeModelFactory = new Models\Home\HomeModelFactory();
+        $model = $homeModelFactory->getAppConfiguration($req);
 
         return json_encode($model);
     }
 
-    public function getList($type, $parameter = null) {
-        switch($type) {
-            case 'accounts':
-                $accountRepo = new Repos\AccountRepo();
-                $accounts = $accountRepo->GetAccountList();
-                return json_encode($accounts);
-                break;
-            case 'activeDrivers':
-                $employeeRepo = new Repos\EmployeeRepo();
-                $drivers = $employeeRepo->GetDriverList();
-                return json_encode($drivers);
-                break;
-            case 'drivers':
-                $employeeRepo = new Repos\EmployeeRepo();
-                $drivers = $employeeRepo->GetDriverList(false);
-                return json_encode($drivers);
-                break;
-            case 'employees':
-                $employeeRepo = new Repos\EmployeeRepo();
-                $employees = $employeeRepo->GetEmployeesList();
-                return json_encode($employees);
-                break;
-            case 'interliners':
-                $interlinerRepo = new Repos\InterlinerRepo();
-                $interliners = $interlinerRepo->GetInterlinersList();
-                return json_encode($interliners);
-                break;
-            case 'parent_accounts':
-                $accountRepo = new Repos\AccountRepo();
-                $parentAccounts = $accountRepo->GetParentAccountsList();
-                return json_encode($parentAccounts);
-                break;
-            case 'payment_types':
-                $paymentRepo = new Repos\PaymentRepo();
-                $paymentTypes = $paymentRepo->GetPaymentTypesList();
-                return json_encode($paymentTypes);
-                break;
-            case 'selections':
-                $selectionsRepo = new Repos\SelectionsRepo();
-                $selections = $selectionsRepo->GetSelectionsListByType($parameter);
-                return json_encode($selections);
-                break;
-            default:
-                throw new Exception('Unable to retrieve the requested list. Please contact support');
-                break;
-        }
+    public function getDashboard(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+        //Get dashboard type based on assigned roles
+        $homeModelFactory = new Models\Home\HomeModelFactory();
+        $model = $homeModelFactory->GetAdminDashboardModel();
+
+        return json_encode($model);
     }
 
     /**

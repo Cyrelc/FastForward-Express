@@ -90,8 +90,7 @@ export default function Contact(props) {
                     </Col>
                 </Row>
             </Col>
-            {
-                props.showAddress &&
+            {props.showAddress &&
                 <Col md={5}>
                     <Address
                         id={props.addressId}

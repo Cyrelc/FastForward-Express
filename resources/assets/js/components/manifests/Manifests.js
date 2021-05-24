@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { push } from 'connected-react-router'
 
@@ -22,27 +22,7 @@ function printManifestsWithoutBills(selectedRows = null) {
     printManifests(selectedRows, true)
 }
 
-const filters = [
-    {
-        fetchUrl: '/getList/drivers',
-        isMulti: true,
-        name: 'Driver',
-        type: 'SelectFilter',
-        value: 'driver_id'
-    },
-    {
-        name: 'Bill Start Date',
-        value: 'start_date',
-        type: 'DateBetweenFilter'
-    },
-    {
-        name: 'Bill End Date',
-        value: 'end_date',
-        type: 'DateBetweenFilter'
-    }
-]
-
-const groupBy = 'end_date'
+// const groupBy = 'end_date'
 
 const groupByOptions = [
     {label: 'None', value: null},
@@ -63,26 +43,73 @@ const withSelected = [
     }
 ]
 
-function Manifests(props) {
-    function cellContextMenu(cell) {
+class Manifests extends Component {
+    constructor() {
+        super()
+        this.state = {
+            columns: [],
+            filters: []
+        }
+    }
+
+    componentDidMount() {
+        const columns = [
+            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+            {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+            {title: 'Manifest ID', field: 'manifest_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', urlPrefix:'/app/manifests/'}, sorter: 'number'},
+            {title: 'Employee', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', labelField: 'employee_name', urlPrefix: '/app/employees/'}},
+            {title: 'Date Run', field: 'date_run', visible: false},
+            {title: 'Bill Start Date', field: 'start_date'},
+            {title: 'Bill End Date', field: 'end_date'},
+            {title: 'Bill Count', field: 'bill_count'},
+            {title: 'Driver Gross', field: 'driver_gross', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, topCalc: 'sum', topCalcParams:{precision: 2}, topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
+            {title: 'Driver Chargebacks', field: 'driver_chargeback_amount', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
+            {title: 'Driver Income', field: 'driver_income', formatter: 'money', formatterParams: { thousand: ',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}}
+        ]
+
+        const filters = [
+            {
+                selections: this.props.drivers,
+                isMulti: true,
+                name: 'Driver',
+                type: 'SelectFilter',
+                value: 'driver_id'
+            },
+            {
+                name: 'Bill Start Date',
+                value: 'start_date',
+                type: 'DateBetweenFilter'
+            },
+            {
+                name: 'Bill End Date',
+                value: 'end_date',
+                type: 'DateBetweenFilter'
+            }
+        ]
+
+        this.setState({columns: columns, filters: filters})
+    }
+
+    cellContextMenu(cell) {
         const data = cell.getData()
         if(!data.manifest_id)
             return undefined
         var menuItems = [
             {label: 'Print Manifest', action: () => printManifests([cell.getRow()])},
-            {label: 'Print Without Bill List', action: () => printManifests(cell.getRow(), true)},
-            {label: 'Delete Manifest', action: () => deleteManifest(cell)}
+            {label: 'Print Without Bill List', action: () => printManifests([cell.getRow()], true)}
         ]
+        if(this.props.frontEndPermissions.manifests.delete)
+            menuItems = menuItems.concat([{label: 'Delete Manifest', action: () => deleteManifest(cell)}])
 
         return menuItems
     }
 
-    function cellContextMenuFormatter(cell) {
+    cellContextMenuFormatter(cell) {
         if(cell.getData().manifest_id)
             return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
     }
 
-    function deleteManifest(cell) {
+    deleteManifest(cell) {
         const manifestId = cell.getRow().getData().manifest_id 
         if(confirm('Are you sure you want to delete manifest ' + manifestId + '?\nThis action can not be undone')) {
             makeAjaxRequest('/manifests/delete/' + manifestId, 'GET', null, response => {
@@ -91,40 +118,26 @@ function Manifests(props) {
         }
     }
 
-    const columns = [
-        {formatter: cell => cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false},
-        {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-        {title: 'Manifest ID', field: 'manifest_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', urlPrefix:'/app/manifests/view/'}, sorter: 'number'},
-        {title: 'Employee', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', labelField: 'employee_name', urlPrefix: '/app/employees/edit'}},
-        {title: 'Date Run', field: 'date_run', visible: false},
-        {title: 'Bill Start Date', field: 'start_date'},
-        {title: 'Bill End Date', field: 'end_date'},
-        {title: 'Bill Count', field: 'bill_count'},
-        {title: 'Driver Gross', field: 'driver_gross', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, topCalc: 'sum', topCalcParams:{precision: 2}, topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
-        {title: 'Driver Chargebacks', field: 'driver_chargeback_amount', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
-        {title: 'Driver Income', field: 'driver_income', formatter: 'money', formatterParams: { thousand: ',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}}
-    ]
-
-    return (
-        <ReduxTable
-            columns={props.columns.length ? props.columns : columns}
-            fetchTableData={props.fetchTableData}
-            filters={filters}
-            groupBy={groupBy}
+    render() {
+        return <ReduxTable
+            columns={this.props.columns.length ? this.props.columns : this.state.columns}
+            fetchTableData={this.props.fetchTableData}
+            filters={this.state.filters}
+            // groupBy={groupBy}
             groupByOptions={groupByOptions}
             indexName='manifest_id'
             initialSort={initialSort}
             pageTitle='Manifests'
-            reduxQueryString={props.reduxQueryString}
-            redirect={props.redirect}
+            reduxQueryString={this.props.reduxQueryString}
+            redirect={this.props.redirect}
             selectable='highlight'
-            setReduxQueryString={props.setQueryString}
-            setSortedList={props.setSortedList}
-            tableData={props.manifestTable}
-            toggleColumnVisibility={props.toggleColumnVisibility}
+            setReduxQueryString={this.props.setQueryString}
+            setSortedList={this.props.setSortedList}
+            tableData={this.props.manifestTable}
+            toggleColumnVisibility={this.props.toggleColumnVisibility}
             withSelected={withSelected}
         />
-    )
+    }
 }
 
 const matchDispatchToProps = dispatch => {
@@ -140,6 +153,8 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         columns: store.manifests.columns,
+        drivers: store.app.drivers,
+        frontEndPermissions: store.app.frontEndPermissions,
         manifestTable: store.manifests.manifestTable,
         reduxQueryString: store.manifests.queryString
     }

@@ -7,10 +7,10 @@ use App\Http\Models\Invoice;
 use App\Http\Models\Bill;
 
 class InvoiceModelFactory{
-
-	public function GetById($invoiceId) {
+	public function GetById($req, $invoiceId) {
 		$model = new InvoiceViewModel();
 
+		$permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
 		$accountRepo = new Repos\AccountRepo();
 		$addressRepo = new Repos\AddressRepo();
 		$billRepo = new Repos\BillRepo();
@@ -75,30 +75,32 @@ class InvoiceModelFactory{
 
 		$model->account_owing = number_format($invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id), 2);
 
+		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);
+
 		return $model;
 	}
 
-	public function GetCreateModel($req) {
+	public function GetCreateModel() {
 		$selectionsRepo = new Repos\SelectionsRepo();
 
 		$model = new Invoice\InvoiceFormModel();
 
-		$model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
-		$model->start_date = strtotime("first day of last month");
-		$model->end_date = strtotime("last day of last month");
+		$model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
+		$model->start_date = date('Y-m-d H:i:s', strtotime("first day of last month"));
+		$model->end_date = date('Y-m-d H:i:s', strtotime("last day of last month"));
 
 		return $model;
 	}
 
-	public function GetGenerateModel($invoice_interval, $start_date, $end_date) {
-		$start_date = new \DateTime($start_date);
-		$end_date = new \DateTime($end_date);
+	public function GetGenerateModel($req) {
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-		$repo = new Repos\AccountRepo();
+		$accountRepo = new Repos\AccountRepo();
 		$model = new GenerateInvoiceViewModel();
 
 		try {
-			$model->accounts = $repo->ListAllWithUninvoicedBillsByInvoiceInterval($invoice_interval, $start_date, $end_date);
+			$model->accounts = $accountRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $startDate, $endDate);
 		} catch (Exception $e) {
 			$model->friendlyMessage = 'Sorry, but an error has occurred. Please contact support.';
 			$model->errorMessage = $e;

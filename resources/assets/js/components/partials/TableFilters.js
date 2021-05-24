@@ -1,5 +1,5 @@
-import React, {Component} from 'react'
-import {Card, Col, InputGroup, Row} from 'react-bootstrap'
+import React from 'react'
+import {Row} from 'react-bootstrap'
 
 import BooleanFilter from '../tableFilters/BooleanFilter'
 import DateBetweenFilter from '../tableFilters/DateBetweenFilter'

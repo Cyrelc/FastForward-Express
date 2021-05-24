@@ -30,7 +30,7 @@ export default function DriverTab(props) {
                                 name='pickupCommission'
                                 value={props.pickupCommission}
                                 onChange={props.handleChanges}
-                                readOnly={!props.admin || props.readOnly}
+                                readOnly={props.readOnly}
                             />
                         </InputGroup>
                     </Col>
@@ -44,7 +44,7 @@ export default function DriverTab(props) {
                                 name='deliveryCommission'
                                 value={props.deliveryCommission}
                                 onChange={props.handleChanges}
-                                readOnly={!props.admin || props.readOnly}
+                                readOnly={props.readOnly}
                             />
                         </InputGroup>
                     </Col>

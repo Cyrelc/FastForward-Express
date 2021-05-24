@@ -15,11 +15,10 @@ class InterlinerModelFactory{
 		$interliners = $interlinerRepo->ListAll();
 		foreach ($interliners as $interliner) {
 			$interliner_view_model = new InterlinerFormModel();
-			$interliner_view_model->interliner = $interliner;
-			$address = $addressRepo->GetById($interliner->address_id);
-			$interliner_view_model->address = $address->street . ' ' . $address->city . ' ' . $address->state_province . ' ' . $address->country . ' ' . $address->zip_postal;
 
-//			$interliner_view_model->address = $address;
+			$interliner_view_model->interliner = $interliner;
+			$interliner_view_model->address = $addressRepo->GetById($interliner->address_id);
+
 			array_push($model->interliners, $interliner_view_model);
 		}
 

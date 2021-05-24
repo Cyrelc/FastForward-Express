@@ -8,19 +8,14 @@ use DB;
 use App\Http\Repos;
 
 class DispatchController extends Controller {
-    public function GetDrivers(Request $req) {
-        $employeeRepo = new Repos\EmployeeRepo();
-        $employees = $employeeRepo->GetActiveDriversWithContact();
-        return json_encode($employees);
-    }
-
-    public function view() {
-        return view ('dispatch.dispatch');
-    }
-
     public function AssignBillToDriver(Request $req) {
-        DB::beginTransaction();
         $billRepo = new Repos\BillRepo();
+        $bill = $billRepo->GetById($req->bill_id);
+        if($user->cannot('updateDispatch', $bill))
+            abort(403);
+
+        DB::beginTransaction();
+
         $employeeRepo = new Repos\EmployeeRepo();
         $employee = $employeeRepo->GetById($req->employee_id);
 
@@ -33,26 +28,30 @@ class DispatchController extends Controller {
         ]);
     }
 
+    public function GetDrivers(Request $req) {
+        if($req->user()->cannot('viewAll', Employee::class))
+            abort(403);
+
+        $employeeRepo = new Repos\EmployeeRepo();
+        $employees = $employeeRepo->GetActiveDriversWithContact();
+
+        return json_encode($employees);
+    }
+
     public function SetBillPickupOrDeliveryTime(Request $req) {
-        //TODO: not calculating completion percentage
+        $billRepo = new Repos\BillRepo();
+        $bill = $billRepo->GetById($req->bill_id);
+        if($req->user()->cannot('updateDispatch', $bill))
+            abort(403);
+
         DB::beginTransaction();
-        try {
-            $billRepo = new Repos\BillRepo();
 
-            $billRepo->SetBillPickupOrDeliveryTime($req->bill_id, $req->type, new \DateTime($req->time));
+        $billRepo->SetBillPickupOrDeliveryTime($req->bill_id, $req->type, new \DateTime($req->time));
 
-            DB::commit();
-            return response()->json([
-                'success' => true,
-            ]);
-        } catch (Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        DB::commit();
+        return response()->json([
+            'success' => true,
+        ]);
     }
 }
 

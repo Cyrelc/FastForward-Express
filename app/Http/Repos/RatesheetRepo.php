@@ -58,6 +58,24 @@ class RatesheetRepo {
         return $ratesheets->get();
     }
 
+    public function GetForBillsPage($accountId = null, $children = false) {
+        $ratesheets = Ratesheet::select(
+            'name',
+            'ratesheet_id',
+            'delivery_types'
+        );
+
+        if($accountId) {
+            $ratesheetIds = \App\Account::where('account_id', $accountId);
+            if($children)
+                $ratesheetIds->orWhere('parent_account_id', $accountId);
+            $ratesheetIds = $ratesheetIds->pluck('ratesheet_id');
+            $ratesheets->whereIn('ratesheet_id', $ratesheetIds);
+        }
+
+        return $ratesheets->get();
+    }
+
     public function GetRatesheetSelectList() {
         $ratesheets = Ratesheet::select(
             'name as label',

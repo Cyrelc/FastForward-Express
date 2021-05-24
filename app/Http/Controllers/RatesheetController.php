@@ -13,11 +13,89 @@ use \App\Http\Validation;
 
 class RatesheetController extends Controller {
 
-    public function buildTable() {
+    public function buildTable(Request $req) {
+        if($req->user()->cannot('viewAny', Ratesheet::class))
+            abort(403);
+
         $ratesheetModelFactory = new Ratesheet\RatesheetModelFactory();
         $model = $ratesheetModelFactory->ListAll();
         return json_encode($model);
     }
+
+    public function getModel(Request $req, $ratesheetId = null) {
+        $modelFactory = new Ratesheet\RatesheetModelFactory();
+        if($ratesheetId) {
+            $ratesheetModel = $modelFactory->GetEditModel($ratesheetId);
+            if($req->user()->cannot('view', $ratesheetModel->ratesheet))
+                abort(403);
+        } else {
+            $ratesheetModel = $modelFactory->GetCreateModel();
+            if($req->user()->cannot('create', Ratesheet::class))
+                abort(403);
+        }
+
+        return json_encode($ratesheetModel);
+    }
+
+    public function store(Request $req) {
+        DB::beginTransaction();
+
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        if($req->ratesheetId === '') {
+            if($req->user()->cannot('create', Ratesheet::class))
+                abort(403);
+            $isEdit = false;
+        } else {
+            $originalRatesheet = $ratesheetRepo->GetById($req->ratesheet_id);
+            if($req->user()->cannot('update', $originalRatesheet))
+                abort(403);
+            $isEdit = true;
+        }
+
+        $validation = new Validation\RatesheetValidationRules();
+        $ratesheetRules = $validation->GetValidationRules($req);
+
+        $this->validate($req, $ratesheetRules['rules'], $ratesheetRules['messages']);
+
+
+        $ratesheetCollector = new Collectors\RatesheetCollector();
+        $zoneCollector = new Collectors\ZoneCollector();
+        $ratesheet = $ratesheetCollector->Collect($req);
+
+        if($isEdit)
+            $ratesheetId = $ratesheetRepo->Update($ratesheet)->ratesheet_id;
+        else
+            $ratesheetId = $ratesheetRepo->Insert($ratesheet)->ratesheet_id;
+
+        // handle zone changes
+        $zones = $zoneCollector->Collect($req->mapZones, $ratesheetId);
+        foreach($zones as $zone)
+            if($zone['zone_id'])
+                $ratesheetRepo->UpdateZone($zone);
+            else
+                $ratesheetRepo->InsertZone($zone);
+
+        $mapZones = $ratesheetRepo->GetMapZones($ratesheetId);
+
+        foreach($mapZones as $mapZone) {
+            foreach($zones as $index => $zone) {
+                if($zone['zone_id'] == $mapZone->zone_id || $zone['zone_id'] == null) {
+                    break;
+                } else if($index == sizeof($zones) - 1) {
+                    $ratesheetRepo->DeleteZone($mapZone->zone_id);
+                }
+            }
+        }
+
+        $this->updateNeighbours($ratesheetId);
+
+        DB::commit();
+    }
+
+    /**
+     * Private functions
+     */
 
     private function updateNeighbours($ratesheetId) {
         $ratesheetRepo = new Repos\RatesheetRepo();
@@ -48,72 +126,5 @@ class RatesheetController extends Controller {
         foreach($mapZones as $key => $zone)
             if($zone->type === 'internal' || $zone->type === 'peripheral')
                 $ratesheetRepo->SetZoneNeighbours($zone->zone_id, array_key_exists($zone->zone_id, $neighbours) ? json_encode($neighbours[$zone->zone_id]) : null);
-    }
-
-    public function getModel(Request $req, $id = null) {
-        $modelFactory = new Ratesheet\RatesheetModelFactory();
-        if($id)
-            $ratesheetModel = $modelFactory->GetEditModel($id);
-        else
-            $ratesheetModel = $modelFactory->GetCreateModel();
-        return json_encode($ratesheetModel);
-    }
-
-    public function store(Request $req) {
-        DB::beginTransaction();
-        try {
-            $validation = new Validation\RatesheetValidationRules();
-            $ratesheetRules = $validation->GetValidationRules($req);
-
-            $this->validate($req, $ratesheetRules['rules'], $ratesheetRules['messages']);
-
-            if($req->ratesheetId === '') {
-                //Can I create this?
-                $isEdit = false;
-            } else {
-                //Can I edit this?
-                $isEdit = true;
-            }
-
-            $ratesheetCollector = new Collectors\RatesheetCollector();
-            $zoneCollector = new Collectors\ZoneCollector();
-            $ratesheet = $ratesheetCollector->Collect($req);
-
-            $ratesheetRepo = new Repos\RatesheetRepo();
-            if($isEdit)
-                $ratesheetId = $ratesheetRepo->Update($ratesheet)->ratesheet_id;
-            else
-                $ratesheetId = $ratesheetRepo->Insert($ratesheet)->ratesheet_id;
-
-            // handle zone changes
-            $zones = $zoneCollector->Collect($req->mapZones, $ratesheetId);
-            foreach($zones as $zone)
-                if($zone['zone_id'])
-                    $ratesheetRepo->UpdateZone($zone);
-                else
-                    $ratesheetRepo->InsertZone($zone);
-
-            $mapZones = $ratesheetRepo->GetMapZones($ratesheetId);
-
-            foreach($mapZones as $mapZone) {
-                foreach($zones as $index => $zone) {
-                    if($zone['zone_id'] == $mapZone->zone_id || $zone['zone_id'] == null) {
-                        break;
-                    } else if($index == sizeof($zones) - 1) {
-                        $ratesheetRepo->DeleteZone($mapZone->zone_id);
-                    }
-                }
-            }
-
-            $this->updateNeighbours($ratesheetId);
-
-            DB::commit();
-        } catch(Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
     }
 }

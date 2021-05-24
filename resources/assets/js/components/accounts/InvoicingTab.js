@@ -8,13 +8,13 @@ const addressFormattingTooltip = 'Addresses will begin a new line on commas'
 export default function InvoicingTab(props) {
     const columns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
-        {formatter: 'rownum', headerSort: false},
-        {title: 'Field Name', field: 'friendly_name', headerSort: false},
+        {formatter: 'rownum', headerSort: false, width: 40, minWidth: 40},
+        {title: 'Field Name', field: 'friendly_name', headerHozAlign: 'center', headerSort: false},
         {title: 'Database Field', field: 'database_field_name', headerSort: false, visible: false},
         {title: 'InvoiceSortOptionId', field: 'invoice_sort_option_id', headerSort: false, visible: false},
         {title: 'Contingent Field', field: 'contingent_field', headerSort: false, visible: false},
         {title: 'Priority', field: 'priority', headerSort: false, visible: false},
-        {title: 'Group By', field: 'group_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, hozAlign: 'center', headerSort: false, width: 50, cellClick: ((e, cell) => {
+        {title: 'Subtotal By', field: 'group_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, headerHozAlign: 'center', hozAlign: 'center', headerSort: false, cellClick: ((e, cell) => {
             const data = cell.getRow().getData()
             const invoiceSortOrder = props.invoiceSortOrder.map(option => {
                 if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
@@ -32,35 +32,62 @@ export default function InvoicingTab(props) {
                     <Col md={2}>
                         <h4 className='text-muted'>Options</h4>
                     </Col>
-                    <Col md={3}>
-                        <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
-                            <Select
-                                options={props.invoiceIntervals}
-                                getOptionLabel={type => type.name}
-                                getOptionValue={type => type.value}
-                                onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
-                                value={props.invoiceInterval}
-                            />
-                        </InputGroup>
-                    </Col>
-                    <Col md={2} style={{paddingTop: '20px'}}>
-                        <FormCheck
-                            name='sendPaperInvoices'
-                            label='Send Paper Invoices'
-                            checked={props.sendPaperInvoices}
-                            onChange={props.handleChanges}
-                            disabled={!props.sendEmailInvoices}
-                        />
-                    </Col>
-                    <Col md={2} style={{paddingTop: '20px'}}>
-                        <FormCheck
-                            name='sendEmailInvoices'
-                            label='Send Email Invoices'
-                            checked={props.sendEmailInvoices}
-                            onChange={props.handleChanges}
-                            disabled={!props.sendPaperInvoices}
-                        />
+                    <Col md={9}>
+                        <Row>
+                            <Col md={4}>
+                                <InputGroup>
+                                    <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
+                                    <Select
+                                        options={props.invoiceIntervals}
+                                        getOptionLabel={type => type.name}
+                                        getOptionValue={type => type.value}
+                                        onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
+                                        value={props.invoiceInterval}
+                                        isDisabled={props.readOnly}
+                                    />
+                                    <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text></InputGroup.Append>
+                                </InputGroup>
+                            </Col>
+                            <Col md={2} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    name='sendPaperInvoices'
+                                    label='Send Paper Invoices'
+                                    checked={props.sendPaperInvoices}
+                                    onChange={props.handleChanges}
+                                    disabled={!props.sendEmailInvoices || props.readOnly}
+                                />
+                            </Col>
+                            <Col md={2} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    name='sendEmailInvoices'
+                                    label='Send Email Invoices'
+                                    checked={props.sendEmailInvoices}
+                                    onChange={props.handleChanges}
+                                    disabled={!props.sendPaperInvoices || props.readOnly}
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <InputGroup>
+                                    <InputGroup.Prepend><InputGroup.Text>Custom Tracking Field</InputGroup.Text></InputGroup.Prepend>
+                                    <FormControl
+                                        name='customTrackingField'
+                                        value={props.customTrackingField}
+                                        onChange={props.handleChanges}
+                                        readOnly={props.readOnly}
+                                    />
+                                    <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text></InputGroup.Append>
+                                </InputGroup>
+                            </Col>
+                            <Col md={4} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    name='customFieldMandatory'
+                                    label='Custom Tracking Field is Mandatory'
+                                    checked={props.customFieldMandatory}
+                                    onChange={props.handleChanges}
+                                    disabled={!props.customTrackingField || props.readOnly}
+                                />
+                            </Col>
+                        </Row>
                     </Col>
                 </Row>
                 <Row style={{paddingTop: '20px'}}>
@@ -75,6 +102,7 @@ export default function InvoicingTab(props) {
                             value={props.invoiceComment}
                             onChange={props.handleChanges}
                             placeholder='A comment that will appear on every invoice. For example: "ATTN Ritchie"'
+                            readOnly={props.readOnly}
                         />
                     </Col>
                 </Row>
@@ -96,7 +124,7 @@ export default function InvoicingTab(props) {
                             })}
                             options={{
                                 layout: 'fitColumns',
-                                movableRows: true
+                                movableRows: props.readOnly ? false : true
                             }}
                             initialSort={[{field: 'priority', dir: 'asc'}]}
                             rowMoved={row => props.handleInvoiceSortOrderChange(row)}

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { push } from 'connected-react-router'
 
@@ -10,7 +10,7 @@ import * as actionTypes from '../../store/actions'
  * Table functions
  *
  */
-function cellContextMenu(cell) {
+function cellContextMenu(cell, canEdit = false) {
     const data = cell.getData()
     if(!data.invoice_id)
         return undefined
@@ -75,15 +75,13 @@ function undoFinalizeInvoices(selectedRows) {
  */
 
 const columns = [
-    {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false},
     {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-    {title: 'Invoice ID', field: 'invoice_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/invoices/view/'}, sorter:'number'},
-    {title: 'Account ID', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/edit/', labelField:'account_number'}},
-    {title: 'Account Number', field: 'account_number', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/edit/N'}, visible: false},
-    {title: 'Account', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'account_name', urlPrefix:'/app/accounts/edit/'}},
-    {title: 'Date Run', field: 'date_run', visible: false},
-    {title: 'Bill Start Date', field: 'bill_start_date', visible: false},
-    {title: 'Bill End Date', field: 'bill_end_date'},
+    {title: 'Invoice ID', field: 'invoice_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/invoices/'}, sorter:'number'},
+    // {title: 'Account ID', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/'}},
+    {title: 'Account Number', field: 'account_number', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/N'}, visible: false},
+    {title: 'Account', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'account_name', urlPrefix:'/app/accounts/'}},
+    {title: 'First Bill Date', field: 'bill_start_date', visible: false},
+    {title: 'Last Bill Date', field: 'bill_end_date'},
     {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
     {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
     {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
@@ -91,51 +89,15 @@ const columns = [
     {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
 ]
 
-const filters = [
-    {
-        name: 'Bill End Date',
-        value: 'bill_end_date',
-        type: 'DateBetweenFilter',
-    },
-    {
-        name: 'Bill Start Date',
-        value: 'bill_start_date',
-        type: 'DateBetweenFilter'
-    },
-    {
-        name: 'Date Run',
-        value: 'date_run',
-        type: 'DateBetweenFilter',
-    },
-    {
-        fetchUrl: '/getList/accounts',
-        name: 'Account',
-        value: 'account_id',
-        type: 'SelectFilter',
-        isMulti: true
-    },
-    {
-        name: 'Balance Owing',
-        value: 'balance_owing',
-        type: 'NumberBetweenFilter',
-        step: 0.01,
-    },
-    {
-        name: 'Finalized',
-        value: 'finalized',
-        type: 'BooleanFilter',
-    }
-]
-
 const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Account', value: 'account_number', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].account_name}},
-    {label: 'Bill End Date', value: 'bill_end_date'}
+    {label: 'Last Bill Date', value: 'bill_end_date'}
 ]
 
 const initialSort = [{column:'bill_end_date', dir: 'desc'}, {column:'account_number', dir:'asc'}]
 
-const withSelected = [
+const adminWithSelected = [
     {
         label: 'Finalize',
         onClick: finalizeInvoices
@@ -143,33 +105,99 @@ const withSelected = [
     {
         label: 'Undo Finalize',
         onClick: undoFinalizeInvoices
-    },
+    }
+]
+const withSelected = [
     {
         label: 'Print',
         onClick: printInvoices
     }
 ]
 
-function Invoices(props) {
-    return (
-        <ReduxTable
-            columns={props.columns.length ? props.columns : columns}
-            fetchTableData={props.fetchTableData}
-            filters={filters}
+class Invoices extends Component {
+    constructor() {
+        super()
+        this.state = {
+            columns: [],
+            filters: [],
+            withSelected: []
+        }
+    }
+
+    componentDidMount() {
+        const actionColumn = this.props.frontEndPermissions.invoices.edit ? [
+            {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false}
+        ] : [
+            {formatter: cell => {return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"}, width: 50, hozAlign:'center', cellClick:(e, cell) => printInvoices([cell.getRow()])}
+        ]
+        const adminColumns = this.props.frontEndPermissions.invoices.edit ? [
+            {title: 'Date Run', field: 'date_run', visible: false},
+        ] : []
+
+        const adminFilters = this.props.frontEndPermissions.invoices.edit ? [
+            {
+                name: 'Date Run',
+                value: 'date_run',
+                type: 'DateBetweenFilter',
+            },
+            {
+                name: 'Finalized',
+                value: 'finalized',
+                type: 'BooleanFilter',
+            }
+        ] : []
+        const basicFilters = [
+            {
+                name: 'Last Bill Date',
+                value: 'bill_end_date',
+                type: 'DateBetweenFilter',
+            },
+            {
+                name: 'First Bill Date',
+                value: 'bill_start_date',
+                type: 'DateBetweenFilter'
+            },
+            {
+                selections: this.props.accounts,
+                name: 'Account',
+                value: 'account_id',
+                type: 'SelectFilter',
+                isMulti: true
+            },
+            {
+                name: 'Balance Owing',
+                value: 'balance_owing',
+                type: 'NumberBetweenFilter',
+                step: 0.01,
+            },
+        ]
+
+        this.setState({
+            columns: Array.prototype.concat(actionColumn, columns, adminColumns),
+            filters: Array.prototype.concat(adminFilters, basicFilters),
+            withSelected: Array.prototype.concat(this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [], withSelected)
+        })
+    }
+
+    render() {
+        return <ReduxTable
+            columns={this.props.columns.length ? this.props.columns : this.state.columns}
+            fetchTableData={this.props.fetchTableData}
+            filters={this.state.filters}
             groupByOptions={groupByOptions}
             indexName='invoice_id'
             initialSort={initialSort}
             pageTitle='Invoices'
-            reduxQueryString={props.reduxQueryString}
-            redirect={props.redirect}
+            reduxQueryString={this.props.reduxQueryString}
+            redirect={this.props.redirect}
             selectable='highlight'
-            setReduxQueryString={props.setQueryString}
-            setSortedList={props.setSortedList}
-            tableData={props.invoiceTable}
-            toggleColumnVisibility={props.toggleColumnVisibility}
-            withSelected={props.withSelected}
+            setReduxQueryString={this.props.setQueryString}
+            setSortedList={this.props.setSortedList}
+            tableData={this.props.invoiceTable}
+            toggleColumnVisibility={this.props.toggleColumnVisibility}
+            withSelected={withSelected}
         />
-    )
+    }
 }
 
 const matchDispatchToProps = dispatch => {
@@ -184,7 +212,9 @@ const matchDispatchToProps = dispatch => {
 
 const mapStateToProps = store => {
     return {
+        accounts: store.app.accounts,
         columns: store.invoices.columns,
+        frontEndPermissions: store.app.frontEndPermissions,
         invoiceTable: store.invoices.invoiceTable,
         reduxQueryString: store.invoices.queryString,
     }

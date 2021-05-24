@@ -1,6 +1,5 @@
 import React from 'react'
-import {Button, Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
-import Select from 'react-select'
+import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
 
 import Address from '../partials/Address'
 
@@ -12,30 +11,22 @@ export default function BasicTab(props) {
                     <Col md={2}>
                         <h4 className='text-muted'>Basic Info</h4>
                     </Col>
-                    <Col md={10}>
-                        <Row>
-                            <Col md={4}>
-                                <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
-                                    <FormControl
-                                        name='accountName'
-                                        value={props.accountName}
-                                        onChange={props.handleChanges}
-                                    />
-                                </InputGroup>
-                            </Col>
-                            <Col md={4}>
-                                <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Custom Tracking Field</InputGroup.Text></InputGroup.Prepend>
-                                    <FormControl
-                                        name='customTrackingField'
-                                        value={props.customTrackingField}
-                                        onChange={props.handleChanges}
-                                    />
-                                    <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text></InputGroup.Append>
-                                </InputGroup>
-                            </Col>
-                        </Row>
+                    <Col md={4}>
+                        <InputGroup>
+                            <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
+                            <FormControl
+                                name='accountName'
+                                value={props.accountName}
+                                onChange={props.handleChanges}
+                                readOnly={props.readOnly}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                        Account ID: {props.accountId}
+                    </Col>
+                    <Col md={3}>
+                        Account Number: {props.accountNumber}
                     </Col>
                 </Row>
             </Card.Header>
@@ -53,6 +44,7 @@ export default function BasicTab(props) {
                                     address={props.shippingAddress}
                                     handleChanges={props.handleChanges}
                                     showAddressSearch={true}
+                                    readOnly={props.readOnly}
                                 />
                             </Card.Body>
                         </Card>
@@ -66,7 +58,7 @@ export default function BasicTab(props) {
                                     label='Same as shipping address'
                                     checked={props.useShippingForBillingAddress}
                                     onChange={props.handleChanges}
-                                    readOnly={props.readOnly}
+                                    disabled={props.readOnly}
                                 />
                             </Card.Header>
                             <Card.Body>

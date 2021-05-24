@@ -30,6 +30,7 @@ class Employee extends Model
         'pickup_commission',
         'sin',
         'start_date',
+        'updated_at',
         'user_id'
     ];
 
@@ -38,10 +39,39 @@ class Employee extends Model
     protected static $submitEmptyLogs = false;
 
     public function contact() {
-        return $this->belongsTo('App\Contact');
+        return $this->hasOne(Contact::class);
     }
 
     public function contacts() {
         return $this->belongsToMany('App\Contact', 'employee_emergency_contacts');
     }
+
+    public function user() {
+        return $this->belongsTo('App\User');
+    }
+
+    /**Editable fields */
+    public static $advancedFields = [
+        'employee_number',
+        'is_driver',
+        'start_date',
+        'dob',
+        'sin'
+    ];
+
+    public static $basicFields = [];
+
+    public static $driverFields = [
+        'drivers_license_number',
+        'drivers_license_expiration_date',
+        'license_plate_number',
+        'license_plate_expiration_date',
+        'insurance_number',
+        'insurance_expiration_date',
+        'pickup_commission',
+        'delivery_commission',
+    ];
+
+    /**Readonly fields */
+    public static $readOnlyFields = ['contact_id', 'employee_number', 'employee_id', 'drivers_license_expiration_date', 'license_plate_expiration_date', 'insurance_expiration_date', 'is_driver', 'employees.updated_at as updated_at'];
 }

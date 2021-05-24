@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Button, ButtonGroup, Card, Col, Modal, Row, Tab, Table, Tabs} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Card, Col, Modal, Row, Tab, Table, Tabs, ToastHeader} from 'react-bootstrap'
 
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 
@@ -8,11 +8,6 @@ import Contact from '../partials/Contact'
 import UserPermissionTab from './UserPermissionTab'
 
 const initialState = {
-    firstName: '',
-    key: 'contact',
-    lastName: '',
-    position: '',
-    accounts: [],
     accountUserAddressFormatted: '',
     accountUserAddressLat: '',
     accountUserAddressLng: '',
@@ -20,13 +15,20 @@ const initialState = {
     accountUserAddressPlaceId: '',
     activityLog: [],
     belongsTo: [],
-    phoneNumbers: [{phone: '', extension: '', type: '', is_primary: true}],
-    emailAddresses: [{email: '', type: '', is_primary: true}],
-    mode: 'create',
     contactId: '',
+    emailAddresses: [],
+    emailTypes: [],
+    firstName: '',
+    key: 'contact',
+    lastName: '',
+    permissions: [],
+    position: '',
+    phoneNumbers: [],
+    phoneTypes: [],
     showAccountUserModal: false,
     showChangePasswordModal: false,
-    userId: ''
+    userId: '',
+    userPermissions: []
 }
 
 export default class UsersTab extends Component {
@@ -42,26 +44,32 @@ export default class UsersTab extends Component {
         this.deleteAccountUser = this.deleteAccountUser.bind(this)
         this.editAccountUser = this.editAccountUser.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
+        this.handlePermissionChange = this.handlePermissionChange.bind(this)
         this.refreshAccountUsers = this.refreshAccountUsers.bind(this)
         this.storeAccountUser = this.storeAccountUser.bind(this)
     }
 
     addAccountUser() {
-        this.setState({
-            ...initialState,
-            showAccountUserModal: true
+        if(!this.props.canCreateAccountUsers)
+            return
+
+        makeAjaxRequest('/users/getAccountUserModel/' + this.props.accountId, 'GET', null, response => {
+            response = JSON.parse(response)
+            const userInfo = {
+                ...initialState,
+                accountUserPermissions: response.account_user_model_permissions,
+                emailAddresses: response.contact.emails,
+                emailTypes: response.contact.email_types,
+                permissions: response.permissions,
+                phoneNumbers: response.contact.phone_numbers,
+                phoneTypes: response.contact.phone_types,
+                showAccountUserModal: true
+            }
+            this.setState(userInfo)
         })
     }
 
     componentDidMount() {
-        makeAjaxRequest('/getList/selections/phone_type', 'GET', null, response => {
-            response = JSON.parse(response)
-            this.setState({phoneTypes: response})
-        })
-        makeAjaxRequest('/getList/selections/contact_type', 'GET', null, response => {
-            response = JSON.parse(response)
-            this.setState({emailTypes: response})
-        })
         this.refreshAccountUsers()
     }
 
@@ -73,32 +81,42 @@ export default class UsersTab extends Component {
     }
 
     deleteAccountUser(contactId) {
+        if(!this.props.canDeleteAccountUsers && contactId != this.props.authenticatedUserContact.contact_id)
+            return
+
         const accountUser = this.state.accountUsers.find(user => user.contact_id === contactId)
         if(this.state.accountUsers.length <= 1)
             return
-        if(confirm('Are you sure you wish to delete account user ' + accountUser.name + '?\nThis action can not be undone')) {
-            makeAjaxRequest('/users/deleteAccountUser/' + contactId, 'GET', null, response => {
+        if(confirm('Are you sure you wish to delete account user ' + accountUser.name + '?\nThis action can not be undone\n\n' + 
+            'WARNING - If this user belongs to more than one account, they will need to be deleted on each account separately')) {
+            makeAjaxRequest('/users/deleteAccountUser/' + contactId + '/' + this.props.accountId, 'GET', null, response => {
                 this.refreshAccountUsers()
             })
         }
     }
 
     editAccountUser(contactId) {
-        makeAjaxRequest('/users/getAccountUserModel/' + contactId, 'GET', null, response => {
+        if(!this.props.canEditAccountUsers && contactId != this.props.authenticatedUserContact.contact_id)
+            return;
+
+        makeAjaxRequest('/users/getAccountUserModel/' + this.props.accountId + '/' + contactId, 'GET', null, response => {
             response = JSON.parse(response)
             const userInfo = {
                 ...initialState,
-                accountId: response.account_id,
+                accountId: this.props.accountId,
                 accountUsers: this.state.accountUsers,
+                accountUserPermissions: response.account_user_model_permissions,
                 activityLog: response.activity_log,
                 belongsTo: response.belongs_to,
                 contactId: response.contact.contact_id,
+                emailAddresses: response.contact.emails,
+                emailTypes: response.contact.email_types,
                 firstName: response.contact.first_name,
                 lastName: response.contact.last_name,
+                permissions: response.permissions,
                 position: response.contact.position,
                 phoneNumbers: response.contact.phone_numbers,
-                emailAddresses: response.contact.emails,
-                mode: 'edit',
+                phoneTypes: response.contact.phone_types,
                 showAccountUserModal: true
             }
             this.setState(userInfo)
@@ -111,11 +129,17 @@ export default class UsersTab extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, type, value, checked} = event.target
-            if(name === 'key')
-                window.location.hash = value
             temp[name] = type === 'checkbox' ? checked : value
         })
         this.setState(temp)
+    }
+
+    handlePermissionChange(event) {
+        const {name, value, checked} = event.target
+
+        const accountUserPermissions = {...this.state.accountUserPermissions, [name]: checked}
+
+        this.setState({accountUserPermissions: accountUserPermissions})
     }
 
     refreshAccountUsers() {
@@ -126,18 +150,34 @@ export default class UsersTab extends Component {
     }
 
     storeAccountUser() {
+        toastr.clear()
         const data = {
             account_id: this.props.accountId,
             contact_id: this.state.contactId,
             emails: this.state.emailAddresses,
             first_name: this.state.firstName,
             last_name: this.state.lastName,
+            permissions: this.state.accountUserPermissions,
             phone_numbers: this.state.phoneNumbers,
             position: this.state.position,
         }
-        makeAjaxRequest('/users/storeAccountUser', 'POST', data, response => {
-            this.refreshAccountUsers()
-        })
+
+        if(this.state.contactId) {
+            makeAjaxRequest('/users/storeAccountUser', 'POST', data, response => {
+                this.refreshAccountUsers()
+            })
+        } else
+            makeAjaxRequest('/users/checkIfAccountUserExists', 'POST', data, response => {
+                if(response.email_in_use) {
+                    if(confirm('This email is already in use by another user: ' + response.name + '. Would you instead like to link the existing user to this account?'))
+                        makeAjaxRequest('/users/linkAccountUser/' + response.contact_id + '/' + this.props.accountId, 'GET', null, response => {
+                            this.refreshAccountUsers()
+                        })
+                } else
+                    makeAjaxRequest('/users/storeAccountUser', 'POST', data, response => {
+                        this.refreshAccountUsers()
+                    })
+            })
     }
 
     render() {
@@ -150,12 +190,11 @@ export default class UsersTab extends Component {
                             <Table striped bordered>
                                 <thead>
                                     <tr>
-                                        <th><Button size='sm' variant='success' onClick={this.addAccountUser}><i className='fas fa-user-plus'></i></Button></th>
+                                        <th>{this.props.canCreateAccountUsers && <Button size='sm' variant='success' onClick={this.addAccountUser} ><i className='fas fa-user-plus'></i></Button>}</th>
                                         <th>Name</th>
                                         <th>Primary Email</th>
                                         <th>Primary Phone</th>
                                         <th>Position</th>
-                                        <th>Roles</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -163,21 +202,31 @@ export default class UsersTab extends Component {
                                         <tr key={user.name}>
                                             <td>
                                                 <ButtonGroup size='sm'>
-                                                    <Button title='Delete' variant='danger' disabled={this.state.accountUsers.length <= 1 || this.props.readOnly} onClick={() => this.deleteAccountUser(user.contact_id)}><i className='fas fa-trash'></i></Button>
-                                                    <Button title='Edit' variant='warning' disabled={this.props.readOnly} onClick={() => this.editAccountUser(user.contact_id)}><i className='fas fa-edit'></i></Button>
+                                                    {this.props.canDeleteAccountUsers &&
+                                                        <Button
+                                                            title={user.belongs_to_count == 1 ? 'Delete' : 'Unlink'}
+                                                            variant='danger'
+                                                            disabled={this.state.accountUsers.length <= 1 || !this.props.canDeleteAccountUsers || user.contact_id == this.props.authenticatedUserContact.contact_id}
+                                                            onClick={() => this.deleteAccountUser(user.contact_id)}
+                                                        >
+                                                            <i className={user.belongs_to_count == 1 ? 'fas fa-trash' : 'fas fa-unlink'}></i>
+                                                        </Button>
+                                                    }
+                                                    <Button title='Edit' variant='warning' disabled={!this.props.canEditAccountUsers && user.contact_id != this.props.authenticatedUserContact.contact_id} onClick={() => this.editAccountUser(user.contact_id)}><i className='fas fa-edit'></i></Button>
                                                     <Button
                                                         title='Change Password'
                                                         variant='primary'
-                                                        disabled={this.props.readOnly}
+                                                        disabled={!this.props.canEditAccountUserPermissions && user.contact_id != this.props.authenticatedUserContact.contact_id}
                                                         onClick={() => this.handleChanges([{target: {name: 'showChangePasswordModal', type: 'boolean', value: true}}, {target: {name: 'userId', type: 'number', value: user.user_id}}])}
-                                                    ><i className='fas fa-key'></i></Button>
+                                                    >
+                                                        <i className='fas fa-key'></i>
+                                                    </Button>
                                                 </ButtonGroup>
                                             </td>
-                                            <td>{user.name}</td>
+                                            <td>{user.enabled? <Badge variant='success'>Enabled</Badge> : <Badge variant='danger'>Disabled</Badge>} {user.name}</td>
                                             <td>{user.primary_email}</td>
                                             <td>{user.primary_phone}</td>
                                             <td>{user.position}</td>
-                                            <td></td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -187,7 +236,7 @@ export default class UsersTab extends Component {
                 </Col>
                 <Modal show={this.state.showAccountUserModal} onHide={() => this.handleChanges({target: {name: 'showAccountUserModal', type: 'boolean', value: false}})} size='xl'>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.state.mode === 'edit' ? 'Edit User ' + this.state.firstName + ' ' + this.state.lastName : 'Create User'}</Modal.Title>
+                        <Modal.Title>{this.state.contactId ? 'Edit User ' + this.state.firstName + ' ' + this.state.lastName : 'Create User'}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Row>
@@ -211,17 +260,24 @@ export default class UsersTab extends Component {
                                             emailAddresses={this.state.emailAddresses}
                                             phoneTypes={this.state.phoneTypes}
                                             emailTypes={this.state.emailTypes}
+
                                             handleChanges={this.handleChanges}
-                                            readOnly={this.props.readOnly}
+                                            readOnly={!this.state.permissions.editBasic && (!this.state.contactId && !this.props.canCreateAccountUsers)}
                                         />
                                     </Tab>
-                                    {/* <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
-                                        <UserPermissionTab
-                                            accounts={this.state.accounts}
-                                            belongsTo={this.state.belongsTo}
-                                        />
-                                    </Tab> */}
-                                    {this.state.activityLog &&
+                                    {(this.state.permissions.viewPermissions || this.state.permissions.editPermissions) &&
+                                        <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
+                                            <UserPermissionTab
+                                                belongsTo={this.state.belongsTo}
+                                                canBeParent={this.props.canBeParent}
+                                                accountUserPermissions={this.state.accountUserPermissions}
+
+                                                handlePermissionChange={this.handlePermissionChange}
+                                                readOnly={!this.state.permissions.editPermissions}
+                                            />
+                                        </Tab>
+                                    }
+                                    {this.state.activityLog && this.state.permissions.viewActivityLog &&
                                         <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
                                             <ActivityLogTab
                                                 activityLog={this.state.activityLog}

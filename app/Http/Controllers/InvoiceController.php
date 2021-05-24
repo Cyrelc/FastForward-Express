@@ -25,6 +25,20 @@ class InvoiceController extends Controller {
         $this->class = new \App\Invoice;
     }
 
+    public function buildTable(Request $req) {
+        $user = $req->user();
+        if($user->cannot('viewAny', Invoice::class))
+            abort(403);
+        $accountRepo = new Repos\AccountRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
+        if($user->can('invoices.view.*.*') || $user->can('invoices.edit.*.*'))
+            $invoices = $invoiceRepo->ListAll(null);
+        else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children'))
+            $invoices = $invoiceRepo->ListAll($accountRepo->GetMyAccountIds($user, $user->can('invoices.view.children')));
+
+        return json_encode($invoices);
+    }
+
     public function createAmendment(Request $req) {
         DB::beginTransaction();
         $amendmentValidation = new \App\Http\Validation\AmendmentValidationRules();
@@ -39,6 +53,9 @@ class InvoiceController extends Controller {
 
         //check whether invoice is within date window for change
         $invoice = $invoiceRepo->GetById($req->invoice_id);
+        if($req->user()->cannot('update', $invoice))
+            abort(403);
+
         $billEndDate = new \DateTime($invoice->bill_end_date);
         $currentDate = new \DateTime('now');
         $diff = $currentDate->diff($billEndDate, true);
@@ -51,12 +68,30 @@ class InvoiceController extends Controller {
         DB::commit();
     }
 
-    public function deleteAmendment($amendmentId) {
+    public function delete(Request $req, $invoiceId) {
+        DB::beginTransaction();
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+        if($req->user()->cannot('delete', $invoiceRepo->GetById($invoiceId)))
+            abort(403);
+
+        $invoiceRepo->delete($id);
+        DB::commit();
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function deleteAmendment(Request $req, $amendmentId) {
         DB::beginTransaction();
         $invoiceRepo = new Repos\InvoiceRepo();
 
         $amendment = $invoiceRepo->GetAmendmentById($amendmentId);
         $invoice = $invoiceRepo->GetById($amendment->invoice_id);
+
+        if($req->user()->cannot('update', $invoice))
+            abort(403);
 
         $billEndDate = new \DateTime($invoice->bill_end_date);
         $currentDate = new \DateTime('now');
@@ -69,90 +104,71 @@ class InvoiceController extends Controller {
         DB::commit();
     }
 
-    public function download($filename) {
+    public function download(Request $req, $filename) {
         $path = storage_path() . '/app/public/';
         return response()->download($path . $filename)->deleteFileAfterSend(true);
     }
 
-    public function buildTable() {
-        $invoiceRepo = new Repos\InvoiceRepo();
-        $invoices = $invoiceRepo->ListAll();
-        return json_encode($invoices);
-    }
-
-    public function finalize($invoiceIds) {
+    public function finalize(Request $req, $invoiceIds) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoiceIdArray = explode(',', $invoiceIds);
+
         foreach($invoiceIdArray as $invoiceId)
-            $invoiceRepo->toggleFinalized($invoiceId);
+            if($req->user()->cannot('update', $invoiceRepo->GetById($invoiceId)))
+                abort(403);
+            else
+                $invoiceRepo->ToggleFinalized($invoiceId);
 
         return response()->json(['success' => true]);
     }
 
-    public function getModel(Request $req, $id) {
-        $invoice_model_factory = new Invoice\InvoiceModelFactory();
-        $model = $invoice_model_factory->GetById($id);
+    public function getAccountsToInvoice(Request $req) {
+        if($req->user()->cannot('create', Invoice::class))
+            abort(403);
+
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $model = $invoiceModelFactory->GetGenerateModel($req);
+
+        return json_encode($model);
+    }
+
+    public function getModel(Request $req, $invoiceId = null) {
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        if($invoiceId) {
+            $model = $invoiceModelFactory->GetById($req, $invoiceId);
+
+            if($req->user()->cannot('view', $model->invoice))
+                abort(403);
+        } else {
+            if($req->user()->cannot('create', Invoice::class))
+                abort(403);
+
+            $model = $invoiceModelFactory->GetCreateModel();
+        }
+
         return json_encode($model);
     }
 
     public function getOutstandingByAccountId(Request $req) {
         $invoice_repo = new Repos\InvoiceRepo();
-        return json_encode($invoice_repo->getOutstandingByAccountId($req->input('account_id')));
+
+        $invoices = $invoiceRepo->GetOutstandingByAccountId($req->input('account_id'));
+        foreach($invoices as $invoice)
+            if($req->user()->cannot('view', $invoice))
+                abort(403);
+
+        return json_encode($invoices);
     }
 
-    public function delete(Request $req, $id) {
-        DB::beginTransaction();
-        try{
-            $invoiceRepo = new Repos\InvoiceRepo();
-
-            $invoiceRepo->delete($id);
-            DB::commit();
-            return response()->json([
-                'success' => true
-            ]);
-        } catch(Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function getAccountsToInvoice(Request $req) {
-        $acctRepo = new Repos\AccountRepo();
-        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
-        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
-        $accounts = $acctRepo->ListAllWithUninvoicedBillsByInvoiceInterval($req->invoice_intervals, $startDate, $endDate);
-        return json_encode($accounts);
-    }
-
-    public function store(Request $req) {
-        DB::beginTransaction();
-
-        $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
-        $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
-
-        $this->validate($req, $validationRules, $validationMessages);
-
-        $invoiceRepo = new Repos\InvoiceRepo();
-
-        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
-        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
-
-        $invoiceRepo->create($req->accounts, $startDate, $endDate);
-
-        DB::commit();
-    }
-
-    public function print(Request $req, $invoice_id) {
+    public function print(Request $req, $invoiceId) {
         //TODO check if invoice $id exists
-        $invoice_model_factory = new Invoice\InvoiceModelFactory();
-        $model = $invoice_model_factory->GetById($invoice_id);
-        $amendments_only = $req->amendments_only === null ? 0 : 1;
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $model = $invoiceModelFactory->GetById($req, $invoiceId);
+        $amendmentsOnly = $req->amendments_only === null ? 0 : 1;
+        if($req->user()->cannot('view', $model->invoice))
+            abort(403);
 
-        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendments_only'));
+        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendmentsOnly'));
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 
@@ -172,6 +188,10 @@ class InvoiceController extends Controller {
         foreach(explode(',', $invoiceIds) as $invoiceId) {
             $invoiceModelFactory = new Invoice\InvoiceModelFactory();
             $model = $invoiceModelFactory->GetById($invoiceId);
+
+            if($req->user()->cannot('view', $model->invoice))
+                abort(403);
+
             $filename = $model->parent->name . '-' . $model->invoice->invoice_id . '.pdf';
             $is_pdf = 1;
             $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
@@ -187,5 +207,26 @@ class InvoiceController extends Controller {
         rmdir($storagepath . $foldername);
 
         return \Response::download($zipfile);
+    }
+
+    public function store(Request $req) {
+        if($req->user()->cannot('create', Invoice::class))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
+        $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
+
+        $this->validate($req, $validationRules, $validationMessages);
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
+
+        $invoiceRepo->create($req->accounts, $startDate, $endDate);
+
+        DB::commit();
     }
 }

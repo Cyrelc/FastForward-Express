@@ -3,41 +3,57 @@
 namespace App\Http\Collectors;
 
 class AccountCollector {
-    public function Collect($req, $shippingId, $billingId) {
-        $canBeParent = filter_var($req->can_be_parent, FILTER_VALIDATE_BOOLEAN);
-        $useParentRatesheet = filter_var($req->use_parent_ratesheet, FILTER_VALIDATE_BOOLEAN);
+    public function Collect($req, $shippingId, $billingId, $accountPermissions) {
+        $advancedArray = [];
+        if($accountPermissions['editAdvanced']) {
+            $canBeParent = filter_var($req->can_be_parent, FILTER_VALIDATE_BOOLEAN);
+            $useParentRatesheet = filter_var($req->use_parent_ratesheet, FILTER_VALIDATE_BOOLEAN);
 
-        $parentAccountId = $req->parent_account_id;
-        if($canBeParent || $req->parent_account_id === "")
-            $parentAccountId = null;
+            $parentAccountId = $req->parent_account_id;
+            if($canBeParent || $req->parent_account_id === "")
+                $parentAccountId = null;
 
-        $ratesheetId = $req->ratesheet_id;
-        if($useParentRatesheet || $req->ratesheet_id == '')
-            $ratesheetId = null;
+            $ratesheetId = $req->ratesheet_id;
+            if($useParentRatesheet || $req->ratesheet_id == '')
+                $ratesheetId = null;
 
-        return [
-            'account_id'=>$req->account_id == '' ? null : $req->account_id,
-            'active'=>true,
-            'account_number'=>$req->account_number,
+            $advancedArray = [
+                'active'=>true,
+                'account_number'=>$req->account_number,
+                'can_be_parent'=>$canBeParent,
+                'discount'=>$req->discount === '' ? 0 : $req->discount,
+                'gst_exempt'=>filter_var($req->is_gst_exempt, FILTER_VALIDATE_BOOLEAN),
+                'min_invoice_amount'=>$req->min_invoice_amount == '' ? 0 : $req->min_invoice_amount,
+                'parent_account_id'=>$parentAccountId,
+                'ratesheet_id'=>$ratesheetId,
+                'start_date'=>(new \DateTime($req->input('start_date')))->format('Y-m-d'),
+                'use_parent_ratesheet'=>$canBeParent ? null : $useParentRatesheet
+            ];
+        }
+
+        $basicArray = [
             'billing_address_id'=>$billingId,
-            'can_be_parent'=>$canBeParent,
+            'name'=>$req->account_name,
+            'shipping_address_id'=>$shippingId,
+        ];
+
+        $invoicingArray = [
             'custom_field'=>$req->custom_field === '' ? null : $req->custom_field,
-            'discount'=>$req->discount === '' ? 0 : $req->discount,
-            'gst_exempt'=>filter_var($req->is_gst_exempt, FILTER_VALIDATE_BOOLEAN),
             'invoice_interval'=>$req->invoice_interval,
             'invoice_comment'=>$req->invoice_comment,
             'invoice_sort_order'=>json_encode($req->invoice_sort_order),
-            'min_invoice_amount'=>$req->min_invoice_amount == '' ? 0 : $req->min_invoice_amount,
-            'name'=>$req->account_name,
-            'parent_account_id'=>$parentAccountId,
-            'ratesheet_id'=>$ratesheetId,
+            'is_custom_field_mandatory'=>filter_var($req->is_custom_field_mandatory, FILTER_VALIDATE_BOOLEAN),
             'send_bills'=>filter_var($req->send_bills, FILTER_VALIDATE_BOOLEAN),
             'send_email_invoices'=>filter_var($req->send_email_invoices, FILTER_VALIDATE_BOOLEAN),
             'send_paper_invoices'=>filter_var($req->send_paper_invoices, FILTER_VALIDATE_BOOLEAN),
-            'shipping_address_id'=>$shippingId,
-            'start_date'=>(new \DateTime($req->input('start_date')))->format('Y-m-d'),
-            'use_parent_ratesheet'=>$canBeParent ? null : $useParentRatesheet
         ];
+
+        return array_merge(
+            ['account_id'=>$req->account_id],
+            $accountPermissions['editAdvanced'] ? $advancedArray : [],
+            $accountPermissions['editBasic'] ? $basicArray : [],
+            $accountPermissions['editInvoicing'] ? $invoicingArray : []
+        );
     }
 }
 

@@ -1,10 +1,30 @@
-html, body {
-	height: 100%;
-	min-width: 672px;
+a.nav-link {
+	color: white;
+	font-style: italic;
+	font-weight: bold;
+}
+
+a.nav-link:hover {
+	color: #808080
 }
 
 .bottom15 {
 	padding-bottom:15px;
+}
+
+footer .footerLabel {
+	font-style:italic;
+	padding-top: 20px;
+}
+
+footer h2, footer h4 {
+	color:white;
+	padding-left: 80px;
+}
+
+html, body {
+	height: 100%;
+	min-width: 880px;
 }
 
 .row-eq-height {
@@ -25,11 +45,8 @@ table#mainWindow {
 	min-height: 100%;
 }
 
-#advFilter {
-}
-
 .dropdown:hover .dropdown-menu {
-display: block;
+	display: block;
 }
 
 #menu{
@@ -106,4 +123,8 @@ a.dropdown-toggle {
 
 .input-group{
     width:100%;
+}
+
+.navbar, .navbar-default, footer {
+	background-image:linear-gradient(to right, black, #0770b1, black) !important;
 }

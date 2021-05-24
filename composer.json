@@ -5,8 +5,8 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.2.0",
-        "laravel/framework": "^7.0",
+        "php": ">=7.3.0",
+        "laravel/framework": "^8.0",
         "fzaninotto/faker": "^1.6",
         "doctrine/dbal": "^2.5",
         "barryvdh/laravel-dompdf": "^0.8.1",
@@ -14,12 +14,13 @@
         "fideloper/proxy": "^4.0",
         "spatie/laravel-query-builder": "^2.0",
         "altynbek07/laravel-config-writer": "^1.2",
-        "laravel/ui": "^2.0",
-        "pusher/pusher-php-server": "~4.0"
+        "laravel/ui": "^3.0",
+        "pusher/pusher-php-server": "~4.0",
+        "spatie/laravel-permission": "^4.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
-        "phpunit/phpunit": "^8.5",
+        "phpunit/phpunit": "^9.0",
         "symfony/css-selector": "5.0.*",
         "symfony/dom-crawler": "5.0.*",
         "filp/whoops": "~2.0"

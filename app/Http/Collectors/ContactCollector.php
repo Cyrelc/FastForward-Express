@@ -41,7 +41,7 @@ class ContactCollector {
                 $email = [
                     'email_address_id' => isset($email['email_address_id']) ? $email['email_address_id'] : null,
                     'email' => strtolower($email['email']),
-                    'type' => isset($email['type']) ? $email['type'] : null,
+                    'type' => isset($email['type']) && $email['type'] != "" ? json_encode($email['type']) : null,
                     'is_primary' => filter_var($email['is_primary'], FILTER_VALIDATE_BOOLEAN),
                     'contact_id' => $contactId
                 ];

@@ -63,6 +63,7 @@ class Invoice extends Component {
                 invoice: response.invoice,
                 nextInvoiceId: nextInvoiceId,
                 parent: response.parent,
+                permissions: response.permissions,
                 prevInvoiceId: prevInvoiceId,
                 tables: response.tables,
                 unpaidInvoices: response.unpaid_invoices
@@ -102,8 +103,8 @@ class Invoice extends Component {
                     <ButtonGroup>
                         <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id : null} target='_blank' variant='success'><i className='fas fa-print'> Generate PDF</i></Button>
                         {this.state.amendments ? <Button href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id + '?amendments_only': null} variant='success' target='_blank'><i className='fas fa-print'> Generate PDF - Amendments Only</i></Button> : null}
-                        {(this.state.invoice && this.state.invoice.finalized) ? <Button variant='warning' onClick={this.toggleAmendmentModal}><i className='fas fa-eraser'></i> Create Amendment</Button> : null}
-                        {this.state.invoice ?
+                        {(this.state.invoice && this.state.invoice.finalized && this.state.permissions.amend) ? <Button variant='warning' onClick={this.toggleAmendmentModal}><i className='fas fa-eraser'></i> Create Amendment</Button> : null}
+                        {(this.state.invoice && this.state.permissions.edit) ?
                             this.state.invoice.finalized ? <Button variant='danger' onClick={this.toggleFinalized}><i className='fas fa-unlock'></i> Remove Finalize</Button> : <Button variant='success' onClick={this.toggleFinalized}><i className='fas fa-lock'></i> Finalize</Button> : null
                         }
                     </ButtonGroup>
@@ -114,7 +115,7 @@ class Invoice extends Component {
                 <Col md={11}>
                     <table style={{width: '100%'}}>
                         <tr>
-                            <td style={{width: '40%'}}><h3><LinkContainer to={'/app/accounts/edit/' + this.state.accountId}><a>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></LinkContainer></h3></td>
+                            <td style={{width: '40%'}}><h3><LinkContainer to={'/app/accounts/' + this.state.accountId}><a>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></LinkContainer></h3></td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
                             <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && this.state.invoice.total_cost)}</td>
                             <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + this.state.accountOwing}</td>
@@ -157,7 +158,10 @@ class Invoice extends Component {
                                                     case 'amount':
                                                         return <td width='10%' style={{textAlign: 'right'}}>{bill.amount}</td>
                                                     case 'bill_id':
-                                                        return <td width='8%'><LinkContainer to={'/app/bills/edit/' + bill.bill_id}><a>{bill.bill_id}</a></LinkContainer></td>
+                                                        if(this.state.permissions.viewBills)
+                                                            return <td width='8%'><LinkContainer to={'/app/bills/' + bill.bill_id}><a>{bill.bill_id}</a></LinkContainer></td>
+                                                        else
+                                                            return <td width='8%'>{bill.bill_id}</td>
                                                     case 'time_pickup_scheduled':
                                                         return <td width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
                                                     default:
@@ -203,16 +207,14 @@ class Invoice extends Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {
-                                    this.state.amendments.map(amendment =>
-                                        <tr>
-                                            {this.state.invoice &&  <td width='10%'><Button onClick={() => this.deleteAmendment(amendment.amendment_id)} variant='danger'><i className='fas fa-trash'></i></Button></td>}
-                                            <td width='10%'>{amendment.bill_id}</td>
-                                            <td>{amendment.description}</td>
-                                            <td width='10%' style={{textAlign: 'right'}}>{amendment.amount}</td>
-                                        </tr>
-                                    )
-                                }
+                                {this.state.amendments.map(amendment =>
+                                    <tr>
+                                        {this.state.invoice &&  <td width='10%'><Button onClick={() => this.deleteAmendment(amendment.amendment_id)} variant='danger'><i className='fas fa-trash'></i></Button></td>}
+                                        <td width='10%'>{amendment.bill_id}</td>
+                                        <td>{amendment.description}</td>
+                                        <td width='10%' style={{textAlign: 'right'}}>{amendment.amount}</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </Table>
                     </Col>
@@ -280,6 +282,7 @@ class Invoice extends Component {
 
 const mapStateToProps = store => {
     return {
+        frontEndPermissions: store.app.frontEndPermissions,
         sortedInvoices: store.invoices.sortedList
     }
 }

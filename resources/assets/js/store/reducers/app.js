@@ -1,32 +1,58 @@
 /**
  * App level reducer
  */
+import * as actionTypes from '../actions'
+
+/**
+ * Initial State
+ */
 const initialState = {
     accounts: [],
-    employees: []
+    drivers: [],
+    employees: [],
+    authenticatedAccountUsers: {},
+    authenticatedEmployee: {},
+    authenticatedUserContact: {},
+    employees: [],
+    frontEndPermissions: {
+        accounts: {},
+        administration: {},
+        appSettings: {},
+        bills: {},
+        chargebacks: {},
+        drivers: {},
+        employees: {},
+        invoices: {},
+        manifests: {},
+        ratesheets: {}
+    },
+    invoiceIntervals: [],
+    parentAccounts: []
 }
 
 const reducer = (state = initialState, action) => {
     switch(action.type) {
-        case 'ACCOUNT_SELECTION_LIST_LOADED':
-            return {...state, accounts: action.payload}
-        case 'EMPLOYEE_SELECTION_LIST_LOADED':
-            return {...state, employees: action.payload}
+        case actionTypes.APP_CONFIGURATION_LOADED:
+            return {
+                ...state,
+                accounts: action.payload.accounts,
+                authenticatedAccountUsers: action.payload.authenticatedAccountUsers,
+                authenticatedEmployee: action.payload.authenticatedEmployee,
+                authenticatedUserContact: action.payload.contact,
+                drivers: action.payload.drivers,
+                employees: action.payload.employees,
+                frontEndPermissions: action.payload.frontEndPermissions,
+                invoiceIntervals: action.payload.invoice_intervals,
+                parentAccounts: action.payload.parent_accounts
+            }
     }
     return state
 }
 
-export async function fetchAccountsSelectionList(dispatch, getState) {
-    makeAjaxRequest('/getList/accounts', 'GET', null, response => {
-        const accounts = JSON.parse(response)
-        dispatch({type: 'ACCOUNT_SELECTION_LIST_LOADED', payload: accounts})
-    })
-}
-
-export async function fetchEmployeesSelectionList(dispatch, getState) {
-    makeAjaxRequest('/getList/employees', 'GET', null, response => {
-        const employees = JSON.parse(response)
-        dispatch({type: 'EMPLOYEE_SELECTION_LIST_LOADED', payload: employees})
+export async function fetchAppConfiguration(dispatch, getState) {
+    makeAjaxRequest('/getAppConfiguration', 'GET', null, response => {
+        const data = JSON.parse(response)
+        dispatch({type: actionTypes.APP_CONFIGURATION_LOADED, payload: data})
     })
 }
 

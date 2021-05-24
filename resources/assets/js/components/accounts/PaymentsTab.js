@@ -114,6 +114,8 @@ export default class PaymentsTab extends Component {
     }
 
     payOffInvoice(event) {
+        if(!this.props.editPayments)
+            return
         const {name, type, checked} = event.target
         var total = parseFloat(this.state.paymentAmount === '' ? 0 : this.state.paymentAmount)
         const outstandingInvoices = this.state.outstandingInvoices.map(invoice => {
@@ -146,6 +148,8 @@ export default class PaymentsTab extends Component {
     }
 
     storeAccountCredit() {
+        if(!this.props.editPayments)
+            return
         const data = {
             account_id: this.props.accountId,
             bill_id: this.state.creditAgainstBillId,
@@ -159,6 +163,8 @@ export default class PaymentsTab extends Component {
     }
 
     storePayment() {
+        if(!this.props.editPayments)
+            return
         if(this.state.selectedPaymentType == '') {
             toastr.error('Please select a payment method')
             return
@@ -179,7 +185,7 @@ export default class PaymentsTab extends Component {
 
     render() {
         const columns = [
-            {title: 'Invoice ID', field: 'invoice_id', formatter: 'link', formatterParams:{urlPrefix: '/app/invoices/view/'}, sorter: 'number', headerFilter: true},
+            {title: 'Invoice ID', field: 'invoice_id', formatter: this.props.viewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
             {title: 'Payment Received On', field: 'date'},
             {title: 'Payment Method', field: 'payment_type', headerFilter: true},
             {title: 'Reference Number', field: 'reference_value', headerFilter: true},
@@ -190,16 +196,22 @@ export default class PaymentsTab extends Component {
         return (
             <div>
                 <Card>
-                    <Card.Header>
-                        <Row>
-                            <Col>
-                                <Button variant='primary' onClick={() => this.handleChange({target: {name: 'showPaymentModal', type: 'boolean', value: true}})} disabled={this.state.outstandingInvoices.length == 0}><i className='fas fa-money-check-alt'></i> New Payment</Button>
-                            </Col>
-                            <Col style={{textAlign: 'right'}}>
-                                <Button variant='dark' onClick={() => this.handleChange({target: {name: 'showAdjustAccountCreditModal', type: 'boolean', value: true}})}><i className='fas fa-money-bill-wave'></i> Adjust Account Credit</Button>
-                            </Col>
-                        </Row>
-                    </Card.Header>
+                    {this.props.editPayments &&
+                        <Card.Header>
+                            <Row>
+                                {this.props.editPayments &&
+                                    <Col>
+                                        <Button variant='primary' onClick={() => this.handleChange({target: {name: 'showPaymentModal', type: 'boolean', value: true}})} disabled={this.state.outstandingInvoices.length == 0}><i className='fas fa-money-check-alt'></i> New Payment</Button>
+                                    </Col>
+                                }
+                                <Col style={{textAlign: 'right'}}>
+                                    {this.props.editPayments &&
+                                        <Button variant='dark' onClick={() => this.handleChange({target: {name: 'showAdjustAccountCreditModal', type: 'boolean', value: true}})}><i className='fas fa-money-bill-wave'></i> Adjust Account Credit</Button>
+                                    }
+                                </Col>
+                            </Row>
+                        </Card.Header>
+                    }
                     <Card.Body>
                         <ReactTabulator
                             data={this.state.payments}

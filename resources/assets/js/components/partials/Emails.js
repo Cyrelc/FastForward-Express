@@ -105,8 +105,8 @@ export default function Emails(props) {
                                     <td width='40%'>
                                         <Select
                                             options={props.emailTypes}
-                                            value={props.emailTypes.find(type => type.value == email.type)}
-                                            onChange={value => handleEmailChange({target: {name: 'type', type: 'string', value: value.value, dataset: {emailIndex: index}}})}
+                                            value={email.type}
+                                            onChange={value => handleEmailChange({target: {name: 'type', type: 'string', value: value, dataset: {emailIndex: index}}})}
                                             isMulti
                                         />
                                     </td>

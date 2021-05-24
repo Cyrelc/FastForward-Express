@@ -1,65 +1,34 @@
 <?php
 namespace App\Http\Validation;
 
+use App\Http\Repos;
+use Illuminate\Validation\Rule;
+
 class BillValidationRules {
-    public function GetValidationRules($req, $oldBill) {
-		$rules = [	'time_pickup_scheduled' => 'required|date',
-					'time_delivery_scheduled' => 'required|date',
-					'time_call_received' => 'required|date',
-					'time_dispatched' => 'date',
-					'time_picked_up' => 'date',
-					'time_delivered' => 'date',
-					'delivery_type' => 'required',
-					'payment_type' => 'required',
-					'is_min_weight_size' => 'required',
-					'is_pallet' => 'required',
-					'use_imperial' => 'required',
-					'skip_invoicing' => 'required',
-					'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id'
-					// 'charge_reference_value' => 'sometimes|required',
-					// 'pickup_reference_value' => 'sometimes|required',
-					// 'delivery_reference_value' => 'sometimes|required'
-				];
+	public function GetValidationRules($req, $oldBill, $permissions) {
+		$accountRepo = new Repos\AccountRepo();
+		$partialsRules = new PartialsValidationRules();
 
-    	$messages = ['time_pickup_scheduled.required' => 'Pickup date is required',
-					'time_pickup_scheduled.date' => 'Pickup date is in an incorrect format',
-					'time_delivery_scheduled.required' => 'Delivery date is required',
-					'time_delivery_scheduled.date' => 'Delivery date is in an incorrect format',
-					'time_call_received.required' => 'Call Received Time is required',
-					'time_call_received.date' => 'Call received time is in an incorrect format',
-					'delivery_type.required' => 'Please select a delivery type',
-					'payment_type.required' => 'Please choose a payment type for this bill'
-					// 'charge_reference_value.required' => 'Charge Account requires a custom tracking field value',
-					// 'pickup_reference_value.required' => 'Pickup Account requires a custom tracking field value',
-					//'delivery_reference_value.required' => 'Delivery Account requires a custom tracking field value'
-				];
+		$rules = [
+			'delivery_type' => 'required',
+			'is_min_weight_size' => 'required',
+			'is_pallet' => 'required',
+			'pickup_account_id' => '',
+			'time_pickup_scheduled' => 'required|date',
+			'time_delivery_scheduled' => 'required|date|after_or_equal:time_pickup_scheduled',
+			'updated_at' => 'exclude_if:bill_id,null|date|date_equals:' . ($oldBill ? $oldBill->updated_at : ''),
+			'use_imperial' => 'required'
+		];
 
-		if($oldBill) {
-			$rules = array_merge($rules, ['updated_at' => 'required|date|date_equals:' . $oldBill->updated_at]);
-			$messages = array_merge($messages, ['updated_at.date_equals' => 'This bill has been modified since you loaded the page. Please re-load the bill and try again']);
-		}
+		$messages = [
+			'delivery_type.required' => 'Please select a delivery type',
+			'time_delivery_scheduled.date' => 'Delivery date is in an incorrect format',
+			'time_delivery_scheduled.required' => 'Delivery date is required',
+			'time_pickup_scheduled.date' => 'Pickup date is in an incorrect format',
+			'time_pickup_scheduled.required' => 'Pickup date is required',
+			'updated_at.date_equals' => 'This bill has been modified since you loaded the page. Please re-load the bill and try again'
+		];
 
-		if($req->interliner_id != "") {
-			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
-		}
-
-		if($req->pickup_address_type === 'Account') {
-			$rules = array_merge($rules, ['pickup_account_id' => 'required|numeric']);
-			$messages = array_merge($messages, ['pickup_account_id.required' => 'Pickup Account is required when address input type is Account']);
-		}
-
-		if($req->delivery_address_type === 'Account') {
-			$rules = array_merge($rules, ['delivery_account_id' => 'required|numeric']);
-			$messages = array_merge($messages, ['delivery_account_id.required' => 'Delivery Account is required when address input type is Account']);
-		}
-
-		if($req->payment_type == 'Account') {
-			$rules = array_merge($rules, ['charge_account_id' => 'required']);
-			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
-		} else if ($req->payment_type == 'Driver') {
-			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
-			$messages = array_merge($messages, ['charge_driver_id.required' => 'Must select a driver to charge back to']);
-		}
 		if($req->is_min_weight_size === 'false') {
 			$rules = array_merge($rules, [
 				'packages' => 'required',
@@ -71,8 +40,6 @@ class BillValidationRules {
 			]);
 			$messages = array_merge($messages, []);
 		}
-		//TODO - transpose payment types required fields
-		$partialsRules = new \App\Http\Validation\PartialsValidationRules();
 		
 		$pickupAddress = $partialsRules->GetAddressMinValidationRules($req, 'pickup_address', 'Pickup');
 		$rules = array_merge($rules, $pickupAddress['rules']);
@@ -82,7 +49,122 @@ class BillValidationRules {
 		$rules = array_merge($rules, $deliveryAddress['rules']);
 		$messages = array_merge($messages, $deliveryAddress['messages']);
 
-    	return ['rules' => $rules, 'messages' => $messages];
-    }
+		$chargeAccount = $req->charge_account_id ? $accountRepo->GetById($req->charge_account_id) : null;
+		if($chargeAccount && $chargeAccount->custom_field && $chargeAccount->is_custom_field_mandatory)
+			$rules = array_merge($rules, ['charge_reference_value' => 'required']);
+		$deliveryAccount = $req->delivery_account_id ? $accountRepo->GetById($req->delivery_account_id) : null;
+		if($deliveryAccount && $deliveryAccount->custom_field && $deliveryAccount->is_custom_field_mandatory)
+			$rules = array_merge($rules, ['delivery_reference_value' => 'required']);
+		$pickupAccount = $req->pickup_account_id ? $accountRepo->GetById($req->pickup_account_id) : null;
+		if($pickupAccount && $pickupAccount->custom_field && $pickupAccount->is_custom_field_mandatory)
+			$rules = array_merge($rules, ['pickup_reference_value' => 'required']);
+
+		if($req->user()->accountUser) {
+			$basic = $this->getBasicValidationRulesAccountUser($req);
+			$rules = array_merge($rules, $basic['rules']);
+			$messages = array_merge($messages, $basic['messages']);
+		} else {
+			$basic = $this->getBasicValidationRulesEmployee($req);
+			$rules = array_merge($rules, $basic['rules']);
+			$messages = array_merge($messages, $basic['messages']);
+		}
+
+		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['updateDispatch'] : $permissions['createFull']) {
+			$dispatch = $this->getDispatchValidationRules($req);
+			$rules = array_merge($rules, $dispatch['rules']);
+			$messages = array_merge($messages, $dispatch['messages']);
+		}
+
+		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['updateBilling'] : $permissions['createFull']) {
+			$billing = $this->getDispatchValidationRules($req);
+			$rules = array_merge($rules, $billing['rules']);
+			$messages = array_merge($messages, $billing['messages']);
+		}
+
+		return ['rules' => $rules, 'messages' => $messages];
+	}
+
+	/**
+	 * Private functions
+	 */
+
+	private function getBasicValidationRulesAccountUser($req) {
+		$accountRepo = new Repos\AccountRepo();
+		$paymentRepo = new Repos\PaymentRepo();
+		$accountPaymentTypeId = $paymentRepo->GetAccountPaymentType()->payment_type_id;
+
+		$validAccounts = $accountRepo->ListForBillsPage($accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children')));
+		$validAccountIds = [];
+		foreach($validAccounts as $validAccount)
+			array_push($validAccountIds, $validAccount->account_id);
+
+		$rules = [
+			'charge_account_id' => ['required', Rule::in($validAccountIds)],
+			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', Rule::in($validAccountIds)],
+			'payment_type.payment_type_id' => ['required', Rule::in([$accountPaymentTypeId])],
+			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', Rule::in($validAccountIds)]
+		];
+
+		$messages = [
+			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
+			'pickup_account_id.required' => 'Pickup Account is required when address input type is Account'
+		];
+
+		return ['rules' => $rules, 'messages' => $messages];
+	}
+
+	private function getBasicValidationRulesEmployee($req) {
+		$rules = [
+			'charge_account_id' => 'exclude_unless:payment_type,Account|required|exists:accounts,account_id',
+			'delivery_account_id' => 'exclude_unless:delivery_address_type,Account|required|exists:accounts,account_id',
+			'payment_type.name' => 'required|exists:payment_types,name',
+			'pickup_account_id' => 'exclude_unless:pickup_address_type,Account|required|exists:accounts,account_id'
+		];
+
+		$messages = [
+
+		];
+
+		return ['rules' => $rules, 'messages' => $messages];
+	}
+
+	private function getDispatchValidationRules($req) {
+		$rules = [
+			'time_dispatched' => 'date',
+			'time_picked_up' => 'date',
+			'time_delivered' => 'date',
+		];
+
+		$messages = [
+
+		];
+
+		return ['rules' => $rules, 'messages' => $messages];
+	}
+
+	private function getBillingValidationRules($req) {
+		$rules = [
+			'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
+			'skip_invoicing' => 'required',
+		];
+
+		$messages = [
+
+		];
+
+		if($req->interliner_id != "") {
+			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
+		}
+
+		if($req->payment_type == 'Account') {
+			$rules = array_merge($rules, ['charge_account_id' => 'required']);
+			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
+		} else if ($req->payment_type == 'Driver') {
+			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
+			$messages = array_merge($messages, ['charge_driver_id.required' => 'Must select a driver to charge back to']);
+		}
+
+		return ['rules' => $rules, 'messages' => $messages];
+	}
 }
 

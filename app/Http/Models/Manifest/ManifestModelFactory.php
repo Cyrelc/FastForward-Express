@@ -4,12 +4,12 @@ namespace App\Http\Models\Manifest;
 use App\Http\Repos;
 
 class ManifestModelFactory{
-    public function ListAll() {
+    public function ListAll($req, $employeeId = null) {
         $billRepo = new Repos\BillRepo;
         $chargebackRepo = new Repos\ChargebackRepo;
         $manifestRepo = new Repos\ManifestRepo();
 
-        $manifests = $manifestRepo->ListAll();
+        $manifests = $manifestRepo->ListAll($req, $employeeId);
         foreach($manifests as $manifest) {
             $manifest->driver_gross = $billRepo->GetDriverTotalByManifestId($manifest->manifest_id);
             $manifest->driver_chargeback_amount = $chargebackRepo->GetChargebackTotalByManifestId($manifest->manifest_id);

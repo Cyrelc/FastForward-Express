@@ -25,6 +25,7 @@ export default class EmergencyContacts extends Component {
             emailTypes: []
         }
         this.addEmergencyContact = this.addEmergencyContact.bind(this)
+        this.deleteEmergencyContact = this.deleteEmergencyContact.bind(this)
         this.editEmergencyContact = this.editEmergencyContact.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
         this.storeEmergencyContact = this.storeEmergencyContact.bind(this)
@@ -59,7 +60,7 @@ export default class EmergencyContacts extends Component {
                 'type': 'POST',
                 'data': data,
                 'success': response => {
-                    // location.reload()
+                    this.props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
                 },
                 'error': response => handleErrorResponse(response)
             })
@@ -67,26 +68,25 @@ export default class EmergencyContacts extends Component {
     }
 
     editEmergencyContact(emergencyContactId) {
-        fetch('/employees/emergencyContacts/getModel/' + emergencyContactId)
-        .then(response => {return response.json()})
-        .then(data => {
+        makeAjaxRequest('/employees/emergencyContacts/getModel/' + emergencyContactId, 'GET', null, response => {
+            response = JSON.parse(response)
             this.setState({
-                contactId: data.contact_id,
-                phoneTypes: data.phone_types,
-                phoneNumbers: data.phone_numbers,
-                emailAddresses: data.emails ? data.emails : [],
-                firstName: data.first_name,
-                lastName: data.last_name,
-                position: data.position,
-                emergencyContactAddressFormatted: data.address.formatted,
-                emergencyContactAddressLat: data.address.lat,
-                emergencyContactAddressLng: data.address.lng,
-                emergencyContactAddressName: data.address.name,
-                emergencyContactAddressPlaceId: data.address.place_id,
+                contactId: response.contact_id,
+                phoneTypes: response.phone_types,
+                phoneNumbers: response.phone_numbers,
+                emailAddresses: response.emails ? response.emails : [],
+                firstName: response.first_name,
+                lastName: response.last_name,
+                position: response.position,
+                emergencyContactAddressFormatted: response.address.formatted,
+                emergencyContactAddressLat: response.address.lat,
+                emergencyContactAddressLng: response.address.lng,
+                emergencyContactAddressName: response.address.name,
+                emergencyContactAddressPlaceId: response.address.place_id,
                 showEmergencyContactModal: true,
                 mode: 'edit'
             })
-        })
+        });
     }
 
     handleChanges(events) {
@@ -125,12 +125,10 @@ export default class EmergencyContacts extends Component {
                     toastr.success('Contact "' + this.state.firstName + ' ' + this.state.lastName + '" successfully updated', 'Success')
                 else {
                     toastr.success('Contact "' + this.state.firstName + ' ' + this.state.lastName + '" succesfully created', 'Success', {
-                        // 'progressBar': true,
-                        // 'positionClass': 'toast-top-full-width',
-                        // 'showDuration': 500,
-                        // 'onHidden': function(){location.reload()}
                     })
                 }
+                this.setState({showEmergencyContactModal: false})
+                this.props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
             },
             'error': response => handleErrorResponse(response)
         })

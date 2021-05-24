@@ -2,25 +2,43 @@
 namespace App\Http\Validation;
 
 class AccountValidationRules {
-    public function GetValidationRules($req) {
-        $rules = [
+    public function GetValidationRules($req, $accountPermissionsObject) {
+        $advancedRules = [
             'account_number' => 'required|unique:accounts,account_number,' . $req->account_id . ',account_id',
-            'account_name' => 'required',
-            'invoice_interval' => 'required|exists:selections,value',
             'parent_account_id' => 'exists:accounts,account_id',
             'discount' => 'nullable|numeric|between:0,100',
-            'start_date' => 'required|date',
             'min_invoice_amount' => 'nullable|numeric',
+            'start_date' => 'required|date',
         ];
+        $basicRules = [
+            'account_name' => 'required',
+        ];
+        $invoicingRules = [
+            'invoice_interval' => 'required|exists:selections,value',
+        ];
+        $rules = array_merge(
+            $accountPermissionsObject['editAdvanced'] ? $advancedRules : [],
+            $accountPermissionsObject['editBasic'] ? $basicRules : [],
+            $accountPermissionsObject['editInvoicing'] ? $invoicingRules : []
+        );
 
-        $messages = [
+        $advancedMessages = [
             'account_number.required' => 'Account Number is required',
             'account_number.unique' => 'Account Number must be unique',
-            'account_name.required' => 'Company Name is required.',
             'discount.numeric' => 'Discount must be a number',
             'discount.between' => 'Discount value is invalid'
         ];
+        $basicMessages = [
+            'account_name.required' => 'Company Name is required.',
+        ];
+        $invoicingMessages = [
 
+        ];
+        $messages = array_merge(
+            $accountPermissionsObject['editAdvanced'] ? $advancedMessages : [],
+            $accountPermissionsObject['editBasic'] ? $basicMessages : [],
+            $accountPermissionsObject['editInvoicing'] ? $invoicingMessages : []
+        );
         return ['rules' => $rules, 'messages' => $messages];
     }
 

@@ -13,8 +13,10 @@ use App\Http\Models\Chart;
 use App\Http\Repos;
 
 Class AdminController extends Controller {
-
     public function getAccountsReceivable($startDate, $endDate) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
         $startDate = new \DateTime($startDate);
         $endDate = new \DateTime($endDate);
         $adminModelFactory = new Admin\AdminModelFactory();
@@ -24,18 +26,26 @@ Class AdminController extends Controller {
     }
 
     public function getChart(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
         $chartModelFactory = new Chart\ChartModelFactory();
         $model = $chartModelFactory->GetMonthlyBills($req->dateGroupBy, $req->startDate, $req->endDate, $req->groupBy, $req->summationType);
         return json_encode($model);
     }
 
-    public function getModel() {
+    public function getModel(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
         $adminModelFactory = new Admin\AdminModelFactory();
         $model = $adminModelFactory->GetAppSettingsModel();
         return json_encode($model);
     }
 
     public function store(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
         DB::beginTransaction();
 
         $adminValidation = new \App\Http\Validation\AdminValidationRules();

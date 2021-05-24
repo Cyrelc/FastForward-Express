@@ -14,10 +14,6 @@
     padding-top: 20px;
 }
 
-.nav-item.nav-link.active {
-    border-color: black;
-}
-
 .css-2b097c-container, .css-14jk2my-container {
     flex: 1
 }

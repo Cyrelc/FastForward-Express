@@ -6,30 +6,14 @@ import Pickup_Delivery from './Pickup-Delivery'
 import Package from './Package'
 
 export default function BasicTab(props) {
+    const packageCountInfo = 'Package count is for multiples of similar or uniform packages. Please enter weight, length, width, and height per package. It will be multiplied by the package count'
+
     return (
         <Card border='dark'>
             <Card.Header>
                 <Row>
-                    <Col md={2}><h4 className='text-muted'>Package</h4></Col>
+                    <Col md={2}><h4 className='text-muted'>Package Info</h4></Col>
                     <Col md={10}>
-                        <Row>
-                            <Col md={6}>
-                                <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>Delivery Type:</InputGroup.Text>
-                                    </InputGroup.Prepend>
-                                    <Select
-                                        options={props.ratesheet.deliveryTypes}
-                                        getOptionLabel={type => type.friendlyName + ' (Estimated ' + type.time + ' hours)'}
-                                        getOptionValue={type => type.id}
-                                        value={props.deliveryType}
-                                        onChange={item => props.handleChanges({target: {name: 'deliveryType', type: 'text', value: item}})}
-                                        isDisabled={props.readOnly || props.invoiceId}
-                                        isOptionDisabled={option => props.applyRestrictions ? option.isDisabled : false}
-                                    />
-                                </InputGroup>
-                            </Col>
-                        </Row>
                         <Row>
                             <Col md={4}>
                                 <FormCheck
@@ -67,25 +51,25 @@ export default function BasicTab(props) {
                             }
                             {!props.packageIsMinimum &&
                                 <Col md={12}>
-                                    <Table>
+                                    <Table size='sm'>
                                         <thead>
-                                            <tr>
-                                                <td style={{width:100}}>
+                                            <tr key='Titles'>
+                                                <th style={{width:100}}>
                                                     {(!props.readOnly && !props.invoiceId) &&
-                                                        <Button variant='success' onClick={props.addPackage}>
+                                                        <Button variant='success' onClick={props.addPackage} size='sm'>
                                                             <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-box'></i></span>
                                                         </Button>
                                                     }
-                                                </td>
-                                                <td><label>Count</label></td>
-                                                <td><label>Weight</label></td>
-                                                <td><label>Length</label></td>
-                                                <td><label>Width</label></td>
-                                                <td><label>Height</label></td>
+                                                </th>
+                                                <th>Count <i className='fas fa-question-circle' title={packageCountInfo}></i></th>
+                                                <th>Weight</th>
+                                                <th>Length</th>
+                                                <th>Width</th>
+                                                <th>Height</th>
                                             </tr>
-                                            <tr>
+                                            <tr key='Warning'>
                                                 <td></td>
-                                                <td colSpan={5}>Package count is for multiples of similar or uniform packages. Please enter weight, length, width, and height <strong>per package.</strong> It will be multiplied by the package count</td>
+                                                <td colSpan={5}><strong><i className='fas fa-exclamation'></i> Warning: </strong> Failure to accurately represent the weight or dimensions of your delivery may result in additional charges</td>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -98,6 +82,7 @@ export default function BasicTab(props) {
                                                     
                                                     deletePackage={props.deletePackage}
                                                     handleChanges={props.handleChanges}
+                                                    key={parcel}
                                                 />
                                             )}
                                         </tbody>
@@ -109,7 +94,79 @@ export default function BasicTab(props) {
                 </Row>
                 <hr/>
                 <Row className='pad-top'>
-                    <Col md={2}><h4 className='text-muted'>Notes:</h4></Col>
+                    <Col md={2}><h4 className='text-muted'>Billing</h4></Col>
+                    <Col md={3}>
+                        <InputGroup>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Delivery Type:</InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <Select
+                                options={props.ratesheet.deliveryTypes}
+                                getOptionLabel={type => type.friendlyName + ' (Estimated ' + type.time + ' hours)'}
+                                getOptionValue={type => type.id}
+                                value={props.deliveryType}
+                                onChange={item => props.handleChanges({target: {name: 'deliveryType', type: 'text', value: item}})}
+                                isDisabled={props.readOnly || props.invoiceId}
+                                isOptionDisabled={option => props.applyRestrictions ? option.isDisabled : false}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                        <InputGroup>
+                            <InputGroup.Prepend>
+                                <InputGroup.Text>Payment Type: </InputGroup.Text>
+                            </InputGroup.Prepend>
+                            <Select
+                                options={props.paymentTypes}
+                                getOptionLabel={type => type.name}
+                                value={props.paymentType}
+                                onChange={paymentType => props.handleChanges({target: {name: 'paymentType', type: 'text', value: paymentType}})}
+                                isDisabled={props.readOnly || props.invoiceId || props.paymentTypes.length === 1}
+                            />
+                        </InputGroup>
+                    </Col>
+                    {props.paymentType.name === 'Account' &&
+                        <Col md={4}>
+                            <Row>
+                                <Col md={12}>
+                                    <InputGroup>
+                                        <InputGroup.Prepend>
+                                            <InputGroup.Text>Account: </InputGroup.Text>
+                                        </InputGroup.Prepend>
+                                        <Select
+                                            options={props.accounts}
+                                            isSearchable
+                                            onChange={account => props.handleChanges({target: {name: 'chargeAccount', type: 'object', value: account}})}
+                                            value={props.chargeAccount}
+                                            isDisabled={props.readOnly || props.invoiceId || props.accounts.length === 1}
+                                            menuPortalTarget={document.body}
+                                            menuPosition='fixed'
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                {((props.chargeAccount && props.chargeAccount.custom_field !== null)
+                                    || (props.paymentType !== '' && props.paymentType.required_field !== null)) &&
+                                    <Col md={12}>
+                                        <InputGroup>
+                                            <InputGroup.Prepend>
+                                                <InputGroup.Text>{props.paymentType.name === 'Account' ? props.chargeAccount.custom_field : props.paymentType.required_field}: </InputGroup.Text>
+                                            </InputGroup.Prepend>
+                                            <FormControl
+                                                name='chargeReferenceValue'
+                                                value={props.chargeReferenceValue}
+                                                onChange={props.handleChanges}
+                                                readOnly={props.readOnly || props.invoiceId}
+                                            />
+                                        </InputGroup>
+                                    </Col>
+                                }
+                            </Row>
+                        </Col>
+                    }
+                </Row>
+                <hr/>
+                <Row className='pad-top'>
+                    <Col md={2}><h4 className='text-muted'>Notes</h4></Col>
                     <Col md={10}>
                         <FormControl 
                             as='textarea'

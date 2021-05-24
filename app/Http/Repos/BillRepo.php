@@ -87,10 +87,20 @@ class BillRepo {
         return $amount;
     }
 
-    public function GetById($billId) {
-	    $bill = Bill::where('bill_id', $billId)->first();
+    public function GetById($billId, $permissions = null) {
+        $bill = Bill::where('bill_id', $billId);
 
-	    return $bill;
+        if($permissions)
+            $bill->select(
+                array_merge(
+                    $permissions['viewBasic'] ? Bill::$basicFields : [],
+                    $permissions['viewDispatch'] ? Bill::$dispatchFields : [],
+                    $permissions['viewBilling'] ? Bill::$billingFields : [],
+                    Bill::$readOnlyFields
+                )
+            );
+
+	    return $bill->first();
     }
 
     public function GetByInvoiceId($invoiceId) {
@@ -329,11 +339,13 @@ class BillRepo {
     }
 
     public function Insert($bill) {
-        $completeBill = $this->CheckRequiredFields($bill);
         $new = new Bill;
-        $new->created_at = $completeBill['updated_at'];
 
-        return $new->create($completeBill);
+        $new = $new->create($bill);
+        $new = $this->checkRequiredFields($new);
+        $new->save();
+
+        return $new;
     }
 
     public function IsReadOnly($bill_id) {
@@ -345,7 +357,7 @@ class BillRepo {
             return false;
     }
 
-	public function ListAll($req) {
+	public function ListAll($req, $myAccounts = null, $employeeId = false) {
         $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
                 ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
                 ->leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
@@ -401,6 +413,13 @@ class BillRepo {
                     'time_delivered'
                 );
 
+            if($myAccounts)
+                $bills->whereIn('charge_account_id', $myAccounts);
+            else if($employeeId) {
+                $bills->where('pickup_driver_id', $employeeId)
+                    ->orWhere('delivery_driver_id', $employeeId);
+            }
+
             $filteredBills = QueryBuilder::for($bills)
                 ->allowedFilters([
                     AllowedFilter::custom('amount', new NumberBetween),
@@ -425,8 +444,8 @@ class BillRepo {
             return $filteredBills->get();
     }
 
-    public function SetBillPickupOrDeliveryTime($bill_id, $type, $time) {
-        $old = $this->GetById($bill_id);
+    public function SetBillPickupOrDeliveryTime($billId, $type, $time) {
+        $old = $this->GetById($billId);
 
         if($type === 'pickup')
             $old->time_picked_up = $time;
@@ -439,55 +458,25 @@ class BillRepo {
         return $old;
     }
 
-    public function Update($bill) {
-        $completeBill = $this->CheckRequiredFields((array) $bill);
+    public function Update($bill, $permissions) {
         $old = $this->GetById($bill['bill_id']);
-        $fields = array(
-            'amount',
-            'bill_number',
-            'charge_account_id',
-            'charge_reference_value',
-            'chargeback_id',
-            'delivery_account_id',
-            'delivery_address_id',
-            'delivery_driver_commission',
-            'delivery_driver_id',
-            'delivery_reference_value',
-            'delivery_type',
-            'description',
-            'incomplete_fields',
-            'interliner_cost',
-            'interliner_cost_to_customer',
-            'interliner_id',
-            'interliner_reference_value',
-            'is_min_weight_size',
-            'is_pallet',
-            'packages',
-            'payment_id',
-            'payment_type_id',
-            'percentage_complete',
-            'pickup_account_id',
-            'pickup_address_id',
-            'pickup_driver_commission',
-            'pickup_driver_id',
-            'pickup_reference_value',
-            'repeat_interval',
-            'skip_invoicing',
-            'time_call_received',
-            'time_dispatched',
-            'time_delivered',
-            'time_delivery_scheduled',
-            'time_picked_up',
-            'time_pickup_scheduled',
-            'use_imperial',
-        );
 
         if($this->IsReadOnly($old->bill_id))
             throw new \Exception('Unable to edit bill after it has been invoiced and manifested');
 
-        foreach($fields as $field)
-            $old->$field = $completeBill[$field];
+        if($permissions['editBasic'])
+            foreach(Bill::$basicFields as $field)
+                $old->$field = $bill[$field];
 
+        if($permissions['editDispatch'])
+            foreach(Bill::$dispatchFields as $field)
+                $old->$field = $bill[$field];
+
+        if($permissions['editBilling'])
+            foreach(Bill::$billingFields as $field)
+                $old->$field = $bill[$field];
+
+        $this->checkRequiredFields($old);
         $old->save();
 
         return $old;
@@ -495,33 +484,35 @@ class BillRepo {
 
     // Private Functions
 
-    //Checks the completion level of the bill prior to each insert/update
-    //In order to support partial updates, such as assigning a driver or setting ONLY a pickup/delivery time, the function must support
-    //both objects and array form $bill parameters
+    /**
+     * Checks the completion level of the bill prior to each insert/update
+     * In order to support partial updates, such as assigning a driver or setting ONLY a pickup/delivery time, the function must support 
+     * both objects and array form $bill parameters
+     * @param $bill - a bill of form object
+     * 
+     */
     private function CheckRequiredFields($bill) {
-		$requiredFields = [
+        $paymentRepo = new PaymentRepo();
+
+        $requiredFields = [
 			'amount',
 			'bill_number',
 			'delivery_driver_commission',
 			'delivery_driver_id',
 			'delivery_type',
+            'payment_type_id',
 			'pickup_driver_id',
 			'pickup_driver_commission',
 			'time_pickup_scheduled',
 			'time_delivery_scheduled',
 			'time_call_received',
-			'time_dispatched',
+            'time_dispatched'
 		];
 
-        $paymentRepo = new PaymentRepo();
+        $paymentType = $paymentRepo->GetPaymentType($bill->payment_type_id);
 
-        $interlinerId = is_object($bill) ? $bill->interlinerId : $bill['interliner_id'];
-        $paymentTypeId = is_object($bill) ? $bill->payment_type_id : $bill['payment_type_id'];
-
-        $paymentType = $paymentRepo->GetPaymentType($paymentTypeId);
-
-		if($interlinerId != "")
-			$requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
+		if(isset($bill->interliner_id) && $bill->interliner_id != "")
+            $requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
 
 		if($paymentType->name === 'Account')
 			$requiredFields = array_merge($requiredFields, ['charge_account_id']);
@@ -531,34 +522,22 @@ class BillRepo {
 			$requiredFields = array_merge($requiredFields, ['payment_id']);
 
         $incompleteFields = [];
-        if(is_object($bill))
-            foreach($requiredFields as $field) {
-                if(empty($bill->$field))
-                    array_push($incompleteFields, $field);
-            }
-        else
-            foreach($requiredFields as $field) {
-                if ($bill[$field] == null || $bill[$field] == '')
-                    array_push($incompleteFields, $field);
-            }
+
+        foreach($requiredFields as $field) {
+            if(empty($bill->$field))
+                array_push($incompleteFields, $field);
+        }
 
         $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);
 
         $timestamp = date('Y-m-d H:i:s');
-        if(is_object($bill)) {
-            $bill->percentage_complete = $percentageComplete;
-            $bill->incomplete_fields = $incompleteFields;
-            $bill->updated_at = $timestamp;
-            if(!$bill->bill_id)
-                $bill->created_at = $timestamp;
-            return $bill;
-        } else {
-            $dynamicFields = [
-                'incomplete_fields' => $percentageComplete === 100 ? null : json_encode($incompleteFields),
-                'percentage_complete' => $percentageComplete,
-                'updated_at' => $timestamp
-            ];
-            return array_merge($bill, $dynamicFields);
-        }
-	}
+
+        $bill->percentage_complete = $percentageComplete;
+        $bill->incomplete_fields = $incompleteFields;
+        $bill->updated_at = $timestamp;
+        if(!$bill->bill_id)
+            $bill->created_at = $timestamp;
+
+        return $bill;
+    }
 }

@@ -55,7 +55,7 @@ export default class ChangePasswordModal extends Component {
                                 <li>Be more than 20 characters long, or contain either a number or a special character</li>
                             </ol>
                             <hr/>
-                            <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936'>xkcd.com/936</a></p>
+                            <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936' target='none'>xkcd.com/936</a></p>
                         </Col>
                         <Col md={11}>
                             <InputGroup>

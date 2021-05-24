@@ -11,7 +11,10 @@ class InterlinerRepo {
             'addresses.name as address_name',
             'interliner_id',
             'interliners.name as interliner_name',
-            'addresses.formatted as formatted'
+            'addresses.formatted as address_formatted',
+            'addresses.lat as address_lat',
+            'addresses.lng as address_lng',
+            'addresses.place_id as address_place_id'
         );
 
         return $interliners->get();

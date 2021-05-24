@@ -33,6 +33,7 @@ class CreateBillsTable extends Migration
             $table->decimal('interliner_cost_to_customer')->nullable();
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('interliner_reference_value')->nullable();
+            $table->string('internal_comment');
             $table->unsignedInteger('invoice_id')->nullable();
             $table->boolean('is_min_weight_size')->default(0);
             $table->boolean('is_pallet')->default(0);

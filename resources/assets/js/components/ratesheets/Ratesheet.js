@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Tabs, Tab, Row, Col, Button} from 'react-bootstrap'
+import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
 import MapTab from './MapTab'
 import SettingsTab from './SettingsTab'
 
@@ -12,9 +12,9 @@ export default class Ratesheet extends Component {
             key: 'settings',
             defaultZoneType: 'internal',
             deliveryTypes: [],
-            formType: null,
             holidayRate: '',
             latLngPrecision: 5,
+            drawingMap: 0,
             map: undefined,
             mapCenter: new google.maps.LatLng(53.544389, -113.4909266),
             mapDrawingManager: undefined,
@@ -24,6 +24,7 @@ export default class Ratesheet extends Component {
             palletRate: {},
             polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
             ratesheetId: null,
+            savingMap: 100,
             snapPrecision: 200,
             timeRates: [],
             useInternalZonesCalc: true,
@@ -54,38 +55,33 @@ export default class Ratesheet extends Component {
         })
         drawingManager.setMap(map)
         google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
-        this.setState({map: map, mapDrawingManager: drawingManager, formType: params.action, ratesheetId: params.ratesheetId}, () => {
-            document.title = params.action === 'create' ? 'Create Ratesheet - ' + document.title : 'Edit Ratesheet ' + params.ratesheetId + ' - ' + document.title
-            makeFetchRequest(params.action === 'create' ? '/ratesheets/getModel' : '/ratesheets/getModel/' + params.ratesheetId, data => {
-                var timeRates = data.timeRates.map(rate => {
+        this.setState({map: map, mapDrawingManager: drawingManager, ratesheetId: params.ratesheetId}, () => {
+            document.title = params.ratesheetId ? 'Edit Ratesheet - ' + params.ratesheetId : 'Create Ratesheet'
+            makeAjaxRequest(params.ratesheetId ? '/ratesheets/getModel/'  + params.ratesheetId : '/ratesheets/getModel/', 'GET', null, response => {
+                response = JSON.parse(response)
+                var timeRates = response.timeRates.map(rate => {
                     return {...rate, startTime: rate.startTime ? new Date(rate.startTime) : null, endTime: rate.endTime ? new Date(rate.endTime) : null}
                 })
                 this.setState({
-                    deliveryTypes: data.deliveryTypes,
+                    deliveryTypes: response.deliveryTypes,
                     key: window.location.hash ? window.location.hash.substr(1) : 'settings',
-                    name: data.name,
-                    palletRate: data.palletRate,
+                    name: response.name,
+                    palletRate: response.palletRate,
                     timeRates: timeRates,
-                    weightRates: data.weightRates,
-                    zoneRates: data.zoneRates,
-                    useInternalZonesCalc: data.useInternalZonesCalc
+                    weightRates: response.weightRates,
+                    zoneRates: response.zoneRates,
+                    useInternalZonesCalc: response.useInternalZonesCalc
                 })
-                if(params.action === 'edit') {
-                    data.mapZones.map(zone => {
-                        const coordinates = (() => {
-                            try{
-                                return JSON.parse(zone.coordinates)
-                            } catch (e) {
-                                return zone.coordinates
-                            }
-                        })()
+                if(params.ratesheetId) {
+                    response.mapZones.forEach((mapZone, zoneIndex) => {
                         const polygon = new google.maps.Polygon({
-                                paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
+                                paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
                             })
                         polygon.setMap(this.state.map)
-                        this.createPolygon(polygon, zone)
+                        this.createPolygon(polygon, mapZone)
                     })
-                    this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: data.mapZones.length + 1}});
+                    this.setState({drawingMap: 100})
+                    this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: response.mapZones.length + 1}});
                 }
             })
         })
@@ -93,7 +89,7 @@ export default class Ratesheet extends Component {
 
     componentDidUpdate(prevProps) {
         const {match: {params}} = this.props
-        if(prevProps.match.params.ratesheetId != params.ratesheetId || prevProps.match.params.action != params.action)
+        if(prevProps.match.params.ratesheetId != params.ratesheetId)
             window.location.reload()
     }
 
@@ -193,7 +189,7 @@ export default class Ratesheet extends Component {
         this.setState({zoneRates: updated})
     }
 
-    createPolygon(polygon, zone = null){
+    createPolygon(polygon, zone = null) {
         var strokeColour, fillColour, type
         if(zone) {
             strokeColour = this.state.polyColours[zone.type + 'Stroke']
@@ -272,7 +268,7 @@ export default class Ratesheet extends Component {
     }
 
     prepareZoneForStore(zone) {
-        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(zone.coordinates.slice()), zoneId: zone.zoneId}
+        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(this.getCoordinates(zone.polygon)), zoneId: zone.zoneId}
         if(storeZone.type === 'peripheral') {
             storeZone.regularCost = zone.regularCost
             storeZone.additionalTime = zone.additionalTime
@@ -315,6 +311,7 @@ export default class Ratesheet extends Component {
     }
 
     store(){
+        this.setState({savingMap: 0})
         var data = {
             name: this.state.name,
             holidayRate: this.state.holidayRate,
@@ -330,25 +327,32 @@ export default class Ratesheet extends Component {
         }
         makeAjaxRequest('/ratesheets/store', 'POST', data, response => {
             toastr.clear()
-            if(this.state.formType === 'edit') {
+            this.setState({savingMap: 100})
+            if(this.state.ratesheetId) {
                 toastr.success(this.state.name + ' was successfully updated!', 'Success', {'onHidden': function(){location.reload()}})
-            }
-            else
+            } else {
                 toastr.success(this.state.name + ' was successfully created', 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
                     'showDuration': 500,
                 })
+            }
         })
     }
 
     render() {
         return (
             <Row md={11} className='justify-content-md-center'>
+                <Modal show={this.state.drawingMap < 100}>
+                    <h4>Drawing map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+                </Modal>
+                <Modal show={this.state.savingMap < 100}>
+                    <h4>Saving map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+                </Modal>
                 <Col md={11}>
                     <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChange({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='settings' title={<h3><i className='fas fa-cog'></i> Settings</h3>}>
-                            <SettingsTab 
+                            <SettingsTab
                                 name= {this.state.name}
                                 deliveryTypes= {this.state.deliveryTypes}
                                 palletRate={this.state.palletRate}

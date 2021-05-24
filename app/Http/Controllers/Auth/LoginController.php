@@ -26,6 +26,13 @@ class LoginController extends Controller
      * @var string
      */
     protected $redirectTo = '/';
+
+    /**
+     * Sets max login attempts before lockout, and lockout duration
+     */
+    protected $maxAttempts = 10;
+    protected $decayMinutes = 30;
+
     /**
      * Create a new controller instance.
      *

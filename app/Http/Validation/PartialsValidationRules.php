@@ -2,7 +2,7 @@
 namespace app\Http\Validation;
 
 class PartialsValidationRules {
-    public function GetAddressMinValidationRules($req, $prefix, $prefix_name) {
+    public function GetAddressMinValidationRules($req, $prefix, $prefixFriendlyName) {
         return [
             'rules' => [
                 $prefix . '_formatted' => 'required',
@@ -11,10 +11,10 @@ class PartialsValidationRules {
                 $prefix . '_lng' => 'required|numeric',
             ],
             'messages' => [
-                $prefix . '_formatted.required' => $prefix_name . ' formatted address is required',
-                $prefix . '_name.required' => $prefix_name . ' address name is required',
-                $prefix . '_lat.required' => $prefix_name . ' requires a Latitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location',
-                $prefix . '_lng.required' => $prefix_name . ' requires a Longitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location'
+                $prefix . '_formatted.required' => $prefixFriendlyName . ' formatted address is required',
+                $prefix . '_name.required' => $prefixFriendlyName . ' address name is required',
+                $prefix . '_lat.required' => $prefixFriendlyName . ' requires a Latitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location',
+                $prefix . '_lng.required' => $prefixFriendlyName . ' requires a Longitude. If you are unable to find an address via search, please select the "Manual" button, and click as close as you can to your pickup location'
             ]
         ];
     }

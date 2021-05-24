@@ -86,9 +86,9 @@ export default function BillingTab(props) {
                                         name='chargeReferenceValue'
                                         value={props.chargeReferenceValue}
                                         onChange={props.handleChanges}
-                                        readOnly={props.readOnly || props.invoiceId}
+                                        readOnly={props.readOnly || props.invoiceId || props.paymentTypes.length === 1}
                                     />
-                                </InputGroup> 
+                                </InputGroup>
                             </Col>
                         }
                         {props.paymentType.name === 'Driver' &&
@@ -155,17 +155,59 @@ export default function BillingTab(props) {
                             readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
+                </Col>
+            </Row>
+            <hr/>
+            <Row> {/* Interliner */}
+                <Col md={2}>
+                    <h4 className='text-muted'>Interliner</h4>
+                </Col>
+                <Col md={9}>
                     <InputGroup>
                         <InputGroup.Prepend>
-                            <InputGroup.Text>Interliner Cost to Customer: </InputGroup.Text>
+                            <InputGroup.Text>Interliner: </InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <Select
+                            options={props.interliners}
+                            isSearchable
+                            value={props.interliner}
+                            onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}
+                            isDisabled={props.readOnly || props.invoiceId}
+                        />
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Tracking #</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
+                            type='text'
+                            placeholder='Tracking Number'
+                            name='interlinerTrackingId'
+                            value={props.interlinerTrackingId}
+                            onChange={props.handleChanges}
+                            readOnly={props.readOnly || props.invoiceId}
+                        />
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Cost To Customer: </InputGroup.Text>
                         </InputGroup.Prepend>
                         <FormControl
                             type='number'
+                            step={0.01}
                             min={0}
-                            name='amount'
+                            name='interlinerCostToCustomer'
                             value={props.interlinerCostToCustomer}
-                            readOnly={true}
-                            className='form-control-plaintext'
+                            onChange={props.handleChanges}
+                            readOnly={props.readOnly || props.invoiceId}
+                        />
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Actual Cost: </InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
+                            type='number'
+                            step={0.01}
+                            min={0}
+                            name='interlinerActualCost'
+                            value={props.interlinerActualCost}
+                            onChange={props.handleChanges}
+                            readOnly={props.readOnly || props.invoiceId}
                         />
                     </InputGroup>
                 </Col>

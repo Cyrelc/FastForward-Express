@@ -20,25 +20,10 @@ class AccountRepo {
         return $account;
     }
 
-    public function CountChildAccounts($accountId) {
-        $childCount = Account::where('parent_account_id', $accountId);
-
-        return $childCount->count();
-    }
-
     public function GetAccountIdByAccountNumber($accountNumber) {
         $account = Account::where('account_number', $accountNumber)->first();
 
         return $account->account_id;
-    }
-
-    public function GetAccountList() {
-        $accounts = Account::select(
-            DB::raw('concat(account_number, " - ", name) as label'),
-            'account_id as value'
-        );
-
-        return $accounts->get();
     }
 
     public function GetAccountPrimaryUserId($accountId) {
@@ -65,10 +50,56 @@ class AccountRepo {
         return $accounts->get();
     }
 
-    public function GetById($id) {
-        $account = Account::where('account_id', '=', $id)->first();
+    /**
+     * Gets a single account object and returns it
+     * WARNING - To be used internally ONLY - returning this to the client frontend could result in unintentionally exposed data
+     * Wherever possible, use GetByIdWithPermissions()
+     * @param accountId $id
+     */
+    public function GetById($accountId) {
+        $account = Account::where('account_id', '=', $accountId);
 
-        return $account;
+        return $account->first();
+    }
+
+    /**
+     * Gets a single account object and subsequent values and returns it
+     * Levels are determined by a user's permissions: For example a system level admin might see and be able to modify every attribute, but
+     * an account level user or admin would receive drastically reduced information
+     * @param accountId $id
+     * @param permissions $permissions - array of permissions describing account accessibility level, retrieved from the Permission Model Factory
+     * 
+     */
+    public function GetByIdWithPermissions($accountId, $permissions) {
+        $account = Account::where('account_id', '=', $accountId);
+
+        $account->select(
+            array_merge(
+                $permissions['viewPayments'] ? Account::$accountingFields : [],
+                $permissions['editAdvanced'] ? Account::$advancedFields : [],
+                Account::$basicFields,
+                Account::$invoicingFields,
+                Account::$readOnlyFields
+            )
+        );
+
+        return $account->first();
+    }
+
+    /**
+     * Gets the list of child accounts based on accountId
+     * @param unsignedInt $accountId
+     * @return array $accounts
+     */
+    public function GetChildAccountList($accountId) {
+        $account = Account::where('parent_account_id', $accountId)
+            ->select(
+                'name',
+                'account_id',
+                'account_number'
+            );
+
+        return $account->get();
     }
 
     public function GetInvoiceSortOrder($accountId) {
@@ -86,6 +117,31 @@ class AccountRepo {
         return $sortOrder;
     }
 
+    public function GetMyAccountIds($user, $withChildren = false) {
+        $accountUsers = $user->accountUsers;
+        $accountIds = [];
+        foreach($accountUsers as $accountUser)
+            $accountIds[] = $accountUser->account_id;
+
+        $accounts = Account::whereIn('account_id', $accountIds);
+        if($withChildren)
+            $accounts->orWhereIn('parent_account_id', $accountIds);
+
+        return $accounts->pluck('account_id')->toArray();
+    }
+
+    public function GetMyAccountsStructured($user) {
+        $accountUsers = $user->accountUsers;
+        $accounts = [];
+        foreach($accountUsers as $accountUser)
+            $accounts[] = [
+                'account' => Account::where('account_id', $accountUser->account_id)->select('name', 'account_id', 'account_number')->first(),
+                'children' => Account::where('parent_account_id', $accountUser->account_id)->select('name', 'account_id', 'account_number')->get()
+            ];
+
+        return $accounts;
+    }
+
     public function GetNameById($account_id) {
         $account = Account::where('account_id', $account_id)->first();
 
@@ -100,20 +156,22 @@ class AccountRepo {
         return $next;
     }
 
-    public function GetPrevActiveById($id) {
-        $prev = Account::where('account_id', '<', $id)
+    public function GetPrevActiveById($accountId) {
+        $prev = Account::where('account_id', '<', $accountId)
             ->where('active', true)
             ->pluck('account_id')
             ->max();
         return $prev;
     }
 
-    public function GetParentAccountsList() {
+    public function GetParentAccountsList($accountId = null) {
         $parentAccounts = Account::where('can_be_parent', 1)
             ->select(
                 DB::raw('concat(account_number, " - ", name) as label'),
                 'account_id as value'
             );
+        if($accountId)
+            $parentAccounts->where('account_id', $accountId);
 
         return $parentAccounts->get();
     }
@@ -136,12 +194,24 @@ class AccountRepo {
         return $new->create($acct);
     }
 
-    public function IsUnique($accountNumber) {
+    public function IsNameUnique($accountNumber) {
         $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
         return $result;
     }
 
-    public function ListAll() {
+    public function List($user, $withChildren = false) {
+        $accounts = Account::select(
+            DB::raw('concat(account_number, " - ", name) as label'),
+            'account_id as value'
+        );
+
+        if($user && $user->accountUsers)
+            $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
+
+        return $accounts->get();
+    }
+
+    public function ListAll($user, $withChildren = false) {
         $accounts = Account::leftJoin('accounts as parent', 'accounts.parent_account_id', '=', 'parent.account_id')
             ->leftJoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
             ->leftJoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
@@ -178,6 +248,9 @@ class AccountRepo {
                 'phone_numbers.phone_number as primary_contact_phone'
             );
 
+        if($user && $user->accountUsers)
+            $accounts->whereIn('accounts.account_id', $this->GetMyAccountIds($user, $withChildren));
+
         $filteredAccounts = QueryBuilder::for($accounts)
             ->allowedFilters([
                 AllowedFilter::exact('account_id', 'accounts.account_id'),
@@ -190,10 +263,12 @@ class AccountRepo {
         return $filteredAccounts->get();
     }
 
-    public function ListAllForBillsPage() {
+    public function ListForBillsPage($myAccounts) {
         $accounts = Account::leftjoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
             ->leftjoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
             ->select(
+                DB::raw('concat(accounts.account_number, " - ", accounts.name) as label'),
+                'accounts.account_id as value',
                 'accounts.name',
                 'account_id',
                 'account_number',
@@ -208,8 +283,12 @@ class AccountRepo {
                 'shipping_address.formatted as shipping_address',
                 'shipping_address.name as shipping_address_name',
                 'shipping_address.place_id as shipping_address_place_id',
-                'custom_field'
+                'custom_field',
+                'is_custom_field_mandatory'
             );
+
+        if($myAccounts)
+            $accounts->whereIn('account_id', $myAccounts);
 
         return $accounts->get();
     }
@@ -245,35 +324,38 @@ class AccountRepo {
         return;
     }
 
-    public function Update($account) {
-        $old = $this->GetById($account["account_id"]);
-        $fields = array(
-            'account_number',
-            'billing_address_id',
-            'can_be_parent',
-            'custom_field',
-            'discount',
-            'gst_exempt',
-            'invoice_comment',
-            'invoice_interval',
-            'invoice_sort_order',
-            'min_invoice_amount',
-            'name',
-            'parent_account_id',
-            'ratesheet_id',
-            'send_bills',
-            'send_email_invoices',
-            'send_paper_invoices',
-            'shipping_address_id',
-            'start_date',
-            'use_parent_ratesheet'
-        );
+    public function Update($account, $accountPermissions) {
+        $old = $this->GetById($account['account_id']);
 
-        foreach($fields as $field)
-            $old->$field = $account[$field];
+        if($accountPermissions['editAdvanced'])
+            foreach(Account::$advancedFields as $advancedField)
+                $old->$advancedField = $account[$advancedField];
+
+        if($accountPermissions['editBasic'])
+            foreach(Account::$basicFields as $basicField)
+                $old->$basicField = $account[$basicField];
+
+        if($accountPermissions['editInvoicing'])
+            foreach(Account::$invoicingFields as $invoicingField)
+                $old->$invoicingField = $account[$invoicingField];
 
         $old->save();
 
         return $old;
+    }
+
+    /**
+     * A private function to filter "list" style requests and return only those accounts falling under the users current level of permissions
+     */
+    private function restrictByAccountAndChildren($query, $accountUsers, $children = false) {
+        $children = $this->GetChildAccountList($accountId);
+        $accountIds = [$accountId];
+
+        foreach($children as $child)
+            array_push($accountIds, $child->account_id);
+
+        $query->whereIn('account_id', $accountIds);
+
+        return $query;
     }
 }
