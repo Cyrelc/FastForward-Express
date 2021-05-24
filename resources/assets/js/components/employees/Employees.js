@@ -127,7 +127,7 @@ const mapStateToProps = store => {
     return {
         columns: store.employees.columns,
         frontEndPermissions: store.app.frontEndPermissions,
-        reduxQueryString: store.employees.reduxQueryString,
+        reduxQueryString: store.employees.queryString,
         tableData: store.employees.employeesTable
     }
 }

@@ -42,10 +42,10 @@ class BillController extends Controller {
 
         $accountRepo = new Repos\AccountRepo();
         $billRepo = new Repos\BillRepo();
-        if($user->accountUsers)
+        if(count($user->accountUsers) > 0)
             $bills = $billRepo->ListAll($req, $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')));
         else if($user->can('viewAll', Bill::class))
-            $bills = $billRepo->ListAll($req, null);
+            $bills = $billRepo->ListAll($req);
         else if($user->employee)
             $bills = $billRepo->ListAll($req, null, $req->user()->employee->employee_id);
 

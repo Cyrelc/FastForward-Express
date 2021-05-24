@@ -34,10 +34,16 @@ class HomeModelFactory {
             if($req->user()->can('bills.edit.dispatch.*')) {
                 $model->drivers = $employeeRepo->GetDriverList();
             }
-            // $model->ratesheets = $ratesheetRepo->GetForBillsPage();
-        } else if($model->authenticatedAccountUsers) {
+        } else if(count($model->authenticatedAccountUsers) > 0) {
             $model->contact = $contactRepo->GetById($model->authenticatedAccountUsers[0]->contact_id);
             $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($model->authenticatedAccountUsers[0]->account_id)));
+        } else if($req->user()->hasRole('superAdmin')) {
+            $model->accounts = $accountRepo->List(null);
+            $model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
+            $model->parent_accounts = $accountRepo->GetParentAccountsList();
+            $model->employees = $employeeRepo->GetEmployeesList(null);
+            $model->drivers = $employeeRepo->GetDriverList();
+            $model->contact = ['first_name' => $req->user()->email];
         }
 
         return $model;

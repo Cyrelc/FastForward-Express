@@ -24,8 +24,9 @@ class EmployeeRepo {
 
     public function GetActiveDriversWithContact() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->where('is_driver', true)
-            ->where('active', true);
+            ->where('is_enabled', true);
 
         return $employees->get();
     }
@@ -49,13 +50,12 @@ class EmployeeRepo {
     public function GetDriverList($activeOnly = true) {
         $drivers = Employee::where('is_driver', 1)
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->when($activeOnly, function($query) {
-                return $query->where('active', 1);
-            })
-            ->select(
+                return $query->where('is_enabled', 1);
+            })->select(
                 DB::raw('concat(employee_number, " - ", first_name, " ", last_name) as label'),
                 'employee_id as value',
-                'active',
                 'pickup_commission',
                 'delivery_commission',
                 'employee_id'
@@ -95,7 +95,8 @@ class EmployeeRepo {
 
     public function GetEmployeeBirthdays() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-        ->where('active', true)
+        ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+        ->where('is_enabled', true)
         ->whereMonth('dob', date('m'))
         ->select(
             DB::raw('concat(first_name, " ", last_name) as employee_name'),
@@ -141,7 +142,8 @@ class EmployeeRepo {
 
     public function GetEmployeesWithExpiries($date) {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-        ->where('active', 1)
+        ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+        ->where('is_enabled', 1)
         ->where('is_driver', 1)
         ->where(function($query) use ($date) {
             $query->where('drivers_license_expiration_date', '<', $date)
@@ -169,6 +171,7 @@ class EmployeeRepo {
 
     public function ListAll($req) {
         $employees = Employee::leftjoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->leftjoin('phone_numbers', function($leftJoin) {
                 $leftJoin->on('phone_numbers.contact_id', '=', 'contacts.contact_id');
                 $leftJoin->where('phone_numbers.is_primary', '=', true);
@@ -176,38 +179,40 @@ class EmployeeRepo {
             ->leftjoin('email_addresses', function($leftJoin) {
                 $leftJoin->on('email_addresses.contact_id', '=', 'contacts.contact_id');
                 $leftJoin->where('email_addresses.is_primary', '=', true);
-            })
-            ->select(
-                'email as primary_email',
+            })->select(
+                'email_addresses.email as primary_email',
                 'employees.employee_id',
                 'employee_number',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
                 'phone_number as primary_phone',
                 'company_name',
-                'active',
-                'user_id'
+                'employees.user_id',
+                'users.is_enabled as active'
             );
 
             $filteredEmployees = QueryBuilder::for($employees)
                 ->allowedFilters([
-                    AllowedFilter::exact('active', 'employees.active')
+                    AllowedFilter::exact('active', 'users.is_enabled')
                 ]);
 
         return $filteredEmployees->get();
     }
 
     public function ListAllActive() {
-        $activeEmployees = Employee::where('active', true)->get();
+        $activeEmployees = Employee::leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+            ->leftJoin('users'. 'users.user_id', '=', 'employees.user_id')
+            ->where('is_enabled', true);
 
-        return $activeEmployees;
+        return $activeEmployees->get();
     }
 
     public function ToggleActive($employeeId) {
         $employee = Employee::where('employee_id', $employeeId)->first();
 
-        $employee->active = !($employee->active);
+        $user = User::where('user_id', $employee->user_id)->first();
+        $user->is_enabled = !($user->is_enabled);
 
-        $employee->save();
+        $user->save();
     }
 
     public function Update($employee, $permissions) {

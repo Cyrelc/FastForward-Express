@@ -12,7 +12,7 @@
         "barryvdh/laravel-dompdf": "^0.8.1",
         "spatie/laravel-activitylog": "^3.1",
         "fideloper/proxy": "^4.0",
-        "spatie/laravel-query-builder": "^2.0",
+        "spatie/laravel-query-builder": "^3.0",
         "altynbek07/laravel-config-writer": "^1.2",
         "laravel/ui": "^3.0",
         "pusher/pusher-php-server": "~4.0",
