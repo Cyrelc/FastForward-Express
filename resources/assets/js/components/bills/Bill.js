@@ -166,7 +166,7 @@ class Bill extends Component {
                     deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
                     deliveryReferenceValue: data.bill.delivery_reference_value,
                     deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
-                    deliveryType: this.state.deliveryTypes.find(deliveryType => deliveryType.selection_id === data.bill.delivery_type.selectionId),
+                    deliveryType: this.state.deliveryTypes.find(deliveryType => deliveryType.id === data.bill.delivery_type),
                     description: data.bill.description,
                     incompleteFields: data.bill.incomplete_fields,
                     nextBillId: nextBillId,
