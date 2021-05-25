@@ -145,7 +145,7 @@ class App extends Component {
                                                 onKeyPress={event => {
                                                     if(event.key === 'Enter' && this.state.invoiceId) {
                                                         const invoiceId = this.state.invoiceId
-                                                        this.setState({invoiceId: ''}, this.props.redirect('/app/invoices/view/' + invoiceId))
+                                                        this.setState({invoiceId: ''}, this.props.redirect('/app/invoices/' + invoiceId))
                                                     }
                                                 }}
                                             />
