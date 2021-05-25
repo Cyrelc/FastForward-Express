@@ -139,8 +139,6 @@ Route::group(
             Route::get('/about', 'GuestController@about');
             Route::get('/contact', 'GuestController@contact');
             Route::get('/home', 'GuestController@home');
-            Route::get('/login', 'Auth\AuthController@getLogin');
-            Route::post('/login', 'Auth\AuthController@postLogin');
             Route::get('/requestDelivery', 'GuestController@requestDelivery');
             // Route::post('/requestDelivery', 'GuestController@requestDelivery');
             Route::get('requestQuote', 'GuestController@requestQuote');

@@ -24,14 +24,14 @@ class PermissionModelFactory {
         if($account)
             $permissions = array_merge($permissions, [
                 'createAccountUsers' => $user->can('createAccountUsers', $account),
-                'createPayments' => $user->can('createPayments', $account),
-    
+                'createPayments' => $user->can('payments.create.*.*', $account),
+
                 'deleteAccountUsers' => $user->can('delete', AccountUser::class),
     
                 'editAdvanced' => $user->can('updateAdvanced', $account),
                 'editBasic' => $user->can('updateBasic', $account),
                 'editInvoicing' => $user->can('updateInvoicing', $account),
-                'editPayments' => $user->can('editPayments', $account),
+                'editPayments' => $user->can('updatePayments', $account),
                 'editAccountUsersBasic' => $user->can('updateAccountUsersBasic', $account),
                 'editAccountUserPermissions' => $user->can('updateAccountUserPermissions', $account),
     
