@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Button, ButtonGroup, Col, Dropdown, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
+import {Button, ButtonGroup, Col, Dropdown, DropdownButton, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
 
@@ -86,7 +86,6 @@ const initialState = {
     accounts: [],
     activityLog: undefined,
     addressTypes: ['Address', 'Account'],
-    drivers: undefined,
     interliners: undefined,
     paymentTypes: undefined,
     permissions: {},
@@ -304,6 +303,9 @@ class Bill extends Component {
     }
 
     handleApplyRestrictionsEvent(temp, event) {
+        if(!this.state.permissions.createFull)
+            return
+
         if(this.state.applyRestrictions) {
             toastr.clear()
             toastr.error('Restrictions lifted, some autocomplete functionality has been disabled. Please review all work carefully for accuracy before submitting', 'WARNING', {'timeOut' : 0, 'extendedTImeout' : 0, positionClass: 'toast-top-center'});
@@ -491,7 +493,7 @@ class Bill extends Component {
                                 <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>{this.state.percentComplete}% Complete</h4></ListGroup.Item>
                             }
                             <ListGroup.Item variant='warning'><h4>Price: {(parseFloat(this.state.amount ? this.state.amount : 0) + parseFloat(this.state.interlinerCostToCustomer ? this.state.interlinerCostToCustomer : 0)).toFixed(2)}</h4></ListGroup.Item>
-                            {this.state.permissions.createFull || this.state.permissions.editFull &&
+                            {this.state.permissions.createFull &&
                                 <ListGroup.Item>
                                     <Dropdown>
                                         <Dropdown.Toggle variant='primary' id='bill_functions' align='right'>Admin Functions</Dropdown.Toggle>
@@ -666,7 +668,7 @@ class Bill extends Component {
                                         //value only (immutable by recipient function)
                                         accounts={this.state.accounts}
                                         deliveryManifestId={this.state.deliveryManifestId}
-                                        drivers={this.state.drivers}
+                                        drivers={this.props.drivers}
                                         interliners={this.state.interliners}
                                         invoiceId={this.state.invoiceId}
                                         paymentTypes={this.state.paymentTypes}
