@@ -672,7 +672,7 @@ class Bill extends Component {
                                         interliners={this.state.interliners}
                                         invoiceId={this.state.invoiceId}
                                         paymentTypes={this.state.paymentTypes}
-                                        readOnly={this.state.billId ? !this.state.permissions.editBilling : !this.state.createFull}
+                                        readOnly={this.state.billId ? !this.state.permissions.editBilling : !this.state.permissions.createFull}
                                         repeatIntervals={this.state.repeatIntervals}
                                     />
                                 </Tab>
