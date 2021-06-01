@@ -82,6 +82,7 @@ class Employee extends Component {
                 permissions: response.permissions,
                 phoneTypes: response.contact.phone_types,
             }
+            this.setState(setup)
             if(params.employeeId) {
                 const thisEmployeeIndex = this.props.sortedEmployees.findIndex(employee_id => employee_id === response.employee.employee_id)
                 const prevEmployeeId = thisEmployeeIndex <= 0 ? null : this.props.sortedEmployees[thisEmployeeIndex - 1]

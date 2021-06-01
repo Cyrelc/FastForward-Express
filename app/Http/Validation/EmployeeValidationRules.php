@@ -42,7 +42,7 @@ class EmployeeValidationRules {
                 ]);
 
                 $messages = array_merge($messages, [
-                    'drivers_license_number.required' => 'Driver License Number is required.',
+                    'drivers_license_number.required' => 'Drivers License Number is required.',
                     'license_plate_number.required' => 'License Plate is required.',
                     'insurance_number.required' => 'Insurance Number is required.',
                     'drivers_license_expiration_date.required' => 'Drivers License Expiration Date is required.',
