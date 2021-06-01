@@ -102,7 +102,15 @@ class ActivityLogRepo {
                 $users->where('subject_type', 'App\User');
                 $users->where('subject_id', $employee->user_id);
             })
-            ->orderBy('activity_log.updated_at', 'desc');
+            ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->select(
+                'activity_log.updated_at',
+                'subject_type',
+                'subject_id',
+                'users.email as user_name',
+                'description',
+                'properties'
+            )->orderBy('activity_log.updated_at', 'desc');
 
         return $activity->get();
     }

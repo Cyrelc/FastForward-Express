@@ -122,14 +122,16 @@ class Employee extends Component {
                     pickupCommission: response.employee.pickup_commission
                 }
                 toastr.clear()
-                if(setup.driversLicenseExpirationDate < new Date() && response.employee.is_enabled)
-                    toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.licensePlateExpirationDate < new Date() && response.employee.is_enabled)
-                    toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.insuranceExpirationDate < new Date() && response.employee.is_enabled)
-                    toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(setup.emergencyContacts.length < 2 && response.employee.is_enabled)
-                    toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(response.employee.is_driver && response.employee.is_enabled) {
+                    if(setup.driversLicenseExpirationDate < new Date())
+                        toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    if(setup.licensePlateExpirationDate < new Date())
+                        toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    if(setup.insuranceExpirationDate < new Date())
+                        toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    if(setup.emergencyContacts.length < 2)
+                        toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                }
             }
             this.setState(setup)
         })

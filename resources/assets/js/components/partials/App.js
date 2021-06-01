@@ -102,7 +102,7 @@ class App extends Component {
                                     {this.props.frontEndPermissions.bills.create &&
                                         <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
                                     }
-                                    {this.props.frontEndPermissions.administration &&
+                                    {this.props.frontEndPermissions.appSettings.edit &&
                                         <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
                                     }
                                     {this.props.frontEndPermissions.bills.viewAny &&

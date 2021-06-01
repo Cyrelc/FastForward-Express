@@ -40,6 +40,7 @@ class EmployeeRepo {
                 array_merge(
                     Employee::$readOnlyFields,
                     $permissions['viewAdvanced'] ? Employee::$advancedFields : [],
+                    $permissions['viewAdvanced'] ? Employee::$driverFields : [],
                     ['users.is_enabled as is_enabled']
                 )
             );
