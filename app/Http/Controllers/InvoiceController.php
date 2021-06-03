@@ -75,7 +75,7 @@ class InvoiceController extends Controller {
         if($req->user()->cannot('delete', $invoiceRepo->GetById($invoiceId)))
             abort(403);
 
-        $invoiceRepo->delete($id);
+        $invoiceRepo->delete($invoiceId);
         DB::commit();
 
         return response()->json([
@@ -172,7 +172,7 @@ class InvoiceController extends Controller {
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 
-    public function printMass($invoiceIds) {
+    public function printMass(Request $req, $invoiceIds) {
         $storagepath = storage_path() . '/app/public/';
         $foldername = 'invoices.' . time();
         mkdir($storagepath . $foldername);
@@ -187,7 +187,7 @@ class InvoiceController extends Controller {
 
         foreach(explode(',', $invoiceIds) as $invoiceId) {
             $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-            $model = $invoiceModelFactory->GetById($invoiceId);
+            $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
             if($req->user()->cannot('view', $model->invoice))
                 abort(403);
@@ -207,6 +207,18 @@ class InvoiceController extends Controller {
         rmdir($storagepath . $foldername);
 
         return \Response::download($zipfile);
+    }
+
+    public function printPreview(Request $req, $invoiceId) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoice = $invoiceRepo->GetById($invoiceId);
+        if($req->user()->cannot('view', $invoice))
+            abort(403);
+
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $model = $invoiceModelFactory->GetById($req, $invoiceId);
+
+        return view('invoices.invoice_table', compact('model'));
     }
 
     public function store(Request $req) {

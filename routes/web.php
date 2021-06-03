@@ -84,6 +84,7 @@ Route::group(
             Route::get('/invoices/finalize/{invoiceIdArray}', 'InvoiceController@finalize');
             Route::post('/invoices/createAmendment', 'InvoiceController@createAmendment');
             Route::get('/invoices/deleteAmendment/{amendmentId}', 'InvoiceController@deleteAmendment');
+            Route::get('/invoices/printPreview/{invoiceId}', 'InvoiceController@printPreview');
 
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
