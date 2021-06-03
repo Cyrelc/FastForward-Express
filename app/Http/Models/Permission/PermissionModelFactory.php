@@ -247,8 +247,8 @@ class PermissionModelFactory {
         $account = $accountRepo->GetById($invoice->account_id);
 
         return [
-            'amend' => $user->can('edit', $invoice),
-            'edit' => $user->can('edit', $invoice),
+            'amend' => $user->can('update', $invoice),
+            'edit' => $user->can('update', $invoice),
             'viewBills' => $user->can('viewBills', $account)
         ];
     }

@@ -123,7 +123,7 @@ class Employee extends Component {
                     pickupCommission: response.employee.pickup_commission
                 }
                 toastr.clear()
-                if(response.employee.is_driver && response.employee.is_enabled) {
+                if(response.employee.is_driver == 1 && response.employee.is_enabled == 1) {
                     if(setup.driversLicenseExpirationDate < new Date())
                         toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
                     if(setup.licensePlateExpirationDate < new Date())
