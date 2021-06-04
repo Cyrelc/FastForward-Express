@@ -13,7 +13,7 @@ use App\Http\Models\Chart;
 use App\Http\Repos;
 
 Class AdminController extends Controller {
-    public function getAccountsReceivable($startDate, $endDate) {
+    public function getAccountsReceivable(Request $req, $startDate, $endDate) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
