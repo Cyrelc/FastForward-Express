@@ -47,14 +47,14 @@ class InvoiceModelFactory{
 
 		$model->tables = $billRepo->GetByInvoiceId($invoiceId);
 		$subtotalBy = $accountRepo->GetSubtotalByField($model->parent->account_id);
-		if(count($model->tables) > 1) {
-			foreach($model->tables as $bill_sub_table) {
+		if($subtotalBy != false) {
+			foreach($model->tables as $billSubTable) {
 				$subtotalDatabaseFieldName = $subtotalBy->database_field_name;
-				$bill_sub_table->subtotal = $billRepo->GetInvoiceSubtotalByField($invoiceId, $subtotalDatabaseFieldName, $bill_sub_table->bills[0]->$subtotalDatabaseFieldName);
-				$bill_sub_table->tax = $bill_sub_table->subtotal * 0.05;
-				$bill_sub_table->total = number_format($bill_sub_table->subtotal + $bill_sub_table->tax, 2);
-				$bill_sub_table->subtotal = number_format($bill_sub_table->subtotal, 2);
-				$bill_sub_table->tax = number_format($bill_sub_table->tax, 2);
+				$billSubTable->subtotal = $billRepo->GetInvoiceSubtotalByField($invoiceId, $subtotalDatabaseFieldName, $billSubTable->bills[0]->$subtotalDatabaseFieldName);
+				$billSubTable->tax = $billSubTable->subtotal * 0.05;
+				$billSubTable->total = number_format($billSubTable->subtotal + $billSubTable->tax, 2);
+				$billSubTable->subtotal = number_format($billSubTable->subtotal, 2);
+				$billSubTable->tax = number_format($billSubTable->tax, 2);
 			}
 		}
 		foreach($model->tables as $table) {

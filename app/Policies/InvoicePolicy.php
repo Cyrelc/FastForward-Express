@@ -32,7 +32,7 @@ class InvoicePolicy
     public function view(User $user, Invoice $invoice) {
         if($user->can('invoices.view.*', 'invoices.edit.*'))
             return true;
-        else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children')) {
+        else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children') && $invoice->finalized) {
             $accountRepo = new Repos\AccountRepo();
             return in_array($invoice->account_id, $accountRepo->GetMyAccountIds($user, $user->can('invoices.view.children')));
         }

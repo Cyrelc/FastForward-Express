@@ -8,7 +8,7 @@ class RatesheetCollector {
         return [
             'ratesheet_id' => isset($req->ratesheetId) ? $req->ratesheetId : null,
             'name' => $req->name,
-            'use_internal_zones_calc' => $req->useInternalZonesCalc === "true",
+            'use_internal_zones_calc' => filter_var($req->useInternalZonesCalc, FILTER_VALIDATE_BOOLEAN),
             'weekend_rate' => $req->weekendRate,
             'holiday_rate' => $req->holidayRate,
             'delivery_types' => json_encode($req->deliveryTypes),

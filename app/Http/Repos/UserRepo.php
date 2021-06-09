@@ -145,7 +145,7 @@ class UserRepo
         $accountUserCount = AccountUser::where('account_id', $accountId)->count();
         $new = new \App\AccountUser;
 
-        $new->create(['account_id' => $accountId, 'contact_id' => $contactId, 'is_primary' => $accountUserCount > 0, 'user_id' => $userId[0]]);
+        $new->create(['account_id' => $accountId, 'contact_id' => $contactId, 'is_primary' => $accountUserCount == 0, 'user_id' => $userId[0]]);
 
         return $new;
     }

@@ -26,11 +26,11 @@ class RatesheetController extends Controller {
         $modelFactory = new Ratesheet\RatesheetModelFactory();
         if($ratesheetId) {
             $ratesheetModel = $modelFactory->GetEditModel($ratesheetId);
-            if($req->user()->cannot('view', $ratesheetModel->ratesheet))
+            if($req->user()->cannot('appSettings.edit.*.*'))
                 abort(403);
         } else {
             $ratesheetModel = $modelFactory->GetCreateModel();
-            if($req->user()->cannot('create', Ratesheet::class))
+            if($req->user()->cannot('appSettings.edit.*.*'))
                 abort(403);
         }
 

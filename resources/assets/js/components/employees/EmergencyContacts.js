@@ -55,14 +55,8 @@ export default class EmergencyContacts extends Component {
                 contact_id: contactId,
                 employee_id: this.props.employeeId
             }
-            $.ajax({
-                'url': '/employees/emergencyContacts/delete',
-                'type': 'POST',
-                'data': data,
-                'success': response => {
-                    this.props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
-                },
-                'error': response => handleErrorResponse(response)
+            makeAjaxRequest('/employees/emergencyContacts/delete', 'POST', data, response => {
+                this.props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
             })
         }
     }
