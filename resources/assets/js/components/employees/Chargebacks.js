@@ -1,17 +1,8 @@
 import React, {Component} from 'react'
+import { connect } from 'react-redux'
 
 import ChargebackModal from './ChargebackModal'
 import Table from '../partials/Table'
-
-const filters = [
-    {
-        fetchUrl: '/getList/employees',
-        isMulti: true,
-        name: 'Employee',
-        type: 'SelectFilter',
-        value: 'employee_id'
-    }
-]
 
 const groupBy = 'employee_id'
 
@@ -21,7 +12,7 @@ const groupByOptions = [
 
 const initialSort = [{column: 'chargeback_id', dir: 'desc'}]
 
-export default class Chargebacks extends Component {
+class Chargebacks extends Component {
     constructor() {
         super()
         this.state = {
@@ -85,7 +76,15 @@ export default class Chargebacks extends Component {
                     baseRoute='/chargebacks/buildTable'
                     columns={columns}
                     createObjectFunction={this.createChargeback}
-                    filters={filters}
+                    filters={[
+                        {
+                            isMulti: true,
+                            name: 'Employee',
+                            selections: this.props.employees,
+                            type: 'SelectFilter',
+                            value: 'employee_id'
+                        }
+                    ]}
                     groupBy={groupBy}
                     groupByOptions={groupByOptions}
                     initalSort={initialSort}
@@ -97,6 +96,7 @@ export default class Chargebacks extends Component {
                 />
                 <ChargebackModal
                     cell={this.state.cell}
+                    employees={this.props.employees}
                     modalAction={this.state.modalAction}
                     toggleRefreshTable={this.toggleRefreshTable}
 
@@ -108,3 +108,14 @@ export default class Chargebacks extends Component {
     }
 }
 
+const matchDispatchToProps = store => {
+    return {}
+}
+
+const mapStateToProps = store => {
+    return {
+        employees: store.app.employees
+    }
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(Chargebacks)

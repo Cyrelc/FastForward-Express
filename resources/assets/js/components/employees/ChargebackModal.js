@@ -26,13 +26,6 @@ export default class ChargebackModal extends Component {
         this.handleChange = this.handleChange.bind(this)
         this.storeChargeback = this.storeChargeback.bind(this)
     }
-    
-    componentDidMount() {
-        makeAjaxRequest('/getList/employees', 'GET', null, response => {
-            response = JSON.parse(response)
-            this.setState({employees: response})
-        })
-    }
 
     componentDidUpdate(prevProps) {
         if(this.props.show === true && prevProps.show === false) {
@@ -49,7 +42,7 @@ export default class ChargebackModal extends Component {
                     glCode: cellData.gl_code,
                     startDate: Date.parse(cellData.chargeback_start_date),
                     description: cellData.description,
-                    selectedEmployees: this.props.modalAction === 'edit' ? this.state.employees.filter(employee => employee.value === cellData.employee_id) : []
+                    selectedEmployees: this.props.modalAction === 'edit' ? this.props.employees.filter(employee => employee.value === cellData.employee_id) : []
                 }
                 this.setState(setup)
             }
@@ -175,7 +168,7 @@ export default class ChargebackModal extends Component {
                             <InputGroup>
                                 <InputGroup.Prepend><InputGroup.Text>{this.state.chargebackId ? 'Employee' : 'Employees'}</InputGroup.Text></InputGroup.Prepend>
                                 <Select
-                                    options={this.state.employees}
+                                    options={this.props.employees}
                                     value={this.state.selectedEmployees}
                                     isMulti={this.state.chargebackId ? false : true}
                                     onChange={value => this.handleChange({target: {name: 'selectedEmployees', type: 'object', value: value}})}
