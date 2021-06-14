@@ -69,7 +69,7 @@ class ManifestModelFactory{
         $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
 
-        $drivers = $employeeRepo->ListAllDrivers();
+        $drivers = $employeeRepo->GetDriverList();
         $driversWithBills = [];
         foreach($drivers as $driver) {
             $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->employee_id, date('Y-m-d', strtotime($startDate)), date('Y-m-d', strtotime($endDate)));

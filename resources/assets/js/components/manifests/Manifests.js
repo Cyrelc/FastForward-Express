@@ -50,6 +50,7 @@ class Manifests extends Component {
             columns: [],
             filters: []
         }
+        this.deleteManifest = this.deleteManifest.bind(this)
     }
 
     componentDidMount() {
@@ -99,7 +100,7 @@ class Manifests extends Component {
             {label: 'Print Without Bill List', action: () => printManifests([cell.getRow()], true)}
         ]
         if(this.props.frontEndPermissions.manifests.delete)
-            menuItems = menuItems.concat([{label: 'Delete Manifest', action: () => deleteManifest(cell)}])
+            menuItems = menuItems.concat([{label: 'Delete Manifest', action: () => this.deleteManifest(cell)}])
 
         return menuItems
     }
@@ -113,7 +114,7 @@ class Manifests extends Component {
         const manifestId = cell.getRow().getData().manifest_id 
         if(confirm('Are you sure you want to delete manifest ' + manifestId + '?\nThis action can not be undone')) {
             makeAjaxRequest('/manifests/delete/' + manifestId, 'GET', null, response => {
-                props.fetchTableData()
+                this.props.fetchTableData()
             })
         }
     }

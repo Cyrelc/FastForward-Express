@@ -301,14 +301,14 @@ class App extends Component {
                     {this.props.frontEndPermissions.employees.viewAny &&
                         <Route path='/app/employees/:employeeId' component={Employee}></Route>
                     }
+                    {this.props.frontEndPermissions.manifests.create &&
+                        <Route path='/app/manifests/generate' exact component={GenerateManifests}></Route>
+                    }
                     {this.props.frontEndPermissions.manifests.viewAny &&
                         <Route path='/app/manifests/:manifestId' exact component={Manifest}></Route>
                     }
                     {this.props.frontEndPermissions.manifests.viewAny &&
                         <Route path='/app/manifests' exact component={Manifests}></Route>
-                    }
-                    {this.props.frontEndPermissions.manifests.create &&
-                        <Route path='/app/manifests/generate' exact component={GenerateManifests}></Route>
                     }
                     {this.props.frontEndPermissions.appSettings.edit &&
                         <Route path='/app/ratesheets/create' component={Ratesheet}></Route>

@@ -68,9 +68,7 @@ export default class GenerateManifests extends Component {
         const columns = [
             {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
             {title: 'Employee ID', field: 'employee_id'},
-            {title: 'Employee Number', field: 'employee_number'},
-            {title: 'Employee Name', formatter: (cell) => {return cell.getRow().getData().contact.first_name + ' ' + cell.getRow().getData().contact.last_name}},
-            {title: 'Company Name', field: 'company_name'},
+            {title: 'Employee', field: 'label'},
             {title: 'Bills Matched', field: 'bill_count'}
         ]
 
