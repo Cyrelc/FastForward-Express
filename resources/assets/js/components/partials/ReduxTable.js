@@ -197,37 +197,41 @@ export default class ReduxTable extends Component {
                             </Card.Body>
                         }
                         <Card.Footer>
-                            <ReactTabulator
-                                ref={this.state.tableRef}
-                                columns={this.props.columns.map(column => {
-                                    if(column.formatterParams && column.formatterParams.type === 'fakeLink' && column.formatterParams.urlPrefix != undefined)
-                                        return {...column, cellClick: (event, cell) => {
-                                            const value = cell.getValue()
-                                            if(value)
-                                                this.props.redirect(column.formatterParams.urlPrefix + value)}
+                            {/* The table loads only when there is valid data - this means that the "intialSort" property is appropriately applied
+                            Otherwise it is applied to the empty table */}
+                            {this.props.tableData.length > 0 &&
+                                <ReactTabulator
+                                    ref={this.state.tableRef}
+                                    columns={this.props.columns.map(column => {
+                                        if(column.formatterParams && column.formatterParams.type === 'fakeLink' && column.formatterParams.urlPrefix != undefined)
+                                            return {...column, cellClick: (event, cell) => {
+                                                const value = cell.getValue()
+                                                if(value)
+                                                    this.props.redirect(column.formatterParams.urlPrefix + value)}
+                                            }
+                                        return column
+                                    })}
+                                    data={this.props.tableData}
+                                    dataSorted={(sorters, rows) => {
+                                        if(rows.length > 0) {
+                                            const sortedList = rows.map(row => row.getData()[this.props.indexName])
+                                            this.props.setSortedList(sortedList)
                                         }
-                                    return column
-                                })}
-                                data={this.props.tableData}
-                                dataSorted={(sorters, rows) => {
-                                    if(rows.length > 0) {
-                                        const sortedList = rows.map(row => row.getData()[this.props.indexName])
-                                        this.props.setSortedList(sortedList)
-                                    }
-                                }}
-                                groupBy={this.props.groupBy}
-                                initialSort={this.props.initialSort}
-                                maxHeight='80vh'
-                                options={{
-                                    layout: 'fitColumns',
-                                    pagination:'local',
-                                    paginationSize:25,
-                                }}
-                                printAsHtml={true}
-                                printStyled={true}
-                                selectable={this.props.selectable ? this.props.selectable : false}
-                                selectableCheck={() => {return this.props.selectable ? true : false}}
-                            />
+                                    }}
+                                    groupBy={this.props.groupBy}
+                                    initialSort={this.props.initialSort}
+                                    maxHeight='80vh'
+                                    options={{
+                                        layout: 'fitColumns',
+                                        pagination:'local',
+                                        paginationSize:25
+                                    }}
+                                    printAsHtml={true}
+                                    printStyled={true}
+                                    selectable={this.props.selectable ? this.props.selectable : false}
+                                    selectableCheck={() => {return this.props.selectable ? true : false}}
+                                />
+                            }
                         </Card.Footer>
                     </Card>
                 </Col>

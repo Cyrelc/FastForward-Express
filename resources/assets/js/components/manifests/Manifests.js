@@ -30,8 +30,6 @@ const groupByOptions = [
     {label: 'Bill End Date', value: 'end_date'}
 ]
 
-const initialSort = [{column: 'manifest_id', dir: 'desc'}]
-
 const withSelected = [
     {
         label: 'Print',
@@ -127,7 +125,7 @@ class Manifests extends Component {
             // groupBy={groupBy}
             groupByOptions={groupByOptions}
             indexName='manifest_id'
-            initialSort={initialSort}
+            initialSort={[{column:'manifest_id', dir:'desc'}]}
             pageTitle='Manifests'
             reduxQueryString={this.props.reduxQueryString}
             redirect={this.props.redirect}
