@@ -38,7 +38,7 @@
                     <h3><i class='fas fa-check'></i> Locally owned and operated</h3>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
-                    <h3><i class='fas fa-check'></i> Proudly serving Edmonton and surrounding areas since 1993</h3>
+                    <h3><i class='fas fa-check'></i> Proudly serving Edmonton and surrounding areas since 1992</h3>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
                     <h3><i class='fas fa-check'></i> Numerous vehicles to accommodate a wide variety of sizes of deliveries</h3>
