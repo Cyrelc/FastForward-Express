@@ -213,6 +213,7 @@ class PermissionModelFactory {
             'edit' => $user->can('appSettings.edit.*.*')
         ];
         $model->bills = [
+            'billing' => $user->can('viewBilling', Bill::class),
             'create' => $user->can('createBasic', Bill::class),
             'dispatch' => $user->can('viewDispatch', Bill::class),
             'viewAny' => $user->can('viewAny', Bill::class),

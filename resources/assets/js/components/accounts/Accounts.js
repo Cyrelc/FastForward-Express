@@ -48,7 +48,7 @@ class Accounts extends Component {
                 if(cell.getValue() == 1)
                     return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
                 else
-                    return "<button class='btn btn-sm btn-success'  title='Activate'><i class='far fa-check-circle'></i></button>"
+                    return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
             }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleAccountActive(cell), headerSort: false, print: false},
         ] : [];
         const basicColumns = [

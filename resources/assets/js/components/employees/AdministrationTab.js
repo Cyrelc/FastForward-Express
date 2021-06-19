@@ -32,14 +32,16 @@ export default function AdministrationTab(props) {
                         </InputGroup>
                     </Col>
                     <Col md={3}>
-                        <Form.Check
-                            checked={props.enabled}
-                            name='enabled'
-                            value={props.enabled}
-                            onChange={props.handleChanges}
-                            label='Enabled'
-                        />
-                        <i className='fas fa-question' title={enabledTitle}></i>
+                        <InputGroup>
+                            <Form.Check
+                                checked={props.enabled}
+                                name='enabled'
+                                value={props.enabled}
+                                onChange={props.handleChanges}
+                                label='Enabled'
+                            />
+                            <InputGroup.Append><i className='fas fa-question-circle' title={enabledTitle}></i></InputGroup.Append>
+                        </InputGroup>
                     </Col>
                     <Col md={3}>
                         <Form.Check

@@ -49,7 +49,7 @@ class BillPolicy
         return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.dispatch.*', 'bills.edit.dispatch.*');
     }
 
-    public function viewBilling(User $user, Bill $bill) {
+    public function viewBilling(User $user) {
         return $user->hasAnyPermission('bills.view.billing.*', 'bills.edit.billing.*');
     }
 
