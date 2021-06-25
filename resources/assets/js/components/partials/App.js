@@ -319,7 +319,7 @@ class App extends Component {
                 </Switch>
                 <ChangePasswordModal
                     show={this.state.showChangePasswordModal}
-                    // userId={this.props.authenticatedEmployee ? this.props.authenticatedEmployee.user_id : this.props.authenticatedAccountUsers ? this.props.authenticatedAccountUsers[0].user_id : null}
+                    userId={this.props.authenticatedEmployee ? this.props.authenticatedEmployee.user_id : this.props.authenticatedAccountUsers ? this.props.authenticatedAccountUsers[0].user_id : null}
                     toggleModal={this.toggleChangePasswordModal}
                 />
             </ConnectedRouter>

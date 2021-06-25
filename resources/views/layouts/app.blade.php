@@ -14,11 +14,16 @@
         <div class='col-md-12'>
             <nav class='navbar navbar-dark bg-dark'>
                 <a class='navbar-brand' style='padding-left: 10px' href='/home'><h4>Fast Forward<br/>&nbsp&nbsp&nbsp&nbspExpress</h4></a>
-                <a class='nav-item nav-link' href='/about'><h4>About</h4></a>
+                <a class='nav-item' href='/home'><h4>About</h4><a>
+                <a class='nav-item' href='/home'><h4>Services</h4><a>
+                <a class='nav-item' href='/home'><h4>Request Delivery</h4><a>
+                <a class='nav-item' href='/home'><h4>Request Quote</h4><a>
+                <a class='nav-item' href='/home'><h4>Contact</h4><a>
+                {{-- <a class='nav-item nav-link' href='/about'><h4>About</h4></a>
                 <a class='nav-item nav-link' href='/services'><h4>Services</h4></a>
                 <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4></a>
                 <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4></a>
-                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4></a>
+                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4></a> --}}
                 <a class='nav-item nav-link' href='/login'><h4><i class='fas fa-sign-in-alt'></i> Sign In</h4></a>
             </nav>
         </div>
