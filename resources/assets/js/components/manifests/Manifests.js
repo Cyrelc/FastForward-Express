@@ -67,13 +67,13 @@ class Manifests extends Component {
         ]
 
         const filters = [
-            {
+            ... (this.props.drivers && this.props.drivers.length > 1) ? [{
                 selections: this.props.drivers,
                 isMulti: true,
                 name: 'Driver',
                 type: 'SelectFilter',
                 value: 'driver_id'
-            },
+            }] : [],
             {
                 name: 'Bill Start Date',
                 value: 'start_date',
