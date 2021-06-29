@@ -26,6 +26,7 @@ class Bills extends Component {
             filters: [],
             withSelected: []
         }
+        this.deleteBill = this.deleteBill.bind(this)
     }
 
     /**
@@ -35,9 +36,14 @@ class Bills extends Component {
      */
     componentDidMount() {
         const columns = [
-            ... this.props.frontEndPermissions.bills.delete ? [
-                {formatter: (cell) => {if(cell.getRow().getData().editable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"}, width:50, hozAlign:'center', cellClick:(e, cell) => deleteBill(cell), headerSort: false, print: false}
-            ] : [],
+            ... this.props.frontEndPermissions.bills.delete ? [{
+                formatter: (cell) => {if(cell.getRow().getData().editable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"},
+                width:50,
+                hozAlign:'center',
+                cellClick:(e, cell) => this.deleteBill(cell),
+                headerSort: false,
+                print: false
+            }] : [],
             {title: 'Bill ID', field: 'bill_id', formatter: fakeLinkFormatter, formatterParams:{type: 'fakeLink', urlPrefix:'/app/bills/'}, sorter:'number'},
             {title: 'Waybill #', field: 'bill_number'},
             {title: 'Parent Account', field: 'parent_account', visible: false},
@@ -183,6 +189,11 @@ class Bills extends Component {
     }
 
     deleteBill(cell) {
+        if(!this.props.frontEndPermissions.bills.delete) {
+            console.log('User has no delete bills permission')
+            return
+        }
+
         if(confirm('Are you sure you wish to delete bill ' + cell.getRow().getData().bill_id + '?\nThis action can not be undone')) {
             makeAjaxRequest('/bills/delete/' + cell.getRow().getData().bill_id, 'GET', null, response => {
                 this.props.fetchTableData()
