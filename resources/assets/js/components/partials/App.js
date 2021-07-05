@@ -246,6 +246,8 @@ class App extends Component {
                             return <Redirect to={'/app/accounts/' + this.props.authenticatedAccountUsers[0].account_id}></Redirect>
                         else if(this.props.authenticatedAccountUsers && this.props.accounts.length > 1)
                             return <Redirect to='/app/accounts'></Redirect>
+                        else if(this.props.frontEndPermissions.appSettings.edit)
+                            return <Redirect to='/app/adminDashboard'></Redirect>
                     }}></Route>
                     {this.props.frontEndPermissions.accounts.viewAny &&
                         <Route path='/app/accounts' exact component={Accounts}></Route>
@@ -319,7 +321,7 @@ class App extends Component {
                 </Switch>
                 <ChangePasswordModal
                     show={this.state.showChangePasswordModal}
-                    userId={this.props.authenticatedEmployee ? this.props.authenticatedEmployee.user_id : this.props.authenticatedAccountUsers ? this.props.authenticatedAccountUsers[0].user_id : null}
+                    userId={this.props.authenticatedUserId}
                     toggleModal={this.toggleChangePasswordModal}
                 />
             </ConnectedRouter>
@@ -339,6 +341,7 @@ const mapStateToProps = store => {
         accounts: store.app.accounts,
         authenticatedAccountUsers: store.app.authenticatedAccountUsers,
         authenticatedEmployee: store.app.authenticatedEmployee,
+        authenticatedUserId: store.app.authenticatedUserId,
         contact: store.app.authenticatedUserContact,
         employees: store.app.employees,
         frontEndPermissions: store.app.frontEndPermissions

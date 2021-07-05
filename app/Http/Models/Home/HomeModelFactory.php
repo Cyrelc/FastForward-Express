@@ -19,6 +19,7 @@ class HomeModelFactory {
         $model->frontEndPermissions = $permissionModelFactory->getFrontEndPermissionsForUser($req->user());
         $model->authenticatedEmployee = $req->user()->employee;
         $model->authenticatedAccountUsers = $req->user()->accountUsers;
+        $model->authenticatedUserId = $req->user()->user_id;
 
         if($model->authenticatedEmployee) {
             $model->contact = $contactRepo->GetById($model->authenticatedEmployee->contact_id);

@@ -13,6 +13,7 @@ const initialState = {
     authenticatedAccountUsers: {},
     authenticatedEmployee: {},
     authenticatedUserContact: {},
+    authenticatedUserId: null,
     employees: [],
     frontEndPermissions: {
         accounts: {},
@@ -39,6 +40,7 @@ const reducer = (state = initialState, action) => {
                 authenticatedAccountUsers: action.payload.authenticatedAccountUsers,
                 authenticatedEmployee: action.payload.authenticatedEmployee,
                 authenticatedUserContact: action.payload.contact,
+                authenticatedUserId: action.payload.authenticatedUserId,
                 drivers: action.payload.drivers,
                 employees: action.payload.employees,
                 frontEndPermissions: action.payload.frontEndPermissions,
