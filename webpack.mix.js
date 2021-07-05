@@ -12,6 +12,7 @@ const webpack = require('webpack');
  |
  */
 
-mix.react('resources/assets/js/app.js', 'public/compiled_js')
+mix.js('resources/assets/js/app.js', 'public/compiled_js')
+   .react()
    .sass('resources/assets/sass/app.scss', 'public/css')
    .version();
