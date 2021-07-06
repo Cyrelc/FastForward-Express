@@ -2,11 +2,15 @@
 
 namespace App\Http\Collectors;
 
+use App\Http\Repos\PaymentRepo;
+
 class BillCollector {
 	//TODO: replace with a call to payment Types repo for maximum flexibility
-	private $prepaidTypes = ['Cash', 'Visa', 'Mastercard', 'American Express', 'Cheque', 'Bank Transfer'];
 
 	public function Collect($req, $permissions, $pickupAddressId, $deliveryAddressId, $charge_id) {
+		$paymentRepo = new PaymentRepo();
+		$paymentType = $paymentRepo->GetPaymentType($req->payment_type['payment_type_id']);
+
 		$collectedBill = [
 			'bill_id' => $req->bill_id,
 			'charge_account_id' => $req->payment_type['name'] === 'Account' ? $charge_id : null,
@@ -54,7 +58,7 @@ class BillCollector {
 				'interliner_reference_value' => $req->interliner_id == "" ? null : $req->interliner_reference_value,
 				'interliner_cost' => $req->interliner_id == "" ? null : $req->interliner_cost,
 				'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
-				'payment_id' => in_array($req->payment_type['name'], $this->prepaidTypes) ? $charge_id : null,
+				'payment_id' => $paymentType['is_prepaid'] === 1 ? $charge_id : null,
 				'repeat_interval' => $req->repeat_interval ? $req->repeat_interval : null,
 				'skip_invoicing' => filter_var($req->skip_invoicing, FILTER_VALIDATE_BOOLEAN),
 			]);

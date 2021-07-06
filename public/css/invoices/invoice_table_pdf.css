@@ -1,5 +1,5 @@
 @page {
-    margin: 60px 40px 100px;
+    margin: 80px 40px 100px;
 }
 #watermark {
     display: block;
@@ -102,7 +102,7 @@ td.warn {
 }
 .header {
     position: fixed;
-    top: -60px;
+    top: -70px;
 }
 .footer {
     bottom: -15px;

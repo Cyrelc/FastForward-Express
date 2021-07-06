@@ -98,11 +98,10 @@ export default function BillingTab(props) {
                                         <InputGroup.Text>Driver: </InputGroup.Text>
                                     </InputGroup.Prepend>
                                     <Select
-                                        options={props.drivers}
+                                        options={props.employees}
                                         isSearchable
-                                        getOptionLabel={driver => driver.employee_number + ' - ' + driver.contact.first_name + ' ' + driver.contact.last_name}
                                         value={props.chargeEmployee}
-                                        onChange={driver => props.handleChanges({target: {name: 'chargeEmployee', type: 'object', value: driver}})}
+                                        onChange={employee => props.handleChanges({target: {name: 'chargeEmployee', type: 'object', value: employee}})}
                                         isDisabled={props.readOnly || props.pickupManifestId || props.deliveryManifestId}
                                         />
                                 </InputGroup>

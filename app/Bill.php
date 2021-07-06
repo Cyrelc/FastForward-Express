@@ -107,6 +107,7 @@ class Bill extends Model
         'interliner_id',
         'interliner_reference_value',
         'payment_id',
+        'payment_type_id',
         'repeat_interval',
         'skip_invoicing',
     ];

@@ -209,7 +209,7 @@ class Bill extends Component {
                 if(data.permissions.viewBilling)
                     setup = {...setup,
                         amount: data.bill.amount,
-                        chargeEmployee: data.chargeback ? this.props.employees.find(employee => employee.employee_id === data.chargeback.employee_id) : undefined,
+                        chargeEmployee: data.chargeback ? this.props.employees.find(employee => employee.value === data.chargeback.employee_id) : undefined,
                         deliveryManifestId: data.bill.delivery_manifest_id,
                         interliner: data.bill.interliner_id ? data.interliners.find(interliner => interliner.value === data.bill.interliner_id) : '',
                         interlinerActualCost: data.bill.interliner_cost,
@@ -668,7 +668,7 @@ class Bill extends Component {
                                         //value only (immutable by recipient function)
                                         accounts={this.state.accounts}
                                         deliveryManifestId={this.state.deliveryManifestId}
-                                        drivers={this.props.drivers}
+                                        employees={this.props.employees}
                                         interliners={this.state.interliners}
                                         invoiceId={this.state.invoiceId}
                                         paymentTypes={this.state.paymentTypes}

@@ -153,9 +153,9 @@ class BillController extends Controller {
             $deliveryAddressId = $addrRepo->InsertMinimal($deliveryAddress)->address_id;
         }
 
-        $payment_id = $req->payment_type ? $this->getPaymentId($oldBill, $req) : null;
+        $paymentId = $req->payment_type ? $this->getPaymentId($oldBill, $req) : null;
 
-        $bill = $billCollector->Collect($req, $permissions, $pickupAddressId, $deliveryAddressId, $payment_id);
+        $bill = $billCollector->Collect($req, $permissions, $pickupAddressId, $deliveryAddressId, $paymentId);
 
         if($oldBill)
             $bill = $billRepo->Update($bill, $permissions);
@@ -185,7 +185,12 @@ class BillController extends Controller {
     /**
      * Private functions
      */
-    private function getPaymentId($old_bill, $req) {
+
+     /**
+      * Handles different payment types.
+      * Account simply charges to account, driver creates a chargeback, all others create a payment object instance
+      */
+    private function getPaymentId($oldBill, $req) {
         $chargebackRepo = new Repos\ChargebackRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -194,11 +199,11 @@ class BillController extends Controller {
                 return $req->charge_account_id;
             case 'Driver':
                 $amount = ($req->amount == '' ? 0 : $req->amount) + ($req->interliner_cost_to_customer == '' ? 0 : $req->interliner_cost_to_customer);
-                if($old_bill != null && $old_bill->chargeback_id != null) {
+                if($oldBill != null && $oldBill->chargeback_id != null) {
                     $data = new \Illuminate\Http\Request();
                     $data->replace(['amount' => $amount]);
-                    $chargebackRepo->Update($old_bill->chargeback_id, $data);
-                    return $old_bill->chargeback_id;
+                    $chargebackRepo->Update($oldBill->chargeback_id, $data);
+                    return $oldBill->chargeback_id;
                 } else {
                     $chargeback = [
                         'employee_id' => $req->charge_employee_id,
@@ -213,13 +218,12 @@ class BillController extends Controller {
                     return ($chargebackRepo->CreateBillChargeback($chargeback))->chargeback_id;
                 }
             default:
-                if($old_bill != null && $old_bill->payment_id != null) {
-                    $payment = (new \App\Http\Collectors\PaymentCollector())->CollectBillPayment($req);
-                    return ($paymentRepo->Update($old_bill->payment_id, $payment))->payment_id;
-                } else {
-                    $payment = (new \App\Http\Collectors\PaymentCollector())->CollectBillPayment($req);
+                $paymentCollector = new \App\Http\Collectors\PaymentCollector();
+                $payment = $paymentCollector->CollectBillPayment($req);
+                if($oldBill != null && $oldBill->payment_id != null)
+                    return ($paymentRepo->Update($oldBill->payment_id, $payment))->payment_id;
+                else
                     return ($paymentRepo->Insert($payment))->payment_id;
-                }
         }
     }
 }
