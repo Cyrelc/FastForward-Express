@@ -1,5 +1,8 @@
 @page {
-    margin: 80px 40px 100px;
+    margin: 75px 40px 100px;
+}
+body {
+    margin-top: -12px;
 }
 #watermark {
     display: block;
