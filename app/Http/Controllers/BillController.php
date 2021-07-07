@@ -22,7 +22,7 @@ class BillController extends Controller {
         $this->class = new \App\Bill;
     }
 
-    public function assignToInvoice($req, $billId, $invoiceId) {
+    public function assignToInvoice(Request $req, $billId, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoice = $invoiceRepo->GetById($invoiceId);
         if($req->user()->cannot('update', $invoice))
@@ -94,9 +94,12 @@ class BillController extends Controller {
         return json_encode($model);
     }
 
-    public function removeFromInvoice($billId) {
+    public function removeFromInvoice(Request $req, $billId) {
+        $billRepo = new Repos\BillRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
-        $invoice = $invoiceRepo->GetById($invoiceId);
+
+        $bill = $billRepo->GetById($billId);
+        $invoice = $invoiceRepo->GetById($bill->invoice_id);
         if($req->user()->cannot('update', $invoice))
             abort(403);
 

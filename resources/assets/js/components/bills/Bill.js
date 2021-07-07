@@ -750,7 +750,7 @@ class Bill extends Component {
         if(this.state.billId ? this.state.permissions.editBilling : this.state.permissions.createFull)
             data = {...data,
                 amount: this.state.amount,
-                charge_employee_id: this.state.chargeEmployee ? this.state.chargeEmployee.employee_id : null,
+                charge_employee_id: this.state.chargeEmployee ? this.state.chargeEmployee.value : null,
                 interliner_cost: this.state.interlinerActualCost,
                 interliner_cost_to_customer: this.state.interlinerCostToCustomer,
                 interliner_id: this.state.interliner ? this.state.interliner.value : undefined,

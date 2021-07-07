@@ -159,9 +159,9 @@ class BillValidationRules {
 		if($req->payment_type == 'Account') {
 			$rules = array_merge($rules, ['charge_account_id' => 'required']);
 			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
-		} else if ($req->payment_type == 'Driver') {
-			$rules = array_merge($rules, ['charge_driver_id' => 'required']);
-			$messages = array_merge($messages, ['charge_driver_id.required' => 'Must select a driver to charge back to']);
+		} else if ($req->payment_type == 'Employee') {
+			$rules = array_merge($rules, ['charge_employee_id' => 'required']);
+			$messages = array_merge($messages, ['charge_employee_id.required' => 'Must select an employee to charge back to']);
 		}
 
 		return ['rules' => $rules, 'messages' => $messages];

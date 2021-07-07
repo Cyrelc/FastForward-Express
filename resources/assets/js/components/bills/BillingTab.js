@@ -91,11 +91,11 @@ export default function BillingTab(props) {
                                 </InputGroup>
                             </Col>
                         }
-                        {props.paymentType.name === 'Driver' &&
+                        {props.paymentType.name === 'Employee' &&
                             <Col md={6}>
                                 <InputGroup>
                                     <InputGroup.Prepend>
-                                        <InputGroup.Text>Driver: </InputGroup.Text>
+                                        <InputGroup.Text>Employee: </InputGroup.Text>
                                     </InputGroup.Prepend>
                                     <Select
                                         options={props.employees}
