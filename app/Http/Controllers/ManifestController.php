@@ -27,14 +27,15 @@ class ManifestController extends Controller {
         return json_encode($model);
     }
 
-    public function delete(Request $req, $manifest_id) {
-        if($req->user()->cannot('delete', Manifest::class))
+    public function delete(Request $req, $manifestId) {
+        $manifestRepo = new Repos\ManifestRepo();
+        $manifest = $manifestRepo->GetById($manifestId);
+        if($req->user()->cannot('delete', $manifest))
             abort(403);
 
         DB::beginTransaction();
 
-        $manifestRepo = new Repos\ManifestRepo();
-        $manifestRepo->delete($manifest_id);
+        $manifestRepo->delete($manifestId);
 
         DB::commit();
     }

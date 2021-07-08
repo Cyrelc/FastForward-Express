@@ -26,11 +26,11 @@ class ManifestRepo {
         return $manifests;
     }
 
-    public function Delete($manifest_id) {
-        $pickupBills = Bill::where('pickup_manifest_id', $manifest_id)->get();
-        $deliveryBills = Bill::where('delivery_manifest_id', $manifest_id)->get();
-        $chargebacks = Chargeback::where('manifest_id', $manifest_id)->get();
-        $manifest = Manifest::where('manifest_id', $manifest_id);
+    public function Delete($manifestId) {
+        $pickupBills = Bill::where('pickup_manifest_id', $manifestId)->get();
+        $deliveryBills = Bill::where('delivery_manifest_id', $manifestId)->get();
+        $chargebacks = Chargeback::where('manifest_id', $manifestId)->get();
+        $manifest = Manifest::where('manifest_id', $manifestId);
 
         foreach($pickupBills as $bill) {
             $bill->pickup_manifest_id = null;
