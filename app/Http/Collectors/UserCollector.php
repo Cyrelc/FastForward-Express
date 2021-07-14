@@ -133,7 +133,11 @@ class UserCollector {
             /* Payments */
             'payments.create.*.*' => 'createPayments',
             'payments.edit.*' => 'editPayments',
-            'payments.view.*.*' => 'viewPayments'
+            'payments.view.*.*' => 'viewPayments',
+            /* Ratesheets */
+            'ratesheets.create.*.*' => 'editAppSettings',
+            'ratesheets.edit.*.*' => 'editAppSettings',
+            'ratesheets.view.*.*' => 'editAppSettings'
         ];
 
         $permissions = [];

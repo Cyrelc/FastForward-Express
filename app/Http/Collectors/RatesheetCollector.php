@@ -6,7 +6,7 @@ class RatesheetCollector {
     public function Collect($req) {
         //TODO - clean up timeRates and pull dates out of them (time value is needed only)
         return [
-            'ratesheet_id' => isset($req->ratesheetId) ? $req->ratesheetId : null,
+            'ratesheet_id' => isset($req->ratesheet_id) ? $req->ratesheet_id : null,
             'name' => $req->name,
             'use_internal_zones_calc' => filter_var($req->useInternalZonesCalc, FILTER_VALIDATE_BOOLEAN),
             'weekend_rate' => $req->weekendRate,

@@ -5,7 +5,7 @@ class RatesheetValidationRules {
     public function GetValidationRules($req) {
         $rules = [
             'deliveryTypes.*.time' => 'required|numeric',
-            'name' => 'required|alpha_dash|unique:ratesheets,name,' . $req->ratesheetId . ',ratesheet_id',
+            'name' => 'required|alpha_dash|unique:ratesheets,name,' . $req->ratesheet_id . ',ratesheet_id',
             'palletRate.palletBasePrice' => 'required|numeric',
             'palletRate.palletBaseWeightKgs' => 'required|numeric',
             'palletRate.palletBaseWeightLbs' => 'required|numeric',

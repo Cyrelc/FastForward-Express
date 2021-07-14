@@ -317,7 +317,7 @@ export default class Ratesheet extends Component {
             holidayRate: this.state.holidayRate,
             weekendRate: this.state.weekendRate,
             palletRate: this.state.palletRate,
-            ratesheetId : this.state.ratesheetId,
+            ratesheet_id : this.state.ratesheetId,
             useInternalZonesCalc: this.state.useInternalZonesCalc,
             deliveryTypes : this.state.deliveryTypes.slice(),
             weightRates : this.state.weightRates.slice(),

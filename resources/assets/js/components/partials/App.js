@@ -242,12 +242,12 @@ class App extends Component {
                     <Route exact path='/' render={props => {
                         if(this.props.authenticatedEmployee && this.props.authenticatedEmployee.employee_id)
                             return this.props.frontEndPermissions.appSettings.edit ? <Redirect to='/app/adminDashboard'></Redirect> : <Redirect to={'/app/employees/' + this.props.authenticatedEmployee.employee_id}></Redirect>
+                        else if(this.props.frontEndPermissions.appSettings.edit)
+                            return <Redirect to='/app/adminDashboard'></Redirect>
                         else if(this.props.authenticatedAccountUsers && this.props.authenticatedAccountUsers.length == 1)
                             return <Redirect to={'/app/accounts/' + this.props.authenticatedAccountUsers[0].account_id}></Redirect>
                         else if(this.props.authenticatedAccountUsers && this.props.accounts.length > 1)
                             return <Redirect to='/app/accounts'></Redirect>
-                        else if(this.props.frontEndPermissions.appSettings.edit)
-                            return <Redirect to='/app/adminDashboard'></Redirect>
                     }}></Route>
                     {this.props.frontEndPermissions.accounts.viewAny &&
                         <Route path='/app/accounts' exact component={Accounts}></Route>
