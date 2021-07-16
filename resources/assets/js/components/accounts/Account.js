@@ -400,13 +400,13 @@ class Account extends Component {
                 <Col md={4} style={{textAlign: 'center'}}>
                     <ButtonGroup>
                         {(this.state.accountId && this.state.viewChildren != false) &&
-                            <LinkContainer to={'/app/accounts/edit/' + this.state.prevAccountIndex}><Button variant='info' disabled={!this.state.prevAccountIndex}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}</Button></LinkContainer>
+                            <LinkContainer to={'/app/accounts/' + this.state.prevAccountIndex}><Button variant='info' disabled={!this.state.prevAccountIndex}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}</Button></LinkContainer>
                         }
                         {(this.state.permissions.editBasic || this.state.permissions.editInvoicing || this.state.permissions.editAdvanced || (this.state.accountId === null && this.state.permissions.create)) &&
                             <Button variant='primary' onClick={this.storeAccount}>Submit</Button>
                         }
                         {this.state.accountId && this.state.viewChildren != false &&
-                            <LinkContainer to={'/app/accounts/edit/' + this.state.nextAccountIndex}><Button variant='info' disabled={!this.state.nextAccountIndex}>Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                            <LinkContainer to={'/app/accounts/' + this.state.nextAccountIndex}><Button variant='info' disabled={!this.state.nextAccountIndex}>Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
                         }
                     </ButtonGroup>
                 </Col>
