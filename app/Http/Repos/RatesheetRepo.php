@@ -47,7 +47,7 @@ class RatesheetRepo {
     }
 
     public function ListAll() {
-        $ratesheets = Ratesheet::select('name', 'ratesheet_id', 'delivery_types', 'weekend_rate', 'holiday_rate');
+        $ratesheets = Ratesheet::select('name', 'ratesheet_id', 'delivery_types');
 
         return $ratesheets->get();
     }
@@ -98,13 +98,11 @@ class RatesheetRepo {
         $old = Ratesheet::where('ratesheet_id', $ratesheet['ratesheet_id'])->first();
 
         $old->name = $ratesheet['name'];
-        $old->weekend_rate = $ratesheet['weekend_rate'];
-        $old->holiday_rate = $ratesheet['holiday_rate'];
         $old->time_rates = $ratesheet['time_rates'];
         $old->delivery_types = $ratesheet['delivery_types'];
-        $old->pallet_rate = $ratesheet['pallet_rate'];
         $old->weight_rates = $ratesheet['weight_rates'];
         $old->zone_rates = $ratesheet['zone_rates'];
+        $old->misc_rates = $ratesheet['misc_rates'];
         $old->use_internal_zones_calc = $ratesheet['use_internal_zones_calc'];
 
         $old->save();

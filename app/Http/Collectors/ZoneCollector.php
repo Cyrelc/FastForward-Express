@@ -15,7 +15,6 @@ class ZoneCollector {
         }
 
         foreach($mapZones as $mapZone) {
-            // dd(gettype($mapZone['coordinates']));
             $zone = [
                 'coordinates' => $mapZone['coordinates'],
                 //todo -> ability to clone coordinates

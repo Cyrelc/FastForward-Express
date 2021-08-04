@@ -1,50 +1,143 @@
 import React from 'react'
-import {Row, Col, InputGroup, FormControl} from 'react-bootstrap'
+import {Button, Col, InputGroup, FormControl, Row, Table} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
+import Select from 'react-select'
+
+const daysOfTheWeek = [
+    {label: 'Sunday', value: 0},
+    {label: 'Monday', value: 1},
+    {label: 'Tuesday', value: 2},
+    {label: 'Wednesday', value: 3},
+    {label: 'Thursday', value: 4},
+    {label: 'Friday', value: 5},
+    {label: 'Saturday', value: 6}
+]
 
 export default function TimeRate(props) {
+
+    function addTimeBracket() {
+        const brackets = props.timeRate.brackets.concat([{startDay: null, startTime: new Date(), endDay: null, endTime: new Date()}])
+        props.handleTimeRateChange({...props.timeRate, brackets: brackets}, props.index)
+    }
+
+    function deleteTimeBracket(index) {
+        if(index == 0)
+            return
+        const brackets = props.timeRate.brackets.filter((bracket, i) => i != index)
+        props.handleTimeRateChange({...props.timeRate, brackets: brackets}, props.index)
+    }
+
+    function handleTimeRateChange(event) {
+        const {name, value} = event.target
+        console.log(name, value)
+        if(name === 'name' || name === 'price')
+            props.handleTimeRateChange({...props.timeRate, [name]: value}, props.index)
+        else {
+            const brackets = props.timeRate.brackets.map((bracket, index) => {
+                if(event.target.dataset.timebracketindex === index)
+                    return {...bracket, [name]: value}
+                return bracket
+            })
+            props.handleTimeRateChange({...props.timeRate, brackets: brackets}, props.index)
+        }
+    }
+
     return (
         <Row>
             <Col md={3}>
-                <DatePicker 
-                    key={props.id + '-start'}
-                    showTimeSelect
-                    showTimeSelectOnly
-                    timeIntervals={30}
-                    dateFormat='h:mm aa'
-                    selected={props.startTime}
-                    value={props.startTime}
-                    onChange={datetime => props.handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime}}, props.id)}
-                    className='form-control'
-                />
-            </Col>
-            <Col md={3}>
-                <DatePicker
-                    key={props.id + '-end'}
-                    showTimeSelect
-                    showTimeSelectOnly
-                    timeIntervals={30}
-                    dateFormat='h:mm aa'
-                    selected={props.endTime}
-                    value={props.endTime}
-                    onChange={datetime => props.handleTimeRateChange({target: {name: 'endTime', type:'date', value: datetime}}, props.id)}
-                    className='form-control'
-                />
-            </Col>
-            <Col md={4}>
-                <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>Price: </InputGroup.Text>
-                    </InputGroup.Prepend>
+                <InputGroup size='sm'>
+                    <InputGroup.Prepend><Button variant='danger' onClick={() => props.deleteTimeRate(props.index)}><i className='fas fa-trash'></i></Button></InputGroup.Prepend>
+                    <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
                     <FormControl
-                        key={props.id + '-cost'}
-                        type='number'
-                        step='0.01'
-                        name='cost'
-                        value={props.cost}
-                        onChange={event => props.handleTimeRateChange(event, props.id)}
+                        name='name'
+                        value={props.timeRate.name}
+                        onChange={handleTimeRateChange}
                     />
                 </InputGroup>
+                <InputGroup size='sm'>
+                    <InputGroup.Prepend>
+                        <InputGroup.Text>Price: $</InputGroup.Text>
+                    </InputGroup.Prepend>
+                    <FormControl
+                        key={props.id + '-price'}
+                        type='number'
+                        step='0.01'
+                        name='price'
+                        value={props.timeRate.price}
+                        onChange={handleTimeRateChange}
+                    />
+                </InputGroup>
+            </Col>
+            <Col md={9}>
+                <Table size='sm'>
+                    <thead>
+                        <tr>
+                            <th><Button variant='success' onClick={addTimeBracket} size='sm'><i className='fas fa-plus'></i></Button></th>
+                            <th>Start Day/Time</th>
+                            <th>End Day/Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {props.timeRate.brackets.map((bracket, index) => 
+                        <tr key={props.timeRate.name + '.bracket.' + index}>
+                            <td>
+                                <Button variant='danger' onClick={() => deleteTimeBracket(index)} size='sm'><i className='fas fa-trash'></i></Button>
+                            </td>
+                            <td>
+                                <InputGroup size='sm'>
+                                    <InputGroup.Prepend><InputGroup.Text>Start: </InputGroup.Text></InputGroup.Prepend>
+                                    <Select
+                                        isClearable
+                                        options={daysOfTheWeek}
+                                        value={bracket.startDayOfWeek}
+                                        name='startDayOfWeek'
+                                        isSearchable
+                                        onChange={value => handleTimeRateChange({target: {name: 'startDayOfWeek', type: 'date', value: value, dataset: {timebracketindex: index}}})}
+                                    />
+                                    <DatePicker
+                                        key={props.id + '-start'}
+                                        showTimeSelect
+                                        showTimeSelectOnly
+                                        timeIntervals={15}
+                                        dateFormat='h:mm aa'
+                                        selected={bracket.startTime}
+                                        value={bracket.startTime}
+                                        onChange={datetime => handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
+                                        className='form-control'
+                                    />
+                                </InputGroup>
+                            </td>
+                            <td>
+                                <InputGroup size='sm'>
+                                    <InputGroup.Prepend><InputGroup.Text>End: </InputGroup.Text></InputGroup.Prepend>
+                                    <Select
+                                        isClearable
+                                        options={daysOfTheWeek}
+                                        value={bracket.endDayOfWeek}
+                                        name='endDayOfWeek'
+                                        isSearchable
+                                        onChange={value => handleTimeRateChange({target: {name: 'endDayOfWeek', type: 'date', value: value, dataset: {timebracketindex: index}}})}
+                                    />
+                                    <DatePicker
+                                        key={props.id + '-end'}
+                                        showTimeSelect
+                                        showTimeSelectOnly
+                                        timeIntervals={15}
+                                        dateFormat='h:mm aa'
+                                        selected={bracket.endTime}
+                                        value={bracket.endTime}
+                                        onChange={datetime => handleTimeRateChange({target: {name: 'endTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
+                                        className='form-control'
+                                    />
+                                </InputGroup>
+                            </td>
+                        </tr>
+                    )}
+                    </tbody>
+                </Table>
+            </Col>
+            <Col md={12}>
+                <hr/>
             </Col>
         </Row>
     )

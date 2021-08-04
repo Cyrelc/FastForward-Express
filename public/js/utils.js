@@ -133,7 +133,7 @@ function cleave() {
  * All functions must use the following wrappers to perform Ajax or Fetch requests
  */
 
-function makeAjaxRequest(url, type, data, callback) {
+function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
     $.ajax({
         'url': url,
         'type': type,
@@ -152,8 +152,11 @@ function makeAjaxRequest(url, type, data, callback) {
                     toastr.error(responseText.message, 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
                 else
                     toastr.error('Authenticated User does not have permission to perform the requested action', 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
-            } else
+            } else {
+                if(errorCallback)
+                    errorCallback(response)
                 handleErrorResponse(response)
+            }
         }
     })
 }
@@ -194,4 +197,10 @@ function fakeLinkFormatter(cell, formatterParams) {
         return '<span class="fakeLink">' + formatterParams.url + '</span>'
     }
     return '<span class="fakeLink">' + cell.getValue() + '</span>'
+}
+
+Array.prototype.sortBy = function(p) {
+    return this.slice(0).sort(function(a,b) {
+        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0
+    })
 }

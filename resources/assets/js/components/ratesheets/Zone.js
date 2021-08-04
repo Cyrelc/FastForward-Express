@@ -16,13 +16,7 @@ export default function Zone(props) {
                     </Col>
                     <Col md='auto'>
                         <ButtonGroup>
-                            <Button 
-                                type='checkbox' 
-                                name='viewDetails' 
-                                checked={!props.zone.viewDetails} 
-                                variant='info' 
-                                onClick={() => props.editZone(props.id)}><i className='fas fa-cog'></i></Button>
-                            <Button variant='danger' onClick={() => props.deleteZone(props.id)}><i className='fas fa-trash'></i></Button>
+                            <Button variant='danger' onClick={() => props.deleteZone(props.id)} size='sm'><i className='fas fa-trash'></i></Button>
                         </ButtonGroup>
                     </Col>
                 </Row>

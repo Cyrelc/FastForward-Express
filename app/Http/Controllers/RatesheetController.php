@@ -42,7 +42,7 @@ class RatesheetController extends Controller {
 
         $ratesheetRepo = new Repos\RatesheetRepo();
 
-        if($req->ratesheetId === '') {
+        if($req->ratesheet_id === '') {
             if($req->user()->cannot('create', Ratesheet::class))
                 abort(403);
             $isEdit = false;
@@ -70,23 +70,19 @@ class RatesheetController extends Controller {
 
         // handle zone changes
         $zones = $zoneCollector->Collect($req->mapZones, $ratesheetId);
+        $zonesToBeDeleted = $ratesheetRepo->GetMapZones($ratesheetId)->toArray();
+
         foreach($zones as $zone)
-            if($zone['zone_id'])
+            if($zone['zone_id']) {
+                $zonesToBeDeleted = array_filter($zonesToBeDeleted, function($mapZone) use ($zone) {
+                    return $zone['zone_id'] != $mapZone['zone_id'];
+                });
                 $ratesheetRepo->UpdateZone($zone);
-            else
+            } else
                 $ratesheetRepo->InsertZone($zone);
 
-        $mapZones = $ratesheetRepo->GetMapZones($ratesheetId);
-
-        foreach($mapZones as $mapZone) {
-            foreach($zones as $index => $zone) {
-                if($zone['zone_id'] == $mapZone->zone_id || $zone['zone_id'] == null) {
-                    break;
-                } else if($index == sizeof($zones) - 1) {
-                    $ratesheetRepo->DeleteZone($mapZone->zone_id);
-                }
-            }
-        }
+        foreach($zonesToBeDeleted as $deleteZone)
+            $ratesheetRepo->DeleteZone($deleteZone['zone_id']);
 
         $this->updateNeighbours($ratesheetId);
 

@@ -1,6 +1,7 @@
 import React from 'react'
 import {Row, Col, Jumbotron, InputGroup, ToggleButton, ButtonGroup, FormControl, Popover, Button} from 'react-bootstrap'
 import Zone from './Zone'
+import Select from 'react-select'
 
 export default function MapTab(props) {
     const popover = (
@@ -14,20 +15,19 @@ export default function MapTab(props) {
     )
 
     return (
-        <Jumbotron fluid>
+        <Jumbotron fluid style={{padding: '0px'}}>
             <Row>
                 <Col md={3}>
-                    <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Snap Accuracy</InputGroup.Text>
-                        </InputGroup.Prepend>
-                        <FormControl 
-                            type='number'
-                            name='snapPrecision'
-                            value={props.snapPrecision}
-                            onChange={props.handleChange}
-                        />
-                    </InputGroup>
+                    <Select
+                        options={props.mapZones}
+                        getOptionLabel={zone => zone.name + '  (' + zone.type + ')' + '  (' + zone.coordinates.length + ' points)'}
+                        getOptionValue={zone => zone.id}
+                        value={props.mapZones.filter(zone => zone.viewDetails)[0]}
+                        onChange={zone => props.editZone(zone.id)}
+                        isSearchable
+                    />
+                </Col>
+                <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
                         <InputGroup.Prepend>
                             <InputGroup.Text>Default Zone Type: </InputGroup.Text>
@@ -36,10 +36,10 @@ export default function MapTab(props) {
                             <ToggleButton 
                                 type='radio'
                                 variant='secondary'
-                                name='defaultZoneType' 
-                                value='internal' 
-                                active={props.defaultZoneType === 'internal'} 
-                                onChange={props.handleChange} 
+                                name='defaultZoneType'
+                                value='internal'
+                                active={props.defaultZoneType === 'internal'}
+                                onChange={props.handleChange}
                                 style={{backgroundColor: props.polyColours.internalFill, color:props.defaultZoneType === 'internal' ? 'black' : 'white'}}>Internal</ToggleButton>
                             <ToggleButton
                                 type='radio'
@@ -59,22 +59,37 @@ export default function MapTab(props) {
                                 style={{backgroundColor: props.polyColours.outlyingFill, color:props.defaultZoneType === 'outlying' ? 'black' : 'white'}}>Outlying</ToggleButton>
                         </ButtonGroup>
                     </InputGroup>
-                    <div style={{height: 900, overflowY: 'scroll'}}>
-                        {props.mapZones.map(zone => 
-                            <Zone
-                                key={zone.id}
-                                id={zone.id}
-                                zone={zone}
-                                handleChange={props.handleChange}
-                                deleteZone={props.deleteZone}
-                                editZone={props.editZone}
-                                viewDetails={zone.viewDetails}
-                                colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
-                            />
-                        )}
-                    </div>
                 </Col>
-                <Col md={9} id='map' style={{height:1000, width:'100%'}}>
+                <Col md={3}>
+                    <InputGroup>
+                        <InputGroup.Prepend>
+                            <InputGroup.Text>Snap Accuracy</InputGroup.Text>
+                        </InputGroup.Prepend>
+                        <FormControl
+                            type='number'
+                            name='snapPrecision'
+                            value={props.snapPrecision}
+                            onChange={props.handleChange}
+                        />
+                    </InputGroup>
+                </Col>
+            </Row>
+            <Row>
+                <Col md={3}>
+                    {props.mapZones.filter(zone => zone.viewDetails).map(zone =>
+                        <Zone
+                            key={zone.id}
+                            id={zone.id}
+                            zone={zone}
+                            handleChange={props.handleChange}
+                            deleteZone={props.deleteZone}
+                            editZone={props.editZone}
+                            viewDetails={zone.viewDetails}
+                            colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
+                        />
+                    )}
+                </Col>
+                <Col md={9} id='map' style={{height:800, width:'100%'}}>
                 </Col>
             </Row>
         </Jumbotron>

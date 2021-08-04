@@ -4,25 +4,20 @@ namespace App\Http\Validation;
 class RatesheetValidationRules {
     public function GetValidationRules($req) {
         $rules = [
+            'name' => 'required|min:3|max:255',
             'deliveryTypes.*.time' => 'required|numeric',
-            'name' => 'required|alpha_dash|unique:ratesheets,name,' . $req->ratesheet_id . ',ratesheet_id',
-            'palletRate.palletBasePrice' => 'required|numeric',
-            'palletRate.palletBaseWeightKgs' => 'required|numeric',
-            'palletRate.palletBaseWeightLbs' => 'required|numeric',
-            'palletRate.palletAdditionalCharge' => 'required|numeric',
-            'palletRate.palletAdditionalWeightKgs' => 'required|numeric',
-            'palletRate.palletAdditionalWeightLbs' => 'required|numeric',
             'weightRates' => 'required|array|min:2',
+            'weightRates.*.name' => 'required',
+            'timeRates.*.name' => 'required',
+            'timeRates.*.price' => 'required|min:0'
         ];
 
         $messages = [
             'name.required' => 'Name is a required field',
-            'name.unique' => 'That name is already taken. Please try another',
-            'name.alpha_dash' => 'Ratesheet name can only include A-Z, 0-9, \'-\', and \'_\'',
-            'weightRates.min' => 'You must include at least one valid weight rate',
+            'name.unique' => 'Ratesheet Name is already taken. Please try another',
         ];
 
-        if($req->useInternalZonesCalc) {
+        if($req->useInternalZonesCalc === 'true') {
             foreach($req->zoneRates as $key => $rate)
             if($key != sizeOf($req->zoneRates) - 1) {
                 foreach(['regularCost' => 'Regular cost', 'rushCost' => 'Rush cost', 'directCost' => 'Direct cost', 'directRushCost' => 'Direct Rush cost'] as $field => $message) {
@@ -43,13 +38,21 @@ class RatesheetValidationRules {
             }
         }
 
-        foreach($req->weightRates as $key => $rate) {
-            if($key != sizeOf($req->weightRates) - 1) {
-                $rules['weightRates.' . $key . '.kgmax'] = 'required|numeric|min:' . ($key > 0 ? $req->weightRates[$key - 1]['kgmax'] : '0.01');
-                $rules['weightRates.' . $key . '.cost'] = 'required|numeric|min:0';
-                $messages['weightRates.' . $key . '.kgmax.required'] = 'Only the last Weight Rate can remain empty';
-                $messages['weightRates.' . $key . '.kgmax.min'] = 'Weight Rate ' . ($key + 1) . ' must be higher value than the one before it';
-                $messages['weightRates.' . $key . '.cost.required'] = 'Weight Rate ' . ($key + 1) . ' cost is required';
+        foreach($req->weightRates as $key => $weightRate) {
+            foreach($weightRate['brackets'] as $bracketIndex => $bracket) {
+                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.kgmax'] = 'required|numeric|min:' . ($bracketIndex > 0 ? $weightRate['brackets'][$bracketIndex - 1]['kgmax'] : '0');
+                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.basePrice'] = 'required|numeric|min:0';
+                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.additionalXKgs'] = 'required|numeric|min:0|max:' . ($bracketIndex > 0 ? $bracket['kgmax'] - $weightRate['brackets'][$bracketIndex - 1]['kgmax'] : $bracket['kgmax']);
+                $messages['weightRates.' . $key . '.brackets.' . $bracketIndex . '.kgmax.required'] = $weightRate['name'] . ' kgmax ' . $bracketIndex . ' is required';
+                $messages['weightRates.' . $key . '.brackets.' . $bracketIndex . '.basePrice.required'] = $weightRate['name'] . ' base price ' . $bracketIndex . ' is required';
+            }
+        }
+
+        foreach($req->timeRates as $key => $timeRate) {
+            foreach($timeRate['brackets'] as $bracketIndex => $bracket) {
+                $rules['timeRates.' . $key . '.' . $bracketIndex . '.startDayOfWeek'] = 'sometimes|min:0|max:6';
+                $rules['timeRates.' . $key . '.' . $bracketIndex . '.endDayOfWeek'] = 'sometimes|min:0|max:6';
+                $rules['timeRules.' . $key . '.' . $bracketIndex . '.startTime'] = 'date';
             }
         }
 
