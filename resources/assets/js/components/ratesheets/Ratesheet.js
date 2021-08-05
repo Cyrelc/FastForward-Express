@@ -112,6 +112,7 @@ export default class Ratesheet extends Component {
 
     handleChange(event, section, id) {
         const {name, value, type, checked} = event.target
+        console.log(name, value)
         if(section) {
             const updated = this.state[section].map(obj => {
                 if(obj.id === id)
@@ -132,6 +133,7 @@ export default class Ratesheet extends Component {
         }
         if(this.state.importType === 'mapZones') {
             this.state.selectedImports.forEach(mapZone => {
+                console.log('attempting to parse new mapzone')
                 const polygon = new google.maps.Polygon({
                     paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
                 })
@@ -152,27 +154,16 @@ export default class Ratesheet extends Component {
 
     handleZoneRateChange(event, id) {
         const {name, value} = event.target
-        // var index
         var updated = this.state.zoneRates.map(obj => {
             if(obj.id == id) {
-                if(name === 'name') {
-                    obj.polyLabel.setContent(value)
-                    return {...obj, [name]: value}
-                }
-                // index = i
+                // if(name === 'name') {
+                //     console.log(obj.polyLabel.content)
+                //     obj.polyLabel.setContent(value)
+                // }
                 return {...obj, [name]: value}
             }
             return obj
         })
-        // if(!this.isEmpty(value) && updated[updated.length -1].id === id)
-        //     updated = updated.concat([{id: this.state.zoneRates.length, cost: undefined, zones: this.state.zoneRates.length + 1}])
-        // else if(this.isEmpty(updated[index]['regularCost']) && this.isEmpty(updated[index]['rushCost'] && this.isEmpty(updated[index]['directCost'] && this.isEmpty(updated[index]['directCost']))))
-        //     while(typeof updated[updated.length - 2] != 'undefined'
-        //         && this.isEmpty(updated[updated.length - 2]['regularCost'])
-        //         && this.isEmpty(updated[updated.length - 2]['rushCost'])
-        //         && this.isEmpty(updated[updated.length - 2]['directCost'])
-        //         && this.isEmpty(updated[updated.length - 2]['directRushCost']))
-        //         updated.pop()
         this.setState({zoneRates: updated})
     }
 
@@ -189,7 +180,7 @@ export default class Ratesheet extends Component {
         }
         polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: polygonNextIndex++})
         polygon.addListener('click', () => this.editZone(polygon.zIndex))
-        // google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
+        google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
         const coordinates = this.getCoordinates(polygon)
         const name = zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex
         const polyLabel = new SnazzyInfoWindow({
@@ -228,6 +219,15 @@ export default class Ratesheet extends Component {
         // name === '' ? this.editZone(polygon.zIndex) : null;
     }
 
+    deletePolyPoint(point, id) {
+        if(point.vertex != null)
+            this.state.mapZones.map((zone, index) => {
+                if(zone.id === id) {
+                    zone.polygon.getPath().removeAt(point.vertex);
+                }
+            })
+    }
+
     deleteZone(id) {
         if(confirm('Are you sure you wish to delete this map zone?\n This action can not be undone')) {
             var deleteIndex = null
@@ -256,14 +256,14 @@ export default class Ratesheet extends Component {
             threshold: this.state.snapPrecision,
             polygons: this.state.mapZones.map(mapZone => {return mapZone.polygon}),
             // polystyle: polystyle,
-            hidePOI: true
+            hidePOI: true,
         })
         polySnapper.enable(this.state.mapZones.filter(mapZone => mapZone.id === id)[0].polygon.zIndex)
         this.setState({mapZones: updated, polySnapper: polySnapper})
     }
 
     getCoordinates(polygon) {
-        return coordinates = polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
+        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
     getCenter(coordinates) {

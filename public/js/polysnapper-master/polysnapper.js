@@ -135,7 +135,7 @@ export default function PolySnapper(opts){
             var last_closest        = null;
             
             //the official Drawing Manager will not work!
-            _map.setOptions({draggableCursor:'crosshair'});
+            // _map.setOptions({draggableCursor:'crosshair'});
 
             if(polyZIndex)
                 that.currentpoly = that.polys.filter(poly => poly.zIndex === polyZIndex)[0]
@@ -144,13 +144,13 @@ export default function PolySnapper(opts){
                     extend( _polystyle, {editable: true, map: _map})
                     );
 
-            that.currentpoly.addListener('rightclick', function(e){
-              if (e.vertex != null && this.getPath().getLength() > 3) {
-                  this.getPath().removeAt(e.vertex);
-                  vertexMarker.setMap(null)
-                  _onChange();
-              }
-            });
+            // that.currentpoly.addListener('rightclick', function(e){
+            //   if (e.vertex != null && this.getPath().getLength() > 3) {
+            //       this.getPath().removeAt(e.vertex);
+            //       vertexMarker.setMap(null)
+            //       _onChange();
+            //   }
+            // });
 
             //you can delete vertices in the current polygon by right clicking them 
             // _map.addListener("click", function(e){
