@@ -1,6 +1,8 @@
 import React, {Component} from 'react'
-import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
+import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
 import SnazzyInfoWindow from 'snazzy-info-window'
+
+import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
 import DistanceRatesTab from './DistanceRatesTab'
 import MapTab from './MapTab'
@@ -28,10 +30,11 @@ export default class Ratesheet extends Component {
             miscRates: [],
             ratesheetName: '',
             polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
+            polySnapper: null,
             ratesheetId: null,
             ratesheets: [],
             savingMap: 100,
-            snapPrecision: 200,
+            snapPrecision: 100,
             timeRates: [],
             useInternalZonesCalc: true,
             volumeRates: [],
@@ -49,13 +52,12 @@ export default class Ratesheet extends Component {
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
         this.deleteZone = this.deleteZone.bind(this)
         this.editZone = this.editZone.bind(this)
-        this.updateZone = this.updateZone.bind(this)
         this.store = this.store.bind(this)
     }
 
     componentDidMount() {
         const {match: {params}} = this.props
-        const map = new google.maps.Map(document.getElementById('map'), {center: this.state.mapCenter, zoom: this.state.mapZoom, disableDefaultUI: true})
+        const map = new google.maps.Map(document.getElementById('googleMap'), {center: this.state.mapCenter, zoom: this.state.mapZoom, disableDefaultUI: true})
         const drawingManager = new google.maps.drawing.DrawingManager({
             drawingControlOptions: {
                 drawingModes: ['polygon'],
@@ -110,7 +112,6 @@ export default class Ratesheet extends Component {
 
     handleChange(event, section, id) {
         const {name, value, type, checked} = event.target
-        console.log(name, value)
         if(section) {
             const updated = this.state[section].map(obj => {
                 if(obj.id === id)
@@ -131,7 +132,6 @@ export default class Ratesheet extends Component {
         }
         if(this.state.importType === 'mapZones') {
             this.state.selectedImports.forEach(mapZone => {
-                console.log('attempting to parse new mapzone')
                 const polygon = new google.maps.Polygon({
                     paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
                 })
@@ -156,8 +156,6 @@ export default class Ratesheet extends Component {
         var updated = this.state.zoneRates.map(obj => {
             if(obj.id == id) {
                 if(name === 'name') {
-                    console.log('attempting to set polyLabel')
-                    console.log(obj)
                     obj.polyLabel.setContent(value)
                     return {...obj, [name]: value}
                 }
@@ -191,9 +189,7 @@ export default class Ratesheet extends Component {
         }
         polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: polygonNextIndex++})
         polygon.addListener('click', () => this.editZone(polygon.zIndex))
-        google.maps.event.addListener(polygon.getPath(), 'insert_at', () => this.updateZone(polygon.zIndex))
-        google.maps.event.addListener(polygon.getPath(), 'set_at', () => this.updateZone(polygon.zIndex))
-        google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
+        // google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
         const coordinates = this.getCoordinates(polygon)
         const name = zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex
         const polyLabel = new SnazzyInfoWindow({
@@ -228,17 +224,8 @@ export default class Ratesheet extends Component {
             newZone.additionalTime = zone ? zone.additional_time : ''
         }
         const mapZones = this.state.mapZones.concat([newZone])
-        this.setState({mapZones: mapZones}, () => this.updateZone(polygon.zIndex, !zone))
+        this.setState({mapZones: mapZones})
         // name === '' ? this.editZone(polygon.zIndex) : null;
-    }
-
-    deletePolyPoint(point, id) {
-        if(point.vertex != null)
-            this.state.mapZones.map((zone, index) => {
-                if(zone.id === id) {
-                    zone.polygon.getPath().removeAt(point.vertex);
-                }
-            })
     }
 
     deleteZone(id) {
@@ -256,20 +243,27 @@ export default class Ratesheet extends Component {
     }
 
     editZone(id) {
-        console.log('polygonZIndex = ' + id)
         const updated = this.state.mapZones.map(zone => {
             if(zone.id === id) {
-                zone.polygon.setOptions({editable: true})
+                zone.polygon.setOptions({editable: true, snapable: false})
                 return {...zone, viewDetails: true}
             }
-            zone.polygon.setOptions({editable: false})
+            zone.polygon.setOptions({editable: false, snapable: true})
             return {...zone, viewDetails: false}
         })
-        this.setState({mapZones: updated})
+        const polySnapper = new PolySnapper({
+            map: this.state.map,
+            threshold: this.state.snapPrecision,
+            polygons: this.state.mapZones.map(mapZone => {return mapZone.polygon}),
+            // polystyle: polystyle,
+            hidePOI: true
+        })
+        polySnapper.enable(this.state.mapZones.filter(mapZone => mapZone.id === id)[0].polygon.zIndex)
+        this.setState({mapZones: updated, polySnapper: polySnapper})
     }
 
     getCoordinates(polygon) {
-        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
+        return coordinates = polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
     }
 
     getCenter(coordinates) {
@@ -305,35 +299,7 @@ export default class Ratesheet extends Component {
         return storeZone
     }
 
-    updateZone(id, useSnapping = true) {
-        const updated = this.state.mapZones.map(zone => {
-            if(zone.id === id) {
-                if(useSnapping && this.state.snapPrecision > 0) {
-                    var temp = zone.polygon.getPath()
-                    zone.polygon.getPath().forEach((coord1, i) => {
-                        var currentClosestDistance = this.state.snapPrecision;
-                        this.state.mapZones.map((compZone) => {
-                            if(compZone.id === id)
-                                return
-                            compZone.polygon.getPath().forEach((coord2) => {
-                                const distanceBetween = google.maps.geometry.spherical.computeDistanceBetween(coord1, coord2);
-                                if(distanceBetween < currentClosestDistance) {
-                                    currentClosestDistance = distanceBetween;
-                                    temp.i[i] = coord2
-                                }
-                            })
-                        })
-                    })
-                    zone.polygon.setPath(temp)
-                }
-                return {...zone, coordinates: this.getCoordinates(zone.polygon)}
-            }
-            return zone
-        })
-        this.setState({mapZones: updated})
-    }
-
-    store(){
+    store() {
         this.setState({savingMap: 0})
         var data = {
             name: this.state.ratesheetName,

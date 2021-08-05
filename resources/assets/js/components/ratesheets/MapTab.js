@@ -30,7 +30,7 @@ export default function MapTab(props) {
                 <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
                         <InputGroup.Prepend>
-                            <InputGroup.Text>Default Zone Type: </InputGroup.Text>
+                            <InputGroup.Text>New Zone Type: </InputGroup.Text>
                         </InputGroup.Prepend>
                         <ButtonGroup toggle>
                             <ToggleButton 
@@ -88,8 +88,9 @@ export default function MapTab(props) {
                             colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
                         />
                     )}
+                    Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommedation is to create a simple polygon, and then edit it to fit your desired dimensions
                 </Col>
-                <Col md={9} id='map' style={{height:800, width:'100%'}}>
+                <Col md={9} id='googleMap' style={{height:800, width:'100%'}}>
                 </Col>
             </Row>
         </Jumbotron>
