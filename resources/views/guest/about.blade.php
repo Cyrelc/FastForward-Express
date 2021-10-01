@@ -12,7 +12,7 @@
     <div class='col-md-12'>
         <div class='row' style='padding: 20px 100px'>
             <div class='col-md-12' style='text-align: center; padding: 50px'>
-                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 15% 2px;'>Our Story</h2>
+                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 15% 2px;'>Our Story</h1>
                 <h4>
                     Fast Forward Express is a locally-owned family-run courier service that has been operating in the Edmonton area since 1992. Our fleet includes cars, mini-vans and cargo vans, pickup trucks, and both 20ft and 24ft flat deck high boy trailers to get your deliveries to their destinations on time.
                 </h4>
@@ -21,7 +21,7 @@
                 </h4>
             </div>
             <div class='col-md-12'>
-                <h2 style='color: grey; background: linear-gradient(to right, grey, white) left bottom no-repeat; background-size: 15% 2px;'>Meet the Team</h2>
+                <h1 style='color: grey; background: linear-gradient(to right, grey, white) left bottom no-repeat; background-size: 15% 2px;'>Meet the Team</h1>
             </div>
             <div class='col-md-12'>
                 <div class='col-md-10 employee-profile'>

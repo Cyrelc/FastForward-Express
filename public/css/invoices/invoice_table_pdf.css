@@ -52,7 +52,7 @@ table.totals td {
     border-bottom: 1px solid grey;
     font-size: 10px;
 }
-.bill_list tr:nth-child(even) {
+.bill_list > tbody > tr:nth-child(even) {
 	background: #d6e0f5;
 }
 .left {

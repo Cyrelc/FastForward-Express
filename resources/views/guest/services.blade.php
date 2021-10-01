@@ -16,24 +16,24 @@
                 <h3>At Fast Forward Express, we provide realistic timelines for all our services, and we stick to those timelines reliably. You can count on us to provide the service you need. Our fleet of vehicles will get the job done.</h3>
             </div>
             <div class='col-md-4' style='padding: 60px'>
-                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Same day and overnight local service</h1>
+                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Same day and overnight local service</h2>
                 <h4>If you're looking for same day or overnight delivery, look no further. Our fleet will get your items delivered typically within 4-5 hours.</h4>
             </div>
             <div class='col-md-4' style='padding: 60px'>
-                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>After hours emergency service</h1>
+                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>After hours emergency service</h2>
                 <h4>Need something delivered outside regular business hours? We've got you covered.</h4>
             </div>
             <div class='col-md-4' style='padding: 60px'>
-                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Door to door local courier service</h1>
+                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Door to door local courier service</h2>
                 <h4>Whether business or residential, we can get your delivery to its destination.</h4>
             </div>
             <div class='col-md-6' style='padding: 60px'>
-                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Personalized Service</h1>
+                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Personalized Service</h2>
                 <h4>Have multiple drop off locations? Need a signature for your drop off? No problem, just let us know!</h4>
             </div>
             <div class='col-md-6' style='padding: 60px'>
-                <h1 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Hot shot service</h1>
-                <h4>We provide longer-distance service too. If you need something delivered to Calgary, or elsewhere in Alberta, give us a call.</h4>
+                <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Hot shot service</h2>
+                <h4>We can provide long-distance services as well. If you need something delivered elsewhere in Alberta, Canada, or even North America give us a call.</h4>
             </div>
         </div>
     </div>
