@@ -8,8 +8,21 @@ a.nav-link:hover {
 	color: #808080
 }
 
+.about-nav .col-md-4 {
+	padding: 40px;
+}
+
+.about-nav .col-md-4 h4 {
+	font-weight: bold;
+}
+
 .bottom15 {
 	padding-bottom:15px;
+}
+
+.employee-profile h3 {
+	padding-top: 30px;
+	text-decoration: underline;
 }
 
 footer .footerLabel {
@@ -106,6 +119,19 @@ tr:hover .hover-div {
 	color: #3c763d;
 }
 
+.office-hours {
+	float: right;
+}
+
+.office-hours tr td {
+	text-align: left;
+}
+
+.office-hours tr td {
+	padding: 2px 10px;
+	font-weight: bold;
+}
+
 tr.disabled {
 	color: #aaa;
 	background-color: #ccc !important;
@@ -127,4 +153,18 @@ a.dropdown-toggle {
 
 .navbar, .navbar-default, footer {
 	background-image:linear-gradient(to right, black, #0770b1, black) !important;
+}
+
+.home-tile {
+	text-align: center;
+	padding-bottom: 50px;
+}
+
+.home-tile a {
+	color: #808080;
+}
+
+.card {
+	padding: 0px;
+	border: 2px solid black;
 }

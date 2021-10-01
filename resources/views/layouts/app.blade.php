@@ -14,16 +14,11 @@
         <div class='col-md-12'>
             <nav class='navbar navbar-dark bg-dark'>
                 <a class='navbar-brand' style='padding-left: 10px' href='/home'><h4>Fast Forward<br/>&nbsp&nbsp&nbsp&nbspExpress</h4></a>
-                <a class='nav-item' href='/home'><h4>About</h4><a>
-                <a class='nav-item' href='/home'><h4>Services</h4><a>
-                <a class='nav-item' href='/home'><h4>Request Delivery</h4><a>
-                <a class='nav-item' href='/home'><h4>Request Quote</h4><a>
-                <a class='nav-item' href='/home'><h4>Contact</h4><a>
-                {{-- <a class='nav-item nav-link' href='/about'><h4>About</h4></a>
-                <a class='nav-item nav-link' href='/services'><h4>Services</h4></a>
-                <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4></a>
-                <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4></a>
-                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4></a> --}}
+                <a class='nav-item nav-link' href='/about'><h4>About</h4><a>
+                <a class='nav-item nav-link' href='/services'><h4>Services</h4><a>
+                <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4><a>
+                <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4><a>
+                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4><a>
                 <a class='nav-item nav-link' href='/login'><h4><i class='fas fa-sign-in-alt'></i> Sign In</h4></a>
             </nav>
         </div>
@@ -46,10 +41,7 @@
             </div>
             <div class='col-md-8'>
                 <h4 style='padding-top:110px; padding-right: 50px'>
-                    On nonsedignam ratat remquas eos sitis qui auda volum dit aditatem eos magnati officto tem res volo molore re paria consend
-                    aeperum essunt eruptae velia nonse omnis restiae pore et aute
-                    nam eos pre laces quis comnimint voloresto optaquae nus solupic atempostium conse vidunt mos sed qui officit endipita velit,
-                    aute nis senis evenienti dolori con reici am laut utem faccus.
+                    Here at Fast Forward Express, we've grown alongside our customers for the past {{((new DateTime('1992-06-01'))->diff(new DateTime()))->y}} years and become a vibrant, fast-paced business. We have earned our reputation by being honest and reliable. We give realistic timelines for your delivery, and we offer personalized services to best meet your needs.
                 </h4>
                 <h2 style='float:right; padding-right: 50px'>Fast Forward Express</h2>
             </div>
