@@ -196,6 +196,8 @@ function fakeLinkFormatter(cell, formatterParams) {
     } else if (formatterParams && formatterParams.url) {
         return '<span class="fakeLink">' + formatterParams.url + '</span>'
     }
+    if(cell.getValue() === undefined)
+        return
     return '<span class="fakeLink">' + cell.getValue() + '</span>'
 }
 

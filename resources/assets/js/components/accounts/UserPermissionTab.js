@@ -26,7 +26,7 @@ export default function UserPermissionTab(props) {
                         <tr>
                             <th>Enabled <i className='fas fa-question-circle' title={accountUserEnabledDescription}></i></th>
                             <td></td>
-                            <td><Form.Check checked={props.accountUserPermissions.is_enabled} name='is_enabled' onChange={props.handlePermissionChange}  disabled={props.readOnly}></Form.Check></td>
+                            <td><Form.Check checked={props.accountUserPermissions.is_enabled} name='is_enabled' onChange={props.handlePermissionChange} disabled={props.readOnly}></Form.Check></td>
                             { hasChildren == true && <td></td> }
                         </tr>
                         {/* Accounts */}

@@ -50,9 +50,8 @@ Route::group(
             Route::get('/bills/chart', 'AdminController@getChart');
             Route::get('/bills/delete/{billId}', 'BillController@delete');
             Route::get('/bills/getModel/{billId?}', 'BillController@getModel');
+            Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
             Route::post('/bills/store', 'BillController@store');
-            Route::get('/bills/assignToInvoice/{billId}/{invoiceId}', 'BillController@assignToInvoice');
-            Route::get('/bills/removeFromInvoice/{billId}', 'BillController@removeFromInvoice');
 
             Route::get('/chargebacks/buildTable', 'ChargebackController@buildTable');
             Route::post('/chargebacks/store', 'ChargebackController@store');
@@ -82,9 +81,8 @@ Route::group(
             Route::get('/invoices/printMass/{invoiceIdArray}', 'InvoiceController@printMass');
             Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
             Route::get('/invoices/finalize/{invoiceIdArray}', 'InvoiceController@finalize');
-            Route::post('/invoices/createAmendment', 'InvoiceController@createAmendment');
-            Route::get('/invoices/deleteAmendment/{amendmentId}', 'InvoiceController@deleteAmendment');
             Route::get('/invoices/printPreview/{invoiceId}', 'InvoiceController@printPreview');
+            // Route::get('/invoices/regather/{invoiceId}', 'InvoiceController@regather');
 
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
@@ -102,8 +100,6 @@ Route::group(
             Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
 
             Route::get('/logout', 'Auth\LoginController@logout');
-
-            Route::post('/contactus', 'HomeController@ContactUs');
 
             Route::get('/appsettings/get', 'AdminController@getModel');
             Route::post('/appsettings/store', 'AdminController@store');
@@ -139,7 +135,9 @@ Route::group(
         function() {
             Route::get('/about', 'GuestController@about');
             Route::get('/contact', 'GuestController@contact');
+            Route::post('/contact', 'GuestController@submitContactForm');
             Route::get('/home', 'GuestController@home');
+            Route::post('/requestAccount', 'GuestController@requestAccount');
             Route::get('/requestDelivery', 'GuestController@requestDelivery');
             // Route::post('/requestDelivery', 'GuestController@requestDelivery');
             Route::get('requestQuote', 'GuestController@requestQuote');

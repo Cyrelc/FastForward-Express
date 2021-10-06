@@ -66,7 +66,7 @@
                     </div>
                     <div class="form-group">
                         <label for="comment-text">Description</label>
-                        <textarea rows="10" class="form-control" id="comment-text"></textarea>
+                        <textarea rows="8" class="form-control" id="comment-text"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="comment-text">Feedback Type</label>
@@ -99,80 +99,4 @@
 @stop
 
 @section('footer')
-<script type="text/javascript">
-    $(document).ready(function(){
-        $.ajaxSetup({
-           headers: {
-               'X-CSRF-TOKEN': $("meta[name='csrf-token']").attr('content')
-           }
-        });
-
-        $("#feedback-state-success").hide();
-        $("#feedback-state-error").hide();
-
-        $("#feedback-clear").click(function(){
-            clearModal();
-            $("#contact-us-modal").modal('hide');
-        });
-
-        $("#feedback-submit").click(function(){
-           $("#feedback-submit").html('<i class="fa fa-spinner fa-spin"></i> Please Wait');
-
-           var title = $("#comment-title").val();
-           var text = $("#comment-text").val();
-           var type = $("#issue-type").val();
-
-            $.ajax({
-                url: '/contactus',
-                type: 'POST',
-                data: {
-                    title: title,
-                    text: text,
-                    type: type
-                },
-                success: function(e) {
-                    if (e.success)
-                        showSuccess();
-                    else
-                        showError(e.error);
-                },
-
-                error: function(e) {
-                    showError(e.status + ': ' + e.statusText);
-                }
-            });
-        });
-
-        $("#contact-us-modal").on('hidden.bs.modal', function(){
-            $("#feedback-submit").html('Submit <i class="fa fa-arrow-right"></i>');
-            clearModal();
-        });
-    });
-
-    function showSuccess(){
-        $("#feedback-state-default").hide();
-        $("#feedback-state-success").show();
-        $("#feedback-state-error").hide();
-    }
-
-    function showError(msg){
-        if (msg)
-            $("#err-msg").text(msg);
-
-        $("#feedback-state-default").hide();
-        $("#feedback-state-success").hide();
-        $("#feedback-state-error").show();
-    }
-
-    function clearModal(){
-        $("#comment-title").val('');
-        $("#comment-text").val('');
-        $("#issue-type").val('bug');
-
-        $("#feedback-state-default").show();
-        $("#feedback-state-success").hide();
-        $("#feedback-state-error").hide();
-        $("#err-msg").text('No error message provided.');
-    }
-</script>
 @stop

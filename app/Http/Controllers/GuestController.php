@@ -43,6 +43,15 @@ class GuestController extends Controller {
 
         Mail::to('fastfex@telus.net')->send(new ContactUs($req->email, $req->phone, $req->subject, $req->message));
     }
+
+    public function requestAccount(Request $req) {
+        $mailValidation = new MailValidationRules();
+        $temp = $mailValidation->GetRequestAccountValidationRules();
+
+        $this->validate($req, $temp['rules'], $temp['messages']);
+
+        Mail::to('fastfex@telus.net')->send(new OpenAccountRequest($req));
+    }
 }
 
 ?>

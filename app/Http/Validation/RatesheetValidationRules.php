@@ -60,6 +60,7 @@ class RatesheetValidationRules {
         if($req->mapZones)
             foreach($req->mapZones as $key => $zone) {
                 $rules['mapZones.' . $key . '.name'] = 'required';
+                $rules['mapZones.' . $key . '.coordinates'] = 'required|min:3';
                 $messages['mapZones.' . $key . '.name.required'] = 'You must enter a name for new map zone #' . ($key + 1);
                 if($zone['type'] === 'peripheral') {
                     $rules['mapZones.' . $key . '.regularCost'] = 'required|numeric|min:0';
@@ -77,9 +78,6 @@ class RatesheetValidationRules {
                     $count['outlying']++;
                 } else
                     $count['internal']++;
-                // if($req->useZonesCrossedCalc) {
-                //     $rules['mapZones.minInternal'] = 'required|';
-                // }
             }
         return ['rules' => $rules, 'messages' => $messages];
     }

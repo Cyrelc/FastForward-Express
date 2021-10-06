@@ -3,7 +3,7 @@
 @section('content')
 <div class='row'>
     <div class='col-md-12'>
-        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg); position:relative; height: 300px;' alt='Landing Page Image'>
+        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
                 <h1 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white; text-align: left'>Contact Us</h1>
             </div>
@@ -102,21 +102,11 @@
            }
         });
 
-        $("#contact-us-state-success").hide();
-        $("#contact-us-state-error").hide();
-
-        $("#contact-us-clear").click(function(){
-            clearModal();
-            $("#contact-us-modal").modal('hide');
-        });
-
-        $("#contact-us-submit").click(function(){
-           $("#contact-us-submit").html('<i class="fa fa-spinner fa-spin"></i> Please Wait');
-
-           var email = $("#contact-us-email").val();
-           var phone = $("#contact-us-phone").val();
-           var subject = $("#contact-us-subject").val();
-           var message = $("#contact-us-message").val();
+        $('#contact-us-submit').click(function(){
+           const email = $('#contact-us-email').val();
+           const phone = $('#contact-us-phone').val();
+           const subject = $('#contact-us-subject').val();
+           const message = $('#contact-us-message').val();
 
             $.ajax({
                 url: '/contact',
@@ -127,49 +117,27 @@
                     subject: subject,
                     message: message
                 },
-                success: function(e) {
-                    if (e.success)
-                        showSuccess();
-                    else
-                        showError(e.error);
+                success: function(response) {
+                    clearForm();
+                    toastr.clear()
+                    toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
+                        'progressBar' : true,
+                        'positionClass': 'toast-top-full-width',
+                        'showDuration': 300,
+                    })
                 },
-
-                error: function(e) {
-                    showError(e.status + ': ' + e.statusText);
+                error: function(response) {
+                    handleErrorResponse(response)
                 }
             });
         });
-
-        $("#contact-us-modal").on('hidden.bs.modal', function(){
-            $("#contact-us-submit").html('Submit <i class="fa fa-arrow-right"></i>');
-            clearModal();
-        });
     });
 
-    function showSuccess(){
-        $("#contact-us-state-default").hide();
-        $("#contact-us-state-success").show();
-        $("#contact-us-state-error").hide();
-    }
-
-    function showError(msg){
-        if (msg)
-            $("#err-msg").text(msg);
-
-        $("#contact-us-state-default").hide();
-        $("#contact-us-state-success").hide();
-        $("#contact-us-state-error").show();
-    }
-
-    function clearModal(){
-        $("#comment-title").val('');
-        $("#comment-text").val('');
-        $("#issue-type").val('bug');
-
-        $("#contact-us-state-default").show();
-        $("#contact-us-state-success").hide();
-        $("#contact-us-state-error").hide();
-        $("#err-msg").text('No error message provided.');
+    function clearForm(){
+        $('#contact-us-email').val('');
+        $('#contact-us-phone').val('');
+        $('#contact-us-subject').val('');
+        $('#contact-us-message').val('');
     }
 </script>
 @endsection

@@ -11,10 +11,8 @@ class ContactUs extends Mailable
 {
     use Queueable, SerializesModels;
 
-
     protected $email;
     protected $phone;
-    public $subject;
     protected $message;
     /**
      * Create a new message instance.
@@ -25,7 +23,6 @@ class ContactUs extends Mailable
     {
         $this->email = $email;
         $this->phone = $phone;
-        $this->subject = $subject;
         $this->message = $message;
         $this->from($email);
         $this->subject('FFE Contact Us - ' . $subject);

@@ -139,10 +139,11 @@ export default function PolySnapper(opts){
 
             if(polyZIndex)
                 that.currentpoly = that.polys.filter(poly => poly.zIndex === polyZIndex)[0]
+            // NOTE: not currently supported by FastForwardExpress implementation
             else
                 that.currentpoly = new google.maps.Polygon(
                     extend( _polystyle, {editable: true, map: _map})
-                    );
+                );
 
             // that.currentpoly.addListener('rightclick', function(e){
             //   if (e.vertex != null && this.getPath().getLength() > 3) {
@@ -211,7 +212,7 @@ export default function PolySnapper(opts){
 
                 var ll = new google.maps.LatLng(lat, lng);
 
-                //find any of the existing polygon points are close to the mousepointer
+                //find the closest existing polygon point to the mousepointer that is within threshold
                 var closest = snapable_points.reduce((accumulator, currentValue) => {
                     const currentDistance = google.maps.geometry.spherical.computeDistanceBetween(ll, currentValue)
                     if(currentDistance < _thresh)
