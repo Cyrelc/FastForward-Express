@@ -83,7 +83,7 @@ export default class Dispatch extends Component {
         echo.private('dispatch').listen('BillCreated', e => {
             const startDate = moment(this.state.startDate)
             if(moment(e.time_pickup_scheduled.date).isSame(startDate, 'day') || moment(e.time_delivery_scheduled.date).isSame(startDate, 'day')) {
-                makeFetchRequest('/bills/getModel' + e.bill_id, data => {
+                makeFetchRequest('/bills/getModel/' + e.bill_id, data => {
                     const bill = this.formatNewBill(data)
                     const bills = this.state.bills
                     bills[bills.length] = bill
