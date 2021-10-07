@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BillUpdated;
 use Illuminate\Http\Request;
 use DB;
 
@@ -11,7 +12,7 @@ class DispatchController extends Controller {
     public function AssignBillToDriver(Request $req) {
         $billRepo = new Repos\BillRepo();
         $bill = $billRepo->GetById($req->bill_id);
-        if($user->cannot('updateDispatch', $bill))
+        if($req->user()->cannot('updateDispatch', $bill))
             abort(403);
 
         DB::beginTransaction();
@@ -19,9 +20,11 @@ class DispatchController extends Controller {
         $employeeRepo = new Repos\EmployeeRepo();
         $employee = $employeeRepo->GetById($req->employee_id);
 
-        $billRepo->AssignToDriver($req->bill_id, $employee);
+        $bill = $billRepo->AssignToDriver($req->bill_id, $employee);
 
         DB::commit();
+
+        event(new BillUpdated($bill));
 
         return response()->json([
             'success' => true
