@@ -33,6 +33,15 @@
         <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
         <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
 
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-211586883-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'UA-211586883-1');
+        </script>
         @yield('head')
     </head>
 
