@@ -69,24 +69,6 @@ class UserController extends Controller {
         DB::commit();
     }
 
-    public function generatePassword() {
-        $filePath = '../resources/assets/passwordSeed.txt';
-        $passwordSeedFile = fopen($filePath, 'r');
-        $passwordSeedString = fread($passwordSeedFile,filesize($filePath));
-        $wordDictionary = explode("\r\n", $passwordSeedString);
-        $suggestedPassword = "";
-        $randomNumber = rand(1, 12);
-        for($i = 0; $i < 4; $i++) {
-            if($i > 0)
-                $suggestedPassword .= " ";
-            if($randomNumber%($i + 1) === 0)
-                $suggestedPassword .= ucfirst($wordDictionary[rand(0, count($wordDictionary))]);
-            else
-                $suggestedPassword .= $wordDictionary[rand(0, count($wordDictionary))];
-        }
-        return json_encode($suggestedPassword);
-    }
-
     public function getAccountUserModel(Request $req, $accountId, $contactId = null) {
         $userModelFactory = new \App\Http\Models\User\UserModelFactory;
 

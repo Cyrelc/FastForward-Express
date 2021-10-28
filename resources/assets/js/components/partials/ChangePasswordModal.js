@@ -15,8 +15,12 @@ export default class ChangePasswordModal extends Component {
     }
 
     generatePassword() {
-        makeFetchRequest('/users/generatePassword', data => {
-            this.setState({newPassword: data, confirmPassword: data, viewPassword: true})
+        makeFetchRequest('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2', data => {
+            this.setState({
+                newPassword: data.pws,
+                confirmPassword: data.pws,
+                viewPassword: true
+            })
         })
     }
 
