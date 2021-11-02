@@ -25,8 +25,8 @@ return [
 
     'ses' => [
         'key' => env('SES_KEY'),
-        'secret' => env('SES_SECRET'),
-        'region' => 'us-east-1',
+        'secret' => env('SES_SECRET_KEY'),
+        'region' => env('SES_REGION')
     ],
 
     'sparkpost' => [

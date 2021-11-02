@@ -139,7 +139,7 @@ Route::group(
             Route::get('/home', 'GuestController@home');
             Route::post('/requestAccount', 'GuestController@requestAccount');
             Route::get('/requestDelivery', 'GuestController@requestDelivery');
-            // Route::post('/requestDelivery', 'GuestController@requestDelivery');
+            Route::post('/requestDelivery', 'GuestController@requestDeliveryForm');
             Route::get('requestQuote', 'GuestController@requestQuote');
             Route::get('/services', 'GuestController@services');
         }

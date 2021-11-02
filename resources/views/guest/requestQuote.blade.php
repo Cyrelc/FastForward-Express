@@ -43,13 +43,8 @@
                         </div>
                         <div class='col-md-6'>
                             <div class='form-group'>
-                                <label for='deliveries-per-month'>Estimated deliveries per month</label>
-                                <select name='deliveries-per-month' id='deliveries-per-month' class='form-control'>
-                                    <option value='<100' selected>100 or fewer</option>
-                                    <option value='100-200'>Between 100 and 200</option>
-                                    <option value='200-500'>Between 200 and 500</option>
-                                    <option value='>500'>More than 500</option>
-                                </select>
+                                <label for='open-account-phone'>Estimated deliveries per month</label>
+                                <input type='text' class='form-control' id='deliveries-per-month' />
                             </div>
                         </div>
                         <div class='col-md-12'>
@@ -111,7 +106,7 @@
         });
     });
 
-    function clearForm(){
+    function clearForm() {
         $('#open-account-email').val('');
         $('#open-account-phone').val('');
         $('#open-account-company-name').val('');

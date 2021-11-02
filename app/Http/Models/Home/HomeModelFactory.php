@@ -9,6 +9,7 @@ class HomeModelFactory {
         $accountRepo = new Repos\AccountRepo();
         $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
+        $paymentRepo = new Repos\PaymentRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
 
@@ -20,6 +21,7 @@ class HomeModelFactory {
         $model->authenticatedEmployee = $req->user()->employee;
         $model->authenticatedAccountUsers = $req->user()->accountUsers;
         $model->authenticatedUserId = $req->user()->user_id;
+        $model->payment_types = $paymentRepo->GetPaymentTypesList();
 
         if($model->authenticatedEmployee) {
             $model->contact = $contactRepo->GetById($model->authenticatedEmployee->contact_id);

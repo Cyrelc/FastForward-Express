@@ -41,19 +41,19 @@
         <div style='border: 4px solid black;'>
             <ul style='list-style-type:none'>
                 <li style='margin: 40px 0 60px 40px'>
-                    <h4><i class='fas fa-check'></i> Locally owned and family-run</h4>
+                    <h4><i class='fas fa-check'></i> Proud supplier of City of Edmonton's courier and freight needs for over 25 years</h4>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
-                    <h4><i class='fas fa-check'></i> Trustworthy and reliable</h4>
+                    <h4><i class='fas fa-check'></i> Locally owned and family-run</h4>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
                     <h4><i class='fas fa-check'></i> Serving the Edmonton area for nearly thirty years</h4>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
-                    <h4><i class='fas fa-check'></i> Personalized service to meet your needs</h4>
+                    <h4><i class='fas fa-check'></i> Trustworthy and reliable</h4>
                 </li>
                 <li style='margin: 0 0 60px 40px'>
-                    <h4><i class='fas fa-check'></i> Proud supplier of City of Edmonton's courier and freight needs for over 25 years</h4>
+                    <h4><i class='fas fa-check'></i> Personalized service to meet your needs</h4>
                 </li>
             </ul>
         </div>

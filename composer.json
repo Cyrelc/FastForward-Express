@@ -16,7 +16,9 @@
         "altynbek07/laravel-config-writer": "^1.2",
         "laravel/ui": "^3.0",
         "pusher/pusher-php-server": "~4.0",
-        "spatie/laravel-permission": "^4.0"
+        "spatie/laravel-permission": "^4.0",
+        "tecnickcom/tcpdf": "^6.4",
+        "aws/aws-sdk-php": "^3.198"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

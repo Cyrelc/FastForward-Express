@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ContactUs;
+use App\Mail\OpenAccountRequest;
+use App\Mail\RequestDelivery;
 
 use App\Http\Validation\MailValidationRules;
 
@@ -41,7 +43,7 @@ class GuestController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        Mail::to('fastfex@telus.net')->send(new ContactUs($req->email, $req->phone, $req->subject, $req->message));
+        Mail::to('contactus@fastforwardexpress.com')->send(new ContactUs($req->email, $req->phone, $req->subject, $req->message));
     }
 
     public function requestAccount(Request $req) {
@@ -50,7 +52,16 @@ class GuestController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        Mail::to('fastfex@telus.net')->send(new OpenAccountRequest($req));
+        Mail::to('contactus@fastforwardexpress.com')->send(new OpenAccountRequest($req->email, $req->name, $req->phone));
+    }
+
+    public function requestDeliveryForm(Request $req) {
+        $mailValidation = new MailValidationRules();
+        $temp = $mailValidation->GetRequestDeliveryValidationRules();
+
+        $this->validate($req, $temp['rules'], $temp['messages']);
+
+        Mail::to('dispatch@fastforwardexpress.com')->send(new RequestDelivery($req));
     }
 }
 

@@ -62,7 +62,10 @@ class RatesheetRepo {
         $ratesheets = Ratesheet::select(
             'name',
             'ratesheet_id',
-            'delivery_types'
+            'delivery_types',
+            'misc_rates',
+            'weight_rates',
+            'time_rates'
         );
 
         if($accountId) {

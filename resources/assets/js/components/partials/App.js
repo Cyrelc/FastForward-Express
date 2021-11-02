@@ -60,7 +60,7 @@ class App extends Component {
 
     getUserIcon() {
         if(this.props.authenticatedAccountUsers === null && this.props.authenticatedEmployee === null)
-            return 'fas fa-user-secret'
+            return 'fas fa-dragon'
         else if(this.props.authenticatedEmployee)
             return 'fas fa-user-ninja'
         return 'fas fa-user-circle'
@@ -89,7 +89,7 @@ class App extends Component {
             <ConnectedRouter history={this.props.history}>
                 <Navbar variant='dark' className={'navbar-expand-lg', 'navbar'} style={{backgroundImage:'linear-gradient(to right, black, #0770b1, black)'}}>
                     <LinkContainer to='/'>
-                        <Navbar.Brand>Fast Forward Express v3.0</Navbar.Brand>
+                        <Navbar.Brand>Fast Forward Express v4.0</Navbar.Brand>
                     </LinkContainer>
                     <Navbar.Toggle aria-controls='responsive-navbar-nav' />
                     <Navbar.Collapse id='responsive-navbar-nav'>

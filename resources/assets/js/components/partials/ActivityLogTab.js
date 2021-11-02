@@ -11,6 +11,7 @@ export default function ActivityLogTab(props) {
                             <th>Date Modified</th>
                             <th>Object</th>
                             <th>Object ID</th>
+                            <td>Action</td>
                             <th>Modified By</th>
                             <th>Property</th>
                             <th>Old Value</th>
@@ -36,6 +37,7 @@ export default function ActivityLogTab(props) {
                                             <td rowSpan={rowSpanLength}>{log.updated_at}</td>
                                             <td rowSpan={rowSpanLength}>{log.subject_type}</td>
                                             <td rowSpan={rowSpanLength}>{log.subject_id}</td>
+                                            <td rowSpan={rowSpanLength}>{log.description}</td>
                                             <td rowSpan={rowSpanLength}>{log.user_name}</td>
                                             <td style={{wordWrap: 'break-word'}}>{key}</td>
                                             <td style={{wordWrap: 'break-word'}}>{log.properties.old ? log.properties.old[key] : ''}</td>

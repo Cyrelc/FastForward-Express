@@ -41,19 +41,19 @@
     <div class='row'>
         <div class='col-md-6' style='background: url({{URL::to("/")}}/images/services.jpg) no-repeat; height: 500px; position: relative' alt='Landing Page Image'>
         </div>
-        <div class='col-md-6' style='background: grey; color: white; padding: 50px; height: 500px'>
+        <div class='col-md-6' style='background: grey; color: white; padding: 40px; height: 500px'>
             <h1>We deliver</h1>
             <ul>
-                <h3><li>Printing Products</li></h3>
-                <h3><li>Oil Field Supplies</li></h3>
-                <h3><li>Bids/Tenders</li></h3>
-                <h3><li>Bank Deposits</li></h3>
-                <h3><li>Commercial Food</li></h3>
-                <h3><li>Medical Supplies & Prescriptions</li></h3>
-                <h3><li>Office Supplies</li></h3>
-                <h3><li>Automotive Supplies</li></h3>
-                <h4><li>Dangerous Goods</li></h3>
-                <h3><li>And much more!</li></h3>
+                <h4><li>Printing Products</li></h4>
+                <h4><li>Oil Field Supplies</li></h4>
+                <h4><li>Bids/Tenders</li></h4>
+                <h4><li>Bank Deposits</li></h4>
+                <h4><li>Commercial Food</li></h4>
+                <h4><li>Medical Supplies & Prescriptions</li></h4>
+                <h4><li>Office Supplies</li></h4>
+                <h4><li>Automotive Supplies</li></h4>
+                <h4><li>Dangerous Goods</li></h4>
+                <h4><li>And much more!</li></h4>
             </ul>
         </div>
     </div>
