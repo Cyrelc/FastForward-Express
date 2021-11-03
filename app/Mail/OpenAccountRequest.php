@@ -31,7 +31,7 @@ class OpenAccountRequest extends Mailable
         $this->estimatedDeliveryCount = $req->deliveryCount;
         $this->companyName = $req->companyName;
         $this->contactName = $req->contactName;
-        $this->from($email);
+
         $this->subject('Open Account Request - ' . $this->companyName);
     }
 
