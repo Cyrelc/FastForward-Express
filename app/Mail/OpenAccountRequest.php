@@ -46,6 +46,7 @@ class OpenAccountRequest extends Mailable
             'email' => $this->email,
             'phone' => $this->phone,
             'contact' => $this->contactName,
+            'companyName' => $this->companyName,
             'emailContents' => $this->message,
             'estimatedDeliveryCount' => $this->estimatedDeliveryCount
         ]);
