@@ -45,7 +45,7 @@ class OpenAccountRequest extends Mailable
         return $this->view('emails.openAccountRequest')->with([
             'email' => $this->email,
             'phone' => $this->phone,
-            'contact' => $this->contactName,
+            'contactName' => $this->contactName,
             'companyName' => $this->companyName,
             'emailContents' => $this->message,
             'estimatedDeliveryCount' => $this->estimatedDeliveryCount
