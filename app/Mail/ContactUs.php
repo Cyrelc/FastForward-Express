@@ -24,7 +24,7 @@ class ContactUs extends Mailable
         $this->email = $email;
         $this->phone = $phone;
         $this->message = $message;
-        $this->from($email);
+
         $this->subject('FFE Contact Us - ' . $subject);
     }
     /**
