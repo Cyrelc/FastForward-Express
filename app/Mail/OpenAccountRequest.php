@@ -23,7 +23,7 @@ class OpenAccountRequest extends Mailable
      *
      * @return void
      */
-    public function __construct(Request $req)
+    public function __construct($req)
     {
         $this->email = $req->email;
         $this->phone = $req->phone;

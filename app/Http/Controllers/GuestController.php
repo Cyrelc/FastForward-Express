@@ -52,7 +52,7 @@ class GuestController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        Mail::to('contactus@fastforwardexpress.com')->send(new OpenAccountRequest($req->email, $req->name, $req->phone));
+        Mail::to('contactus@fastforwardexpress.com')->send(new OpenAccountRequest($req));
     }
 
     public function requestDeliveryForm(Request $req) {
