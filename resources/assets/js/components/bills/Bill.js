@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, createRef} from 'react'
 import {Button, ButtonGroup, Col, Dropdown, DropdownButton, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
@@ -10,16 +10,12 @@ import ActivityLogTab from '../partials/ActivityLogTab'
 
 const initialState = {
     //basic information
-    amount: '',
     applyRestrictions: true,
     billId: undefined,
-    billNumber: '',
     businessHoursMin: '',
     businessHoursMax: '',
-    chargeAccount: '',
-    chargeReferenceValue: '',
-    chargeEmployee: '',
-    deliveryType: 'regular',
+    deliveryType: null,
+    deliveryTypeId: null,
     description: '',
     incompleteFields: '',
     internalNotes: '',
@@ -27,17 +23,24 @@ const initialState = {
     packages: [],
     packageIsMinimum: false,
     packageIsPallet: false,
-    paymentType: '',
     readOnly: true,
-    repeatIntervals: [],
-    skipInvoicing: false,
     timeCallReceived: '',
     timeDispatched: '',
     useImperial: false,
+    //billing
+    billNumber: '',
+    chargeAccount: null,
+    chargeEmployee: null,
+    charges: [],
+    chargeType: '',
+    linkLineItemCell: null,
+    linkLineItemId: null,
+    linkLineItemToTargetId: null,
+    linkLineItemToTargetObject: null,
+    linkLineItemToType: null,
+    showLinkLineItemModal: false,
+    skipInvoicing: false,
     //editONLY
-    invoiceId: undefined,
-    deliveryManifestId: undefined,
-    pickupManifestId: undefined,
     percentComplete: undefined,
     incompleteFields: undefined,
     repeatIntervals: {},
@@ -73,22 +76,19 @@ const initialState = {
     pickupTimeMin: undefined,
     //interliner
     interliner: '',
-    interlinerActualCost: '',
     interlinerTrackingId: '',
-    interlinerCostToCustomer: '',
     //ratesheet
-    deliveryTypes: '',
-    ratesheetId: '',
+    deliveryTypes: [],
     ratesheets: [],
-    // weightRates: undefined,
-    // timeRates: undefined,
+    activeRatesheet: undefined,
     //immutable lists
     accounts: [],
     activityLog: undefined,
     addressTypes: ['Address', 'Account'],
+    chargeTypes: undefined,
     interliners: undefined,
-    paymentTypes: undefined,
     permissions: {},
+    repeatIntervals: [],
     timeRates: undefined,
     updatedAt: ''
 }
@@ -99,13 +99,64 @@ class Bill extends Component {
         this.state = {
             ...initialState
         }
+        this.addChargeTable = this.addChargeTable.bind(this)
         this.addPackage = this.addPackage.bind(this)
+        this.chargeTableUpdated = this.chargeTableUpdated.bind(this)
         this.deletePackage = this.deletePackage.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
-        this.setRatesheet = this.setRatesheet.bind(this)
+        this.handleRatesheetSelection = this.handleRatesheetSelection.bind(this)
         this.configureBill = this.configureBill.bind(this)
         this.store = this.store.bind(this)
         this.getStoreButton = this.getStoreButton.bind(this)
+    }
+
+    addChargeTable() {
+        if(!this.state.chargeType) {
+            console.log('chargeType can not be empty. Aborting')
+            return
+        }
+        const basicCharge = {
+            chargeType: this.state.chargeType,
+            tableRef: createRef(),
+            charge_reference_value: '',
+            lineItems: []
+        }
+        const charge = (() => {
+            switch(this.state.chargeType.name) {
+                case 'Account':
+                    if(!this.state.chargeAccount) {
+                        console.log('chargeAccount can not be empty. Aborting')
+                        return
+                    }
+                    return {
+                        ...basicCharge,
+                        charge_account_id: this.state.chargeAccount.account_id,
+                        name: this.state.chargeAccount.name,
+                        charge_reference_value_required: this.state.chargeAccount.is_custom_field_required ? true : false,
+                        charge_reference_value_label: this.state.chargeAccount.custom_field ? this.state.chargeAccount.custom_field : null,
+                    }
+                case 'Employee':
+                    if(!this.state.chargeEmployee) {
+                        console.log('chargeEmployee can not be empty. Aborting')
+                        return
+                    }
+                    return {
+                        ...basicCharge,
+                        charge_employee_id: this.state.chargeEmployee.value,
+                        name: this.state.chargeEmployee.label,
+                        charge_reference_value_required: false,
+                        charge_reference_value_label: null,
+                    }
+                default:
+                    return {
+                        ...basicCharge,
+                        name: this.state.chargeType.name,
+                        charge_reference_value_required: this.state.chargeType.required_field ? true : false,
+                        charge_reference_value_label: this.state.chargeType.required_field ? this.state.chargeType.required_field : null,
+                }
+            }
+        })();
+        this.setState({charges: this.state.charges.concat([charge])})
     }
 
     addPackage() {
@@ -113,6 +164,16 @@ class Bill extends Component {
         const newId = this.state.packages ? packages[packages.length - 1].packageId + 1 : 0
         packages.push({packageId: newId, packageCount: 1, packageWeight: '', packageLength: '', packageWidth: '', packageHeight: ''})
         this.setState({packages: packages})
+    }
+
+    chargeTableUpdated() {
+        console.log('charge table update detected!!')
+        const charges = this.state.charges.map(charge => {
+            const groupByField = charge.tableRef.current.table.getGroups()[0].getField()
+            charge.tableRef.current.table.setGroupBy(groupByField)
+            return {...charge, lineItems: charge.tableRef.current.table.getData()}
+        })
+        this.setState({charges: charges})
     }
 
     configureBill() {
@@ -133,17 +194,17 @@ class Bill extends Component {
                 accounts: data.accounts,
                 businessHoursMin: Date.parse(data.time_min.date),
                 businessHoursMax: Date.parse(data.time_max.date),
-                chargeAccount: this.state.billId ? '' : data.accounts.length === 1 ? data.accounts[0] : '',
-                deliveryTypes: JSON.parse(data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === data.ratesheet_id).delivery_types),
+                chargeAccount: (!params.billId && data.accounts.length === 1) ? data.accounts[0] : '',
+                chargeType: data.charge_types.length === 1 ? data.charge_types[0] : '',
+                chargeTypes: data.charge_types,
+                deliveryTimeExpected: new Date(),
                 interliners: data.interliners,
-                packageIsMinimum: data.permissions.createFull,
                 key: this.state.key ? this.state.key : initialState.key,
+                packageIsMinimum: data.permissions.createFull,
                 packages: data.packages,
                 packageIsMinimum: data.permissions.createFull,
-                paymentType: data.payment_types.length === 1 ? data.payment_types[0] : '',
-                paymentTypes: data.payment_types,
                 permissions: data.permissions,
-                ratesheet: data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === data.ratesheet_id),
+                pickupTimeExpected: new Date(),
                 ratesheets: data.ratesheets,
                 repeatIntervals: data.repeat_intervals,
                 readOnly: false,
@@ -155,8 +216,14 @@ class Bill extends Component {
                 const nextBillId = (thisBillIndex < 0 || thisBillIndex === this.props.sortedBills.length - 1) ? null : this.props.sortedBills[thisBillIndex + 1]
                 setup = {...setup,
                     billId: data.bill.bill_id,
-                    chargeAccount: data.accounts.find(account => account.account_id === data.bill.charge_account_id),
                     chargeReferenceValue: data.bill.charge_reference_value,
+                    charges: data.charges.map(charge => {
+                        return {
+                            ...charge,
+                            chargeType: data.charge_types.find(type => charge.charge_type_id === type.payment_type_id),
+                            tableRef: createRef()
+                        }
+                    }),
                     deliveryAccount: data.bill.delivery_account_id ? data.accounts.find(account => account.account_id === data.bill.delivery_account_id) : '',
                     deliveryAddressFormatted: data.delivery_address.formatted,
                     deliveryAddressLat: data.delivery_address.lat,
@@ -166,14 +233,13 @@ class Bill extends Component {
                     deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
                     deliveryReferenceValue: data.bill.delivery_reference_value,
                     deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
-                    deliveryType: this.state.deliveryTypes.find(deliveryType => deliveryType.id === data.bill.delivery_type),
+                    deliveryTypeId: data.bill.delivery_type,
                     description: data.bill.description,
                     incompleteFields: data.bill.incomplete_fields,
                     nextBillId: nextBillId,
                     packages: data.bill.packages,
                     packageIsMinimum: data.bill.is_min_weight_size,
                     packageIsPallet: data.bill.is_pallet,
-                    paymentType: data.payment_types.find(payment_type => payment_type.payment_type_id === data.bill.payment_type_id),
                     percentComplete: data.bill.percentage_complete,
                     pickupAccount: data.bill.pickup_account_id ? data.accounts.find(account => account.account_id === data.bill.pickup_account_id) : '',
                     pickupAddressFormatted: data.pickup_address.formatted,
@@ -208,20 +274,13 @@ class Bill extends Component {
 
                 if(data.permissions.viewBilling)
                     setup = {...setup,
-                        amount: data.bill.amount,
-                        chargeEmployee: data.chargeback ? this.props.employees.find(employee => employee.value === data.chargeback.employee_id) : undefined,
-                        deliveryManifestId: data.bill.delivery_manifest_id,
                         interliner: data.bill.interliner_id ? data.interliners.find(interliner => interliner.value === data.bill.interliner_id) : '',
-                        interlinerActualCost: data.bill.interliner_cost,
-                        interlinerCostToCustomer: data.bill.interliner_cost_to_customer,
                         interlinerTrackingId: data.bill.interliner_reference_value,
-                        invoiceId: data.bill.invoice_id,
-                        pickupManifestId: data.bill.pickup_manifest_id,
                         repeatInterval: data.bill.repeat_interval ? data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval) : '',
                         skipInvoicing: data.bill.skip_invoicing,
                     }
             }
-            this.setState(setup, () => this.setRatesheet(this.state.ratesheetId, true));
+            this.setState(setup, () => this.handleRatesheetSelection(data.ratesheets[0]));
         })
     }
 
@@ -253,31 +312,20 @@ class Bill extends Component {
         }
     }
 
-    setRatesheet(ratesheetId, initialize = false) {
-        var deliveryType
-        const ratesheet = this.state.ratesheets.find(ratesheet => ratesheet.ratesheet_id === ratesheetId)
-
-        if(initialize)
-            deliveryType = this.state.deliveryTypes.find(type => type.id === this.state.deliveryType)
-
-        if(!this.props.match.params.billId)
-            this.setState(ratesheet,
-                () => this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: roundTimeToNextFifteenMinutes()}})
-            )
-        else
-            this.setState(ratesheet)
-    }
-
     handleAccountEvent(events, accountEvent) {
         const {name, value} = accountEvent.target
         const prefix = name === 'pickupAccount' ? 'pickup' : 'delivery'
         const account = value === '' ? null : value
         if(account && !this.state.chargeAccount && !this.state.pickupAccount && !this.state.deliveryAccount) {
-            events['chargeAccount'] = account
-            events['paymentType'] = this.state.paymentTypes.filter(type => type.name === 'Account')[0]
-            //default back to cash ratesheet where applicable
-            // if(this.state.ratesheetId != account.ratesheet_id)
-            //     this.getRatesheet(account.ratesheet_id)
+            this.setState({
+                chargeAccount: account,
+                chargeType: this.state.chargeTypes.filter(type => type.name === 'Account')[0],
+            }, () => {
+                this.addChargeTable()
+                if(account.ratesheet_id && account.ratesheet_id != this.state.activeRatesheet.ratesheet_id)
+                    this.handleRatesheetSelection(this.state.ratesheets.filter(ratesheet => ratesheet.ratesheet_id === account.ratesheet_id)[0])
+            })
+            //TODO: default back to cash ratesheet where applicable
         }
         if (account === null && this.state[prefix + 'Account'] === this.state.chargeAccount) {
             events[name] = ''
@@ -290,7 +338,7 @@ class Bill extends Component {
             events[prefix + 'PlaceId'] = ''
             events['chargeAccount'] = ''
             events['chargeReferenceValue'] = ''
-            events['paymentType'] = ''
+            events['chargeType'] = ''
         } else {
             events[name] = account
             events[prefix + 'AddressLat'] = account.shipping_address ? account.shipping_address_lat : account.billing_address_lat
@@ -326,12 +374,12 @@ class Bill extends Component {
                     break;
                 case 'deliveryTimeExpected':
                 case 'deliveryType':
+                case 'deliveryTypes':
                 case 'pickupTimeExpected':
                     temp = this.handleEstimatedTimeEvent(temp, event);
                     break
                 case 'pickupReferenceValue':
                 case 'deliveryReferenceValue':
-                case 'chargeReferenceValue':
                     temp = this.handleReferenceValueEvent(temp, event)
                     break
                 case 'packageCount':
@@ -354,10 +402,13 @@ class Bill extends Component {
             }
         })
         this.setState(temp)
-        //if, after state is saved, there is enough data to request a price, then do so
-        //required fields: pickupAddressLat & Lng, deliveryAddressLat & Lng, weight, deliveryType, ratesheet(paymentType), pickup Datetime, Delivery Datetime
-        //do this any time these requirements are met, including updating the price if a field is changed (for example deliveryType)
-        //but do not make this call if another type of update is done (one that does not affect price) to minimize API calls to the server
+        /**
+         * if, after state is saved, there is enough data to request a price, then do so 
+         * required fields: pickupAddressLat & Lng, deliveryAddressLat & Lng, weight, deliveryType, ratesheet(chargeType), pickup Datetime, Delivery Datetime
+         * do this any time these requirements are met, including updating the price if a field is changed (for example deliveryType)
+         * but do not make this call if another type of update is done (one that does not affect price) to minimize API calls to the server
+         * 
+         */
     }
 
     handleDriverEvent(events, driverEvent) {
@@ -380,12 +431,17 @@ class Bill extends Component {
     handleEstimatedTimeEvent(events, estimateTimeEvent) {
         const {name, value} = estimateTimeEvent.target
 
-        events['deliveryType'] = name === 'deliveryType' ? value : this.state.deliveryType
+        events['deliveryTypes'] = name === 'deliveryTypes' ? value.sort((a, b) => a.time < b.time ? 1 : -1) : this.state.deliveryTypes
+        if(name === 'deliveryType')
+            events['deliveryType'] = value
+        else if(name === 'deliveryTypes') {
+            events['deliveryType'] = this.state.deliveryType ? value.find(type => type.id = this.state.deliveryType.id) : value.find(type => type.id = 'regular')
+        } else
+            events['deliveryType'] = this.state.deliveryType
         events['pickupTimeExpected'] = name === 'pickupTimeExpected' ? value : this.state.pickupTimeExpected
         events['deliveryTimeExpected'] = name === 'deliveryTimeExpected' ? value : this.state.deliveryTimeExpected
         if(this.state.applyRestrictions) {
-            const sortedDeliveryTypes = this.state.deliveryTypes.sort((a, b) => a.time < b.time ? 1 : -1);
-            const minTimeDifference = sortedDeliveryTypes[sortedDeliveryTypes.length - 1].time
+            const minTimeDifference = events['deliveryTypes'][events['deliveryTypes'].length - 1].time
             const today = new Date().setHours(0,0,0,0)
             const pickupDate = new Date(events['pickupTimeExpected']).setHours(0,0,0,0)
             const currentTime = today === pickupDate ? roundTimeToNextFifteenMinutes() : new Date(this.state.businessHoursMin)
@@ -409,18 +465,15 @@ class Bill extends Component {
                 *       In the event of case 2, we simply iterate through the "earliest" pickup times for the following days, until we find one which is valid by calling the function over again with the new attempt
                 *       This should allow for future checks, for example to see if dates fall on holidays
                 */
-                if(events['pickupTimeExpected'] < events['pickupTimeMin']) {
+                if(!this.state.pickupTimeExpected || events['pickupTimeExpected'] < events['pickupTimeMin']) {
                     console.log('pickupTime requested was too early.')
-                    const nextAvailablePickupTime = events['pickupTimeMin']
-                    this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
-                    return
-                } else if (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() === 6 || new Date(events['pickupTimeExpected']).getDay() === 0) {
+                    events['pickupTimeExpected'] = events['pickupTimeMin']
+                } else while (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() === 6 || new Date(events['pickupTimeExpected']).getDay() === 0) {
                     console.log('pickupTime requested too late = ', events['pickupTimeExpected'] > events['pickuptTimeMax'], '   pickupTime day was   ', new Date(events['pickupTimeExpected']).getDay())
                     const nextAvailablePickupTime = new Date(events['pickupTimeExpected'])
                     nextAvailablePickupTime.addDays(1)
                     nextAvailablePickupTime.setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes(), 0, 0)
-                    this.handleChanges({target: {name: 'pickupTimeExpected', type: 'time', value: nextAvailablePickupTime}})
-                    return
+                    events['pickupTimeExpected'] = nextAvailablePickupTime
                 }
                 /*
                 *   Iterate through the possible delivery type values, and disable those that are invalid (not an option) for the selected pickup time
@@ -428,7 +481,7 @@ class Bill extends Component {
                 *   (i.e. at 3:00 PM with the business closing at 5:00, a 3 hr long delivery request is invalid, but a 2 or 1 hour long window is valid. Select the highest, and make it active)
                 */
                 const hoursBetweenRequestedPickupAndEndOfDay = getDatetimeDifferenceInHours(events['pickupTimeExpected'], events['deliveryTimeMax'])
-                events['deliveryTypes'] = sortedDeliveryTypes.map(type => {
+                events['deliveryTypes'] = events['deliveryTypes'].map(type => {
                     if(type.time > hoursBetweenRequestedPickupAndEndOfDay)
                         return {...type, isDisabled: true}
                     else
@@ -457,22 +510,41 @@ class Bill extends Component {
         return events
     }
 
+    handleRatesheetSelection(ratesheet) {
+        const deliveryTypes = JSON.parse(ratesheet.delivery_types)
+
+        const commonRateNames = ['Refund', 'Other', 'Incorrect Information', 'Interliner']
+        const miscRates = JSON.parse(ratesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price, paid: false}})
+        const timeRates = JSON.parse(ratesheet.time_rates).map(rate => {return {...rate, type: 'timeRate', driver_amount: rate.price, paid: false}})
+        const weightRates = JSON.parse(ratesheet.weight_rates).map(rate => {return {...rate, type: 'weightRate', driver_amount: rate.price, paid: false}})
+        const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0, paid: false}})
+        this.handleChanges([
+            {target: {name: 'activeRatesheet', type: 'object', value: {...ratesheet, rates: [...commonRates.sortBy('name'), ...miscRates.sortBy('name'), ...timeRates.sortBy('name'), ...weightRates.sortBy('name')]}}},
+            {target: {name: 'deliveryTypes', type: 'array', value: deliveryTypes}}
+        ])
+    }
+
     handleReferenceValueEvent(events, referenceValueEvent) {
         const {name, value} = referenceValueEvent.target
-        if((name === 'pickupReferenceValue' && this.state.pickupAccount.account_id === this.state.chargeAccount.account_id)
-            || (name === 'deliveryReferenceValue' && this.state.deliveryAccount.account_id === this.state.chargeAccount.account_id)) {
-                events['chargeReferenceValue'] = value
-            }
-        else if (this.state.paymentType.name === 'Account' && name === 'chargeReferenceValue' && this.state.chargeAccount.account_id === this.state.pickupAccount.account_id)
-            events['pickupReferenceValue'] = value
-        else if (this.state.paymentType.name === 'Account' && name === 'chargeReferenceValue' && this.state.chargeAccount.account_id === this.state.deliveryAccount.account_id)
-            events['deliveryReferenceValue'] = value
+        if(name === 'pickupReferenceValue' && this.state.pickupAccount.account_id) {
+            events['charges'] = this.state.charges.map(charge => {
+                if(charge.chargeType.name === 'Account' && charge.account_id == this.state.pickupAccount.account_id)
+                    return {...charge, charge_reference_value: value}
+                return charge
+            })
+        } else if (name === 'deliveryReferenceValue' && this.state.deliveryAccount.account_id) {
+            events['charges'] = this.state.charges.map(charge => {
+                if(charge.chargeType.name === 'Account' && charge.account_id == this.state.deliveryAccount.account_id)
+                    return {...charge, charge_reference_value: value}
+                return charge
+            })
+        }
         events[name] = value
         return events
     }
 
     render() {
-        if(this.state.ratesheetId === null)
+        if(this.state.activeRatesheet === null)
             return "Ratesheet not found. I'm sorry an error has occurred, please try again"
         else
             return (
@@ -480,69 +552,20 @@ class Bill extends Component {
                     <Col md={11} className='d-flex justify-content-center'>
                         <ListGroup className='list-group-horizontal' as='ul'>
                             <ListGroup.Item variant='primary'><h4>Bill: {this.state.billId === null ? 'Create' : this.state.billId}</h4></ListGroup.Item>
-                            {(this.state.invoiceId != null && this.props.frontEndPermissions.invoices.view) &&
-                                <LinkContainer to={'/app/invoices/view/' + this.state.invoiceId}><ListGroup.Item variant='secondary'><h4>Invoice Id: <a className='fakeLink'>{this.state.invoiceId}</a></h4></ListGroup.Item></LinkContainer>
+                            {(this.state.billId && this.state.charges) &&
+                                <ListGroup.Item variant='warning'><h4>Price: {this.state.charges.reduce((previousValue, charge) => previousValue + charge.lineItems.reduce((sum, lineItem) => sum + Number(lineItem.price), 0), 0).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</h4></ListGroup.Item>
                             }
-                            {(this.state.pickupManifestId !== null && this.props.frontEndPermissions.manifests.viewAny) &&
-                                <LinkContainer to={'/app/manifests/view/' + this.state.pickupManifestId}><ListGroup.Item variant='secondary'><h4>Pickup Manifest ID: <a className='fakeLink'>{this.state.pickupManifestId}</a></h4></ListGroup.Item></LinkContainer>
+                            {this.state.billId &&
+                                <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>{this.state.percentComplete}% Complete <i className='fas fa-question-circle' title={this.state.incompleteFields}></i></h4></ListGroup.Item>
                             }
-                            {(this.state.deliveryManifestId !== null && this.props.frontEndPermissions.manifests.viewAny) &&
-                                <LinkContainer to={'/app/manifests/view/' + this.state.deliveryManifestId}><ListGroup.Item variant='secondary'><h4>Delivery Manifest ID: <a className='fakeLink'>{this.state.deliveryManifestId}</a></h4></ListGroup.Item></LinkContainer>
-                            }
-                            {this.state.billId !== null &&
-                                <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>{this.state.percentComplete}% Complete</h4></ListGroup.Item>
-                            }
-                            <ListGroup.Item variant='warning'><h4>Price: {(parseFloat(this.state.amount ? this.state.amount : 0) + parseFloat(this.state.interlinerCostToCustomer ? this.state.interlinerCostToCustomer : 0)).toFixed(2)}</h4></ListGroup.Item>
                             {this.state.permissions.createFull &&
                                 <ListGroup.Item>
-                                    <Dropdown>
-                                        <Dropdown.Toggle variant='primary' id='bill_functions' align='right'>Admin Functions</Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item
-                                                key='applyRestrictions'
-                                                variant={this.state.applyRestrictions ? 'dark' : 'danger'}
-                                                onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
-                                                style={{backgroundColor: this.state.applyRestrictions ? 'tomato' : 'black', color: this.state.applyRestrictions ? 'black' : 'white'}}
-                                                title='Toggle restrictions'
-                                                type='checkbox'
-                                            ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> Toggle Restrictions</Dropdown.Item>
-                                            {(this.state.percentComplete === 100 && this.state.invoiceId === null) &&
-                                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px', width: '450px'}}>
-                                                    <FormControl
-                                                        name='assignBillToInvoiceId'
-                                                        type='number'
-                                                        value={this.state.assignBillToInvoiceId}
-                                                        onChange={this.handleChanges}
-                                                        onKeyPress={event => {
-                                                            if(event.key === 'Enter' && this.state.assignBillToInvoiceId)
-                                                                makeAjaxRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, 'GET', null, response => {
-                                                                    this.setState({invoiceId: this.state.assignBillToInvoiceId})
-                                                                })
-                                                        }}
-                                                    />
-                                                    <InputGroup.Append>
-                                                        <Button
-                                                            disabled={!this.state.assignBillToInvoiceId}
-                                                            onClick={() => makeAjaxRequest('/bills/assignToInvoice/' + this.state.billId + '/' + this.state.assignBillToInvoiceId, 'GET', null, () => {
-                                                                toastr.clear()
-                                                                toastr.success('Bill linked to invoice ' + this.state.assignBillToInvoiceId, 'Success')
-                                                            })}
-                                                        ><i className='fas fa-link'></i> Assign Bill To Invoice</Button>
-                                                    </InputGroup.Append>
-                                                </InputGroup>
-                                            }
-                                            {this.state.invoiceId != null &&
-                                                <Dropdown.Item
-                                                    name='detatchBillFromInvoice'
-                                                    onClick={() => makeAjaxRequest('/bills/removeFromInvoice/' + this.state.billId, 'GET', null, response => {
-                                                        toastr.clear();
-                                                        this.setState({invoiceId: null})
-                                                        toastr.success('Bill successfully removed from invoice', 'Success')
-                                                    })}
-                                                ><i className='fas fa-unlink'></i> Detach Bill From Invoice</Dropdown.Item>
-                                            }
-                                        </Dropdown.Menu>
-                                    </Dropdown>
+                                    <Button
+                                        variant={this.state.applyRestrictions ? 'dark' : 'danger'}
+                                        onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
+                                        style={{backgroundColor: this.state.applyRestrictions ? 'tomato' : 'black', color: this.state.applyRestrictions ? 'black' : 'white'}}
+                                        title='Toggle restrictions'
+                                    ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> {this.state.applyRestrictions ? 'Remove Time Restrictions' : 'Restore Time Restrictions'}</Button>
                                 </ListGroup.Item>
                             }
                         </ListGroup>
@@ -558,7 +581,7 @@ class Bill extends Component {
                                             type: this.state.deliveryAddressType,
                                             name: this.state.deliveryAddressName,
                                             formatted: this.state.deliveryAddressFormatted,
-                                            lat: this.state.deliveryAddressLat, 
+                                            lat: this.state.deliveryAddressLat,
                                             lng: this.state.deliveryAddressLng,
                                             placeId: this.state.deliveryAddressPlaceId,
                                         },
@@ -573,7 +596,7 @@ class Bill extends Component {
                                             type: this.state.pickupAddressType,
                                             name: this.state.pickupAddressName,
                                             formatted: this.state.pickupAddressFormatted,
-                                            lat: this.state.pickupAddressLat, 
+                                            lat: this.state.pickupAddressLat,
                                             lng: this.state.pickupAddressLng,
                                             placeId: this.state.pickupAddressPlaceId,
                                         },
@@ -597,7 +620,7 @@ class Bill extends Component {
                                     packages={this.state.packages}
                                     packageIsMinimum={this.state.packageIsMinimum}
                                     packageIsPallet={this.state.packageIsPallet}
-                                    paymentType={this.state.paymentType}
+                                    chargeType={this.state.chargeType}
                                     timeRates={this.state.timeRates}
                                     useImperial={this.state.useImperial}
 
@@ -610,7 +633,7 @@ class Bill extends Component {
                                     deliveryManifestId={this.state.deliveryManifestId}
                                     invoiceId={this.state.invoiceId}
                                     minTimestamp={this.state.minTimestamp}
-                                    paymentTypes={this.state.paymentTypes}
+                                    chargeTypes={this.state.chargeTypes}
                                     permissions={this.state.permissions}
                                     pickupManifestId={this.state.pickupManifestId}
                                     readOnly={this.state.billId ? !this.state.permissions.editBasic : !this.state.permissions.createBasic}
@@ -634,10 +657,10 @@ class Bill extends Component {
 
                                         //value only (non-mutable by recipient function)
                                         billId={this.state.billId}
-                                        deliveryManifestId={this.state.deliveryManifestId}
                                         drivers={this.props.drivers}
                                         invoiceId={this.state.invoiceId}
-                                        pickupManifestId={this.state.pickupManifestId}
+                                        isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
+                                        isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
                                         readOnly={this.state.billId ? !this.state.permissions.editDispatch : !this.state.permissions.createFull}
                                     />
                                 </Tab>
@@ -646,32 +669,44 @@ class Bill extends Component {
                                 <Tab eventKey='billing' title={<h4>Billing  <i className='fas fa-credit-card'></i></h4>}>
                                     <BillingTab
                                         //mutable values
-                                        amount={this.state.amount}
+                                        activeRatesheet={this.state.activeRatesheet}
                                         billNumber={this.state.billNumber}
+                                        charges={this.state.charges}
                                         chargeAccount={this.state.chargeAccount}
-                                        chargeReferenceValue={this.state.chargeReferenceValue}
                                         chargeEmployee={this.state.chargeEmployee}
+                                        chargeType={this.state.chargeType}
                                         interliner={this.state.interliner}
                                         interlinerActualCost={this.state.interlinerActualCost}
                                         interlinerCostToCustomer={this.state.interlinerCostToCustomer}
                                         interlinerTrackingId={this.state.interlinerTrackingId}
-                                        paymentType={this.state.paymentType}
+                                        linkLineItemCell={this.state.linkLineItemCell}
+                                        linkLineItemId={this.state.linkLineItemId}
+                                        linkLineItemToTargetId={this.state.linkLineItemToTargetId}
+                                        linkLineItemToTargetObject={this.state.linkLineItemToTargetObject}
+                                        linkLineItemToType={this.state.linkLineItemToType}
                                         pickupManifestId={this.state.pickupManifestId}
                                         prepaidReferenceField={this.state.prepaidReferenceField}
                                         prepaidReferenceValue={this.state.prepaidReferenceValue}
                                         repeatInterval={this.state.repeatInterval}
+                                        showLinkLineItemModal={this.state.showLinkLineItemModal}
                                         skipInvoicing={this.state.skipInvoicing}
 
                                         //functions
+                                        addChargeTable={this.addChargeTable}
+                                        chargeDeleted={this.chargeDeleted}
+                                        chargeTableUpdated={this.chargeTableUpdated}
                                         handleChanges={this.handleChanges}
+                                        handleRatesheetSelection={this.handleRatesheetSelection}
 
                                         //value only (immutable by recipient function)
                                         accounts={this.state.accounts}
-                                        deliveryManifestId={this.state.deliveryManifestId}
+                                        chargeTypes={this.state.chargeTypes}
                                         employees={this.props.employees}
                                         interliners={this.state.interliners}
-                                        invoiceId={this.state.invoiceId}
-                                        paymentTypes={this.state.paymentTypes}
+                                        isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
+                                        isInvoiced={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.invoice_id))}
+                                        isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
+                                        ratesheets={this.state.ratesheets}
                                         readOnly={this.state.billId ? !this.state.permissions.editBilling : !this.state.permissions.createFull}
                                         repeatIntervals={this.state.repeatIntervals}
                                     />
@@ -705,8 +740,7 @@ class Bill extends Component {
         var data = {bill_id: this.state.billId}
         if(this.state.billId ? this.state.permissions.editBasic : this.state.permissions.createBasic)
             data = {...data,
-                charge_account_id: this.state.chargeAccount ? this.state.chargeAccount.account_id : undefined,
-                charge_reference_value: this.state.chargeReferenceValue,
+                charge_account_id: this.state.chargeAccount.account_id,
                 delivery_account_id: this.state.deliveryAccount.account_id,
                 delivery_address_formatted: this.state.deliveryAddressFormatted,
                 delivery_address_lat: this.state.deliveryAddressLat,
@@ -720,7 +754,6 @@ class Bill extends Component {
                 is_min_weight_size: this.state.packageIsMinimum ? true : false,
                 is_pallet: this.state.packageIsPallet,
                 packages: this.state.packages ? this.state.packages.slice() : null,
-                payment_type: this.state.paymentType,
                 pickup_account_id: this.state.pickupAccount.account_id,
                 pickup_address_formatted: this.state.pickupAddressFormatted,
                 pickup_address_lat: this.state.pickupAddressLat,
@@ -732,7 +765,7 @@ class Bill extends Component {
                 time_delivery_scheduled: this.state.deliveryTimeExpected.toLocaleString("en-US"),
                 time_pickup_scheduled: this.state.pickupTimeExpected.toLocaleString("en-US"),
                 updated_at: this.state.updatedAt.toLocaleString("en-US"),
-                use_imperial: this.state.useImperial,
+                use_imperial: this.state.useImperial
             }
 
         if(this.state.billId ? this.state.permissions.editDispatch : this.state.permissions.createFull)
@@ -747,23 +780,23 @@ class Bill extends Component {
                 time_dispatched: this.state.timeDispatched ? this.state.timeDispatched.toLocaleString("en-US") : null,
             }
 
-        if(this.state.billId ? this.state.permissions.editBilling : this.state.permissions.createFull)
+        if(this.state.billId ? this.state.permissions.editBilling : this.state.permissions.createFull) {
             data = {...data,
-                amount: this.state.amount,
-                charge_employee_id: this.state.chargeEmployee ? this.state.chargeEmployee.value : null,
+                charges: this.state.charges.slice(),
                 interliner_cost: this.state.interlinerActualCost,
-                interliner_cost_to_customer: this.state.interlinerCostToCustomer,
                 interliner_id: this.state.interliner ? this.state.interliner.value : undefined,
                 interliner_reference_value: this.state.interlinerTrackingId,
                 repeat_interval: this.state.repeatInterval ? this.state.repeatInterval.selection_id : null,
                 skip_invoicing: this.state.skipInvoicing,
             }
+            data.charges.forEach(charge => delete charge.tableRef)
+        }
 
         makeAjaxRequest('/bills/store', 'POST', data, response => {
             toastr.clear()
             if(this.state.billId) {
                 toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
-                this.handleChanges({target: {name: 'updatedAt', type: 'string', value: response.updated_at}})
+                this.configureBill()
             }
             else {
                 this.setState({readOnly: true})

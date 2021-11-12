@@ -26,6 +26,8 @@ class BillCreatedListener
      */
     public function handle(BillCreated $event)
     {
-        //
+        activity('system_debug')->log('Bill created handler called for :  ' . $event->bill_id);
+        $billRepo = new \App\Http\Repos\BillRepo();
+        $billRepo->CheckRequiredFields($event->bill_id);
     }
 }

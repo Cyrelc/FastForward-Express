@@ -42,51 +42,43 @@ const withSelected = [
 ]
 
 class Manifests extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
         this.state = {
-            columns: [],
-            filters: []
+            columns: [
+                {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+                {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+                {title: 'Manifest ID', field: 'manifest_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', urlPrefix:'/app/manifests/'}, sorter: 'number'},
+                {title: 'Employee', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', labelField: 'employee_name', urlPrefix: '/app/employees/'}},
+                {title: 'Date Run', field: 'date_run', visible: false},
+                {title: 'Bill Start Date', field: 'start_date'},
+                {title: 'Bill End Date', field: 'end_date'},
+                {title: 'Bill Count', field: 'bill_count'},
+                {title: 'Driver Gross', field: 'driver_gross', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, topCalc: 'sum', topCalcParams:{precision: 2}, topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
+                {title: 'Driver Chargebacks', field: 'driver_chargeback_amount', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
+                {title: 'Driver Income', field: 'driver_income', formatter: 'money', formatterParams: { thousand: ',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}}
+            ],
+            filters: [
+                ... (this.props.drivers && this.props.drivers.length) ? [{
+                    selections: this.props.drivers,
+                    isMulti: true,
+                    name: 'Driver',
+                    type: 'SelectFilter',
+                    value: 'driver_id'
+                }] : [],
+                {
+                    name: 'Bill Start Date',
+                    value: 'start_date',
+                    type: 'DateBetweenFilter'
+                },
+                {
+                    name: 'Bill End Date',
+                    value: 'end_date',
+                    type: 'DateBetweenFilter'
+                }
+            ]
         }
         this.deleteManifest = this.deleteManifest.bind(this)
-    }
-
-    componentDidMount() {
-        const columns = [
-            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
-            {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-            {title: 'Manifest ID', field: 'manifest_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', urlPrefix:'/app/manifests/'}, sorter: 'number'},
-            {title: 'Employee', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams: {type: 'fakeLink', labelField: 'employee_name', urlPrefix: '/app/employees/'}},
-            {title: 'Date Run', field: 'date_run', visible: false},
-            {title: 'Bill Start Date', field: 'start_date'},
-            {title: 'Bill End Date', field: 'end_date'},
-            {title: 'Bill Count', field: 'bill_count'},
-            {title: 'Driver Gross', field: 'driver_gross', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, topCalc: 'sum', topCalcParams:{precision: 2}, topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
-            {title: 'Driver Chargebacks', field: 'driver_chargeback_amount', formatter: 'money', formatterParams:{ thousand: ',', symbol: '$'}, sorter: 'number', topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}},
-            {title: 'Driver Income', field: 'driver_income', formatter: 'money', formatterParams: { thousand: ',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}}
-        ]
-
-        const filters = [
-            ... (this.props.drivers && this.props.drivers.length > 1) ? [{
-                selections: this.props.drivers,
-                isMulti: true,
-                name: 'Driver',
-                type: 'SelectFilter',
-                value: 'driver_id'
-            }] : [],
-            {
-                name: 'Bill Start Date',
-                value: 'start_date',
-                type: 'DateBetweenFilter'
-            },
-            {
-                name: 'Bill End Date',
-                value: 'end_date',
-                type: 'DateBetweenFilter'
-            }
-        ]
-
-        this.setState({columns: columns, filters: filters})
     }
 
     cellContextMenu(cell) {

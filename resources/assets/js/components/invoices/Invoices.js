@@ -25,7 +25,7 @@ function cellContextMenu(cell, canEdit = false) {
 
 function cellContextMenuFormatter(cell) {
     if(cell.getData().invoice_id)
-        return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
+        return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
 }
 
 function deleteInvoice(cell) {
@@ -115,68 +115,61 @@ const withSelected = [
 ]
 
 class Invoices extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
         this.state = {
-            columns: [],
-            filters: [],
-            withSelected: []
+            columns: [
+                ...this.props.frontEndPermissions.invoices.edit ? [
+                    {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false}
+                ] : [
+                    {formatter: cell => {return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"}, width: 50, hozAlign:'center', cellClick:(e, cell) => printInvoices([cell.getRow()])}
+                ],
+                ...this.props.frontEndPermissions.invoices.edit ? [
+                    {title: 'Date Run', field: 'date_run', visible: false},
+                ] : [],
+                ...columns
+            ],
+            filters: [
+                ...this.props.frontEndPermissions.invoices.edit ? [
+                    {
+                        name: 'Date Run',
+                        value: 'date_run',
+                        type: 'DateBetweenFilter',
+                    },
+                    {
+                        name: 'Finalized',
+                        value: 'finalized',
+                        type: 'BooleanFilter',
+                    }
+                ] : [],
+                {
+                    name: 'Last Bill Date',
+                    value: 'bill_end_date',
+                    type: 'DateBetweenFilter',
+                },
+                {
+                    name: 'First Bill Date',
+                    value: 'bill_start_date',
+                    type: 'DateBetweenFilter'
+                },
+                {
+                    selections: this.props.accounts,
+                    name: 'Account',
+                    value: 'account_id',
+                    type: 'SelectFilter',
+                    isMulti: true
+                },
+                {
+                    name: 'Balance Owing',
+                    value: 'balance_owing',
+                    type: 'NumberBetweenFilter',
+                    step: 0.01,
+                },
+            ],
+            withSelected: [
+                ...this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [], withSelected
+            ]
         }
-    }
-
-    componentDidMount() {
-        const actionColumn = this.props.frontEndPermissions.invoices.edit ? [
-            {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false}
-        ] : [
-            {formatter: cell => {return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"}, width: 50, hozAlign:'center', cellClick:(e, cell) => printInvoices([cell.getRow()])}
-        ]
-        const adminColumns = this.props.frontEndPermissions.invoices.edit ? [
-            {title: 'Date Run', field: 'date_run', visible: false},
-        ] : []
-
-        const adminFilters = this.props.frontEndPermissions.invoices.edit ? [
-            {
-                name: 'Date Run',
-                value: 'date_run',
-                type: 'DateBetweenFilter',
-            },
-            {
-                name: 'Finalized',
-                value: 'finalized',
-                type: 'BooleanFilter',
-            }
-        ] : []
-        const basicFilters = [
-            {
-                name: 'Last Bill Date',
-                value: 'bill_end_date',
-                type: 'DateBetweenFilter',
-            },
-            {
-                name: 'First Bill Date',
-                value: 'bill_start_date',
-                type: 'DateBetweenFilter'
-            },
-            {
-                selections: this.props.accounts,
-                name: 'Account',
-                value: 'account_id',
-                type: 'SelectFilter',
-                isMulti: true
-            },
-            {
-                name: 'Balance Owing',
-                value: 'balance_owing',
-                type: 'NumberBetweenFilter',
-                step: 0.01,
-            },
-        ]
-
-        this.setState({
-            columns: Array.prototype.concat(actionColumn, columns, adminColumns),
-            filters: Array.prototype.concat(adminFilters, basicFilters),
-            withSelected: Array.prototype.concat(this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [], withSelected)
-        })
     }
 
     render() {

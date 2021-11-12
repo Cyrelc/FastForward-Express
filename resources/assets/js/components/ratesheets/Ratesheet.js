@@ -156,10 +156,6 @@ export default class Ratesheet extends Component {
         const {name, value} = event.target
         var updated = this.state.zoneRates.map(obj => {
             if(obj.id == id) {
-                // if(name === 'name') {
-                //     console.log(obj.polyLabel.content)
-                //     obj.polyLabel.setContent(value)
-                // }
                 return {...obj, [name]: value}
             }
             return obj

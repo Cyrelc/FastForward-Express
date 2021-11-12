@@ -7,41 +7,19 @@ use App\Http\Repos;
 use App\Http\Models\Bill;
 
 class BillModelFactory{
-	public function ListAll() {
+	public function BuildTable($req) {
 		$model = new BillsModel();
 
 		$billRepo = new Repos\BillRepo();
-		$accountRepo = new Repos\AccountRepo();
-		$employeeRepo = new Repos\EmployeeRepo();
-		$contactRepo = new Repos\ContactRepo();
+		$chargeRepo = new Repos\ChargeRepo();
 
-		$bills = $billRepo->ListAll(null);
-
-		$bill_view_models = Array();
-
-		foreach ($bills as $bill){
-			$bill_view_model = new BillViewModel();
-
-			$bill_view_model->bill = $bill;
-			$bill_view_model->account = $accountRepo->GetById($bill->charge_account_id);
-			if ($bill_view_model->account === null) {
-				$bill_view_model->account = new \App\Account();
-				$bill_view_model->account->name = "Cash";
-			}
-
-			$bill_view_model->pickup_driver = $employeeRepo->GetById($bill->pickup_driver_id);
-			$pickup_driver_contact = $contactRepo->GetById($bill_view_model->pickup_driver->contact_id);
-			$bill_view_model->pickup_driver_name = $pickup_driver_contact->first_name . ' ' . $pickup_driver_contact->last_name;
-
-			$bill_view_model->delivery_driver = $employeeRepo->GetById($bill->delivery_driver_id);
-			$delivery_driver_contact = $contactRepo->GetById($bill_view_model->delivery_driver->contact_id);
-			$bill_view_model->delivery_driver_name = $delivery_driver_contact->first_name . ' ' . $delivery_driver_contact->last_name;
-
-			array_push($bill_view_models, $bill_view_model);
+		$bills = $billRepo->ListAll($req);
+		$model = [];
+		foreach($bills as $bill) {
+			$charges = $chargeRepo->GetByBillId($bill->bill_id);
+			$bill->charges = $charges ? $charges : null;
+			$model[] = $bill;
 		}
-
-		$model->bills = $bill_view_models;
-		$model->success = true;
 
 		return $model;
 	}
@@ -63,7 +41,7 @@ class BillModelFactory{
 			$model->accounts = $accountRepo->ListForBillsPage(null);
 			$model->employees = $employeeRepo->GetDriverList();
 			$model->interliners = $interlinerRepo->GetInterlinersList();
-			$model->payment_types = $paymentRepo->GetPaymentTypes();
+			$model->charge_types = $paymentRepo->GetPaymentTypes();
 			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
 
 			foreach ($model->employees as $employee)
@@ -71,7 +49,7 @@ class BillModelFactory{
 		// Possible edge case - if user can create bills for children but not for own account
 		} else if($req->user()->can('bills.create.basic.my')) {
 			$model->accounts = $accountRepo->ListForBillsPage($accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children')));
-			$model->payment_types = [$paymentRepo->GetAccountPaymentType()];
+			$model->charge_types = [$paymentRepo->GetAccountPaymentType()];
 		}
 
 		$model->bill = new \App\Bill();
@@ -99,16 +77,15 @@ class BillModelFactory{
 		$activityLogRepo = new Repos\ActivityLogRepo();
 		$addressRepo = new Repos\AddressRepo();
 		$billRepo = new Repos\BillRepo();
-		$chargebackRepo = new Repos\ChargebackRepo();
-		$contactRepo = new Repos\ContactRepo();
-		$employeeRepo = new Repos\EmployeeRepo();
+		$chargeRepo = new Repos\ChargeRepo();
 		$interlinerRepo = new Repos\InterlinerRepo();
+		$lineItemRepo = new Repos\LineItemRepo();
 		$paymentRepo = new Repos\PaymentRepo();
 		$ratesheetRepo = new Repos\RatesheetRepo();
 		$selectionsRepo = new Repos\SelectionsRepo();
 
-		$model->bill = $billRepo->GetById($billId, $permissions);
 		$model->permissions = $permissions;
+		$model->bill = $billRepo->GetById($billId, $model->permissions);
 		if($model->bill === null)
 			throw new \Exception('Invalid ID: Unable to find the bill requested', 404);
 		if($permissions['viewActivityLog']) {
@@ -125,16 +102,18 @@ class BillModelFactory{
 		}
 
 		if($permissions['viewBilling']) {
-			$model->chargeback = $model->bill->chargeback_id === null ? null : $chargebackRepo->GetById($model->bill->chargeback_id);
 			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
-			$model->payment = $model->bill->payment_id == null ? null : $paymentRepo->GetById($model->bill->payment_id);
-		}
+			$charges = $chargeRepo->GetForBill($model->bill->bill_id, null);
+			$model->charges = $charges;
+		} else
+			$model->charges = $chargeRepo->GetForBill($model->bill->bill_id);
+		foreach($model->charges as $key => $charge)
+			$model->charges[$key]->lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
 
 		$model->accounts = $accountRepo->ListForBillsPage(null);
 
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
-		$model->payment_types = $paymentRepo->GetPaymentTypes();
-		$model->read_only = $billRepo->IsReadOnly($model->bill->bill_id);
+		$model->charge_types = $paymentRepo->GetPaymentTypes();
 		$model = $this->setBusinessHours($model);
 
 		$model->pickup_address = $addressRepo->GetById($model->bill->pickup_address_id);

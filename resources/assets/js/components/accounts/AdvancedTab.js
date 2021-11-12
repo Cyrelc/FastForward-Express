@@ -132,6 +132,15 @@ export default function AdvancedTab(props) {
                             disabled={props.canBeParent || props.readOnly}
                         />
                     </Col>
+                    <Col md={2}>
+                        <FormCheck
+                            name='invoiceSeparatelyFromParent'
+                            label='Invoice Separately From Parent'
+                            checked={props.invoiceSeparatelyFromParent}
+                            onChange={props.handleChanges}
+                            disabled={props.readOnly || props.parentAccount === {}}
+                        />
+                    </Col>
                 </Row>
             </Card.Footer>
         </Card>

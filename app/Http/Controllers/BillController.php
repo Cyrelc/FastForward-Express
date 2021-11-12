@@ -2,52 +2,27 @@
 
 namespace App\Http\Controllers;
 
+// Events
 use App\Events\BillCreated;
 use App\Events\BillUpdated;
+// Classes
+use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Models\Bill;
 use App\Http\Models\Permission;
+
 use DB;
 use Illuminate\Http\Request;
 use Validator;
 
 class BillController extends Controller {
-    public function __construct() {
-        $this->middleware('auth');
-
-        //API STUFF
-        $this->sortBy = 'number';
-        $this->maxCount = env('DEFAULT_BILL_COUNT', $this->maxCount);
-        $this->itemAge = env('DEFAULT_BILL_AGE', '6 month');
-        $this->class = new \App\Bill;
-    }
-
-    public function assignToInvoice(Request $req, $billId, $invoiceId) {
-        $invoiceRepo = new Repos\InvoiceRepo();
-        $invoice = $invoiceRepo->GetById($invoiceId);
-        if($req->user()->cannot('update', $invoice))
-            abort(403);
-
-        DB::beginTransaction();
-        $invoiceId = $invoiceRepo->AssignBillToInvoice($invoiceId, $billId)->invoice_id;
-
-        DB::commit();
-        return $invoiceId;
-    }
-
     public function buildTable(Request $req) {
         $user = $req->user();
         if($user->cannot('viewAny', Bill::class))
             abort(403);
 
-        $accountRepo = new Repos\AccountRepo();
-        $billRepo = new Repos\BillRepo();
-        if(count($user->accountUsers) > 0)
-            $bills = $billRepo->ListAll($req, $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')));
-        else if($user->can('viewAll', Bill::class))
-            $bills = $billRepo->ListAll($req);
-        else if($user->employee)
-            $bills = $billRepo->ListAll($req, null, $req->user()->employee->employee_id);
+        $billModelFactory = new Bill\BillModelFactory();
+        $bills = $billModelFactory->BuildTable($req);
 
         return json_encode($bills);
     }
@@ -78,12 +53,17 @@ class BillController extends Controller {
 
         if($billId) {
             $billRepo = new Repos\BillRepo();
+
             $bill = $billRepo->GetById($billId);
             if($req->user()->cannot('viewBasic', $bill))
                 abort(403);
 
+            $accountRepo = new Repos\AccountRepo();
+
+            $myAccounts = $accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.view.basic.children'));
             $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
-            $model = $billModelFactory->GetEditModel($billId, $permissions);
+
+            $model = $billModelFactory->GetEditModel($billId, $permissions, $myAccounts);
         } else {
             if($req->user()->cannot('createBasic', Bill::class))
                 abort(403);
@@ -94,22 +74,29 @@ class BillController extends Controller {
         return json_encode($model);
     }
 
-    public function removeFromInvoice(Request $req, $billId) {
-        $billRepo = new Repos\BillRepo();
-        $invoiceRepo = new Repos\InvoiceRepo();
+    public function manageLineItemLinks(Request $req) {
+        $lineItemRepo = new Repos\LineItemRepo();
 
-        $bill = $billRepo->GetById($billId);
-        $invoice = $invoiceRepo->GetById($bill->invoice_id);
-        if($req->user()->cannot('update', $invoice))
+        $lineItem = $lineItemRepo->GetById($req->line_item_id);
+
+        if($req->user()->cannot('updateBilling', $lineItem->charge->bill))
             abort(403);
 
-        DB::beginTransaction();
-        $invoiceRepo->RemoveBillFromInvoice($billId);
+        if($req->link_type === 'Invoice') {
+            $invoiceRepo = new Repos\InvoiceRepo();
+            if($req->action == 'remove_link')
+                $lineItem = $invoiceRepo->DetachLineItem($lineItem->line_item_id);
+            else
+                $lineItem = $invoiceRepo->AttachLineItem($lineItem->line_item_id, $req->link_to_target_id);
+        } else if ($req->link_type === 'Pickup Manifest' || $req->link_type === 'Delivery Manifest') {
+            $update = [
+                'line_item_id' => $lineItem->line_item_id,
+                $req->link_type === 'Pickup Manifest' ? 'pickup_manifest_id' : 'delivery_manifest_id' => $req->action === 'remove_link' ? null : $req->link_to_target_id
+            ];
+            $lineItem = $lineItemRepo->Update($update);
+        }
 
-        DB::commit();
-        return response()->json([
-            'success' => true
-        ]);
+        return json_encode($lineItemRepo->GetById($lineItem->line_item_id));
     }
 
     public function store(Request $req) {
@@ -139,9 +126,9 @@ class BillController extends Controller {
         $chargebackRepo = new Repos\ChargebackRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
-        $addrCollector = new \App\Http\Collectors\AddressCollector();
-        $billCollector = new \App\Http\Collectors\BillCollector();
-        $packageCollector = new \App\Http\Collectors\PackageCollector();
+        $addrCollector = new Collectors\AddressCollector();
+        $billCollector = new Collectors\BillCollector();
+        $packageCollector = new Collectors\PackageCollector();
 
         $pickupAddress = $addrCollector->CollectMinimal($req, 'pickup_address', $oldBill ? $oldBill->pickup_address_id : null);
         $deliveryAddress = $addrCollector->CollectMinimal($req, 'delivery_address', $oldBill ? $oldBill->delivery_address_id : null);
@@ -156,20 +143,20 @@ class BillController extends Controller {
             $deliveryAddressId = $addrRepo->InsertMinimal($deliveryAddress)->address_id;
         }
 
-        $paymentId = $req->payment_type ? $this->getPaymentId($oldBill, $req) : null;
-
-        $bill = $billCollector->Collect($req, $permissions, $pickupAddressId, $deliveryAddressId, $paymentId);
+        $bill = $billCollector->Collect($req, $permissions, $pickupAddressId, $deliveryAddressId);
 
         if($oldBill)
             $bill = $billRepo->Update($bill, $permissions);
         else
             $bill = $billRepo->Insert($bill);
-        //if a previous payment method exists, that does not match the currently submitted payment method
-        //then delete the old payment record if necessary
-        if($oldBill != null && ($req->payment_type['name'] === 'Account' || $req->payment_type['name'] === 'Driver') && $oldBill->payment_id != null)
-            $paymentRepo->Delete($oldBill->payment_id);
-        elseif($oldBill != null && $req->payment_type['name'] != 'Driver' && $oldBill->chargeback_id != null)
-            $chargebackRepo->Delete($oldBill->chargeback_id);
+
+        if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editBilling']) && $permissions['editBilling'])) {
+            $charges = $billCollector->CollectCharges($req, $bill->bill_id);
+            $this->handleCharges($charges);
+        } else if(!$oldBill && $req->user()->accountUsers()) {
+            $charges = $billCollector->CreateChargeForAccountUser($req, $bill->bill_id);
+            $this->handleCharges($charges);
+        }
 
         DB::commit();
 
@@ -190,43 +177,46 @@ class BillController extends Controller {
      */
 
      /**
-      * Handles different payment types.
+      * Handles different charge types.
       * Account simply charges to account, driver creates a chargeback, all others create a payment object instance
       */
-    private function getPaymentId($oldBill, $req) {
-        $chargebackRepo = new Repos\ChargebackRepo();
-        $paymentRepo = new Repos\PaymentRepo();
+    private function handleCharges($charges) {
+        $billCollector = new Collectors\BillCollector();
+        $chargeRepo = new Repos\ChargeRepo();
+        $lineItemRepo = new Repos\LineItemRepo();
 
-        switch ($req->payment_type['name']) {
-            case 'Account':
-                return $req->charge_account_id;
-            case 'Driver':
-                $amount = ($req->amount == '' ? 0 : $req->amount) + ($req->interliner_cost_to_customer == '' ? 0 : $req->interliner_cost_to_customer);
-                if($oldBill != null && $oldBill->chargeback_id != null) {
-                    $data = new \Illuminate\Http\Request();
-                    $data->replace(['amount' => $amount]);
-                    $chargebackRepo->Update($oldBill->chargeback_id, $data);
-                    return $oldBill->chargeback_id;
-                } else {
-                    $chargeback = [
-                        'employee_id' => $req->charge_employee_id,
-                        'amount' => $amount,
-                        'gl_code' => null,
-                        'name' => 'Bill Chargeback',
-                        'description' => $req->description,
-                        'continuous' => false,
-                        'count_remaining' => 1,
-                        'start_date' => (new \DateTime($req->input('start_date')))->format('Y-m-d')
-                    ];
-                    return ($chargebackRepo->CreateBillChargeback($chargeback))->chargeback_id;
-                }
-            default:
-                $paymentCollector = new \App\Http\Collectors\PaymentCollector();
-                $payment = $paymentCollector->CollectBillPayment($req);
-                if($oldBill != null && $oldBill->payment_id != null)
-                    return ($paymentRepo->Update($oldBill->payment_id, $payment))->payment_id;
+        foreach($charges as $charge) {
+            if($charge['to_be_deleted']) {
+                // If the charge doesn't have an ID, then it was never entered into the database, and neither were its line items
+                // It's okay to skip it
+                if($charge['charge_id'] === null)
+                    continue;
+                $chargeRepo->Delete($charge['charge_id']);
+            } else {
+                if($charge['charge_id'] != null)
+                    $chargeId = $chargeRepo->Update($charge)->charge_id;
                 else
-                    return ($paymentRepo->Insert($payment))->payment_id;
+                    $chargeId = $chargeRepo->Insert($charge)->charge_id;
+                $this->handleLineItems($charge['line_items'], $chargeId);
+            }
+        }
+    }
+
+    private function handleLineItems($lineItems, $chargeId) {
+        $lineItemRepo = new Repos\LineItemRepo();
+
+        foreach($lineItems as $lineItem) {
+            if(isset($lineItem['to_be_deleted']) && $lineItem['to_be_deleted'] === true) {
+                // If the line item doesn't have a line_item_id then it was never entered into the database and it's okay to skip it
+                if(!$lineItem['line_item_id'])
+                    continue;
+                $lineItemRepo->Delete($lineItem['line_item_id']);
+            } else if($lineItem['line_item_id'])
+                $lineItemRepo->UpdateAsBill($lineItem);
+            else {
+                $lineItem['charge_id'] = $chargeId;
+                $lineItemRepo->Insert($lineItem);
+            }
         }
     }
 }

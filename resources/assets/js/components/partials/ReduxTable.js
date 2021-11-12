@@ -1,15 +1,17 @@
 import React, {Component, createRef} from 'react'
 import { ReactTabulator } from 'react-tabulator'
-import {Button, ButtonGroup, Card, Col, Dropdown, Row, InputGroup} from 'react-bootstrap'
+import {Button, ButtonGroup, Card, Col, Dropdown, Modal, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
 import TableFilters from './TableFilters'
 
 export default class ReduxTable extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
+        if(!window.location.search && this.props.reduxQueryString)
+            this.props.redirect(window.location.pathname + this.props.reduxQueryString)
         this.state = {
-            filters: [],
+            filters: this.parseFilters(),
             tableRef: createRef()
         }
         this.handleActiveFiltersChange = this.handleActiveFiltersChange.bind(this)
@@ -21,26 +23,19 @@ export default class ReduxTable extends Component {
     // On mount we have to parse the query string in the URL to see if any values were set.
     // Those filters that are matched, are set to active
     componentDidMount() {
-        if(window.location.search == '' && this.props.reduxQueryString)
-            this.props.redirect(window.location.pathname + this.props.reduxQueryString)
-        this.setState({
-            filters: this.parseFilters(),
-            groupBy: this.props.groupBy ? this.props.groupByOptions.find(option => option.value === this.props.groupBy) : null
-        }, this.refreshTable)
         document.title = this.props.pageTitle + ' - Fast Forward Express'
+        this.refreshTable()
     }
 
     componentDidUpdate(prevProps) {
         if(this.props.refreshTable === true) {
-            this.refreshTable()
+            this.setState({loading: true}, this.refreshTable())
             this.props.toggleRefreshTable()
-        } else if (prevProps.reduxQueryString != this.props.reduxQueryString) {
-            this.refreshTable()
-        }
+        } else if (prevProps.reduxQueryString != this.props.reduxQueryString)
+            this.setState({loading: true}, this.refreshTable())
+
         if(this.props.tableData != prevProps.tableData && this.state.groupBy)
             this.handleGroupByChange(this.state.groupBy)
-        if(this.props.filters != prevProps.filters)
-            this.setState({filters: this.parseFilters()})
     }
 
     handleActiveFiltersChange(activeFilters) {
@@ -69,17 +64,16 @@ export default class ReduxTable extends Component {
                 this.state.tableRef.current.table.setGroupHeader()
         } else
             this.state.tableRef.current.table.setGroupBy()
-        this.setState({groupBy: event})
+        this.props.handleChange({target: {name: 'groupBy', type: 'object', value: event}})
     }
 
     parseFilters() {
         const queryStrings = window.location.search ? window.location.search.replace('%5B', '[').replace('%5D', ']').replace('%2C', ',').split('?')[1].split('&') : []
-        return this.props.filters.map(filter => {
+        const filters = this.props.filters.map(filter => {
             const queryString = queryStrings.find(testString => testString.startsWith('filter[' + filter.value + ']='))
-            if(queryString)
-                return {...filter, active: true, queryString: queryString}
-            return {...filter, active: false, queryString: ''}
+            return {...filter, active: queryString ? true : false, queryString: queryString}
         })
+        return filters
     }
 
     refreshTable() {
@@ -108,24 +102,30 @@ export default class ReduxTable extends Component {
             this.props.setReduxQueryString(query)
             this.props.fetchTableData()
         }
+        this.state.tableRef.current && this.state.tableRef.current.table && this.state.tableRef.current.table.redraw()
+        this.setState({loading: false})
     }
 
     render() {
         return (
             <Row>
                 <Col md={12}>
+                    <Modal show={this.props.tableLoading}>
+                        <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+                    </Modal>
                     <Card>
                         <Card.Header>
                             <Row>
                                 <Col md={1}>
                                     <Card.Title>{this.props.pageTitle}</Card.Title>
+                                    <h6>{this.props.tableData.length.toLocaleString('en-US')} results</h6>
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>
                                         <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
                                         <Select
                                             options={this.props.groupByOptions}
-                                            value={this.state.groupBy}
+                                            value={this.props.groupBy}
                                             onChange={value => this.handleGroupByChange(value)}
                                             isDisabled={this.props.groupByOptions.length === 0}
                                         />
@@ -137,7 +137,7 @@ export default class ReduxTable extends Component {
                                             <InputGroup.Text>Select Active Filters: </InputGroup.Text>
                                         </InputGroup.Prepend>
                                         <Select
-                                            options={this.state.filters.filter(filter => filter.type != 'SelectFilter' || (filter.selections && filter.selections.length > 1))}
+                                            options={this.props.filters.filter(filter => filter.type != 'SelectFilter' || filter.creatable || (filter.selections && filter.selections.length > 1))}
                                             value={this.state.filters.filter(filter => filter.active) || ''}
                                             getOptionLabel={option => option.name}
                                             onChange={filters => this.handleActiveFiltersChange(filters)}
@@ -220,14 +220,16 @@ export default class ReduxTable extends Component {
                                     }}
                                     groupBy={this.props.groupBy}
                                     initialSort={this.props.initialSort}
-                                    maxHeight='80vh'
+                                    maxHeight='55vh'
+                                    minHeight='55vh'
                                     options={{
                                         layout: 'fitColumns',
-                                        pagination:'local',
-                                        paginationSize:25
+                                        pagination: 'local',
+                                        paginationSize: 25
                                     }}
                                     printAsHtml={true}
                                     printStyled={true}
+                                    rowFormatter={this.props.rowFormatter ? this.props.rowFormatter : null}
                                     selectable={this.props.selectable ? this.props.selectable : false}
                                     selectableCheck={() => {return this.props.selectable ? true : false}}
                                 />

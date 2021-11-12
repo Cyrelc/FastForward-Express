@@ -18,7 +18,7 @@ class DispatchController extends Controller {
         DB::beginTransaction();
 
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($req->employee_id);
+        $employee = $employeeRepo->GetById($req->employee_id, null);
 
         $bill = $billRepo->AssignToDriver($req->bill_id, $employee);
 

@@ -66,10 +66,13 @@ export default class GenerateManifests extends Component {
 
     render() {
         const columns = [
-            {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+            {Title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
             {title: 'Employee ID', field: 'employee_id'},
+            {title: 'Employee Number', field: 'employee_number'},
             {title: 'Employee', field: 'label'},
-            {title: 'Bills Matched', field: 'bill_count'}
+            {title: 'Valid Bills', field: 'valid_bill_count'},
+            {title: 'Legacy Bills', field: 'legacy_bill_count'},
+            {title: 'Incomplete Bills', field: 'incomplete_bill_count'}
         ]
 
         return (
@@ -87,7 +90,6 @@ export default class GenerateManifests extends Component {
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
-                                    isClearable
                                     placeholderText='After'
                                     selected={this.state.startDate}
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
@@ -100,7 +102,6 @@ export default class GenerateManifests extends Component {
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
-                                    isClearable
                                     placeholderText='Before'
                                     selected={this.state.endDate}
                                     onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
@@ -113,24 +114,31 @@ export default class GenerateManifests extends Component {
                     </Row>
                 </Card.Body>
                 <Card.Footer>
-                    {
-                        this.state.employees.length === 0 ?
-                        <p style={{color: 'red'}}>Currently no employees match the selected criteria</p> :
-                        <ReactTabulator
-                            ref={this.state.tableRef}
-                            columns={columns}
-                            data={this.state.employees}
-                            dataLoaded={() => {
-                                this.state.tableRef.current.table.selectRow();
-                            }}
-                            options={{
-                                layout: 'fitColumns',
-                                maxHeight: '80vh'
-                            }}
-                            selectable='highlight'
-                            selectableCheck={() => {return true}}
-                        />
-                    }
+                    <ReactTabulator
+                        ref={this.state.tableRef}
+                        columns={columns}
+                        data={this.state.employees}
+                        dataLoaded={() => {
+                            const table = this.state.tableRef.current.table
+                            table.rowManager.rows.map(row => {
+                                const data = row.getData()
+                                if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.legacy_bill_count === 0)
+                                    table.selectRow(row)
+                            })
+                        }}
+                        options={{
+                            layout: 'fitColumns',
+                            maxHeight: '80vh'
+                        }}
+                        placeholder='No employees fit the selected criteria for generating a manifest'
+                        rowSelected={row => {row.update({isSelected: true})}}
+                        rowDeselected={row => {row.update({isSelected: false})}}
+                        selectable={true}
+                        selectableCheck={row => {
+                            const selectable = row.getData().valid_bill_count > 0
+                            return selectable
+                        }}
+                    />
                 </Card.Footer>
             </Card>
         )

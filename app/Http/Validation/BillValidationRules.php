@@ -95,14 +95,25 @@ class BillValidationRules {
 
 		$validAccounts = $accountRepo->ListForBillsPage($accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children')));
 		$validAccountIds = [];
+
 		foreach($validAccounts as $validAccount)
 			array_push($validAccountIds, $validAccount->account_id);
 
+		$businessHoursOpen = explode(':', config('ffe_config.business_hours_open'));
+		$businessHoursClose = explode(':', config('ffe_config.business_hours_close'));
+		if(date('w') === 6 || date('w') === 0)
+			$minDateTime = strtotime('next monday');
+		else
+			$minDateTime = strtotime('today');
+		$minDateTime->setTime((int)$businessHoursOpen[0], (int)$businessHoursOpen[1]);
+		activity('system_debug')->log('checking against minimum datetime of: ' . $minDateTime);
 		$rules = [
-			'charge_account_id' => ['required', Rule::in($validAccountIds)],
+			'charges.0.chargeId' => ['required', Rule::in($validAccountIds)],
 			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', Rule::in($validAccountIds)],
-			'payment_type.payment_type_id' => ['required', Rule::in([$accountPaymentTypeId])],
-			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', Rule::in($validAccountIds)]
+			'charges.0.chargeType.payment_type_id' => ['required', Rule::in([$accountPaymentTypeId])],
+			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', Rule::in($validAccountIds)],
+			'time_pickup_expected' => ['required|date|after:' . $minDateTime],
+			'time_delivery_expected' => ['required|data|after:time_pickup_expected']
 		];
 
 		$messages = [
@@ -115,9 +126,8 @@ class BillValidationRules {
 
 	private function getBasicValidationRulesEmployee($req) {
 		$rules = [
-			'charge_account_id' => 'exclude_unless:payment_type,Account|required|exists:accounts,account_id',
 			'delivery_account_id' => 'exclude_unless:delivery_address_type,Account|required|exists:accounts,account_id',
-			'payment_type.name' => 'required|exists:payment_types,name',
+			// 'payment_type.name' => 'required|exists:payment_types,name',
 			'pickup_account_id' => 'exclude_unless:pickup_address_type,Account|required|exists:accounts,account_id'
 		];
 
@@ -143,6 +153,8 @@ class BillValidationRules {
 	}
 
 	private function getBillingValidationRules($req) {
+		$paymentRepo = new Repos\PaymentRepo();
+
 		$rules = [
 			'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
 			'skip_invoicing' => 'required',
@@ -156,13 +168,32 @@ class BillValidationRules {
 			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
 		}
 
-		if($req->payment_type == 'Account') {
-			$rules = array_merge($rules, ['charge_account_id' => 'required']);
-			$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
-		} else if ($req->payment_type == 'Employee') {
-			$rules = array_merge($rules, ['charge_employee_id' => 'required']);
-			$messages = array_merge($messages, ['charge_employee_id.required' => 'Must select an employee to charge back to']);
+		$rules = array_merge($rules, ['charges.*.paymentType.payment_type_id' => 'required|exists:payment_types,payment_type_id']);
+
+		foreach($req->charges as $key => $charge) {
+			if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetAccountPaymentType()) {
+				$rules = array_merge($rules, [
+					'charge.' . $key . '.chargeId' => 'required|exists:accounts,account_id']
+				);
+			}
+			else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {
+				$rules = array_merge($rules, [
+					'charge.' . $key . '.chargeId' => 'required|exists:employees,employee_id'
+					]);
+			}
+			else {
+				$rules = array_merge($rules, [
+					'charge.' . $key . '.chargeId' => 'required|exists:payment_types,payment_type_id']
+				);
+			}
 		}
+		// if($req->payment_type == 'Account') {
+		// 	$rules = array_merge($rules, ['charge_account_id' => 'required']);
+		// 	$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);
+		// } else if ($req->payment_type == 'Employee') {
+		// 	$rules = array_merge($rules, ['charge_employee_id' => 'required']);
+		// 	$messages = array_merge($messages, ['charge_employee_id.required' => 'Must select an employee to charge back to']);
+		// }
 
 		return ['rules' => $rules, 'messages' => $messages];
 	}

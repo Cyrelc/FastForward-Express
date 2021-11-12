@@ -8,6 +8,7 @@ use App\EmployeeEmergencyContact;
 use App\Http\Filters\IsNull;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeRepo {
     public function AddEmergencyContact($emergencyContact) {
@@ -31,7 +32,7 @@ class EmployeeRepo {
         return $employees->get();
     }
 
-    public function GetById($employeeId, $permissions = null) {
+    public function GetById($employeeId, $permissions) {
         $employee = Employee::where('employee_id', '=', $employeeId)
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id');
 
@@ -118,7 +119,7 @@ class EmployeeRepo {
         $relevantIds['contact_ids'] = EmployeeEmergencyContact::where('employee_id', $employee_id)
             ->pluck('contact_id')
             ->toArray();
-        array_push($relevantIds['contact_ids'], $this->GetById($employee_id)->contact_id);
+        array_push($relevantIds['contact_ids'], $this->GetById($employee_id, null)->contact_id);
         $relevantIds['email_ids'] = \App\EmailAddress::whereIn('contact_id', $relevantIds['contact_ids'])
             ->pluck('email_address_id')->toArray();
         $relevantIds['phone_ids'] = \App\PhoneNumber::whereIn('contact_id', $relevantIds['contact_ids'])
@@ -159,6 +160,23 @@ class EmployeeRepo {
             DB::raw('concat (first_name, " ", last_name) as employee_name'),
             'employee_id'
         );
+
+        return $employees->get();
+    }
+
+    public function GetEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate) {
+        $employees = Employee::leftJoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+            ->select(
+                'employees.employee_id',
+                'employee_number',
+                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as label'),
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as valid_bill_count'),
+                // DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete = 100 and date(time_pickup_scheduled) <= cast("' . $startDate . '" as date)) as legacy_bill_count'),
+                DB::raw('0 as legacy_bill_count'),
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete < 100 and date(time_pickup_scheduled) <= cast("' . $endDate . '" as date)) as incomplete_bill_count')
+            )->havingRaw('valid_bill_count > 0')
+            ->orHavingRaw('legacy_bill_count > 0')
+            ->orHavingRaw('incomplete_bill_count > 0');
 
         return $employees->get();
     }
@@ -218,7 +236,7 @@ class EmployeeRepo {
     }
 
     public function Update($employee, $permissions) {
-        $old = $this->GetById($employee['employee_id']);
+        $old = $this->GetById($employee['employee_id'], $permissions);
 
         if($permissions['editBasic'])
             foreach(Employee::$basicFields as $field)

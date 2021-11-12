@@ -102,7 +102,7 @@ export default function BasicTab(props) {
                             </InputGroup.Prepend>
                             <Select
                                 options={props.ratesheet.deliveryTypes}
-                                getOptionLabel={type => type.friendlyName + ' (Estimated ' + type.time + ' hours)'}
+                                getOptionLabel={type => type.friendlyName + ' (Est. ~' + type.time + ' hours)'}
                                 getOptionValue={type => type.id}
                                 value={props.deliveryType}
                                 onChange={item => props.handleChanges({target: {name: 'deliveryType', type: 'text', value: item}})}
@@ -111,7 +111,7 @@ export default function BasicTab(props) {
                             />
                         </InputGroup>
                     </Col>
-                    <Col md={3}>
+                    {/* <Col md={3}>
                         <InputGroup>
                             <InputGroup.Prepend>
                                 <InputGroup.Text>Payment Type: </InputGroup.Text>
@@ -124,8 +124,8 @@ export default function BasicTab(props) {
                                 isDisabled={props.readOnly || props.invoiceId || props.paymentTypes.length === 1}
                             />
                         </InputGroup>
-                    </Col>
-                    {props.paymentType.name === 'Account' &&
+                    </Col> */}
+                    {/* {props.paymentType.name === 'Account' &&
                         <Col md={4}>
                             <Row>
                                 <Col md={12}>
@@ -162,7 +162,7 @@ export default function BasicTab(props) {
                                 }
                             </Row>
                         </Col>
-                    }
+                    } */}
                 </Row>
                 <hr/>
                 <Row className='pad-top'>

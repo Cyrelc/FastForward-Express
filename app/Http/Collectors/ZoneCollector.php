@@ -26,7 +26,7 @@ class ZoneCollector {
             ];
             if($mapZone['type'] === 'internal') {
                 $zone = array_merge($zone, ['additional_costs' => null, 'additional_time' => null]);
-            }else if($mapZone['type'] === 'peripheral') {
+            } else if($mapZone['type'] === 'peripheral') {
                 $zone = array_merge($zone, ['additional_costs' => json_encode(['regular' => (float) $mapZone['regularCost']]), 'additional_time' => $mapZone['additionalTime']]);
             } else if ($mapZone['type'] === 'outlying') {
                 $zone = array_merge($zone, [

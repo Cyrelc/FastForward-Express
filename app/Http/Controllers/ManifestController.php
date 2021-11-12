@@ -45,16 +45,20 @@ class ManifestController extends Controller {
             abort(403);
 
         $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $drivers = $manifestModelFactory->GetDriverListModel($req->start_date, $req->end_date);
+        $drivers = $manifestModelFactory->GetDriverListModel($req);
+
         return json_encode($drivers);
     }
 
-    public function getModel(Request $req, $manifest_id) {
-        $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $model = $manifestModelFactory->GetById($manifest_id);
+    public function getModel(Request $req, $manifestId) {
+        $manifestRepo = new Repos\ManifestRepo();
+        $manifest = $manifestRepo->GetById($manifestId);
 
-        if($req->user()->cannot('view', $model->manifest))
+        if($req->user()->cannot('view', $manifest))
             abort(403);
+
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $model = $manifestModelFactory->GetById($req->user(), $manifestId);
 
         return json_encode($model);
     }
@@ -120,10 +124,10 @@ class ManifestController extends Controller {
 
         $manifestRepo = new Repos\ManifestRepo();
 
-        $start_date = (new \DateTime($req->start_date))->format('Y-m-d');
-        $end_date = (new \DateTime($req->end_date))->format('Y-m-d');
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-        $manifestRepo->Create($req->employees, $start_date, $end_date);
+        $manifestRepo->Create($req->employees, $startDate, $endDate);
 
         DB::commit();
 

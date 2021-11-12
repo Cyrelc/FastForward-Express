@@ -21,6 +21,7 @@ export default class GenerateInvoices extends Component {
     }
 
     componentDidMount() {
+        document.title = 'Generate Invoices - Fast Forward Express'
         // const currentDate = new Date()
         // const firstDayOfPreviousMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
         // note the following line MODIFIES currentDate - so if you use it subsequently, beware!!
@@ -51,10 +52,12 @@ export default class GenerateInvoices extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
+
         makeAjaxRequest('/invoices/getAccountsToInvoice', 'POST', data, response => {
             response = JSON.parse(response)
             toastr.clear()
-            this.setState({accounts: response.accounts})
+            if(response.accounts)
+                this.setState({accounts: Object.values(response.accounts)})
         })
     }
 
@@ -82,8 +85,8 @@ export default class GenerateInvoices extends Component {
     render() {
         function isAccountValidForInvoicing(cell) {
             const data = cell.getData()
-            if(data.bill_count === 0) {
-                cell.getElement().style.backgroundColor = 'salmon'
+            if(data.valid_bill_count === 0) {
+                cell.getElement().style.backgroundColor = 'lightCoral'
                 return 'False - No valid bills'
             } else if(data.incomplete_bill_count > 0 || data.skipped_bill_count > 0 || data.legacy_bill_count > 0) {
                 cell.getElement().style.backgroundColor = 'gold'
@@ -98,19 +101,21 @@ export default class GenerateInvoices extends Component {
         }
 
         const columns = [
+            {Title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
             {title: 'Valid', formatter: isAccountValidForInvoicing},
             {title: 'Account Id', field: 'account_id', sorter: 'number'},
             {title: 'Account Number', field: 'account_number'},
             {title: 'Account Name', field: 'name'},
             {title: 'Invoice Interval', field: 'invoice_interval'},
-            {title: 'Completed Bills', field: 'bill_count', formatter: (cell) => {
+            {title: 'Completed Bills', field: 'valid_bill_count', formatter: (cell) => {
                 if(cell.getValue() === 0)
-                    cell.getElement().style.backgroundColor = 'salmon'
+                    cell.getElement().style.backgroundColor = 'lightCoral'
                 return cell.getValue()
             }, sorter: 'number'},
             {title: 'Incomplete Bills', field: 'incomplete_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[percentage_complete]=,1'}}, sorter: 'number'},
             {title: 'Skipped Bills', field: 'skipped_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[skip_invoicing]=1'}}, sorter: 'number'},
-            {title: 'Legacy Bills', field: 'legacy_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[time_pickup_scheduled]=,' + this.state.startDate.toISOString().split('T')[0] + '&filter[invoiced]=0'}}, sorter: 'number'}
+            {title: 'Legacy Bills', field: 'legacy_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[time_pickup_scheduled]=,' + this.state.startDate.toISOString().split('T')[0] + '&filter[invoiced]=0'}}, sorter: 'number'},
+            {title: 'Parent Account', field: 'parent_account', visible: false}
         ]
 
         return (
@@ -139,7 +144,6 @@ export default class GenerateInvoices extends Component {
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
-                                    isClearable
                                     placeholderText='After'
                                     selected={this.state.startDate}
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
@@ -150,7 +154,6 @@ export default class GenerateInvoices extends Component {
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
-                                    isClearable
                                     placeholderText='Before'
                                     selected={this.state.endDate}
                                     onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
@@ -167,31 +170,34 @@ export default class GenerateInvoices extends Component {
                 </Card.Body>
                 <Card.Footer>
                     <p>The following accounts fit the selected criteria and have bills that are yet to be invoiced:</p>
-                    {this.state.accounts.length === 0 ?
-                        <p style={{color: 'red'}}>Currently no accounts are selected to invoice</p> :
-                        <ReactTabulator
-                            ref={this.state.tableRef}
-                            columns={columns}
-                            data={this.state.accounts}
-                            dataLoaded={() => {
-                                const table = this.state.tableRef.current.table
-                                table.rowManager.rows.map(row => {
-                                    const data = row.getData()
-                                    if(data.bill_count > 0 && data.incomplete_bill_count === 0 && data.skipped_bill_count === 0 && data.legacy_bill_count === 0)
-                                        table.selectRow(row)
-                                    })
-                            }}
-                            initialSort='account_number'
-                            options={{
-                                layout: 'fitColumns',
-                                maxHeight: '80vh'
-                            }}
-                            selectable={true}
-                            selectableCheck={row => {
-                                return row.getData().bill_count > 0
-                            }}
-                        />
-                    }
+                    <ReactTabulator
+                        placeholder='No accounts fit the selected criteria for invoicing'
+                        ref={this.state.tableRef}
+                        columns={columns}
+                        data={this.state.accounts}
+                        dataLoaded={() => {
+                            const table = this.state.tableRef.current.table
+                            table.rowManager.rows.map(row => {
+                                const data = row.getData()
+                                if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.skipped_bill_count === 0 && data.legacy_bill_count === 0) {
+                                    table.selectRow(row)
+                                }
+                            })
+                        }}
+                        initialSort={[{column: 'account_number', dir: 'asc'}]}
+                        options={{
+                            groupBy: 'parent_account',
+                            layout: 'fitColumns',
+                            maxHeight: '65vh'
+                        }}
+                        rowSelected={row => {row.update({isSelected: true})}}
+                        rowDeselected={row => {row.update({isSelected: false})}}
+                        selectable={true}
+                        selectableCheck={row => {
+                            const selectable = row.getData().valid_bill_count > 0
+                            return selectable
+                        }}
+                    />
                 </Card.Footer>
             </Card>
         )

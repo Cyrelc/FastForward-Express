@@ -54,6 +54,8 @@
         <h4>780-668-1074</h4>
         <br/>
         <h4><i>Email</i></h4>
+        <h4>contactus@fastforwardexpress.com</h4>
+        <h4>dispatch@fastforwardexpress.com</h4>
         <h4>fastfex@telus.net</h4>
         <br/>
         <h4><i>Office Hours</i></h4>

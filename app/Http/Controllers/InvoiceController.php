@@ -39,35 +39,6 @@ class InvoiceController extends Controller {
         return json_encode($invoices);
     }
 
-    public function createAmendment(Request $req) {
-        DB::beginTransaction();
-        $amendmentValidation = new \App\Http\Validation\AmendmentValidationRules();
-        $validationRules = $amendmentValidation->GetValidationRules($req);
-
-        $this->validate($req, $validationRules['rules'], $validationRules['messages']);
-
-        $amendmentCollector = new Collectors\AmendmentCollector();
-        $amendment = $amendmentCollector->collect($req);
-
-        $invoiceRepo = new Repos\InvoiceRepo();
-
-        //check whether invoice is within date window for change
-        $invoice = $invoiceRepo->GetById($req->invoice_id);
-        if($req->user()->cannot('update', $invoice))
-            abort(403);
-
-        $billEndDate = new \DateTime($invoice->bill_end_date);
-        $currentDate = new \DateTime('now');
-        $diff = $currentDate->diff($billEndDate, true);
-
-        if($diff->days < (int)config('ffe_config.days_invoice_editable'))
-            $invoiceRepo->InsertAmendment($amendment);
-        else
-            throw new \Exception('Invoices older than ' . config('ffe_config.days_invoice_editable') . ' days old can no longer be edited.');
-
-        DB::commit();
-    }
-
     public function delete(Request $req, $invoiceId) {
         DB::beginTransaction();
 
@@ -81,27 +52,6 @@ class InvoiceController extends Controller {
         return response()->json([
             'success' => true
         ]);
-    }
-
-    public function deleteAmendment(Request $req, $amendmentId) {
-        DB::beginTransaction();
-        $invoiceRepo = new Repos\InvoiceRepo();
-
-        $amendment = $invoiceRepo->GetAmendmentById($amendmentId);
-        $invoice = $invoiceRepo->GetById($amendment->invoice_id);
-
-        if($req->user()->cannot('update', $invoice))
-            abort(403);
-
-        $billEndDate = new \DateTime($invoice->bill_end_date);
-        $currentDate = new \DateTime('now');
-        $diff = $currentDate->diff($billEndDate, true);
-        if($diff->days < (int)config('ffe_config.days_invoice_editable'))
-            $invoiceRepo->DeleteAmendment($amendmentId);
-        else
-            throw new \Exception('Invoices older than ' . config('ffe_config.days_invoice_editable') . ' days old can no longer be edited.');
-
-        DB::commit();
     }
 
     public function download(Request $req, $filename) {
@@ -150,7 +100,7 @@ class InvoiceController extends Controller {
     }
 
     public function getOutstandingByAccountId(Request $req) {
-        $invoice_repo = new Repos\InvoiceRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
 
         $invoices = $invoiceRepo->GetOutstandingByAccountId($req->input('account_id'));
         foreach($invoices as $invoice)
@@ -164,11 +114,14 @@ class InvoiceController extends Controller {
         //TODO check if invoice $id exists
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetById($req, $invoiceId);
-        $amendmentsOnly = $req->amendments_only === null ? 0 : 1;
+
         if($req->user()->cannot('view', $model->invoice))
             abort(403);
 
-        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendmentsOnly'));
+        $amendmentsOnly = $req->amendments_only;
+        $showLineItems = $req->show_line_items;
+
+        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'));
         return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
     }
 
@@ -193,8 +146,7 @@ class InvoiceController extends Controller {
                 abort(403);
 
             $filename = $model->parent->name . '-' . $model->invoice->invoice_id . '.pdf';
-            $is_pdf = 1;
-            $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'is_pdf'));
+            $pdf = PDF::loadView('invoices.invoice_table', compact('model'));
             $pdf->save($path . $filename, $filename);
             $zip->addFile($path . $filename, $filename);
             $toBeUnlinked[$invoiceId] = $path . $filename;
@@ -221,6 +173,19 @@ class InvoiceController extends Controller {
         return view('invoices.invoice_table', compact('model'));
     }
 
+    public function regather(Request $req, $invoiceId) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $lineItemRepo = new Repos\LineItemRepo();
+
+        $invoice = $invoiceRepo->GetById($invoiceId);
+        if($req->user()->cannot('update', $invoice))
+            abort(403);
+
+        $count = $invoiceRepo->RegatherInvoice($invoice);
+
+        return ['success' => true, 'count' => $count];
+    }
+
     public function store(Request $req) {
         if($req->user()->cannot('create', Invoice::class))
             abort(403);
@@ -229,7 +194,6 @@ class InvoiceController extends Controller {
 
         $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
         $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
-
         $this->validate($req, $validationRules, $validationMessages);
 
         $invoiceRepo = new Repos\InvoiceRepo();
@@ -237,7 +201,7 @@ class InvoiceController extends Controller {
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-        $invoiceRepo->create($req->accounts, $startDate, $endDate);
+        $invoices = $invoiceRepo->Create($req->accounts, $startDate, $endDate);
 
         DB::commit();
     }

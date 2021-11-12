@@ -6,110 +6,87 @@ use Spatie\QueryBuilder\AllowedFilter;
 
 use DB;
 use App\Account;
-use App\Amendment;
 use App\Bill;
 use App\Invoice;
 use App\InvoiceSortOptions;
+use App\LineItem;
 use App\Payment;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 
 class InvoiceRepo {
-    public function AdjustBalanceOwing($invoice_id, $amount) {
-        $invoice = Invoice::where('invoice_id', $invoice_id)
+    public function AdjustBalanceOwing($invoiceId, $amount) {
+        $invoice = Invoice::where('invoice_id', $invoiceId)
             ->first();
 
         $invoice->balance_owing += floatval($amount);
 
+        if($invoice->balance_owing == 0) {
+            $lineItemRepo = new LineItemRepo();
+
+            $lineItemRepo->PayOffLineItemsByInvoiceId($invoiceId);
+        }
+
         $invoice->save();
 
         return $invoice;
     }
 
-    public function AssignBillToInvoice($invoiceId, $billId) {
-        $bill = Bill::where('bill_id', $billId)->first();
-        $invoice = Invoice::where('invoice_id', $invoiceId)->first();
-        $account = Account::where('account_id', $bill->charge_account_id)->first();
+    public function AttachLineItem($lineItemId, $invoiceId) {
+        $lineItemRepo = new LineItemRepo();
+
+        $invoice = $this->GetById($invoiceId);
+        $lineItem = $lineItemRepo->GetById($lineItemId);
 
         if($invoice === null)
             throw new \Exception('Invoice does not exist');
-        if($bill->percentage_complete != 100)
+        if($invoice->finalized)
+            throw new \Exception('Unable to detach from finalized invoice');
+        if($lineItem->charge->bill->percentage_complete != 100)
             throw new \Exception('Bill must be completed before invoicing');
-        if($bill->invoice_id != null)
-            throw new \Exception('Bill has already been assigned to an invoice');
-        if($bill->charge_account_id != $invoice->account_id && $account->parent_account_id != $invoice->account_id)
-            throw new \Exception('Bills can only be assigned to invoices with the same account id or to those with their parent account id; $charge_account_id = ' . $bill->charge_account_id . ' $invoice_account-id = ' . $invoice->account_id . ' $parent_account_id = ' . $account->parent_account_id);
-        if($invoice->finalized === 1)
-            throw new \Exception('Invoice has been finalized and may have been released to the customer already - unable to add bill');
-        $bill->invoice_id = $invoice->invoice_id;
-        $bill->save();
+        if($lineItem->invoice_id != null)
+            throw new \Exception('Line Item has already been assigned to an invoice');
+        if($lineItem->charge->charge_account_id != $invoice->account_id && $lineItem->charge->account->parent_account_id != $invoice->account_id)
+            throw new \Exception('Line Item must be assigned to an invoice with the same account id or to those with their parent account id matching the charge;');
 
-        $invoice = $this->CalculateInvoiceBalances($invoice);
-        return $invoice;
+        $lineItem->invoice_id = $invoiceId;
+        if($invoice->finalized) {
+            $amendmentNumber = LineItem::where('invoice_id', $invoiceId)->max('amendment_number');
+            if($amendmentNumber == null)
+                $lineItem->amendment_number = 0;
+            else
+                $lineItem->amendment_number = $amendmentNumber + 1;
+        }
+
+        $lineItem->save();
+        $this->CalculateInvoiceBalances($invoice);
+
+        return $lineItem;
     }
 
-    public function CalculateAccountBalanceOwing($account_id) {
-        $balance_owing = Invoice::where('account_id', $account_id)
+    public function CalculateAccountBalanceOwing($accountId) {
+        $balanceOwing = Invoice::where('account_id', $accountId)
             ->sum('balance_owing');
 
-        return $balance_owing;
-    }
-
-    private function CalculateInvoiceBalances($invoice) {
-        $account = Account::where('account_id', $invoice->account_id)->first();
-        $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
-        $amendmentTotal = Amendment::where('invoice_id', $invoice->invoice_id)->sum('amount');
-        // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be eqal to that, otherwise
-        // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation
-        $billCost = $effectiveCost = Bill::where('invoice_id', $invoice->invoice_id)->get()->sum(function ($bill) { return $bill->amount + $bill->interliner_cost_to_customer;}) + $amendmentTotal;
-        if($account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
-            $invoice->min_invoice_amount = $effectiveCost = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
-        else
-            $invoice->min_invoice_amount = null;
-
-        $invoice->bill_cost = number_format($billCost, 2, '.', '');
-        $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
-        if ($account->gst_exempt)
-            $invoice->tax = number_format(0, 2, '.', '');
-        else
-            $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
-        $invoice->total_cost = $effectiveCost + $invoice->tax;
-        $invoice->balance_owing = $invoice->total_cost - $invoice->discount - $paymentTotal;
-
-        $invoice->save();
-        return $invoice;
+        return $balanceOwing;
     }
 
     public function Create($accountIds, $startDate, $endDate) {
+        $accountRepo = new AccountRepo();
+        $lineItemRepo = new LineItemRepo();
+
         $invoices = array();
 
         foreach($accountIds as $accountId) {
-            $account = Account::where('account_id', $accountId)->first(['parent_account_id']);
-            $bills = Bill::where('charge_account_id', '=', $accountId)
-                        ->whereDate('time_pickup_scheduled', '>=', $startDate)
-                        ->whereDate('time_pickup_scheduled', '<=', $endDate)
-                        ->where('invoice_id', null)
-                        ->where('skip_invoicing', '=', 0)
-                        ->where('percentage_complete', 100)
-                        ->get();
+            $account = $accountRepo->GetById($accountId);
+            $effectiveAccountId = isset($account->parent_account_id) ? $account->parent_account_id : $account->account_id;
 
-            if(count($bills) > 0) {
-                if($account->parent_account_id != null) {
-                    if(!array_key_exists($account->parent_account_id, $invoices))
-                        $invoices[$account->parent_account_id] = $this->GenerateInvoice($account->parent_account_id, $startDate, $endDate);
-                    foreach($bills as $bill) {
-                        $bill->invoice_id = $invoices[$account->parent_account_id]->invoice_id;
-                        $bill->save();
-                    }
-                } else {
-                    if(!array_key_exists($accountId, $invoices))
-                        $invoices[$accountId] = $this->GenerateInvoice($accountId, $startDate, $endDate);
-                    foreach($bills as $bill) {
-                        $bill->invoice_id = $invoices[$accountId]->invoice_id;
-                        $bill->save();
-                    }
-                }
-            }
+            if(array_key_exists($effectiveAccountId, $invoices))
+                $invoice = $invoices[$effectiveAccountId];
+            else
+                $invoices[$effectiveAccountId] = $invoice = $this->GenerateInvoice($effectiveAccountId, $startDate, $endDate);
+
+            $lineItems = $lineItemRepo->InvoiceLineItems($invoice, $accountId);
         }
 
         foreach($invoices as $key => $value) {
@@ -120,34 +97,39 @@ class InvoiceRepo {
     }
 
     public function Delete($invoiceId) {
-        $amendments = Amendment::where('invoice_id', $invoiceId)->get();
-        $bills = Bill::where('invoice_id', '=', $invoiceId)->get();
+        $lineItems = LineItem::where('invoice_id', '=', $invoiceId)->get();
         $invoice = Invoice::where('invoice_id', '=', $invoiceId)->first();
         $payments = Payment::where('invoice_id', $invoiceId)->get();
 
         if(sizeof($payments) != 0)
             throw new \Exception('Unable to delete invoice: payments have already been made');
 
-        foreach($amendments as $amendment)
-            $this->DeleteAmendment($amendment->amendment_id);
+        foreach($lineItems as $lineItem) {
+            $lineItem->invoice_id = null;
 
-        foreach($bills as $bill) {
-            $bill->invoice_id = null;
-
-            $bill->save();
+            $lineItem->save();
         }
 
         $invoice->delete();
         return;
     }
 
-    public function DeleteAmendment($amendmentId) {
-        $amendment = Amendment::where('amendment_id', $amendmentId)->first();
-        $invoice = $this->GetById($amendment->invoice_id);
+    public function DetachLineItem($lineItemId) {
+        $lineItemRepo = new LineItemRepo();
+        $lineItem = $lineItemRepo->GetById($lineItemId);
 
-        $amendment->delete();
+        if($lineItem->invoice_id == null)
+            throw new \Exception('Line Item has not been assigned to an invoice');
+
+        $invoice = $this->GetById($lineItem->invoice_id);
+        if($invoice->finalized)
+            throw new \Exception('Unable to detatch Line Item: Invoice has been finalized and sent to the customer. Please perform the change as an amendment instead');
+
+        $lineItem->invoice_id = null;
+        $lineItem->save();
         $this->CalculateInvoiceBalances($invoice);
-        return;
+
+        return $lineItem;
     }
 
     public function GenerateInvoice($accountId, $startDate, $endDate) {
@@ -165,18 +147,6 @@ class InvoiceRepo {
 
         $new = new Invoice();
         return $new->create($invoice);
-    }
-
-    public function GetAmendmentById($amendmentId) {
-        $amendment = Amendment::where('amendment_id', $amendmentId);
-
-        return $amendment->first();
-    }
-
-    public function GetAmendmentsByInvoiceId($invoiceId) {
-        $amendments = Amendment::where('invoice_id', $invoiceId);
-
-        return $amendments->get();
     }
 
     public function GetById($id) {
@@ -204,20 +174,11 @@ class InvoiceRepo {
         return $sortOptions;
     }
 
-    public function InsertAmendment($amendment) {
-        $new = new Amendment;
-
-        $new->create($amendment);
-        $invoice = $this->GetById($amendment['invoice_id']);
-
-        $this->CalculateInvoiceBalances($invoice);
-
-        return;
-    }
-
     public function ListAll($myAccounts) {
         $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
-            ->leftjoin('bills', 'bills.invoice_id', '=', 'invoices.invoice_id')
+            ->leftJoin('line_items', 'line_items.invoice_id', '=', 'invoices.invoice_id')
+            ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftjoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->leftjoin('payments', 'payments.invoice_id', '=', 'invoices.invoice_id')
             ->select(
                 'invoices.invoice_id',
@@ -252,18 +213,20 @@ class InvoiceRepo {
         return $filteredInvoices->get();
     }
 
-    public function RemoveBillFromInvoice($billId) {
-        $bill = Bill::where('bill_id', $billId)->first();
-        if($bill->invoice_id === null)
-            throw new \Exception('Bill has not been invoiced - Invalid request');
+    public function RegatherInvoice($invoice) {
+        $accountRepo = new AccountRepo();
+        $lineItemRepo = new LineItemRepo();
 
-        $invoice = Invoice::where('invoice_id', $bill->invoice_id)->first();
-        $bill->invoice_id = null;
+        $count = 0;
+        $account = $accountRepo->GetById($invoice->account_id);
+        $children = $accountRepo->GetChildAccountList($account->account_id);
+        foreach($children as $child)
+            $count += count($lineItemRepo->InvoiceLineItems($invoice, $child->account_id, $invoice->finalized));
+        $count += count($lineItemRepo->InvoiceLineItems($invoice, null, $invoice->finalized));
 
-        $bill->save();
-        $invoice = $this->CalculateInvoiceBalances($invoice);
+        $this->CalculateInvoiceBalances($invoice);
 
-        return $invoice;
+        return $count;
     }
 
     public function ToggleFinalized($invoiceId) {
@@ -272,4 +235,33 @@ class InvoiceRepo {
 
         $invoice->save();
     }
+
+    /**
+     * Private functions
+     */
+
+    private function CalculateInvoiceBalances($invoice) {
+        $account = Account::where('account_id', $invoice->account_id)->first();
+        $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
+        // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be equal to that, otherwise
+        // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation
+        $billCost = $effectiveCost = LineItem::where('invoice_id', $invoice->invoice_id)->get()->sum('price');
+        if($account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
+            $invoice->min_invoice_amount = $effectiveCost = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
+        else
+            $invoice->min_invoice_amount = null;
+
+        $invoice->bill_cost = number_format($billCost, 2, '.', '');
+        $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
+        if ($account->gst_exempt)
+            $invoice->tax = number_format(0, 2, '.', '');
+        else
+            $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+        $invoice->total_cost = $effectiveCost + $invoice->tax;
+        $invoice->balance_owing = $invoice->total_cost - $invoice->discount - $paymentTotal;
+
+        $invoice->save();
+        return $invoice;
+    }
+
 }

@@ -26,6 +26,7 @@ class BillUpdatedListener
      */
     public function handle(BillUpdated $event)
     {
-        //
+        $billRepo = new \App\Http\Repos\BillRepo();
+        $billRepo->CheckRequiredFields($event->bill_id);
     }
 }

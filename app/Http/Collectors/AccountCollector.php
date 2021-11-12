@@ -46,6 +46,7 @@ class AccountCollector {
             'send_bills'=>filter_var($req->send_bills, FILTER_VALIDATE_BOOLEAN),
             'send_email_invoices'=>filter_var($req->send_email_invoices, FILTER_VALIDATE_BOOLEAN),
             'send_paper_invoices'=>filter_var($req->send_paper_invoices, FILTER_VALIDATE_BOOLEAN),
+            'show_invoice_line_items'=>filter_var($req->show_invoice_line_items, FILTER_VALIDATE_BOOLEAN)
         ];
 
         return array_merge(

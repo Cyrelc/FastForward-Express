@@ -64,7 +64,7 @@ class AccountController extends Controller {
         $accountRepo = new Repos\AccountRepo();
         if(count($user->accountUsers) > 0)
             $model = $accountRepo->ListAll($user, $user->can('viewChildAccounts', $accountRepo->GetById($user->accountUsers[0]->account_id)));
-        else if($user->employee)
+        else if($user->employee || $user->hasRole('superAdmin'))
             $model = $accountRepo->ListAll(null);
 
         return json_encode($model);

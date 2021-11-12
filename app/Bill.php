@@ -8,17 +8,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Bill extends Model
 {
     use LogsActivity;
-    
+
     public $primaryKey = "bill_id";
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
-        'amount',
         'bill_number',
-        'charge_account_id',
-        'charge_reference_value',
-        'chargeback_id',
-        'created_at',
         'delivery_account_id',
         'delivery_address_id',
         'delivery_driver_commission',
@@ -28,17 +23,12 @@ class Bill extends Model
         'delivery_type',
         'description',
         'incomplete_fields',
-        'interliner_cost',
-        'interliner_cost_to_customer',
         'interliner_id',
         'interliner_reference_value',
         'internal_comments',
-        'invoice_id',
         'is_min_weight_size',
         'is_pallet',
         'packages',
-        'payment_id',
-        'payment_type_id',
         'percentage_complete',
         'pickup_account_id',
         'pickup_address_id',
@@ -54,17 +44,13 @@ class Bill extends Model
         'time_dispatched',
         'time_picked_up',
         'time_delivered',
-        'updated_at',
         'use_imperial'
     ];
 
+    protected static $ignoreChangedAttributes = ['percentage_complete'];
     protected static $logFillable = true;
     protected static $logOnlyDirty = true;
     protected static $submitEmptyLogs = false;
-
-    public function chargeAccount() {
-        return $this->belongsTo(Account::class, 'charge_account_id');
-    }
 
     //editable fields
     public static $basicFields = [
@@ -98,16 +84,8 @@ class Bill extends Model
     ];
 
     public static $billingFields = [
-        'amount',
-        'charge_account_id',
-        'charge_reference_value',
-        'chargeback_id',
-        'interliner_cost',
-        'interliner_cost_to_customer',
         'interliner_id',
         'interliner_reference_value',
-        'payment_id',
-        'payment_type_id',
         'repeat_interval',
         'skip_invoicing',
     ];
@@ -116,16 +94,14 @@ class Bill extends Model
      * Readonly fields
      */
     public static $readOnlyFields = [
-        'amount',
         'bill_id',
-        'charge_account_id',
         'created_at',
-        'delivery_manifest_id',
         'incomplete_fields',
-        'invoice_id',
-        'payment_type_id',
         'percentage_complete',
-        'pickup_manifest_id',
         'updated_at'
     ];
+
+    public function charges() {
+        return $this->hasMany(Charge::class, 'bill_id');
+    }
 }

@@ -10,19 +10,30 @@ use App\Http\Filters\IsNull;
 
 use App\Account;
 use App\Bill;
+use App\LineItem;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class BillRepo {
-    public function AssignToDriver($bill_id, $employee) {
-        $old = $this->GetById($bill_id);
+    private $myAccounts;
+    private $employeeId;
+
+    function __constructor() {
+        $user = Auth::user();
+
+        $accountRepo = new AccountRepo();
+        $this->myAccounts = $user->accountUsers ? $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')) : null;
+        $this->employeeId = $user->employee ? $user->employee->employee_id : null;
+    }
+
+    public function AssignToDriver($billId, $employee) {
+        $old = $this->GetById($billId);
 
         $old->pickup_driver_id = $employee->employee_id;
         $old->delivery_driver_id = $employee->employee_id;
         $old->pickup_driver_commission = $employee->pickup_commission / 100;
         $old->delivery_driver_commission = $employee->delivery_commission / 100;
         $old->time_dispatched = new \DateTime();
-
-        $old = $this->CheckRequiredFields($old);
 
         $old->save();
 
@@ -37,54 +48,67 @@ class BillRepo {
 	    return $count;
     }
 
-    public function CountByDriverBetweenDates($driver_id, $start_date, $end_date) {
-        $count = Bill::whereDate('time_pickup_scheduled', '>=', $start_date)
-                ->whereDate('time_pickup_scheduled', '<=', $end_date)
-                ->where('percentage_complete', 100)
-                ->where(function($query) use ($driver_id) {
-                    $query->where('pickup_driver_id', '=', $driver_id)
-                    ->where('pickup_manifest_id', null)
-                    ->orWhere('delivery_driver_id', '=', $driver_id)
-                    ->where('delivery_manifest_id', null);
-                });
+    public function CountByInvoiceId($invoiceId) {
+        $billCount = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->where('invoice_id', '=', $invoiceId)
+            ->distinct('charges.bill_id');
+
+        return $billCount->count();
+    }
+
+    public function CountByManifestId($manifestId) {
+        $count = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+                ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+                ->where('pickup_manifest_id', $manifestId)
+                ->orWhere('delivery_manifest_id', $manifestId)
+                ->distinct('bills.bill_id');
 
         return $count->count();
     }
 
-    public function CountByInvoiceId($invoiceId) {
-        $billCount = Bill::where('invoice_id', '=', $invoiceId)
-            ->count();
-
-        return $billCount;
-    }
-
-    public function CountByManifestId($manifest_id) {
-        $count = Bill::where('pickup_manifest_id', $manifest_id)
-                ->orWhere('delivery_manifest_id', $manifest_id)
-                ->count();
-
-        return $count;
-    }
-
     public function Delete($id) {
+        $addressRepo = new AddressRepo();
+        $chargeRepo = new ChargeRepo();
+
         $bill = $this->GetById($id);
         if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
             throw new \Exception('Unable to delete bill after it has been invoiced or manifested');
 
         $bill->delete();
-        $addressRepo = new AddressRepo();
         $addressRepo->Delete($bill->pickup_address_id);
         $addressRepo->Delete($bill->delivery_address_id);
+        $charges = $chargeRepo->DeleteByBillId($bill->bill_id);
         //TODO: Delete associated chargebacks
 
         return;
     }
 
-    public function GetAmountByInvoiceId($invoice_id) {
-        $amount = Bill::where('invoice_id', $invoice_id)
-            ->value(DB::raw('sum(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end)'));
+    public function GetAmendmentsByInvoiceId($invoiceId) {
+        $billQuery = LineItem::where('invoice_id', $invoiceId)
+            ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+            ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+            ->join('accounts', 'accounts.account_id', '=', 'charges.charge_account_id')
+            ->join('selections', 'selections.value', '=', 'bills.delivery_type')
+            ->where('amendment_number', '!=', null)
+            ->select(
+                'accounts.name as charge_account_name',
+                DB::raw('sum(price) as amount'),
+                'bills.bill_id',
+                'bill_number',
+                'charges.charge_id as charge_id',
+                'charge_account_id',
+                'charge_reference_value',
+                'delivery_account_id',
+                'delivery.name as delivery_address_name',
+                'pickup_account_id',
+                'pickup.name as pickup_address_name',
+                'selections.name as delivery_type',
+                'time_pickup_scheduled'
+            )->groupBy('bills.bill_id');
 
-        return $amount;
+        return $billQuery->get();
     }
 
     public function GetById($billId, $permissions = null) {
@@ -116,25 +140,30 @@ class BillRepo {
             if(isset($invoiceSortOption->group_by) && filter_var($invoiceSortOption->group_by, FILTER_VALIDATE_BOOLEAN))
                 $subtotalBy = $invoiceSortOption;
 
-        $billQuery = Bill::where('invoice_id', $invoiceId)
+        $billQuery = LineItem::where('invoice_id', $invoiceId)
+            ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
             ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
-            ->join('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
+            ->join('accounts', 'accounts.account_id', '=', 'charges.charge_account_id')
             ->join('selections', 'selections.value', '=', 'bills.delivery_type')
+            ->where('amendment_number', null)
             ->select(
-                'bill_id',
-                DB::raw('format(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2) as amount'),
+                'accounts.account_id',
+                'accounts.name as charge_account_name',
+                DB::raw('sum(price) as amount'),
+                'bills.bill_id',
                 'bill_number',
-                'time_pickup_scheduled',
+                'charges.charge_id as charge_id',
                 'charge_account_id',
-                'pickup_account_id',
-                'delivery_account_id',
                 'charge_reference_value',
-                'selections.name as delivery_type',
-                'pickup.name as pickup_address_name',
+                'delivery_account_id',
                 'delivery.name as delivery_address_name',
-                'accounts.name as charge_account_name'
-            );
+                'pickup_account_id',
+                'pickup.name as pickup_address_name',
+                'selections.name as delivery_type',
+                'time_pickup_scheduled'
+            )->groupBy('bills.bill_id');
 
         $bills = array();
         if($subtotalBy == NULL) {
@@ -148,7 +177,12 @@ class BillRepo {
             if($subtotalBy->database_field_name === 'time_pickup_scheduled')
                 $subtotalIds = Bill::where('invoice_id', $invoiceId)->select(DB::raw('date(time_pickup_scheduled) as pickup_date'))->groupBy('pickup_date')->pluck('pickup_date');
             else
-                $subtotalIds = Bill::where('invoice_id', $invoiceId)->groupBy($subtotalBy->database_field_name)->pluck($subtotalBy->database_field_name);
+                $subtotalIds = Bill::leftJoin('charges', 'charges.bill_id', '=', 'bills.bill_id')
+                    ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
+                    ->where('invoice_id', $invoiceId)
+                    ->groupBy($subtotalBy->database_field_name)
+                    ->orderBy($subtotalBy->database_field_name)
+                    ->pluck($subtotalBy->database_field_name);
 
             foreach($subtotalIds as $subtotalId) {
                 $subtotalQuery = clone $billQuery;
@@ -178,23 +212,24 @@ class BillRepo {
         return $bills;
     }
 
-    public function GetByManifestId($manifest_id) {
-        $bills = Bill::where('pickup_manifest_id', $manifest_id)
-            ->orWhere('delivery_manifest_id', $manifest_id)
+    public function GetByManifestId($manifestId) {
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where('pickup_manifest_id', $manifestId)
+            ->orWhere('delivery_manifest_id', $manifestId)
             ->leftjoin('selections', 'selections.value', '=', 'delivery_type')
             ->select(
-                'bill_id',
+                DB::raw('sum(driver_amount) as amount'),
+                'bills.bill_id',
                 'bill_number',
                 'time_pickup_scheduled',
-                DB::raw('format(amount, 2) as amount'),
-                'charge_account_id',
                 'selections.name as delivery_type',
-                DB::raw('case when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then "Pickup And Delivery" when pickup_manifest_id = ' . $manifest_id . ' then "Pickup Only" when delivery_manifest_id = ' . $manifest_id . ' then "Delivery Only" end as type'),
+                DB::raw('case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . ' then "Pickup And Delivery" when pickup_manifest_id = ' . $manifestId . ' then "Pickup Only" when delivery_manifest_id = ' . $manifestId . ' then "Delivery Only" end as type'),
                 DB::raw('DATE_FORMAT(time_pickup_scheduled, "%Y-%m-%d") as day'),
-                DB::raw('case when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) end as driver_income')
-            )
-            ->orderBy('time_pickup_scheduled')
-            ->orderBy('bill_id');
+                DB::raw('round(sum(case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . ' then driver_amount * pickup_driver_commission + driver_amount * delivery_driver_commission when pickup_manifest_id = ' . $manifestId . ' then driver_amount * pickup_driver_commission when delivery_manifest_id = ' . $manifestId . ' then driver_amount * delivery_driver_commission end), 2) as driver_income')
+            )->orderBy('time_pickup_scheduled')
+            ->orderBy('bills.bill_id')
+            ->groupBy('bills.bill_id');
 
         return $bills->get();
     }
@@ -213,19 +248,22 @@ class BillRepo {
             ->whereDate('time_pickup_scheduled', '<=', $endDate)
             ->leftJoin('employees', 'employees.employee_id', '=', 'bills.pickup_driver_id')
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+            ->leftJoin('charges', 'charges.bill_id', '=', 'bills.bill_id')
+            ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
             ->select(
-                DB::raw('sum(amount) as amount'),
-                DB::raw('count(*) as count'),
+                DB::raw('sum(price) as amount'),
+                DB::raw('count(distinct(bills.bill_id)) as count'),
                 'charge_account_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m-%d (%a)") as day'),
                 'delivery_type',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
-                'employee_id',
+                'employees.employee_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m - %b") as month'),
                 'pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
-                DB::raw('sum(case when pickup_driver_id = employee_id and delivery_driver_id = employee_id then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) when pickup_driver_id = employee_id then round(amount * pickup_driver_commission, 2) when delivery_driver_id = employee_id then round(amount * delivery_driver_id, 2) end) as driver_income')
+                DB::raw('sum(case when pickup_driver_id = employees.employee_id and delivery_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2) when pickup_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) when delivery_driver_id = employees.employee_id then round(driver_amount * delivery_driver_id, 2) end) as driver_income')
             );
+
         if($groupBy === 'none')
             $bills->groupBy($dateGroupBy);
         else
@@ -234,52 +272,49 @@ class BillRepo {
         return $bills->get();
     }
 
-    public function GetDriverTotalByManifestId($manifest_id) {
-        $total = Bill::where('pickup_manifest_id', $manifest_id)
-                ->orWhere('delivery_manifest_id', $manifest_id)
-                ->select(DB::raw('sum(case ' .
-                    'when pickup_manifest_id = ' . $manifest_id . ' and delivery_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2) ' .
-                    'when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) ' .
-                    'when delivery_manifest_id  = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) end) as total'))
-                ->pluck('total');
-
-        return $total[0];
-    }
-
     public function GetInvoiceSubtotalByField($invoiceId, $fieldName, $fieldValue) {
-        $subtotal = Bill::where('invoice_id', $invoiceId);
+        $subtotal = LineItem::where('invoice_id', $invoiceId)
+            ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id');
 
         if($fieldName === 'time_pickup_scheduled')
             $subtotal->whereDate($fieldName, explode(" ", $fieldValue)[0]);
         else
             $subtotal->where($fieldName, $fieldValue);
 
-        return $subtotal->sum(DB::raw('round(amount + case when interliner_cost_to_customer is not null then interliner_cost_to_customer else 0 end, 2)'));
+        return $subtotal->sum('price');
     }
 
-    public function GetManifestOverviewById($manifest_id) {
-        $bills = Bill::where('pickup_manifest_id', $manifest_id)
-            ->orWhere('delivery_manifest_id', $manifest_id)
-            ->select(DB::raw('DATE(time_pickup_scheduled) as time_pickup_scheduled'),
-                    DB::raw('sum(case when pickup_manifest_id = ' . $manifest_id . ' then round(amount * pickup_driver_commission, 2) else 0 end) as pickup_amount'),
-                    DB::raw('sum(case when delivery_manifest_id = ' . $manifest_id . ' then round(amount * delivery_driver_commission, 2) else 0 end) as delivery_amount'),
-                    DB::raw('count(case when pickup_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as pickup_count'),
-                    DB::raw('count(case when delivery_manifest_id = ' . $manifest_id . ' then 1 else NULL end) as delivery_count'))
-            ->groupBy(DB::raw('DATE(time_pickup_scheduled)'))
+    public function GetManifestOverviewById($manifestId) {
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where('pickup_manifest_id', $manifestId)
+            ->orWhere('delivery_manifest_id', $manifestId)
+            ->select(
+                DB::raw('DATE(time_pickup_scheduled) as time_pickup_scheduled'),
+                DB::raw('DATE(time_pickup_scheduled) as comparison_time'),
+                DB::raw('sum(case when pickup_manifest_id = ' . $manifestId . ' then round(driver_amount * pickup_driver_commission, 2) else 0 end) as pickup_amount'),
+                DB::raw('sum(case when delivery_manifest_id = ' . $manifestId . ' then round(driver_amount * delivery_driver_commission, 2) else 0 end) as delivery_amount'),
+                DB::raw('(select count(distinct charges.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where pickup_manifest_id = ' . $manifestId . ' and DATE(bills.time_pickup_scheduled) = comparison_time) as pickup_count'),
+                DB::raw('(select count(distinct charges.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where delivery_manifest_id = ' . $manifestId . ' and DATE(bills.time_pickup_scheduled) = comparison_time) as delivery_count'),
+            )
+            ->groupBy(DB::raw('date(time_pickup_scheduled)'))
+            ->orderBy(DB::raw('date(time_pickup_scheduled)'))
             ->get();
 
         return $bills;
     }
 
     public function GetMonthlyTotals($date) {
-        $bills = Bill::whereDate('time_pickup_scheduled', '>=', $date)
-        ->select(
-            DB::raw('sum(amount) as income'),
-            DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month'),
-            DB::raw('sum(interliner_cost) as interliner_cost'),
-            DB::raw('sum(interliner_cost_to_customer) as interliner_cost_to_customer')
-        )
-        ->groupBy('month');
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->whereDate('time_pickup_scheduled', '>=', $date)
+            ->select(
+                DB::raw('sum(price) as income'),
+                DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month'),
+                DB::raw('sum(interliner_cost) as interliner_cost'),
+                // DB::raw('sum(interliner_cost_to_customer) as interliner_cost_to_customer')
+            )->groupBy('month');
 
         return $bills->get();
     }
@@ -306,13 +341,14 @@ class BillRepo {
             array_push($prepaidOptionIds, $option->payment_type_id);
         }
 
-        $bills = Bill::whereDate('time_pickup_scheduled', '>=', $date)
-        ->whereIn('payment_type_id', $prepaidOptionIds)
-        ->select(
-            DB::raw('sum(amount) as prepaid_income'),
-            DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month')
-        )
-        ->groupBy('month');
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->whereDate('time_pickup_scheduled', '>=', $date)
+            ->whereIn('charge_type_id', $prepaidOptionIds)
+            ->select(
+                DB::raw('sum(price) as prepaid_income'),
+                DB::raw('date_format(time_pickup_scheduled, "%Y-%m") as month')
+            )->groupBy('month');
 
         return $bills->get();
     }
@@ -342,113 +378,94 @@ class BillRepo {
         $new = new Bill;
 
         $new = $new->create($bill);
-        $new = $this->checkRequiredFields($new);
-        $new->save();
 
         return $new;
     }
 
-    public function IsReadOnly($bill_id) {
-        $bill = $this->GetById($bill_id);
-
-        if(isset($bill->invoice_id) && isset($bill->pickup_manifest_id) && isset($bill->delivery_manifest_id))
-            return true;
-        else
-            return false;
-    }
-
-	public function ListAll($req, $myAccounts = null, $employeeId = false) {
-        $bills = Bill::leftJoin('accounts', 'accounts.account_id', '=', 'bills.charge_account_id')
-                ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
-                ->leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
-                ->leftJoin('interliners', 'interliners.interliner_id', '=', 'bills.interliner_id')
-                ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'bills.pickup_driver_id')
-                ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'bills.pickup_driver_id')
-                ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
-                ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
-                ->leftJoin('payment_types', 'bills.payment_type_id', '=', 'payment_types.payment_type_id')
-                ->leftJoin('accounts as parent_accounts', 'accounts.parent_account_id', '=', 'parent_accounts.account_id')
-                ->leftJoin('selections as deliveryType', 'deliveryType.value', '=', 'bills.delivery_type')
-                ->leftJoin('selections as repeatInterval', 'repeatInterval.selection_id', '=', 'bills.repeat_interval')
-                ->select(
-                    array_merge([
-                            DB::raw('format(amount, 2) as amount'),
-                            'bill_id',
-                            'bill_number',
-                            'charge_account_id',
-                            'accounts.name as charge_account_name',
-                            'accounts.account_number as charge_account_number',
-                            'delivery_address.formatted as delivery_address_formatted',
-                            'delivery_address.name as delivery_address_name',
-                            'deliveryType.name as delivery_type',
-                            'description',
-                            'interliner_cost_to_customer',
-                            'invoice_id',
-                            'bills.payment_type_id',
-                            'payment_types.name as payment_type',
-                            'parent_accounts.account_id as parent_account_id',
-                            DB::raw('case when accounts.can_be_parent = 1 then concat(accounts.account_id, " - ", accounts.name) when accounts.can_be_parent = 0 then concat(accounts.parent_account_id, " - ", parent_accounts.name) end as parent_account'),
-                            'percentage_complete',
-                            'pickup_address.formatted as pickup_address_formatted',
-                            'pickup_address.name as pickup_address_name',
-                            'time_pickup_scheduled',
-                            'time_delivery_scheduled',
-                            'time_picked_up',
-                            'time_delivered'
-                        ],
-                        $req->user()->can('viewDispatch', Bill::class) ? [
-                            'delivery_driver_id',
-                            DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
-                            'delivery_manifest_id',
-                            'pickup_driver_id',
-                            DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
-                            'pickup_manifest_id',
-                        ] : [],
-                        $req->user()->can('viewBilling', Bill::class) ? [
-                            'accounts.invoice_interval as invoice_interval',
-                            'delivery_address.lat as delivery_address_lat',
-                            'delivery_address.lng as delivery_address_lng',
-                            DB::raw('coalesce(invoice_id, pickup_manifest_id, delivery_manifest_id) is null as editable'),
-                            'interliner_cost',
-                            'interliners.interliner_id',
-                            'interliners.name as interliner_name',
-                            'pickup_address.lat as pickup_address_lat',
-                            'pickup_address.lng as pickup_address_lng',
-                            'repeat_interval',
-                            'repeatInterval.name as repeat_interval_name',
-                        ] : []
-                    )
-                );
-
-            if($myAccounts)
-                $bills->whereIn('charge_account_id', $myAccounts);
-            else if($employeeId) {
-                $bills->where('pickup_driver_id', $employeeId)
-                    ->orWhere('delivery_driver_id', $employeeId);
-            }
-
-            $filteredBills = QueryBuilder::for($bills)
-                ->allowedFilters([
-                    AllowedFilter::custom('amount', new NumberBetween),
+	public function ListAll($req) {
+        $bills = Bill::leftJoin('charges', 'charges.bill_id', '=', 'bills.bill_id')
+            ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
+            ->leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
+            ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
+            ->leftJoin('interliners', 'interliners.interliner_id', '=', 'bills.interliner_id')
+            ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'bills.pickup_driver_id')
+            ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'bills.pickup_driver_id')
+            ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
+            ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
+            ->leftJoin('selections as deliveryType', 'deliveryType.value', '=', 'bills.delivery_type')
+            ->leftJoin('selections as repeatInterval', 'repeatInterval.selection_id', '=', 'bills.repeat_interval')
+            ->leftJoin('accounts as charge_account', 'charges.charge_account_id', '=', 'charge_account.account_id')
+            ->select(
+                array_merge([
+                    DB::raw('sum(price) as price'),
+                    'bills.bill_id',
                     'bill_number',
-                    AllowedFilter::exact('charge_account_id'),
-                    AllowedFilter::custom('dispatch', new Dispatch),
-                    AllowedFilter::exact('delivery_driver_id'),
-                    AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
-                    AllowedFilter::exact('invoice_id'),
-                    AllowedFilter::custom('invoiced', new IsNull, 'invoice_id'),
-                    AllowedFilter::exact('invoice_interval'),
-                    AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
-                    AllowedFilter::exact('skip_invoicing'),
-                    AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
-                    AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
-                    AllowedFilter::exact('payment_type_id', 'bills.payment_type_id'),
-                    AllowedFilter::custom('percentage_complete', new NumberBetween),
-                    AllowedFilter::exact('pickup_driver_id'),
-                    AllowedFilter::exact('repeat_interval')
-                ]);
+                    'charge_account.account_id as charge_account_id',
+                    'charges.charge_type_id as charge_type_id',
+                    DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
+                    'delivery_address.formatted as delivery_address_formatted',
+                    'delivery_address.name as delivery_address_name',
+                    'deliveryType.name as type',
+                    'description',
+                    DB::raw('MIN(case when line_items.paid is null then 0 else paid end) as paid'),
+                    'parent_account_id',
+                    'percentage_complete',
+                    'pickup_address.formatted as pickup_address_formatted',
+                    'pickup_address.name as pickup_address_name',
+                    'time_pickup_scheduled',
+                    'time_delivery_scheduled',
+                    'time_picked_up',
+                    'time_delivered'
+                ],
+                $req->user()->can('viewDispatch', Bill::class) ? [
+                    'delivery_driver_id',
+                    DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
+                    'pickup_driver_id',
+                    DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
+                ] : [],
+                $req->user()->can('viewBilling', Bill::class) ? [
+                    'delivery_address.lat as delivery_address_lat',
+                    'delivery_address.lng as delivery_address_lng',
+                    'interliners.interliner_id',
+                    'interliners.name as interliner_name',
+                    'pickup_address.lat as pickup_address_lat',
+                    'pickup_address.lng as pickup_address_lng',
+                    'repeat_interval',
+                    'repeatInterval.name as repeat_interval_name',
+                ] : []
+            )
+        );
 
-            return $filteredBills->get();
+        if($this->myAccounts) {
+            $bills->whereIn('charges.charge_account_id', $this->myAccounts);
+        }
+        else if($this->employeeId && $user->cannot('viewAll', Bill::class)) {
+            $bills->where('pickup_driver_id', $this->employeeId)
+                ->orWhere('delivery_driver_id', $this->employeeId);
+        }
+
+        $filteredBills = QueryBuilder::for($bills)
+            ->allowedFilters([
+                AllowedFilter::custom('price', new NumberBetween),
+                'bill_number',
+                AllowedFilter::exact('charge_account_id', 'charge_account.account_id'),
+                AllowedFilter::custom('dispatch', new Dispatch),
+                AllowedFilter::exact('delivery_driver_id'),
+                AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
+                AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
+                // AllowedFilter::custom('invoiced', new IsNull, 'invoice_id'),
+                AllowedFilter::exact('paid', 'line_items.paid'),
+                AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
+                AllowedFilter::exact('skip_invoicing'),
+                AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
+                AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
+                AllowedFilter::exact('charge_type_id', 'charges.charge_type_id'),
+                AllowedFilter::custom('percentage_complete', new NumberBetween),
+                AllowedFilter::exact('pickup_driver_id'),
+                AllowedFilter::exact('repeat_interval')
+            ]);
+
+        return $filteredBills->groupBy('bill_id')->get();
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {
@@ -459,55 +476,65 @@ class BillRepo {
         else if ($type === 'delivery')
             $old->time_delivered = $time;
 
-        $old = $this->CheckRequiredFields($old);
         $old->save();
 
         return $old;
     }
 
     public function Update($bill, $permissions) {
-        $old = $this->GetById($bill['bill_id']);
+        $lineItemRepo = new LineItemRepo();
+        $lineItems = $lineItemRepo->GetByBillId($bill['bill_id']);
 
-        if($this->IsReadOnly($old->bill_id))
-            throw new \Exception('Unable to edit bill after it has been invoiced and manifested');
+        $old = $this->GetById($bill['bill_id']);
 
         if($permissions['editBasic'])
             foreach(Bill::$basicFields as $field)
                 $old->$field = $bill[$field];
 
         if($permissions['editDispatch'])
-            foreach(Bill::$dispatchFields as $field)
+            foreach(Bill::$dispatchFields as $field) {
+                if(($field === 'pickup_driver_id' || $field === 'pickup_driver_commission') && !$this->IsPickupDriverEditable($old['bill_id']))
+                    continue;
+                if(($field === 'delivery_driver_id' || $field === 'delivery_driver_commission') && !$this->IsDeliveryDriverEditable($old['bill_id']))
+                    continue;
                 $old->$field = $bill[$field];
+            }
+
 
         if($permissions['editBilling'])
             foreach(Bill::$billingFields as $field)
                 $old->$field = $bill[$field];
 
-        $this->checkRequiredFields($old);
         $old->save();
 
         return $old;
     }
 
-    // Private Functions
+    /**
+     * Private functions
+     */
 
     /**
-     * Checks the completion level of the bill prior to each insert/update
-     * In order to support partial updates, such as assigning a driver or setting ONLY a pickup/delivery time, the function must support 
-     * both objects and array form $bill parameters
-     * @param $bill - a bill of form object
+     * Checks the completion level of the bill after each insert/update
+     * Triggered by laravel events
+     * Must be done post update as a separate database write to properly check charges and line items (who would otherwise not yet be entered as they rely on a valid bill_id)
+     * @param $billId - the valid id of a bill
      * 
      */
-    private function CheckRequiredFields($bill) {
+    public function CheckRequiredFields($billId) {
+        $accountRepo = new AccountRepo();
+        $chargeRepo = new ChargeRepo();
+        $lineItemRepo = new LineItemRepo();
         $paymentRepo = new PaymentRepo();
 
+        $bill = $this->GetById($billId);
+
+        $incompleteFields = [];
         $requiredFields = [
-			'amount',
 			'bill_number',
 			'delivery_driver_commission',
 			'delivery_driver_id',
 			'delivery_type',
-            'payment_type_id',
 			'pickup_driver_id',
 			'pickup_driver_commission',
 			'time_pickup_scheduled',
@@ -516,19 +543,35 @@ class BillRepo {
             'time_dispatched'
 		];
 
-        $paymentType = $paymentRepo->GetPaymentType($bill->payment_type_id);
-
-		if(isset($bill->interliner_id) && $bill->interliner_id != "")
-            $requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value', 'interliner_cost', 'interliner_cost_to_customer']);
-
-		if($paymentType->name === 'Account')
-			$requiredFields = array_merge($requiredFields, ['charge_account_id']);
-		elseif($paymentType->name === 'Driver')
-			$requiredFields = array_merge($requiredFields, ['charge_employee_id']);
-		elseif($paymentType->is_prepaid)
-			$requiredFields = array_merge($requiredFields, ['payment_id']);
-
-        $incompleteFields = [];
+        $charges = $chargeRepo->GetByBillId($bill->bill_id);
+        if(!$charges || count($charges) === 0) {
+            $incompleteFields[] = 'charges';
+            $incompleteFields[] = 'line_items';
+        } else
+            foreach($charges as $charge) {
+                $paymentType = $paymentRepo->GetPaymentType($charge->charge_type_id);
+                if($charge->account_id) {
+                    $account = $accountRepo->GetById($charge->account_id);
+                    if($account->is_custom_field_mandatory)
+                        $requiredFields[] = $account->custom_field;
+                }
+                $lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
+                if(count($lineItems) === 0)
+                    $requiredFields[] = $charge->charge_name . '_requires_at_least_one_line_item';
+                else
+                    foreach($lineItems as $lineItem) {
+                        if($lineItem['name'] === 'Interliner' && !in_array('interliner_id', $requiredFields))
+                            $requiredFields = array_merge($requiredFields, ['interliner_id', 'interliner_reference_value']);
+                        if(!isset($lineItem->price))
+                            $requiredFields[] = $lineItem->charge_id . '.' . $lineItem->name . '.price';
+                        if(!isset($lineItem->driver_amount))
+                            $requiredFields[] = $lineItem->charge_id . '.' . $lineItem->name . '.driver_amount';
+                        if($lineItem->price == 0 && $lineItem->driver_amount == 0)
+                            $requiredFields[] = 'Both price and driver amount cannot be zero on ' . $lineItem->name;
+                        if($paymentType->is_prepaid && !$lineItem['paid'])
+                            $requiredFields[] = $lineItem->charge_id . '.' . $lineItem->name . '.paid';
+                    }
+            }
 
         foreach($requiredFields as $field) {
             if(empty($bill->$field))
@@ -537,14 +580,35 @@ class BillRepo {
 
         $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);
 
-        $timestamp = date('Y-m-d H:i:s');
-
         $bill->percentage_complete = $percentageComplete;
         $bill->incomplete_fields = $incompleteFields;
-        $bill->updated_at = $timestamp;
-        if(!$bill->bill_id)
-            $bill->created_at = $timestamp;
+        activity('system_debug')
+            ->performedOn($bill)
+            ->log(implode(',', $incompleteFields));
 
-        return $bill;
+        $bill->save(['timestamps' => false]);
+    }
+
+    private function IsDeliveryDriverEditable($billId) {
+        $lineItemRepo = new LineItemRepo();
+        $lineItems = $lineItemRepo->GetByBillId($billId);
+
+        foreach($lineItems as $lineItem)
+            if($lineItem->delivery_manifest_id)
+                return false;
+
+        return true;
+    }
+
+    private function IsPickupDriverEditable($billId) {
+        $lineItemRepo = new LineItemRepo();
+
+        $lineItems = $lineItemRepo->GetByBillId($billId);
+
+        foreach($lineItems as $lineItem)
+            if($lineItem->pickup_manifest_id)
+                return false;
+
+        return true;
     }
 }

@@ -57,9 +57,18 @@ class AccountRepo {
      * @param accountId $id
      */
     public function GetById($accountId) {
-        $account = Account::where('account_id', '=', $accountId);
+        $account = Account::where('account_id', $accountId);
 
         return $account->first();
+    }
+
+    public function GetByInvoiceInterval($invoiceIntervals) {
+        $accounts = Account::leftJoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
+            ->whereIn('selections.selection_id', $invoiceIntervals)
+            ->where('active', true)
+            ->select('*', 'accounts.name as name');
+
+        return $accounts->get();
     }
 
     /**
@@ -140,6 +149,31 @@ class AccountRepo {
             ];
 
         return $accounts;
+    }
+
+    public function GetWithUninvoicedLineItems($invoiceIntervals, $startDate, $endDate) {
+        $accounts = Account::leftJoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
+            ->leftJoin('accounts as parent_account', 'parent_account.account_id', '=', 'accounts.parent_account_id')
+            ->whereIn('selections.selection_id', $invoiceIntervals)
+            ->where('accounts.active', true)
+            ->select(
+                'accounts.account_id',
+                'accounts.account_number',
+                'selections.name as invoice_interval',
+                'accounts.name',
+                DB::raw('case when accounts.parent_account_id is not null then concat(parent_account.account_number, " - ", parent_account.name) when accounts.can_be_parent = 1 then concat (accounts.account_number, " - ", accounts.name) else "None" end as parent_account'),
+                'selections.selection_id as invoice_interval_selection_id',
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as valid_bill_count'),
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) < cast("' . $startDate . '" as date)) as legacy_bill_count'),
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date) and skip_invoicing = true) as skipped_bill_count'),
+                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete < 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as incomplete_bill_count')
+            )->groupBy('accounts.account_id')
+            ->havingRaw('valid_bill_count > 0')
+            ->orHavingRaw('legacy_bill_count > 0')
+            ->orHavingRaw('skipped_bill_count > 0')
+            ->orHavingRaw('incomplete_bill_count > 0');
+
+        return $accounts->get();
     }
 
     public function GetNameById($account_id) {
@@ -289,29 +323,6 @@ class AccountRepo {
 
         if($myAccounts)
             $accounts->whereIn('account_id', $myAccounts);
-
-        return $accounts->get();
-    }
-
-    public function ListAllWithUninvoicedBillsByInvoiceInterval($invoiceIntervals, $startDate, $endDate) {
-        $accounts = Account::leftjoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
-            ->whereIn('selections.selection_id', $invoiceIntervals)
-            ->where('active', true)
-            ->select(
-                'accounts.account_id',
-                'accounts.account_number',
-                'accounts.invoice_interval',
-                'accounts.name',
-                'selections.selection_id as invoice_interval_selection_id',
-                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete = 100 and invoice_id IS NULL) as bill_count'),
-                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 0 and percentage_complete < 100) as incomplete_bill_count'),
-                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) < "' . $startDate . '" and skip_invoicing = 0 and invoice_id IS NULL) as legacy_bill_count'),
-                DB::raw('(select count(*) from bills where charge_account_id = account_id and date(time_pickup_scheduled) >= "' . $startDate . '" and date(time_pickup_scheduled) <= "' . $endDate . '" and skip_invoicing = 1) as skipped_bill_count'
-            ))->groupBy('accounts.account_id')
-            ->havingRaw('bill_count > 0')
-            ->orHavingRaw('incomplete_bill_count > 0')
-            ->orHavingRaw('legacy_bill_count > 0')
-            ->orHavingRaw('skipped_bill_count > 0');
 
         return $accounts->get();
     }

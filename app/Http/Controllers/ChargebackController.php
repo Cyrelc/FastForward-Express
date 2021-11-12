@@ -20,12 +20,15 @@ class ChargebackController extends Controller {
     }
 
     public function delete(Request $req, $chargebackId) {
-        if($req->user()->cannot('delete', Chargeback::class))
+        $chargebackRepo = new Repos\ChargebackRepo();
+
+        $chargeback = $chargebackRepo->GetById($chargebackId);
+
+        if($req->user()->cannot('delete', $chargeback))
             abort(403);
 
         DB::beginTransaction();
 
-        $chargebackRepo = new Repos\ChargebackRepo();
         $chargebackRepo->delete($chargebackId);
 
         DB::commit();

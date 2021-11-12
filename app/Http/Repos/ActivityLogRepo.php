@@ -16,8 +16,7 @@ class ActivityLogRepo {
             ->orWhere(function($addresses) use ($account) {
                 $addresses->where('subject_type', 'App\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
-            })
-            ->select(
+            })->select(
                 'updated_at',
                 'subject_type',
                 'subject_id',
@@ -34,51 +33,59 @@ class ActivityLogRepo {
         $emailAddressIds = EmailAddress::where('contact_id', $contactId)->pluck('email_address_id');
 
         $activity = ActivityLog::where([['subject_type', 'App\Contact'], ['subject_id', $contactId]])
-        ->orWhere([['subject_type', 'App\User'], ['subject_id', $userId[0]]])
-        ->orWhere(function($phones) use ($phoneNumberIds) {
-            $phones->where('subject_type', 'App\PhoneNumber');
-            $phones->whereIn('subject_id', $phoneNumberIds->toArray());
-        })
-        ->orWhere(function($emails) use ($emailAddressIds) {
-            $emails->where('subject_type', 'App\EmailAddress');
-            $emails->whereIn('subject_id', $emailAddressIds->toArray());
-        })->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
-        ->select(
-            'activity_log.updated_at',
-            'subject_type',
-            'subject_id',
-            'description',
-            'properties',
-            'users.email as user_name'
-        )->orderBy('activity_log.updated_at', 'desc');
+            ->orWhere([['subject_type', 'App\User'], ['subject_id', $userId[0]]])
+            ->orWhere(function($phones) use ($phoneNumberIds) {
+                $phones->where('subject_type', 'App\PhoneNumber');
+                $phones->whereIn('subject_id', $phoneNumberIds->toArray());
+            })
+            ->orWhere(function($emails) use ($emailAddressIds) {
+                $emails->where('subject_type', 'App\EmailAddress');
+                $emails->whereIn('subject_id', $emailAddressIds->toArray());
+            })->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->select(
+                'activity_log.updated_at',
+                'subject_type',
+                'subject_id',
+                'description',
+                'properties',
+                'users.email as user_name'
+            )->orderBy('activity_log.updated_at', 'desc');
 
         return $activity->get();
     }
 
     public function GetBillActivityLog($billId) {
         $billRepo = new BillRepo();
+        $chargeRepo = new ChargeRepo();
+
         $bill = $billRepo->GetById($billId);
-        $activity = ActivityLog::where([['subject_type', 'App\Bill'], ['subject_id', $billId]])
+        $charges = $chargeRepo->GetByBillId($billId);
+
+        $activity = ActivityLog::leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->where('log_name', '!=', 'system_debug')
+            ->where([['subject_type', 'App\Bill'], ['subject_id', $billId]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->pickup_address_id]])
             ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->delivery_address_id]])
-            ->orWhere([['subject_type', 'App\Payment'], ['subject_id', $bill->payment_id]])
-            ->orWhere([['subject_type', 'App\Chargeback'], ['subject_id', $bill->chargeback_id]])
-            ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
-            ->select(
-                'activity_log.updated_at',
-                'subject_type',
-                'subject_id',
-                'users.email as user_name',
-                'description',
-                'properties'
-            )->orderBy('activity_log.updated_at', 'desc');
+            ->orWhere([['subject_type', '=', 'App\Charge'], ['properties', 'like', '%"bill_id":' . $bill->bill_id . '%']]);
+
+        foreach($charges as $charge)
+            $activity->orWhere([['subject_type', 'App\LineItem'], ['properties', 'like', '%"charge_id":' . $charge->charge_id . '%']]);
+
+        $activity->select(
+            'activity_log.updated_at',
+            'subject_type',
+            'subject_id',
+            'users.email as user_name',
+            'description',
+            'properties'
+        )->orderBy('activity_log.updated_at', 'desc');
 
         return $activity->get();
     }
 
     public function GetEmployeeActivityLog($employee_id) {
         $employeeRepo = new EmployeeRepo();
-        $employee = $employeeRepo->GetById($employee_id);
+        $employee = $employeeRepo->GetById($employee_id, null);
         $relevantIds = $employeeRepo->GetEmployeeRelevantIds($employee_id);
 
         $activity = ActivityLog::where([['subject_type', 'App\Employee'], ['subject_id', $employee_id]])

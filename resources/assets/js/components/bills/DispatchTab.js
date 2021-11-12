@@ -18,7 +18,7 @@ export default function DispatchTab(props) {
                             isSearchable
                             value={props.pickupEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'pickupEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly || props.pickupManifestId}
+                            isDisabled={props.readOnly || props.isPickupManifested}
                         />
                     </InputGroup>
                 </Col>
@@ -34,7 +34,7 @@ export default function DispatchTab(props) {
                             value={props.pickupEmployeeCommission}
                             name='pickupEmployeeCommission'
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.pickupManifestId}
+                            readOnly={props.readOnly || props.isPickupManifested}
                         />
                         <InputGroup.Append>
                             <InputGroup.Text> %</InputGroup.Text>
@@ -55,7 +55,7 @@ export default function DispatchTab(props) {
                             dateFormat='MMMM d, yyyy h:mm aa'
                             selected={props.pickupTimeActual}
                             onChange={datetime => props.handleChanges({target: {name: 'pickupTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly || props.pickupManifestId}
+                            readOnly={props.readOnly || props.isPickupManifested}
                             className='form-control'
                         />
                     </InputGroup>
@@ -74,7 +74,7 @@ export default function DispatchTab(props) {
                             isSearchable
                             value={props.deliveryEmployee}
                             onChange={driver => props.handleChanges({target: {name: 'deliveryEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly || props.deliveryManifestId}
+                            isDisabled={props.readOnly || props.isDeliveryManifested}
                         />
                     </InputGroup>
                 </Col>
@@ -90,7 +90,7 @@ export default function DispatchTab(props) {
                             name='deliveryEmployeeCommission'
                             value={props.deliveryEmployeeCommission}
                             onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.deliveryManifestId}
+                            readOnly={props.readOnly || props.isDeliveryManifested}
                         />
                         <InputGroup.Append>
                             <InputGroup.Text> %</InputGroup.Text>
@@ -111,7 +111,7 @@ export default function DispatchTab(props) {
                             dateFormat='MMMM d, yyyy h:mm aa'
                             selected={props.deliveryTimeActual}
                             onChange={datetime => props.handleChanges({target: {name: 'deliveryTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly || props.deliveryManifestId}
+                            readOnly={props.readOnly || props.isDeliveryManifested}
                             className='form-control'
                         />
                     </InputGroup>

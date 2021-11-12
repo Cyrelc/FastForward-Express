@@ -30,8 +30,11 @@ export default class SelectFilter extends Component {
         const filterValue = window.location.search.includes('filter[' + this.props.filter.value + ']=') ? window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0] : undefined
 
         const selectedValues = filterValue === undefined ? [] : filterValue.split(',').filter(value => value)
-        const selected = this.props.filter.selections.filter(selection => selectedValues.some(selectedValue => selectedValue == selection.value))
-        this.setState({dbField: this.props.filter.value, selections: this.props.filter.selections, selected: selected})
+        if(this.props.filter.selections) {
+            const selected = this.props.filter.selections.filter(selection => selectedValues.some(selectedValue => selectedValue == selection.value))
+            this.setState({dbField: this.props.filter.value, selections: this.props.filter.selections, selected: selected})
+        } else if(this.props.filter.creatable)
+            this.setState({dbField: this.props.filter.value, selections: [], selected: filterValue})
     }
 
     handleFilterChange(selected) {

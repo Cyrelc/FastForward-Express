@@ -48,6 +48,7 @@ const initialState = {
     shippingAddressName: '',
     shippingAddressPlaceId: '',
     showInvoiceLayoutModal: false,
+    showInvoiceLineItems: false,
     startDate: new Date(),
     useShippingForBillingAddress: true,
     useParentRatesheet: false,
@@ -110,7 +111,7 @@ class Account extends Component {
                     key: this.state.key == 'childAccounts' && !response.account.can_be_parent ? 'basic' : this.state.key,
                     minInvoiceAmount: response.account.min_invoice_amount,
                     nextAccountIndex: nextAccountIndex,
-                    parentAccount: (response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : {},
+                    parentAccount: (response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : null,
                     prevAccountIndex: prevAccountIndex,
                     sendEmailInvoices: response.account.send_email_invoices,
                     sendPaperInvoices: response.account.send_paper_invoices,
@@ -119,6 +120,7 @@ class Account extends Component {
                     shippingAddressLng: response.shipping_address.lng,
                     shippingAddressName: response.shipping_address.name,
                     shippingAddressPlaceId: response.shipping_address.place_id,
+                    showInvoiceLineItems: response.account.show_invoice_line_items,
                     startDate: Date.parse(response.account.start_date),
                     useShippingForBillingAddress: response.account.billing_address_id === null,
                     useParentRatesheet: response.account.use_parent_ratesheet
@@ -224,7 +226,8 @@ class Account extends Component {
                 is_custom_field_mandatory: this.state.customFieldMandatory,
                 send_bills: this.state.sendBills,
                 send_email_invoices: this.state.sendEmailInvoices,
-                send_paper_invoices: this.state.sendPaperInvoices
+                send_paper_invoices: this.state.sendPaperInvoices,
+                show_invoice_line_items: this.state.showInvoiceLineItems
             }
 
         if(this.state.permissions.editAdvanced || (!this.state.accountId && this.state.permissions.create))
@@ -243,7 +246,12 @@ class Account extends Component {
 
         makeAjaxRequest('/accounts/store', 'POST', data, response => {
             toastr.clear()
-            toastr.success('Account ' + response.account_id + 'successfully ' + this.params.accountId  ? 'updated' : 'created', 'Success')
+            toastr.success('Account ' + response.account_id + 'successfully ' + this.state.accountId  ? 'updated' : 'created', 'Success', {
+                'onHidden': () => {
+                    if(!this.state.accountId)
+                        this.props.redirect('/accounts/' + response.account_id)
+                }
+            })
         })
     }
 
@@ -256,10 +264,22 @@ class Account extends Component {
                     }
                     <span className='badge badge-light'><h5>{this.state.accountId ? 'Manage Account ' + this.state.accountId + " - " + this.state.accountName : 'Create Account'}</h5></span>
                 </Col>
-                <Col md={3} >
+                <Col md={4} >
                     <h4>
+                        { this.state.accountId ? 
+                            this.state.permissions.editAdvanced ? 
+                                <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
+                                    if(confirm('Are you sure you wish to ' + (this.state.active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + this.state.accountName + '?')) {
+                                        makeAjaxRequest('/accounts/toggleActive/' + this.state.accountId, 'GET', null, response => {
+                                            this.setState({active: !this.state.active})
+                                        })
+                                    }
+                                }}>{this.state.active ? 'Active' : 'Inactive'}</Button>
+                                : <Badge variant={this.state.active ? 'success' : 'danger'}>{this.state.active ? 'Active' : 'Inactive'}</Badge>
+                            : null
+                        }
                         { this.state.permissions.viewPayments && this.state.accountBalance &&
-                            <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '20px'}}>Account Credit: {this.state.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
+                            <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '15px'}}>Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
                         }
                         { this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
                             <Badge variant='danger'>Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
@@ -267,7 +287,7 @@ class Account extends Component {
                     </h4>
                 </Col>
                 { this.state.accountId &&
-                    <Col md={3} style={{textAlign: 'right'}}>
+                    <Col md={2} style={{textAlign: 'right'}}>
                         <ButtonGroup>
                             {this.state.permissions.viewInvoices &&
                                 <LinkContainer to={'/app/invoices?filter[account_id]=' + this.state.accountId}><Button variant='secondary'>Invoices</Button></LinkContainer>
@@ -324,6 +344,7 @@ class Account extends Component {
                                 shippingAddressFormatted={this.state.shippingAddressFormatted}
                                 shippingAddressName={this.state.shippingAddressName}
                                 showInvoiceLayoutModal={this.state.showInvoiceLayoutModal}
+                                showInvoiceLineItems={this.state.showInvoiceLineItems}
                                 useShippingForBillingAddress={this.state.useShippingForBillingAddress}
 
                                 handleChanges={this.handleChanges}

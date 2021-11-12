@@ -201,7 +201,7 @@ export default class PaymentsTab extends Component {
                             <Row>
                                 {this.props.editPayments &&
                                     <Col>
-                                        <Button variant='primary' onClick={() => this.handleChange({target: {name: 'showPaymentModal', type: 'boolean', value: true}})} disabled={this.state.outstandingInvoices.length == 0}><i className='fas fa-money-check-alt'></i> New Payment</Button>
+                                        <Button variant='primary' onClick={() => this.handleChange({target: {name: 'showPaymentModal', type: 'boolean', value: true}})} disabled={this.state.outstandingInvoices.length == 0}><i className='fas fa-money-check-alt'></i> Receive Payment</Button>
                                     </Col>
                                 }
                                 <Col style={{textAlign: 'right'}}>
@@ -279,7 +279,7 @@ export default class PaymentsTab extends Component {
                 </Modal>
                 <Modal show={this.state.showPaymentModal} onHide={() => this.handleChange({target: {name: 'showPaymentModal', type: 'boolean', value: false}})} size='lg'>
                     <Modal.Header closeButton>
-                        <Modal.Title>New Payment</Modal.Title>
+                        <Modal.Title>Receive Payment</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Row>

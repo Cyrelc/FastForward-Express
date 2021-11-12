@@ -75,7 +75,7 @@ class EmployeeController extends Controller {
             }
 
             $employeeRepo = new Repos\EmployeeRepo();
-            $employee = $employeeRepo->GetById($employeeId);
+            $employee = $employeeRepo->GetById($employeeId, null);
             if($req->user()->cannot('viewBasic', $employee))
                 abort(403);
 

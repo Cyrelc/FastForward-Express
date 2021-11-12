@@ -29,7 +29,6 @@ export default function TimeRate(props) {
 
     function handleTimeRateChange(event) {
         const {name, value} = event.target
-        console.log(name, value)
         if(name === 'name' || name === 'price')
             props.handleTimeRateChange({...props.timeRate, [name]: value}, props.index)
         else {

@@ -15,7 +15,6 @@ class Employee extends Model
     protected $fillable = [
         'employee_id',
         'active',
-        'company_name',
         'contact_id',
         'delivery_commission',
         'dob',
@@ -62,14 +61,15 @@ class Employee extends Model
     public static $basicFields = [];
 
     public static $driverFields = [
-        'drivers_license_number',
-        'drivers_license_expiration_date',
-        'license_plate_number',
-        'license_plate_expiration_date',
-        'insurance_number',
-        'insurance_expiration_date',
-        'pickup_commission',
+        'company_name',
         'delivery_commission',
+        'drivers_license_expiration_date',
+        'drivers_license_number',
+        'license_plate_expiration_date',
+        'license_plate_number',
+        'insurance_expiration_date',
+        'insurance_number',
+        'pickup_commission'
     ];
 
     /**Readonly fields */

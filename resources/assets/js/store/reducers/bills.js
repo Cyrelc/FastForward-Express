@@ -9,10 +9,11 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
  */
 
 const initialState = {
+    billsTable: [],
     columns: [],
     queryString: '?filter[percentage_complete]=,100',
     sortedList: [],
-    billsTable: []
+    tableLoading: true
 }
 
 /**
@@ -24,6 +25,8 @@ const reducer = (state = initialState, action) => {
             return {...state, queryString: action.payload}
         case actionTypes.SET_BILLS_SORTED_LIST:
             return {...state, sortedList: action.payload}
+        case actionTypes.SET_BILLS_TABLE_LOADING:
+            return {...state, tableLoading: action.payload}
         case actionTypes.TOGGLE_BILLS_COLUMN_VISIBILITY:
             return {...state, columns: commonTableFunctions.toggleColumnVisibility(action)}
         case actionTypes.UPDATE_BILLS_TABLE:
@@ -33,9 +36,11 @@ const reducer = (state = initialState, action) => {
 }
 
 export async function fetchBills(dispatch, getState) {
+    dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: true})
     makeAjaxRequest('/bills/buildTable' + getState().bills.queryString, 'GET', null, response => {
         const bills = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_BILLS_TABLE, payload: bills == undefined ? [] : bills})
+        dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: false})
     })
 }
 

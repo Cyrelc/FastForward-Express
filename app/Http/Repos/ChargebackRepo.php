@@ -80,17 +80,17 @@ class ChargebackRepo {
     public function GetByManifestId($manifest_id) {
         $chargebacks = Chargeback::where('chargebacks.manifest_id', $manifest_id)
             ->select(
+                'amount',
                 'name',
                 'gl_code',
-                'description',
-                DB::raw('format(amount, 2) as amount')
+                'description'
             );
 
         return $chargebacks->get();
     }
 
-    public function GetChargebackTotalByManifestId($manifest_id) {
-        $amount = Chargeback::where('chargebacks.manifest_id', $manifest_id)
+    public function GetChargebackTotalByManifestId($manifestId) {
+        $amount = Chargeback::where('chargebacks.manifest_id', $manifestId)
             ->sum('amount');
 
         return $amount;
@@ -98,7 +98,9 @@ class ChargebackRepo {
 
     public function RunChargebacksForManifest($manifest) {
         $employeeRepo = new EmployeeRepo();
+
         $chargebacks = $this->GetActiveByEmployeeId($manifest->employee_id, $manifest->date_run);
+
         foreach($chargebacks as $chargeback) {
             $new = new Chargeback;
             $new->manifest_id = $manifest->manifest_id;

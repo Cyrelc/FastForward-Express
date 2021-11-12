@@ -9,7 +9,7 @@ class Manifest extends Model
 {
     use LogsActivity;
 
-    public $primaryKey = "manifest_id";
+    public $primaryKey = 'manifest_id';
     public $timestamps = false;
 
     protected $fillable = ['date_run', 'employee_id', 'start_date', 'end_date'];

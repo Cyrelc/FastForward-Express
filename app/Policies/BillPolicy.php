@@ -40,7 +40,21 @@ class BillPolicy
             return true;
         else if($user->accountUsers && $user->hasAnyPermission('bills.view.basic.my', 'bills.view.basic.children')) {
             $accountRepo = new Repos\AccountRepo();
-            return in_array($bill->charge_account_id, $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')));
+            $chargeRepo = new Repos\ChargeRepo();
+
+            $charges = $chargeRepo->GetByBillId($bill->bill_id);
+            $myAccounts = $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children'));
+
+            $chargeArray = array();
+
+            foreach($charges as $charge)
+                if($charge->account_id)
+                    $chargeArray[] = $charge->account_id;
+
+            if(count($chargeArray) > 0)
+                return count(array_intersect($chargeArray, $myAccounts)) > 0;
+
+            return false;
         }
         return false;
     }

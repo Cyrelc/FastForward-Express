@@ -5,13 +5,13 @@ use App\Http\Repos;
 
 class ManifestModelFactory{
     public function ListAll($req, $employeeId = null) {
-        $billRepo = new Repos\BillRepo;
         $chargebackRepo = new Repos\ChargebackRepo;
+        $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
 
         $manifests = $manifestRepo->ListAll($req, $employeeId);
         foreach($manifests as $manifest) {
-            $manifest->driver_gross = $billRepo->GetDriverTotalByManifestId($manifest->manifest_id);
+            $manifest->driver_gross = $lineItemRepo->GetDriverTotalByManifestId($manifest->manifest_id);
             $manifest->driver_chargeback_amount = $chargebackRepo->GetChargebackTotalByManifestId($manifest->manifest_id);
             $manifest->driver_income = $manifest->driver_gross - $manifest->driver_chargeback_amount;
         }
@@ -19,36 +19,41 @@ class ManifestModelFactory{
         return $manifests;
     }
 
-    public function GetById($manifest_id) {
+    public function GetById($user, $manifestId) {
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
         $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
+        $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
         $phoneRepo = new Repos\PhoneNumberRepo();
 
+        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+
         $model = new ManifestViewModel();
 
-        $model->manifest = $manifestRepo->GetById($manifest_id);
-        $model->bill_count = $billRepo->CountByManifestId($manifest_id);
-        $model->employee = $employeeRepo->GetById($model->manifest->employee_id);
+        $model->manifest = $manifestRepo->GetById($manifestId);
+        $model->bill_count = $billRepo->CountByManifestId($manifestId);
+
+        //Handle Employee Information
+        $model->employee = $employeeRepo->GetById($model->manifest->employee_id, $permissionModelFactory->GetEmployeePermissions($user, $employeeRepo->GetById($model->manifest->employee_id, null)));
         $model->employee->contact = $contactRepo->GetById($model->employee->contact_id);
         $model->employee->contact->primary_phone = $phoneRepo->GetContactPrimaryPhone($model->employee->contact_id)->phone_number;
         $model->employee->address = $addressRepo->GetByContactId($model->employee->contact_id);
 
-        $model->bills = $billRepo->GetByManifestId($manifest_id);
-        $model->overview = $billRepo->GetManifestOverviewById($manifest_id);
+        $model->bills = $billRepo->GetByManifestId($manifestId);
+        $model->overview = $billRepo->GetManifestOverviewById($manifestId);
 
-        $driver_total = $billRepo->GetDriverTotalByManifestId($manifest_id);
-        $model->driver_total = number_format($driver_total, 2); 
+        $driverTotal = $lineItemRepo->GetDriverTotalByManifestId($manifestId);
+        $model->driver_total = number_format($driverTotal, 2);
 
-        $model->chargebacks = $chargebackRepo->GetByManifestId($manifest_id);
+        $model->chargebacks = $chargebackRepo->GetByManifestId($manifestId);
 
-        $chargeback_total = $chargebackRepo->GetChargebackTotalByManifestId($manifest_id);
-        $model->chargeback_total = number_format($chargeback_total, 2);
+        $chargebackTotal = $chargebackRepo->GetChargebackTotalByManifestId($manifestId);
+        $model->chargeback_total = number_format($chargebackTotal, 2);
 
-        $model->driver_income = number_format($driver_total - $chargeback_total, 2);
+        $model->driver_income = number_format($driverTotal - $chargebackTotal, 2);
 
         // handle checking whether anything has expired, or is soon to expire
         $expirations = ['drivers_license_expiration_date' => 'Drivers License', 'license_plate_expiration_date' => 'License Plate', 'insurance_expiration_date' => 'Vehicle Insurance'];
@@ -64,20 +69,13 @@ class ManifestModelFactory{
         return $model;
     }
 
-    public function GetDriverListModel($startDate, $endDate) {
-        $billRepo = new Repos\BillRepo();
-        $contactRepo = new Repos\ContactRepo();
+    public function GetDriverListModel($req) {
         $employeeRepo = new Repos\EmployeeRepo();
 
-        $drivers = $employeeRepo->GetDriverList();
-        $driversWithBills = [];
-        foreach($drivers as $driver) {
-            $driver->bill_count = $billRepo->CountByDriverBetweenDates($driver->employee_id, date('Y-m-d', strtotime($startDate)), date('Y-m-d', strtotime($endDate)));
-            if($driver->bill_count == 0)
-                continue;
-            $driver->contact = $contactRepo->GetById($driver->contact_id);
-            array_push($driversWithBills, $driver);
-        }
+        $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
+        $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
+
+        $driversWithBills = $employeeRepo->GetEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate);
 
         return $driversWithBills;
     }

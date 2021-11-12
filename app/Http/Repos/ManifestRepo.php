@@ -5,6 +5,7 @@ use DB;
 use App\Bill;
 use App\Chargeback;
 use App\Employee;
+use App\LineItem;
 use App\Manifest;
 use App\DriverChargeback;
 use App\Http\Filters\DateBetween;
@@ -12,35 +13,35 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class ManifestRepo {
-    public function Create($employee_ids, $start_date, $end_date) {
+    public function Create($employeeIds, $startDate, $endDate) {
         $manifests = array();
         $chargebackRepo = new ChargebackRepo();
 
-        foreach($employee_ids as $employee_id) {
-            $manifest = $this->GenerateManifest($employee_id, $start_date, $end_date);
-            $this->ManifestBills($manifest->manifest_id, $employee_id, $start_date, $end_date);
+        foreach($employeeIds as $employeeId) {
+            $manifest = $this->GenerateManifest($employeeId, $startDate, $endDate);
+            $this->ManifestLineItems($manifest->manifest_id, $employeeId, $startDate, $endDate);
             $chargebackRepo->RunChargebacksForManifest($manifest);
-            array_push($manifests, $manifest);
+            $manifests[] = $manifest;
         }
 
         return $manifests;
     }
 
     public function Delete($manifestId) {
-        $pickupBills = Bill::where('pickup_manifest_id', $manifestId)->get();
-        $deliveryBills = Bill::where('delivery_manifest_id', $manifestId)->get();
+        $pickupLineItems = LineItem::where('pickup_manifest_id', $manifestId)->get();
+        $deliveryLineItems = LineItem::where('delivery_manifest_id', $manifestId)->get();
         $chargebacks = Chargeback::where('manifest_id', $manifestId)->get();
         $manifest = Manifest::where('manifest_id', $manifestId);
 
-        foreach($pickupBills as $bill) {
-            $bill->pickup_manifest_id = null;
+        foreach($pickupLineItems as $lineItem) {
+            $lineItem->pickup_manifest_id = null;
 
-            $bill->save();
+            $lineItem->save();
         }
-        foreach($deliveryBills as $bill) {
-            $bill->delivery_manifest_id = null;
+        foreach($deliveryLineItems as $lineItem) {
+            $lineItem->delivery_manifest_id = null;
 
-            $bill->save();
+            $lineItem->save();
         }
         foreach($chargebacks as $chargeback) {
             if($chargeback->continuous == 0) {
@@ -54,29 +55,32 @@ class ManifestRepo {
         return;
     }
 
-    public function GenerateManifest($employee_id, $start_date, $end_date) {
+    public function GenerateManifest($employeeId, $startDate, $endDate) {
         $manifest = [
-            'employee_id' => $employee_id,
+            'employee_id' => $employeeId,
             'date_run' => date('Y-m-d'),
-            'start_date' => $start_date,
-            'end_date' => $end_date
+            'start_date' => $startDate,
+            'end_date' => $endDate
         ];
+
         $new = new Manifest();
         return $new->create($manifest);
     }
 
     public function GetMonthlyEmployeePay($date) {
-        $income = Bill::whereNotNull('delivery_manifest_id')
-        ->whereNotNull('pickup_manifest_id')
-        ->leftjoin('manifests as pickup_manifest', 'pickup_manifest.manifest_id', '=', 'bills.pickup_manifest_id')
-        ->leftjoin('manifests as delivery_manifest', 'delivery_manifest.manifest_id', '=', 'bills.delivery_manifest_id')
-        ->whereDate('pickup_manifest.end_date', '>=', $date)
-        ->whereDate('delivery_manifest.end_date', '>=', $date)
-        ->select(
-            DB::raw('sum(round(amount * pickup_driver_commission, 2) + round(amount * delivery_driver_commission, 2)) as employee_income'),
-            DB::raw('date_format(pickup_manifest.end_date, "%Y-%m") as month')
-        )
-        ->groupBy('month');
+        $income = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->whereNotNull('delivery_manifest_id')
+            ->whereNotNull('pickup_manifest_id')
+            ->leftjoin('manifests as pickup_manifest', 'pickup_manifest.manifest_id', '=', 'line_items.pickup_manifest_id')
+            ->leftjoin('manifests as delivery_manifest', 'delivery_manifest.manifest_id', '=', 'line_items.delivery_manifest_id')
+            ->whereDate('pickup_manifest.end_date', '>=', $date)
+            ->whereDate('delivery_manifest.end_date', '>=', $date)
+            ->select(
+                DB::raw('sum(round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2)) as employee_income'),
+                DB::raw('date_format(pickup_manifest.end_date, "%Y-%m") as month')
+            )->groupBy('month')
+            ->orderBy('month');
 
         return $income->get();
     }
@@ -92,7 +96,7 @@ class ManifestRepo {
                 'manifest_id',
                 'employees.employee_id',
                 DB::raw('concat(first_name, " ", last_name) as employee_name'),
-                DB::raw('(select count(*) from bills where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
+                DB::raw('(select count(distinct bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
                 'date_run',
                 'manifests.start_date',
                 'end_date'
@@ -111,41 +115,81 @@ class ManifestRepo {
         return $filteredManifests->get();
     }
 
-    public function ManifestBills($manifest_id, $driver_id, $start_date, $end_date) {
-        $pickup_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date) {
-            $query->whereDate('time_pickup_scheduled', '>=', $start_date)
-            ->whereDate('time_pickup_scheduled', '<=', $end_date)
-            ->where('pickup_driver_id', $driver_id)
-            ->where('pickup_manifest_id', null)
-            ->where('percentage_complete', 100);
-        })->get();
+    public function ManifestLineItems($manifestId, $driverId, $startDate, $endDate) {
+        $chargebackRepo = new ChargebackRepo();
 
-        $delivery_bills = Bill::where(function ($query) use ($driver_id, $start_date, $end_date){
-            $query->whereDate('time_pickup_scheduled', '>=', $start_date)
-            ->whereDate('time_pickup_scheduled', '<=', $end_date)
-            ->where('delivery_driver_id', $driver_id)
-            ->where('delivery_manifest_id', null)
-            ->where('percentage_complete', 100);
-        })->get();
+        $pickupLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where(function ($query) use ($driverId, $startDate, $endDate) {
+                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
+                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
+                    ->where('driver_amount', '!=', 0)
+                    ->where('pickup_driver_id', $driverId)
+                    ->where('pickup_manifest_id', null)
+                    ->where('percentage_complete', 100);
+            })->get();
 
-        foreach($pickup_bills as $bill) {
-            if($bill->chargeback_id != null && $bill->invoice_id == null && $bill->pickup_manifest_id == null && $bill->delivery_manifest_id == null) {
-                $chargeback = Chargeback::where('chargeback_id', $bill->chargeback_id)->first();
-                $chargeback->count_remaining = 1;
-                $chargeback->save();
-            }
-            $bill->pickup_manifest_id = $manifest_id;
-            $bill->save();
+        $deliveryLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where(function ($query) use ($driverId, $startDate, $endDate) {
+                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
+                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
+                    ->where('driver_amount', '!=', 0)
+                    ->where('delivery_driver_id', $driverId)
+                    ->where('delivery_manifest_id', null)
+                    ->where('percentage_complete', 100);
+            })->get();
+
+        $chargebackLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where(function ($query) use ($driverId, $startDate, $endDate) {
+                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
+                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
+                    ->where('charge_employee_id', $driverId)
+                    ->where('price', '!=', 0)
+                    ->where('percentage_complete', 100)
+                    ->where('pickup_manifest_id', null)
+                    ->where('delivery_manifest_id', null);
+            });
+
+        $chargebackBills = clone $chargebackLineItems;
+        $chargebackBills = $chargebackBills->select(
+                DB::raw('sum(price) as price'),
+                'charges.bill_id as bill_id',
+                DB::raw('date(time_pickup_scheduled) as date_pickup_scheduled')
+            )->groupBy('charges.bill_id')
+            ->get();
+
+        $chargebackLineItems = $chargebackLineItems->get();
+
+        foreach($pickupLineItems as $lineItem) {
+            $lineItem->pickup_manifest_id = $manifestId;
+            $lineItem->save();
         }
 
-        foreach($delivery_bills as $bill) {
-            if($bill->chargeback_id != null && $bill->invoice_id == null && $bill->pickup_manifest_id == null && $bill->delivery_manifest_id == null) {
-                $chargeback = Chargeback::where('chargeback_id', $bill->chargeback_id)->first();
-                $chargeback->count_remaining = 1;
-                $chargeback->save();
-            }
-            $bill->delivery_manifest_id = $manifest_id;
-            $bill->save();
+        foreach($deliveryLineItems as $lineItem) {
+            $lineItem->delivery_manifest_id = $manifestId;
+            $lineItem->save();
+        }
+
+        foreach($chargebackBills as $chargeback) {
+            $billChargeback = [
+                'employee_id' => $driverId,
+                'manifest_id' => null,
+                'amount' => $chargeback->price,
+                'gl_code' => null,
+                'name' => 'Chargeback for bill ' . $chargeback->bill_id,
+                'description' => '',
+                'continuous' => false,
+                'count_remaining' => 1,
+                'start_date' => $chargeback->date_pickup_scheduled
+            ];
+            $chargebackRepo->CreateBillChargeback($billChargeback);
+        }
+
+        foreach($chargebackLineItems as $lineItem) {
+            $lineItem->paid = true;
+            $lineItem->save();
         }
     }
 }

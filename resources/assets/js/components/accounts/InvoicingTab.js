@@ -32,63 +32,78 @@ export default function InvoicingTab(props) {
                     <Col md={2}>
                         <h4 className='text-muted'>Options</h4>
                     </Col>
-                    <Col md={9}>
-                        <Row>
-                            <Col md={4}>
-                                <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
-                                    <Select
-                                        options={props.invoiceIntervals}
-                                        getOptionLabel={type => type.name}
-                                        getOptionValue={type => type.value}
-                                        onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
-                                        value={props.invoiceInterval}
-                                        isDisabled={props.readOnly}
-                                    />
-                                    <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text></InputGroup.Append>
-                                </InputGroup>
-                            </Col>
-                            <Col md={2} style={{paddingTop: '20px'}}>
-                                <FormCheck
-                                    name='sendPaperInvoices'
-                                    label='Send Paper Invoices'
-                                    checked={props.sendPaperInvoices}
-                                    onChange={props.handleChanges}
-                                    disabled={!props.sendEmailInvoices || props.readOnly}
-                                />
-                            </Col>
-                            <Col md={2} style={{paddingTop: '20px'}}>
-                                <FormCheck
-                                    name='sendEmailInvoices'
-                                    label='Send Email Invoices'
-                                    checked={props.sendEmailInvoices}
-                                    onChange={props.handleChanges}
-                                    disabled={!props.sendPaperInvoices || props.readOnly}
-                                />
-                            </Col>
-                            <Col md={6}>
-                                <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Custom Tracking Field</InputGroup.Text></InputGroup.Prepend>
-                                    <FormControl
-                                        name='customTrackingField'
-                                        value={props.customTrackingField}
-                                        onChange={props.handleChanges}
-                                        readOnly={props.readOnly}
-                                    />
-                                    <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text></InputGroup.Append>
-                                </InputGroup>
-                            </Col>
-                            <Col md={4} style={{paddingTop: '20px'}}>
-                                <FormCheck
-                                    name='customFieldMandatory'
-                                    label='Custom Tracking Field is Mandatory'
-                                    checked={props.customFieldMandatory}
-                                    onChange={props.handleChanges}
-                                    disabled={!props.customTrackingField || props.readOnly}
-                                />
-                            </Col>
-                        </Row>
+                    <Col md={4}>
+                        <InputGroup>
+                            <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
+                            <Select
+                                options={props.invoiceIntervals}
+                                getOptionLabel={type => type.name}
+                                getOptionValue={type => type.value}
+                                onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
+                                value={props.invoiceInterval}
+                                isDisabled={props.readOnly}
+                            />
+                            <InputGroup.Append>
+                                <InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text>
+                            </InputGroup.Append>
+                        </InputGroup>
                     </Col>
+                    <Col md={2} style={{paddingTop: '20px'}}>
+                        <FormCheck
+                            name='sendPaperInvoices'
+                            label='Send Paper Invoices'
+                            checked={props.sendPaperInvoices}
+                            onChange={props.handleChanges}
+                            disabled={!props.sendEmailInvoices || props.readOnly}
+                        />
+                    </Col>
+                    <Col md={2} style={{paddingTop: '20px'}}>
+                        <FormCheck
+                            name='sendEmailInvoices'
+                            label='Send Email Invoices'
+                            checked={props.sendEmailInvoices}
+                            onChange={props.handleChanges}
+                            disabled={!props.sendPaperInvoices || props.readOnly}
+                        />
+                    </Col>
+                    <Col md={2} style={{paddingTop: '20px'}}>
+                        <FormCheck
+                            name='showInvoiceLineItems'
+                            label='Show Invoice Line Items'
+                            checked={props.showInvoiceLineItems}
+                            onChange={props.handleChanges}
+                            disabled={props.readOnly}
+                        />
+                    </Col>
+                    <Col md={12}><hr/></Col>
+                </Row>
+                <Row>
+                    <Col md={2}>
+                        <h4 className='text-muted'>Custom Tracking Field: </h4>
+                    </Col>
+                    <Col md={6}>
+                        <InputGroup>
+                            <InputGroup.Prepend><InputGroup.Text>Name: </InputGroup.Text></InputGroup.Prepend>
+                            <FormControl
+                                name='customTrackingField'
+                                value={props.customTrackingField}
+                                onChange={props.handleChanges}
+                                placeholder='Tracking Field Name (Optional)'
+                                readOnly={props.readOnly}
+                            />
+                            <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text></InputGroup.Append>
+                        </InputGroup>
+                    </Col>
+                    <Col md={4} style={{paddingTop: '20px'}}>
+                        <FormCheck
+                            name='customFieldMandatory'
+                            label='Custom Tracking Field is Mandatory'
+                            checked={props.customFieldMandatory}
+                            onChange={props.handleChanges}
+                            disabled={!props.customTrackingField || props.readOnly}
+                        />
+                    </Col>
+                    <Col md={12}><hr/></Col>
                 </Row>
                 <Row style={{paddingTop: '20px'}}>
                     <Col md={2}>
@@ -142,7 +157,7 @@ export default function InvoicingTab(props) {
                         <FormControl
                             as='textarea'
                             rows={5}
-                            value={props.shippingAddressName + '\n' + props.shippingAddressFormatted.replaceAll(',', '\n')}
+                            value={props.shippingAddressName + '\n' + props.shippingAddressFormatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
                             disabled={true}
                         />
                     </Col>
@@ -152,7 +167,7 @@ export default function InvoicingTab(props) {
                             <FormControl
                                 as='textarea'
                                 rows={5}
-                                value={props.billingAddressName + '\n' + props.billingAddressFormatted.replaceAll(',', '\n')}
+                                value={props.billingAddressName + '\n' + props.billingAddressFormatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
                                 disabled={true}
                             />
                         </Col>

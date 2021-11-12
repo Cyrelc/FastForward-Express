@@ -49,7 +49,7 @@ class Manifest extends Component {
                     <Col md={2}>
                         <ButtonGroup>
                             <LinkContainer to={'/app/manifests/' + this.state.prevManifestId}><Button variant='info' disabled={!this.state.prevManifestId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevManifestId}</Button></LinkContainer>
-                            <LinkContainer to={'/app/manifests/' + this.state.nextManifestId}><Button variant='info' disabled={!this.state.nextManifestId}>Next - {this.state.nextManifestId}<i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                            <LinkContainer to={'/app/manifests/' + this.state.nextManifestId}><Button variant='info' disabled={!this.state.nextManifestId}>Next - {this.state.nextManifestId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
                         </ButtonGroup>
                     </Col>
                     <Col md={7} style={{textAlign: 'right'}}>
@@ -113,9 +113,9 @@ class Manifest extends Component {
                                         <td>{day.time_pickup_scheduled}</td>
                                         <td>{day.pickup_count}</td>
                                         <td>{day.delivery_count}</td>
-                                        <td>{'$' + day.pickup_amount.toFixed(2)}</td>
-                                        <td>{'$' + day.delivery_amount.toFixed(2)}</td>
-                                        <td>{'$' + (day.pickup_amount + day.delivery_amount).toFixed(2)}</td>
+                                        <td>{day.pickup_amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                        <td>{day.delivery_amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                        <td>{(day.pickup_amount + day.delivery_amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -136,7 +136,7 @@ class Manifest extends Component {
                                         <td>{chargeback.name}</td>
                                         <td>{chargeback.gl_code}</td>
                                         <td>{chargeback.description}</td>
-                                        <td>{'$' + chargeback.amount}</td>
+                                        <td>{chargeback.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -160,8 +160,8 @@ class Manifest extends Component {
                                         <td>{bill.time_pickup_scheduled}</td>
                                         <td>{bill.delivery_type}</td>
                                         <td>{bill.type}</td>
-                                        <td>{'$' + parseFloat(bill.amount).toFixed(2)}</td>
-                                        <td>{'$' + bill.driver_income.toFixed(2)}</td>
+                                        <td>{Number(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                        <td>{bill.driver_income.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                     </tr>
                                 )}
                             </tbody>

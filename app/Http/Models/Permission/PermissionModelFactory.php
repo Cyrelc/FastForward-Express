@@ -16,7 +16,7 @@ class PermissionModelFactory {
     public function getAccountPermissions($user, $account) {
         $permissions = [
             'create' => $user->can('create', Account::class),
-            'editAdvanced' => $user->can('accounts.edit.advanced.*'),
+            'editAdvanced' => $user->can('accounts.edit.*.*'),
             'editInvoicing' => $user->can('accounts.edit.invoicing.*'),
             'editBasic' => $user->can('accounts.edit.basic.*')
         ];

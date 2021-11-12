@@ -1,4 +1,5 @@
 <link rel='stylesheet' type='text/css' href='./css/invoices/invoice_table_pdf.css' />
+<link rel='stylesheet' type='text/css' href='/css/invoices/invoice_table_pdf.css' />
 
 <hr/>
 <table style='overflow: visible'>
@@ -9,10 +10,10 @@
         <h4>Bill Count:<br/><br/>{{$model->invoice->bill_count}}</h4>
     </td>
     <td class='basic' >
-        <h4>Invoice Total:<br/><br/>{{$model->invoice->total_cost}}</h4>
+        <h4>Invoice Total:<br/><br/>{{'$' . number_format($model->invoice->total_cost, 2)}}</h4>
     </td>
     <td class='warn' >
-        <h4>Account Balance:<br/><br/>{{$model->account_owing}}</h4>
+        <h4>Account Balance:<br/><br/>{{'$' . number_format($model->account_owing, 2)}}</h4>
     </td>
 </table>
 
@@ -50,7 +51,7 @@
             <strong>{{$name}}:</strong><br/>
             {{$model->parent->$address->name}}<br/>
             @foreach(explode(',', $model->parent->$address->formatted) as $addressLine)
-                {{$addressLine}}<br/>
+                {{ltrim($addressLine)}}<br/>
             @endforeach
         </td>
         @endforeach
@@ -65,7 +66,7 @@
 @if($model->parent->invoice_comment != '')
     <p>{{$model->parent->invoice_comment}}</p><hr/><br/>
 @endif
-@if(!isset($amendments_only) || !$amendments_only)
+@if($amendmentsOnly == 'false')
     @foreach($model->tables as $table_key => $table)
         <table class='bill_list'>
             <thead>
@@ -80,7 +81,31 @@
                     <tr>
                         @foreach($table->headers as $key => $value)
                             @if($value == 'amount')
-                                <td class='amount right' width='10%'>{{$bill->$value}}</td>
+                                @if($showLineItems == 'true')
+                                    <td>
+                                        <table style='border: none;'>
+                                            @foreach($bill->line_items as $lineItem)
+                                                <tr>
+                                                    <td style='border: none'>{{$lineItem->name}}</td>
+                                                    <td style='border: none' class='amount right'>{{'$' . number_format($lineItem->price, 2)}}</td>
+                                                </tr>
+                                            @endforeach
+                                            <tr>
+                                                <td style='border: none'><b>Total: </b></td>
+                                                <td class='amount right' style='border: none' width='10%'><b>{{'$' . $bill->$value}}</b></td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                @else
+                                    <td>
+                                        <table style='border: 0'>
+                                            <tr>
+                                                <td style='border: none'>{{$bill->delivery_type}}</td>
+                                                <td class='amount right' style='border:none' width='10%'>{{$bill->$value}}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                @endif
                             @elseif($value == 'address')
                                 <td class='address'>
                                     @if($bill->charge_account_id != $bill->pickup_account_id)
@@ -101,20 +126,28 @@
                         @endforeach
                     </tr>
                 @endforeach
-                @if(count($model->tables) > 1)
-                    <tr class='subtotal'>
-                        <td class='center' colspan='{{count($table->headers) - 2}}' rowspan='3'><b>Subtotal for {{$table_key}}</b></td>
-                        <td class='right' style='padding-right: 3px; padding-left: 3px'><b>Bill Subtotal:</b></td>
-                        <td class='right'><b>{{$table->subtotal}}</b></td>
-                    </tr>
-                    <tr class='subtotal'>
-                        <td class='right' style='padding-right: 3px'><b>Tax:</b></td>
-                        <td class='right'><b>{{$table->tax}}</b></td>
-                    </tr>
-                    <tr class='subtotal'>
-                        <td class='right' style='padding-right: 3px'><b>Subtotal:</b></td>
-                        <td class='right'><b>{{$table->total}}</b></td>
-                    </tr>
+                @if(isset($table->subtotal))
+                    <tfoot style='page-break-inside: avoid'>
+                        <tr>
+                            <td class='center' colspan='{{count($table->headers) - 1}}'><h3>Subtotal for {{$table_key}}</h3></td>
+                            <td>
+                                <table style='border: none; page-break-inside: avoid'>
+                                    <tr>
+                                        <td class='right'><b>Bill Subtotal:</b></td>
+                                        <td class='right'><b>{{'$' . number_format($table->subtotal, 2)}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class='right' style='padding-right: 3px'><b>Tax:</b></td>
+                                        <td class='right'><b>{{'$' . number_format($table->tax, 2)}}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class='right' style='padding-right: 3px'><b>Subtotal:</b></td>
+                                        <td class='right'><b>{{'$' . number_format($table->total, 2)}}</b></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </tfoot>
                 @endif
             </tbody>
         </table>
@@ -123,25 +156,47 @@
     @endforeach
 @endif
 @if(isset($model->amendments))
-<h4>Amendments</h4>
-<table>
-    <thead>
-        <tr>
-            <td>Bill ID</td>
-            <td>Description</td>
-            <td>Adjustment Amount</td>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($model->amendments as $amendment)
+    <h4>Amendments</h4>
+    <table>
+        <thead>
             <tr>
-                <td>{{$amendment->bill_id}}</td>
-                <td>{{$amendment->description}}</td>
-                <td>{{$amendment->amount}}</td>
+                <td>Bill ID</td>
+                <td class='right'>Adjustment Amount</td>
             </tr>
-        @endforeach
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach($model->amendments as $amendment)
+                <tr>
+                    <td>{{$amendment->bill_id}}</td>
+                        @if($showLineItems == 'true')
+                        <td>
+                            <table style='border: none;'>
+                                @foreach($amendment->line_items as $lineItem)
+                                    <tr>
+                                        <td style='border: none'>{{$lineItem->name}}</td>
+                                        <td style='border: none' class='amount right'>{{'$' . number_format($lineItem->price, 2)}}</td>
+                                    </tr>
+                                @endforeach
+                                <tr>
+                                    <td style='border: none'>Total: </td>
+                                    <td class='amount right' style='border: none' width='10%'>{{'$' . $amendment->amount}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    @else
+                        <td>
+                            <table style='border: 0'>
+                                <tr>
+                                    <td style='border: none'>{{$amendment->delivery_type}}</td>
+                                    <td class='amount right' style='border:none' width='10%'>{{$amendment->amount}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    @endif
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 @endif
 <div style='page-break-inside: avoid'>
     @if(count($model->unpaid_invoices) > 0)
@@ -151,8 +206,8 @@
             <tr>
                 <td>Invoice ID</td>
                 <td>Date</td>
-                <td>Invoice Total</td>
-                <td>Balance Owing</td>
+                <td class='right'>Invoice Total</td>
+                <td class='right'>Balance Owing</td>
             </tr>
         </thead>
         <tbody>
@@ -160,8 +215,8 @@
                 <tr>
                     <td>{{$invoice->invoice_id}}</td>
                     <td>{{$invoice->bill_end_date}}</td>
-                    <td>{{$invoice->total_cost}}</td>
-                    <td>{{$invoice->balance_owing}}</td>
+                    <td class='amount right'>{{'$' . number_format($invoice->total_cost, 2)}}</td>
+                    <td class='amount right'>{{'$' . number_format($invoice->balance_owing, 2)}}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -179,30 +234,30 @@
             <tr>
                 <td>Bill Subtotal:</td>
                 @if($model->invoice->min_invoice_amount != null && $model->invoice->min_invoice_amount > $model->invoice->bill_cost)
-                    <td>{{$model->invoice->min_invoice_amount}}</td>
+                    <td>{{'$' . number_format($model->invoice->min_invoice_amount, 2)}}</td>
                 @else
-                    <td>{{$model->invoice->bill_cost}}</td>
+                    <td>{{'$' . number_format($model->invoice->bill_cost, 2)}}</td>
                 @endif
             </tr>
             @if($model->invoice->discount != 0)
                 <tr>
                     <td>Discount:</td>
-                    <td>{{$model->invoice->discount}}</td>
+                    <td>{{'$' . number_format($model->invoice->discount, 2)}}</td>
                 </tr>
             @endif
             @if($model->invoice->fuel_surcharge != 0)
                 <tr>
                     <td>Discount:</td>
-                    <td>{{$model->invoice->discount}}</td>
+                    <td>{{'$' . number_format($model->invoice->discount, 2)}}</td>
                 </tr>
             @endif
             <tr>
                 <td>Tax:</td>
-                <td>{{$model->invoice->tax}}</td>
+                <td>{{'$' . number_format($model->invoice->tax, 2)}}</td>
             </tr>
             <tr>
                 <td>Invoice Total:</td>
-                <td>{{$model->invoice->total_cost}}</td>
+                <td>{{'$' . number_format($model->invoice->total_cost, 2)}}</td>
             </tr>
         <tbody>
     </table>

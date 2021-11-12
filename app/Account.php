@@ -33,6 +33,7 @@ class Account extends Model
         'send_email_invoices',
         'send_paper_invoices',
         'shipping_address_id',
+        'show_invoice_line_items',
         'start_date',
         'use_parent_ratesheet'
     ];
@@ -49,15 +50,19 @@ class Account extends Model
         return $this->belongsTo('App\RateType');
     }
 
+    public function parentAccount() {
+        return $this->belongsTo(Account::class, 'parent_account_id');
+    }
+
     //editable fields
     public static $accountingFields = ['account_balance'];
     public static $advancedFields = ['account_number', 'parent_account_id', 'start_date', 'ratesheet_id', 'min_invoice_amount', 'discount', 'gst_exempt', 'can_be_parent', 'send_bills', 'use_parent_ratesheet'];
     public static $basicFields = ['name', 'account_id', 'billing_address_id', 'shipping_address_id'];
-    public static $invoicingFields = ['custom_field', 'invoice_comment', 'invoice_interval', 'invoice_sort_order', 'is_custom_field_mandatory', 'send_email_invoices', 'send_paper_invoices'];
+    public static $invoicingFields = ['custom_field', 'invoice_comment', 'invoice_interval', 'invoice_sort_order', 'is_custom_field_mandatory', 'send_email_invoices', 'send_paper_invoices', 'show_invoice_line_items'];
     // public static $invoicingFields = ['custom_field', 'invoice_comment', 'invoice_interval', 'invoice_separately_from_parent', 'invoice_sort_order', 'is_custom_field_mandatory', 'send_email_invoices', 'send_paper_invoices'];
 
     /**
      * Readonly fields - we must distinguish because some fields must be *visible* to all users, but are not *editable* by those users
      */
-    public static $readOnlyFields = ['account_number', 'parent_account_id'];
+    public static $readOnlyFields = ['active', 'account_number', 'parent_account_id'];
 }
