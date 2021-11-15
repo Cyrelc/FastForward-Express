@@ -320,14 +320,16 @@ class BillRepo {
     }
 
     public function GetPrepaidAccountsReceivable($startDate, $endDate) {
-        $bills = Bill::leftjoin('payment_types', 'bills.payment_type_id', '=', 'payment_types.payment_type_id')
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->leftjoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
             ->where('payment_types.is_prepaid', 1)
             ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
             ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
             ->select(
                 'bills.payment_type_id',
                 'payment_types.name as payment_type_name',
-                DB::raw('sum(case when amount is null then 0 else amount end) as amount')
+                DB::raw('sum(case when price is null then 0 else price end) as amount')
             )->groupBy('payment_type_id');
 
         return $bills->get();
