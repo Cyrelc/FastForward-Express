@@ -20,18 +20,18 @@ export default class Ratesheet extends Component {
             key: 'basic',
             defaultZoneType: 'internal',
             deliveryTypes: [],
-            latLngPrecision: 5,
             drawingMap: 0,
+            latLngPrecision: 5,
             map: undefined,
             mapCenter: new google.maps.LatLng(53.544389, -113.4909266),
             mapDrawingManager: undefined,
             mapZones: [],
             mapZoom: 11,
             miscRates: [],
-            ratesheetName: '',
             polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
             polySnapper: null,
             ratesheetId: null,
+            ratesheetName: '',
             ratesheets: [],
             savingMap: 100,
             snapPrecision: 100,
@@ -187,6 +187,11 @@ export default class Ratesheet extends Component {
             panOnOpen: false,
             padding: '7px'
         })
+        const neighbourLabel = new google.maps.Marker({
+            map: null,
+            label: 'A',
+            position: this.getCenter(coordinates),
+        })
         polyLabel.open()
         var newZone = {
             id: polygon.zIndex,
@@ -195,6 +200,7 @@ export default class Ratesheet extends Component {
             polygon: polygon,
             viewDetails: false,
             coordinates: coordinates,
+            neighbourLabel: neighbourLabel,
             zoneId: zone ? zone.zone_id : null,
             polyLabel: polyLabel
         }
@@ -239,11 +245,16 @@ export default class Ratesheet extends Component {
     }
 
     editZone(id) {
+        const activeZone = this.state.mapZones.filter(zone => zone.id === id)[0]
         const updated = this.state.mapZones.map(zone => {
             if(zone.id === id) {
                 zone.polygon.setOptions({editable: true, snapable: false})
+                zone.neighbourLabel.setMap(null)
                 return {...zone, viewDetails: true}
-            }
+            } else if(this.findCommonCoordinates(this.getCoordinates(activeZone.polygon), this.getCoordinates(zone.polygon)))
+                zone.neighbourLabel.setMap(this.state.map)
+            else
+                zone.neighbourLabel.setMap(null)
             zone.polygon.setOptions({editable: false, snapable: true})
             return {...zone, viewDetails: false}
         })
@@ -251,11 +262,16 @@ export default class Ratesheet extends Component {
             map: this.state.map,
             threshold: this.state.snapPrecision,
             polygons: this.state.mapZones.map(mapZone => {return mapZone.polygon}),
-            // polystyle: polystyle,
             hidePOI: true,
         })
         polySnapper.enable(this.state.mapZones.filter(mapZone => mapZone.id === id)[0].polygon.zIndex)
         this.setState({mapZones: updated, polySnapper: polySnapper})
+    }
+
+    findCommonCoordinates(coordinates1, coordinates2) {
+        return coordinates1.some(coord1 => {
+            return coordinates2.some(coord2 => coord1.lat === coord2.lat && coord1.lng === coord2.lng)
+        })
     }
 
     getCoordinates(polygon) {
