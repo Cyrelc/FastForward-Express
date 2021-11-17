@@ -7,14 +7,9 @@ const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', 
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
 
 function getCorrectAddress(bill) {
-    if(bill.charge_account_id != bill.pickup_account_id)
-        if(bill.pickup_address_name)
-            return bill.pickup_address_name
-        else
-            return bill.pickup_address_formatted
-    else if(bill.delivery_address_name)
-        return bill.delivery_address_name
-    return bill.delivery_address_formatted
+    if(bill.charge_account_id != bill.delivery_account_id)
+        return bill.delivery_address_name ? bill.delivery_address_name : bill.delivery_address_formatted
+    return bill.pickup_address_name ? bill.pickup_address_name : bill.pickup_address_formatted
 }
 
 class Invoice extends Component {

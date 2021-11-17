@@ -108,10 +108,10 @@
                                 @endif
                             @elseif($value == 'address')
                                 <td class='address'>
-                                    @if($bill->charge_account_id != $bill->pickup_account_id)
-                                        {{$bill->pickup_address_name}}
-                                    @elseif($bill->charge_account_id != $bill->delivery_account_id)
+                                    @if($bill->charge_account_id != $bill->delivery_account_id)
                                         {{$bill->delivery_address_name}}
+                                    @elseif($bill->charge_account_id != $bill->pickup_account_id)
+                                        {{$bill->pickup_address_name}}
                                     @endif
                                 </td>
                             @elseif($value == 'bill_id')

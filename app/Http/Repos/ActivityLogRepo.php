@@ -16,12 +16,14 @@ class ActivityLogRepo {
             ->orWhere(function($addresses) use ($account) {
                 $addresses->where('subject_type', 'App\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
-            })->select(
-                'updated_at',
+            })->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->select(
+                'activity_log.updated_at',
                 'subject_type',
                 'subject_id',
                 'description',
-                'properties'
+                'properties',
+                'users.email as user_name'
             )->orderBy('activity_log.updated_at', 'desc');
 
             return $activity->get();
