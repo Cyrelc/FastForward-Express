@@ -29,7 +29,7 @@ class BillValidationRules {
 			'updated_at.date_equals' => 'This bill has been modified since you loaded the page. Please re-load the bill and try again'
 		];
 
-		if($req->is_min_weight_size === 'false') {
+		if(!filter_var($req->is_min_weight_size, FILTER_VALIDATE_BOOLEAN)) {
 			$rules = array_merge($rules, [
 				'packages' => 'required',
 				'packages.*.packageCount' => 'required|integer|min:1',

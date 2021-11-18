@@ -58,10 +58,10 @@ export default function DistanceRatesTab(props) {
                                         key={rate.id}
                                         id={rate.id}
                                         zones={rate.zones}
-                                        regularCost={rate.regularCost}
-                                        rushCost={rate.rushCost}
-                                        directCost={rate.directCost}
-                                        directRushCost={rate.directRushCost}
+                                        regularCost={rate.regular_cost}
+                                        rushCost={rate.rush_cost}
+                                        directCost={rate.direct_cost}
+                                        directRushCost={rate.direct_rush_cost}
                                         handleZoneRateChange={props.handleZoneRateChange}/>
                                     )
                                 }

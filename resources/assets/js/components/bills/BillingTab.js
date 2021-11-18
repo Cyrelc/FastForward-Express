@@ -465,7 +465,7 @@ export default function BillingTab(props) {
                     <Button
                         variant='warning'
                         onClick={props.generateCharges}
-                        disabled={props.readOnly || props.isPickupManifested || props.isDeliveryManifested || props.isInvoiced}
+                        disabled={props.readOnly || props.isPickupManifested || props.isDeliveryManifested || props.isInvoiced || props.charges.length > 1}
                     >Auto-price (BETA)</Button>
                 </Col>
             </Row>
@@ -486,6 +486,7 @@ export default function BillingTab(props) {
                                     groupBy: 'type',
                                     groupHeader: (value, count, data, group) => lineItemTypeGroupFormatter(value, count, data, group),
                                     index: 'line_item_id',
+                                    maxHeight: '700px',
                                     movableRows: true,
                                     movableRowsReceiver: false,
                                     movableRowsSender: true,

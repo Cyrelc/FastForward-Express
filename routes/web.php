@@ -52,6 +52,7 @@ Route::group(
             Route::get('/bills/getModel/{billId?}', 'BillController@getModel');
             Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
             Route::post('/bills/store', 'BillController@store');
+            Route::post('/bills/generateCharges', 'BillController@generateCharges');
 
             Route::get('/chargebacks/buildTable', 'ChargebackController@buildTable');
             Route::post('/chargebacks/store', 'ChargebackController@store');

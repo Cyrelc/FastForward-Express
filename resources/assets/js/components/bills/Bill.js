@@ -103,6 +103,7 @@ class Bill extends Component {
         this.addPackage = this.addPackage.bind(this)
         this.chargeTableUpdated = this.chargeTableUpdated.bind(this)
         this.deletePackage = this.deletePackage.bind(this)
+        this.generateCharges = this.generateCharges.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
         this.handleRatesheetSelection = this.handleRatesheetSelection.bind(this)
         this.configureBill = this.configureBill.bind(this)
@@ -210,6 +211,7 @@ class Bill extends Component {
                 readOnly: false,
             }
             this.setState(setup);
+            // var activeRatesheet = data.ratesheets[0];
             if(params.billId) {
                 const thisBillIndex = this.props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
                 const prevBillId = thisBillIndex <= 0 ? null : this.props.sortedBills[thisBillIndex - 1]
@@ -255,6 +257,9 @@ class Bill extends Component {
                     useImperial: data.bill.use_imperial,
                 }
 
+                // if(setup.charges.length == 1 && setup.charges[0].chargeType.name == 'Account')
+                //     activeRatesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id == data.charges[0].chargeType.default_ratesheet_id)[0]
+
                 if(data.permissions.viewActivityLog)
                     setup = {...setup, activityLog: data.activity_log}
 
@@ -279,8 +284,9 @@ class Bill extends Component {
                         repeatInterval: data.bill.repeat_interval ? data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval) : '',
                         skipInvoicing: data.bill.skip_invoicing,
                     }
+                this.setState(setup, this.handleRatesheetSelection(this.state.ratesheets[0]));
             }
-            this.setState(setup, () => this.handleRatesheetSelection(data.ratesheets[0]));
+            // this.handleRatesheetSelection(activeRatesheet)
         })
     }
 
@@ -298,6 +304,35 @@ class Bill extends Component {
             return
         const packages = this.state.packages.filter(parcel => {return parcel.packageId !== packageId})
         this.setState({packages: packages})
+    }
+
+    generateCharges() {
+        if(!this.state.charges || this.state.charges.length > 1) {
+            toastr.error('Unable to generate charges where there is not exactly one charge recipient present')
+            return
+        }
+
+        const data = {
+            charge_account_id: this.state.chargeAccount ? this.state.chargeAccount.account_id : null,
+            delivery_address: {lat: this.state.deliveryAddressLat, lng: this.state.deliveryAddressLng},
+            delivery_type_id: this.state.deliveryType.id,
+            package_is_minimum: this.state.packageIsMinimum,
+            package_is_pallet: this.state.packageIsPallet,
+            packages: this.state.packages,
+            pickup_address: {lat: this.state.pickupAddressLat, lng: this.state.pickupAddressLng},
+            ratesheet_id: this.state.activeRatesheet ? this.state.activeRatesheet.ratesheet_id : null,
+            time_pickup_scheduled: this.state.pickupTimeExpected,
+            time_delivery_scheduled: this.state.deliveryTimeExpected,
+            use_imperial: this.state.useImperial
+        }
+
+        makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
+            response = JSON.parse(response)
+            response.forEach(charge => {
+                this.state.charges[0].tableRef.current.table.addRow(charge);
+            })
+            toastr.warning('This feature is currently experimental. Please review the charges generated carefully for any inconsistencies')
+        })
     }
 
     getStoreButton() {
@@ -518,8 +553,17 @@ class Bill extends Component {
         const timeRates = JSON.parse(ratesheet.time_rates).map(rate => {return {...rate, type: 'timeRate', driver_amount: rate.price, paid: false}})
         const weightRates = JSON.parse(ratesheet.weight_rates).map(rate => {return {...rate, type: 'weightRate', driver_amount: rate.price, paid: false}})
         const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0, paid: false}})
+        const distanceRates = []
+        if(ratesheet.distance_rates) {
+            JSON.parse(ratesheet.distance_rates).map(rate => {
+                distanceRates.push({name: 'Regular - ' + rate.zones + ' zones', price: rate.regular_cost, type: 'distanceRate', driver_amount: rate.regular_cost, paid: false})
+                distanceRates.push({name: 'Rush - ' + rate.zones + ' zones', price: rate.rush_cost, type: 'distanceRate', driver_amount: rate.rush_cost, paid: false})
+                distanceRates.push({name: 'Direct - ' + rate.zones + ' zones', price: rate.direct_cost, type: 'distanceRate', driver_amount: rate.direct_cost, paid: false})
+                distanceRates.push({name: 'Direct Rush - ' + rate.zones + ' zones', price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
+            });
+        }
         this.handleChanges([
-            {target: {name: 'activeRatesheet', type: 'object', value: {...ratesheet, rates: [...commonRates.sortBy('name'), ...miscRates.sortBy('name'), ...timeRates.sortBy('name'), ...weightRates.sortBy('name')]}}},
+            {target: {name: 'activeRatesheet', type: 'object', value: {...ratesheet, rates: [...commonRates.sortBy('name'), ...miscRates.sortBy('name'), ...timeRates.sortBy('name'), ...weightRates.sortBy('name'), ...distanceRates.sortBy('name')]}}},
             {target: {name: 'deliveryTypes', type: 'array', value: deliveryTypes}}
         ])
     }
@@ -695,6 +739,7 @@ class Bill extends Component {
                                         addChargeTable={this.addChargeTable}
                                         chargeDeleted={this.chargeDeleted}
                                         chargeTableUpdated={this.chargeTableUpdated}
+                                        generateCharges={this.generateCharges}
                                         handleChanges={this.handleChanges}
                                         handleRatesheetSelection={this.handleRatesheetSelection}
 

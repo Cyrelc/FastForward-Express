@@ -47,6 +47,34 @@ class BillController extends Controller {
         }
     }
 
+    /**
+     * Generates charges based on location, size and weight of delivery, and ratesheet.
+     * Otherwise recognizes that the system does not have enough information to do so
+     * @param pickup_location (lat, lng)
+     * @param delivery_location (lat, lng)
+     * @param delivery_type_id
+     * @param packages (weight, size)
+     * @param package_is_minimum
+     * @param package_is_pallet
+     * @param time_pickup_scheduled
+     * @param time_delivery_scheduled
+     * @param charge_account_id (optional)
+     * @param ratesheet_id (optional)
+     * 
+     * @return charges an array of charges applicable to the bill
+     */
+    public function generateCharges(Request $req) {
+        $chargeValidation = new \App\Http\Validation\ChargeValidationRules();
+
+        $temp = $chargeValidation->GenerateChargesValidationRules($req);
+        $this->validate($req, $temp['rules'], $temp['messages']);
+
+        $chargeModelFactory = new Bill\ChargeModelFactory();
+        $charges = $chargeModelFactory->GenerateCharges($req);
+
+        return json_encode($charges);
+    }
+
     public function getModel(Request $req, $billId = null) {
         $billModelFactory = new Bill\BillModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();

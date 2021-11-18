@@ -382,15 +382,17 @@ export default class Ratesheet extends Component {
                                 handleChange={this.handleChange}
                             />
                         </Tab>
-                        <Tab eventKey='distances' title={<h3><i className='fas fa-directions'></i> Distance Rates</h3>}>
-                            <DistanceRatesTab
-                                deliveryTypes={this.state.deliveryTypes}
-                                useInternalZonesCalc={this.state.useInternalZonesCalc}
-                                zoneRates={this.state.zoneRates}
+                        {this.state.useInternalZonesCalc &&
+                            <Tab eventKey='distances' title={<h3><i className='fas fa-directions'></i> Distance Rates</h3>}>
+                                <DistanceRatesTab
+                                    deliveryTypes={this.state.deliveryTypes}
+                                    useInternalZonesCalc={this.state.useInternalZonesCalc}
+                                    zoneRates={this.state.zoneRates}
 
-                                handleChange={this.handleChange}
-                            />
-                        </Tab>
+                                    handleChange={this.handleChange}
+                                />
+                            </Tab>
+                        }
                         <Tab eventKey='volume' title={<h3><i className='fas fa-ruler-combined'></i> Volume Rates</h3>}>
                             <VolumeRatesTab
 

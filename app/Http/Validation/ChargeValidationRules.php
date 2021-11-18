@@ -17,11 +17,25 @@ class ChargeValidationRules {
             'delivery_address.lat' => 'required|numeric',
             'delivery_address.lng' => 'required|numeric',
             'packages' => 'required',
+            'package_is_minimum' => 'required',
+            'package_is_pallet' => 'required',
             'time_pickup_scheduled' => 'required',
             'time_delivery_scheduled' => 'required'
         ];
 
         $messages = [];
+
+		if(!filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN)) {
+			$rules = array_merge($rules, [
+				'packages' => 'required',
+				'packages.*.packageCount' => 'required|integer|min:1',
+				'packages.*.packageWeight' => 'required|numeric|min:1',
+				'packages.*.packageLength' => 'required|numeric|min:1',
+				'packages.*.packageWidth' => 'required|numeric|min:1',
+				'packages.*.packageHeight' => 'required|numeric|min:1'
+			]);
+			$messages = array_merge($messages, []);
+		}
 
         return ['rules' => $rules, 'messages' => $messages];
     }

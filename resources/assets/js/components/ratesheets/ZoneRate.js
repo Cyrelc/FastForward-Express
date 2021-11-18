@@ -12,7 +12,7 @@ export default function ZoneRate(props) {
                     type='number'
                     step={0.01}
                     key={props.id + '-regularCost'}
-                    name='regularCost'
+                    name='regular_cost'
                     value={props.regularCost}
                     onChange={event => props.handleZoneRateChange(event, props.id)}
                     size='sm'
@@ -23,7 +23,7 @@ export default function ZoneRate(props) {
                     type='number'
                     step={0.01}
                     key={props.id + '-rushCost'}
-                    name='rushCost'
+                    name='rush_cost'
                     value={props.rushCost}
                     onChange={event => props.handleZoneRateChange(event, props.id)}
                     size='sm'
@@ -34,7 +34,7 @@ export default function ZoneRate(props) {
                     type='number'
                     step={0.01}
                     key={props.id + '-directCost'}
-                    name='directCost'
+                    name='direct_cost'
                     value={props.directCost}
                     onChange={event => props.handleZoneRateChange(event, props.id)}
                     size='sm'
@@ -45,7 +45,7 @@ export default function ZoneRate(props) {
                     type='number'
                     step={0.01}
                     key={props.id + '-directRushCost'}
-                    name='directRushCost'
+                    name='direct_rush_cost'
                     value={props.directRushCost}
                     onChange={event => props.handleZoneRateChange(event, props.id)}
                     size='sm'

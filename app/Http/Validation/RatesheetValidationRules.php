@@ -20,7 +20,7 @@ class RatesheetValidationRules {
         if($req->useInternalZonesCalc === 'true') {
             foreach($req->zoneRates as $key => $rate)
             if($key != sizeOf($req->zoneRates) - 1) {
-                foreach(['regularCost' => 'Regular cost', 'rushCost' => 'Rush cost', 'directCost' => 'Direct cost', 'directRushCost' => 'Direct Rush cost'] as $field => $message) {
+                foreach(['regular_cost' => 'Regular cost', 'rush_cost' => 'Rush cost', 'direct_cost' => 'Direct cost', 'direct_rush_cost' => 'Direct Rush cost'] as $field => $message) {
                     $rules['zoneRates.' . $key . '.' . $field] = 'required|numeric|min:0';
                     $messages['zoneRates.' . $key . '.' . $field . '.required'] = $rate['zones'] . ' Zone(s) ' . $message . ' can not be blank';
                     $messages['zoneRates.' . $key . '.' . $field . '.numeric'] = $rate['zones'] . ' Zone(s) ' . $message . ' must be a numeric value';

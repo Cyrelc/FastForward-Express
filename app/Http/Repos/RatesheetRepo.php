@@ -27,6 +27,7 @@ class RatesheetRepo {
                 'coordinates',
                 'inherits_coordinates_from',
                 'zones.name',
+                'neighbours',
                 'selections.value as type',
                 'zone_id'
             );
@@ -63,6 +64,7 @@ class RatesheetRepo {
             'name',
             'ratesheet_id',
             'delivery_types',
+            'zone_rates as distance_rates',
             'misc_rates',
             'weight_rates',
             'time_rates'
