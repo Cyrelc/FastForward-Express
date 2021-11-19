@@ -118,10 +118,12 @@ class ChargeModelFactory {
         $timeDeliveryScheduled = \DateTime::createFromFormat('D M d Y H:i:s e+', $timeDeliveryScheduled);
         foreach(json_decode($ratesheet->time_rates) as $timeRate)
             foreach($timeRate->brackets as $bracket) {
+                $startTime = date_timestamp_get(\DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->startTime));
+                $endTime = date_timestamp_get(\DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->endTime));
                 $closestStart = clone $timePickupScheduled;
-                $closestStart->modify('-4 days')->modify('next ' . $bracket->startDayOfWeek->label);
+                $closestStart->modify('-4 days')->modify('next ' . $bracket->startDayOfWeek->label)->setTime((int)date('H', $startTime), (int)date('i', $startTime));
                 $closestEnd = clone $timeDeliveryScheduled;
-                $closestEnd->modify('-4 days')->modify('next ' . $bracket->endDayOfWeek->label);
+                $closestEnd->modify('-4 days')->modify('next ' . $bracket->endDayOfWeek->label)->setTime((int)date('H', $endTime), (int)date('i', $endTime));
                 // $results[] = [
                 //     'timePickupScheduled' => $timePickupScheduled,
                 //     'timeDeliveryScheduled' => $timeDeliveryScheduled,
@@ -132,7 +134,9 @@ class ChargeModelFactory {
                 //     'pickupTime <= closestStart' => $timePickupScheduled >= $closestStart,
                 //     'pickupTime >= closestEnd' => $timePickupScheduled <= $closestEnd,
                 //     'deliveryTime <= closestStart' => $timeDeliveryScheduled >= $closestStart,
-                //     'deliveryTime >= closestEnd' => $timeDeliveryScheduled <= $closestEnd
+                //     'deliveryTime >= closestEnd' => $timeDeliveryScheduled <= $closestEnd,
+                //     'startTime' => $startTime,
+                //     'endTime' => $endTime
                 // ];
                 if(($timePickupScheduled >= $closestStart && $timePickupScheduled <= $closestEnd) || ($timeDeliveryScheduled >= $closestStart && $timeDeliveryScheduled <= $closestEnd)) {
                     $results[] = ['name' => $timeRate->name, 'type' => 'timeRate', 'price' => $timeRate->price, 'driver_amount' => $timeRate->price, 'paid' => false];
