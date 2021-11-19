@@ -284,7 +284,7 @@ class Bill extends Component {
                         repeatInterval: data.bill.repeat_interval ? data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval) : '',
                         skipInvoicing: data.bill.skip_invoicing,
                     }
-                this.setState(setup, this.handleRatesheetSelection(this.state.ratesheets[0]));
+                this.setState(setup, () => this.handleRatesheetSelection(this.state.ratesheets[0]));
             }
             // this.handleRatesheetSelection(activeRatesheet)
         })
