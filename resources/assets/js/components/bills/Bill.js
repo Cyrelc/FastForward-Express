@@ -200,7 +200,7 @@ class Bill extends Component {
                 chargeTypes: data.charge_types,
                 deliveryTimeExpected: new Date(),
                 interliners: data.interliners,
-                key: this.state.key ? this.state.key : initialState.key,
+                key: window.location.hash ? window.location.hash.substr(1) : initialState.key,
                 packageIsMinimum: data.permissions.createFull,
                 packages: data.packages,
                 packageIsMinimum: data.permissions.createFull,
@@ -208,10 +208,9 @@ class Bill extends Component {
                 pickupTimeExpected: new Date(),
                 ratesheets: data.ratesheets,
                 repeatIntervals: data.repeat_intervals,
-                readOnly: false,
+                readOnly: false
             }
-            this.setState(setup);
-            // var activeRatesheet = data.ratesheets[0];
+
             if(params.billId) {
                 const thisBillIndex = this.props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
                 const prevBillId = thisBillIndex <= 0 ? null : this.props.sortedBills[thisBillIndex - 1]
@@ -257,9 +256,6 @@ class Bill extends Component {
                     useImperial: data.bill.use_imperial,
                 }
 
-                // if(setup.charges.length == 1 && setup.charges[0].chargeType.name == 'Account')
-                //     activeRatesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id == data.charges[0].chargeType.default_ratesheet_id)[0]
-
                 if(data.permissions.viewActivityLog)
                     setup = {...setup, activityLog: data.activity_log}
 
@@ -285,8 +281,18 @@ class Bill extends Component {
                         skipInvoicing: data.bill.skip_invoicing,
                     }
             }
-            this.setState(setup, () => this.handleRatesheetSelection(this.state.ratesheets[0]));
-            // this.handleRatesheetSelection(activeRatesheet)
+
+            var activeRatesheetId = data.ratesheets[0].ratesheet_id
+            if(setup.charges.length == 1) {
+                const charge = setup.charges[0]
+                if(setup.charges[0].chargeType.name == 'Account') {
+                    const chargeAccount = setup.accounts.find(account => account.account_id == charge.charge_account_id)
+                    activeRatesheetId = chargeAccount.ratesheet_id ? chargeAccount.ratesheet_id : charge.chargeType.default_ratesheet_id
+                } else
+                    activeRatesheetId = charge.chargeType.default_ratesheet_id
+            }
+
+            this.setState(setup, () => this.handleRatesheetSelection(activeRatesheetId));
         })
     }
 
@@ -358,7 +364,7 @@ class Bill extends Component {
             }, () => {
                 this.addChargeTable()
                 if(account.ratesheet_id && account.ratesheet_id != this.state.activeRatesheet.ratesheet_id)
-                    this.handleRatesheetSelection(this.state.ratesheets.filter(ratesheet => ratesheet.ratesheet_id === account.ratesheet_id)[0])
+                    this.handleRatesheetSelection(account.ratesheet_id)
             })
             //TODO: default back to cash ratesheet where applicable
         }
@@ -412,6 +418,10 @@ class Bill extends Component {
                 case 'deliveryTypes':
                 case 'pickupTimeExpected':
                     temp = this.handleEstimatedTimeEvent(temp, event);
+                    break
+                case 'key':
+                    window.location.hash = value
+                    temp[name] = value
                     break
                 case 'pickupReferenceValue':
                 case 'deliveryReferenceValue':
@@ -545,7 +555,8 @@ class Bill extends Component {
         return events
     }
 
-    handleRatesheetSelection(ratesheet) {
+    handleRatesheetSelection(ratesheetId) {
+        const ratesheet = this.state.ratesheets.find(ratesheet => ratesheet.ratesheet_id == ratesheetId)
         const deliveryTypes = JSON.parse(ratesheet.delivery_types)
 
         const commonRateNames = ['Refund', 'Other', 'Incorrect Information', 'Interliner']
@@ -562,6 +573,7 @@ class Bill extends Component {
                 distanceRates.push({name: 'Direct Rush - ' + rate.zones + ' zones', price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
             });
         }
+
         this.handleChanges([
             {target: {name: 'activeRatesheet', type: 'object', value: {...ratesheet, rates: [...commonRates.sortBy('name'), ...miscRates.sortBy('name'), ...timeRates.sortBy('name'), ...weightRates.sortBy('name'), ...distanceRates.sortBy('name')]}}},
             {target: {name: 'deliveryTypes', type: 'array', value: deliveryTypes}}

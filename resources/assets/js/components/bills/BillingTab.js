@@ -31,7 +31,6 @@ function chargeTypeFormatter(type) {
 }
 
 function deleteLineItem(cell) {
-    console.log(cell)
     const row = cell.getRow()
     const rowData = row.getData()
     if(!canLineItemBeDeleted(row)) {
@@ -309,11 +308,9 @@ export default function BillingTab(props) {
                             <InputGroup>
                                 <InputGroup.Prepend><InputGroup.Text>Ratesheet: </InputGroup.Text></InputGroup.Prepend>
                                 <Select
-                                    options={props.ratesheets}
-                                    value={props.selectedRatesheet}
-                                    getOptionLabel={ratesheet => ratesheet.name}
-                                    getOptionValue={ratesheet => ratesheet.ratesheet_id}
-                                    onChange={ratesheet => props.handleRatesheetSelection(ratesheet)}
+                                    options={props.ratesheets.map(ratesheet => {return {label: ratesheet.name, value: ratesheet.ratesheet_id}})}
+                                    value={props.activeRatesheet ? {label: props.activeRatesheet.name, value: props.activeRatesheet.ratesheet_id} : undefined}
+                                    onChange={ratesheet => props.handleRatesheetSelection(ratesheet.value)}
                                 />
                             </InputGroup>
                         </Col>
@@ -475,25 +472,27 @@ export default function BillingTab(props) {
                     <Card border='dark' style={{padding: '0px'}}>
                         <Card.Header><h4 className='text-muted'>Charges</h4></Card.Header>
                         <Card.Body style={{padding: '0px'}}>
-                            <ReactTabulator
-                                id='lineItemSource'
-                                columns={[
-                                    {title: 'Name', field: 'name', headerSort: false},
-                                    {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
-                                ]}
-                                data={(props.activeRatesheet && props.activeRatesheet.rates) ? props.activeRatesheet.rates : []}
-                                options={{
-                                    groupBy: 'type',
-                                    groupHeader: (value, count, data, group) => lineItemTypeGroupFormatter(value, count, data, group),
-                                    index: 'line_item_id',
-                                    maxHeight: '700px',
-                                    movableRows: true,
-                                    movableRowsReceiver: false,
-                                    movableRowsSender: true,
-                                    movableRowsConnectedTables: ['#chargesDestination'],
-                                    layout: 'fitColumns'
-                                }}
-                            />
+                            {props.activeRatesheet &&
+                                <ReactTabulator
+                                    id='lineItemSource'
+                                    columns={[
+                                        {title: 'Name', field: 'name', headerSort: false},
+                                        {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
+                                    ]}
+                                    data={props.activeRatesheet ? props.activeRatesheet.rates : []}
+                                    options={{
+                                        groupBy: 'type',
+                                        groupHeader: (value, count, data, group) => lineItemTypeGroupFormatter(value, count, data, group),
+                                        index: 'line_item_id',
+                                        maxHeight: '700px',
+                                        movableRows: true,
+                                        movableRowsReceiver: false,
+                                        movableRowsSender: true,
+                                        movableRowsConnectedTables: ['#chargesDestination'],
+                                        layout: 'fitColumns'
+                                    }}
+                                />
+                            }
                         </Card.Body>
                     </Card>
                 </Col>
