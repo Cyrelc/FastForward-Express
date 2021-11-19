@@ -50,6 +50,7 @@ class ChargeModelFactory {
          */
         $pickupZone = null;
         $deliveryZone = null;
+        $pointInPolygonAcceptableResponses = ['inside', 'vertex', 'boundary'];
 
         foreach($zones as $key => $zone) {
             $jsonCoordinates = json_decode($zone['coordinates']);
@@ -59,14 +60,12 @@ class ChargeModelFactory {
             if($coordinateArray[0] != end($coordinateArray))
                 $coordinateArray[] = $coordinateArray[0];
 
-            if($pickupZone == null) {
-                if($pointLocation->pointInPolygon($pickupCoordinates, $coordinateArray) == 'inside')
-                    $pickupZone = ['zone_id' => $zone->zone_id, 'zone_name' => $zone->name, 'additional_costs' => $zone->additional_costs, 'additional_time' => $zone->additional_time, 'type' => $zone->type, 'neighbours' => $zone->neighbours];
-            }
-            if($deliveryZone == null) {
-                if($pointLocation->pointInPolygon($deliveryCoordinates, $coordinateArray) == 'inside')
-                    $deliveryZone = ['zone_id' => $zone->zone_id, 'zone_name' => $zone->name, 'additional_costs' => $zone->additional_costs, 'additional_time' => $zone->additional_time, 'type' => $zone->type, 'neighbours' => $zone->neighbours];
-            }
+            if($pickupZone == null && in_array($pointLocation->pointInPolygon($pickupCoordinates, $coordinateArray), $pointInPolygonAcceptableResponses))
+                $pickupZone = $this->prepareZone($zone);
+
+            if($deliveryZone == null && in_array($pointLocation->pointInPolygon($deliveryCoordinates, $coordinateArray), $pointInPolygonAcceptableResponses))
+                $deliveryZone = $this->prepareZone($zone);
+
             if($pickupZone && $deliveryZone)
                 break;
         }
@@ -82,7 +81,7 @@ class ChargeModelFactory {
         $results = array();
         $crossableZoneTypes = ['internal', 'peripheral'];
 
-        if(in_array($pickupZone['type'], $crossableZoneTypes) && in_array($deliveryZone['type'], $crossableZoneTypes))
+        if(in_array($pickupZone->type, $crossableZoneTypes) && in_array($deliveryZone->type, $crossableZoneTypes))
             if(filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN))
                 $results[] = $this->countZonesCrossed($pickupZone, $deliveryZone, $zones, $ratesheet, $deliveryType);
             else {
@@ -97,16 +96,16 @@ class ChargeModelFactory {
         /**
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
-        if($pickupZone['type'] == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $pickupZone->name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs['regular'], 'driver_amount' => $pickupZone->additional_costs['regular']];
-        } else if ($pickupZone['type'] === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $pickupZone->name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs[$deliveryType], 'driver_amount' => $pickupZone->additional_costs[$deliveryType]];
+        if($pickupZone->type == 'peripheral') {
+            $results[] =  ['name' => 'Peripheral Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->regular, 'driver_amount' => $pickupZone->additional_costs->regular];
+        } else if ($pickupZone->type === 'outlying') {
+            $results[] = ['name' => 'Outlying Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->$deliveryType, 'driver_amount' => $pickupZone->additional_costs->deliveryType];
         }
 
-        if($deliveryZone['type'] == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $deliveryZone->name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs['regular'], 'driver_amount' => $deliveryZone->additional_costs['regular']];
-        } else if ($deliveryZone['type'] === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $deliveryZone->name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs[$deliveryType], 'driver_amount' => $deliveryZone->additional_costs[$deliveryType]];
+        if($deliveryZone->type == 'peripheral') {
+            $results[] =  ['name' => 'Peripheral Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->regular, 'driver_amount' => $deliveryZone->additional_costs->regular];
+        } else if ($deliveryZone->type === 'outlying') {
+            $results[] = ['name' => 'Outlying Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->$deliveryType, 'driver_amount' => $deliveryZone->additional_costs->$deliveryType];
         }
 
         return $results;
@@ -206,7 +205,8 @@ class ChargeModelFactory {
         $visitedSet[0]['distance'] = $distance = 1;
         unset($unvisitedSet[$startIndex]);
 
-        while(count($unvisitedSet) && !in_array($deliveryZone['zone_id'], array_column($visitedSet, 'zone_id'))) {
+        while(!empty($unvisitedSet) && !in_array($deliveryZone['zone_id'], array_column($visitedSet, 'zone_id'))) {
+            activity('system_debug')->log('unvisitedset count:' . count($unvisitedSet));
             foreach($visitedSet as $visitedZone)
                 if($visitedZone['distance'] === $distance && isset($visitedZone['neighbours'])) {
                     foreach(json_decode($visitedZone['neighbours']) as $neighbourZoneId) {
@@ -233,6 +233,17 @@ class ChargeModelFactory {
             'price' => $zoneRate->$deliveryType,
             'driver_amount' => $zoneRate->$deliveryType,
             'paid' => false
+        ];
+    }
+
+    private function prepareZone($zone) {
+        return (object)[
+            'zone_id' => $zone->zone_id,
+            'zone_name' => $zone->name,
+            'additional_costs' => json_decode($zone->additional_costs),
+            'additional_time' => $zone->additional_time,
+            'type' => $zone->type,
+            'neighbours' => $zone->neighbours
         ];
     }
 }
