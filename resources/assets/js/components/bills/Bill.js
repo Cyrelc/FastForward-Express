@@ -210,7 +210,7 @@ class Bill extends Component {
                 repeatIntervals: data.repeat_intervals,
                 readOnly: false
             }
-
+            this.setState(setup);
             if(params.billId) {
                 const thisBillIndex = this.props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
                 const prevBillId = thisBillIndex <= 0 ? null : this.props.sortedBills[thisBillIndex - 1]
