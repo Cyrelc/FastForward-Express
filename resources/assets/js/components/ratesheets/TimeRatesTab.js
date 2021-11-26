@@ -35,7 +35,6 @@ export default function TimeRatesTab(props) {
                         <Button variant='success' onClick={addTimeRate}><i className='fas fa-plus'></i> New</Button>
                     </Col>
                     <Col md={10}><h4 className='text-muted'>Time Rates</h4></Col>
-                    <Col md={12}>Note: In the event of any overlap between time rates, the highest (most expensive) rate will be charged automatically</Col>
                 </Row>
             </Card.Header>
             <Card.Body>

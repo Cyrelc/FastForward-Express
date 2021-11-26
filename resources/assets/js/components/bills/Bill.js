@@ -15,7 +15,6 @@ const initialState = {
     businessHoursMin: '',
     businessHoursMax: '',
     deliveryType: null,
-    deliveryTypeId: null,
     description: '',
     incompleteFields: '',
     internalNotes: '',
@@ -132,7 +131,7 @@ class Bill extends Component {
                     return {
                         ...basicCharge,
                         charge_account_id: this.state.chargeAccount.account_id,
-                        name: this.state.chargeAccount.name,
+                        name: this.state.chargeAccount.account_number + ' - ' + this.state.chargeAccount.name,
                         charge_reference_value_required: this.state.chargeAccount.is_custom_field_required ? true : false,
                         charge_reference_value_label: this.state.chargeAccount.custom_field ? this.state.chargeAccount.custom_field : null,
                     }
@@ -234,7 +233,7 @@ class Bill extends Component {
                     deliveryAddressType: data.bill.delivery_account_id === null ? 'Address' : 'Account',
                     deliveryReferenceValue: data.bill.delivery_reference_value,
                     deliveryTimeExpected: Date.parse(data.bill.time_delivery_scheduled),
-                    deliveryTypeId: data.bill.delivery_type,
+                    deliveryType: JSON.parse(data.ratesheets[0].delivery_types).find(deliveryType => data.bill.delivery_type == deliveryType.id),
                     description: data.bill.description,
                     incompleteFields: data.bill.incomplete_fields,
                     nextBillId: nextBillId,
@@ -480,7 +479,7 @@ class Bill extends Component {
         if(name === 'deliveryType')
             events['deliveryType'] = value
         else if(name === 'deliveryTypes') {
-            events['deliveryType'] = this.state.deliveryType ? value.find(type => type.id = this.state.deliveryType.id) : value.find(type => type.id = 'regular')
+            events['deliveryType'] = this.state.deliveryType ? value.find(type => type.id == this.state.deliveryType.id) : value.find(type => type.id = 'regular')
         } else
             events['deliveryType'] = this.state.deliveryType
         events['pickupTimeExpected'] = name === 'pickupTimeExpected' ? value : this.state.pickupTimeExpected

@@ -524,6 +524,20 @@ class BillRepo {
      * 
      */
     public function CheckRequiredFields($billId) {
+        $requiredFieldsHumanReadable = [
+            'bill_number' => 'Bill number required',
+            'delivery_driver_commission' => 'Delivery driver commission required',
+            'delivery_driver_id' => 'Please select a delivery driver',
+            'delivery_type' => 'Please select a delivery type',
+            'pickup_driver_id' => 'Please select a pickup driver',
+            'pickup_driver_commission' => 'Please enter pickup driver commission',
+            'time_pickup_scheduled' => 'Please enter the approximate pickup time',
+            'time_call_received' => 'Please enter the time the call was received',
+            'time_delivery_scheduled' => 'Please enter the approximate delivery time',
+            'time_dispatched' => 'Please enter the time the call was dispatched',
+
+        ];
+
         $accountRepo = new AccountRepo();
         $chargeRepo = new ChargeRepo();
         $lineItemRepo = new LineItemRepo();
@@ -547,8 +561,8 @@ class BillRepo {
 
         $charges = $chargeRepo->GetByBillId($bill->bill_id);
         if(!$charges || count($charges) === 0) {
-            $incompleteFields[] = 'charges';
-            $incompleteFields[] = 'line_items';
+            $incompleteFields[] = 'Must contain at least one charge';
+            $incompleteFields[] = 'Must contain at least one line item';
         } else
             foreach($charges as $charge) {
                 $paymentType = $paymentRepo->GetPaymentType($charge->charge_type_id);
@@ -559,7 +573,7 @@ class BillRepo {
                 }
                 $lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
                 if(count($lineItems) === 0)
-                    $requiredFields[] = $charge->charge_name . '_requires_at_least_one_line_item';
+                    $requiredFields[] = $charge->name . ' requires at least one line item';
                 else
                     foreach($lineItems as $lineItem) {
                         if($lineItem['name'] === 'Interliner' && !in_array('interliner_id', $requiredFields))
@@ -577,7 +591,7 @@ class BillRepo {
 
         foreach($requiredFields as $field) {
             if(empty($bill->$field))
-                array_push($incompleteFields, $field);
+                array_push($incompleteFields, $requiredFieldsHumanReadable[$field] ? $requiredFieldsHumanReadable[$field] : $field);
         }
 
         $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);

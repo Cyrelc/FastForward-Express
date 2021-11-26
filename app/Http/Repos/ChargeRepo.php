@@ -74,7 +74,7 @@ class ChargeRepo {
                 'charge_type_id',
                 'charge_reference_value',
                 'charges.charge_employee_id',
-                DB::raw('case when charges.charge_account_id is not null then accounts.name when charges.charge_employee_id is not null then concat(contacts.first_name, " ", contacts.last_name) else payment_types.name end as name')
+                DB::raw('case when charges.charge_account_id is not null then concat(accounts.account_number, " - ", accounts.name) when charges.charge_employee_id is not null then concat(contacts.first_name, " ", contacts.last_name) else payment_types.name end as name')
             );
         
         if($this->myAccounts)
