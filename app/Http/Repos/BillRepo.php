@@ -591,7 +591,7 @@ class BillRepo {
 
         foreach($requiredFields as $field) {
             if(empty($bill->$field))
-                array_push($incompleteFields, $requiredFieldsHumanReadable[$field] ? $requiredFieldsHumanReadable[$field] : $field);
+                array_push($incompleteFields, isset($requiredFieldsHumanReadable[$field]) ? $requiredFieldsHumanReadable[$field] : $field);
         }
 
         $percentageComplete = (int)((count($requiredFields) - count($incompleteFields)) / count($requiredFields) * 100);
