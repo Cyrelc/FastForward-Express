@@ -65,7 +65,7 @@ class ManifestController extends Controller {
 
     public function print(Request $req, $manifest_id) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $model = $manifestModelFactory->GetById($manifest_id);
+        $model = $manifestModelFactory->GetById($req->user(), $manifest_id);
 
         if($req->user()->cannot('view', $model->manifest))
             abort(403);
