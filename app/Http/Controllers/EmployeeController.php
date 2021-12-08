@@ -51,7 +51,7 @@ class EmployeeController extends Controller {
         if($contactId) {
             $employeeRepo = new Repos\EmployeeRepo();
             $emergencyContact = $employeeRepo->GetEmergencyContactByContactId($contactId);
-            $employee = $employeeRepo->GetById($emergencyContact->employee_id);
+            $employee = $employeeRepo->GetById($emergencyContact->employee_id, null);
             if(!$employee || $req->user()->cannot('updateBasic', $employee))
                 abort(403);
 
