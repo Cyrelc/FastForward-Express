@@ -206,3 +206,8 @@ Array.prototype.sortBy = function(p) {
         return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0
     })
 }
+
+function toFixedNumber(num, digits, base) {
+    var pow = Math.pow(base || 10, digits)
+    return Math.round(num * pow) / pow
+}

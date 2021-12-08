@@ -55,7 +55,7 @@ export default class PaymentsTab extends Component {
             temp = this.handleInvoicePaymentAmountChange(event, temp)
         } else if(name === 'showPaymentModal' && value === true) {
             temp = {
-                outstandingInvoices: this.state.outstandingInvoices.map(invoice => {return {...invoice, payment_amount: ''}}),
+                outstandingInvoices: this.state.outstandingInvoices.map(invoice => {return {...invoice, payment_amount: 0}}),
                 paymentAmount: '',
                 selectedPaymentType: '',
                 paymentReferenceValue: '',
@@ -116,20 +116,22 @@ export default class PaymentsTab extends Component {
     payOffInvoice(event) {
         if(!this.props.editPayments)
             return
+
         const {name, type, checked} = event.target
         var total = parseFloat(this.state.paymentAmount === '' ? 0 : this.state.paymentAmount)
+
         const outstandingInvoices = this.state.outstandingInvoices.map(invoice => {
             if(invoice.invoice_id == name && checked) {
                 total += parseFloat(invoice.balance_owing)
-                return {...invoice, payment_amount: invoice.balance_owing}
+                return {...invoice, payment_amount: parseFloat(invoice.balance_owing)}
             } else if(invoice.invoice_id == name) {
                 total -= parseFloat(invoice.balance_owing)
-                return {...invoice, payment_amount: ''}
-            } else {
-                return invoice
+                return {...invoice, payment_amount: 0}
             }
+
+            return invoice
         })
-        this.setState({paymentAmount: total.toFixed(2), outstandingInvoices: outstandingInvoices})
+        this.setState({paymentAmount: toFixedNumber(total, 2), outstandingInvoices: outstandingInvoices})
     }
 
     refreshPaymentsTab() {
@@ -137,7 +139,7 @@ export default class PaymentsTab extends Component {
             response = JSON.parse(response)
             this.setState({
                 ...initialState,
-                outstandingInvoices: response.outstanding_invoices ? response.outstanding_invoices.map(invoice => {return {...invoice, payment_amount: ''}}) : [],
+                outstandingInvoices: response.outstanding_invoices ? response.outstanding_invoices.map(invoice => {return {...invoice, payment_amount: 0}}) : [],
                 paymentTypes: response.payment_types,
                 payments: response.payments,
                 selectedPaymentType: '',
@@ -312,13 +314,13 @@ export default class PaymentsTab extends Component {
                         <Row>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Payment Amount</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Prepend><InputGroup.Text>Payment Amount: $</InputGroup.Text></InputGroup.Prepend>
                                     <FormControl
                                         name='paymentAmount'
                                         type='number'
                                         min={0.01}
                                         step={0.01}
-                                        value={this.state.paymentAmount}
+                                        value={toFixedNumber(this.state.paymentAmount, 2)}
                                         onChange={this.handleChange}
                                     />
                                 </InputGroup>
@@ -360,28 +362,35 @@ export default class PaymentsTab extends Component {
                                                 <td>{invoice.bill_end_date}</td>
                                                 <td style={{textAlign: 'right'}}>{invoice.balance_owing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</td>
                                                 <td>
-                                                    <FormControl
-                                                        name='invoicePaymentAmount'
-                                                        data-invoice-id={invoice.invoice_id}
-                                                        value={invoice.payment_amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                                        disabled={this.state.autoCalc}
-                                                        onChange={this.handleChange}
-                                                        size='sm'
-                                                    />
+                                                    <InputGroup size='sm'>
+                                                        <InputGroup.Prepend><InputGroup.Text>$</InputGroup.Text></InputGroup.Prepend>
+                                                        <FormControl
+                                                            name='invoicePaymentAmount'
+                                                            type='number'
+                                                            step={0.01}
+                                                            data-invoice-id={invoice.invoice_id}
+                                                            value={toFixedNumber(invoice.payment_amount, 2)}
+                                                            disabled={this.state.autoCalc}
+                                                            onChange={this.handleChange}
+                                                        />
+                                                    </InputGroup>
                                                 </td>
                                             </tr>
                                         )}
                                         <tr>
                                             <td colSpan={4}>Adjustment to account balance</td>
                                             <td>
-                                                <FormControl
-                                                    name='paymentRemainder'
-                                                    type='number'
-                                                    step={0.01}
-                                                    disabled={true}
-                                                    value={(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentValue) => accumulator + currentValue.payment_amount, 0)).toFixed(2)}
-                                                    isInvalid={(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentValue) => accumulator + currentValue.payment_amount, 0)).toFixed(2) < 0}
-                                                />
+                                                <InputGroup>
+                                                    <InputGroup.Prepend><InputGroup.Text>$</InputGroup.Text></InputGroup.Prepend>
+                                                    <FormControl
+                                                        name='paymentRemainder'
+                                                        type='number'
+                                                        step={0.01}
+                                                        disabled={true}
+                                                        value={toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2)}
+                                                        isInvalid={toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2) < 0}
+                                                    />
+                                                </InputGroup>
                                             </td>
                                         </tr>
                                     </tbody>
