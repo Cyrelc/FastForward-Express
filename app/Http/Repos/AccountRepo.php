@@ -279,7 +279,9 @@ class AccountRepo {
                 'billing_address.lng as billing_address_lng',
                 'billing_address.place_id as billing_address_place_id',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as primary_contact_name'),
-                'phone_numbers.phone_number as primary_contact_phone'
+                'phone_numbers.phone_number as primary_contact_phone',
+                'accounts.start_date as start_date',
+                'accounts.created_at as created_at'
             );
 
         if($user && $user->accountUsers)

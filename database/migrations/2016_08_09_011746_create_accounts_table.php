@@ -44,6 +44,8 @@ class CreateAccountsTable extends Migration
             $table->foreign('shipping_address_id')->references('address_id')->on('addresses');
             $table->foreign('parent_account_id')->references('account_id')->on('accounts');
             $table->foreign('ratesheet_id')->references('ratesheet_id')->on('ratesheets');
+
+            $table->timestamps();
         });
     }
 

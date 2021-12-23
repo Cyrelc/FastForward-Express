@@ -102,7 +102,7 @@ export default class ReduxTable extends Component {
             this.props.setReduxQueryString(query)
             this.props.fetchTableData()
         }
-        this.state.tableRef.current && this.state.tableRef.current.table && this.state.tableRef.current.table.redraw()
+        this.state.tableRef.current?.table?.redraw()
         this.setState({loading: false})
     }
 
@@ -223,6 +223,7 @@ export default class ReduxTable extends Component {
                                     maxHeight='55vh'
                                     minHeight='55vh'
                                     options={{
+                                        debugInvalidOptions: false,
                                         layout: 'fitColumns',
                                         pagination: 'local',
                                         paginationSize: 25

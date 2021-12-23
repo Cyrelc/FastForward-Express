@@ -475,13 +475,14 @@ class Bill extends Component {
     handleEstimatedTimeEvent(events, estimateTimeEvent) {
         const {name, value} = estimateTimeEvent.target
 
-        events['deliveryTypes'] = name === 'deliveryTypes' ? value.sort((a, b) => a.time < b.time ? 1 : -1) : this.state.deliveryTypes
-        if(name === 'deliveryType')
-            events['deliveryType'] = value
-        else if(name === 'deliveryTypes') {
+        if (name === 'deliveryTypes') {
+            events['deliveryTypes'] = value.sort((a, b) => a.time < b.time ? 1 : -1)
             events['deliveryType'] = this.state.deliveryType ? value.find(type => type.id == this.state.deliveryType.id) : value.find(type => type.id = 'regular')
-        } else
-            events['deliveryType'] = this.state.deliveryType
+        } else {
+            events['deliveryTypes'] = this.state.deliveryTypes
+            events['deliveryType'] = name === 'deliveryType' ? value : this.state.deliveryType
+        }
+
         events['pickupTimeExpected'] = name === 'pickupTimeExpected' ? value : this.state.pickupTimeExpected
         events['deliveryTimeExpected'] = name === 'deliveryTimeExpected' ? value : this.state.deliveryTimeExpected
         if(this.state.applyRestrictions) {
@@ -509,16 +510,17 @@ class Bill extends Component {
                 *       In the event of case 2, we simply iterate through the "earliest" pickup times for the following days, until we find one which is valid by calling the function over again with the new attempt
                 *       This should allow for future checks, for example to see if dates fall on holidays
                 */
-                if(!this.state.pickupTimeExpected || events['pickupTimeExpected'] < events['pickupTimeMin']) {
+                if(!this.state.pickupTimeExpected || (events['pickupTimeExpected'] < events['pickupTimeMin'] && events['pickupTimeExpected'] < events['pickupTimeMax'])) {
                     console.log('pickupTime requested was too early.')
                     events['pickupTimeExpected'] = events['pickupTimeMin']
-                } else while (events['pickupTimeExpected'] > events['pickupTimeMax'] || new Date(events['pickupTimeExpected']).getDay() === 6 || new Date(events['pickupTimeExpected']).getDay() === 0) {
-                    console.log('pickupTime requested too late = ', events['pickupTimeExpected'] > events['pickuptTimeMax'], '   pickupTime day was   ', new Date(events['pickupTimeExpected']).getDay())
-                    const nextAvailablePickupTime = new Date(events['pickupTimeExpected'])
-                    nextAvailablePickupTime.addDays(1)
-                    nextAvailablePickupTime.setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes(), 0, 0)
-                    events['pickupTimeExpected'] = nextAvailablePickupTime
-                }
+                } else while ((events['pickupTimeExpected'] > events['pickupTimeMax']) || new Date(events['pickupTimeExpected']).getDay() === 6 || new Date(events['pickupTimeExpected']).getDay() === 0) {
+                        console.log('pickupTime requested too late = ', events['pickupTimeExpected'] > events['pickuptTimeMax'], '   pickupTime day was   ', new Date(events['pickupTimeExpected']).getDay())
+                        const nextAvailablePickupTime = new Date(events['pickupTimeExpected'])
+                        nextAvailablePickupTime.addDays(1)
+                        nextAvailablePickupTime.setHours(this.state.businessHoursMin.getHours(), this.state.businessHoursMin.getMinutes(), 0, 0)
+                        events['pickupTimeExpected'] = nextAvailablePickupTime
+                        events['pickupTimeMax'].addDays(1)
+                    }
                 /*
                 *   Iterate through the possible delivery type values, and disable those that are invalid (not an option) for the selected pickup time
                 *   In addition, set the delivery type automatically to the highest possible type that still fits within the window given

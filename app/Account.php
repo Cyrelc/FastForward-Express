@@ -10,7 +10,7 @@ class Account extends Model
     use LogsActivity;
 
     public $primaryKey = 'account_id';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'active',
@@ -64,5 +64,5 @@ class Account extends Model
     /**
      * Readonly fields - we must distinguish because some fields must be *visible* to all users, but are not *editable* by those users
      */
-    public static $readOnlyFields = ['active', 'account_number', 'parent_account_id'];
+    public static $readOnlyFields = ['active', 'account_number', 'parent_account_id', 'created_at', 'updated_at'];
 }

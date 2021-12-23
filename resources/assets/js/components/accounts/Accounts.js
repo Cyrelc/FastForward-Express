@@ -50,12 +50,14 @@ class Accounts extends Component {
                 else
                     return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
             }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleAccountActive(cell), headerSort: false, print: false},
+            {title: 'Created On', field: 'created_at', visible: false}
         ] : [];
         const basicColumns = [
             {title: 'Account ID', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/accounts/'}, sorter: 'number'},
             {title: 'Account Number', field: 'account_number'},
             {title: 'Parent Account', field: 'parent_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'parent_name', urlPrefix:'/app/accounts/'}},
             {title: 'Account Name', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'name', urlPrefix:'/app/accounts/'}, sorter: 'number'},
+            {title: 'Start Date', field: 'start_date', visible: false},
             {title: 'Invoice Interval', field: 'invoice_interval'},
             {title: 'Primary Contact', field: 'primary_contact_name'},
             {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
