@@ -54,7 +54,7 @@ class EmployeePolicy
     */
     public function updateBasic(User $user, Employee $employee) {
         return $user->hasAnyPermission('employees.edit.basic.*', 'employees.edit.*.*') ||
-            $user->employee && $user->employee->active && $user->employee->employee_id === $employee->employee_id;
+            ($user->employee && $user->employee->active && $user->employee->employee_id === $employee->employee_id);
     }
 
     public function updateAdvanced(User $user, Employee $employee) {

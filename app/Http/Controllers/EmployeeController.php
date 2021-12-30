@@ -107,9 +107,10 @@ class EmployeeController extends Controller {
 
         $employeeId = $req->input('employee_id');
         $oldEmployee = $employeeRepo->GetById($employeeId);
-        if($req->user()->cannot('updateBasic', $oldEmployee))
+        if($oldEmployee ? $req->user()->cannot('updateBasic', $oldEmployee) : $req->user()->cannot('create', Employee::class))
             abort(403);
-        $permissions = $permissionModelFactory->GetEmployeePermissions($req->user(), $oldEmployee);
+
+        $permissions = $permissionModelFactory->GetEmployeePermissions($req->user(), $oldEmployee ? $oldEmployee : null);
 
         $userId = $oldEmployee? $oldEmployee->user_id : null;
         $contactId = $oldEmployee ? $oldEmployee->contact_id : null;
