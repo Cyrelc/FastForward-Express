@@ -265,8 +265,8 @@ class Employee extends Component {
     }
 
     storeEmployee() {
-        if(!this.state.permissions.editBasic) {
-            toastr.error('Authenticated User does not have permission to update this employee', 'Error');
+        if(this.state.employeeId ? !this.state.permissions.editBasic : !this.state.permissions.create) {
+            toastr.error('Authenticated User does not have permission to ' + this.state.employeeId ? 'update this Employee' : 'create Employee', 'Error');
             return;
         }
 

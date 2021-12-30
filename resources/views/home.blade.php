@@ -1,7 +1,7 @@
 @extends('layouts.app3')
 
 @section('script')
-<script type='text/javascript' src='{{asset("compiled_js/app.js")}}?{{config('view.version')}}'></script>
+<script type='text/javascript' src='{{mix("compiled_js/app.js")}}'></script>
 @endsection
 
 @section('style')
