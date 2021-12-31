@@ -106,7 +106,7 @@ class EmployeeController extends Controller {
         $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
 
         $employeeId = $req->input('employee_id');
-        $oldEmployee = $employeeRepo->GetById($employeeId);
+        $oldEmployee = $employeeRepo->GetById($employeeId, null);
         if($oldEmployee ? $req->user()->cannot('updateBasic', $oldEmployee) : $req->user()->cannot('create', Employee::class))
             abort(403);
 
@@ -220,7 +220,7 @@ class EmployeeController extends Controller {
 
     public function toggleActive(Request $req, $employeeId) {
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($employeeId);
+        $employee = $employeeRepo->GetById($employeeId, null);
         if($req->user()->cannot('updateAdvanced', $employee))
             abort(403);
 
