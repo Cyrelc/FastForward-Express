@@ -5,6 +5,7 @@ use DB;
 use App\Employee;
 use App\EmployeeCommission;
 use App\EmployeeEmergencyContact;
+use App\User;
 use App\Http\Filters\IsNull;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
