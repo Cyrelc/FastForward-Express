@@ -97,15 +97,15 @@ class ChargeModelFactory {
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
         if($pickupZone->type == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->regular, 'driver_amount' => $pickupZone->additional_costs->regular];
+            $results[] =  ['name' => 'Peripheral Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->regular, 'driver_amount' => $pickupZone->additional_costs->regular, 'paid' => false];
         } else if ($pickupZone->type === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->$deliveryType, 'driver_amount' => $pickupZone->additional_costs->deliveryType];
+            $results[] = ['name' => 'Outlying Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->$deliveryType, 'driver_amount' => $pickupZone->additional_costs->deliveryType, 'paid' => false];
         }
 
         if($deliveryZone->type == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->regular, 'driver_amount' => $deliveryZone->additional_costs->regular];
+            $results[] =  ['name' => 'Peripheral Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->regular, 'driver_amount' => $deliveryZone->additional_costs->regular, 'paid' => false];
         } else if ($deliveryZone->type === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->$deliveryType, 'driver_amount' => $deliveryZone->additional_costs->$deliveryType];
+            $results[] = ['name' => 'Outlying Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->$deliveryType, 'driver_amount' => $deliveryZone->additional_costs->$deliveryType, 'paid' => false];
         }
 
         return $results;
