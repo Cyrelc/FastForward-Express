@@ -2,6 +2,7 @@
 namespace App\Http\Validation;
 
 use App\Http\Repos;
+use App\Rules\AlphaNumSpace;
 use Illuminate\Validation\Rule;
 
 class BillValidationRules {
@@ -49,15 +50,13 @@ class BillValidationRules {
 		$rules = array_merge($rules, $deliveryAddress['rules']);
 		$messages = array_merge($messages, $deliveryAddress['messages']);
 
-		$chargeAccount = $req->charge_account_id ? $accountRepo->GetById($req->charge_account_id) : null;
-		if($chargeAccount && $chargeAccount->custom_field && $chargeAccount->is_custom_field_mandatory)
-			$rules = array_merge($rules, ['charge_reference_value' => 'required']);
+		// Handle account reference values
 		$deliveryAccount = $req->delivery_account_id ? $accountRepo->GetById($req->delivery_account_id) : null;
 		if($deliveryAccount && $deliveryAccount->custom_field && $deliveryAccount->is_custom_field_mandatory)
-			$rules = array_merge($rules, ['delivery_reference_value' => 'required']);
+			$rules = array_merge($rules, ['delivery_reference_value' => ['required', new AlphaNumSpace]]);
 		$pickupAccount = $req->pickup_account_id ? $accountRepo->GetById($req->pickup_account_id) : null;
 		if($pickupAccount && $pickupAccount->custom_field && $pickupAccount->is_custom_field_mandatory)
-			$rules = array_merge($rules, ['pickup_reference_value' => 'required']);
+			$rules = array_merge($rules, ['pickup_reference_value' => ['required', new AlphaNumSpace]]);
 
 		if($req->user()->accountUser) {
 			$basic = $this->getBasicValidationRulesAccountUser($req);
@@ -76,7 +75,7 @@ class BillValidationRules {
 		}
 
 		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['updateBilling'] : $permissions['createFull']) {
-			$billing = $this->getDispatchValidationRules($req);
+			$billing = $this->getBillingValidationRules($req);
 			$rules = array_merge($rules, $billing['rules']);
 			$messages = array_merge($messages, $billing['messages']);
 		}
@@ -153,6 +152,7 @@ class BillValidationRules {
 	}
 
 	private function getBillingValidationRules($req) {
+		$accountRepo = new Repos\AccountRepo();
 		$paymentRepo = new Repos\PaymentRepo();
 
 		$rules = [
@@ -168,22 +168,34 @@ class BillValidationRules {
 			$rules = array_merge($rules, ['interliner_id' => 'required', 'interliner_reference_value' => 'alpha_dash|min:4', 'interliner_cost' => "min:0", 'interliner_cost_to_customer' => 'min:0']);
 		}
 
-		$rules = array_merge($rules, ['charges.*.paymentType.payment_type_id' => 'required|exists:payment_types,payment_type_id']);
+		$rules = array_merge($rules, ['charges.*.chargeType.payment_type_id' => 'required|exists:payment_types,payment_type_id']);
 
 		foreach($req->charges as $key => $charge) {
-			if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetAccountPaymentType()) {
+			if($charge['chargeType']['payment_type_id'] == $paymentRepo->GetAccountPaymentType()->payment_type_id) {
 				$rules = array_merge($rules, [
-					'charge.' . $key . '.chargeId' => 'required|exists:accounts,account_id']
+					'charges.' . $key . '.charge_account_id' => 'required|exists:accounts,account_id']
 				);
-			}
-			else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {
-				$rules = array_merge($rules, [
-					'charge.' . $key . '.chargeId' => 'required|exists:employees,employee_id'
+				$messages = array_merge($rules, [
+					'charges.' . $key . '.charge_account_id.required' => 'Account ID for requested charge is missing. Please try again',
+					'charges.' . $key . 'charge_account_id.exists' => 'Account ID ' . $charge['charge_account_id'] . 'does not exist. Please try again' 
+				]);
+				$account = $accountRepo->GetById($charge['charge_account_id']);
+				if($account->custom_field && $account->is_custom_field_mandatory) {
+					$rules = array_merge($rules, [
+						'charges.' . $key . '.charge_reference_value' => ['required', new AlphaNumSpace]
 					]);
-			}
-			else {
+					$messages = array_merge($messages, [
+						'charges.' . $key . '.charge_reference_value.required' => $account->custom_field . ' is required',
+						'charges.' . $key . '.charge_reference_value.AlphaNumSpace' => $account->custom_field . ' can only contain alpha numeric characters'
+					]);
+				}
+			} else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {
 				$rules = array_merge($rules, [
-					'charge.' . $key . '.chargeId' => 'required|exists:payment_types,payment_type_id']
+					'charges.' . $key . '.chargeId' => 'required|exists:employees,employee_id'
+					]);
+			} else {
+				$rules = array_merge($rules, [
+					'charges.' . $key . '.chargeId' => 'required|exists:payment_types,payment_type_id']
 				);
 			}
 		}
