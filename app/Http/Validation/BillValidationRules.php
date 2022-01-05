@@ -195,8 +195,12 @@ class BillValidationRules {
 					]);
 			} else {
 				$rules = array_merge($rules, [
-					'charges.' . $key . '.chargeId' => 'required|exists:payment_types,payment_type_id']
+					'charges.' . $key . '.chargeType.payment_type_id' => 'required|exists:payment_types,payment_type_id']
 				);
+				$messages = array_merge($messages, [
+					'charges.' . $key . '.chargeType.payment_type_id.required' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support',
+					'charges.' . $key . '.chargeType.payment_type_id.exists' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support'
+				]);
 			}
 		}
 		// if($req->payment_type == 'Account') {
