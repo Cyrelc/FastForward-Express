@@ -94,7 +94,7 @@ export default class ChargebackModal extends Component {
                         {!this.state.continuous &&
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Repeat</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Repeat</InputGroup.Text>
                                     <FormControl
                                         type='number'
                                         min={1}
@@ -102,13 +102,13 @@ export default class ChargebackModal extends Component {
                                         value={this.state.countRemaining}
                                         onChange={this.handleChange}
                                     />
-                                    <InputGroup.Append><InputGroup.Text>Times</InputGroup.Text></InputGroup.Append>
+                                    <InputGroup.Text>Times</InputGroup.Text>
                                 </InputGroup>
                             </Col>
                         }
                         <Col md={6}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Name</InputGroup.Text>
                                 <FormControl
                                     name='chargebackName'
                                     value={this.state.chargebackName}
@@ -118,7 +118,7 @@ export default class ChargebackModal extends Component {
                         </Col>
                         <Col md={6}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Amount</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Amount</InputGroup.Text>
                                 <FormControl
                                     type='number'
                                     min={0}
@@ -131,7 +131,7 @@ export default class ChargebackModal extends Component {
                         </Col>
                         <Col md={6}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>GL Code</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>GL Code</InputGroup.Text>
                                 <FormControl
                                     name='glCode'
                                     value={this.state.glCode}
@@ -141,7 +141,7 @@ export default class ChargebackModal extends Component {
                         </Col>
                         <Col md={6}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Start Date</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Start Date</InputGroup.Text>
                                 <DatePicker
                                     dateFormat='MMMM d, yyyy'
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
@@ -166,7 +166,7 @@ export default class ChargebackModal extends Component {
                         </Col>
                         <Col md={12}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>{this.state.chargebackId ? 'Employee' : 'Employees'}</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>{this.state.chargebackId ? 'Employee' : 'Employees'}</InputGroup.Text>
                                 <Select
                                     options={this.props.employees}
                                     value={this.state.selectedEmployees}

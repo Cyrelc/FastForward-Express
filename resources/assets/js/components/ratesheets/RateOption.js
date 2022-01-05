@@ -9,9 +9,7 @@ export default function RateOption(props) {
             </td>
             <td>
                 <InputGroup size='sm'>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>$</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>$</InputGroup.Text>
                     <FormControl id={props.id} type='number' min='0' step='0.01' name='cost' value={props.cost} onChange={event => props.handleChange(event, 'deliveryTypes', props.id)} />
                 </InputGroup>                    
             </td>

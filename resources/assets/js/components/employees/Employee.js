@@ -254,11 +254,13 @@ class Employee extends Component {
                     </Col>
                 </Row>
                 <Row className='justify-content-md-center'>
-                    <ButtonGroup>
-                        <LinkContainer to={'/app/employees/edit/' + this.state.prevEmployeeId}><Button variant='info' disabled={!this.state.prevEmployeeId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevEmployeeId}</Button></LinkContainer>
-                        <Button variant='primary' onClick={this.storeEmployee} disabled={this.state.readOnly}><i className='fas fa-save'></i> Submit</Button>
-                        <LinkContainer to={'/app/employees/edit/' + this.state.nextEmployeeId}><Button variant='info' disabled={!this.state.nextEmployeeId}>Next - {this.state.nextEmployeeId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
-                    </ButtonGroup>
+                    <Col align='center'>
+                        <ButtonGroup>
+                            <LinkContainer to={'/app/employees/edit/' + this.state.prevEmployeeId}><Button variant='info' disabled={!this.state.prevEmployeeId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevEmployeeId}</Button></LinkContainer>
+                            <Button variant='primary' onClick={this.storeEmployee} disabled={this.state.readOnly}><i className='fas fa-save'></i> Submit</Button>
+                            <LinkContainer to={'/app/employees/edit/' + this.state.nextEmployeeId}><Button variant='info' disabled={!this.state.nextEmployeeId}>Next - {this.state.nextEmployeeId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                        </ButtonGroup>
+                    </Col>
                 </Row>
             </span>
         )

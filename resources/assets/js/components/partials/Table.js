@@ -145,7 +145,7 @@ export default class Table extends Component {
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Group By: </InputGroup.Text>
                                         <Select
                                             options={this.state.groupByOptions}
                                             value={this.state.groupBy}
@@ -156,9 +156,7 @@ export default class Table extends Component {
                                 </Col>
                                 <Col md={6}>
                                     <InputGroup>
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text>Select Active Filters: </InputGroup.Text>
-                                        </InputGroup.Prepend>
+                                        <InputGroup.Text>Select Active Filters: </InputGroup.Text>
                                         <Select
                                             options={this.state.filters}
                                             value={this.state.filters.filter(filter => filter.active)}
@@ -167,9 +165,7 @@ export default class Table extends Component {
                                             isDisabled={this.state.filters.length === 0}
                                             isMulti
                                         />
-                                        <InputGroup.Append>
-                                            <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
-                                        </InputGroup.Append>
+                                        <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col md={3}>

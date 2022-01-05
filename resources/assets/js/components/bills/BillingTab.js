@@ -293,9 +293,7 @@ export default function BillingTab(props) {
                     <Row>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend>
-                                    <InputGroup.Text>Waybill #: </InputGroup.Text>
-                                </InputGroup.Prepend>
+                                <InputGroup.Text>Waybill #: </InputGroup.Text>
                                 <FormControl
                                     name='billNumber'
                                     value={props.billNumber}
@@ -306,7 +304,7 @@ export default function BillingTab(props) {
                         </Col>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Ratesheet: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Ratesheet: </InputGroup.Text>
                                 <Select
                                     options={props.ratesheets.map(ratesheet => {return {label: ratesheet.name, value: ratesheet.ratesheet_id}})}
                                     value={props.activeRatesheet ? {label: props.activeRatesheet.name, value: props.activeRatesheet.ratesheet_id} : undefined}
@@ -316,7 +314,7 @@ export default function BillingTab(props) {
                         </Col>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Repeat: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Repeat: </InputGroup.Text>
                                 <Select
                                     options={props.repeatIntervals}
                                     isClearable
@@ -326,14 +324,12 @@ export default function BillingTab(props) {
                                     isDisabled={props.readOnly}
                                     value={props.repeatInterval}
                                 />
-                                <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title={repeatingBillsTitleText}></i></InputGroup.Text></InputGroup.Append>
+                                <InputGroup.Text><i className='fas fa-question' title={repeatingBillsTitleText}></i></InputGroup.Text>
                             </InputGroup>
                         </Col>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend>
-                                    <InputGroup.Text>Skip Invoicing</InputGroup.Text>
-                                </InputGroup.Prepend>
+                                <InputGroup.Text>Skip Invoicing</InputGroup.Text>
                                 <InputGroup.Checkbox
                                     type='checkbox'
                                     checked={props.skipInvoicing}
@@ -355,9 +351,7 @@ export default function BillingTab(props) {
                     </Col>
                     <Col md={9}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Interliner: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Interliner: </InputGroup.Text>
                             <Select
                                 options={props.interliners}
                                 isSearchable
@@ -365,9 +359,7 @@ export default function BillingTab(props) {
                                 onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}
                                 isDisabled={props.readOnly || props.invoiceId}
                             />
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Tracking #</InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Tracking #</InputGroup.Text>
                             <FormControl
                                 type='text'
                                 placeholder='Tracking Number'
@@ -376,9 +368,7 @@ export default function BillingTab(props) {
                                 onChange={props.handleChanges}
                                 readOnly={props.readOnly || props.invoiceId}
                             />
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Actual Cost: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Actual Cost: </InputGroup.Text>
                             <FormControl
                                 type='number'
                                 step={0.01}
@@ -401,9 +391,7 @@ export default function BillingTab(props) {
                 </Col>
                 <Col md={2}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Type: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Type: </InputGroup.Text>
                         <Select
                             options={props.chargeTypes}
                             getOptionLabel={type => type.name}
@@ -416,9 +404,7 @@ export default function BillingTab(props) {
                 {props.chargeType.name === 'Account' &&
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Account: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Account: </InputGroup.Text>
                             <Select
                                 options={props.accounts}
                                 getOptionLabel={account => account.account_number + ' - ' + account.name}
@@ -434,9 +420,7 @@ export default function BillingTab(props) {
                 {props.chargeType.name === 'Employee' &&
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Employee: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Employee: </InputGroup.Text>
                             <Select
                                 options={props.employees}
                                 isSearchable
@@ -524,9 +508,7 @@ export default function BillingTab(props) {
                                             {charge.charge_reference_value_label !== null &&
                                                 <Col md={12}>
                                                     <InputGroup>
-                                                        <InputGroup.Prepend>
-                                                            <InputGroup.Text>{charge.charge_reference_value_label}: </InputGroup.Text>
-                                                        </InputGroup.Prepend>
+                                                        <InputGroup.Text>{charge.charge_reference_value_label}: </InputGroup.Text>
                                                         <FormControl
                                                             name='charge_reference_value'
                                                             value={charge.charge_reference_value}
@@ -578,9 +560,7 @@ export default function BillingTab(props) {
                     <Row>
                         <Col md={12}>
                             <InputGroup>
-                                <InputGroup.Prepend>
-                                    <InputGroup.Text>{props.linkLineItemToType} ID: </InputGroup.Text>
-                                </InputGroup.Prepend>
+                                <InputGroup.Text>{props.linkLineItemToType} ID: </InputGroup.Text>
                                 <FormControl
                                     name='linkLineItemToTargetId'
                                     value={props.linkLineItemToTargetId}

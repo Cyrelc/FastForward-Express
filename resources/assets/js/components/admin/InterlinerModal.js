@@ -11,7 +11,7 @@ export default function InterlinerModal(props) {
                 <Row>
                     <Col md={11}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Name </InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Name </InputGroup.Text>
                             <FormControl name='interlinerName' value={props.interlinerName} onChange={props.handleChanges}/>
                         </InputGroup>
                     </Col>

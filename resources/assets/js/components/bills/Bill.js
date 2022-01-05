@@ -533,7 +533,7 @@ class Bill extends Component {
                     else
                         return {...type, isDisabled: false}
                 })
-                if(name === 'pickupTimeExpected')
+                if(name === 'pickupTimeExpected' || name === 'deliveryTypes')
                     events['deliveryType'] = events['deliveryTypes'].find(type => type.time <= hoursBetweenRequestedPickupAndEndOfDay)
             }
 
@@ -798,7 +798,6 @@ class Bill extends Component {
         var data = {bill_id: this.state.billId}
         if(this.state.billId ? this.state.permissions.editBasic : this.state.permissions.createBasic)
             data = {...data,
-                charge_account_id: this.state.chargeAccount.account_id,
                 delivery_account_id: this.state.deliveryAccount.account_id,
                 delivery_address_formatted: this.state.deliveryAddressFormatted,
                 delivery_address_lat: this.state.deliveryAddressLat,

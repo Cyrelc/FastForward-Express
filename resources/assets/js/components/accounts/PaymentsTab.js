@@ -238,7 +238,7 @@ export default class PaymentsTab extends Component {
                         <Row>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Credit Amount </InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Credit Amount </InputGroup.Text>
                                     <FormControl
                                         name='creditAmount'
                                         type='number'
@@ -250,7 +250,7 @@ export default class PaymentsTab extends Component {
                             </Col>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Bill ID </InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Bill ID </InputGroup.Text>
                                     <FormControl
                                         name='creditAgainstBillId'
                                         type='number'
@@ -262,7 +262,7 @@ export default class PaymentsTab extends Component {
                             </Col>
                             <Col md={12}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Reason </InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Reason </InputGroup.Text>
                                     <FormControl
                                         name='creditReason'
                                         value={this.state.creditReason}
@@ -287,9 +287,7 @@ export default class PaymentsTab extends Component {
                         <Row>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>Payment Type</InputGroup.Text>
-                                    </InputGroup.Prepend>
+                                    <InputGroup.Text>Payment Type</InputGroup.Text>
                                     <Select
                                         getOptionLabel={option => option.name}
                                         getOptionValue={option => option.payment_type_id}
@@ -301,7 +299,7 @@ export default class PaymentsTab extends Component {
                             {(this.state.selectedPaymentType && this.state.selectedPaymentType.required_field) &&
                                 <Col md={6}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>{this.state.selectedPaymentType.required_field}</InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>{this.state.selectedPaymentType.required_field}</InputGroup.Text>
                                         <FormControl
                                             name='paymentReferenceValue'
                                             onChange={this.handleChange}
@@ -314,7 +312,7 @@ export default class PaymentsTab extends Component {
                         <Row>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Payment Amount: $</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Payment Amount: $</InputGroup.Text>
                                     <FormControl
                                         name='paymentAmount'
                                         type='number'
@@ -363,7 +361,7 @@ export default class PaymentsTab extends Component {
                                                 <td style={{textAlign: 'right'}}>{invoice.balance_owing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</td>
                                                 <td>
                                                     <InputGroup size='sm'>
-                                                        <InputGroup.Prepend><InputGroup.Text>$</InputGroup.Text></InputGroup.Prepend>
+                                                        <InputGroup.Text>$</InputGroup.Text>
                                                         <FormControl
                                                             name='invoicePaymentAmount'
                                                             type='number'
@@ -381,7 +379,7 @@ export default class PaymentsTab extends Component {
                                             <td colSpan={4}>Adjustment to account balance</td>
                                             <td>
                                                 <InputGroup>
-                                                    <InputGroup.Prepend><InputGroup.Text>$</InputGroup.Text></InputGroup.Prepend>
+                                                    <InputGroup.Text>$</InputGroup.Text>
                                                     <FormControl
                                                         name='paymentRemainder'
                                                         type='number'

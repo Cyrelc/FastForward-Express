@@ -46,9 +46,7 @@ export default class AccountsReceivable extends Component {
                                 </Col>
                                 <Col md={3}>
                                     <InputGroup>
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text>Start Month</InputGroup.Text>
-                                        </InputGroup.Prepend>
+                                        <InputGroup.Text>Start Month</InputGroup.Text>
                                         <DatePicker
                                             className='form-control'
                                             dateFormat='MMMM, yyyy'
@@ -60,9 +58,7 @@ export default class AccountsReceivable extends Component {
                                 </Col>
                                 <Col md={3}>
                                     <InputGroup>
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text>End Month</InputGroup.Text>
-                                        </InputGroup.Prepend>
+                                        <InputGroup.Text>End Month</InputGroup.Text>
                                         <DatePicker
                                             className='form-control'
                                             dateFormat='MMMM, yyyy'

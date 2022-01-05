@@ -28,7 +28,7 @@ export default class StringFilter extends Component {
         return (
             <Col md={4}>
                 <InputGroup>
-                    <InputGroup.Prepend><InputGroup.Text>{this.props.filter.name}</InputGroup.Text></InputGroup.Prepend>
+                    <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
                     <FormControl
                         value={this.state.string}
                         onChange={this.handleChange}

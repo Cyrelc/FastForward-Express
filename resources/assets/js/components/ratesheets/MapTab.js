@@ -1,5 +1,5 @@
 import React from 'react'
-import {Row, Col, Jumbotron, InputGroup, ToggleButton, ButtonGroup, FormControl, Popover, Button} from 'react-bootstrap'
+import {Button, ButtonGroup, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton} from 'react-bootstrap'
 import Zone from './Zone'
 import Select from 'react-select'
 
@@ -15,7 +15,7 @@ export default function MapTab(props) {
     )
 
     return (
-        <Jumbotron fluid style={{padding: '0px'}}>
+        <Card fluid style={{padding: '0px'}}>
             <Row>
                 <Col md={3}>
                     <Select
@@ -29,9 +29,7 @@ export default function MapTab(props) {
                 </Col>
                 <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>New Zone Type: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>New Zone Type: </InputGroup.Text>
                         <ButtonGroup toggle>
                             <ToggleButton 
                                 type='radio'
@@ -62,9 +60,7 @@ export default function MapTab(props) {
                 </Col>
                 <Col md={3}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Snap Accuracy</InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Snap Accuracy</InputGroup.Text>
                         <FormControl
                             type='number'
                             name='snapPrecision'
@@ -90,9 +86,10 @@ export default function MapTab(props) {
                     )}
                     Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommedation is to create a simple polygon, and then edit it to fit your desired dimensions
                 </Col>
-                <Col md={9} id='googleMap' style={{height:800, width:'100%'}}>
+                <Col md={9}>
+                    <div id='googleMap' style={{height:800}}></div>
                 </Col>
             </Row>
-        </Jumbotron>
+        </Card>
     )
 }

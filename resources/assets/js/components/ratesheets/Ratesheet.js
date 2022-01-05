@@ -4,9 +4,10 @@ import SnazzyInfoWindow from 'snazzy-info-window'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
-import DistanceRatesTab from './DistanceRatesTab'
-import MapTab from './MapTab'
 import BasicRatesTab from './BasicRatesTab'
+import DistanceRatesTab from './DistanceRatesTab'
+import ImportRatesModal from './ImportRatesModal'
+import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
 import VolumeRatesTab from './VolumeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
@@ -45,13 +46,14 @@ export default class Ratesheet extends Component {
             importType: undefined,
             selectedImports: [],
             showImportModal: false,
+            showReplaceModal: false
         }
         this.createPolygon = this.createPolygon.bind(this)
+        this.deleteZone = this.deleteZone.bind(this)
+        this.editZone = this.editZone.bind(this)
         this.handleChange = this.handleChange.bind(this)
         this.handleImport = this.handleImport.bind(this)
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
-        this.deleteZone = this.deleteZone.bind(this)
-        this.editZone = this.editZone.bind(this)
         this.store = this.store.bind(this)
     }
 
@@ -108,59 +110,6 @@ export default class Ratesheet extends Component {
         const {match: {params}} = this.props
         if(prevProps.match.params.ratesheetId != params.ratesheetId)
             window.location.reload()
-    }
-
-    handleChange(event, section, id) {
-        const {name, value, type, checked} = event.target
-        console.log(name, value)
-        if(section) {
-            const updated = this.state[section].map(obj => {
-                if(obj.id === id)
-                    return type === 'checkbox' ? {...obj, [name]: checked} : {...obj, [name]: value}
-                return obj
-            })
-            this.setState({[section] : updated})
-        } else
-            if(name === 'key')
-                window.location.hash = value
-        type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
-    }
-
-    handleImport() {
-        if(!this.state.selectedImports) {
-            console.log('ERROR - Selected imports value is invalid or empty array. Aborting.')
-            return
-        }
-        if(this.state.importType === 'mapZones') {
-            this.state.selectedImports.forEach(mapZone => {
-                console.log('attempting to parse new mapzone')
-                const polygon = new google.maps.Polygon({
-                    paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
-                })
-                polygon.setMap(this.state.map)
-                this.createPolygon(polygon, {...mapZone, zone_id: null})
-            })
-        } else if(this.state.importType === 'timeRates') {
-            const timeRates = this.state.selectedImports.map(timeRate => {
-                return {...timeRate,
-                    brackets: timeRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
-                }
-            })
-            this.setState({timeRates: this.state.timeRates.concat(timeRates)})
-        } else
-            this.setState({[this.state.importType]: this.state[this.state.importType].concat(this.state.selectedImports)})
-        this.setState({selectedImports: [], showImportModal: false})
-    }
-
-    handleZoneRateChange(event, id) {
-        const {name, value} = event.target
-        var updated = this.state.zoneRates.map(obj => {
-            if(obj.id == id) {
-                return {...obj, [name]: value}
-            }
-            return obj
-        })
-        this.setState({zoneRates: updated})
     }
 
     createPolygon(polygon, zone = null) {
@@ -296,6 +245,108 @@ export default class Ratesheet extends Component {
         return new google.maps.LatLng(minX + ((maxX - minX) / 2), minY + ((maxY - minY) / 2))
     }
 
+    handleChange(event, section, id) {
+        const {name, value, type, checked} = event.target
+        if(section) {
+            const updated = this.state[section].map(obj => {
+                if(obj.id === id)
+                    return type === 'checkbox' ? {...obj, [name]: checked} : {...obj, [name]: value}
+                return obj
+            })
+            this.setState({[section] : updated})
+        } else
+            if(name === 'key')
+                window.location.hash = value
+        type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
+    }
+
+    handleImport(replace = false) {
+        if(!this.state.selectedImports) {
+            console.log('ERROR - Selected imports value is invalid or empty array. Aborting.')
+            return
+        }
+        switch(this.state.importType) {
+            case 'mapZones':
+                this.state.selectedImports.forEach(importZone => {
+                    console.log('attempting to parse new mapzone')
+                    const polygon = new google.maps.Polygon({
+                        paths: importZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
+                    })
+                    polygon.setMap(this.state.map)
+                    const oldZone = this.state.mapZones.find(zone => zone.name === importZone.name)
+                    if(oldZone && replace == true) {
+                        this.deleteZone(oldZone.zone_id)
+                        this.createPolygon(polygon, {...importZone, zone_id: oldZone.zone_id})
+                    } else
+                        this.createPolygon(polygon, {...importZone, name: oldZone ? importZone.name + '(copy)' : importZone.name, zone_id: null})
+                })
+                break;
+            case 'timeRates':
+                this.state.selectedImports.forEach(importRate => {
+                    const oldTimeRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
+                    const brackets = timeRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
+                    if(oldTimeRate && replace == true) {
+                        const timeRates = this.state.timeRates.map(timeRate => {
+                            if(timeRate.name === importRate.name)
+                                return {...timeRate, brackets: brackets}
+                            return timeRate
+                        })
+                        this.setState({timeRates: timeRates})
+                    } else
+                        this.setState({timeRates: this.state.timeRate.concat([{...importRate, name: oldTimeRate ? importRate.name + '(copy)' : importRate.name, brackets: brackets}])})
+                })
+                break;
+            case 'miscRates':
+                this.state.miscRates.forEach(miscRate => {
+                    const oldRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
+                    if(oldRate && replace == true) {
+                        const miscRates = this.state.miscRates.map(miscRate => {
+                            if(miscRate.name === importRate.name)
+                                return importRate
+                            return miscRate
+                        })
+                        this.setState({miscRates: miscRates})
+                    } else
+                    this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                })
+                break
+            case 'weightRates':
+                this.state.weightRates.forEach(weightRate => {
+                    const oldRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
+                    if(oldRate && replace == true) {
+                        const weightRates = this.state.weightRates.map(weightRate => {
+                            if(weightRate.name === importRate.name)
+                                return importRate
+                            return weightRate
+                        })
+                        this.setState({weightRates: weightRates})
+                    } else
+                    this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                })
+                break;
+            default:
+                return
+        }
+
+        this.setState({
+            addAll: false,
+            replaceAll: false,
+            selectedImports: [],
+            showImportModal: false,
+        })
+    }
+
+    handleZoneRateChange(event, id) {
+        const {name, value} = event.target
+        var updated = this.state.zoneRates.map(obj => {
+            if(obj.id == id) {
+                return {...obj, [name]: value}
+            }
+            return obj
+        })
+        this.setState({zoneRates: updated})
+    }
+
     prepareZoneForStore(zone) {
         var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(this.getCoordinates(zone.polygon)), zoneId: zone.zoneId}
         if(storeZone.type === 'peripheral') {
@@ -399,7 +450,7 @@ export default class Ratesheet extends Component {
                             />
                         </Tab>
                         <Tab eventKey='map' title={<h3><i className='fas fa-map'></i> Map</h3>}>
-                            <MapTab 
+                            <MapTab
                                 polyColours = {this.state.polyColours}
                                 defaultZoneType = {this.state.defaultZoneType}
                                 snapPrecision={this.state.snapPrecision}
@@ -412,8 +463,27 @@ export default class Ratesheet extends Component {
                         </Tab>
                     </Tabs>
                     <Row className='justify-content-md-center'>
-                        <Button onClick={this.store}>Save</Button>
+                        <Col md={1}>
+                            <Button onClick={this.store}>Save</Button>
+                        </Col>
                     </Row>
+                    <ImportRatesModal
+                        ratesheets={this.state.ratesheets}
+                        importRatesheet={this.state.importRatesheet}
+                        importType={this.state.importType}
+                        selectedImports={this.state.selectedImports}
+                        showImportModal={this.state.showImportModal}
+                        originalRates={{
+                            mapZones: this.state.mapZones,
+                            miscRates: this.state.miscRates,
+                            timeRates: this.state.timeRates,
+                            weightRates: this.state.weightRates
+                        }}
+                        type='miscRates'
+
+                        handleChange={this.handleChange}
+                        handleImport={this.handleImport}
+                    />
                 </Col>
             </Row>
         )

@@ -97,9 +97,7 @@ export default function BasicTab(props) {
                     <Col md={2}><h4 className='text-muted'>Billing</h4></Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Delivery Type:</InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Delivery Type:</InputGroup.Text>
                             <Select
                                 options={props.ratesheet.deliveryTypes}
                                 getOptionLabel={type => type.friendlyName + ' (Est. ~' + type.time + ' hours)'}
@@ -113,9 +111,7 @@ export default function BasicTab(props) {
                     </Col>
                     {/* <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Payment Type: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Payment Type: </InputGroup.Text>
                             <Select
                                 options={props.paymentTypes}
                                 getOptionLabel={type => type.name}
@@ -130,9 +126,7 @@ export default function BasicTab(props) {
                             <Row>
                                 <Col md={12}>
                                     <InputGroup>
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text>Account: </InputGroup.Text>
-                                        </InputGroup.Prepend>
+                                        <InputGroup.Text>Account: </InputGroup.Text>
                                         <Select
                                             options={props.accounts}
                                             isSearchable
@@ -148,9 +142,7 @@ export default function BasicTab(props) {
                                     || (props.paymentType !== '' && props.paymentType.required_field !== null)) &&
                                     <Col md={12}>
                                         <InputGroup>
-                                            <InputGroup.Prepend>
-                                                <InputGroup.Text>{props.paymentType.name === 'Account' ? props.chargeAccount.custom_field : props.paymentType.required_field}: </InputGroup.Text>
-                                            </InputGroup.Prepend>
+                                            <InputGroup.Text>{props.paymentType.name === 'Account' ? props.chargeAccount.custom_field : props.paymentType.required_field}: </InputGroup.Text>
                                             <FormControl
                                                 name='chargeReferenceValue'
                                                 value={props.chargeReferenceValue}

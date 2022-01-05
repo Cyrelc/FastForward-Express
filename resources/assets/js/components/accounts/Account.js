@@ -262,7 +262,7 @@ class Account extends Component {
                     { (this.state.account_id && this.state.parentAccount.value != undefined) &&
                         <h4>Parent: <LinkContainer to={'/app/accounts/' + this.state.parentAccount.value}><a>{this.state.parentAccount.label}</a></LinkContainer></h4>
                     }
-                    <span className='badge badge-light'><h5>{this.state.accountId ? 'Manage Account ' + this.state.accountId + " - " + this.state.accountName : 'Create Account'}</h5></span>
+                    <h4><Badge bg='secondary'>{this.state.accountId ? 'Manage Account ' + this.state.accountId + " - " + this.state.accountName : 'Create Account'}</Badge></h4>
                 </Col>
                 <Col md={4} >
                     <h4>

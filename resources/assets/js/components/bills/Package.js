@@ -20,7 +20,7 @@ export default function Package(props) {
                         onChange={props.handleChanges}
                         readOnly={props.readOnly}
                     />
-                    <InputGroup.Append><InputGroup.Text>{props.package.packageCount > 1 ? ' Pieces' : ' Piece'}</InputGroup.Text></InputGroup.Append>
+                    <InputGroup.Text>{props.package.packageCount > 1 ? ' Pieces' : ' Piece'}</InputGroup.Text>
                 </InputGroup>
             </td>
             <td key={props.package.packageId + 'weight'}>
@@ -34,7 +34,7 @@ export default function Package(props) {
                         onChange={props.handleChanges}
                         readOnly={props.readOnly}
                     />
-                    <InputGroup.Append><InputGroup.Text>{props.useImperial ? 'lbs' : 'kgs'}</InputGroup.Text></InputGroup.Append>
+                    <InputGroup.Text>{props.useImperial ? 'lbs' : 'kgs'}</InputGroup.Text>
                 </InputGroup>
             </td>
             <td key={props.package.packageId + 'length'}>
@@ -48,7 +48,7 @@ export default function Package(props) {
                         onChange={props.handleChanges}
                         readOnly={props.readOnly}
                     />
-                    <InputGroup.Append><InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text></InputGroup.Append>
+                    <InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text>
                 </InputGroup>
             </td>
             <td key={props.package.packageId + 'width'}>
@@ -62,7 +62,7 @@ export default function Package(props) {
                         onChange={props.handleChanges}
                         readOnly={props.readOnly}
                     />
-                    <InputGroup.Append><InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text></InputGroup.Append>
+                    <InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text>
                 </InputGroup>
             </td>
             <td key={props.package.packageId + 'height'}>
@@ -76,7 +76,7 @@ export default function Package(props) {
                         onChange={props.handleChanges}
                         readOnly={props.readOnly}
                     />
-                    <InputGroup.Append><InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text></InputGroup.Append>
+                    <InputGroup.Text>{props.useImperial ? 'in' : 'cm'}</InputGroup.Text>
                 </InputGroup>
             </td>
         </tr>

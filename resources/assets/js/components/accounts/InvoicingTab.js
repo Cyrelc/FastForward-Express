@@ -34,7 +34,7 @@ export default function InvoicingTab(props) {
                     </Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Invoice Interval</InputGroup.Text>
                             <Select
                                 options={props.invoiceIntervals}
                                 getOptionLabel={type => type.name}
@@ -43,9 +43,7 @@ export default function InvoicingTab(props) {
                                 value={props.invoiceInterval}
                                 isDisabled={props.readOnly}
                             />
-                            <InputGroup.Append>
-                                <InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text>
-                            </InputGroup.Append>
+                            <InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text>
                         </InputGroup>
                     </Col>
                     <Col md={2} style={{paddingTop: '20px'}}>
@@ -83,7 +81,7 @@ export default function InvoicingTab(props) {
                     </Col>
                     <Col md={6}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Name: </InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Name: </InputGroup.Text>
                             <FormControl
                                 name='customTrackingField'
                                 value={props.customTrackingField}
@@ -91,7 +89,7 @@ export default function InvoicingTab(props) {
                                 placeholder='Tracking Field Name (Optional)'
                                 readOnly={props.readOnly}
                             />
-                            <InputGroup.Append><InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text></InputGroup.Append>
+                            <InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text>
                         </InputGroup>
                     </Col>
                     <Col md={4} style={{paddingTop: '20px'}}>

@@ -28,12 +28,20 @@ export default class BooleanFilter extends Component {
         return(
             <Col md={3}>
                 <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
                     <ToggleButtonGroup name='boolState' type='radio' onChange={this.handleChange} value={this.state.boolState}>
-                        <ToggleButton variant='secondary' value={false}>False</ToggleButton>
-                        <ToggleButton variant='secondary' value={true}>True</ToggleButton>
+                        <ToggleButton
+                            checked={!this.state.boolState}
+                            id={this.props.filter.value + '.false'}
+                            variant='secondary'
+                            value={false}
+                        >False</ToggleButton>
+                        <ToggleButton
+                            checked={this.state.boolState}
+                            id={this.props.filter.value + '.true'}
+                            variant='secondary'
+                            value={true}
+                        >True</ToggleButton>
                     </ToggleButtonGroup>
                 </InputGroup>
             </Col>

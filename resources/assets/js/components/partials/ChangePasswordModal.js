@@ -1,7 +1,7 @@
-import React, {Component} from 'react'
+import React from 'react'
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row, ToastHeader} from 'react-bootstrap'
 
-export default class ChangePasswordModal extends Component {
+export default class ChangePasswordModal extends React.Component {
     constructor() {
         super()
         this.state = {
@@ -63,7 +63,7 @@ export default class ChangePasswordModal extends Component {
                         </Col>
                         <Col md={11}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>New Password: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>New Password: </InputGroup.Text>
                                 <FormControl
                                     name='newPassword'
                                     type={this.state.viewPassword ? '' : 'password'}
@@ -74,7 +74,7 @@ export default class ChangePasswordModal extends Component {
                         </Col>
                         <Col md={11}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Confirm Password: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Confirm Password: </InputGroup.Text>
                                 <FormControl
                                     name='confirmPassword'
                                     type={this.state.viewPassword ? '' : 'password'}

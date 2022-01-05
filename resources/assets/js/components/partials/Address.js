@@ -113,29 +113,21 @@ export default class Address extends React.Component {
                 {this.props.showAddressSearch && 
                 <Col md={11} style={{display: this.props.address.type === 'Address' ? 'block' : 'none'}}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Address Search: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Address Search: </InputGroup.Text>
                         <FormControl 
                             type='text' 
                             id={this.props.id + '-search'}
                             name='formatted'
                             readOnly={this.props.readOnly}
                         />
-                        <InputGroup.Append>
-                            <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})} disabled={this.props.readOnly}>Manual</Button>
-                        </InputGroup.Append>
-                        <InputGroup.Append>
-                            <InputGroup.Text><i className='fas fa-question-circle' title='Having trouble finding an address in search? Enter "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.'></i></InputGroup.Text>
-                        </InputGroup.Append>
+                        <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})} disabled={this.props.readOnly}>Manual</Button>
+                        <InputGroup.Text><i className='fas fa-question-circle' title='Having trouble finding an address in search? Enter "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.'></i></InputGroup.Text>
                     </InputGroup>
                 </Col>
                 }
                 <Col md={11}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Name: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Name: </InputGroup.Text>
                         <FormControl 
                             type='text' 
                             name={this.props.id + 'AddressName'}
@@ -147,9 +139,7 @@ export default class Address extends React.Component {
                 </Col>
                 <Col md={11}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Address: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Address: </InputGroup.Text>
                         <FormControl
                             type='text'
                             name={this.props.id + 'AddressFormatted'}

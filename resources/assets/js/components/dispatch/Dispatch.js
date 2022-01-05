@@ -331,9 +331,7 @@ export default class Dispatch extends Component {
                         <Row>
                             <Col md={11} className='text-center'>
                                 <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>Date</InputGroup.Text>
-                                    </InputGroup.Prepend>
+                                    <InputGroup.Text>Date</InputGroup.Text>
                                     <DatePicker
                                         dateFormat='MMMM d, yyyy'
                                         className='form-control'
@@ -396,9 +394,7 @@ export default class Dispatch extends Component {
                                 selected={this.state.setTimeModalTime}
                                 onChange={value => this.handleChange({target: {name: 'setTimeModalTime', type: 'datetime', value: value}})}
                             />
-                            <InputGroup.Append>
-                                <Button onClick={() => this.handleChange({target: {name: 'setTime'}})}>Set</Button>
-                            </InputGroup.Append>
+                            <Button onClick={() => this.handleChange({target: {name: 'setTime'}})}>Set</Button>
                         </InputGroup>
                     </Modal.Body>
                 </Modal>

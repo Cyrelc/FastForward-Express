@@ -44,9 +44,7 @@ export default class NumberBetween extends Component {
         return(
             <Col md={4}>
                 <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
                     <FormControl
                         type='number'
                         step={this.props.filter.step}
@@ -57,9 +55,7 @@ export default class NumberBetween extends Component {
                         min={this.props.filter.min ? this.props.filter.min : null}
                         max={this.props.filter.max ? this.props.filter.max : null}
                     />
-                    <InputGroup.Append>
-                        <InputGroup.Text> and </InputGroup.Text>
-                    </InputGroup.Append>
+                    <InputGroup.Text> and </InputGroup.Text>
                     <FormControl
                         type='number'
                         step={this.props.filter.step}

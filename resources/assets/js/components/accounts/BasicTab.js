@@ -13,7 +13,7 @@ export default function BasicTab(props) {
                     </Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Name</InputGroup.Text>
                             <FormControl
                                 name='accountName'
                                 value={props.accountName}

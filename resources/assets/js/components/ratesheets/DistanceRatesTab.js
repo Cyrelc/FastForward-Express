@@ -36,9 +36,7 @@ export default function DistanceRatesTab(props) {
                                     {props.deliveryTypes.map(type =>
                                         <td key={type.friendlyName + '.additionalTime'}>
                                             <InputGroup size='sm'>
-                                                <InputGroup.Prepend>
-                                                    <InputGroup.Text>Time Est. </InputGroup.Text>
-                                                </InputGroup.Prepend>
+                                                <InputGroup.Text>Time Est. </InputGroup.Text>
                                                 <FormControl
                                                     type='number'
                                                     min='0.1'

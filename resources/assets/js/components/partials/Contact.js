@@ -17,9 +17,7 @@ export default function Contact(props) {
                         <Row>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>First Name</InputGroup.Text>
-                                    </InputGroup.Prepend>
+                                    <InputGroup.Text>First Name</InputGroup.Text>
                                     <FormControl
                                         name='firstName'
                                         placeholder='First Name'
@@ -31,9 +29,7 @@ export default function Contact(props) {
                             </Col>
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>Last Name</InputGroup.Text>
-                                    </InputGroup.Prepend>
+                                    <InputGroup.Text>Last Name</InputGroup.Text>
                                     <FormControl
                                         name='lastName'
                                         placeholder='Last Name'
@@ -45,9 +41,7 @@ export default function Contact(props) {
                             </Col>
                             <Col md={12}>
                                 <InputGroup>
-                                    <InputGroup.Prepend>
-                                        <InputGroup.Text>Position</InputGroup.Text>
-                                    </InputGroup.Prepend>
+                                    <InputGroup.Text>Position</InputGroup.Text>
                                     <FormControl
                                         name='position'
                                         placeholder='Position / Title'

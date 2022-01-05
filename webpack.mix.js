@@ -14,5 +14,8 @@ const webpack = require('webpack');
 
 mix.js('resources/assets/js/app.js', 'public/compiled_js')
    .react()
-   .sass('resources/assets/sass/app.scss', 'public/css')
-   .version();
+   .sass('resources/assets/sass/app.scss', 'public/css');
+
+if(mix.inProduction()) {
+   mix.version();
+}

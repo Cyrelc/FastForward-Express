@@ -2,7 +2,6 @@ import React from 'react'
 import {Button, Card, Col, InputGroup, FormControl, Form, Row, Table} from 'react-bootstrap'
 
 import RateOption from './RateOption'
-import ImportRatesModal from './ImportRatesModal'
 
 export default function BasicRatesTab(props) {
 
@@ -42,9 +41,7 @@ export default function BasicRatesTab(props) {
                     </Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Ratesheet Name</InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Ratesheet Name</InputGroup.Text>
                             <FormControl type='text' placeholder='Ratesheet Name' name='ratesheetName' value={props.ratesheetName} onChange={props.handleChange}/>
                         </InputGroup>
                     </Col>
@@ -144,18 +141,6 @@ export default function BasicRatesTab(props) {
                     </Col>
                 </Row>
             </Card.Footer>
-            <ImportRatesModal
-                ratesheets={props.ratesheets}
-                importRatesheet={props.importRatesheet}
-                importType={props.importType}
-                selectedImports={props.selectedImports}
-                showImportModal={props.showImportModal}
-                originalRates={props.miscRates}
-                type='miscRates'
-
-                handleChange={props.handleChange}
-                handleImport={props.handleImport}
-            />
         </Card>
     )
 }

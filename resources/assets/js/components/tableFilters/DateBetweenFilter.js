@@ -54,9 +54,7 @@ export default class DateFilterBetween extends Component {
         return(
             <Col md={6}>
                 <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
                     <DatePicker
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
@@ -67,9 +65,7 @@ export default class DateFilterBetween extends Component {
                         selected={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'startDate')}
                     />
-                    <InputGroup.Append>
-                        <InputGroup.Text>And</InputGroup.Text>
-                    </InputGroup.Append>
+                    <InputGroup.Text>And</InputGroup.Text>
                     <DatePicker
                         className='form-control'
                         dateFormat='MMMM d, yyyy'

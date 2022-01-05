@@ -11,9 +11,7 @@ export default function AccountingTab(props) {
                     <Col md={2}><h4 className='text-muted'>Taxes</h4></Col>
                     <Col md={10}>
                         <InputGroup>
-                            <InputGroup.Prepend style={{width: '20%'}}>
-                                <InputGroup.Text style={{width: '100%'}}>GST: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>GST: </InputGroup.Text>
                             <FormControl
                                 type='number'
                                 min={0}
@@ -22,9 +20,7 @@ export default function AccountingTab(props) {
                                 name='gst'
                                 onChange={props.handleChange}
                             />
-                            <InputGroup.Append>
-                                <InputGroup.Text> %</InputGroup.Text>
-                            </InputGroup.Append>
+                            <InputGroup.Text> %</InputGroup.Text>
                         </InputGroup>
                     </Col>
                 </Row>
@@ -34,9 +30,7 @@ export default function AccountingTab(props) {
                     <Col md={10}>
                         {props.paymentTypes && Object.keys(props.paymentTypes).map(index =>
                             <InputGroup key={'paymentType' + index}>
-                                <InputGroup.Prepend style={{width: '20%'}}>
-                                    <InputGroup.Text style={{width: '100%'}}>{props.paymentTypes[index].name}</InputGroup.Text>
-                                </InputGroup.Prepend>
+                                <InputGroup.Text style={{width: '20%'}}>{props.paymentTypes[index].name}</InputGroup.Text>
                                 <Select
                                     options={props.ratesheets}
                                     getOptionLabel={ratesheet => ratesheet.ratesheet_id + ' - ' + ratesheet.name}

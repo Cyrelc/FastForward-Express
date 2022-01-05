@@ -22,9 +22,7 @@ export default function Pickup_Delivery(props) {
                 <Row className='justify-content-md-center'>
                     <Col md={6}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Time: </InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Time: </InputGroup.Text>
                             <DatePicker 
                                 showTimeSelect
                                 timeIntervals={15}
@@ -44,28 +42,30 @@ export default function Pickup_Delivery(props) {
                             />
                             {props.timeTooltip && 
                                 <OverlayTrigger placement='right' overlay={<Tooltip>{props.timeTooltip}</Tooltip>}>
-                                    <InputGroup.Append>
-                                        <InputGroup.Text><i className='fas fa-info-circle'></i></InputGroup.Text>
-                                    </InputGroup.Append>
+                                    <InputGroup.Text><i className='fas fa-info-circle'></i></InputGroup.Text>
                                 </OverlayTrigger>
                             }
                         </InputGroup>
                     </Col>
                     <Col md={6}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Address Type: </InputGroup.Text>
-                            </InputGroup.Prepend>
-                            <ToggleButtonGroup 
+                            <InputGroup.Text>Address Type: </InputGroup.Text>
+                            <ToggleButtonGroup
                                 type='radio'
                                 value={props.data.address.type}
                                 name={props.id + '.address.type'}
                                 disabled={props.readOnly}
                                 onChange={value => props.handleChanges({target: {name: props.id + 'AddressType', type: 'text', value: value}})}
                             >
-                                {props.addressTypes.map(type => 
-                                    <ToggleButton value={type} key={type} variant='outline-secondary' disabled={props.readOnly}>{type}</ToggleButton>
-                                )}
+                            {props.addressTypes.map(type =>
+                                <ToggleButton
+                                    id={props.id + '.address.type.' + type}
+                                    value={type}
+                                    key={type}
+                                    variant='outline-secondary'
+                                    disabled={props.readOnly}
+                                >{type}</ToggleButton>
+                            )}
                             </ToggleButtonGroup>
                         </InputGroup>
                     </Col>
@@ -74,9 +74,7 @@ export default function Pickup_Delivery(props) {
                     <Row>
                         <Col md={11}>
                             <InputGroup>
-                                <InputGroup.Prepend>
-                                    <InputGroup.Text>Select Account: </InputGroup.Text>
-                                </InputGroup.Prepend>
+                                <InputGroup.Text>Select Account: </InputGroup.Text>
                                 <Select
                                     options={props.accounts}
                                     isSearchable
@@ -92,10 +90,8 @@ export default function Pickup_Delivery(props) {
                     <Row>
                         <Col md={11}>
                             <InputGroup>
-                                <InputGroup.Prepend>
-                                    <InputGroup.Text>{props.data.account.custom_field}</InputGroup.Text>
-                                </InputGroup.Prepend>
-                                <FormControl 
+                                <InputGroup.Text>{props.data.account.custom_field}</InputGroup.Text>
+                                <FormControl
                                     name={props.id + 'ReferenceValue'}
                                     value={props.data.referenceValue}
                                     onChange={props.handleChanges}

@@ -59,13 +59,13 @@ export default class Charts extends Component {
                             <Row>
                                 <Col md={3}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>Bill </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Bill </InputGroup.Text>
                                         <Select
                                             onChange={item => this.handleChange({target: {name: 'summationType', type: 'select', value: item}})}
                                             options={this.state.summationOptions}
                                             value={this.state.summationType}
                                         />
-                                        <InputGroup.Append><InputGroup.Text> Per </InputGroup.Text></InputGroup.Append>
+                                        <InputGroup.Text> Per </InputGroup.Text>
                                         <Select
                                             onChange={item => this.handleChange({target: {name: 'dateGroupBy', type: 'select', value: item}})}
                                             options={this.state.dateGroupOptions}
@@ -75,7 +75,7 @@ export default class Charts extends Component {
                                 </Col>
                                 <Col md={3}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>Start Date:</InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Start Date:</InputGroup.Text>
                                         <DatePicker
                                             className='form-control'
                                             dateFormat="MMMM, yyyy"
@@ -88,7 +88,7 @@ export default class Charts extends Component {
                                 </Col>
                                 <Col md={3}>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>End Date:</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>End Date:</InputGroup.Text>
                                         <DatePicker
                                             className='form-control'
                                             dateFormat="MMMM, yyyy"
@@ -100,7 +100,7 @@ export default class Charts extends Component {
                                 </Col>
                                 <Col md={3}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Group By: </InputGroup.Text>
                                         <Select
                                             onChange={item => this.handleChange({target: {name: 'groupBy', type: 'select', value: item}})}
                                             options={this.state.groupOptions}

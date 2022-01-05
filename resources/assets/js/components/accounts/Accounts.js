@@ -17,12 +17,47 @@ const groupByOptions = [
 
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
+const basicColumns = [
+    {title: 'Account ID', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/accounts/'}, sorter: 'number'},
+    {title: 'Account Number', field: 'account_number'},
+    {title: 'Parent Account', field: 'parent_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'parent_name', urlPrefix:'/app/accounts/'}},
+    {title: 'Account Name', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'name', urlPrefix:'/app/accounts/'}, sorter: 'number'},
+    {title: 'Start Date', field: 'start_date', visible: false},
+    {title: 'Invoice Interval', field: 'invoice_interval'},
+    {title: 'Primary Contact', field: 'primary_contact_name'},
+    {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
+    {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
+    {title: 'Shipping Address', field: 'shipping_address', visible: false},
+    {title: 'Billing Address Name', field: 'billing_address_name'},
+    {title: 'Billing Address', field: 'billing_address', visible: false}
+]
+
 class Accounts extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
+
+        const adminColumns = this.props.frontEndPermissions.accounts.toggleEnabled ? [
+            {formatter: (cell) => {
+                if(!this.props.frontEndPermissions.accounts.toggleEnabled)
+                    return
+
+                if(cell.getValue() == 1)
+                    return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
+                else
+                    return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
+            }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleAccountActive(cell), headerSort: false, print: false},
+            {title: 'Created On', field: 'created_at', visible: false}
+        ] : [];
+
         this.state = {
-            columns: [],
-            filters: []
+            columns: Array.prototype.concat(adminColumns, basicColumns),
+            filters: [
+                {name: 'Account', value: 'account_id', selections: this.props.accounts, type: 'SelectFilter', isMulti: true},
+                {name: 'Active', value: 'active', type: 'BooleanFilter'},
+                {name: 'Has Parent', value: 'has_parent', type: 'BooleanFilter'},
+                {isMulti: true, name: 'Invoice Interval', selections: this.props.invoice_intervals, type: 'SelectFilter', value: 'invoice_interval'},
+                {isMulti: true, name: 'Parent Account', selections: this.props.parent_accounts, type: 'SelectFilter', value: 'parent_id'}
+            ]
         }
         this.toggleAccountActive = this.toggleAccountActive.bind(this)
     }
@@ -37,46 +72,6 @@ class Accounts extends Component {
                 fetchAccounts()
             })
         }
-    }
-
-    componentDidMount() {
-        const adminColumns = this.props.frontEndPermissions.accounts.toggleEnabled ? [
-            {formatter: (cell) => {
-                if(!this.props.frontEndPermissions.accounts.toggleEnabled)
-                    return
-
-                if(cell.getValue() == 1)
-                    return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
-                else
-                    return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
-            }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleAccountActive(cell), headerSort: false, print: false},
-            {title: 'Created On', field: 'created_at', visible: false}
-        ] : [];
-        const basicColumns = [
-            {title: 'Account ID', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/accounts/'}, sorter: 'number'},
-            {title: 'Account Number', field: 'account_number'},
-            {title: 'Parent Account', field: 'parent_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'parent_name', urlPrefix:'/app/accounts/'}},
-            {title: 'Account Name', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'name', urlPrefix:'/app/accounts/'}, sorter: 'number'},
-            {title: 'Start Date', field: 'start_date', visible: false},
-            {title: 'Invoice Interval', field: 'invoice_interval'},
-            {title: 'Primary Contact', field: 'primary_contact_name'},
-            {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
-            {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
-            {title: 'Shipping Address', field: 'shipping_address', visible: false},
-            {title: 'Billing Address Name', field: 'billing_address_name'},
-            {title: 'Billing Address', field: 'billing_address', visible: false}
-        ]
-
-        this.setState({
-            columns: Array.prototype.concat(adminColumns, basicColumns),
-            filters: [
-                {name: 'Account', value: 'account_id', selections: this.props.accounts, type: 'SelectFilter', isMulti: true},
-                {name: 'Active', value: 'active', type: 'BooleanFilter'},
-                {name: 'Has Parent', value: 'has_parent', type: 'BooleanFilter'},
-                {isMulti: true, name: 'Invoice Interval', selections: this.props.invoice_intervals, type: 'SelectFilter', value: 'invoice_interval'},
-                {isMulti: true, name: 'Parent Account', selections: this.props.parent_accounts, type: 'SelectFilter', value: 'parent_id'}
-            ]
-        })
     }
 
     render() {

@@ -57,14 +57,14 @@ export default class ReduxTable extends Component {
 
     handleGroupByChange(event) {
         if(event.value) {
-            this.state.tableRef.current.table.setGroupBy(event.value)
+            this.state.tableRef.current?.table?.setGroupBy(event.value)
             if(event.groupHeader)
-                this.state.tableRef.current.table.setGroupHeader(event.groupHeader)
+                this.state.tableRef.current?.table?.setGroupHeader(event.groupHeader)
             else
-                this.state.tableRef.current.table.setGroupHeader()
+                this.state.tableRef.current?.table?.setGroupHeader()
         } else
-            this.state.tableRef.current.table.setGroupBy()
-        this.props.handleChange({target: {name: 'groupBy', type: 'object', value: event}})
+            this.state.tableRef?.table?.setGroupBy()
+        this.handleChange({target: {name: 'groupBy', type: 'object', value: event}})
     }
 
     parseFilters() {
@@ -122,7 +122,7 @@ export default class ReduxTable extends Component {
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>
-                                        <InputGroup.Prepend><InputGroup.Text>Group By: </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Group By: </InputGroup.Text>
                                         <Select
                                             options={this.props.groupByOptions}
                                             value={this.props.groupBy}
@@ -133,9 +133,7 @@ export default class ReduxTable extends Component {
                                 </Col>
                                 <Col md={6}>
                                     <InputGroup>
-                                        <InputGroup.Prepend>
-                                            <InputGroup.Text>Select Active Filters: </InputGroup.Text>
-                                        </InputGroup.Prepend>
+                                        <InputGroup.Text>Select Active Filters: </InputGroup.Text>
                                         <Select
                                             options={this.props.filters.filter(filter => filter.type != 'SelectFilter' || filter.creatable || (filter.selections && filter.selections.length > 1))}
                                             value={this.state.filters.filter(filter => filter.active) || ''}
@@ -144,9 +142,7 @@ export default class ReduxTable extends Component {
                                             isDisabled={this.props.filters.length === 0}
                                             isMulti
                                         />
-                                        <InputGroup.Append>
-                                            <Button variant='success' onClick={this.refreshTable}>Apply Filters</Button>
-                                        </InputGroup.Append>
+                                        <Button variant='success' onClick={this.refreshTable}>Apply Filters</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col md={3}>
@@ -163,7 +159,7 @@ export default class ReduxTable extends Component {
                                                 )}
                                             </Dropdown.Menu>
                                         </Dropdown>
-                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
+                                        <Button variant='primary' onClick={() => this.state.tableRef.current?.table?.print()}>Print Table <i className='fas fa-print'></i></Button>
                                         {this.props.withSelected &&
                                             <Dropdown>
                                                 <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
@@ -171,7 +167,7 @@ export default class ReduxTable extends Component {
                                                     {this.props.withSelected.map(menuItem =>
                                                         <Dropdown.Item
                                                             key={menuItem.label}
-                                                            onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
+                                                            onClick={() => menuItem.onClick(this.state.tableRef.current?.table?.getSelectedRows())}
                                                         >{menuItem.label}</Dropdown.Item>
                                                     )}
                                                 </Dropdown.Menu>

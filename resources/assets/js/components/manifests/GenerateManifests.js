@@ -86,7 +86,7 @@ export default class GenerateManifests extends Component {
                     <Row className='justify-content-md-center'>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Start Date: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Start Date: </InputGroup.Text>
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
@@ -98,7 +98,7 @@ export default class GenerateManifests extends Component {
                         </Col>
                         <Col md={3}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>End Date: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>End Date: </InputGroup.Text>
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'

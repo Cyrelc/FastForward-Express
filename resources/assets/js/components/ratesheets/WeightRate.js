@@ -76,11 +76,9 @@ export default function WeightRate(props) {
             <Col md={2}>
                 <InputGroup>
                     {props.weightRate.name != 'Basic Weight Rate' && props.weightRate.name != 'Pallet Weight Rate' &&
-                        <InputGroup.Prepend><Button variant='danger' onClick={() => props.deleteWeightRate(props.index)}><i className='fas fa-trash'></i></Button></InputGroup.Prepend>
+                        <Button variant='danger' onClick={() => props.deleteWeightRate(props.index)}><i className='fas fa-trash'></i></Button>
                     }
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>Name: </InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>Name: </InputGroup.Text>
                     <FormControl
                         name='name'
                         value={props.weightRate.name}
@@ -113,7 +111,7 @@ export default function WeightRate(props) {
                                 <td><Button variant='danger' size='sm' onClick={() => deleteWeightBracket(index)}><i className='fas fa-trash'></i></Button></td>
                                 <td>
                                     <InputGroup size='sm'>
-                                        <InputGroup.Prepend><InputGroup.Text>{(index === 0 ? 0 : bracketArray[index - 1].kgmax) + ' '} <i className='fas fa-arrow-right fa-fw'></i></InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>{(index === 0 ? 0 : bracketArray[index - 1].kgmax) + ' '} <i className='fas fa-arrow-right fa-fw'></i></InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             key={index + '.kgmax'}
@@ -124,12 +122,12 @@ export default function WeightRate(props) {
                                             data-weightbracketindex={index}
                                             onChange={handleChange}
                                         />
-                                        <InputGroup.Append><InputGroup.Text> Kg</InputGroup.Text></InputGroup.Append>
+                                        <InputGroup.Text> Kg</InputGroup.Text>
                                     </InputGroup>
                                 </td>
                                 <td>
                                     <InputGroup size='sm'>
-                                        <InputGroup.Prepend><InputGroup.Text>Per </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Per </InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             key={index + '.additionalKgs'}
@@ -139,12 +137,12 @@ export default function WeightRate(props) {
                                             value={bracket.additionalXKgs}
                                             onChange={handleChange}
                                         />
-                                        <InputGroup.Append><InputGroup.Text> Kgs</InputGroup.Text></InputGroup.Append>
+                                        <InputGroup.Text> Kgs</InputGroup.Text>
                                     </InputGroup>
                                 </td>
                                 <td style={{backgroundColor: 'lightGrey'}}>
                                     <InputGroup size='sm'>
-                                        <InputGroup.Prepend><InputGroup.Text>{index === 0 ? 0 : bracketArray[index - 1].lbmax} <i className='fas fa-arrow-right fa-fw'></i></InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>{index === 0 ? 0 : bracketArray[index - 1].lbmax} <i className='fas fa-arrow-right fa-fw'></i></InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             key={index + '.lbmax'}
@@ -155,12 +153,12 @@ export default function WeightRate(props) {
                                             onChange={handleChange}
                                             data-weightbracketindex={index}
                                         />
-                                        <InputGroup.Append><InputGroup.Text> Lb</InputGroup.Text></InputGroup.Append>
+                                        <InputGroup.Text> Lb</InputGroup.Text>
                                     </InputGroup>
                                 </td>
                                 <td style={{backgroundColor: 'lightGrey'}}>
                                     <InputGroup size='sm'>
-                                        <InputGroup.Prepend><InputGroup.Text>Per </InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Per </InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             name='additionalXLbs'
@@ -170,12 +168,12 @@ export default function WeightRate(props) {
                                             key={index + '.additionalLbs'}
                                             onChange={handleChange}
                                         />
-                                        <InputGroup.Append><InputGroup.Text> Lbs</InputGroup.Text></InputGroup.Append>
+                                        <InputGroup.Text> Lbs</InputGroup.Text>
                                     </InputGroup>
                                 </td>
                                 <td style={{backgroundColor: 'darkGrey'}}>
                                     <InputGroup size='sm'>
-                                        <InputGroup.Prepend><InputGroup.Text>Base: $</InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Base: $</InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             step={0.01}
@@ -184,7 +182,7 @@ export default function WeightRate(props) {
                                             onChange={handleChange}
                                             data-weightbracketindex={index}
                                         />
-                                        <InputGroup.Prepend><InputGroup.Text>Incremental: $</InputGroup.Text></InputGroup.Prepend>
+                                        <InputGroup.Text>Incremental: $</InputGroup.Text>
                                         <FormControl
                                             type='number'
                                             step={0.01}

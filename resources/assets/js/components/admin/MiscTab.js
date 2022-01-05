@@ -11,7 +11,7 @@ export default function MiscTab(props) {
                     <Col md={2}><h4 className='text-muted'>Business Hours</h4></Col>
                     <Col md={10}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Earliest Pickup: </InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Earliest Pickup: </InputGroup.Text>
                             <DatePicker
                                 showTimeSelect
                                 showTimeSelectOnly
@@ -22,7 +22,7 @@ export default function MiscTab(props) {
                                 onChange={datetime => props.handleChange({target: {name: 'businessHoursOpen', type:'date', value: datetime}})}
                                 className='form-control'
                             />
-                            <InputGroup.Append><InputGroup.Text> Last Delivery: </InputGroup.Text></InputGroup.Append>
+                            <InputGroup.Text> Last Delivery: </InputGroup.Text>
                             <DatePicker
                                 showTimeSelect
                                 showTimeSelectOnly

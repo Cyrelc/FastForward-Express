@@ -55,9 +55,7 @@ export default class SelectFilter extends Component {
         return(
             <Col md={6}>
                 <InputGroup>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
                     {this.props.filter.creatable ?
                         <CreatableSelect
                             options={this.state.selections}

@@ -19,9 +19,7 @@ export default function AdministrationTab(props) {
                 <Row>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend>
-                                <InputGroup.Text>Employee Number</InputGroup.Text>
-                            </InputGroup.Prepend>
+                            <InputGroup.Text>Employee Number</InputGroup.Text>
                             <FormControl
                                 name='employeeNumber'
                                 onChange={props.handleChanges}
@@ -40,7 +38,7 @@ export default function AdministrationTab(props) {
                                 onChange={props.handleChanges}
                                 label='Enabled'
                             />
-                            <InputGroup.Append><i className='fas fa-question-circle' title={enabledTitle}></i></InputGroup.Append>
+                            <InputGroup.Text><i className='fas fa-question-circle' title={enabledTitle}></i></InputGroup.Text>
                         </InputGroup>
                     </Col>
                     <Col md={3}>
@@ -58,7 +56,7 @@ export default function AdministrationTab(props) {
                     <Col md={2}><h4 className='text-muted'>Additional Info</h4></Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>SIN</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>SIN</InputGroup.Text>
                             <FormControl
                                 name='SIN'
                                 placeholder='Social Insurance Number'
@@ -70,7 +68,7 @@ export default function AdministrationTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Birth Date</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Birth Date</InputGroup.Text>
                             <DatePicker 
                                 dateFormat='MMMM d, yyyy'
                                 onChange={value => props.handleChanges({target: {name: 'birthDate', value: value}})}
@@ -85,7 +83,7 @@ export default function AdministrationTab(props) {
                     </Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Start Date</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Start Date</InputGroup.Text>
                             <DatePicker 
                                 dateFormat='MMMM d, yyyy'
                                 onChange={value => props.handleChanges({target: {name: 'startDate', value: value}})}

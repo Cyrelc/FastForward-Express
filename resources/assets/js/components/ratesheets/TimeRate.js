@@ -45,8 +45,8 @@ export default function TimeRate(props) {
         <Row>
             <Col md={3}>
                 <InputGroup size='sm'>
-                    <InputGroup.Prepend><Button variant='danger' onClick={() => props.deleteTimeRate(props.index)}><i className='fas fa-trash'></i></Button></InputGroup.Prepend>
-                    <InputGroup.Prepend><InputGroup.Text>Name</InputGroup.Text></InputGroup.Prepend>
+                    <Button variant='danger' onClick={() => props.deleteTimeRate(props.index)}><i className='fas fa-trash'></i></Button>
+                    <InputGroup.Text>Name</InputGroup.Text>
                     <FormControl
                         name='name'
                         value={props.timeRate.name}
@@ -54,9 +54,7 @@ export default function TimeRate(props) {
                     />
                 </InputGroup>
                 <InputGroup size='sm'>
-                    <InputGroup.Prepend>
-                        <InputGroup.Text>Price: $</InputGroup.Text>
-                    </InputGroup.Prepend>
+                    <InputGroup.Text>Price: $</InputGroup.Text>
                     <FormControl
                         key={props.id + '-price'}
                         type='number'
@@ -84,7 +82,7 @@ export default function TimeRate(props) {
                             </td>
                             <td>
                                 <InputGroup size='sm'>
-                                    <InputGroup.Prepend><InputGroup.Text>Start: </InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Start: </InputGroup.Text>
                                     <Select
                                         isClearable
                                         options={daysOfTheWeek}
@@ -108,7 +106,7 @@ export default function TimeRate(props) {
                             </td>
                             <td>
                                 <InputGroup size='sm'>
-                                    <InputGroup.Prepend><InputGroup.Text>End: </InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>End: </InputGroup.Text>
                                     <Select
                                         isClearable
                                         options={daysOfTheWeek}

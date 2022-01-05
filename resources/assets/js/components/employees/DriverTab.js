@@ -10,7 +10,7 @@ export default function DriverTab(props) {
                     <Col md={2}><h4 className='text-muted'>Company Info</h4></Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Company Name:</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Company Name:</InputGroup.Text>
                             <FormControl
                                 name='companyName'
                                 placeholder='Company Name (optional)'
@@ -22,7 +22,7 @@ export default function DriverTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Pickup Commission: </InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Pickup Commission: </InputGroup.Text>
                             <FormControl
                                 type='number'
                                 min={0}
@@ -36,7 +36,7 @@ export default function DriverTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Delivery Commission: </InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Delivery Commission: </InputGroup.Text>
                             <FormControl
                                 type='number'
                                 min={0}
@@ -60,7 +60,7 @@ export default function DriverTab(props) {
                             </Card.Header>
                             <Card.Body>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>License Number:</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>License Number:</InputGroup.Text>
                                     <FormControl
                                         name='driversLicenseNumber'
                                         placeholder='Drivers License Number'
@@ -70,7 +70,7 @@ export default function DriverTab(props) {
                                     />
                                 </InputGroup>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Expiry Date</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Expiry Date</InputGroup.Text>
                                     <DatePicker
                                         dateFormat='MMMM d, yyyy'
                                         onChange={value => props.handleChanges({target: {name: 'driversLicenseExpirationDate', value: value}})}
@@ -93,7 +93,7 @@ export default function DriverTab(props) {
                             </Card.Header>
                             <Card.Body>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>License Plate Number:</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>License Plate Number:</InputGroup.Text>
                                     <FormControl
                                         name='licensePlateNumber'
                                         placeholder='License Plate Number'
@@ -103,7 +103,7 @@ export default function DriverTab(props) {
                                     />
                                 </InputGroup>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Expiry Date</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Expiry Date</InputGroup.Text>
                                     <DatePicker
                                         dateFormat='MMMM d, yyyy'
                                         onChange={value => props.handleChanges({target: {name: 'licensePlateExpirationDate', value: value}})}
@@ -126,7 +126,7 @@ export default function DriverTab(props) {
                             </Card.Header>
                             <Card.Body>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Insurance Number:</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Insurance Number:</InputGroup.Text>
                                     <FormControl
                                         name='insuranceNumber'
                                         placeholder='Insurance Number'
@@ -136,7 +136,7 @@ export default function DriverTab(props) {
                                     />
                                 </InputGroup>
                                 <InputGroup>
-                                    <InputGroup.Prepend><InputGroup.Text>Expiry Date</InputGroup.Text></InputGroup.Prepend>
+                                    <InputGroup.Text>Expiry Date</InputGroup.Text>
                                     <DatePicker
                                         dateFormat='MMMM d, yyyy'
                                         onChange={value => props.handleChanges({target: {name: 'insuranceExpirationDate', value: value}})}

@@ -19,9 +19,10 @@ const groupByOptions = [
 const initialSort = [{column:'bill_id', dir: 'desc'}]
 
 const rowFormatter = row => {
-    const rowData = row.getData()
-    if(!rowData.bill_id)
+    const rowData = row._row.getData ? row.getData() : undefined
+    if(!rowData?.bill_id)
         return
+
     const holderEl = document.createElement('div')
 
     holderEl.style.boxSizing = "border-box";

@@ -13,7 +13,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Account Number</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Account Number</InputGroup.Text>
                             <FormControl
                                 name='accountNumber'
                                 value={props.accountNumber}
@@ -23,7 +23,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={4}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Parent Account</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Parent Account</InputGroup.Text>
                             <Select
                                 isClearable
                                 options={props.parentAccounts}
@@ -36,7 +36,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Start Date</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Start Date</InputGroup.Text>
                             <DatePicker
                                 className='form-control'
                                 dateFormat='MMM d, yyy'
@@ -59,7 +59,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Ratesheet</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Ratesheet</InputGroup.Text>
                             <Select
                                 options={props.ratesheets}
                                 value={props.ratesheet}
@@ -70,7 +70,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Min Invoice Amount</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Min Invoice Amount</InputGroup.Text>
                             <FormControl
                                 name='minInvoiceAmount'
                                 value={props.minInvoiceAmount}
@@ -83,7 +83,7 @@ export default function AdvancedTab(props) {
                     </Col>
                     <Col md={2}>
                         <InputGroup>
-                            <InputGroup.Prepend><InputGroup.Text>Discount</InputGroup.Text></InputGroup.Prepend>
+                            <InputGroup.Text>Discount</InputGroup.Text>
                             <FormControl
                                 name='discount'
                                 value={props.discount}

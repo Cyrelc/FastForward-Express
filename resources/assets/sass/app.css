@@ -27,3 +27,8 @@
     text-decoration:underline;
     color:darkblue;
 }
+
+.modal-80w {
+    width: 80%;
+    max-width: 80%!important;
+}

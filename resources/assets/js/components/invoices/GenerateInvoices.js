@@ -129,7 +129,7 @@ export default class GenerateInvoices extends Component {
                     <Row>
                         <Col md={5}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Invoice Interval</InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Invoice Interval</InputGroup.Text>
                                 <Select
                                     options={this.state.invoiceIntervals}
                                     value={this.state.selectedInvoiceIntervals}
@@ -140,7 +140,7 @@ export default class GenerateInvoices extends Component {
                         </Col>
                         <Col md={5}>
                             <InputGroup>
-                                <InputGroup.Prepend><InputGroup.Text>Start Date: </InputGroup.Text></InputGroup.Prepend>
+                                <InputGroup.Text>Start Date: </InputGroup.Text>
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'
@@ -150,7 +150,7 @@ export default class GenerateInvoices extends Component {
                                     selectsStart
                                     endDate={this.state.endDate}
                                 />
-                                <InputGroup.Append><InputGroup.Text> End Date: </InputGroup.Text></InputGroup.Append>
+                                <InputGroup.Text> End Date: </InputGroup.Text>
                                 <DatePicker
                                     className='form-control'
                                     dateFormat='MMMM d, yyyy'

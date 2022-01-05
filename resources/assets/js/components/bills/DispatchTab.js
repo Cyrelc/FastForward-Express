@@ -10,9 +10,7 @@ export default function DispatchTab(props) {
                 <Col md={2}><h4 className='text-muted'>Pickup</h4></Col>
                 <Col md={4}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Driver: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select
                             options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
                             isSearchable
@@ -24,9 +22,7 @@ export default function DispatchTab(props) {
                 </Col>
                 <Col md={2}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Commission: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Commission: </InputGroup.Text>
                         <FormControl
                             type='number'
                             min={0}
@@ -36,16 +32,12 @@ export default function DispatchTab(props) {
                             onChange={props.handleChanges}
                             readOnly={props.readOnly || props.isPickupManifested}
                         />
-                        <InputGroup.Append>
-                            <InputGroup.Text> %</InputGroup.Text>
-                        </InputGroup.Append>
+                        <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
                 </Col>
                 <Col md={4}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Actual Time: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Actual Time: </InputGroup.Text>
                         <DatePicker
                             showTimeSelect
                             showMonthDropdown
@@ -66,9 +58,7 @@ export default function DispatchTab(props) {
                 <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
                 <Col md={4}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Driver: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select 
                             options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
                             isSearchable
@@ -80,9 +70,7 @@ export default function DispatchTab(props) {
                 </Col>
                 <Col md={2}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Commission: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Commission: </InputGroup.Text>
                         <FormControl
                             type='number'
                             min='0'
@@ -92,16 +80,12 @@ export default function DispatchTab(props) {
                             onChange={props.handleChanges}
                             readOnly={props.readOnly || props.isDeliveryManifested}
                         />
-                        <InputGroup.Append>
-                            <InputGroup.Text> %</InputGroup.Text>
-                        </InputGroup.Append>
+                        <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
                 </Col>
                 <Col md={4}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Actual Time: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Actual Time: </InputGroup.Text>
                         <DatePicker
                             showTimeSelect
                             showMonthDropdown
@@ -138,9 +122,7 @@ export default function DispatchTab(props) {
                 </Col>
                 <Col md={3}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Call Received: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Call Received: </InputGroup.Text>
                         <DatePicker
                             showTimeSelect
                             timeIntervals={15}
@@ -157,9 +139,7 @@ export default function DispatchTab(props) {
                 </Col>
                 <Col md={3}>
                     <InputGroup>
-                        <InputGroup.Prepend>
-                            <InputGroup.Text>Dispatched: </InputGroup.Text>
-                        </InputGroup.Prepend>
+                        <InputGroup.Text>Dispatched: </InputGroup.Text>
                         <DatePicker
                             showTimeSelect
                             timeIntervals={15}
