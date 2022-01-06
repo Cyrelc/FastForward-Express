@@ -568,10 +568,10 @@ class Bill extends Component {
         const distanceRates = []
         if(ratesheet.distance_rates) {
             JSON.parse(ratesheet.distance_rates).map(rate => {
-                distanceRates.push({name: rate.zones + (rate.zones == 1 ? ' zone' : ' zones') + ' - Regular', price: rate.regular_cost, type: 'distanceRate', driver_amount: rate.regular_cost, paid: false})
-                distanceRates.push({name: rate.zones + (rate.zones == 1 ? ' zone' : ' zones') + ' - Rush', price: rate.rush_cost, type: 'distanceRate', driver_amount: rate.rush_cost, paid: false})
-                distanceRates.push({name: rate.zones + (rate.zones == 1 ? ' zone' : ' zones') + ' - Direct', price: rate.direct_cost, type: 'distanceRate', driver_amount: rate.direct_cost, paid: false})
-                distanceRates.push({name: rate.zones + (rate.zones == 1 ? ' zone' : ' zones') + ' - Direct Rush', price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
+                distanceRates.push({name: 'Regular - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.regular_cost, type: 'distanceRate', driver_amount: rate.regular_cost, paid: false})
+                distanceRates.push({name: 'Rush' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.rush_cost, type: 'distanceRate', driver_amount: rate.rush_cost, paid: false})
+                distanceRates.push({name: 'Direct' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_cost, type: 'distanceRate', driver_amount: rate.direct_cost, paid: false})
+                distanceRates.push({name: 'Direct Rush' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
             });
         }
 

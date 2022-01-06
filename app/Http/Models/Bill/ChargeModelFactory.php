@@ -197,13 +197,13 @@ class ChargeModelFactory {
         $selectionsRepo = new Repos\SelectionsRepo();
 
         $unvisitedSet = $zones->toArray();
-        $startIndex = array_search($pickupZone['zone_id'], array_column($unvisitedSet, 'zone_id'));
+        $startIndex = array_search($pickupZone->zone_id, array_column($unvisitedSet, 'zone_id'));
         $visitedSet = array();
         $visitedSet[] = $unvisitedSet[$startIndex];
         $visitedSet[0]['distance'] = $distance = 1;
         unset($unvisitedSet[$startIndex]);
 
-        while(!empty($unvisitedSet) && !in_array($deliveryZone['zone_id'], array_column($visitedSet, 'zone_id'))) {
+        while(!empty($unvisitedSet) && !in_array($deliveryZone->zone_id, array_column($visitedSet, 'zone_id'))) {
             activity('system_debug')->log('unvisitedset count:' . count($unvisitedSet));
             foreach($visitedSet as $visitedZone)
                 if($visitedZone['distance'] === $distance && isset($visitedZone['neighbours'])) {
@@ -225,7 +225,7 @@ class ChargeModelFactory {
         $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
         $deliveryType .= '_cost';
 
-        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->deliveryType);
+        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->$deliveryType);
     }
 
     private function prepareZone($zone) {
