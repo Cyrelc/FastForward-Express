@@ -585,13 +585,13 @@ class Bill extends Component {
         const {name, value} = referenceValueEvent.target
         if(name === 'pickupReferenceValue' && this.state.pickupAccount.account_id) {
             events['charges'] = this.state.charges.map(charge => {
-                if(charge.chargeType.name === 'Account' && charge.account_id == this.state.pickupAccount.account_id)
+                if(charge.chargeType.name === 'Account' && charge.charge_account_id == this.state.pickupAccount.account_id)
                     return {...charge, charge_reference_value: value}
                 return charge
             })
         } else if (name === 'deliveryReferenceValue' && this.state.deliveryAccount.account_id) {
             events['charges'] = this.state.charges.map(charge => {
-                if(charge.chargeType.name === 'Account' && charge.account_id == this.state.deliveryAccount.account_id)
+                if(charge.chargeType.name === 'Account' && charge.charge_account_id == this.state.deliveryAccount.account_id)
                     return {...charge, charge_reference_value: value}
                 return charge
             })
