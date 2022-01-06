@@ -568,7 +568,7 @@ class BillRepo {
                 $paymentType = $paymentRepo->GetPaymentType($charge->charge_type_id);
                 if($charge->account_id) {
                     $account = $accountRepo->GetById($charge->account_id);
-                    if($account->is_custom_field_mandatory)
+                    if($account->is_custom_field_mandatory && !$charge['charge_reference_value'])
                         $requiredFields[] = $account->custom_field;
                 }
                 $lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);

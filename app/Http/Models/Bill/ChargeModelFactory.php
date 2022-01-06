@@ -90,23 +90,21 @@ class ChargeModelFactory {
                 $chargeDeliveryTypeIndex = array_search($deliveryType, array_column($deliveryTypes, 'id'));
                 $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
-                $results[] = ['name' => $deliveryTypeFriendlyName, 'type' => 'distanceRate', 'price' => $chargeDeliveryType->cost, 'driver_amount' => $chargeDeliveryType->cost, 'paid' => false];
+                $results[] = $this->createCharge($deliveryTypeFriendlyName, 'distanceRate', $chargeDeliveryType->cost);
             }
 
         /**
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
-        if($pickupZone->type == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->regular, 'driver_amount' => $pickupZone->additional_costs->regular, 'paid' => false];
-        } else if ($pickupZone->type === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $pickupZone->zone_name, 'type' => 'distanceRate', 'price' => $pickupZone->additional_costs->$deliveryType, 'driver_amount' => $pickupZone->additional_costs->deliveryType, 'paid' => false];
-        }
+        if($pickupZone->type == 'peripheral')
+            $results[] = $this->createCharge('Peripheral Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->regular);
+        else if ($pickupZone->type === 'outlying')
+            $results[] = $this->createCharge('Outlying Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->$deliveryType);
 
-        if($deliveryZone->type == 'peripheral') {
-            $results[] =  ['name' => 'Peripheral Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->regular, 'driver_amount' => $deliveryZone->additional_costs->regular, 'paid' => false];
-        } else if ($deliveryZone->type === 'outlying') {
-            $results[] = ['name' => 'Outlying Zone: ' . $deliveryZone->zone_name, 'type' => 'distanceRate', 'price' => $deliveryZone->additional_costs->$deliveryType, 'driver_amount' => $deliveryZone->additional_costs->$deliveryType, 'paid' => false];
-        }
+        if($deliveryZone->type == 'peripheral')
+            $results[] = $this->createCharge('Peripheral Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->regular);
+        else if ($deliveryZone->type === 'outlying')
+            $results = $this->createCharge('Outlying Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->$deliveryType);
 
         return $results;
     }
@@ -138,7 +136,7 @@ class ChargeModelFactory {
                 //     'endTime' => $endTime
                 // ];
                 if(($timePickupScheduled >= $closestStart && $timePickupScheduled <= $closestEnd) || ($timeDeliveryScheduled >= $closestStart && $timeDeliveryScheduled <= $closestEnd)) {
-                    $results[] = ['name' => $timeRate->name, 'type' => 'timeRate', 'price' => $timeRate->price, 'driver_amount' => $timeRate->price, 'paid' => false];
+                    $results[] = $this->createCharge($timeRate->name, 'timeRate', $timeRate->price);
                 }
             }
 
@@ -166,13 +164,13 @@ class ChargeModelFactory {
         foreach($weightRate->brackets as $key => $bracket) {
             $kgmin = $key ? $weightRate->brackets[$key - 1]->kgmax : 0;
             if($totalWeight > $kgmin && $totalWeight < $bracket->kgmax) {
-                $results[] = ['name' => $weightRate->name, 'type' => 'weightRate', 'price' => $bracket->basePrice, 'driver_amount' => $bracket->basePrice, 'paid' => false];
+                $results[] = $this->createCharge($weightRate->name, 'weightRate', $bracket->basePrice);
                 break;
             }
             if($bracket->additionalXKgs && $key == count($weightRate->brackets) - 1) {
                 $overageWeight = $totalWeight - $bracket['kgmax'];
                 $overageCharge = $overageWeight / $bracket->additionalXKgs * $bracket->incrementalPrice;
-                $results[] = ['name' => $weightRate->name, 'type' => 'weightRate', 'price' => $bracket->basePrice + $overageCharge, 'driver_amount' => $bracket->basePrice + $overageCharge, 'paid' => false];
+                $results[] = $this->createCharge($weightRate->name, 'weightRate', $bracket->basePrice + $overageCharge);
                 break;
             }
             if($key == count($weightRate->brackets))
@@ -227,12 +225,16 @@ class ChargeModelFactory {
         $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
         $deliveryType .= '_cost';
 
+        return $this->createCharge($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->deliveryType);
+    }
+
+    private function createCharge($name, $type, $price, $driverAmount = null, $paid = false) {
         return [
-            'name' => $deliveryTypeFriendlyName . ' - ' . $distance . ' zones',
-            'type' => 'distanceRate',
-            'price' => $zoneRate->$deliveryType,
-            'driver_amount' => $zoneRate->$deliveryType,
-            'paid' => false
+            'name' => $name,
+            'type' => $type,
+            'price' => $price,
+            'driver_amount' => $driverAmount ? $driverAmount : $price,
+            'paid' => $paid
         ];
     }
 
