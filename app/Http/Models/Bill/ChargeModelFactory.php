@@ -90,21 +90,21 @@ class ChargeModelFactory {
                 $chargeDeliveryTypeIndex = array_search($deliveryType, array_column($deliveryTypes, 'id'));
                 $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
-                $results[] = $this->createCharge($deliveryTypeFriendlyName, 'distanceRate', $chargeDeliveryType->cost);
+                $results[] = new LineItemModel($deliveryTypeFriendlyName, 'distanceRate', $chargeDeliveryType->cost);
             }
 
         /**
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
         if($pickupZone->type == 'peripheral')
-            $results[] = $this->createCharge('Peripheral Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->regular);
+            $results[] = new LineItemModel('Peripheral Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->regular);
         else if ($pickupZone->type === 'outlying')
-            $results[] = $this->createCharge('Outlying Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->$deliveryType);
+            $results[] = new LineItemModel('Outlying Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->$deliveryType);
 
         if($deliveryZone->type == 'peripheral')
-            $results[] = $this->createCharge('Peripheral Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->regular);
+            $results[] = new LineItemModel('Peripheral Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->regular);
         else if ($deliveryZone->type === 'outlying')
-            $results = $this->createCharge('Outlying Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->$deliveryType);
+            $results[] = new LineItemModel('Outlying Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->$deliveryType);
 
         return $results;
     }
@@ -136,7 +136,7 @@ class ChargeModelFactory {
                 //     'endTime' => $endTime
                 // ];
                 if(($timePickupScheduled >= $closestStart && $timePickupScheduled <= $closestEnd) || ($timeDeliveryScheduled >= $closestStart && $timeDeliveryScheduled <= $closestEnd)) {
-                    $results[] = $this->createCharge($timeRate->name, 'timeRate', $timeRate->price);
+                    $results[] = new LineItemModel($timeRate->name, 'timeRate', $timeRate->price);
                 }
             }
 
@@ -164,13 +164,13 @@ class ChargeModelFactory {
         foreach($weightRate->brackets as $key => $bracket) {
             $kgmin = $key ? $weightRate->brackets[$key - 1]->kgmax : 0;
             if($totalWeight > $kgmin && $totalWeight < $bracket->kgmax) {
-                $results[] = $this->createCharge($weightRate->name, 'weightRate', $bracket->basePrice);
+                $results[] = new LineItemModel($weightRate->name, 'weightRate', $bracket->basePrice);
                 break;
             }
             if($bracket->additionalXKgs && $key == count($weightRate->brackets) - 1) {
                 $overageWeight = $totalWeight - $bracket['kgmax'];
                 $overageCharge = $overageWeight / $bracket->additionalXKgs * $bracket->incrementalPrice;
-                $results[] = $this->createCharge($weightRate->name, 'weightRate', $bracket->basePrice + $overageCharge);
+                $results[] = new LineItemModel($weightRate->name, 'weightRate', $bracket->basePrice + $overageCharge);
                 break;
             }
             if($key == count($weightRate->brackets))
@@ -225,17 +225,7 @@ class ChargeModelFactory {
         $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
         $deliveryType .= '_cost';
 
-        return $this->createCharge($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->deliveryType);
-    }
-
-    private function createCharge($name, $type, $price, $driverAmount = null, $paid = false) {
-        return [
-            'name' => $name,
-            'type' => $type,
-            'price' => $price,
-            'driver_amount' => $driverAmount ? $driverAmount : $price,
-            'paid' => $paid
-        ];
+        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->deliveryType);
     }
 
     private function prepareZone($zone) {
