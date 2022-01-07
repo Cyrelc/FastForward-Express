@@ -112,7 +112,7 @@ export default class GenerateInvoices extends Component {
                     cell.getElement().style.backgroundColor = 'lightCoral'
                 return cell.getValue()
             }, sorter: 'number'},
-            {title: 'Incomplete Bills', field: 'incomplete_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[percentage_complete]=,1'}}, sorter: 'number'},
+            {title: 'Incomplete Bills', field: 'incomplete_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[percentage_complete]=,100'}}, sorter: 'number'},
             {title: 'Skipped Bills', field: 'skipped_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[skip_invoicing]=1'}}, sorter: 'number'},
             {title: 'Legacy Bills', field: 'legacy_bill_count', formatter: 'link', formatterParams: {url: cell => {return '/app/bills?filter[charge_account_id]=' + cell.getRow().getData().account_id + '&filter[time_pickup_scheduled]=,' + this.state.startDate.toISOString().split('T')[0] + '&filter[invoiced]=0'}}, sorter: 'number'},
             {title: 'Parent Account', field: 'parent_account', visible: false}

@@ -166,7 +166,16 @@ class AccountRepo {
                 DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as valid_bill_count'),
                 DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) < cast("' . $startDate . '" as date)) as legacy_bill_count'),
                 DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date) and skip_invoicing = true) as skipped_bill_count'),
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete < 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as incomplete_bill_count')
+                DB::raw(
+                    '(select count(distinct bills.bill_id) from charges
+                    left join line_items on line_items.charge_id = charges.charge_id
+                    left join bills on bills.bill_id = charges.bill_id
+                        where line_items.invoice_id is null
+                        and accounts.account_id = charges.charge_account_id
+                        and bills.percentage_complete < 100
+                        and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '"as date))
+                    as incomplete_bill_count'
+                )
             )->groupBy('accounts.account_id')
             ->havingRaw('valid_bill_count > 0')
             ->orHavingRaw('legacy_bill_count > 0')
