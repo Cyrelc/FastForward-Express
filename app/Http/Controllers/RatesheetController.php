@@ -24,15 +24,13 @@ class RatesheetController extends Controller {
 
     public function getModel(Request $req, $ratesheetId = null) {
         $modelFactory = new Ratesheet\RatesheetModelFactory();
-        if($ratesheetId) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        if($ratesheetId)
             $ratesheetModel = $modelFactory->GetEditModel($ratesheetId);
-            if($req->user()->cannot('appSettings.edit.*.*'))
-                abort(403);
-        } else {
+        else
             $ratesheetModel = $modelFactory->GetCreateModel();
-            if($req->user()->cannot('appSettings.edit.*.*'))
-                abort(403);
-        }
 
         return json_encode($ratesheetModel);
     }

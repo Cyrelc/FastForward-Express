@@ -162,7 +162,7 @@ export default class Ratesheet extends Component {
             newZone.regularCost = costs ? costs.regular : ''
             newZone.rushCost = costs ? costs.rush : ''
             newZone.directCost = costs ? costs.direct : ''
-            newZone.directRushCost = costs ? costs.directRush : ''
+            newZone.directRushCost = costs ? costs.direct_rush : ''
             newZone.additionalTime = zone ? zone.additional_time : ''
         }
         const mapZones = this.state.mapZones.concat([newZone])

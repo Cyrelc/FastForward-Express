@@ -34,24 +34,24 @@ export default function Zone(props) {
                     </InputGroup>
                 }
                 {props.zone.type !== 'outlying' ? null :
-                <div>
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Regular Cost: $</InputGroup.Text>
-                        <FormControl type='number' step={0.01} min ={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
-                    </InputGroup>
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Rush Cost: $</InputGroup.Text>
-                        <FormControl type='number' step={0.01} min ={0.00} name='rushCost' value={props.zone.rushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
-                    </InputGroup>
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Direct Cost: $</InputGroup.Text>
-                        <FormControl type='number' step={0.01} min ={0.00} name='directCost' value={props.zone.directCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
-                    </InputGroup>
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Direct Rush Cost: $</InputGroup.Text>
-                        <FormControl type='number' step={0.01} min ={0.00} name='directRushCost' value={props.zone.directRushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
-                    </InputGroup>
-                </div>
+                    <div>
+                        <InputGroup size='sm'>
+                            <InputGroup.Text>Regular Cost: $</InputGroup.Text>
+                            <FormControl type='number' step={0.01} min ={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        </InputGroup>
+                        <InputGroup size='sm'>
+                            <InputGroup.Text>Rush Cost: $</InputGroup.Text>
+                            <FormControl type='number' step={0.01} min ={0.00} name='rushCost' value={props.zone.rushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        </InputGroup>
+                        <InputGroup size='sm'>
+                            <InputGroup.Text>Direct Cost: $</InputGroup.Text>
+                            <FormControl type='number' step={0.01} min ={0.00} name='directCost' value={props.zone.directCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        </InputGroup>
+                        <InputGroup size='sm'>
+                            <InputGroup.Text>Direct Rush Cost: $</InputGroup.Text>
+                            <FormControl type='number' step={0.01} min ={0.00} name='directRushCost' value={props.zone.directRushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        </InputGroup>
+                    </div>
                 }
                 </Card.Body>
             </Collapse>

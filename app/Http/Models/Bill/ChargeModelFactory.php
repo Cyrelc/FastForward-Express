@@ -92,18 +92,17 @@ class ChargeModelFactory {
 
                 $results[] = new LineItemModel($deliveryTypeFriendlyName, 'distanceRate', $chargeDeliveryType->cost);
             }
-
         /**
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
         if($pickupZone->type == 'peripheral')
             $results[] = new LineItemModel('Peripheral Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->regular);
-        else if ($pickupZone->type === 'outlying')
+        else if ($pickupZone->type == 'outlying')
             $results[] = new LineItemModel('Outlying Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->$deliveryType);
 
         if($deliveryZone->type == 'peripheral')
             $results[] = new LineItemModel('Peripheral Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->regular);
-        else if ($deliveryZone->type === 'outlying')
+        else if ($deliveryZone->type == 'outlying')
             $results[] = new LineItemModel('Outlying Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->$deliveryType);
 
         return $results;
@@ -229,7 +228,7 @@ class ChargeModelFactory {
     }
 
     private function prepareZone($zone) {
-        return (object)[
+        return (object) [
             'zone_id' => $zone->zone_id,
             'zone_name' => $zone->name,
             'additional_costs' => json_decode($zone->additional_costs),

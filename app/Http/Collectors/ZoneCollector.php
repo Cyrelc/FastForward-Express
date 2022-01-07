@@ -32,7 +32,7 @@ class ZoneCollector {
                 $zone = array_merge($zone, [
                     'additional_costs' => json_encode([
                         'direct' => (float) $mapZone['directCost'],
-                        'directRush' => (float) $mapZone['directRushCost'],
+                        'direct_rush' => (float) $mapZone['directRushCost'],
                         'regular' => (float) $mapZone['regularCost'],
                         'rush' => (float) $mapZone['rushCost']
                     ]),
