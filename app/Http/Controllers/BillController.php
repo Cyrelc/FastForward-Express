@@ -33,18 +33,14 @@ class BillController extends Controller {
         if($req->user()->cannot('delete', $bill))
             abort(403);
 
-        if ($billRepo->IsReadOnly($billId)) {
-            throw new Exception('Unable to delete. Bill is locked');
-        } else {
-            DB::beginTransaction();
+        DB::beginTransaction();
 
-            $billRepo->Delete($billId);
+        $billRepo->Delete($billId);
 
-            DB::commit();
-            return response()->json([
-                'success' => true
-            ]);
-        }
+        DB::commit();
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     /**
