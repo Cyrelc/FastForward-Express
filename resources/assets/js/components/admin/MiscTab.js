@@ -21,6 +21,7 @@ export default function MiscTab(props) {
                                 value={props.businessHoursOpen}
                                 onChange={datetime => props.handleChange({target: {name: 'businessHoursOpen', type:'date', value: datetime}})}
                                 className='form-control'
+                                wrapperClassName='form-control'
                             />
                             <InputGroup.Text> Last Delivery: </InputGroup.Text>
                             <DatePicker
@@ -32,6 +33,7 @@ export default function MiscTab(props) {
                                 value={props.businessHoursClose}
                                 onChange={datetime => props.handleChange({target: {name: 'businessHoursClose', type:'date', value: datetime}})}
                                 className='form-control'
+                                wrapperClassName='form-control'
                             />
                         </InputGroup>
                     </Col>

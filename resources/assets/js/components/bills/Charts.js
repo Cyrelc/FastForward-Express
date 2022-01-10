@@ -83,6 +83,7 @@ export default class Charts extends Component {
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
                                             readOnly={this.state.dateGroupBy.value === 'day'}
+                                            wrapperClassName='form-control'
                                         />
                                     </InputGroup>
                                 </Col>
@@ -95,6 +96,7 @@ export default class Charts extends Component {
                                             selected={this.state.endDate}
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
+                                            wrapperClassName='form-control'
                                         />
                                     </InputGroup>
                                 </Col>

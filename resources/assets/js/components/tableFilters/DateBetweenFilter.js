@@ -56,6 +56,7 @@ export default class DateFilterBetween extends Component {
                 <InputGroup>
                     <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
                     <DatePicker
+                        wrapperClassName='form-control'
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
                         endDate={this.state.endDate}
@@ -64,9 +65,11 @@ export default class DateFilterBetween extends Component {
                         selectsStart
                         selected={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'startDate')}
+                        wrapperClassName='form-control'
                     />
                     <InputGroup.Text>And</InputGroup.Text>
                     <DatePicker
+                        wrapperClassName='form-control'
                         className='form-control'
                         dateFormat='MMMM d, yyyy'
                         isClearable
@@ -76,6 +79,7 @@ export default class DateFilterBetween extends Component {
                         selectsEnd
                         startDate={this.state.startDate}
                         onChange={date => this.handleDateFilterChange(date, 'endDate')}
+                        wrapperClassName='form-control'
                     />
                 </InputGroup>
             </Col>

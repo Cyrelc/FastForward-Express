@@ -18,6 +18,10 @@
     flex: 1
 }
 
+.react-datepicker-wrapper {
+    padding: 0!important
+}
+
 .fakeLink {
     cursor:pointer;
     color:blue;

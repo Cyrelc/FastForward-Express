@@ -78,6 +78,7 @@ export default function AdministrationTab(props) {
                                 scrollableMonthDropdown
                                 selected={props.birthDate}
                                 className='form-control'
+                                wrapperClassName='form-control'
                             />
                         </InputGroup>
                     </Col>
@@ -93,6 +94,7 @@ export default function AdministrationTab(props) {
                                 scrollableMonthDropdown
                                 selected={props.startDate}
                                 className='form-control'
+                                wrapperClassName='form-control'
                             />
                         </InputGroup>
                     </Col>

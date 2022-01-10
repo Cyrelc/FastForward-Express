@@ -39,6 +39,7 @@ export default function Pickup_Delivery(props) {
                                 minDate={props.applyRestrictions && props.data.timeMin}
                                 minTime={props.applyRestrictions && props.data.timeMin}
                                 maxTime={props.applyRestrictions && props.data.timeMax}
+                                wrapperClassName='form-control'
                             />
                             {props.timeTooltip && 
                                 <OverlayTrigger placement='right' overlay={<Tooltip>{props.timeTooltip}</Tooltip>}>

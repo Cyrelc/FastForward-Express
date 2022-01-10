@@ -46,6 +46,7 @@ export default function AdvancedTab(props) {
                                 scrollableMonthDropdown
                                 showYearDropdown
                                 scrollableYearDropdown
+                                wrapperClassName='form-control'
                                 yearDropdownItemNumber={100}
                             />
                         </InputGroup>

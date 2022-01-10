@@ -93,6 +93,7 @@ export default class GenerateManifests extends Component {
                                     placeholderText='After'
                                     selected={this.state.startDate}
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
+                                    wrapperClassName='form-control'
                                 />
                             </InputGroup>
                         </Col>
@@ -105,6 +106,7 @@ export default class GenerateManifests extends Component {
                                     placeholderText='Before'
                                     selected={this.state.endDate}
                                     onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
+                                    wrapperClassName='form-control'
                                 />
                             </InputGroup>
                         </Col>

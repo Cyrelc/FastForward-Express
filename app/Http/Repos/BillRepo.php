@@ -66,19 +66,16 @@ class BillRepo {
         return $count->count();
     }
 
-    public function Delete($id) {
+    public function Delete($billId) {
         $addressRepo = new AddressRepo();
         $chargeRepo = new ChargeRepo();
 
-        $bill = $this->GetById($id);
-        if(isset($bill->invoice_id) || isset($bill->pickup_manifest_id) || isset($bill->delivery_manifest_id))
-            throw new \Exception('Unable to delete bill after it has been invoiced or manifested');
+        $bill = $this->GetById($billId);
 
         $bill->delete();
         $addressRepo->Delete($bill->pickup_address_id);
         $addressRepo->Delete($bill->delivery_address_id);
         $charges = $chargeRepo->DeleteByBillId($bill->bill_id);
-        //TODO: Delete associated chargebacks
 
         return;
     }
@@ -426,12 +423,12 @@ class BillRepo {
                     DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
                 ] : [],
                 $req->user()->can('viewBilling', Bill::class) ? [
-                    'delivery_address.lat as delivery_address_lat',
-                    'delivery_address.lng as delivery_address_lng',
+                    // 'delivery_address.lat as delivery_address_lat',
+                    // 'delivery_address.lng as delivery_address_lng',
                     'interliners.interliner_id',
                     'interliners.name as interliner_name',
-                    'pickup_address.lat as pickup_address_lat',
-                    'pickup_address.lng as pickup_address_lng',
+                    // 'pickup_address.lat as pickup_address_lat',
+                    // 'pickup_address.lng as pickup_address_lng',
                     'repeat_interval',
                     'repeatInterval.name as repeat_interval_name',
                 ] : []
@@ -455,7 +452,6 @@ class BillRepo {
                 AllowedFilter::exact('delivery_driver_id'),
                 AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
-                // AllowedFilter::custom('invoiced', new IsNull, 'invoice_id'),
                 AllowedFilter::exact('paid', 'line_items.paid'),
                 AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
                 AllowedFilter::exact('skip_invoicing'),

@@ -30,6 +30,7 @@ class ChargeRepo {
 
     public function DeleteByBillId($billId) {
         $charges = $this->GetByBillId($billId);
+
         foreach($charges as $charge)
             $this->Delete($charge->chargeId);
     }

@@ -14,6 +14,9 @@ class BillModelFactory{
 		$chargeRepo = new Repos\ChargeRepo();
 
 		$bills = $billRepo->ListAll($req);
+		if(count($bills) > 5000)
+			throw new \Exception('Maximum result limit exceeded. Please limit your search and try again');
+
 		$model = [];
 		foreach($bills as $bill) {
 			$charges = $chargeRepo->GetByBillId($bill->bill_id);

@@ -337,6 +337,7 @@ export default class Dispatch extends Component {
                                         className='form-control'
                                         onChange={value => this.handleChange({target: {name: 'startDate', type: 'datetime', value: value}})}
                                         selected={this.state.startDate}
+                                        wrapperClassName='form-control'
                                     />
                                 </InputGroup>
                             </Col>
@@ -393,6 +394,7 @@ export default class Dispatch extends Component {
                                 className='form-control'
                                 selected={this.state.setTimeModalTime}
                                 onChange={value => this.handleChange({target: {name: 'setTimeModalTime', type: 'datetime', value: value}})}
+                                wrapperClassName='form-control'
                             />
                             <Button onClick={() => this.handleChange({target: {name: 'setTime'}})}>Set</Button>
                         </InputGroup>

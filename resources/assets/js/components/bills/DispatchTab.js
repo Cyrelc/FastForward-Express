@@ -49,6 +49,7 @@ export default function DispatchTab(props) {
                             onChange={datetime => props.handleChanges({target: {name: 'pickupTimeActual', type:'date', value: datetime}})}
                             readOnly={props.readOnly || props.isPickupManifested}
                             className='form-control'
+                            wrapperClassName='form-control'
                         />
                     </InputGroup>
                 </Col>
@@ -97,6 +98,7 @@ export default function DispatchTab(props) {
                             onChange={datetime => props.handleChanges({target: {name: 'deliveryTimeActual', type:'date', value: datetime}})}
                             readOnly={props.readOnly || props.isDeliveryManifested}
                             className='form-control'
+                            wrapperClassName='form-control'
                         />
                     </InputGroup>
                 </Col>
@@ -134,6 +136,7 @@ export default function DispatchTab(props) {
                             onChange={datetime => props.handleChanges({target: {name: 'timeCallReceived', type:'date', value: datetime}})}
                             readOnly={true}
                             className='form-control'
+                            wrapperClassName='form-control'
                         />
                     </InputGroup>
                 </Col>
@@ -149,6 +152,7 @@ export default function DispatchTab(props) {
                             onFocus={props.timeDispatched === '' ? props.handleChanges({target: {name: 'timeDispatched', type: 'date', value: new Date()}}) : null}
                             readOnly={true}
                             className='form-control'
+                            wrapperClassName='form-control'
                         />
                     </InputGroup>
                 </Col>

@@ -151,6 +151,7 @@ export default class ChargebackModal extends Component {
                                     scrollableYearDropdown
                                     className='form-control'
                                     selected={this.state.startDate}
+                                    wrapperClassName='form-control'
                                 />
                             </InputGroup>
                         </Col>

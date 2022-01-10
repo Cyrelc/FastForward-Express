@@ -5,7 +5,7 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=7.3.0",
+        "php": ">=7.4.0",
         "laravel/framework": "^8.0",
         "fzaninotto/faker": "^1.6",
         "doctrine/dbal": "^2.5",
@@ -18,7 +18,8 @@
         "pusher/pusher-php-server": "~4.0",
         "spatie/laravel-permission": "^4.0",
         "tecnickcom/tcpdf": "^6.4",
-        "aws/aws-sdk-php": "^3.198"
+        "aws/aws-sdk-php": "^3.198",
+        "laravel/sanctum": "^2.12"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

@@ -53,6 +53,7 @@ export default class AccountsReceivable extends Component {
                                             selected={this.state.startDate}
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
+                                            wrapperClassName='form-control'
                                         />
                                     </InputGroup>
                                 </Col>
@@ -65,6 +66,7 @@ export default class AccountsReceivable extends Component {
                                             selected={this.state.endDate}
                                             showMonthYearPicker
                                             onChange={value => this.handleChange({target: {name: 'endDate', type: 'date', value: value}})}
+                                            wrapperClassName='form-control'
                                         />
                                     </InputGroup>
                                 </Col>

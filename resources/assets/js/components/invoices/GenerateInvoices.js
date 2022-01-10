@@ -149,6 +149,7 @@ export default class GenerateInvoices extends Component {
                                     onChange={value => this.handleChange({target: {name: 'startDate', type: 'date', value: value}})}
                                     selectsStart
                                     endDate={this.state.endDate}
+                                    wrapperClassName='form-control'
                                 />
                                 <InputGroup.Text> End Date: </InputGroup.Text>
                                 <DatePicker
@@ -160,6 +161,7 @@ export default class GenerateInvoices extends Component {
                                     selectsEnd
                                     startDate={this.state.startDate}
                                     minDate={this.state.startDate}
+                                    wrapperClassName='form-control'
                                 />
                             </InputGroup>
                         </Col>

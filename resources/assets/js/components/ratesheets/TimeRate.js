@@ -101,6 +101,7 @@ export default function TimeRate(props) {
                                         value={bracket.startTime}
                                         onChange={datetime => handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
                                         className='form-control'
+                                        wrapperClassName='form-control'
                                     />
                                 </InputGroup>
                             </td>
@@ -125,6 +126,7 @@ export default function TimeRate(props) {
                                         value={bracket.endTime}
                                         onChange={datetime => handleTimeRateChange({target: {name: 'endTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
                                         className='form-control'
+                                        wrapperClassName='form-control'
                                     />
                                 </InputGroup>
                             </td>
