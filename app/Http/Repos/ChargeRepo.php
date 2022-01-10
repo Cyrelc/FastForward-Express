@@ -32,7 +32,7 @@ class ChargeRepo {
         $charges = $this->GetByBillId($billId);
 
         foreach($charges as $charge)
-            $this->Delete($charge->chargeId);
+            $this->Delete($charge->charge_id);
     }
 
     public function GetByBillId($billId) {

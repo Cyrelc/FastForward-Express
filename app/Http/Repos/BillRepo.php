@@ -72,10 +72,11 @@ class BillRepo {
 
         $bill = $this->GetById($billId);
 
+        $charges = $chargeRepo->DeleteByBillId($billId);
         $bill->delete();
+
         $addressRepo->Delete($bill->pickup_address_id);
         $addressRepo->Delete($bill->delivery_address_id);
-        $charges = $chargeRepo->DeleteByBillId($bill->bill_id);
 
         return;
     }
