@@ -195,9 +195,9 @@ class BillRepo {
                     $subtotalString = $tempAccount->account_number . ' ' . $tempAccount->name;
                 } else {
                     if($subtotalBy->database_field_name == 'charge_reference_value')
-                        $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ' ' . $subtotalId;
+                        $subtotalString = $accountRepo->GetById($invoice->account_id)->custom_field . ': ' . $subtotalId;
                     else
-                        $subtotalString = $subtotalBy->friendly_name . ' ' . $subtotalId;
+                        $subtotalString = $subtotalBy->friendly_name . ': ' . $subtotalId;
                 }
                 foreach($invoiceSortOptions as $option) {
                     $subtotalQuery->orderBy($option->database_field_name);
@@ -464,7 +464,7 @@ class BillRepo {
                 AllowedFilter::exact('repeat_interval')
             ]);
 
-        return $filteredBills->groupBy('bill_id')->get();
+        return $filteredBills->groupBy('bill_id')->limit(5001)->get();
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {
