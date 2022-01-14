@@ -15,7 +15,7 @@ class UserCollector {
 
         if(isset($req->employee_id) && $req->employee_id !== '') {
             $employeeRepo = new Repos\EmployeeRepo();
-            $userId = $employeeRepo->GetById($req->employee_id)->user_id;
+            $userId = $employeeRepo->GetById($req->employee_id, null)->user_id;
         }
 
         $user = [
