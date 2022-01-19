@@ -68,7 +68,7 @@ class InvoiceModelFactory{
 				$table->headers[$model->parent->custom_field] = 'charge_reference_value';
 			$table->headers['Address'] = 'address';
 			// $table->headers['Type'] = 'delivery_type';
-			$table->headers['Amount'] = 'amount';
+			$table->headers['Price'] = 'amount';
 		}
 
 		$model->unpaid_invoices = $invoiceRepo->GetOutstandingByAccountId($model->invoice->account_id);

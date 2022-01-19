@@ -4,6 +4,8 @@
 /public/compiled_js
 /public/mix-manifest.json
 /public/css/app.css
+/public/css/invoice_pdf.css
+/public/css/manifest_pdf.css
 Homestead.yaml
 Homestead.json
 .env

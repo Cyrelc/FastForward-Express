@@ -167,7 +167,7 @@ export default class ReduxTable extends Component {
                                                     {this.props.withSelected.map(menuItem =>
                                                         <Dropdown.Item
                                                             key={menuItem.label}
-                                                            onClick={() => menuItem.onClick(this.state.tableRef.current?.table?.getSelectedRows())}
+                                                            onClick={() => menuItem.onClick(this.state.tableRef.current?.table?.getSelectedRows(), menuItem.options ?? null)}
                                                         >{menuItem.label}</Dropdown.Item>
                                                     )}
                                                 </Dropdown.Menu>

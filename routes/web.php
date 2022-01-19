@@ -74,24 +74,24 @@ Route::group(
             Route::post('/interliners/store', 'InterlinerController@store');
 
             Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
-            Route::get('/invoices/getModel/{invoiceId?}','InvoiceController@getModel');
-            Route::post('/invoices/store', 'InvoiceController@store');
-            Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
             Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
-            Route::get('/invoices/print/{id}', 'InvoiceController@print');
-            Route::get('/invoices/printMass/{invoiceIdArray}', 'InvoiceController@printMass');
+            Route::get('/invoices/download/{invoiceIds}', 'InvoiceController@download');
+            Route::get('/invoices/finalize/{invoiceIds}', 'InvoiceController@finalize');
+            Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
+            Route::get('/invoices/getModel/{invoiceId?}','InvoiceController@getModel');
             Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
-            Route::get('/invoices/finalize/{invoiceIdArray}', 'InvoiceController@finalize');
+            Route::get('/invoices/print/{invoiceIds}', 'InvoiceController@print');
             Route::get('/invoices/printPreview/{invoiceId}', 'InvoiceController@printPreview');
+            Route::post('/invoices/store', 'InvoiceController@store');
             // Route::get('/invoices/regather/{invoiceId}', 'InvoiceController@regather');
 
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests/delete/{id}', 'ManifestController@delete');
             Route::get('/manifests/getModel/{manifest_id}', 'ManifestController@getModel');
-            Route::get('/manifests/print/{id}', 'ManifestController@print');
+            Route::get('/manifests/download/{manifestIds}', 'ManifestController@download');
+            Route::get('/manifests/print/{manifestIds}', 'ManifestController@print');
             Route::get('/manifests/buildTable', 'ManifestController@buildTable');
-            Route::get('/manifests/printMass/{manifestIdArray}', 'ManifestController@printMass');
 
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/getModelByAccountId/{accountId}', 'PaymentController@GetModelByAccountId');

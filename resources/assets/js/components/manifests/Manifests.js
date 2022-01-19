@@ -6,20 +6,17 @@ import ReduxTable from '../partials/ReduxTable'
 import { fetchManifests } from '../../store/reducers/manifests'
 import * as actionTypes from '../../store/actions'
 
-function printManifests(selectedRows = null, withoutBills = false) {
+function printManifests(selectedRows, options = null) {
     if(!selectedRows || selectedRows.length === 0) {
         toastr.warning('Please select at least one row to operate on')
         return
     }
-    const data = selectedRows.map(selectedRow => {return selectedRow.getData().manifest_id})
-    if(selectedRows.length === 1)
-        window.open('/manifests/print/' + data[0] + (withoutBills ? '?without_bills' : ''))
-    else
-        window.open('/manifests/printMass/' + data + (withoutBills ? '?without_bills' : ''))
-}
 
-function printManifestsWithoutBills(selectedRows = null) {
-    printManifests(selectedRows, true)
+    const data = selectedRows.map(selectedRow => {return selectedRow.getData().manifest_id})
+    const download = options?.download ? options.download : false;
+    const withoutBills = options?.withoutBills ? options.withoutBills : false;
+
+    window.open('/manifests/' + (download ? 'download/' : 'print/') + data + (withoutBills ? '?without_bills=true' : ''))
 }
 
 // const groupBy = 'end_date'
@@ -32,12 +29,22 @@ const groupByOptions = [
 
 const withSelected = [
     {
+        label: 'Download',
+        onClick: printManifests,
+        options: {
+            download: true
+        }
+    },
+    {
         label: 'Print',
         onClick: printManifests
     },
     {
         label: 'Print Without Bill List',
-        onClick: printManifestsWithoutBills
+        onClick: printManifests,
+        options: {
+            withoutBills: true
+        }
     }
 ]
 
@@ -86,8 +93,9 @@ class Manifests extends Component {
         if(!data.manifest_id)
             return undefined
         var menuItems = [
+            {label: 'Download Manifest', action: () => printManifests([cell.getRow()], {download: true})},
             {label: 'Print Manifest', action: () => printManifests([cell.getRow()])},
-            {label: 'Print Without Bill List', action: () => printManifests([cell.getRow()], true)}
+            {label: 'Print Without Bill List', action: () => printManifests([cell.getRow()], {withoutBills: true})}
         ]
         if(this.props.frontEndPermissions.manifests.delete)
             menuItems = menuItems.concat([{label: 'Delete Manifest', action: () => this.deleteManifest(cell)}])

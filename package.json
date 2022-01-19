@@ -30,6 +30,7 @@
         "webpack-cli": "^4.7.2"
     },
     "dependencies": {
+        "@nesk/puphpeteer": "^2.0.0",
         "@nivo/bar": "^0.78.0",
         "@nivo/calendar": "^0.78.0",
         "@nivo/core": "^0.78.0",

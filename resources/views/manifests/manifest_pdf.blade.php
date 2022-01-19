@@ -1,35 +1,10 @@
-<link rel='stylesheet' type='text/css' href='./css/manifests/manifest_pdf_layout.css' />
-
-<div class='header'>
-    <table>
-        <td width:'30%'>
-            <h4>Driver: {{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}<br/>
-                Manifest ID: {{$model->manifest->manifest_id}}<br/>
-                Date: {{$model->manifest->date_run}}</h4>
-        </td>
-        <td width:'40%' style='text-align: center;'>
-            <h2>Fast Forward Express Ltd.</h2>
-        </td>
-        <td class='text-right' width:'30%'>
-            <h4>Box 11117<br/>Edmonton, AB<br/>T5J 2K4</h4>
-        </td>
-    </table>
-</div>
-<div class='footer'>
-    <table>
-        <td style='width: 30%'>(780) 458-1074</td>
-        <td style='width: 40%; text-align: center;'>Page: <span class='pagenum'></span></td>
-        <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>www.fastforwardexpress.com</a></td>
-    </table>
-</div>
-
 <hr/>
 <table style='overflow: visible'>
     <tbody>
         <tr>
-            <td class='basic' style='width: 20%'><h4>Driver Gross:<br/><br/>${{$model->driver_total}}</h4></td>
-            <td class='warn' style='width:20%'><h4>Chargebacks:<br/><br/>${{$model->chargeback_total}}</h4></td>
-            <td class='basic' style='width: 20%'><h4>Driver Income:<br/><br/>${{$model->driver_income}}</h4></td>
+            <td class='basic'><h4>Driver Gross:<br/>${{$model->driver_total}}</h4></td>
+            <td class='warn'><h4>Chargebacks:<br/>${{$model->chargeback_total}}</h4></td>
+            <td class='basic'><h4>Driver Income:<br/>${{$model->driver_income}}</h4></td>
             <td style='width: 40%; text-align: center'><h2>{{$model->employee->contact->first_name}} {{$model->employee->contact->last_name}}</h2></td>
         </tr>
     </tbody>
@@ -44,7 +19,6 @@
         </td>
     </tr>
 </table>
-<br/><br/>
 @if($model->warnings != [])
 <div style='text-align: center'>
     <table style='width: 100%'>
@@ -81,9 +55,9 @@
                 <td>{{$day->time_pickup_scheduled}}</td>
                 <td>{{$day->pickup_count}}</td>
                 <td>{{$day->delivery_count}}</td>
-                <td class='right'>{{$day->pickup_amount}}</td>
-                <td class='right'>{{$day->delivery_amount}}</td>
-                <td class='right'>{{number_format($day->pickup_amount + $day->delivery_amount, 2)}}</td>
+                <td class='right'>{{'$' . number_format($day->pickup_amount, 2)}}</td>
+                <td class='right'>{{'$' . number_format($day->delivery_amount, 2)}}</td>
+                <td class='right'>{{'$' . number_format($day->pickup_amount + $day->delivery_amount, 2)}}</td>
             </tr>
         @endforeach
     </tbody>
@@ -106,14 +80,14 @@
             <td>{{$chargeback->name}}</td>
             <td>{{$chargeback->gl_code}}</td>
             <td>{{$chargeback->description}}</td>
-            <td class='right red'>{{$chargeback->amount}}</td>
+            <td class='right red'>{{'$' . number_format($chargeback->amount, 2)}}</td>
         </tr>
         @endforeach
     </tbody>
 </table>
 @endif
 
-@if(!$without_bills)
+@if(!$withoutBills)
 <div class='col center'><h3>Detailed</h3></div>
 <table id='manifest_full'>
     <thead>
@@ -133,7 +107,7 @@
             @if($temp != $bill->day)
                 <?php $temp = $bill->day; ?>
                 <tr>
-                    <td colspan='7' style='text-align:center'><b>{{$temp}}</b></td>
+                    <td colspan='7' style='text-align:center; background-color: gainsboro;'>{{$temp}}</td>
                 </tr>
             @endif
             <tr>
@@ -142,8 +116,8 @@
                 <td>{{$bill->time_pickup_scheduled}}</td>
                 <td>{{$bill->delivery_type}}</td>
                 <td>{{$bill->type}}</td>
-                <td class='right'>{{$bill->amount}}</td>
-                <td class='right'>{{$bill->driver_income}}</td>
+                <td class='right'>{{'$' . number_format($bill->amount, 2)}}</td>
+                <td class='right'>{{'$' . number_format($bill->driver_income, 2)}}</td>
             </tr>
         @endforeach
     </tbody>

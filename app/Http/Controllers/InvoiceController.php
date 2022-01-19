@@ -6,23 +6,25 @@ use Illuminate\Http\Request;
 
 use DB;
 use View;
-use PDF;
 use ZipArchive;
 use App\Http\Collectors;
 use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Models\Invoice;
 use App\Http\Services;
+use Nesk\Puphpeteer\Puppeteer;
+
+use LynX39\LaraPdfMerger\Facades\PdfMerger;
 
 class InvoiceController extends Controller {
+    private $storagePath;
+    private $folderName;
+
     public function __construct() {
         $this->middleware('auth');
 
-        //API STUFF
-        $this->sortBy = 'number';
-        $this->maxCount = env('DEFAULT_INVOICE_COUNT', $this->maxCount);
-        $this->itemAge = env('DEFAULT_INVOICE_AGE', '6 month');
-        $this->class = new \App\Invoice;
+        $this->storagePath = storage_path() . '/app/public/';
+        $this->folderName = 'invoices.' . time();
     }
 
     public function buildTable(Request $req) {
@@ -52,11 +54,6 @@ class InvoiceController extends Controller {
         return response()->json([
             'success' => true
         ]);
-    }
-
-    public function download(Request $req, $filename) {
-        $path = storage_path() . '/app/public/';
-        return response()->download($path . $filename)->deleteFileAfterSend(true);
     }
 
     public function finalize(Request $req, $invoiceIds) {
@@ -110,67 +107,66 @@ class InvoiceController extends Controller {
         return json_encode($invoices);
     }
 
-    public function print(Request $req, $invoiceId) {
-        //TODO check if invoice $id exists
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-        $model = $invoiceModelFactory->GetById($req, $invoiceId);
+    public function print(Request $req, $invoiceIds) {
+        $invoiceIds = explode(',', $invoiceIds);
+        if(count($invoiceIds) > 50)
+            throw new \Exception('Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
 
-        if($req->user()->cannot('view', $model->invoice))
-            abort(403);
+        $files = $this->preparePdfs($invoiceIds, $req);
 
-        $amendmentsOnly = $req->amendments_only;
-        $showLineItems = $req->show_line_items;
+        $pdfMerger = PDFMerger::init();
 
-        $pdf = PDF::loadView('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'));
-        return $pdf->stream($model->parent->name . '.' . $model->invoice->date . '.pdf');
+        foreach($files as $file)
+            $pdfMerger->addPDF($file);
+
+        $pdfMerger->merge();
+
+        $this->cleanPdfs($files);
+
+        $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
+
+        return $pdfMerger->save($fileName, 'inline');
     }
 
-    public function printMass(Request $req, $invoiceIds) {
-        $storagepath = storage_path() . '/app/public/';
-        $foldername = 'invoices.' . time();
-        mkdir($storagepath . $foldername);
-        $path = $storagepath . $foldername . '/';
-        $files = array();
+    public function download(Request $req, $invoiceIds) {
+        $invoiceIds = explode(',', $invoiceIds);
+        if(count($invoiceIds) > 50)
+            throw new \Exception('Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
 
-        $zip = new ZipArchive();
-        $zipfile = $storagepath . $foldername . '.zip';
-        $zip->open($zipfile, ZipArchive::CREATE);
+        $files = $this->preparePdfs($invoiceIds, $req);
 
-        $toBeUnlinked =  array();
+        if(count($files) === 1) {
+            return \Response::download($files[array_key_first($files)]);
+        } else {
+            $zip = new ZipArchive();
+            $zipfile = $this->storagePath . $this->folderName . '.zip';
+            $zip->open($zipfile, ZipArchive::CREATE);
 
-        foreach(explode(',', $invoiceIds) as $invoiceId) {
-            $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-            $model = $invoiceModelFactory->GetById($req, $invoiceId);
+            foreach($files as $name => $file)
+                $zip->addFile($file, $name);
 
-            if($req->user()->cannot('view', $model->invoice))
-                abort(403);
+            $zip->close();
 
-            $filename = $model->parent->name . '-' . $model->invoice->invoice_id . '.pdf';
-            $pdf = PDF::loadView('invoices.invoice_table', compact('model'));
-            $pdf->save($path . $filename, $filename);
-            $zip->addFile($path . $filename, $filename);
-            $toBeUnlinked[$invoiceId] = $path . $filename;
+            $this->cleanPdfs($files);
+
+            return \Response::download($zipfile);
         }
-
-        $zip->close();
-
-        foreach($toBeUnlinked as $file)
-            unlink($file);
-        rmdir($storagepath . $foldername);
-
-        return \Response::download($zipfile);
     }
 
     public function printPreview(Request $req, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoice = $invoiceRepo->GetById($invoiceId);
+
         if($req->user()->cannot('view', $invoice))
             abort(403);
+
+        $amendmentsOnly = $req->amendments_only ?? false;
+        $showLineItems = $req->show_line_items ?? false;
 
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
-        return view('invoices.invoice_table', compact('model'));
+        return view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'));
     }
 
     public function regather(Request $req, $invoiceId) {
@@ -204,5 +200,67 @@ class InvoiceController extends Controller {
         $invoices = $invoiceRepo->Create($req->accounts, $startDate, $endDate);
 
         DB::commit();
+    }
+
+    /**
+     * Private functions
+     * 
+     */
+    private function preparePdfs($invoiceIds, $req) {
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+
+        $globalAmendmentsOnly = $req->amendments_only ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
+        $showLineItems = $req->show_line_items ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : false;
+
+        $files = array();
+        $path = $this->storagePath . $this->folderName . '/';
+        mkdir($path);
+
+        foreach($invoiceIds as $invoiceId) {
+            $model = $invoiceModelFactory->GetById($req, $invoiceId);
+
+            if($req->user()->cannot('view', $model->invoice))
+                abort(403);
+
+            $fileName = preg_replace('/\s+/', '_', $model->parent->name) . '-' . $model->invoice->invoice_id;
+            //check if invoice even has amendments otherwise forcibly set to false
+            $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
+
+            $puppeteer = new Puppeteer;
+            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'))->render();
+            file_put_contents($path . $fileName . '.html', $file);
+            $page = $puppeteer->launch()->newPage();
+            $page->goto('file://' . $path . $fileName . '.html');
+            $page->addStyleTag(['path' => public_path('css/invoice_pdf.css')]);
+            $page->pdf([
+                'displayHeaderFooter' => true,
+                'footerTemplate' => view('invoices.invoice_table_footer')->render(),
+                'headerTemplate' => view('invoices.invoice_table_header', compact('model'))->render(),
+                'margin' => [
+                    'top' => 80,
+                    'bottom' => 70,
+                    'left' => 30,
+                    'right' => 30
+                ],
+                'path' => $path . $fileName . '.pdf',
+                'printBackground' => true,
+            ]);
+
+            unlink($path . $fileName . '.html');
+
+            $files[$fileName .'.pdf'] = $path . $fileName . '.pdf';
+        }
+
+        return $files;
+    }
+
+    private function cleanPdfs($files) {
+        $path = $this->storagePath . $this->folderName . '/';
+
+        foreach($files as $file)
+            unlink($file);
+        rmdir($this->storagePath . $this->folderName);
+
+        return !is_dir($path);
     }
 }

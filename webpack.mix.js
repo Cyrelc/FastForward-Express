@@ -14,7 +14,9 @@ const webpack = require('webpack');
 
 mix.js('resources/assets/js/app.js', 'public/compiled_js')
    .react()
-   .sass('resources/assets/sass/app.scss', 'public/css');
+   .sass('resources/assets/sass/app.scss', 'public/css')
+   .sass('resources/assets/sass/invoice_pdf.scss', 'public/css')
+   .sass('resources/assets/sass/manifest_pdf.scss', 'public/css');
 
 if(mix.inProduction()) {
    mix.version();

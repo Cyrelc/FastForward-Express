@@ -17,7 +17,7 @@ function cellContextMenu(cell, canEdit = false) {
     var menuItems = [
         {label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)},
         {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => toggleInvoiceFinalized([cell.getRow()]), disabled: (data.payment_count !== 0)},
-        {label: 'Print', action: () => printInvoices([cell.getRow()]), disabled: data.finalized === 0}
+        {label: 'Print', action: () => printInvoices([cell.getRow()], {download: false}), disabled: data.finalized === 0}
     ]
 
     return menuItems
@@ -53,16 +53,15 @@ function toggleInvoiceFinalized(selectedRows = null) {
     })
 }
 
-function printInvoices(selectedRows = null) {
+function printInvoices(selectedRows, options) {
     if(!selectedRows || selectedRows.length === 0) {
         toastr.warning('Please select at least one row to operate on')
         return
     }
     const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
-    if(selectedRows.length === 1)
-        window.open('/invoices/print/' + data[0], "_blank")
-    else
-        window.open('/invoices/printMass/' + data)
+    const printUrl = '/invoices/' + (options.download ? 'download' : 'print') + '/'
+
+    window.open(printUrl + (selectedRows.length === 1 ? data[0] : data), "_blank")
 }
 
 function undoFinalizeInvoices(selectedRows) {
@@ -109,8 +108,18 @@ const adminWithSelected = [
 ]
 const withSelected = [
     {
+        label: 'Download',
+        onClick: printInvoices,
+        options: {
+            download: true
+        }
+    },
+    {
         label: 'Print',
-        onClick: printInvoices
+        onClick: printInvoices,
+        options: {
+            download: false
+        }
     }
 ]
 
@@ -122,8 +131,13 @@ class Invoices extends Component {
                 ...this.props.frontEndPermissions.invoices.edit ? [
                     {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false}
                 ] : [
-                    {formatter: cell => {return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"}, width: 50, hozAlign:'center', cellClick:(e, cell) => printInvoices([cell.getRow()])}
-                ],
+                    {formatter: cell => {
+                        return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"
+                    },
+                    width: 50,
+                    hozAlign:'center',
+                    cellClick:(e, cell) => printInvoices([cell.getRow()], {download: false})
+                }],
                 ...this.props.frontEndPermissions.invoices.edit ? [
                     {title: 'Date Run', field: 'date_run', visible: false},
                 ] : [],
@@ -167,7 +181,8 @@ class Invoices extends Component {
                 },
             ],
             withSelected: [
-                ...this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [], withSelected
+                ...this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [],
+                ...withSelected
             ]
         }
     }

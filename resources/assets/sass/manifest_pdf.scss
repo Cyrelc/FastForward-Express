@@ -1,6 +1,3 @@
-@page {
-    margin: 90px 40px 50px;
-}
 table {
     width: 100%;
     border-collapse: collapse;
@@ -9,19 +6,24 @@ thead {
     border-bottom: 2px solid black;
     border-top: 2px solid black;
 }
-#manifest_full tr:nth-child(even), #manifest_overview tr:nth-child(even), #chargebacks tr:nth-child(even) {
+#manifest_full tbody tr:nth-child(odd), #manifest_overview tbody tr:nth-child(odd), #chargebacks tbody tr:nth-child(odd) {
 	background: #d6e0f5;
 }
 #manifest_full tr td {
-    font-size: 10px;
+    font-size: 14px;
 }
 .right {
     text-align: right;
+}
+td.basic h4, td.warn h4 {
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 td.basic, td.warn {
     border: grey solid;
     text-align: center;
     margin-bottom: 20px;
+    width: 20%;
 }
 td.basic {
     background: #ADD8E6;
@@ -34,16 +36,4 @@ td.warn {
 }
 .red{
     color:red;
-}
-.header {
-    position: fixed;
-    top: -85px;
-}
-.footer {
-    bottom: -10px;
-    position: fixed;
-    font-size: 10;
-}
-.footer .pagenum:before {
-    content: counter(page);
 }

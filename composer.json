@@ -9,7 +9,6 @@
         "laravel/framework": "^8.0",
         "fzaninotto/faker": "^1.6",
         "doctrine/dbal": "^2.5",
-        "barryvdh/laravel-dompdf": "^0.8.1",
         "spatie/laravel-activitylog": "^3.1",
         "fideloper/proxy": "^4.0",
         "spatie/laravel-query-builder": "^3.0",
@@ -19,7 +18,9 @@
         "spatie/laravel-permission": "^4.0",
         "tecnickcom/tcpdf": "^6.4",
         "aws/aws-sdk-php": "^3.198",
-        "laravel/sanctum": "^2.12"
+        "laravel/sanctum": "^2.12",
+        "daltcore/lara-pdf-merger": "^2.0",
+        "nesk/puphpeteer": "^2.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
