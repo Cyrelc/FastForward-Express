@@ -162,6 +162,7 @@ class ManifestController extends Controller {
 
     private function preparePdfs(Request $req, $manifestIds) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $puppeteer = new Puppeteer;
 
         $withoutBills = isset($req->without_bills);
 
@@ -177,7 +178,6 @@ class ManifestController extends Controller {
 
             $fileName = $model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '-' . $model->manifest->manifest_id;
 
-            $puppeteer = new Puppeteer;
             $file = view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render();
             file_put_contents($path . $fileName . '.html', $file);
             $page = $puppeteer->launch()->newPage();

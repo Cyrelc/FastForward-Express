@@ -208,6 +208,7 @@ class InvoiceController extends Controller {
      */
     private function preparePdfs($invoiceIds, $req) {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $puppeteer = new Puppeteer;
 
         $globalAmendmentsOnly = $req->amendments_only ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
         $showLineItems = $req->show_line_items ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : false;
@@ -226,7 +227,6 @@ class InvoiceController extends Controller {
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
 
-            $puppeteer = new Puppeteer;
             $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'))->render();
             file_put_contents($path . $fileName . '.html', $file);
             $page = $puppeteer->launch()->newPage();

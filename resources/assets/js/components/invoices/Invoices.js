@@ -73,21 +73,6 @@ function undoFinalizeInvoices(selectedRows) {
  * Table constants including definitions
  */
 
-const columns = [
-    {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-    {title: 'Invoice ID', field: 'invoice_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/invoices/'}, sorter:'number'},
-    // {title: 'Account ID', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/'}},
-    {title: 'Account Number', field: 'account_number', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', urlPrefix:'/app/accounts/N'}, visible: false},
-    {title: 'Account', field: 'account_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'account_name', urlPrefix:'/app/accounts/'}},
-    {title: 'First Bill Date', field: 'bill_start_date', visible: false},
-    {title: 'Last Bill Date', field: 'bill_end_date'},
-    {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
-    {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
-    {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
-    {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
-    {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
-]
-
 const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Account', value: 'account_number', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].account_name}},
@@ -141,7 +126,18 @@ class Invoices extends Component {
                 ...this.props.frontEndPermissions.invoices.edit ? [
                     {title: 'Date Run', field: 'date_run', visible: false},
                 ] : [],
-                ...columns
+                {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+                {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', this.props.redirect), sorter: 'number'},
+                {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), sorter: 'number'},
+                {title: 'Account Number', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), visible: false, formatter: cell => {return cell.getRow().getData().account_number}},
+                {title: 'Account', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), formatter: cell => {return cell.getRow().getData().account_name}},
+                {title: 'First Bill Date', field: 'bill_start_date', visible: false},
+                {title: 'Last Bill Date', field: 'bill_end_date'},
+                {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
+                {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
+                {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
+                {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
+                {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
             ],
             filters: [
                 ...this.props.frontEndPermissions.invoices.edit ? [
