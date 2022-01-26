@@ -260,7 +260,7 @@ class Bill extends Component {
 
                 if(data.permissions.viewDispatch)
                     setup = {...setup,
-                        billNumber: data.bill.bill_number,
+                        billNumber: data.bill.bill_number ?? '',
                         deliveryEmployee: data.bill.delivery_driver_id ? this.props.drivers.find(driver => driver.employee_id === data.bill.delivery_driver_id) : '',
                         deliveryEmployeeCommission: data.bill.delivery_driver_commission,
                         deliveryTimeActual: data.bill.time_delivered ? Date.parse(data.bill.time_delivered) : '',
