@@ -1,7 +1,9 @@
 import React from 'react'
-import {Alert, Button, Card, Col, Row, FormControl, InputGroup, Modal} from 'react-bootstrap'
+import {Button, Card, Col, Row, FormControl, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 import {ReactTabulator} from 'react-tabulator'
+
+import LinkLineItemModal from './LinkLineItemModal'
 
 const repeatingBillsTitleText = 'Daily bills will be generated on and assigned to every weekday until disabled\n' +
 'Weekly bills will be generated Sundays, and will be assigned for pickup and delivery on the same day of the week as the original\n' +
@@ -206,7 +208,6 @@ export default function BillingTab(props) {
         const changes = [
             {target: {name: 'showLinkLineItemModal', type: 'boolean', value: true}},
             {target: {name: 'linkLineItemCell', type: 'object', value: cell}},
-            {target: {name: 'linkLineItemId', type: 'number', value: cell.getRow().getData('line_item_id')}},
             {target: {name: 'linkLineItemToType', type: 'string', value: type}}
         ]
         props.handleChanges(changes)
@@ -246,40 +247,6 @@ export default function BillingTab(props) {
         }
         makeAjaxRequest('/bills/manageLineItemLinks', 'POST', data, response => {
             cell.getRow().update(JSON.parse(response))
-        })
-    }
-
-    function searchLinkTo() {
-        if (props.linkLineItemToType === 'Invoice') {
-            makeAjaxRequest('/invoices/getModel/' + props.linkLineItemToTargetId, 'GET', null, response => {
-                response = JSON.parse(response)
-                props.handleChanges({target: {name: 'linkLineItemToTargetObject', type: 'object', value: response}})
-            })
-        } else if (props.linkLineItemToType === 'Pickup Manifest' || props.linkLineItemToType == 'Delivery Manifest') {
-            makeAjaxRequest('/manifests/getModel/' + props.linkLineItemToTargetId, 'GET', null, response => {
-                response = JSON.parse(response)
-                props.handleChanges({target: {name: 'linkLineItemToTargetObject', type: 'object', value: response}})
-            })
-        }
-    }
-
-    function submitLinkTo() {
-        const data = {
-            action: 'create_link',
-            line_item_id: props.linkLineItemId,
-            link_type: props.linkLineItemToType,
-            link_to_target_id: props.linkLineItemToTargetId
-        }
-        makeAjaxRequest('/bills/manageLineItemLinks', 'POST', data, response => {
-            props.linkLineItemCell.getRow().update(JSON.parse(response))
-
-            props.handleChanges([
-                {target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}},
-                {target: {name: 'linkLineItemToTargetObject', type: 'object', value: null}},
-                {target: {name: 'linkLineItemToTargetId', type: 'number', value: null}},
-                {target: {name: 'linkLineItemCell', type: 'object', value: null}},
-                {target: {name: 'linkLineItemId', type: 'id', value: null}}
-            ])
         })
     }
 
@@ -544,7 +511,7 @@ export default function BillingTab(props) {
                                                 movableRowsReceiver: 'add',
                                                 rowAdded: props.chargeTableUpdated,
                                                 rowDeleted: props.chargeTableUpdated,
-                                                // rowUpdated: props.chargeTableUpdated
+                                                rowUpdated: props.chargeTableUpdated
                                             }}
                                         />
                                     </Card.Body>
@@ -554,52 +521,12 @@ export default function BillingTab(props) {
                     </Row>
                 </Col>
             </Row>
-            <Modal show={props.showLinkLineItemModal} onHide={() => props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}>
-                <Modal.Header closeButton><Modal.Title>Link Line Item to {props.linkLineItemToType}</Modal.Title></Modal.Header>
-                <Modal.Body>
-                    <Row>
-                        <Col md={12}>
-                            <InputGroup>
-                                <InputGroup.Text>{props.linkLineItemToType} ID: </InputGroup.Text>
-                                <FormControl
-                                    name='linkLineItemToTargetId'
-                                    value={props.linkLineItemToTargetId}
-                                    onChange={props.handleChanges}
-                                    readOnly={props.readOnly}
-                                />
-                            </InputGroup>
-                        </Col>
-                    </Row>
-                    {props.linkLineItemToTargetObject &&
-                        <Row>
-                            <Col md={12}>
-                                {props.linkLineItemToTargetObject.manifest ?
-                                    'Manifest ID: ' + props.linkLineItemToTargetObject.manifest_id :
-                                    'Invoice ID: ' + props.linkLineItemToTargetObject.invoice.invoice_id
-                                }
-                            </Col>
-                            <Col md={12}>
-                                {props.linkLineItemToTargetObject.manifest ?
-                                    'Driver: ' + props.linkLineItemToTargetObject.employee.contact.first_name + " " + props.linkLineItemToTargetObject.employee.contact.last_name :
-                                    'Account: ' + props.linkLineItemToTargetObject.parent.name
-                                }
-                            </Col>
-                            {(props.linkLineItemToTargetObject.invoice && props.linkLineItemToTargetObject.invoice.finalized) &&
-                                <Col md={12}>
-                                    <Alert variant='warning'>
-                                        WARNING - Selected invoice has been finalized, this line item will be attached as an amendment
-                                    </Alert>
-                                </Col>
-                            }
-                        </Row>
-                    }
-                </Modal.Body>
-                <Modal.Footer className='justify-content-md-center'>
-                    <Button variant='light' onClick={() => props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}>Cancel</Button>
-                    <Button variant='warning' onClick={searchLinkTo}><i className='fas fa-search'></i> Search</Button>
-                    <Button variant='success' onClick={submitLinkTo} disabled={!props.linkLineItemToTargetObject}><i className='fas fa-save'></i> Submit</Button>
-                </Modal.Footer>
-            </Modal>
+            <LinkLineItemModal
+                handleChanges={props.handleChanges}
+                linkLineItemCell={props.linkLineItemCell}
+                linkLineItemToType={props.linkLineItemToType}
+                show={props.showLinkLineItemModal}
+            />
         </Card>
     )
 }
