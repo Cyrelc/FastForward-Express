@@ -95,19 +95,19 @@ class Bills extends Component {
                     headerSort: false,
                     print: false
                 },
-                {title: 'Bill ID', field: 'bill_id', formatter: fakeLinkFormatter, formatterParams:{type: 'fakeLink', urlPrefix:'/app/bills/'}, sorter:'number'},
+                {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/app/bills/', this.props.redirect), sorter:'number'},
                 {title: 'Waybill #', field: 'bill_number'},
                 {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
                 ... (this.props.frontEndPermissions.bills.dispatch || this.props.authenticatedEmployee) ? [
-                    {title: 'Delivery Driver', field: 'delivery_driver_id', formatter: fakeLinkFormatter, formatterParams:{labelField:'delivery_employee_name', urlPrefix:'/app/employees/'}, visible: false},
-                    {title: 'Pickup Driver', field: 'pickup_driver_id', formatter: fakeLinkFormatter, formatterParams:{type:'fakeLink', labelField:'pickup_employee_name', urlPrefix:'/app/employees/'}},
+                    {title: 'Delivery Driver', field: 'delivery_driver_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'pickup_employee_name'), visible: false},
+                    {title: 'Pickup Driver', field: 'pickup_driver_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'delivery_employee_name')},
                 ] : [],
                 ... this.props.frontEndPermissions.bills.billing ? [
                     {title: 'Interliner', field: 'interliner_name', visible: false},
                     {title: 'Payment Type', field: 'payment_type', visible: false},
                     {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false}
                 ] : [],
-                {title: 'Invoice ID', field: 'invoice_id', formatter: fakeLinkFormatter, formatterParams: {type: 'fakeLink', urlPrefix: '/app/invoices/'}, visible: false},
+                {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', this.props.redirect), visible: false},
                 {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
                 {title: 'Scheduled Pickup', field: 'time_pickup_scheduled'},
                 {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false},

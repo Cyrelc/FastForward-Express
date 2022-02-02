@@ -74,11 +74,14 @@ class BillController extends Controller {
     public function getModel(Request $req, $billId = null) {
         $billModelFactory = new Bill\BillModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();
-
         if($billId) {
             $billRepo = new Repos\BillRepo();
 
             $bill = $billRepo->GetById($billId);
+
+            if($bill === null)
+                throw new \Exception('Bill ID ' . $billId . ' does not exist - please try again');
+
             if($req->user()->cannot('viewBasic', $bill))
                 abort(403);
 

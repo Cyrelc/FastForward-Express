@@ -187,11 +187,14 @@ Date.prototype.addDays = function(days) {
     return date;
 }
 
-function configureFakeLink(url, redirectFunction) {
+function configureFakeLink(url, redirectFunction, altField = null) {
     return {
         cssClass: 'fakeLink',
         cellClick: (e, cell) => {redirectFunction(url + cell.getValue())},
-        headerClick: false
+        headerClick: false,
+        ...altField ? {
+            formatter: (cell) => {return cell.getRow().getData()[altField]}
+        } :{}
     }
 }
 

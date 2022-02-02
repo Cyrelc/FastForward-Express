@@ -8,7 +8,8 @@ class PaymentValidationRules {
         $paymentRepo = new Repos\PaymentRepo();
         $accountRepo = new Repos\AccountRepo();
 
-        $account = $accountRepo->GetById($req->input('account-id'));
+        $account = $accountRepo->GetById($req->account_id);
+
         $accountPaymentType = $paymentRepo->GetPaymentTypeByName('Account');
         $paymentType = $paymentRepo->GetPaymentType($req->payment_type_id);
 

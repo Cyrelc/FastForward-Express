@@ -12,7 +12,6 @@ use App\Http\Models\Payment;
 use \App\Http\Validation\Utils;
 
 class PaymentController extends Controller {
-
     public function GetModelByAccountId(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
@@ -59,8 +58,10 @@ class PaymentController extends Controller {
             }
         }
 
-        if($accountAdjustment != 0)
+        if($accountAdjustment != 0) {
             $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
+            $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment));
+        }
 
         DB::commit();
         return response()->json(['success' => true]);

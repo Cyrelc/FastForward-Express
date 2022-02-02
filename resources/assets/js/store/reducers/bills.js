@@ -41,7 +41,9 @@ export async function fetchBills(dispatch, getState) {
         const bills = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_BILLS_TABLE, payload: bills == undefined ? [] : bills})
         dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: false})
-    })
+    },
+    () => dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: false})
+    )
 }
 
 export default reducer
