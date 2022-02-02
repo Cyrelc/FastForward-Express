@@ -22,12 +22,12 @@
     padding: 0!important
 }
 
-.tabulator-cell.fakeLink {
+.fakeLink {
     cursor:pointer;
     color:blue;
 }
 
-.tabulator-cell.fakeLink:hover {
+.fakeLink:hover {
     text-decoration:underline;
     color:darkblue;
 }

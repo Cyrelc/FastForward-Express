@@ -502,8 +502,10 @@ export default function BillingTab(props) {
                                                     const rowData = row.getData()
                                                     if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
                                                         row.update({driver_amount: cell.getValue()})
+
+                                                    props.chargeTableUpdated()
                                                 },
-                                                dataUpdated: props.chargeTableUpdated,
+                                                // dataChanged: (tableData) => console.log(tableData),
                                                 groupBy: charge.chargeType.name === 'Account' ? 'invoice_id' : charge.chargeType.name === 'Employee' ? 'manifest_id' : 'paid',
                                                 groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
                                                 initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
@@ -511,7 +513,6 @@ export default function BillingTab(props) {
                                                 movableRowsReceiver: 'add',
                                                 rowAdded: props.chargeTableUpdated,
                                                 rowDeleted: props.chargeTableUpdated,
-                                                rowUpdated: props.chargeTableUpdated
                                             }}
                                         />
                                     </Card.Body>

@@ -1,12 +1,39 @@
 import React, {Component, createRef} from 'react'
-import {Button, ButtonGroup, Col, Dropdown, DropdownButton, FormControl, InputGroup, ListGroup, Row, Tab, Tabs} from 'react-bootstrap'
+import {Button, ButtonGroup, Col, ListGroup, NavDropdown, Nav, Navbar, Row, Tab, Tabs, FormCheck} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
 
 import BasicTab from './BasicTab'
-import DispatchTab from './DispatchTab'
 import BillingTab from './BillingTab'
+import DispatchTab from './DispatchTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
+
+function getPersistFields() {
+    const stored = localStorage.getItem("persistFields");
+    if(stored) {
+        const parsed = JSON.parse(stored)
+        return initialPersistFields.map(persistField => {
+            const localStorageValue = parsed.find(el => el.name === persistField.name);
+            if(localStorageValue)
+                return {...persistField, checked: localStorageValue.checked}
+            return persistField
+        })
+    } else
+        return initialPersistFields
+}
+
+const initialPersistFields = [
+    // {name: 'chargeAccount', label: 'Charge Account', checked: false},
+    // {name: 'deliveryAccount', label: 'Delivery Account', checked: false},
+    {name: 'deliveryEmployee', label: 'Delivery Driver', checked: false},
+    {name: 'deliveryEmployeeCommission', label: 'Delivery Driver Commission', checked: false},
+    {name: 'deliveryTimeExpected', label: 'Delivery Time (Scheduled)', checked: false},
+    {name: 'deliveryType', label: 'Delivery Type', checked: false},
+    // {name: 'pickupAccount', label: 'Pickup Account', checked: false},
+    {name: 'pickupEmployee', label: 'Pickup Driver', checked: false},
+    {name: 'pickupTimeExpected', label: 'Pickup Time (Scheduled)', checked: false},
+    {name: 'pickupEmployeeCommission', label: 'Pickup Driver Commission', checked: false}
+]
 
 const initialState = {
     //basic information
@@ -33,10 +60,8 @@ const initialState = {
     charges: [],
     chargeType: '',
     linkLineItemCell: null,
-    linkLineItemId: null,
-    linkLineItemToTargetId: null,
-    linkLineItemToTargetObject: null,
     linkLineItemToType: null,
+    persistFields: getPersistFields(),
     showLinkLineItemModal: false,
     skipInvoicing: false,
     //editONLY
@@ -51,11 +76,11 @@ const initialState = {
     deliveryAddressName: '',
     deliveryAddressPlaceId: undefined,
     deliveryAddressType: 'Address',
-    deliveryEmployeeCommission: '',
     deliveryEmployee: '',
+    deliveryEmployeeCommission: '',
     deliveryReferenceValue: '',
     deliveryTimeActual: '',
-    deliveryTimeExpected: '',
+    deliveryTimeExpected: new Date(),
     deliveryTimeMax: undefined,
     deliveryTimeMin: undefined,
     //pickup
@@ -66,11 +91,11 @@ const initialState = {
     pickupAddressName: '',
     pickupAddressPlaceId: undefined,
     pickupAddressType: 'Address',
-    pickupEmployeeCommission: '',
     pickupEmployee: '',
+    pickupEmployeeCommission: '',
     pickupReferenceValue: '',
     pickupTimeActual: '',
-    pickupTimeExpected: '',
+    pickupTimeExpected: new Date(),
     pickupTimeMax: undefined,
     pickupTimeMin: undefined,
     //interliner
@@ -81,7 +106,6 @@ const initialState = {
     ratesheets: [],
     activeRatesheet: undefined,
     //immutable lists
-    accounts: [],
     activityLog: undefined,
     addressTypes: ['Address', 'Account'],
     chargeTypes: undefined,
@@ -104,6 +128,7 @@ class Bill extends Component {
         this.deletePackage = this.deletePackage.bind(this)
         this.generateCharges = this.generateCharges.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
+        this.handlePersistanceChange = this.handlePersistanceChange.bind(this)
         this.handleRatesheetSelection = this.handleRatesheetSelection.bind(this)
         this.configureBill = this.configureBill.bind(this)
         this.store = this.store.bind(this)
@@ -192,24 +217,24 @@ class Bill extends Component {
             var setup = {
                 ...initialState,
                 accounts: data.accounts,
+                applyRestrictions: this.state.applyRestrictions,
                 businessHoursMin: Date.parse(data.time_min.date),
                 businessHoursMax: Date.parse(data.time_max.date),
                 chargeAccount: (!params.billId && data.accounts.length === 1) ? data.accounts[0] : '',
                 chargeType: data.charge_types.length === 1 ? data.charge_types[0] : '',
                 chargeTypes: data.charge_types,
-                deliveryTimeExpected: new Date(),
+                // deliveryTimeExpected: new Date(this.state.deliveryTimeExpected),
                 interliners: data.interliners,
                 key: window.location.hash ? window.location.hash.substr(1) : initialState.key,
                 packageIsMinimum: data.permissions.createFull,
                 packages: data.packages,
-                packageIsMinimum: data.permissions.createFull,
                 permissions: data.permissions,
-                pickupTimeExpected: new Date(),
+                // pickupTimeExpected: new Date(this.state.pickupTimeExpected),
                 ratesheets: data.ratesheets,
                 repeatIntervals: data.repeat_intervals,
                 readOnly: false
             }
-            this.setState(setup);
+            // this.setState(setup);
             if(params.billId) {
                 const thisBillIndex = this.props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
                 const prevBillId = thisBillIndex <= 0 ? null : this.props.sortedBills[thisBillIndex - 1]
@@ -279,6 +304,11 @@ class Bill extends Component {
                         repeatInterval: data.bill.repeat_interval ? data.repeat_intervals.filter(interval => interval.selection_id === data.bill.repeat_interval) : '',
                         skipInvoicing: data.bill.skip_invoicing,
                     }
+            } else {
+                this.state.persistFields.forEach(field => {
+                    if(field.checked)
+                        setup[field.name] = this.state[field.name]
+                })
             }
 
             var activeRatesheetId = data.ratesheets[0].ratesheet_id
@@ -556,6 +586,18 @@ class Bill extends Component {
         return events
     }
 
+    handlePersistanceChange(event) {
+        const {name, checked} = event.target
+        const persistFields = this.state.persistFields.map(persistField => {
+            if(name === persistField.name)
+                return {...persistField, checked: checked}
+            return persistField
+        })
+
+        localStorage.setItem("persistFields", JSON.stringify(persistFields))
+        this.setState({persistFields: persistFields})
+    }
+
     handleRatesheetSelection(ratesheetId) {
         const ratesheet = this.state.ratesheets.find(ratesheet => ratesheet.ratesheet_id == ratesheetId)
         const deliveryTypes = JSON.parse(ratesheet.delivery_types)
@@ -619,26 +661,51 @@ class Bill extends Component {
         else
             return (
                 <Row md={11} className='justify-content-md-center'>
-                    <Col md={11} className='d-flex justify-content-center'>
-                        <ListGroup className='list-group-horizontal' as='ul'>
-                            <ListGroup.Item variant='primary'><h4>Bill: {this.state.billId === null ? 'Create' : this.state.billId}</h4></ListGroup.Item>
+                    <Col md={11}>
+                        <Navbar expand='md' variant='dark' bg='dark'>
+                            <Navbar.Brand style={{paddingLeft: '15px'}}>
+                                <h4>{this.state.billId ? 'Bill ID:' + this.state.billId : 'Create Bill'}</h4>
+                            </Navbar.Brand>
                             {(this.state.billId && this.state.charges) &&
-                                <ListGroup.Item variant='warning'><h4>Price: {this.state.charges.reduce((previousValue, charge) => previousValue + charge.lineItems.reduce((sum, lineItem) => sum + Number(lineItem.price), 0), 0).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</h4></ListGroup.Item>
+                                <ListGroup.Item variant='warning'>
+                                    <h4>Price: {this.state.charges.reduce((previousValue, charge) => previousValue + charge.lineItems.reduce((sum, lineItem) => sum + Number(lineItem.price), 0), 0).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</h4>
+                                </ListGroup.Item>
                             }
                             {this.state.billId &&
-                                <ListGroup.Item variant='success' title={this.state.incompleteFields}><h4>{this.state.percentComplete}% Complete <i className='fas fa-question-circle' title={this.state.incompleteFields}></i></h4></ListGroup.Item>
+                                <ListGroup.Item variant='success' title={this.state.incompleteFields}>
+                                    <h4>{this.state.percentComplete}% Complete <i className='fas fa-question-circle' title={this.state.incompleteFields}></i></h4>
+                                </ListGroup.Item>
                             }
-                            {this.state.permissions.createFull &&
-                                <ListGroup.Item>
+                            {(!this.state.billId && this.state.permissions.createFull) &&
+                                <Navbar.Collapse className='justify-content-end' style={{paddingRight: '15px'}}>
+                                    {!this.state.billId &&
+                                        <NavDropdown title='Persist Fields'>
+                                            <ul style={{listStyleType: 'none', padding: '4px 10px'}}>
+                                                {this.state.persistFields.sort((a, b) => a.label > b.label ? 1 : -1).map(persistField =>
+                                                    <li key={persistField.name}>
+                                                        <FormCheck
+                                                            name={persistField.name}
+                                                            label={persistField.label}
+                                                            checked={persistField.checked}
+                                                            onChange={this.handlePersistanceChange}
+                                                            style={{whiteSpace: 'nowrap'}}
+                                                        />
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        </NavDropdown>
+                                    }
                                     <Button
                                         variant={this.state.applyRestrictions ? 'dark' : 'danger'}
                                         onClick={() => this.handleChanges({target: {name: 'applyRestrictions', type: 'checkbox', checked: !this.state.applyRestrictions}})}
                                         style={{backgroundColor: this.state.applyRestrictions ? 'tomato' : 'black', color: this.state.applyRestrictions ? 'black' : 'white'}}
                                         title='Toggle restrictions'
-                                    ><i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> {this.state.applyRestrictions ? 'Remove Time Restrictions' : 'Restore Time Restrictions'}</Button>
-                                </ListGroup.Item>
+                                    >
+                                        <i className={this.state.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> {this.state.applyRestrictions ? 'Remove Time Restrictions' : 'Restore Time Restrictions'}
+                                    </Button>
+                                </Navbar.Collapse>
                             }
-                        </ListGroup>
+                        </Navbar>
                     </Col>
                     <Col md={11}>
                         <Tabs id='bill-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
@@ -750,9 +817,6 @@ class Bill extends Component {
                                         interlinerCostToCustomer={this.state.interlinerCostToCustomer}
                                         interlinerTrackingId={this.state.interlinerTrackingId}
                                         linkLineItemCell={this.state.linkLineItemCell}
-                                        linkLineItemId={this.state.linkLineItemId}
-                                        linkLineItemToTargetId={this.state.linkLineItemToTargetId}
-                                        linkLineItemToTargetObject={this.state.linkLineItemToTargetObject}
                                         linkLineItemToType={this.state.linkLineItemToType}
                                         pickupManifestId={this.state.pickupManifestId}
                                         prepaidReferenceField={this.state.prepaidReferenceField}

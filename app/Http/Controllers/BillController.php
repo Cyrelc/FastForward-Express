@@ -84,10 +84,9 @@ class BillController extends Controller {
 
             $accountRepo = new Repos\AccountRepo();
 
-            $myAccounts = $accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.view.basic.children'));
             $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
 
-            $model = $billModelFactory->GetEditModel($billId, $permissions, $myAccounts);
+            $model = $billModelFactory->GetEditModel($req, $billId, $permissions);
         } else {
             if($req->user()->cannot('createBasic', Bill::class))
                 abort(403);

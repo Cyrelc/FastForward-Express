@@ -72,17 +72,16 @@ class AccountController extends Controller {
 
     public function getModel(Request $req, $accountId = null) {
         $accountModelFactory = new Account\AccountModelFactory();
+        $accountRepo = new Repos\AccountRepo();
 
         // If we are requesting an account id, we mean to edit, if not then create
         if($accountId) {
             $accountId = strtoupper($accountId);
             if($accountId[0] === 'N') {
-                $accountRepo = new Repos\AccountRepo();
                 $accountId = substr($accountId, 1);
                 $accountId = $accountRepo->GetAccountIdByAccountNumber($accountId);
             }
 
-            $accountRepo = new Repos\AccountRepo();
             $account = $accountRepo->GetById($accountId);
 
             if($accountId && $req->user()->cannot('view', $account))

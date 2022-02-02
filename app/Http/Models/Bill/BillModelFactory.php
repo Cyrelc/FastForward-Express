@@ -51,7 +51,7 @@ class BillModelFactory{
 				$employee->contact = $contactRepo->GetById($employee->contact_id);
 		// Possible edge case - if user can create bills for children but not for own account
 		} else if($req->user()->can('bills.create.basic.my')) {
-			$model->accounts = $accountRepo->ListForBillsPage($accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children')));
+			$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'));
 			$model->charge_types = [$paymentRepo->GetAccountPaymentType()];
 		}
 
@@ -73,7 +73,7 @@ class BillModelFactory{
 		return $model;
 	}
 
-	public function GetEditModel($billId, $permissions) {
+	public function GetEditModel($req, $billId, $permissions) {
 		$model = new BillFormModel();
 
 		$accountRepo = new Repos\AccountRepo();
@@ -113,7 +113,7 @@ class BillModelFactory{
 		foreach($model->charges as $key => $charge)
 			$model->charges[$key]->lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
 
-		$model->accounts = $accountRepo->ListForBillsPage(null);
+		$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'));
 
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
 		$model->charge_types = $paymentRepo->GetPaymentTypes();
