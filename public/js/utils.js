@@ -198,20 +198,6 @@ function configureFakeLink(url, redirectFunction, altField = null) {
     }
 }
 
-function fakeLinkFormatter(cell, formatterParams) {
-    if(formatterParams && formatterParams.labelField) {
-        const data = cell.getRow().getData()
-        if(data[formatterParams.labelField])
-            return '<span class="fakeLink">' + data[formatterParams.labelField] + '</span>'
-        return null
-    } else if (formatterParams && formatterParams.url) {
-        return '<span class="fakeLink">' + formatterParams.url + '</span>'
-    }
-    if(cell.getValue() === undefined)
-        return
-    return '<span class="fakeLink">' + cell.getValue() + '</span>'
-}
-
 Array.prototype.sortBy = function(p) {
     return this.slice(0).sort(function(a,b) {
         return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0

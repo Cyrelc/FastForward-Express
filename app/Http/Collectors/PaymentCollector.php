@@ -5,7 +5,6 @@ namespace App\Http\Collectors;
 use App\Http\Repos;
 
 class PaymentCollector {
-
     public function CollectAccountCredit($req) {
         $paymentRepo = new Repos\PaymentRepo();
 

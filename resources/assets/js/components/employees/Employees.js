@@ -58,8 +58,8 @@ class Employees extends Component {
             {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign:'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
         ] : []
         const columns = [
-            {title: 'Employee ID', field: 'employee_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/employees/'}, sorter: 'number'},
-            {title: 'Employee Number', field: 'employee_number', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix: '/app/employees/N'}},
+            {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/'), sorter: 'number'},
+            {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/app/employees/', 'employee_id')},
             {title: 'Employee Name', field: 'employee_name'},
             {title: 'Primary Phone', field: 'primary_phone'},
             {title: 'Primary Email', field: 'primary_email'},

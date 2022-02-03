@@ -18,10 +18,10 @@ const groupByOptions = [
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
 const basicColumns = [
-    {title: 'Account ID', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', urlPrefix:'/app/accounts/'}, sorter: 'number'},
+    {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/'), sorter: 'number'},
     {title: 'Account Number', field: 'account_number'},
-    {title: 'Parent Account', field: 'parent_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'parent_name', urlPrefix:'/app/accounts/'}},
-    {title: 'Account Name', field: 'account_id', formatter: (cell, formatterParams) => fakeLinkFormatter(cell, formatterParams), formatterParams:{type: 'fakeLink', labelField: 'name', urlPrefix:'/app/accounts/'}, sorter: 'number'},
+    {title: 'Parent Account', field: 'parent_id', ...configureFakeLink('/app/accounts/', 'parent_name')},
+    {title: 'Account Name', field: 'account_id', ...configureFakeLink('/app/accounts/', 'name'), sorter: 'number'},
     {title: 'Start Date', field: 'start_date', visible: false},
     {title: 'Invoice Interval', field: 'invoice_interval'},
     {title: 'Primary Contact', field: 'primary_contact_name'},
