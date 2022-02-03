@@ -93,6 +93,9 @@ class ManifestController extends Controller {
         $manifestRepo = new Repos\ManifestRepo();
         $manifest = $manifestRepo->GetById($manifestId);
 
+        if(!$manifest)
+            abort(404);
+
         if($req->user()->cannot('view', $manifest))
             abort(403);
 

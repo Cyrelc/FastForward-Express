@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, createRef} from 'react'
 import {Alert, Button, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap' 
 
 export default class LinkLineItemModal extends Component {
@@ -8,6 +8,7 @@ export default class LinkLineItemModal extends Component {
             targetObject: undefined,
             searchValue: undefined,
             targetId: undefined,
+            searchTextFieldRef: createRef()
         }
         this.handleChange = this.handleChange.bind(this)
         this.searchLinkTo = this.searchLinkTo.bind(this)
@@ -58,7 +59,12 @@ export default class LinkLineItemModal extends Component {
 
     render() {
         return (
-            <Modal show={this.props.show} onHide={() => this.props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}>
+            <Modal
+                autoFocus={false}
+                onHide={() => this.props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}
+                onShow={() => this.state.searchTextFieldRef.current.focus()}
+                show={this.props.show}
+            >
                 <Modal.Header closeButton><Modal.Title>Link Line Item to {this.props.linkLineItemToType}</Modal.Title></Modal.Header>
                 <Modal.Body>
                     <Row>
@@ -66,9 +72,15 @@ export default class LinkLineItemModal extends Component {
                             <InputGroup>
                                 <InputGroup.Text>{this.props.linkLineItemToType} ID: </InputGroup.Text>
                                 <FormControl
+                                    autoFocus={this.props.show}
                                     name='searchValue'
                                     value={this.state.searchValue}
+                                    onKeyPress={(event) => {
+                                        if(event.key === 'Enter')
+                                            this.searchLinkTo()
+                                    }}
                                     onChange={this.handleChange}
+                                    ref={this.state.searchTextFieldRef}
                                 />
                             </InputGroup>
                         </Col>

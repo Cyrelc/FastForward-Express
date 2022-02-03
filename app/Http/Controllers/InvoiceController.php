@@ -82,6 +82,9 @@ class InvoiceController extends Controller {
     public function getModel(Request $req, $invoiceId = null) {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         if($invoiceId) {
+            if(!\App\Invoice::where('invoice_id', $invoiceId)->exists())
+                abort(404);
+
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
             if($req->user()->cannot('view', $model->invoice))

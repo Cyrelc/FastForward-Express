@@ -80,7 +80,7 @@ class BillController extends Controller {
             $bill = $billRepo->GetById($billId);
 
             if($bill === null)
-                throw new \Exception('Bill ID ' . $billId . ' does not exist - please try again');
+                abort(404);
 
             if($req->user()->cannot('viewBasic', $bill))
                 abort(403);

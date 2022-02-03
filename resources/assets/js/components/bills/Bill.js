@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
+import BillingTabNew from './BillingTab-new'
 import DispatchTab from './DispatchTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
 
@@ -664,7 +665,7 @@ class Bill extends Component {
                     <Col md={11}>
                         <Navbar expand='md' variant='dark' bg='dark'>
                             <Navbar.Brand style={{paddingLeft: '15px'}}>
-                                <h4>{this.state.billId ? 'Bill ID:' + this.state.billId : 'Create Bill'}</h4>
+                                <h4>{this.state.billId ? 'Bill ID: ' + this.state.billId : 'Create Bill'}</h4>
                             </Navbar.Brand>
                             {(this.state.billId && this.state.charges) &&
                                 <ListGroup.Item variant='warning'>

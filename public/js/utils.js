@@ -146,6 +146,8 @@ function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
             console.log(response.status)
             if(response.status === 401 || response.message === 'CSRF token mismatch.')
                 location.reload()
+            else if(response.status === 404)
+                window.location.href = '/app/error404'
             else if(response.status === 403) {
                 responseText = JSON.parse(response.responseText)
                 if(responseText.message)
@@ -164,7 +166,6 @@ function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
 function makeFetchRequest(url, callback) {
     fetch(url)
     .then(response => {
-        console.log(response)
         if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
             location.reload()
             return Promise.reject(response)
@@ -187,13 +188,15 @@ Date.prototype.addDays = function(days) {
     return date;
 }
 
-function configureFakeLink(url, redirectFunction, altField = null) {
+function configureFakeLink(url, redirectFunction, altDisplayField = null, altRedirectField = null) {
     return {
         cssClass: 'fakeLink',
-        cellClick: (e, cell) => {redirectFunction(url + cell.getValue())},
+        cellClick: (e, cell) => {
+            redirectFunction(url + (altRedirectField ? cell.getRow().getData()[altRedirectField] : cell.getValue()))
+        },
         headerClick: false,
-        ...altField ? {
-            formatter: (cell) => {return cell.getRow().getData()[altField]}
+        ...altDisplayField ? {
+            formatter: (cell) => {return cell.getRow().getData()[altDisplayField]}
         } :{}
     }
 }

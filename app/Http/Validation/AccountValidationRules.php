@@ -11,7 +11,7 @@ class AccountValidationRules {
             'start_date' => 'required|date',
         ];
         $basicRules = [
-            'account_name' => 'required',
+            'account_name' => 'required|unique:accounts,name,' . $req->account_id . ',account_id',
         ];
         $invoicingRules = [
             'invoice_interval' => 'required|exists:selections,value',
@@ -30,6 +30,7 @@ class AccountValidationRules {
         ];
         $basicMessages = [
             'account_name.required' => 'Company Name is required.',
+            'account_name.unique' => 'That account name is already taken - please try again'
         ];
         $invoicingMessages = [
 

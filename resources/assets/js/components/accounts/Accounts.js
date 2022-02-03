@@ -24,8 +24,8 @@ class Accounts extends Component {
         const basicColumns = [
             {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), sorter: 'number'},
             {title: 'Account Number', field: 'account_number'},
-            {title: 'Parent Account', field: 'parent_id', ...configureFakeLink('/app/accounts/', this.props.redirect, 'parent_name')},
-            {title: 'Account Name', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect, 'name'), sorter: 'number'},
+            {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/app/accounts/', this.props.redirect, null, 'parent_id')},
+            {title: 'Account Name', field: 'name', ...configureFakeLink('/app/accounts/', this.props.redirect, null, 'account_id')},
             {title: 'Start Date', field: 'start_date', visible: false},
             {title: 'Invoice Interval', field: 'invoice_interval'},
             {title: 'Primary Contact', field: 'primary_contact_name'},

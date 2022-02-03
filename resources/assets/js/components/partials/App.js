@@ -26,6 +26,7 @@ import Invoice from '../invoices/Invoice'
 import Invoices from '../invoices/Invoices'
 import Manifest from '../manifests/Manifest'
 import Manifests from '../manifests/Manifests'
+import PageNotFound from './PageNotFound'
 import Ratesheet from '../ratesheets/Ratesheet'
 
 class App extends Component {
@@ -251,6 +252,7 @@ class App extends Component {
                         else if(this.props.authenticatedAccountUsers && this.props.accounts.length > 1)
                             return <Redirect to='/app/accounts'></Redirect>
                     }}></Route>
+                    <Route exact path='/app/error404' component={PageNotFound}></Route>
                     {this.props.frontEndPermissions.accounts.viewAny &&
                         <Route path='/app/accounts' exact component={Accounts}></Route>
                     }

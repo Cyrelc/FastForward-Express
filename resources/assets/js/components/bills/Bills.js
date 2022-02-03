@@ -99,8 +99,8 @@ class Bills extends Component {
                 {title: 'Waybill #', field: 'bill_number'},
                 {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
                 ... (this.props.frontEndPermissions.bills.dispatch || this.props.authenticatedEmployee) ? [
-                    {title: 'Delivery Driver', field: 'delivery_driver_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'pickup_employee_name'), visible: false},
-                    {title: 'Pickup Driver', field: 'pickup_driver_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'delivery_employee_name')},
+                    {title: 'Delivery Driver', field: 'delivery_employee_name', ...configureFakeLink('/app/employees/', this.props.redirect, null, 'delivery_driver_id'), visible: false},
+                    {title: 'Pickup Driver', field: 'pickup_employee_name', ...configureFakeLink('/app/employees/', this.props.redirect, null, 'pickup_driver_id')},
                 ] : [],
                 ... this.props.frontEndPermissions.bills.billing ? [
                     {title: 'Interliner', field: 'interliner_name', visible: false},
