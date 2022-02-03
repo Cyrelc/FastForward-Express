@@ -55,8 +55,8 @@ class Manifests extends Component {
             columns: [
                 {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
                 {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-                {title: 'Manifest ID', field: 'manifest_id', ...configureFakeLink('/app/manifests/'), sorter: 'number'},
-                {title: 'Employee', field: 'employee_id', ...configureFakeLink('/app/employees/', 'employee_name')},
+                {title: 'Manifest ID', field: 'manifest_id', ...configureFakeLink('/app/manifests/', this.props.redirect), sorter: 'number'},
+                {title: 'Employee', field: 'employee_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'employee_name')},
                 {title: 'Date Run', field: 'date_run', visible: false},
                 {title: 'Bill Start Date', field: 'start_date'},
                 {title: 'Bill End Date', field: 'end_date'},

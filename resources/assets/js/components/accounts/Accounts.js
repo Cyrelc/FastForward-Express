@@ -17,24 +17,24 @@ const groupByOptions = [
 
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
-const basicColumns = [
-    {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/'), sorter: 'number'},
-    {title: 'Account Number', field: 'account_number'},
-    {title: 'Parent Account', field: 'parent_id', ...configureFakeLink('/app/accounts/', 'parent_name')},
-    {title: 'Account Name', field: 'account_id', ...configureFakeLink('/app/accounts/', 'name'), sorter: 'number'},
-    {title: 'Start Date', field: 'start_date', visible: false},
-    {title: 'Invoice Interval', field: 'invoice_interval'},
-    {title: 'Primary Contact', field: 'primary_contact_name'},
-    {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
-    {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
-    {title: 'Shipping Address', field: 'shipping_address', visible: false},
-    {title: 'Billing Address Name', field: 'billing_address_name'},
-    {title: 'Billing Address', field: 'billing_address', visible: false}
-]
-
 class Accounts extends Component {
     constructor(props) {
         super(props)
+
+        const basicColumns = [
+            {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), sorter: 'number'},
+            {title: 'Account Number', field: 'account_number'},
+            {title: 'Parent Account', field: 'parent_id', ...configureFakeLink('/app/accounts/', this.props.redirect, 'parent_name')},
+            {title: 'Account Name', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect, 'name'), sorter: 'number'},
+            {title: 'Start Date', field: 'start_date', visible: false},
+            {title: 'Invoice Interval', field: 'invoice_interval'},
+            {title: 'Primary Contact', field: 'primary_contact_name'},
+            {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
+            {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
+            {title: 'Shipping Address', field: 'shipping_address', visible: false},
+            {title: 'Billing Address Name', field: 'billing_address_name'},
+            {title: 'Billing Address', field: 'billing_address', visible: false}
+        ]
 
         const adminColumns = this.props.frontEndPermissions.accounts.toggleEnabled ? [
             {formatter: (cell) => {
