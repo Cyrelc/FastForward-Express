@@ -8,7 +8,7 @@ export default function DispatchTab(props) {
         <Card border='dark'>
             <Row> {/* Pickup */}
                 <Col md={2}><h4 className='text-muted'>Pickup</h4></Col>
-                <Col md={4}>
+                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select
@@ -35,7 +35,21 @@ export default function DispatchTab(props) {
                         <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
                 </Col>
-                <Col md={4}>
+                <Col md={2}>
+                    <InputGroup>
+                        <InputGroup.Text>Est. Income</InputGroup.Text>
+                        <FormControl
+                            value={
+                                (props.pickupEmployeeCommission / 100 * props.charges.reduce((chargeTotal, charge) =>
+                                    charge.chargeType.name === 'Employee' ? chargeTotal : charge.lineItems.reduce((lineItemTotal, lineItem) =>
+                                        lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0))
+                                            .toLocaleString('en-US', {style: 'currency', currency: 'USD'})
+                            }
+                            disabled={true}
+                        />
+                    </InputGroup>
+                </Col>
+                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Text>Actual Time: </InputGroup.Text>
                         <DatePicker
@@ -57,7 +71,7 @@ export default function DispatchTab(props) {
             <hr/>
             <Row> {/* Delivery */}
                 <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
-                <Col md={4}>
+                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select 
@@ -84,7 +98,21 @@ export default function DispatchTab(props) {
                         <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
                 </Col>
-                <Col md={4}>
+                <Col md={2}>
+                    <InputGroup>
+                        <InputGroup.Text>Est. Income</InputGroup.Text>
+                        <FormControl
+                            value={
+                                (props.deliveryEmployeeCommission / 100 * props.charges.reduce((chargeTotal, charge) =>
+                                    charge.chargeType.name === 'Employee' ? chargeTotal : charge.lineItems.reduce((lineItemTotal, lineItem) =>
+                                        lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0))
+                                            .toLocaleString('en-US', {style: 'currency', currency: 'USD'})
+                            }
+                            disabled={true}
+                        />
+                    </InputGroup>
+                </Col>
+                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Text>Actual Time: </InputGroup.Text>
                         <DatePicker

@@ -669,7 +669,14 @@ class Bill extends Component {
                             </Navbar.Brand>
                             {(this.state.billId && this.state.charges) &&
                                 <ListGroup.Item variant='warning'>
-                                    <h4>Price: {this.state.charges.reduce((previousValue, charge) => previousValue + charge.lineItems.reduce((sum, lineItem) => sum + Number(lineItem.price), 0), 0).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</h4>
+                                    <h4>Price: {
+                                        this.state.charges.reduce((previousValue, charge) => {
+                                            if(charge.chargeType.name === 'Employee')
+                                                return previousValue
+                                            return previousValue + charge.lineItems.reduce((sum, lineItem) => sum + Number(lineItem.price), 0)
+                                        }, 0).toLocaleString('en-US', {style: 'currency', currency: 'USD'})
+                                    }
+                                    </h4>
                                 </ListGroup.Item>
                             }
                             {this.state.billId &&
@@ -795,6 +802,7 @@ class Bill extends Component {
 
                                         //value only (non-mutable by recipient function)
                                         billId={this.state.billId}
+                                        charges={this.state.charges}
                                         drivers={this.props.drivers}
                                         invoiceId={this.state.invoiceId}
                                         isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
