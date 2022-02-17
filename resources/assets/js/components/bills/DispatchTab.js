@@ -3,6 +3,22 @@ import {Card, Row, Col, InputGroup, FormControl} from 'react-bootstrap';
 import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 
+const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
+    if(!charges || !commission || !employeeId)
+        null
+
+    const income = commission / 100 * charges.reduce((chargeTotal, charge) =>
+        charge.charge_employee_id == employeeId ? chargeTotal :
+            charge.lineItems.reduce((lineItemTotal, lineItem) =>
+                lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0)
+
+    const outgoing = charges.reduce((chargeTotal, charge) =>
+        charge.charge_employee_id == employeeId ? chargeTotal + charge.price : chargeTotal
+    , 0)
+
+    return (income - outgoing).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
+}
+
 export default function DispatchTab(props) {
     return (
         <Card border='dark'>
@@ -39,12 +55,7 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Est. Income</InputGroup.Text>
                         <FormControl
-                            value={
-                                (props.pickupEmployeeCommission / 100 * props.charges.reduce((chargeTotal, charge) =>
-                                    charge.chargeType.name === 'Employee' ? chargeTotal : charge.lineItems.reduce((lineItemTotal, lineItem) =>
-                                        lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0))
-                                            .toLocaleString('en-US', {style: 'currency', currency: 'USD'})
-                            }
+                            value={getEmployeeEstimatedIncome(props.charges, props.pickupEmployeeCommission, props.pickupEmployee.employee_id)}
                             disabled={true}
                         />
                     </InputGroup>
@@ -102,12 +113,7 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Est. Income</InputGroup.Text>
                         <FormControl
-                            value={
-                                (props.deliveryEmployeeCommission / 100 * props.charges.reduce((chargeTotal, charge) =>
-                                    charge.chargeType.name === 'Employee' ? chargeTotal : charge.lineItems.reduce((lineItemTotal, lineItem) =>
-                                        lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0))
-                                            .toLocaleString('en-US', {style: 'currency', currency: 'USD'})
-                            }
+                            value={getEmployeeEstimatedIncome(props.charges, props.deliveryEmployeeCommission, props.deliveryEmployee.employee_id)}
                             disabled={true}
                         />
                     </InputGroup>
