@@ -47,7 +47,7 @@ export default class PaymentsTab extends Component {
 
     handleChange(event) {
         const {name, value, type, checked} = event.target
-        console.log(name, value, type, checked)
+
         var temp = {[name] : type === 'checkbox' ? checked : value}
         if(name === 'paymentAmount' && this.state.autoCalc) {
             temp = this.handleAutoCalcChange(event, temp)
@@ -289,7 +289,7 @@ export default class PaymentsTab extends Component {
                                 <InputGroup>
                                     <InputGroup.Text>Payment Type</InputGroup.Text>
                                     <Select
-                                        getOptionLabel={option => option.name}
+                                        getOptionLabel={option => option.name === 'Account' ? 'Account (' + this.props.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}) + ')' : option.name}
                                         getOptionValue={option => option.payment_type_id}
                                         options={this.props.accountBalance > 0 ? this.state.paymentTypes : this.state.paymentTypes.filter(paymentType => paymentType.name != 'Account')}
                                         onChange={value => this.handleChange({target: {name: 'selectedPaymentType', type: 'object', value: value}})}
@@ -385,8 +385,12 @@ export default class PaymentsTab extends Component {
                                                         type='number'
                                                         step={0.01}
                                                         disabled={true}
-                                                        value={toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2)}
-                                                        isInvalid={toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2) < 0}
+                                                        value={
+                                                            toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2)
+                                                        }
+                                                        isInvalid={
+                                                            toFixedNumber(this.state.paymentAmount - this.state.outstandingInvoices.reduce((accumulator, currentInvoice) => accumulator + parseFloat(currentInvoice.payment_amount), 0), 2) < 0
+                                                        }
                                                     />
                                                 </InputGroup>
                                             </td>

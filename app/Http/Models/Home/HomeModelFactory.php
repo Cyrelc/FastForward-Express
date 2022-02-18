@@ -45,7 +45,7 @@ class HomeModelFactory {
             $model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
             $model->parent_accounts = $accountRepo->GetParentAccountsList();
             $model->employees = $employeeRepo->GetEmployeesList(null);
-            $model->drivers = $employeeRepo->GetDriverList();
+            $model->drivers = $employeeRepo->GetDriverList(false);
             $model->contact = ['first_name' => $req->user()->email];
         }
 

@@ -47,9 +47,6 @@ class App extends Component {
         this.props.fetchAppConfiguration()
     }
 
-    componentDidUpdate() {
-    }
-
     getLandingPage() {
         if(this.props.frontEndPermissions.appSettings.edit)
             return <Redirect from='/' to='/app/adminDashboard'></Redirect>
