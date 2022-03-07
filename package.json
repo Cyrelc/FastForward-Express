@@ -45,6 +45,7 @@
         "laravel-echo": "^1.10.0",
         "pusher-js": "^6.0.3",
         "react-bootstrap": "^2.1.0",
+        "react-currency-input-field": "^3.6.4",
         "react-datepicker": "^4.5.0",
         "react-querybuilder": "^3.9.9",
         "react-redux": "^7.2.4",
