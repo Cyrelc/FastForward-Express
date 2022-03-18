@@ -222,7 +222,7 @@ export default class PaymentsTab extends Component {
                             options={{
                                 layout: 'fitColumns',
                                 pagination: 'local',
-                                paginationSize: 50
+                                paginationSize: 20
                             }}
                             printAsHtml={true}
                             printStyled={true}
