@@ -16,9 +16,14 @@ class RatesheetModelFactory {
     }
 
     public function GetCreateModel() {
+        $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
-        $deliveryTypes = $selectionsRepo->GetSelectionsByType('delivery_type');
+
         $model = new RatesheetFormModel();
+
+        $deliveryTypes = $selectionsRepo->GetSelectionsByType('delivery_type');
+        $model->ratesheets = $ratesheetRepo->ListAll();
+
         $model->name = '';
         $model->deliveryTypes = array_map(array($this, 'PrepareDeliveryType'), $deliveryTypes->toArray());
         $model->timeRates = array(['name' => 'Evenings', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])],
@@ -26,7 +31,7 @@ class RatesheetModelFactory {
         $model->weightRates = array(['name' => 'Basic Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])],
                                     ['name' => 'Pallet Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])]);
         $model->zoneRates = array(['id' => 0, 'zones' => 1, 'regularCost' => '', 'rushCost' => '', 'directCost' => '', 'directRushCost' => '' ]);
-        $mode->miscRates = array(['name' => '', 'price' => '']);
+        $model->miscRates = array(['name' => '', 'price' => '']);
         $model->useInternalZonesCalc = false;
         return $model;
     }

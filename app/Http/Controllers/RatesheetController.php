@@ -40,15 +40,15 @@ class RatesheetController extends Controller {
 
         $ratesheetRepo = new Repos\RatesheetRepo();
 
-        if($req->ratesheet_id === '') {
-            if($req->user()->cannot('create', Ratesheet::class))
-                abort(403);
-            $isEdit = false;
-        } else {
+        if($req->ratesheet_id) {
             $originalRatesheet = $ratesheetRepo->GetById($req->ratesheet_id);
             if($req->user()->cannot('update', $originalRatesheet))
                 abort(403);
             $isEdit = true;
+        } else {
+            if($req->user()->cannot('create', Ratesheet::class))
+                abort(403);
+            $isEdit = false;
         }
 
         $validation = new Validation\RatesheetValidationRules();

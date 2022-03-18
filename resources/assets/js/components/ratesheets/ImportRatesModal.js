@@ -71,7 +71,7 @@ export default function ImportRatesModal(props) {
                         <Button variant='primary' onClick={selectAll} disabled={!props.importRatesheet || !props.importType}>Select All</Button>
                         <Button variant='info' onClick={deselectAll} disabled={!props.importRatesheet || !props.importType || props.selectedImports.length === 0}>Deselect All</Button>
                         <Button variant='success' onClick={props.handleImport} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import Only</Button>
-                        <Button variant='success' onClick={() => props.handleImport(true)} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import/Replace</Button>
+                        <Button variant='success' onClick={() => props.handleImport(true)} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import & Replace</Button>
                     </Col>
                 </Row>
                 <hr/>
@@ -85,8 +85,7 @@ export default function ImportRatesModal(props) {
                                         <Form.Check.Input type='checkbox' id={importOption.name + index} value={index} onChange={handleSelection} checked={props.selectedImports.some(element => element.sortedIndex == index)}/>
                                         <Form.Check.Label style={{paddingLeft: '1em'}}>{importOption.name}</Form.Check.Label>
                                     </Form.Check>
-                                    {nameTaken && <i className='fas fa-exclamation-circle' title='A rate or zone with this name already exists' style={{color: 'red', float: 'right'}}></i>
-                                    }
+                                    {nameTaken && <i className='fas fa-exclamation-circle' title='A rate or zone with this name already exists' style={{color: 'red', float: 'right'}}></i>}
                                 </ListGroup.Item>
                             )
                         })}

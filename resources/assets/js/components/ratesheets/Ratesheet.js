@@ -99,9 +99,9 @@ export default class Ratesheet extends Component {
                         polygon.setMap(this.state.map)
                         this.createPolygon(polygon, mapZone)
                     })
-                    this.setState({drawingMap: 100})
                     this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: response.mapZones.length + 1}});
                 }
+                this.setState({drawingMap: 100})
             })
         })
     }
@@ -274,18 +274,19 @@ export default class Ratesheet extends Component {
                     })
                     polygon.setMap(this.state.map)
                     const oldZone = this.state.mapZones.find(zone => zone.name === importZone.name)
-                    if(oldZone && replace == true) {
+                    if(oldZone && replace) {
+                        const temp_id = oldZone.zone_id;
                         this.deleteZone(oldZone.zone_id)
-                        this.createPolygon(polygon, {...importZone, zone_id: oldZone.zone_id})
+                        this.createPolygon(polygon, {...importZone, zone_id: temp_id})
                     } else
                         this.createPolygon(polygon, {...importZone, name: oldZone ? importZone.name + '(copy)' : importZone.name, zone_id: null})
                 })
                 break;
             case 'timeRates':
                 this.state.selectedImports.forEach(importRate => {
-                    const oldTimeRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
+                    const oldRate = this.state.timeRates.find(timeRate => timeRate.name === importRate.name)
                     const brackets = timeRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
-                    if(oldTimeRate && replace == true) {
+                    if(oldRate && replace) {
                         const timeRates = this.state.timeRates.map(timeRate => {
                             if(timeRate.name === importRate.name)
                                 return {...timeRate, brackets: brackets}
@@ -297,9 +298,9 @@ export default class Ratesheet extends Component {
                 })
                 break;
             case 'miscRates':
-                this.state.miscRates.forEach(miscRate => {
-                    const oldRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
-                    if(oldRate && replace == true) {
+                this.state.selectedImports.forEach(importRate => {
+                    const oldRate = this.state.miscRates.find(selectedImport => miscRate.name === importRate.name)
+                    if(oldRate && replace) {
                         const miscRates = this.state.miscRates.map(miscRate => {
                             if(miscRate.name === importRate.name)
                                 return importRate
@@ -307,13 +308,13 @@ export default class Ratesheet extends Component {
                         })
                         this.setState({miscRates: miscRates})
                     } else
-                    this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                        this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
                 })
                 break
             case 'weightRates':
-                this.state.weightRates.forEach(weightRate => {
-                    const oldRate = this.state.selectedImports.find(selectedImport => selectedImport.name === importRate.name)
-                    if(oldRate && replace == true) {
+                this.state.selectedImports.forEach(importRate => {
+                    const oldRate = this.state.weightRates.find(weightRate => weightRate.name === importRate.name)
+                    if(oldRate && replace) {
                         const weightRates = this.state.weightRates.map(weightRate => {
                             if(weightRate.name === importRate.name)
                                 return importRate
@@ -321,7 +322,7 @@ export default class Ratesheet extends Component {
                         })
                         this.setState({weightRates: weightRates})
                     } else
-                    this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                        this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
                 })
                 break;
             default:

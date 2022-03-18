@@ -459,7 +459,7 @@ export default function BillingTab(props) {
                                 <Card border='dark' style={{padding: '0px'}}>
                                     <Card.Header>
                                         <Row>
-                                            <Col md={canChargeTableBeDeleted(charge) ? 10 : 11}>
+                                            <Col md={charge.lineItems && canChargeTableBeDeleted(charge) ? 10 : 11}>
                                                 <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                                             </Col>
                                             {!props.readOnly &&
@@ -467,7 +467,7 @@ export default function BillingTab(props) {
                                                     <Button variant='success' size='sm' onClick={() => payOffAll(index)}><i className='fas fa-hand-holding-usd' title='Mark all as paid'></i></Button>
                                                 </Col>
                                             }
-                                            {canChargeTableBeDeleted(charge) &&
+                                            {charge.lineItems && canChargeTableBeDeleted(charge) &&
                                                 <Col md={1}>
                                                     <Button variant='danger' size='sm' onClick={() => deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i></Button>
                                                 </Col>
@@ -505,7 +505,6 @@ export default function BillingTab(props) {
 
                                                     props.chargeTableUpdated()
                                                 },
-                                                // dataChanged: (tableData) => console.log(tableData),
                                                 groupBy: charge.chargeType.name === 'Account' ? 'invoice_id' : charge.chargeType.name === 'Employee' ? 'manifest_id' : 'paid',
                                                 groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
                                                 initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],

@@ -15,7 +15,7 @@ export default function MapTab(props) {
     )
 
     return (
-        <Card fluid style={{padding: '0px'}}>
+        <Card style={{padding: '0px'}}>
             <Row>
                 <Col md={3}>
                     <Select
@@ -30,7 +30,7 @@ export default function MapTab(props) {
                 <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
                         <InputGroup.Text>New Zone Type: </InputGroup.Text>
-                        <ButtonGroup toggle>
+                        <ButtonGroup>
                             <ToggleButton 
                                 type='radio'
                                 variant='secondary'
@@ -72,7 +72,7 @@ export default function MapTab(props) {
             </Row>
             <Row>
                 <Col md={3}>
-                    {props.mapZones.filter(zone => zone.viewDetails).map(zone =>
+                    {props.mapZones && props.mapZones.length > 0 && props.mapZones.filter(zone => zone.viewDetails).map(zone =>
                         <Zone
                             key={zone.id}
                             id={zone.id}
