@@ -31,7 +31,7 @@ class RatesheetModelFactory {
         $model->weightRates = array(['name' => 'Basic Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])],
                                     ['name' => 'Pallet Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])]);
         $model->zoneRates = array(['id' => 0, 'zones' => 1, 'regularCost' => '', 'rushCost' => '', 'directCost' => '', 'directRushCost' => '' ]);
-        $model->miscRates = array(['name' => '', 'price' => '']);
+        $model->miscRates = array();
         $model->useInternalZonesCalc = false;
         return $model;
     }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Artisan;
-use Config;
+// use Config;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;

@@ -71,7 +71,7 @@ export default function ImportRatesModal(props) {
                         <Button variant='primary' onClick={selectAll} disabled={!props.importRatesheet || !props.importType}>Select All</Button>
                         <Button variant='info' onClick={deselectAll} disabled={!props.importRatesheet || !props.importType || props.selectedImports.length === 0}>Deselect All</Button>
                         <Button variant='success' onClick={props.handleImport} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import Only</Button>
-                        <Button variant='success' onClick={() => props.handleImport(true)} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import & Replace</Button>
+                        <Button variant='success' onClick={(event) => props.handleImport(event, true)} disabled={!props.importRatesheet || !props.importType || !props.selectedImports || props.selectedImports.length == 0}>Import & Replace</Button>
                     </Col>
                 </Row>
                 <hr/>

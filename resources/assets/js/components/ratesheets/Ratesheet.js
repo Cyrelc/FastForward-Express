@@ -82,7 +82,7 @@ export default class Ratesheet extends Component {
                     deliveryTypes: response.deliveryTypes,
                     key: window.location.hash ? window.location.hash.substr(1) : 'basic',
                     ratesheetName: response.name,
-                    miscRates: response.miscRates ? response.miscRates : [{name: '', price: ''}],
+                    miscRates: response.miscRates,
                     palletRate: response.palletRate,
                     ratesheets: response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId),
                     timeRates: timeRates,
@@ -165,9 +165,7 @@ export default class Ratesheet extends Component {
             newZone.directRushCost = costs ? costs.direct_rush : ''
             newZone.additionalTime = zone ? zone.additional_time : ''
         }
-        const mapZones = this.state.mapZones.concat([newZone])
-        this.setState({mapZones: mapZones})
-        // name === '' ? this.editZone(polygon.zIndex) : null;
+        this.setState((prevState, props) => ({mapZones: prevState.mapZones.concat(newZone)}))
     }
 
     deletePolyPoint(point, id) {
@@ -260,7 +258,7 @@ export default class Ratesheet extends Component {
         type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
     }
 
-    handleImport(replace = false) {
+    handleImport(event, replace = false) {
         if(!this.state.selectedImports) {
             console.log('ERROR - Selected imports value is invalid or empty array. Aborting.')
             return
@@ -283,47 +281,38 @@ export default class Ratesheet extends Component {
                 })
                 break;
             case 'timeRates':
+                let timeRates = this.state.timeRates
                 this.state.selectedImports.forEach(importRate => {
-                    const oldRate = this.state.timeRates.find(timeRate => timeRate.name === importRate.name)
-                    const brackets = timeRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
-                    if(oldRate && replace) {
-                        const timeRates = this.state.timeRates.map(timeRate => {
-                            if(timeRate.name === importRate.name)
-                                return {...timeRate, brackets: brackets}
-                            return timeRate
-                        })
-                        this.setState({timeRates: timeRates})
+                    const oldRateIndex = timeRates.findIndex(timeRate => timeRate.name === importRate.name)
+                    const brackets = importRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
+                    if(oldRateIndex >= 0 && replace) {
+                        timeRates[oldRateIndex] = {...importRate, brackets: brackets}
                     } else
-                        this.setState({timeRates: this.state.timeRate.concat([{...importRate, name: oldTimeRate ? importRate.name + '(copy)' : importRate.name, brackets: brackets}])})
+                        timeRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name, brackets: brackets})
                 })
+                this.setState({timeRates: timeRates})
                 break;
             case 'miscRates':
+                let miscRates = this.state.miscRates
                 this.state.selectedImports.forEach(importRate => {
-                    const oldRate = this.state.miscRates.find(selectedImport => miscRate.name === importRate.name)
-                    if(oldRate && replace) {
-                        const miscRates = this.state.miscRates.map(miscRate => {
-                            if(miscRate.name === importRate.name)
-                                return importRate
-                            return miscRate
-                        })
-                        this.setState({miscRates: miscRates})
+                    const oldRateIndex = miscRates.findIndex(miscRate => miscRate.name === importRate.name)
+                    if(oldRateIndex >= 0 && replace) {
+                        miscRates[oldRateIndex] = importRate
                     } else
-                        this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                        miscRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name})
                 })
+                this.setState({miscRates: miscRates})
                 break
             case 'weightRates':
+                let weightRates = this.state.weightRates
                 this.state.selectedImports.forEach(importRate => {
-                    const oldRate = this.state.weightRates.find(weightRate => weightRate.name === importRate.name)
-                    if(oldRate && replace) {
-                        const weightRates = this.state.weightRates.map(weightRate => {
-                            if(weightRate.name === importRate.name)
-                                return importRate
-                            return weightRate
-                        })
-                        this.setState({weightRates: weightRates})
+                    const oldRateIndex = weightRates.findIndex(weightRate => weightRate.name === importRate.name)
+                    if(oldRateIndex >= 0 && replace) {
+                        weightRates[oldRateIndex] = importRate
                     } else
-                        this.setState({miscRates: this.state.miscRates.concat([{...importRate, name: oldRate ? importRate.name + '(copy)' : importRate.name}])})
+                        weightRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name})
                 })
+                this.setState({weightRates: weightRates})
                 break;
             default:
                 return
