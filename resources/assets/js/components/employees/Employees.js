@@ -25,10 +25,23 @@ const groupByOptions = [
 const initialSort = [{column: 'employee_id', dir: 'asc'}]
 
 class Employees extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
+        const columns = [
+            {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/', this.props.redirect), sorter: 'number'},
+            {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/app/employees/', this.props.redirect, null, 'employee_id')},
+            {title: 'Employee Name', field: 'employee_name'},
+            {title: 'Primary Phone', field: 'primary_phone'},
+            {title: 'Primary Email', field: 'primary_email'},
+        ]
+        const adminColumns = this.props.frontEndPermissions.employees.edit ? [
+            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign:'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+        ] : []
         this.state = {
-            columns: [],
+            columns: [
+                ...adminColumns,
+                ...columns
+            ],
             changePasswordModalUserId: null,
             showChangePasswordModal: false,
         }
@@ -51,21 +64,6 @@ class Employees extends Component {
     cellContextMenuFormatter(cell) {
         if(cell.getData().employee_id)
             return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
-    }
-
-    componentDidMount() {
-        const adminColumns = this.props.frontEndPermissions.employees.edit ? [
-            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign:'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
-        ] : []
-        const columns = [
-            {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/'), sorter: 'number'},
-            {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/app/employees/', 'employee_id')},
-            {title: 'Employee Name', field: 'employee_name'},
-            {title: 'Primary Phone', field: 'primary_phone'},
-            {title: 'Primary Email', field: 'primary_email'},
-        ]
-
-        this.setState({columns: Array.prototype.concat(adminColumns, columns)})
     }
 
     toggleEmployeeActive(cell) {

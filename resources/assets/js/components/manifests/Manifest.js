@@ -155,7 +155,7 @@ class Manifest extends Component {
                             </thead>
                             <tbody>
                                 {this.state.data.bills.map(bill =>
-                                    <tr>
+                                    <tr key={bill.bill_id}>
                                         <LinkContainer to={'/app/bills/' + bill.bill_id}><td><a href=''>{bill.bill_id}</a></td></LinkContainer>
                                         <td>{bill.time_pickup_scheduled}</td>
                                         <td>{bill.delivery_type}</td>
