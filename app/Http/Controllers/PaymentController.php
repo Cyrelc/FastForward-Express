@@ -50,7 +50,7 @@ class PaymentController extends Controller {
             $accountAdjustment = (float)$req->input('payment_amount');
 
         foreach($req->outstanding_invoices as $outstandingInvoice) {
-            if($outstandingInvoice['payment_amount'] && $invoiceRepo->GetById($outstandingInvoice['invoice_id'])->balance_owing > 0) {
+            if($outstandingInvoice['payment_amount'] && $outstandingInvoice['payment_amount'] > 0 && $invoiceRepo->GetById($outstandingInvoice['invoice_id'])->balance_owing > 0) {
                 $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice));
                 $invoiceRepo->AdjustBalanceOwing($outstandingInvoice['invoice_id'], -$outstandingInvoice['payment_amount']);
                 if($req->payment_type_id != $accountPaymentTypeId)
