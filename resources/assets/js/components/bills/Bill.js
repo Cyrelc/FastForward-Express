@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
-import BillingTabNew from './BillingTab-new'
+// import BillingTabNew from './BillingTab-new'
 import DispatchTab from './DispatchTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
 
@@ -933,6 +933,24 @@ class Bill extends Component {
                 skip_invoicing: this.state.skipInvoicing,
             }
             data.charges.forEach(charge => delete charge.tableRef)
+        }
+
+        console.log(data.charges, data.charges.filter(charge => !charge.toBeDeleted).length > 0)
+        const chargesPresent = data.charges ? data.charges.filter(charge => !charge.toBeDeleted).length > 0 : false
+        if(!chargesPresent && !confirm("This bill is being saved without any charges present.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
+            return
+
+        // Confirmation modal if bill is charged to an account other than the pickup or delivery account
+        // Only performing on create
+        if(!this.state.billId && chargesPresent) {
+            // If there is an account set, see whether it's in the set of charges. If it is not set, we consider this "true" as it's not a mismatch
+            const pickupAccountMatch = this.state.pickupAccount ? data.charges.find(charge => charge.charge_account_id == this.state.pickupAccount.account_id) : true
+            const deliveryAccountMatch = this.state.deliveryAccount ? data.charges.find(charge => charge.charge_account_id == this.state.deliveryAccount.account_id) : true
+            // If both are false, then neither match and we should check with the user before submitting that this was intentional
+            if(!pickupAccountMatch && !deliveryAccountMatch) {
+                if(!confirm("This bill is being charged to an account which is different from the pickup and/or delivery accounts.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
+                    return
+            }
         }
 
         makeAjaxRequest('/bills/store', 'POST', data, response => {
