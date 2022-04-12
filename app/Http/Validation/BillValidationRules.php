@@ -170,39 +170,40 @@ class BillValidationRules {
 
 		$rules = array_merge($rules, ['charges.*.chargeType.payment_type_id' => 'required|exists:payment_types,payment_type_id']);
 
-		foreach($req->charges as $key => $charge) {
-			if($charge['chargeType']['payment_type_id'] == $paymentRepo->GetAccountPaymentType()->payment_type_id) {
-				$rules = array_merge($rules, [
-					'charges.' . $key . '.charge_account_id' => 'required|exists:accounts,account_id']
-				);
-				$messages = array_merge($rules, [
-					'charges.' . $key . '.charge_account_id.required' => 'Account ID for requested charge is missing. Please try again',
-					'charges.' . $key . 'charge_account_id.exists' => 'Account ID ' . $charge['charge_account_id'] . 'does not exist. Please try again' 
-				]);
-				$account = $accountRepo->GetById($charge['charge_account_id']);
-				if($account->custom_field && $account->is_custom_field_mandatory) {
+		if($req->charges)
+			foreach($req->charges as $key => $charge) {
+				if($charge['chargeType']['payment_type_id'] == $paymentRepo->GetAccountPaymentType()->payment_type_id) {
 					$rules = array_merge($rules, [
-						'charges.' . $key . '.charge_reference_value' => ['required', new AlphaNumSpace]
+						'charges.' . $key . '.charge_account_id' => 'required|exists:accounts,account_id']
+					);
+					$messages = array_merge($rules, [
+						'charges.' . $key . '.charge_account_id.required' => 'Account ID for requested charge is missing. Please try again',
+						'charges.' . $key . 'charge_account_id.exists' => 'Account ID ' . $charge['charge_account_id'] . 'does not exist. Please try again' 
 					]);
+					$account = $accountRepo->GetById($charge['charge_account_id']);
+					if($account->custom_field && $account->is_custom_field_mandatory) {
+						$rules = array_merge($rules, [
+							'charges.' . $key . '.charge_reference_value' => ['required', new AlphaNumSpace]
+						]);
+						$messages = array_merge($messages, [
+							'charges.' . $key . '.charge_reference_value.required' => $account->custom_field . ' is required',
+							'charges.' . $key . '.charge_reference_value.AlphaNumSpace' => $account->custom_field . ' can only contain alpha numeric characters'
+						]);
+					}
+				} else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {
+					$rules = array_merge($rules, [
+						'charges.' . $key . '.chargeId' => 'required|exists:employees,employee_id'
+						]);
+				} else {
+					$rules = array_merge($rules, [
+						'charges.' . $key . '.chargeType.payment_type_id' => 'required|exists:payment_types,payment_type_id']
+					);
 					$messages = array_merge($messages, [
-						'charges.' . $key . '.charge_reference_value.required' => $account->custom_field . ' is required',
-						'charges.' . $key . '.charge_reference_value.AlphaNumSpace' => $account->custom_field . ' can only contain alpha numeric characters'
+						'charges.' . $key . '.chargeType.payment_type_id.required' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support',
+						'charges.' . $key . '.chargeType.payment_type_id.exists' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support'
 					]);
 				}
-			} else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {
-				$rules = array_merge($rules, [
-					'charges.' . $key . '.chargeId' => 'required|exists:employees,employee_id'
-					]);
-			} else {
-				$rules = array_merge($rules, [
-					'charges.' . $key . '.chargeType.payment_type_id' => 'required|exists:payment_types,payment_type_id']
-				);
-				$messages = array_merge($messages, [
-					'charges.' . $key . '.chargeType.payment_type_id.required' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support',
-					'charges.' . $key . '.chargeType.payment_type_id.exists' => $charge['chargeType']['name'] . ' payment type id incorrect. Please contact support'
-				]);
 			}
-		}
 		// if($req->payment_type == 'Account') {
 		// 	$rules = array_merge($rules, ['charge_account_id' => 'required']);
 		// 	$messages = array_merge($messages, ['charge_account_id.required' => 'Charge Account ID is required', 'charge_account_reference_value.required' => 'Charge Account requires a reference value']);

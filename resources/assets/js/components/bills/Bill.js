@@ -374,10 +374,10 @@ class Bill extends Component {
     getStoreButton() {
         if(this.state.billId) {
             if(this.state.permissions.editBasic || this.state.permissions.editDispatch || this.state.permissions.editBilling)
-                return <Button variant='primary' onClick={this.store}>Update</Button>
+                return <Button variant='primary' onClick={this.store} disabled={this.state.readOnly}>Update</Button>
         } else {
             if(this.state.permissions.createBasic || this.state.permissions.createFull)
-                return <Button variant='primary' onClick={this.store}>Create</Button>
+                return <Button variant='primary' onClick={this.store} disabled={this.state.readOnly}>Create</Button>
             else
                 return <Button variant='primary' disabled>{this.state.billId ? 'Update' : 'Create'}</Button>
         }
@@ -781,7 +781,7 @@ class Bill extends Component {
                                     chargeTypes={this.state.chargeTypes}
                                     permissions={this.state.permissions}
                                     pickupManifestId={this.state.pickupManifestId}
-                                    readOnly={this.state.billId ? !this.state.permissions.editBasic : !this.state.permissions.createBasic}
+                                    readOnly={this.state.readOnly ? this.state.readOnly : this.state.billId ? !this.state.permissions.editBasic : !this.state.permissions.createBasic}
                                 />
                             </Tab>
                             {(this.state.billId ? this.state.permissions.viewDispatch : this.state.permissions.createFull) &&
@@ -807,7 +807,7 @@ class Bill extends Component {
                                         invoiceId={this.state.invoiceId}
                                         isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
                                         isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
-                                        readOnly={this.state.billId ? !this.state.permissions.editDispatch : !this.state.permissions.createFull}
+                                        readOnly={this.state.readOnly ? this.state.readOnly : this.state.billId ? !this.state.permissions.editDispatch : !this.state.permissions.createFull}
                                     />
                                 </Tab>
                             }
@@ -851,7 +851,7 @@ class Bill extends Component {
                                         isInvoiced={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.invoice_id))}
                                         isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
                                         ratesheets={this.state.ratesheets}
-                                        readOnly={this.state.billId ? !this.state.permissions.editBilling : !this.state.permissions.createFull}
+                                        readOnly={this.state.readOnly ? this.state.readOnly : this.state.billId ? !this.state.permissions.editBilling : !this.state.permissions.createFull}
                                         repeatIntervals={this.state.repeatIntervals}
                                     />
                                 </Tab>
@@ -881,97 +881,105 @@ class Bill extends Component {
     }
 
     store() {
-        var data = {bill_id: this.state.billId}
-        if(this.state.billId ? this.state.permissions.editBasic : this.state.permissions.createBasic)
-            data = {...data,
-                delivery_account_id: this.state.deliveryAccount.account_id,
-                delivery_address_formatted: this.state.deliveryAddressFormatted,
-                delivery_address_lat: this.state.deliveryAddressLat,
-                delivery_address_lng: this.state.deliveryAddressLng,
-                delivery_address_name: this.state.deliveryAddressName,
-                delivery_address_place_id: this.state.deliveryAddressPlaceId,
-                delivery_address_type: this.state.deliveryAddressType,
-                delivery_type: this.state.deliveryType,
-                delivery_reference_value: this.state.deliveryReferenceValue,
-                description: this.state.description,
-                is_min_weight_size: this.state.packageIsMinimum ? true : false,
-                is_pallet: this.state.packageIsPallet,
-                packages: this.state.packages ? this.state.packages.slice() : null,
-                pickup_account_id: this.state.pickupAccount.account_id,
-                pickup_address_formatted: this.state.pickupAddressFormatted,
-                pickup_address_lat: this.state.pickupAddressLat,
-                pickup_address_lng: this.state.pickupAddressLng,
-                pickup_address_name: this.state.pickupAddressName,
-                pickup_address_place_id: this.state.pickupAddressPlaceId,
-                pickup_address_type: this.state.pickupAddressType,
-                pickup_reference_value: this.state.pickupReferenceValue,
-                time_delivery_scheduled: this.state.deliveryTimeExpected.toLocaleString("en-US"),
-                time_pickup_scheduled: this.state.pickupTimeExpected.toLocaleString("en-US"),
-                updated_at: this.state.updatedAt.toLocaleString("en-US"),
-                use_imperial: this.state.useImperial
-            }
-
-        if(this.state.billId ? this.state.permissions.editDispatch : this.state.permissions.createFull)
-            data = {...data,
-                bill_number: this.state.billNumber,
-                delivery_driver_commission: this.state.deliveryEmployeeCommission,
-                delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.employee_id : null,
-                internal_comments: this.state.internalNotes,
-                pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.employee_id : null,
-                pickup_driver_commission: this.state.pickupEmployeeCommission,
-                time_call_received: this.state.timeCallReceived ? this.state.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
-                time_dispatched: this.state.timeDispatched ? this.state.timeDispatched.toLocaleString("en-US") : null,
-            }
-
-        if(this.state.billId ? this.state.permissions.editBilling : this.state.permissions.createFull) {
-            data = {...data,
-                charges: this.state.charges.slice(),
-                interliner_cost: this.state.interlinerActualCost,
-                interliner_id: this.state.interliner ? this.state.interliner.value : undefined,
-                interliner_reference_value: this.state.interlinerTrackingId,
-                repeat_interval: this.state.repeatInterval ? this.state.repeatInterval.selection_id : null,
-                skip_invoicing: this.state.skipInvoicing,
-            }
-            data.charges.forEach(charge => delete charge.tableRef)
-        }
-
-        console.log(data.charges, data.charges.filter(charge => !charge.toBeDeleted).length > 0)
-        const chargesPresent = data.charges ? data.charges.filter(charge => !charge.toBeDeleted).length > 0 : false
-        if(!chargesPresent && !confirm("This bill is being saved without any charges present.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
+        if(this.state.readOnly)
             return
+        try {
+            this.setState({'readOnly': true})
+            var data = {bill_id: this.state.billId}
+            if(this.state.billId ? this.state.permissions.editBasic : this.state.permissions.createBasic)
+                data = {...data,
+                    delivery_account_id: this.state.deliveryAccount.account_id,
+                    delivery_address_formatted: this.state.deliveryAddressFormatted,
+                    delivery_address_lat: this.state.deliveryAddressLat,
+                    delivery_address_lng: this.state.deliveryAddressLng,
+                    delivery_address_name: this.state.deliveryAddressName,
+                    delivery_address_place_id: this.state.deliveryAddressPlaceId,
+                    delivery_address_type: this.state.deliveryAddressType,
+                    delivery_type: this.state.deliveryType,
+                    delivery_reference_value: this.state.deliveryReferenceValue,
+                    description: this.state.description,
+                    is_min_weight_size: this.state.packageIsMinimum ? true : false,
+                    is_pallet: this.state.packageIsPallet,
+                    packages: this.state.packages ? this.state.packages.slice() : null,
+                    pickup_account_id: this.state.pickupAccount.account_id,
+                    pickup_address_formatted: this.state.pickupAddressFormatted,
+                    pickup_address_lat: this.state.pickupAddressLat,
+                    pickup_address_lng: this.state.pickupAddressLng,
+                    pickup_address_name: this.state.pickupAddressName,
+                    pickup_address_place_id: this.state.pickupAddressPlaceId,
+                    pickup_address_type: this.state.pickupAddressType,
+                    pickup_reference_value: this.state.pickupReferenceValue,
+                    time_delivery_scheduled: this.state.deliveryTimeExpected.toLocaleString("en-US"),
+                    time_pickup_scheduled: this.state.pickupTimeExpected.toLocaleString("en-US"),
+                    updated_at: this.state.updatedAt.toLocaleString("en-US"),
+                    use_imperial: this.state.useImperial
+                }
 
-        // Confirmation modal if bill is charged to an account other than the pickup or delivery account
-        // Only performing on create
-        if(!this.state.billId && chargesPresent) {
-            // If there is an account set, see whether it's in the set of charges. If it is not set, we consider this "true" as it's not a mismatch
-            const pickupAccountMatch = this.state.pickupAccount ? data.charges.find(charge => charge.charge_account_id == this.state.pickupAccount.account_id) : true
-            const deliveryAccountMatch = this.state.deliveryAccount ? data.charges.find(charge => charge.charge_account_id == this.state.deliveryAccount.account_id) : true
-            // If both are false, then neither match and we should check with the user before submitting that this was intentional
-            if(!pickupAccountMatch && !deliveryAccountMatch) {
-                if(!confirm("This bill is being charged to an account which is different from the pickup and/or delivery accounts.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
-                    return
+            if(this.state.billId ? this.state.permissions.editDispatch : this.state.permissions.createFull)
+                data = {...data,
+                    bill_number: this.state.billNumber,
+                    delivery_driver_commission: this.state.deliveryEmployeeCommission,
+                    delivery_driver_id: this.state.deliveryEmployee ? this.state.deliveryEmployee.employee_id : null,
+                    internal_comments: this.state.internalNotes,
+                    pickup_driver_id: this.state.pickupEmployee ? this.state.pickupEmployee.employee_id : null,
+                    pickup_driver_commission: this.state.pickupEmployeeCommission,
+                    time_call_received: this.state.timeCallReceived ? this.state.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
+                    time_dispatched: this.state.timeDispatched ? this.state.timeDispatched.toLocaleString("en-US") : null,
+                }
+
+            if(this.state.billId ? this.state.permissions.editBilling : this.state.permissions.createFull) {
+                data = {...data,
+                    charges: this.state.charges.slice(),
+                    interliner_cost: this.state.interlinerActualCost,
+                    interliner_id: this.state.interliner ? this.state.interliner.value : undefined,
+                    interliner_reference_value: this.state.interlinerTrackingId,
+                    repeat_interval: this.state.repeatInterval ? this.state.repeatInterval.selection_id : null,
+                    skip_invoicing: this.state.skipInvoicing,
+                }
+                data.charges.forEach(charge => delete charge.tableRef)
             }
+
+            const chargesPresent = data.charges ? data.charges.filter(charge => !charge.toBeDeleted).length > 0 : false
+            if(!chargesPresent && !confirm("This bill is being saved without any charges present.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
+                throw 'No charges present'
+
+            // Confirmation modal if bill is charged to an account other than the pickup or delivery account
+            // Only performing on create
+            if(!this.state.billId && chargesPresent) {
+                // If there is an account set, see whether it's in the set of charges. If it is not set, we consider this "true" as it's not a mismatch
+                const pickupAccountMatch = this.state.pickupAccount ? data.charges.find(charge => charge.charge_account_id == this.state.pickupAccount.account_id) : true
+                const deliveryAccountMatch = this.state.deliveryAccount ? data.charges.find(charge => charge.charge_account_id == this.state.deliveryAccount.account_id) : true
+                // If both are false, then neither match and we should check with the user before submitting that this was intentional
+                if(!pickupAccountMatch && !deliveryAccountMatch) {
+                    if(!confirm("This bill is being charged to an account which is different from the pickup and/or delivery accounts.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
+                        throw "Mismatched charge account"
+                }
+            }
+
+            makeAjaxRequest('/bills/store', 'POST', data, response => {
+                toastr.clear()
+                if(this.state.billId) {
+                    toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
+                    this.configureBill()
+                }
+                else {
+                    toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
+                        'progressBar': true,
+                        'positionClass': 'toast-top-full-width',
+                        'showDuration': 300,
+                        'onHidden': () => {
+                            this.handleChanges({target: {name: 'key', type: 'string', value: 'basic'}})
+                            this.configureBill()
+                        }
+                    })
+                }
+            }, error => {
+                this.setState({readOnly: false})
+            })
         }
-
-        makeAjaxRequest('/bills/store', 'POST', data, response => {
-            toastr.clear()
-            if(this.state.billId) {
-                toastr.success('Bill ' + this.state.billId + ' was successfully updated!', 'Success')
-                this.configureBill()
-            }
-            else {
-                this.setState({readOnly: true})
-                toastr.success('Bill ' + response.id + ' was successfully created', 'Success', {
-                    'progressBar': true,
-                    'positionClass': 'toast-top-full-width',
-                    'showDuration': 300,
-                    'onHidden': () => {
-                        this.handleChanges({target: {name: 'key', type: 'string', value: 'basic'}})
-                        this.configureBill()
-                    }
-                })
-            }
-        })
+        catch(error) {
+            this.setState({readOnly: false})
+        }
     }
 }
 
