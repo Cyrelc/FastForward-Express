@@ -1,5 +1,6 @@
 import React from 'react'
 import {Card, InputGroup, FormControl, ButtonGroup, Button, Col, Row, Collapse} from 'react-bootstrap'
+import CurrencyInput from 'react-currency-input-field'
 
 export default function Zone(props) {
     return(
@@ -29,27 +30,72 @@ export default function Zone(props) {
                     </InputGroup>
                 {props.zone.type !== 'peripheral' ? null : 
                     <InputGroup size='sm'>
-                        <InputGroup.Text>Additional Cost: $</InputGroup.Text>
-                        <FormControl type='number' step={0.01} min={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        <InputGroup.Text>Additional Cost: </InputGroup.Text>
+                        <CurrencyInput
+                            decimalsLimit={2}
+                            decimalScale={2}
+                            min={0.01}
+                            name='regularCost'
+                            onValueChange={value => props.handleChange({target: {name: 'regularCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                            prefix='$'
+                            step={0.01}
+                            value={props.zone.regularCost}
+                        />
                     </InputGroup>
                 }
                 {props.zone.type !== 'outlying' ? null :
                     <div>
                         <InputGroup size='sm'>
-                            <InputGroup.Text>Regular Cost: $</InputGroup.Text>
-                            <FormControl type='number' step={0.01} min ={0.00} name='regularCost' value={props.zone.regularCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                            <InputGroup.Text>Regular Cost: </InputGroup.Text>
+                            <CurrencyInput
+                                decimalsLimit={2}
+                                decimalScale={2}
+                                min={0.01}
+                                name='regularCost'
+                                onValueChange={value => props.handleChange({target: {name: 'regularCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                prefix='$'
+                                step={0.01}
+                                value={props.zone.regularCost}
+                            />
                         </InputGroup>
                         <InputGroup size='sm'>
-                            <InputGroup.Text>Rush Cost: $</InputGroup.Text>
-                            <FormControl type='number' step={0.01} min ={0.00} name='rushCost' value={props.zone.rushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                            <InputGroup.Text>Rush Cost: </InputGroup.Text>
+                            <CurrencyInput
+                                decimalsLimit={2}
+                                decimalScale={2}
+                                min={0.01}
+                                name='rushCost'
+                                onValueChange={value => props.handleChange({target: {name: 'rushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                prefix='$'
+                                step={0.01}
+                                value={props.zone.rushCost}
+                            />
                         </InputGroup>
                         <InputGroup size='sm'>
-                            <InputGroup.Text>Direct Cost: $</InputGroup.Text>
-                            <FormControl type='number' step={0.01} min ={0.00} name='directCost' value={props.zone.directCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                            <InputGroup.Text>Direct Cost: </InputGroup.Text>
+                            <CurrencyInput
+                                decimalsLimit={2}
+                                decimalScale={2}
+                                min={0.01}
+                                name='directCost'
+                                onValueChange={value => props.handleChange({target: {name: 'directCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                prefix='$'
+                                step={0.01}
+                                value={props.zone.directCost}
+                            />
                         </InputGroup>
                         <InputGroup size='sm'>
-                            <InputGroup.Text>Direct Rush Cost: $</InputGroup.Text>
-                            <FormControl type='number' step={0.01} min ={0.00} name='directRushCost' value={props.zone.directRushCost} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                            <InputGroup.Text>Direct Rush Cost: </InputGroup.Text>
+                            <CurrencyInput
+                                decimalsLimit={2}
+                                decimalScale={2}
+                                min={0.01}
+                                name='directRushCost'
+                                onValueChange={value => props.handleChange({target: {name: 'directRushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                prefix='$'
+                                step={0.01}
+                                value={props.zone.directRushCost}
+                            />
                         </InputGroup>
                     </div>
                 }

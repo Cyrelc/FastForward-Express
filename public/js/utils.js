@@ -203,7 +203,7 @@ function configureFakeLink(url, redirectFunction, altDisplayField = null, altRed
 
 Array.prototype.sortBy = function(p) {
     return this.slice(0).sort(function(a,b) {
-        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0
+        return (a[p].localeCompare(b[p], undefined, {numeric: true, sensitivity: 'base'}))
     })
 }
 

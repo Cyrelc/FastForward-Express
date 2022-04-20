@@ -50,13 +50,6 @@ export default function BasicRatesTab(props) {
                             <Form.Check type='checkbox' name='useInternalZonesCalc' label='Use Internal Zones Crossed to Calculate Pricing' checked={props.useInternalZonesCalc} onChange={props.handleChange} />
                         </strong>
                     </Col>
-                    <Col md={2}>
-                        <Button
-                            variant='secondary'
-                            onClick={() => {props.handleChange({target: {name: 'showImportModal', type: 'boolean', value: true}}); props.handleChange({target: 'selectedImports', type: 'array', value: []})}}
-                            style={{float: 'right'}}
-                        ><i className='fas fa-copy'/> Import</Button>
-                    </Col>
                 </Row>
             </Card.Header>
             {!props.useInternalZonesCalc &&

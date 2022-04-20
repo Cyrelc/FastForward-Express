@@ -393,7 +393,7 @@ export default class Ratesheet extends Component {
                 </Modal>
                 <Col md={11}>
                     <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChange({target: {name: 'key', type: 'string', value: key}})}>
-                        <Tab eventKey='basic' title={<h3><i className='fas fa-cog'></i> Basic</h3>}>
+                        <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
                             <BasicRatesTab
                                 deliveryTypes={this.state.deliveryTypes}
                                 miscRates={this.state.miscRates}
@@ -411,20 +411,20 @@ export default class Ratesheet extends Component {
                                 handleZoneRateChange={this.handleZoneRateChange}
                             />
                         </Tab>
-                        <Tab eventKey='weight' title={<h3><i className='fas fa-weight'></i> Weight Rates</h3>}>
+                        <Tab eventKey='weight' title={<h4><i className='fas fa-weight'></i> Weight Rates</h4>}>
                             <WeightRatesTab
                                 handleChange={this.handleChange}
                                 weightRates={this.state.weightRates}
                             />
                         </Tab>
-                        <Tab eventKey='time' title={<h3><i className='fas fa-clock'></i> Time Rates</h3>}>
+                        <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
                             <TimeRatesTab
                                 timeRates={this.state.timeRates}
                                 handleChange={this.handleChange}
                             />
                         </Tab>
                         {this.state.useInternalZonesCalc &&
-                            <Tab eventKey='distances' title={<h3><i className='fas fa-directions'></i> Distance Rates</h3>}>
+                            <Tab eventKey='distances' title={<h4><i className='fas fa-directions'></i> Distance Rates</h4>}>
                                 <DistanceRatesTab
                                     deliveryTypes={this.state.deliveryTypes}
                                     useInternalZonesCalc={this.state.useInternalZonesCalc}
@@ -434,12 +434,12 @@ export default class Ratesheet extends Component {
                                 />
                             </Tab>
                         }
-                        <Tab eventKey='volume' title={<h3><i className='fas fa-ruler-combined'></i> Volume Rates</h3>}>
+                        <Tab eventKey='volume' title={<h4><i className='fas fa-ruler-combined'></i> Volume Rates</h4>}>
                             <VolumeRatesTab
 
                             />
                         </Tab>
-                        <Tab eventKey='map' title={<h3><i className='fas fa-map'></i> Map</h3>}>
+                        <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
                             <MapTab
                                 polyColours = {this.state.polyColours}
                                 defaultZoneType = {this.state.defaultZoneType}
@@ -451,6 +451,17 @@ export default class Ratesheet extends Component {
                                 editZone={this.editZone}
                             />
                         </Tab>
+                        <Tab
+                            title={
+                                <Button
+                                    variant='secondary'
+                                    onClick={() => {
+                                        this.handleChange({target: {name: 'showImportModal', type: 'boolean', value: true}});
+                                        this.handleChange({target: {name: 'selectedImports', type: 'array', value: []}})}
+                                    }
+                                ><i className='fas fa-solid fa-file-import'/> Import</Button>
+                            }
+                        ></Tab>
                     </Tabs>
                     <Row className='justify-content-md-center'>
                         <Col md={1}>

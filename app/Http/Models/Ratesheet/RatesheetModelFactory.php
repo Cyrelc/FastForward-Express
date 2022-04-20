@@ -27,12 +27,13 @@ class RatesheetModelFactory {
         $model->name = '';
         $model->deliveryTypes = array_map(array($this, 'PrepareDeliveryType'), $deliveryTypes->toArray());
         $model->timeRates = array(['name' => 'Evenings', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])],
-                                ['name' => 'Evenings', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])]);
+                                ['name' => 'Weekends', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])]);
         $model->weightRates = array(['name' => 'Basic Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])],
                                     ['name' => 'Pallet Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])]);
         $model->zoneRates = array(['id' => 0, 'zones' => 1, 'regularCost' => '', 'rushCost' => '', 'directCost' => '', 'directRushCost' => '' ]);
         $model->miscRates = array();
         $model->useInternalZonesCalc = false;
+
         return $model;
     }
 
