@@ -77,18 +77,20 @@ export default function ImportRatesModal(props) {
                 <hr/>
                 <Row>
                     <ListGroup horizontal style={{flexWrap: 'inherit'}}>
-                        {(props.importRatesheet && props.importType && props.importRatesheet[props.importType]) && (props.importRatesheet[props.importType]).sortBy('name').map((importOption, index) => {
-                            const nameTaken = props.originalRates[props.importType].find(original => original.name === importOption.name)
-                            return (
-                                <ListGroup.Item style={{width: '25%'}} key={importOption.name + index}>
-                                    <Form.Check key={importOption.name + index} style={{display: 'inline-flex', marginRight: '1em'}}>
-                                        <Form.Check.Input type='checkbox' id={importOption.name + index} value={index} onChange={handleSelection} checked={props.selectedImports.some(element => element.sortedIndex == index)}/>
-                                        <Form.Check.Label style={{paddingLeft: '1em'}}>{importOption.name}</Form.Check.Label>
-                                    </Form.Check>
-                                    {nameTaken && <i className='fas fa-exclamation-circle' title='A rate or zone with this name already exists' style={{color: 'red', float: 'right'}}></i>}
-                                </ListGroup.Item>
-                            )
-                        })}
+                        {(props.importRatesheet && props.importType && props.importRatesheet[props.importType]) &&
+                            (props.importRatesheet[props.importType]).sortBy('name').map((importOption, index) => {
+                                const nameTaken = props.originalRates[props.importType].find(original => original.name === importOption.name)
+                                return (
+                                    <ListGroup.Item style={{width: '25%'}} key={importOption.name + index}>
+                                        <Form.Check key={importOption.name + index} style={{display: 'inline-flex', marginRight: '1em'}}>
+                                            <Form.Check.Input type='checkbox' id={importOption.name + index} value={index} onChange={handleSelection} checked={props.selectedImports.some(element => element.sortedIndex == index)}/>
+                                            <Form.Check.Label style={{paddingLeft: '1em'}}>{importOption.name}</Form.Check.Label>
+                                        </Form.Check>
+                                        {nameTaken && <i className='fas fa-exclamation-circle' title='A rate or zone with this name already exists' style={{color: 'red', float: 'right'}}></i>}
+                                    </ListGroup.Item>
+                                )
+                            }
+                        )}
                     </ListGroup>
                 </Row>
             </Modal.Body>

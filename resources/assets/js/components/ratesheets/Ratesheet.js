@@ -82,7 +82,7 @@ export default class Ratesheet extends Component {
                     deliveryTypes: response.deliveryTypes,
                     key: window.location.hash ? window.location.hash.substr(1) : 'basic',
                     ratesheetName: response.name,
-                    miscRates: response.miscRates,
+                    miscRates: response.miscRates ?? [],
                     palletRate: response.palletRate,
                     ratesheets: response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId),
                     timeRates: timeRates,
