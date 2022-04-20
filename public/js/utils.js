@@ -148,7 +148,10 @@ function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
                 location.reload()
             else if(response.status === 404)
                 window.location.href = '/app/error404'
-            else if(response.status === 403) {
+            else if(response.status === 500) {
+                toastr.clear()
+                toastr.error('An unexpected server error was encountered. Please contact support.')
+            } else if(response.status === 403) {
                 responseText = JSON.parse(response.responseText)
                 if(responseText.message)
                     toastr.error(responseText.message, 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
@@ -172,8 +175,15 @@ function makeFetchRequest(url, callback) {
         } else if (!response.ok) {
             if(response.statusCode === 404)
                 window.location.href = '/'
-            toastr.clear()
-            toastr.error(response.error, '', {'timeOut' : 0, 'extendedTImeout' : 0});
+            else if(response.statusCode === 500) {
+                toastr.clear()
+                toastr.error('An unexpected error was encountered. Please contact support.')
+            }
+            else {
+                toastr.clear()
+                toastr.error(response.error, '', {'timeOut' : 0, 'extendedTImeout' : 0});
+            }
+
             return Promise.reject(response)
         }
 
