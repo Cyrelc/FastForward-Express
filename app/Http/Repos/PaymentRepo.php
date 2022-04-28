@@ -13,12 +13,14 @@ class PaymentRepo {
     }
 
     public function GetPaymentsByAccountId($accountId) {
-        $payments = Payment::where('account_id', $accountId)
+        $payments = Payment::where('payments.account_id', $accountId)
             ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
+            ->leftJoin('invoices', 'payments.invoice_id', 'invoices.invoice_id')
             ->select(
                 'payment_id',
-                'invoice_id',
-                'date',
+                'payments.invoice_id',
+                'invoices.bill_end_date as invoice_date',
+                'payments.date',
                 'amount',
                 'payments.payment_type_id',
                 'payment_types.name as payment_type',

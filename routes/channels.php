@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('dispatch', function ($user) {
     //TODO validate that user has dispatch privileges
+    if($user->cannot('createFull', Bill::class))
+        abort(403);
+
     activity('system_debug')->log('Attempting to authenticate user: ' . $user->user_id . ' on dispatch channel');
     return true;
 });

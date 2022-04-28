@@ -187,6 +187,7 @@ export default class PaymentsTab extends Component {
     render() {
         const columns = [
             {title: 'Invoice ID', field: 'invoice_id', formatter: this.props.viewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
+        {title: 'Invoice Date', field: 'invoice_date', formatter: 'date'},
             {title: 'Payment Received On', field: 'date'},
             {title: 'Payment Method', field: 'payment_type', headerFilter: true},
             {title: 'Reference Number', field: 'reference_value', headerFilter: true},
