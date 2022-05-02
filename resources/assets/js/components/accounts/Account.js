@@ -8,7 +8,7 @@ import AdvancedTab from './AdvancedTab'
 import BasicTab from './BasicTab'
 import ChildAccounts from './ChildAccounts'
 import InvoicingTab from './InvoicingTab'
-import PaymentsTab from './PaymentsTab'
+import PaymentsTab from './payments/PaymentsTab'
 import UsersTab from './UsersTab'
 
 const initialState = {
@@ -397,7 +397,8 @@ class Account extends Component {
 
                                     handleChanges={this.handleChanges}
                                     createPayments={this.state.permissions.createPayments}
-                                    editPayments={this.state.permissions.editPayments}
+                                    canEditPaymentMethods={this.state.permissions.editPaymentMethods}
+                                    canEditPayments={this.state.permissions.editPayments}
                                     viewInvoices={this.state.permissions.viewInvoices}
                                 />
                             </Tab>

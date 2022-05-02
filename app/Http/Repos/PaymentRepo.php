@@ -1,11 +1,19 @@
 <?php
 namespace App\Http\Repos;
 
+use App\CreditCard;
+use App\MonerisTransaction;
 use App\Payment;
 use App\PaymentType;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRepo {
+    public function DeleteCreditCard($creditCardId) {
+        $creditCard = $this->GetCreditCardById($creditCardId);
+
+        $creditCard->delete();
+    }
+
     public function GetById($id) {
         $payment = Payment::where('payment_id', $id)->first();
 
@@ -37,17 +45,38 @@ class PaymentRepo {
         return ($new->create($payment));
     }
 
+    public function InsertCreditCardForAccount($accountId, $dataKey) {
+        $new = new CreditCard;
+
+        return $new->create([
+            'account_id' => $accountId,
+            'data_key'=> $dataKey
+        ]);
+    }
+
     public function Delete($payment_id) {
         $payment = Payment::where('payment_id', $payment_id)->first();
 
         $payment->delete();
         return;
     }
+    public function GetCreditCardById($creditCardId) {
+        $creditCard = CreditCard::where('credit_card_id', $creditCardId);
+
+        return $creditCard->first();
+    }
 
     public function GetAccountPaymentType() {
         $paymentType = PaymentType::where('name', 'Account');
 
         return $paymentType->first();
+    }
+
+    public function GetCreditCardsByAccountId($accountId) {
+        $creditCards = CreditCard::leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'credit_cards.payment_type_id')
+            ->where('account_id', $accountId);
+
+        return $creditCards->get();
     }
 
     public function GetPaymentType($paymentTypeId) {
@@ -85,6 +114,12 @@ class PaymentRepo {
         $paymentTypes = PaymentType::where('is_prepaid', true);
 
         return $paymentTypes->get();
+    }
+
+    public function LogMonerisTransaction($transaction) {
+        $new = new MonerisTransaction();
+
+        $new->create($transaction);
     }
 
     public function UpdatePaymentType($paymentType) {

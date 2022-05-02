@@ -28,12 +28,13 @@ class PermissionModelFactory {
 
                 'deleteAccountUsers' => $user->can('delete', AccountUser::class),
     
+                'editAccountUsersBasic' => $user->can('updateAccountUsersBasic', $account),
+                'editAccountUserPermissions' => $user->can('updateAccountUserPermissions', $account),
                 'editAdvanced' => $user->can('updateAdvanced', $account),
                 'editBasic' => $user->can('updateBasic', $account),
                 'editInvoicing' => $user->can('updateInvoicing', $account),
+                'editPaymentMethods' => $user->can('updatePaymentMethods', $account),
                 'editPayments' => $user->can('updatePayments', $account),
-                'editAccountUsersBasic' => $user->can('updateAccountUsersBasic', $account),
-                'editAccountUserPermissions' => $user->can('updateAccountUserPermissions', $account),
     
                 'viewActivityLog' => $user->can('viewActivityLog', $account),
                 'viewBills' => $user->can('viewBills', $account),
@@ -119,6 +120,8 @@ class PermissionModelFactory {
             'viewInvoicesMy' => $accountUser ? $user->can('invoices.view.my') : false,
             'viewInvoicesChildren' => $accountUser ? $user->can('invoices.view.children') : false,
             //payments
+            'editPaymentsMy' => $accountUser ? $user->can('payments.edit.my') : false,
+            'editPaymentsChildren' => $accountUser ? $user->can('payments.edit.children') : false,
             'viewPaymentsMy' => $accountUser ? $user->can('payments.view.my') : false,
             'viewPaymentsChildren' => $accountUser ? $user->can('payments.view.children') : false
         ];

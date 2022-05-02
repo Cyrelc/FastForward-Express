@@ -17,7 +17,7 @@ export default function ChildAccounts(props) {
                     <Col md={11}>
                         <ul>
                             {props.childAccountList.map(account =>
-                                <li>
+                                <li key={account.account_id}>
                                     <LinkContainer to={'/app/accounts/' + account.account_id}>
                                         <a>{account.account_number + " - " + account.name}</a>
                                     </LinkContainer>

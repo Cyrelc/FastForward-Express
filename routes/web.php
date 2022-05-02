@@ -94,7 +94,11 @@ Route::group(
             Route::get('/manifests/buildTable', 'ManifestController@buildTable');
 
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
-            Route::get('/payments/getModelByAccountId/{accountId}', 'PaymentController@GetModelByAccountId');
+            Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
+            Route::get('/payments/getCreditCards/{accountId}', 'PaymentController@GetCreditCardsForAccount');
+            Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
+            Route::post('/payments/storeCreditCard', 'PaymentController@StoreCreditCard');
+            Route::get('/payments/getCreditCardFull/{creditCardId}', 'PaymentController@GetCreditCardFull');
 
             Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
             Route::post('/ratesheets/store', 'RatesheetController@store');

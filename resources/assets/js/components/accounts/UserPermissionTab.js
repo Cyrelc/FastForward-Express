@@ -74,10 +74,15 @@ export default function UserPermissionTab(props) {
                         </tr>
                         {/* Payments */}
                         <tr>
-                            <th>Payments</th>
+                            <th rowSpan='2'>Payments</th>
                             <td>View Payments <i className='fas fa-question-circle' title='View and print payments'></i></td>
                             <td><Form.Check checked={props.accountUserPermissions.viewPaymentsMy} name='viewPaymentsMy' onChange={props.handlePermissionChange}  disabled={props.readOnly || !props.accountUserPermissions.is_enabled}></Form.Check></td>
                             { hasChildren == true && <td><Form.Check checked={props.accountUserPermissions.viewPaymentsChildren} name='viewPaymentsChildren' onChange={props.handlePermissionChange}  disabled={props.readOnly || !props.accountUserPermissions.is_enabled}></Form.Check></td> }
+                        </tr>
+                        <tr>
+                            <td>Manage Payment Methods <i className='fas fa-question-circle' title='Add, edit, and delete credit card information'></i></td>
+                            <td><Form.Check checked={props.accountUserPermissions.editPaymentsMy} name='editPaymentsMy' onChange={props.handlePermissionChange} disabled={props.readOnly || !props.accountUserPermissions.is_enabled}></Form.Check></td>
+                            { hasChildren == true && <td><Form.Check checked={props.accountUserPermissions.editPaymentsChildren} name='editPaymentsChildren' onChange={props.handlePermissionChange}  disabled={props.readOnly || !props.accountUserPermissions.is_enabled}></Form.Check></td> }
                         </tr>
                         {/* Users */}
                         <tr>
@@ -115,7 +120,7 @@ export default function UserPermissionTab(props) {
                     <Card.Body>
                         <ul>
                             {props.belongsTo.map(account =>
-                                <li>
+                                <li key={account.account_id}>
                                     {account.account.account_number + ' - ' + account.account.name}
                                     <ul>
                                         {account.children.map(child =>

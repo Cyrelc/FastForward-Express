@@ -25,7 +25,6 @@ class CreateAccountsTable extends Migration
             $table->string('invoice_interval');
             $table->text('invoice_comment')->nullable();
             $table->text('invoice_sort_order');
-            // $table->string('stripe_id')->nullable();
             $table->float('min_invoice_amount')->default(0);
             $table->string('name')->unique();
             $table->unsignedInteger('parent_account_id')->nullable();

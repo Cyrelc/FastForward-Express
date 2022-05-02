@@ -75,8 +75,10 @@ class UserCollector {
             'invoices.view.my' => 'viewInvoicesMy',
             'invoices.view.children' => 'viewInvoicesChildren',
             /* Payments */
+            'payments.edit.children' => 'editPaymentsChildren',
+            'payments.edit.my' => 'editPaymentsMy',
+            'payments.view.children' => 'viewPaymentsChildren',
             'payments.view.my' => 'viewPaymentsMy',
-            'payments.view.children' => 'viewPaymentsChildren'
         ];
 
         $permissions = [];

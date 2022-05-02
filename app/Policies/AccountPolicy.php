@@ -215,6 +215,25 @@ class AccountPolicy
         return $user->hasAnyPermission('payments.edit.*');
     }
 
+
+    /**
+     * Determine whether a user can manage payment methods for their account
+     * @param \App\User $user
+     * @param \App\Account $account
+     * @return mixed
+     */
+    public function updatePaymentMethods(User $user, Account $account) {
+        if($user->hasAnyPermission('payments.create.*.*', 'payments.edit.*'))
+            return true;
+        else if($user->accountUsers && $user->hasAnyPermission('payments.edit.my', 'payments.edit.children')) {
+            $accountRepo = new Repos\AccountRepo();
+            $myAccountIds = $accountRepo->GetMyAccountIds($user, $user->can('payments.edit.children'));
+            if(in_array($account->account_id, $myAccountIds))
+                return true;
+        }
+        return false;
+    }
+
     /**
      * Determine whether the user can toggle the account as enabled/disabled
      */

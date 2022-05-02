@@ -16,11 +16,13 @@ class PaymentValidationRules {
         $rules = [
             'account_id' => 'required',
             'payment_type_id' => 'required',
+            'credit_card_id' => 'sometimes|required'
         ];
 
         $messages = [
             'account_id.required' => 'Account Id invalid. Please try again',
-            'payment_type_id.required' => 'Please select a valid payment method'
+            'payment_type_id.required' => 'Please select a valid payment method',
+            'credit_card_id.required' => 'Please select a valid payment method'
         ];
 
         $invoice_total = 0;
