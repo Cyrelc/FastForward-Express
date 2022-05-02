@@ -9,7 +9,7 @@
         <h4>Invoice Total:<br/>{{'$' . number_format($model->invoice->total_cost, 2)}}</h4>
     </td>
     <td class='warn' >
-        <h4>Account Balance:<br/>{{'$' . number_format($model->account_owing, 2)}}</h4>
+        <h4>Balance Owing:<br/>{{'$' . number_format($model->account_owing, 2)}}</h4>
     </td>
 </table>
 <table class='addresses'>
