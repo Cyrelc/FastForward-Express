@@ -15,7 +15,7 @@ class BillModelFactory{
 
 		$bills = $billRepo->ListAll($req);
 		if(count($bills) > 5000)
-			throw new \Exception('Maximum result limit exceeded. Please limit your search and try again');
+			abort(413, 'Maximum result limit exceeded. Please limit your search and try again');
 
 		$model = [];
 		foreach($bills as $bill) {
@@ -90,7 +90,7 @@ class BillModelFactory{
 		$model->permissions = $permissions;
 		$model->bill = $billRepo->GetById($billId, $model->permissions);
 		if($model->bill === null)
-			throw new \Exception('Invalid ID: Unable to find the bill requested', 404);
+			abort(404, 'Invalid ID: Unable to find the bill requested');
 		if($permissions['viewActivityLog']) {
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
 			foreach($model->activity_log as $key => $log) {

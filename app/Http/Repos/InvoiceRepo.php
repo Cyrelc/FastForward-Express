@@ -39,15 +39,15 @@ class InvoiceRepo {
         $lineItem = $lineItemRepo->GetById($lineItemId);
 
         if($invoice === null)
-            throw new \Exception('Invoice does not exist');
+            abort(404, 'Invoice does not exist');
         if($invoice->finalized)
-            throw new \Exception('Unable to detach from finalized invoice');
+            abort(403, 'Unable to detach from finalized invoice');
         if($lineItem->charge->bill->percentage_complete != 100)
-            throw new \Exception('Bill must be completed before invoicing');
+            abort(400, 'Bill must be completed before invoicing');
         if($lineItem->invoice_id != null)
-            throw new \Exception('Line Item has already been assigned to an invoice');
+            abort(403, 'Line Item has already been assigned to an invoice');
         if($lineItem->charge->charge_account_id != $invoice->account_id && $lineItem->charge->account->parent_account_id != $invoice->account_id)
-            throw new \Exception('Line Item must be assigned to an invoice with the same account id or to those with their parent account id matching the charge;');
+            abort(400, 'Line Item must be assigned to an invoice with the same account id or to those with their parent account id matching the charge;');
 
         $lineItem->invoice_id = $invoiceId;
         if($invoice->finalized) {
@@ -102,7 +102,7 @@ class InvoiceRepo {
         $payments = Payment::where('invoice_id', $invoiceId)->get();
 
         if(sizeof($payments) != 0)
-            throw new \Exception('Unable to delete invoice: payments have already been made');
+            abort(403, 'Unable to delete invoice: payments have already been made');
 
         foreach($lineItems as $lineItem) {
             $lineItem->invoice_id = null;
@@ -119,11 +119,11 @@ class InvoiceRepo {
         $lineItem = $lineItemRepo->GetById($lineItemId);
 
         if($lineItem->invoice_id == null)
-            throw new \Exception('Line Item has not been assigned to an invoice');
+            abort(400, 'Line Item has not been assigned to an invoice');
 
         $invoice = $this->GetById($lineItem->invoice_id);
         if($invoice->finalized)
-            throw new \Exception('Unable to detatch Line Item: Invoice has been finalized and sent to the customer. Please perform the change as an amendment instead');
+            abort(400, 'Unable to detatch Line Item: Invoice has been finalized and sent to the customer. Please perform the change as an amendment instead');
 
         $lineItem->invoice_id = null;
         $lineItem->save();

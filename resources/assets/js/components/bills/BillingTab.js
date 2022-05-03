@@ -60,7 +60,8 @@ function lineItemTypeFormatter(value) {
             return "<i class='fas fa-clock fa-lg' title='Time'></i>"
         case 'weightRate':
             return "<i class='fas fa-weight fa-lg' title='Weight'></i>"
-        return "<i class='fas fa-exclamation-triangle fa-lg'></i>"
+        default:
+            return "<i class='fas fa-exclamation-triangle fa-lg'></i>"
     }
 }
 
@@ -158,7 +159,9 @@ export default function BillingTab(props) {
 
     function deleteChargeTable(index) {
         if(!canChargeTableBeDeleted(props.charges.filter((charge, i) => i == index)[0])) {
-            console.log('ERROR - charge table cannot be deleted - at least one item has been invoiced, manifested, or paid')
+            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced, manifested, or paid'
+            toastr.error(errorMessage)
+            console.log(errorMessage)
             return
         }
         if(confirm('Are you sure you wish to delete this charge group?\n This action can not be undone')) {
@@ -181,27 +184,6 @@ export default function BillingTab(props) {
             return charge
         })
         props.handleChanges({target: {name: 'charges', type: 'array', value: charges}})
-    }
-
-    function handleLineItemAdded(row) {
-        const rowData = row.getData()
-        if(rowData.type === 'weightRate') {
-            console.log('weightRate')
-            // API call?
-            // row.update({amount: 10000})
-        }
-        else if(rowData.type === 'timeRate') {
-            console.log('timeRate')
-            // API call?
-            // row.update({amount: 5000})
-        }
-        else if(rowData.type === 'distanceRate') {
-            console.log('distanceRate')
-            // API call?
-            // row.update({amount: 2000})
-        }
-        else
-            console.log('ELSE: ' + rowData.type)
     }
 
     function linkTo(cell, type) {

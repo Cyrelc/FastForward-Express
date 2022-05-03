@@ -208,7 +208,7 @@ class PaymentController extends Controller {
         }
 
         if(!$paymentTypeId)
-            throw new \Exception('Invalid credit card type provided, we are currently only able to support Visa and Mastercard');
+            abort(400, 'Invalid credit card type provided, we are currently only able to support Visa and Mastercard');
 
         $transactionType = 'res_add_cc';
 

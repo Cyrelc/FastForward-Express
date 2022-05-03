@@ -113,7 +113,7 @@ class InvoiceController extends Controller {
     public function print(Request $req, $invoiceIds) {
         $invoiceIds = explode(',', $invoiceIds);
         if(count($invoiceIds) > 50)
-            throw new \Exception('Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
+            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
 
         $files = $this->preparePdfs($invoiceIds, $req);
 
@@ -134,7 +134,7 @@ class InvoiceController extends Controller {
     public function download(Request $req, $invoiceIds) {
         $invoiceIds = explode(',', $invoiceIds);
         if(count($invoiceIds) > 50)
-            throw new \Exception('Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
+            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
 
         $files = $this->preparePdfs($invoiceIds, $req);
 

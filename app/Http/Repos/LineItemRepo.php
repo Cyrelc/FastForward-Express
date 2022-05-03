@@ -21,7 +21,7 @@ class LineItemRepo {
     public function Delete($lineItemId) {
         $lineItem = LineItem::where('line_item_id', $lineItemId)->first();
         if($lineItem->pickup_manifest_id || $lineItem->delivery_manifest_id || $lineItem->invoice_id || $lineItem->paid)
-            throw new \Exception('Unable to delete line item after it has been invoiced, manifested, or paid');
+            abort(403, 'Unable to delete line item after it has been invoiced, manifested, or paid');
 
         $lineItem->delete();
         return;

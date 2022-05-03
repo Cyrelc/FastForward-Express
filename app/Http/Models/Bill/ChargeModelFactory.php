@@ -74,9 +74,9 @@ class ChargeModelFactory {
          * If one or both requests are outside of a programmed deliverable area, then we throw an exception: The system cannot automatically calculate the pricing, this must be done manually
          */
         if(!$pickupZone)
-            throw new \Exception('Requested pickup was not in a designated zone! Please price manually');
+            abort(400, 'Requested pickup was not in a designated zone! Please price manually');
         else if (!$deliveryZone)
-            throw new \Exception('Requested delivery was not in a designated zone! Please price manually');
+            abort(400, 'Requested delivery was not in a designated zone! Please price manually');
 
         $results = array();
         $crossableZoneTypes = ['internal', 'peripheral'];
@@ -173,7 +173,7 @@ class ChargeModelFactory {
                 break;
             }
             if($key == count($weightRate->brackets))
-                throw new \Exception('Weight exceeds available limits, or was input incorrectly. Please price manually');
+                abort(400, 'Weight exceeds available limits, or was input incorrectly. Please price manually');
         }
         return $results;
     }

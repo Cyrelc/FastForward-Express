@@ -118,7 +118,7 @@ class BillCollector {
 			$chargeAccountId = $req->delivery_account_id;
 			$chargeReferenceValue = $req->delivery_reference_value;
 		} else
-			throw new \Exception('Attempting to create bill and charge to account not owned by the user');
+			abort(403, 'Attempting to create bill and charge to account not owned by the user');
 
 		$chargeAccount = $accountRepo->GetById($chargeAccountId);
 

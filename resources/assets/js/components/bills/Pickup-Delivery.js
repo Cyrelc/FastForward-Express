@@ -15,7 +15,7 @@ export default function Pickup_Delivery(props) {
         <Card>
             <Card.Header>
                 <Row className='justify-content-md-center'>
-                    <h4>{props.friendlyName}</h4>
+                    {props.header}
                 </Row>
             </Card.Header>
             <Card.Body>

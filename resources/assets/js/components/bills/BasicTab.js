@@ -1,5 +1,5 @@
-import React from 'react'
-import {Card, Row, Col, InputGroup, FormControl, FormCheck, Table, Button} from 'react-bootstrap'
+import React, {Fragment} from 'react'
+import {Button, Card, Col, FormControl, FormCheck, InputGroup, Table, Row} from 'react-bootstrap'
 import Select from 'react-select'
 
 import Pickup_Delivery from './Pickup-Delivery'
@@ -176,7 +176,9 @@ export default function BasicTab(props) {
                     <Col md={6}>
                         <Pickup_Delivery
                             id='pickup'
-                            friendlyName='Pickup'
+                            header={
+                                <h4>Pickup</h4>
+                            }
                             applyRestrictions={props.applyRestrictions}
                             data={props.pickup}
                             addressTypes={props.addressTypes}
@@ -194,6 +196,18 @@ export default function BasicTab(props) {
                         <Pickup_Delivery
                             id='delivery'
                             friendlyName='Delivery'
+                            header={
+                                <Row>
+                                    <Col md={2}>
+                                        <h4>Delivery</h4>
+                                    </Col>
+                                    <Col md={10}>
+                                        <Card style={{background: 'darkorange', display: 'inline-block', padding: '5px'}}>
+                                            <h6><i className='fas fa-exclamation-triangle'></i> Times may vary depending on multiple, bulk orders, and size of shipment</h6>
+                                        </Card>
+                                    </Col>
+                                </Row>
+                            }
                             applyRestrictions={props.applyRestrictions}
                             data={props.delivery}
                             addressTypes={props.addressTypes}
@@ -202,7 +216,7 @@ export default function BasicTab(props) {
                             dateTimeReadOnly={props.applyRestrictions}
                             admin={props.admin}
                             readOnly={props.readOnly || props.invoiceId}
-                            timeTooltip={"The estimated time of delivery based on your selections. The time shown is not a guarantee"}
+                            timeTooltip={"The estimated time of delivery based on the information entered"}
 
                             handleChanges={props.handleChanges}
                         />

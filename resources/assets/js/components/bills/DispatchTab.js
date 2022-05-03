@@ -10,7 +10,7 @@ const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
     const income = commission / 100 * charges.reduce((chargeTotal, charge) =>
         charge.charge_employee_id == employeeId ? chargeTotal :
             charge.lineItems.reduce((lineItemTotal, lineItem) =>
-                lineItemTotal + parseFloat(lineItem.driver_amount), chargeTotal), 0)
+                lineItemTotal + (parseFloat(lineItem.driver_amount) == NaN ? 0 : parseFloat(lineItem.driver_amount)), chargeTotal), 0)
 
     const outgoing = charges.reduce((chargeTotal, charge) =>
         charge.charge_employee_id == employeeId ? chargeTotal + charge.price : chargeTotal
