@@ -16,7 +16,7 @@ const daysOfTheWeek = [
 export default function TimeRate(props) {
 
     function addTimeBracket() {
-        const brackets = props.timeRate.brackets.concat([{startDay: null, startTime: new Date(), endDay: null, endTime: new Date()}])
+        const brackets = props.timeRate.brackets.concat([{startDayOfWeek: null, startTime: new Date(), endDayOfWeek: null, endTime: new Date()}])
         props.handleTimeRateChange({...props.timeRate, brackets: brackets}, props.index)
     }
 

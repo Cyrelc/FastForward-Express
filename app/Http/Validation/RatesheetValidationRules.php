@@ -50,8 +50,8 @@ class RatesheetValidationRules {
 
         foreach($req->timeRates as $key => $timeRate) {
             foreach($timeRate['brackets'] as $bracketIndex => $bracket) {
-                $rules['timeRates.' . $key . '.' . $bracketIndex . '.startDayOfWeek'] = 'required|min:0|max:6';
-                $rules['timeRates.' . $key . '.' . $bracketIndex . '.endDayOfWeek'] = 'required|min:0|max:6';
+                $rules['timeRates.' . $key . '.brackets.' . $bracketIndex . '.startDayOfWeek'] = 'required|min:0|max:6';
+                $rules['timeRates.' . $key . '.brackets.' . $bracketIndex . '.endDayOfWeek'] = 'required|min:0|max:6';
                 $rules['timeRates.' . $key . '.' . $bracketIndex . '.startTime'] = 'date';
                 $rules['timeRates.' . $key . '.' . $bracketIndex . '.endTime'] = 'date';
             }
