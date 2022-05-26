@@ -18,7 +18,7 @@ class BillRepo {
     private $myAccounts;
     private $employeeId;
 
-    function __constructor() {
+    public function __construct() {
         $user = Auth::user();
 
         $accountRepo = new AccountRepo();
@@ -439,7 +439,7 @@ class BillRepo {
         if($this->myAccounts) {
             $bills->whereIn('charges.charge_account_id', $this->myAccounts);
         }
-        else if($this->employeeId && $user->cannot('viewAll', Bill::class)) {
+        else if($this->employeeId && Auth::user()->cannot('viewAll', Bill::class)) {
             $bills->where('pickup_driver_id', $this->employeeId)
                 ->orWhere('delivery_driver_id', $this->employeeId);
         }

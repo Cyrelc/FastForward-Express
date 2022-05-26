@@ -18,7 +18,7 @@
     flex: 1
 }
 
-.react-datepicker-wrapper {
+.react-datepicker-wrapper, .autocomplete-wrapper {
     padding: 0!important
 }
 

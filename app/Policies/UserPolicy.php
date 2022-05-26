@@ -36,7 +36,7 @@ class UserPolicy
             return true;
         else if($targetUser->employee) {
             return $user->hasAnyPermission('employees.edit.*.*');
-        } else if ($targetUser->accountUsers && $user->employee) {
+        } else if ($user->employee && $targetUser->accountUsers) {
             return $user->hasAnyPermission('accountUsers.edit.*.*');
         } else if($targetUser->accountUsers && $user->hasAnyPermission('accountUsers.edit.permissions.my', 'accountUsers.edit.permissions.children')) {
             $accountRepo = new Repos\AccountRepo();

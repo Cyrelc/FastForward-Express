@@ -15,10 +15,10 @@ export default class ChangePasswordModal extends React.Component {
     }
 
     generatePassword() {
-        makeFetchRequest('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2', data => {
+        makeFetchRequest('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2&minCh=20', data => {
             this.setState({
-                newPassword: data.pws,
-                confirmPassword: data.pws,
+                newPassword: data.pws[0],
+                confirmPassword: data.pws[0],
                 viewPassword: true
             })
         })
@@ -56,7 +56,7 @@ export default class ChangePasswordModal extends React.Component {
                             <ol>
                                 <li>Be at least eight characters long</li>
                                 <li>Contain one uppercase and one lowercase character</li>
-                                <li>Be more than 20 characters long, or contain either a number or a special character</li>
+                                <li>Be more than 20 characters long, or contain a number or special character</li>
                             </ol>
                             <hr/>
                             <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936' target='none'>xkcd.com/936</a></p>

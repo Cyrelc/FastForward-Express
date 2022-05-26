@@ -2,7 +2,6 @@ import React from 'react'
 import {Card, Row, Col, ListGroup} from 'react-bootstrap'
 import 'react-tabulator/lib/styles.css'
 import {ReactTabulator} from 'react-tabulator'
-import * as moment from 'moment/moment'
 
 export default function Driver(props) {
     return (

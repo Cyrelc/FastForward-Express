@@ -13,6 +13,8 @@ class UserController extends Controller {
     public function changePassword(Request $req, $userId) {
         $userRepo = new Repos\UserRepo();
         $originalUser = $userRepo->GetById($userId);
+        if($originalUser == null)
+            abort(404, 'Requested user not found');
         if($req->user()->cannot('updatePassword', $originalUser))
             abort(403);
 

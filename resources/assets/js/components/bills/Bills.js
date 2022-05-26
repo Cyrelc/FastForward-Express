@@ -6,14 +6,13 @@ import ReduxTable from '../partials/ReduxTable'
 import { fetchBills } from '../../store/reducers/bills'
 import * as actionTypes from '../../store/actions'
 
-const groupByOptions = [
+const baseGroupByOptions = [
     {label: 'None', value: null},
     {label: 'Account ID', value: 'charge_account_number', groupHeader: (value, count, data, group) => {return data[0].charge_account_number + ' - ' + data[0].charge_account_name + '<span style="color: red">\t(' + count + ')</span>'}},
     {label: 'Delivery Address', value: 'delivery_address_formatted', groupHeader: (value, count, data, group) => {return (data[0].delivery_address_name ? data[0].delivery_address_name : value) + '<span style="color: red">\t(' + count + ')</span>'}},
     {label: 'Parent Account', value: 'parent_account'},
     {label: 'Payment Type', value: 'payment_type_id'},
-    {label: 'Pickup Address', value: 'pickup_address_formatted', groupHeader: (value, count, data, group) => {return (data[0].pickup_address_name ? data[0].pickup_address_name : value) + '<span style="color: red">\t(' + count + ')</span>'}},
-    {label: 'Pickup Employee', value: 'pickup_driver_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].pickup_employee_name + '<span style="color: red">\t(' + count + ')</span>'}}
+    {label: 'Pickup Address', value: 'pickup_address_formatted', groupHeader: (value, count, data, group) => {return (data[0].pickup_address_name ? data[0].pickup_address_name : value) + '<span style="color: red">\t(' + count + ')</span>'}}
 ]
 
 const initialSort = [{column:'bill_id', dir: 'desc'}]
@@ -230,6 +229,9 @@ class Bills extends Component {
                 ] : []
             ],
             groupBy: '',
+            groupByOptions: baseGroupByOptions.concat(...this.props.frontEndPermissions.bills.edit ? [
+                {label: 'Pickup Employee', value: 'pickup_driver_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].pickup_employee_name + '<span style="color: red">\t(' + count + ')</span>'}}
+            ] : []),
             withSelected: []
         }
         this.deleteBill = this.deleteBill.bind(this)
@@ -247,8 +249,8 @@ class Bills extends Component {
             return
         }
 
-        if(confirm('Are you sure you wish to delete bill ' + data.bill_id + '?\nThis action can not be undone')) {
-            makeAjaxRequest('/bills/delete/' + cell.getRow().getData().bill_id, 'GET', null, response => {
+        if(confirm(`Are you sure you wish to delete bill ${data.bill_id}?\nThis action can not be undone`)) {
+            makeAjaxRequest(`/bills/delete/${data.bill_id}`, 'GET', null, response => {
                 this.props.fetchTableData()
             })
         }
@@ -266,7 +268,7 @@ class Bills extends Component {
                 dataUrl='/bills/buildTable'
                 fetchTableData={this.props.fetchTableData}
                 filters={this.state.filters}
-                groupByOptions={groupByOptions}
+                groupByOptions={this.state.groupByOptions}
                 handleChange={this.handleChange}
                 indexName='bill_id'
                 initialSort={initialSort}
