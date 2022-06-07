@@ -4,7 +4,7 @@ namespace App\Http\Validation;
 class RatesheetValidationRules {
     public function GetValidationRules($req) {
         $rules = [
-            'name' => 'required|min:3|max:255|unique:ratesheets.name',
+            'name' => 'required|min:3|max:255|unique:ratesheets,name,' . $req->ratesheet_id . ',ratesheet_id',
             'deliveryTypes.*.time' => 'required|numeric',
             'weightRates' => 'required|array|min:2',
             'weightRates.*.name' => 'required',

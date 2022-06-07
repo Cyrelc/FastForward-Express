@@ -31,15 +31,24 @@ class BillValidationRules {
 		];
 
 		if(!filter_var($req->is_min_weight_size, FILTER_VALIDATE_BOOLEAN)) {
-			$rules = array_merge($rules, [
-				'packages' => 'required',
-				'packages.*.packageCount' => 'required|integer|min:1',
-				'packages.*.packageWeight' => 'required|numeric|min:1',
-				'packages.*.packageLength' => 'required|numeric|min:1',
-				'packages.*.packageWidth' => 'required|numeric|min:1',
-				'packages.*.packageHeight' => 'required|numeric|min:1'
-			]);
-			$messages = array_merge($messages, []);
+			$rules = array_merge($rules, ['packages' => 'required|array']);
+			$messages = array_merge($messages, ['packages.required' => 'Please enter weight and dimension information for a minimum of 1 package']);
+			foreach($req->packages as $key => $package) {
+				$rules = array_merge($rules, [
+					'packages.' . $key . '.count' => 'required|integer|min:1',
+					'packages.' . $key . '.weight' => 'required|numeric|min:1',
+					'packages.' . $key . '.length' => 'required|numeric|min:1',
+					'packages.' . $key . '.width' => 'required|numeric|min:1',
+					'packages.' . $key . '.height' => 'required|numeric|min:1'
+				]);
+				$messages = array_merge($messages, [
+					'packages.' . $key . '.count.required' => 'Please enter a count for package at row ' . $key,
+					'packages.' . $key . '.weight.required' => 'Please enter a weight for package at row ' . $key,
+					'packages.' . $key . '.length.required' => 'Please enter a length for package at row ' . $key,
+					'packages.' . $key . '.width.required' => 'Please enter a width for a package at row ' . $key,
+					'packages.' . $key . '.height.required' => 'Please enter a height for a package at row ' . $key
+				]);
+			}
 		}
 		
 		$pickupAddress = $partialsRules->GetAddressMinValidationRules($req, 'pickup_address', 'Pickup');

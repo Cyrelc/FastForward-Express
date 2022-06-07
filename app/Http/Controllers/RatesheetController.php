@@ -56,7 +56,6 @@ class RatesheetController extends Controller {
 
         $this->validate($req, $ratesheetRules['rules'], $ratesheetRules['messages']);
 
-
         $ratesheetCollector = new Collectors\RatesheetCollector();
         $zoneCollector = new Collectors\ZoneCollector();
         $ratesheet = $ratesheetCollector->Collect($req);

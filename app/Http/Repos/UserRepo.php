@@ -35,7 +35,12 @@ class UserRepo
     public function DeleteAccountUser($contactId, $accountId) {
         $userId = AccountUser::where('contact_id', $contactId)
             ->where('account_id', $accountId)
-            ->first()->userId;
+            ->pluck('user_id');
+
+        $initialAccountUserCount = AccountUser::where('contact_id', $contactId)->count();
+
+        if(!$userId)
+            abort(400, 'Unable to find a user with given credentials. Please try again or contact support');
 
         /**
          * Secondary full request for delete is required, otherwise it will delete all entries matching the primary key ('contact_id')
@@ -44,7 +49,7 @@ class UserRepo
             ->where('account_id', $accountId)
             ->delete();
 
-        if(AccountUser::where('contact_id', $contactId)->count() == 1) {
+        if(AccountUser::where('contact_id', $contactId)->get()->count() == 0) {
             $user = User::where('user_id', $userId)->first();
             $user->delete();
             $contactRepo = new ContactRepo();

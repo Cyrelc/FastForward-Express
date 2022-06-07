@@ -46,8 +46,8 @@ class Account extends Model
         return $this->belongsToMany('App\Contact', 'account_users');
     }
 
-    public function rate_types() {
-        return $this->belongsTo('App\RateType');
+    public function ratesheet() {
+        return $this->belongsTo('App\Ratesheet');
     }
 
     public function parentAccount() {
