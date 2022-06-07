@@ -35,18 +35,18 @@ class BillValidationRules {
 			$messages = array_merge($messages, ['packages.required' => 'Please enter weight and dimension information for a minimum of 1 package']);
 			foreach($req->packages as $key => $package) {
 				$rules = array_merge($rules, [
-					'packages.' . $key . '.count' => 'required|integer|min:1',
-					'packages.' . $key . '.weight' => 'required|numeric|min:1',
-					'packages.' . $key . '.length' => 'required|numeric|min:1',
-					'packages.' . $key . '.width' => 'required|numeric|min:1',
-					'packages.' . $key . '.height' => 'required|numeric|min:1'
+					'packages.' . $key . '.packageCount' => 'required|integer|min:1',
+					'packages.' . $key . '.packageWeight' => 'required|numeric|min:1',
+					'packages.' . $key . '.packageLength' => 'required|numeric|min:1',
+					'packages.' . $key . '.packageWidth' => 'required|numeric|min:1',
+					'packages.' . $key . '.packageHeight' => 'required|numeric|min:1'
 				]);
 				$messages = array_merge($messages, [
-					'packages.' . $key . '.count.required' => 'Please enter a count for package at row ' . $key,
-					'packages.' . $key . '.weight.required' => 'Please enter a weight for package at row ' . $key,
-					'packages.' . $key . '.length.required' => 'Please enter a length for package at row ' . $key,
-					'packages.' . $key . '.width.required' => 'Please enter a width for a package at row ' . $key,
-					'packages.' . $key . '.height.required' => 'Please enter a height for a package at row ' . $key
+					'packages.' . $key . '.packageCount.required' => 'Please enter a count for package at row ' . $key,
+					'packages.' . $key . '.packageWeight.required' => 'Please enter a weight for package at row ' . $key,
+					'packages.' . $key . '.packageLength.required' => 'Please enter a length for package at row ' . $key,
+					'packages.' . $key . '.packageWidth.required' => 'Please enter a width for a package at row ' . $key,
+					'packages.' . $key . '.packageHeight.required' => 'Please enter a height for a package at row ' . $key
 				]);
 			}
 		}
