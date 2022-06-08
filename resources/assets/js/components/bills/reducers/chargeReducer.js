@@ -162,12 +162,12 @@ export default function chargeReducer(state, action) {
         case 'DELETE_CHARGE_TABLE': {
             // If the table has no ID (has not been stored) we can delete it straight out, otherwise mark it as to be deleted
             // TODO - Rules?!?!!? Don't just delete things that we aren't allowed, bad!
-            let charges = state.charges.filter((charge, index) => index != payload && !charge.charge_id)
-            charges = charges.map((charge, index) => {
-                if(index == payload)
+            let charges = state.charges.map((charge, index) => {
+                if(index === payload)
                     return {...charge, toBeDeleted: true}
                 return charge
             })
+            charges = charges.filter(charge => !charge.toBeDeleted && !charge.charge_id)
             return Object.assign({}, state, {
                 charges
             })
