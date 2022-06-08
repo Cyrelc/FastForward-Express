@@ -15,7 +15,7 @@ return [
     */
 
     'google' => [
-        'places_api_key' => env('APP_PLACES_API_KEY')
+        'places_api_key' => env('MIX_APP_PLACES_API_KEY')
     ],
 
     'mailgun' => [

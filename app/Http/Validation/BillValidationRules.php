@@ -35,18 +35,18 @@ class BillValidationRules {
 			$messages = array_merge($messages, ['packages.required' => 'Please enter weight and dimension information for a minimum of 1 package']);
 			foreach($req->packages as $key => $package) {
 				$rules = array_merge($rules, [
-					'packages.' . $key . '.packageCount' => 'required|integer|min:1',
-					'packages.' . $key . '.packageWeight' => 'required|numeric|min:1',
-					'packages.' . $key . '.packageLength' => 'required|numeric|min:1',
-					'packages.' . $key . '.packageWidth' => 'required|numeric|min:1',
-					'packages.' . $key . '.packageHeight' => 'required|numeric|min:1'
+					'packages.' . $key . '.count' => 'required|integer|min:1',
+					'packages.' . $key . '.weight' => 'required|numeric|min:1',
+					'packages.' . $key . '.length' => 'required|numeric|min:1',
+					'packages.' . $key . '.width' => 'required|numeric|min:1',
+					'packages.' . $key . '.height' => 'required|numeric|min:1'
 				]);
 				$messages = array_merge($messages, [
-					'packages.' . $key . '.packageCount.required' => 'Please enter a count for package at row ' . $key,
-					'packages.' . $key . '.packageWeight.required' => 'Please enter a weight for package at row ' . $key,
-					'packages.' . $key . '.packageLength.required' => 'Please enter a length for package at row ' . $key,
-					'packages.' . $key . '.packageWidth.required' => 'Please enter a width for a package at row ' . $key,
-					'packages.' . $key . '.packageHeight.required' => 'Please enter a height for a package at row ' . $key
+					'packages.' . $key . '.count.required' => 'Please enter a count for package at row ' . $key,
+					'packages.' . $key . '.weight.required' => 'Please enter a weight for package at row ' . $key,
+					'packages.' . $key . '.length.required' => 'Please enter a length for package at row ' . $key,
+					'packages.' . $key . '.width.required' => 'Please enter a width for a package at row ' . $key,
+					'packages.' . $key . '.height.required' => 'Please enter a height for a package at row ' . $key
 				]);
 			}
 		}
@@ -67,7 +67,7 @@ class BillValidationRules {
 		if($pickupAccount && $pickupAccount->custom_field && $pickupAccount->is_custom_field_mandatory)
 			$rules = array_merge($rules, ['pickup_reference_value' => ['required', new AlphaNumSpace]]);
 
-		if($req->user()->accountUser) {
+		if(filter_var($req->user()->accountUsers, FILTER_VALIDATE_BOOLEAN)) {
 			$basic = $this->getBasicValidationRulesAccountUser($req);
 			$rules = array_merge($rules, $basic['rules']);
 			$messages = array_merge($messages, $basic['messages']);
@@ -99,9 +99,9 @@ class BillValidationRules {
 	private function getBasicValidationRulesAccountUser($req) {
 		$accountRepo = new Repos\AccountRepo();
 		$paymentRepo = new Repos\PaymentRepo();
-		$accountPaymentTypeId = $paymentRepo->GetAccountPaymentType()->payment_type_id;
+		$accountPaymentTypeId = (int)$paymentRepo->GetAccountPaymentType()->payment_type_id;
 
-		$validAccounts = $accountRepo->ListForBillsPage($accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children')));
+		$validAccounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'));
 		$validAccountIds = [];
 
 		foreach($validAccounts as $validAccount)
@@ -110,23 +110,30 @@ class BillValidationRules {
 		$businessHoursOpen = explode(':', config('ffe_config.business_hours_open'));
 		$businessHoursClose = explode(':', config('ffe_config.business_hours_close'));
 		if(date('w') === 6 || date('w') === 0)
-			$minDateTime = strtotime('next monday');
+			$minDateTime = new \DateTime('next monday');
 		else
-			$minDateTime = strtotime('today');
+			$minDateTime = new \DateTime('today');
+
 		$minDateTime->setTime((int)$businessHoursOpen[0], (int)$businessHoursOpen[1]);
-		activity('system_debug')->log('checking against minimum datetime of: ' . $minDateTime);
+		$minDateTime = $minDateTime->format('Y-m-d-H-i-s');
+
 		$rules = [
-			'charges.0.chargeId' => ['required', Rule::in($validAccountIds)],
+			'accept_terms_and_conditions' => 'required|accepted',
 			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', Rule::in($validAccountIds)],
-			'charges.0.chargeType.payment_type_id' => ['required', Rule::in([$accountPaymentTypeId])],
-			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', Rule::in($validAccountIds)],
+			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
+			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
+			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
 			'time_pickup_expected' => ['required|date|after:' . $minDateTime],
 			'time_delivery_expected' => ['required|data|after:time_pickup_expected']
 		];
 
 		$messages = [
 			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
-			'pickup_account_id.required' => 'Pickup Account is required when address input type is Account'
+			'pickup_account_id.required' => 'Pickup Account is required when address input type is Account',
+			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
+			'charge_type.payment_type_id.required' => 'Please select a payment method',
+			'charge_type.payment_type_id.in' => 'Selected payment method appears to be invalid',
+			'charge_account_id.required' => 'Please select a valid account to charge the bill to'
 		];
 
 		return ['rules' => $rules, 'messages' => $messages];

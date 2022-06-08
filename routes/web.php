@@ -46,10 +46,11 @@ Route::group(
 
             Route::get('/app/{route}', 'HomeController@index');
 
-            Route::get('/bills/buildTable', 'BillController@buildTable');
+            Route::get('/bills', 'BillController@buildTable');
+            Route::get('/bills/create', 'BillController@getModel');
+            Route::get('/bills/{billId?}', 'BillController@getModel');
             Route::get('/bills/chart', 'AdminController@getChart');
-            Route::get('/bills/delete/{billId}', 'BillController@delete');
-            Route::get('/bills/getModel/{billId?}', 'BillController@getModel');
+            Route::delete('/bills/{billId}', 'BillController@delete');
             Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
             Route::post('/bills/store', 'BillController@store');
             Route::post('/bills/generateCharges', 'BillController@generateCharges');

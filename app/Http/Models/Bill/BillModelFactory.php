@@ -56,7 +56,7 @@ class BillModelFactory{
 		}
 
 		$model->bill = new \App\Bill();
-		$model->packages = array(['packageId' => 0, 'packageCount' => 1, 'packageWeight' => '', 'packageLength' => '', 'packageWidth' => '', 'packageHeight' => '']);
+		$model->packages = array(['count' => 1, 'weight' => '', 'length' => '', 'width' => '', 'height' => '']);
 		$model->pickupAddress = new \App\Address();
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
 		$model->deliveryAddress = new \App\Address();
@@ -121,6 +121,7 @@ class BillModelFactory{
 
 		$model->pickup_address = $addressRepo->GetById($model->bill->pickup_address_id);
 		$model->delivery_address = $addressRepo->GetById($model->bill->delivery_address_id);
+
 		$model->bill->packages = json_decode($model->bill->packages);
 		$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 
@@ -133,10 +134,12 @@ class BillModelFactory{
 		//set minimum and maximum pickup times based on config settings
 		$business_hours_open = explode(':', config('ffe_config.business_hours_open'));
 		$business_hours_close = explode(':', config('ffe_config.business_hours_close'));
-		$model->time_min = new \DateTime();
-		$model->time_min->setTime((int)$business_hours_open[0], (int)$business_hours_open[1]);
-		$model->time_max = new \DateTime();
-		$model->time_max->setTime((int)$business_hours_close[0], (int)$business_hours_close[1]);
+		$timeMin = new \DateTime();
+		$timeMax = new \DateTime();
+		$timeMin->setTime((int)$business_hours_open[0], (int)$business_hours_open[1]);
+		$timeMax->setTime((int)$business_hours_close[0], (int)$business_hours_close[1]);
+		$model->time_min = $timeMin->format(\DateTime::ATOM);
+		$model->time_max = $timeMax->format(\DateTime::ATOM);
 
 		return $model;
 	}

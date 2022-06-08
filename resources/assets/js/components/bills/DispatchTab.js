@@ -20,6 +20,10 @@ const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
 }
 
 export default function DispatchTab(props) {
+    const {billId, delivery, drivers, internalComments, pickup, timeDispatched, timeCallReceived} = props.billState
+
+    const {charges, isDeliveryManifested, isPickupManifested, readOnly} = props
+
     return (
         <Card border='dark'>
             <Row> {/* Pickup */}
@@ -28,11 +32,11 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select
-                            options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
+                            options={billId ? drivers : drivers.filter(driver => driver.active)}
                             isSearchable
-                            value={props.pickupEmployee}
-                            onChange={driver => props.handleChanges({target: {name: 'pickupEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly || props.isPickupManifested}
+                            value={pickup.driver}
+                            onChange={driver => props.billDispatch({type: 'SET_PICKUP_DRIVER', payload: driver})}
+                            isDisabled={readOnly || isPickupManifested}
                         />
                     </InputGroup>
                 </Col>
@@ -43,10 +47,9 @@ export default function DispatchTab(props) {
                             type='number'
                             min={0}
                             max={100}
-                            value={props.pickupEmployeeCommission}
-                            name='pickupEmployeeCommission'
-                            onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.isPickupManifested}
+                            value={pickup.driverCommission}
+                            onChange={event => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: 'driverCommission', value: event.target.value}})}
+                            readOnly={readOnly || isPickupManifested}
                         />
                         <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
@@ -55,7 +58,7 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Est. Income</InputGroup.Text>
                         <FormControl
-                            value={getEmployeeEstimatedIncome(props.charges, props.pickupEmployeeCommission, props.pickupEmployee.employee_id)}
+                            value={pickup.driver ? getEmployeeEstimatedIncome(charges, pickup.driverCommission, pickup.driver.employee_id) : ''}
                             disabled={true}
                         />
                     </InputGroup>
@@ -70,9 +73,9 @@ export default function DispatchTab(props) {
                             scrollableMonthDropdown
                             timeIntervals={15}
                             dateFormat='MMMM d, yyyy h:mm aa'
-                            selected={props.pickupTimeActual}
-                            onChange={datetime => props.handleChanges({target: {name: 'pickupTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly || props.isPickupManifested}
+                            selected={pickup.timeActual}
+                            onChange={datetime => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: 'timeActual', type:'date', value: datetime}})}
+                            readOnly={readOnly || isPickupManifested}
                             className='form-control'
                             wrapperClassName='form-control'
                         />
@@ -86,11 +89,11 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select 
-                            options={props.billId ? props.drivers : props.drivers.filter(driver => driver.active)}
+                            options={billId ? drivers : drivers.filter(driver => driver.active)}
                             isSearchable
-                            value={props.deliveryEmployee}
-                            onChange={driver => props.handleChanges({target: {name: 'deliveryEmployee', type: 'object', value: driver}})}
-                            isDisabled={props.readOnly || props.isDeliveryManifested}
+                            value={delivery.driver}
+                            onChange={driver => props.billDispatch({type: 'SET_DELIVERY_DRIVER', payload: driver})}
+                            isDisabled={readOnly || isDeliveryManifested}
                         />
                     </InputGroup>
                 </Col>
@@ -102,9 +105,9 @@ export default function DispatchTab(props) {
                             min='0'
                             max='100'
                             name='deliveryEmployeeCommission'
-                            value={props.deliveryEmployeeCommission}
-                            onChange={props.handleChanges}
-                            readOnly={props.readOnly || props.isDeliveryManifested}
+                            value={delivery.driverCommission}
+                            onChange={event => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: 'driverCommission', value: event.target.value}})}
+                            readOnly={readOnly || isDeliveryManifested}
                         />
                         <InputGroup.Text> %</InputGroup.Text>
                     </InputGroup>
@@ -113,7 +116,7 @@ export default function DispatchTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Est. Income</InputGroup.Text>
                         <FormControl
-                            value={getEmployeeEstimatedIncome(props.charges, props.deliveryEmployeeCommission, props.deliveryEmployee.employee_id)}
+                            value={delivery.driver ? getEmployeeEstimatedIncome(charges, delivery.driverCommission, delivery.driver.employee_id) : ''}
                             disabled={true}
                         />
                     </InputGroup>
@@ -128,9 +131,9 @@ export default function DispatchTab(props) {
                             scrollableMonthDropdown
                             timeIntervals={15}
                             dateFormat='MMMM d, yyyy h:mm aa'
-                            selected={props.deliveryTimeActual}
-                            onChange={datetime => props.handleChanges({target: {name: 'deliveryTimeActual', type:'date', value: datetime}})}
-                            readOnly={props.readOnly || props.isDeliveryManifested}
+                            selected={delivery.timeActual}
+                            onChange={datetime => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: 'timeActual', type:'date', value: datetime}})}
+                            readOnly={readOnly || isDeliveryManifested}
                             className='form-control'
                             wrapperClassName='form-control'
                         />
@@ -139,15 +142,14 @@ export default function DispatchTab(props) {
             </Row>
             <hr/>
             <Row className='pad-top'>
-                <Col md={2}><h4 className='text-muted'>Internal Notes</h4></Col>
+                <Col md={2}><h4 className='text-muted'>Internal Comments</h4></Col>
                 <Col md={10}>
                     <FormControl
                         as='textarea'
-                        placeholder='Internal notes are never meant to be seen by the client'
-                        name='internalNotes'
-                        value={props.internalNotes}
-                        onChange={props.handleChanges}
-                        readOnly={props.readOnly}
+                        placeholder='Internal comments are never meant to be seen by the client'
+                        value={internalComments}
+                        onChange={event => props.billDispatch({type: 'SET_INTERNAL_COMMENTS', payload: event.target.value})}
+                        readOnly={readOnly}
                     />
                 </Col>
             </Row>
@@ -166,8 +168,8 @@ export default function DispatchTab(props) {
                             showYearDropdown
                             yearDropdownItemNumber={15}
                             scrollableYearDropdown
-                            selected={props.timeCallReceived}
-                            onChange={datetime => props.handleChanges({target: {name: 'timeCallReceived', type:'date', value: datetime}})}
+                            selected={timeCallReceived}
+                            onChange={datetime => props.billDispatch({type: 'SET_TIME_CALL_RECEIVED', payload: datetime})}
                             readOnly={true}
                             className='form-control'
                             wrapperClassName='form-control'
@@ -181,9 +183,9 @@ export default function DispatchTab(props) {
                             showTimeSelect
                             timeIntervals={15}
                             dateFormat='MMMM d, yyyy h:mm aa'
-                            selected={props.timeDispatched}
+                            selected={timeDispatched}
                             onChange={datetime => props.handleChanges({target: {name: 'timeDispatched', type:'date', value: datetime}})}
-                            onFocus={props.timeDispatched === '' ? props.handleChanges({target: {name: 'timeDispatched', type: 'date', value: new Date()}}) : null}
+                            onFocus={timeDispatched === '' ? props.handleChanges({target: {name: 'timeDispatched', type: 'date', value: new Date()}}) : null}
                             readOnly={true}
                             className='form-control'
                             wrapperClassName='form-control'

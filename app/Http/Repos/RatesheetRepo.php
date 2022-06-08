@@ -3,8 +3,18 @@ namespace App\Http\Repos;
 
 use App\Ratesheet;
 use App\Zone;
+use Illuminate\Support\Facades\Auth;
 
 class RatesheetRepo {
+    private $myAccountIds;
+
+    public function __construct() {
+        $user = Auth::user();
+
+        $accountRepo = new AccountRepo();
+        $this->myAccountIds = $user->accountUsers ? $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')) : null;
+    }
+
     public function DeleteZone($zoneId) {
         $zone = Zone::where('zone_id', $zoneId)->first();
         $zone->delete();
@@ -60,21 +70,21 @@ class RatesheetRepo {
     }
 
     public function GetForBillsPage($accountId = null, $children = false) {
-        $ratesheets = Ratesheet::select(
-            'name',
-            'ratesheet_id',
-            'delivery_types',
-            'zone_rates as distance_rates',
-            'misc_rates',
-            'weight_rates',
-            'time_rates'
-        );
+        $fieldArray = array('name', 'ratesheet_id', 'delivery_types');
+        if(Auth::user()->can('createFull', Bill::class) || Auth::user()->can('viewBilling', Bill::class))
+            $fieldArray = array_merge($fieldArray, array('zone_rates as distance_rates', 'misc_rates', 'weight_rates', 'time_rates'));
 
-        if($accountId) {
-            $ratesheetIds = \App\Account::where('account_id', $accountId);
-            if($children)
-                $ratesheetIds->orWhere('parent_account_id', $accountId);
-            $ratesheetIds = $ratesheetIds->pluck('ratesheet_id');
+        $ratesheets = Ratesheet::select($fieldArray);
+
+        if($this->myAccountIds) {
+            $accountRepo = new AccountRepo();
+            $paymentRepo = new PaymentRepo();
+            $accountPaymentType = $paymentRepo->GetAccountPaymentType();
+            $ratesheetIds = $accountRepo->GetMyRatesheetIds($this->myAccountIds);
+            foreach($ratesheetIds as $key => $ratesheetId)
+                if($ratesheetId == null)
+                    $ratesheetIds[$key] = $accountPaymentType->default_ratesheet_id;
+
             $ratesheets->whereIn('ratesheet_id', $ratesheetIds);
         }
 

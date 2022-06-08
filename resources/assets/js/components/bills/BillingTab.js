@@ -1,9 +1,11 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Row, FormControl, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 import {ReactTabulator} from 'react-tabulator'
 
 import LinkLineItemModal from './LinkLineItemModal'
+
+const commonRateNames = ['Refund', 'Other', 'Incorrect Information', 'Interliner']
 
 const repeatingBillsTitleText = 'Daily bills will be generated on and assigned to every weekday until disabled\n' +
 'Weekly bills will be generated Sundays, and will be assigned for pickup and delivery on the same day of the week as the original\n' +
@@ -84,22 +86,91 @@ function lineItemTypeGroupFormatter(value) {
     }
 }
 
-function groupHeaderFormatter(value, count, data, group) {
+const groupBy = (data, charge) => {
+    const value = charge.chargeType.name === 'Account' ? 'invoice_id' : charge.chargeType.name === 'Employee' ? 'manifest_id' : 'paid'
+    return value
+}
+
+function groupHeaderFormatter(key, count, data, group) {
     const styledCount = '<span style="color:blue">(' + count + ')</span>'
-    const field = group.getField()
-    if(field === 'invoice_id')
-        return value ? 'Invoice #' + value + styledCount : 'Not Yet Invoiced'
-    else if(field === 'manifest_id')
-        return value ? 'Manifest #' + value + styledCount : 'Not Yet Manifested'
-    else if (field === 'paid')
-        return value ? ('Paid' + styledCount) : ('Unpaid' + styledCount) 
+    const value = data[0][key]
+    if(key === 'invoice_id')
+        return `${value ? 'Invoice #' : 'Not Yet Invoiced'}${styledCount}`
+    else if(key === 'manifest_id')
+        return `${value ? 'Manifest #' : 'Not Yet Manifested'}${styledCount}`
+    else if (key === 'paid')
+        return `${value ? 'Paid' : 'Unpaid'}${styledCount}`
     return
 }
 
+function payOffAllLineItems(charge) {
+    const table = charge.tableRef.current
+    const rows = table.getRows()
+    rows.forEach(row => row.update({paid: true}))
+}
+
 export default function BillingTab(props) {
-    function actionCellContextMenu(cell) {
+    const [rateTable, setRateTable] = useState([])
+    const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
+    const [linkLineItemToType, setLinkLineItemToType] = useState('')
+    const [linkLineItemCell, setLinkLineItemCell] = useState('')
+
+    const {
+        activeRatesheet,
+        charges,
+        chargeAccount,
+        chargeEmployee,
+        chargeType,
+        chargeTypes,
+        hasInterliner,
+        interliner,
+        interlinerActualCost,
+        interlinerReferenceValue,
+        interliners,
+        isDeliveryManifested,
+        isInvoiced,
+        isPickupManifested
+    } = props.chargeState
+
+    const {
+        accounts,
+        billNumber,
+        employees,
+        ratesheets,
+        readOnly,
+        repeatInterval,
+        repeatIntervals,
+        skipInvoicing
+    } = props.billState
+
+    useEffect(() => {
+        if(!activeRatesheet)
+            return []
+        const miscRates = activeRatesheet.miscRates
+            ? JSON.parse(activeRatesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price, paid: false}})
+            : []
+        const timeRates = activeRatesheet.timeRates
+            ? JSON.parse(activeRatesheet.time_rates).map(rate => {return {...rate, type: 'timeRate', driver_amount: rate.price, paid: false}})
+            : []
+        const weightRates = activeRatesheet.weight_rates
+            ? JSON.parse(activeRatesheet.weight_rates).map(rate => {return {...rate, type: 'weightRate', driver_amount: rate.price, paid: false}})
+            : []
+        const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0, paid: false}})
+        const distanceRates = []
+        if(activeRatesheet.distance_rates) {
+            JSON.parse(activeRatesheet.distance_rates).map(rate => {
+                distanceRates.push({name: 'Regular - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.regular_cost, type: 'distanceRate', driver_amount: rate.regular_cost, paid: false})
+                distanceRates.push({name: 'Rush - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.rush_cost, type: 'distanceRate', driver_amount: rate.rush_cost, paid: false})
+                distanceRates.push({name: 'Direct - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_cost, type: 'distanceRate', driver_amount: rate.direct_cost, paid: false})
+                distanceRates.push({name: 'Direct Rush - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
+            });
+        }
+        setRateTable(commonRates.concat(miscRates, timeRates, weightRates, distanceRates))
+    }, [activeRatesheet])
+
+    const actionCellContextMenu = cell => {
         const data = cell.getRow().getData()
-        var menuItems = props.readOnly ? [] : data.line_item_id ? [
+        var menuItems = readOnly ? [] : data.line_item_id ? [
             ... canLineItemBeDeleted(cell.getRow()) ? [
                 {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
             ] : [],
@@ -124,11 +195,11 @@ export default function BillingTab(props) {
         return menuItems
     }
 
-    function actionCellContextMenuFormatter(cell) {
-        return props.readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
+    const actionCellContextMenuFormatter = cell => {
+        return readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
     }
 
-    function canChargeTableBeDeleted(charge) {
+    const canChargeTableBeDeleted = charge => {
         if(!charge || !!props.readOnly)
             return false
         return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
@@ -157,42 +228,29 @@ export default function BillingTab(props) {
         ]
     }
 
-    function deleteChargeTable(index) {
-        if(!canChargeTableBeDeleted(props.charges.filter((charge, i) => i == index)[0])) {
+    const deleteChargeTable = index => {
+        if(!canChargeTableBeDeleted(charges.filter((charge, i) => i == index)[0])) {
             const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced, manifested, or paid'
             toastr.error(errorMessage)
             console.log(errorMessage)
             return
         }
         if(confirm('Are you sure you wish to delete this charge group?\n This action can not be undone')) {
-            const charges = props.charges.map((chargeTable, i) => {
-                if(i == index)
-                    return {...chargeTable, toBeDeleted: true}
-                return chargeTable
-            })
-            props.handleChanges([
-                {target: {name: 'charges', type: 'array', value: charges}},
-            ])
+            props.chargeDispatch({type: 'DELETE_CHARGE_TABLE', payload: index})
         }
     }
 
-    function handleChange(event) {
-        const {name, value, type, checked} = event.target
-        const charges = props.charges.map((charge, index) => {
-            if(index == event.target.dataset.chargeindex)
-                return {...charge, [name]: value}
-            return charge
-        })
-        props.handleChanges({target: {name: 'charges', type: 'array', value: charges}})
+    function hideLinkTo() {
+        setLinkLineItemCell(null)
+        setLinkLineItemToType(null)
+        setShowLinkLineItemModal(false)
+        props.chargeDispatch({type: 'CHECK_INVOICES_AND_MANIFESTS'})
     }
 
     function linkTo(cell, type) {
-        const changes = [
-            {target: {name: 'showLinkLineItemModal', type: 'boolean', value: true}},
-            {target: {name: 'linkLineItemCell', type: 'object', value: cell}},
-            {target: {name: 'linkLineItemToType', type: 'string', value: type}}
-        ]
-        props.handleChanges(changes)
+        setLinkLineItemCell(cell)
+        setLinkLineItemToType(type)
+        setShowLinkLineItemModal(true)
     }
 
     const moneyColumnStandardParams = {
@@ -209,16 +267,6 @@ export default function BillingTab(props) {
         editable: cell => {
             return props.readOnly ? false : canLineItemBeDeleted(cell.getRow())
         }
-    }
-
-    function payOffAll(payOffIndex) {
-        console.log('Pay off all: ' + payOffIndex)
-        const charges = props.charges.map((charge, index) => {
-            if(index == payOffIndex)
-                return {...charge, lineItems: charge.lineItems.map(lineItem => {return {...lineItem, paid: true}})}
-            return charge
-        })
-        props.handleChanges({target: {name: 'charges', type: 'array', value: charges}})
     }
 
     function removeLink(cell, type) {
@@ -245,9 +293,9 @@ export default function BillingTab(props) {
                                 <InputGroup.Text>Waybill #: </InputGroup.Text>
                                 <FormControl
                                     name='billNumber'
-                                    value={props.billNumber}
-                                    onChange={props.handleChanges}
-                                    readOnly={props.readOnly}
+                                    value={billNumber}
+                                    onChange={event => props.billDispatch({type: 'SET_BILL_NUMBER', payload: event.target.value})}
+                                    readOnly={readOnly}
                                 />
                             </InputGroup>
                         </Col>
@@ -255,9 +303,11 @@ export default function BillingTab(props) {
                             <InputGroup>
                                 <InputGroup.Text>Ratesheet: </InputGroup.Text>
                                 <Select
-                                    options={props.ratesheets.map(ratesheet => {return {label: ratesheet.name, value: ratesheet.ratesheet_id}})}
-                                    value={props.activeRatesheet ? {label: props.activeRatesheet.name, value: props.activeRatesheet.ratesheet_id} : undefined}
-                                    onChange={ratesheet => props.handleRatesheetSelection(ratesheet.value)}
+                                    getOptionLabel={ratesheet => ratesheet.name}
+                                    getOptionValue={ratesheet => ratesheet.ratesheet_id}
+                                    options={ratesheets}
+                                    value={activeRatesheet}
+                                    onChange={ratesheet => props.chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})}
                                 />
                             </InputGroup>
                         </Col>
@@ -265,13 +315,13 @@ export default function BillingTab(props) {
                             <InputGroup>
                                 <InputGroup.Text>Repeat: </InputGroup.Text>
                                 <Select
-                                    options={props.repeatIntervals}
+                                    options={repeatIntervals}
                                     isClearable
                                     getOptionLabel={interval => interval.name}
                                     getOptionValue={interval => interval.selection_id}
-                                    onChange={interval => props.handleChanges({target: {name: 'repeatInterval', type: 'object', value: interval}})}
-                                    isDisabled={props.readOnly}
-                                    value={props.repeatInterval}
+                                    onChange={interval => props.billDispatch({type: 'SET_REPEAT_INTERVAL', payload: interval})}
+                                    isDisabled={readOnly}
+                                    value={repeatInterval}
                                 />
                                 <InputGroup.Text><i className='fas fa-question' title={repeatingBillsTitleText}></i></InputGroup.Text>
                             </InputGroup>
@@ -281,11 +331,11 @@ export default function BillingTab(props) {
                                 <InputGroup.Text>Skip Invoicing</InputGroup.Text>
                                 <InputGroup.Checkbox
                                     type='checkbox'
-                                    checked={props.skipInvoicing}
-                                    onChange={props.handleChanges}
-                                    value={props.skipInvoicing}
+                                    checked={skipInvoicing}
+                                    onChange={event => props.billDispatch({type: 'TOGGLE_SKIP_INVOICING'})}
+                                    value={skipInvoicing}
                                     name='skipInvoicing'
-                                    disabled={props.readOnly || props.invoiceId}
+                                    disabled={readOnly || isInvoiced}
                                 />
                             </InputGroup>
                         </Col>
@@ -293,7 +343,7 @@ export default function BillingTab(props) {
                 </Col>
             </Row>
             <hr/>
-            {props.charges && props.charges.some(charge => charge.lineItems.some(lineItem => lineItem.name === 'Interliner')) &&
+            {hasInterliner &&
                 <Row> {/* Interliner */}
                     <Col md={2}>
                         <h4 className='text-muted'>Interliner</h4>
@@ -302,20 +352,20 @@ export default function BillingTab(props) {
                         <InputGroup>
                             <InputGroup.Text>Interliner: </InputGroup.Text>
                             <Select
-                                options={props.interliners}
+                                options={interliners}
                                 isSearchable
-                                value={props.interliner}
-                                onChange={interliner => props.handleChanges({target: {name: 'interliner', type: 'object', value: interliner}})}
-                                isDisabled={props.readOnly || props.invoiceId}
+                                value={interliner}
+                                onChange={interliner => props.chargeDispatch({type: 'SET_INTERLINER', payload: interliner})}
+                                isDisabled={readOnly || isInvoiced}
                             />
                             <InputGroup.Text>Tracking #</InputGroup.Text>
                             <FormControl
                                 type='text'
                                 placeholder='Tracking Number'
-                                name='interlinerTrackingId'
-                                value={props.interlinerTrackingId}
-                                onChange={props.handleChanges}
-                                readOnly={props.readOnly || props.invoiceId}
+                                name='interlinerReferenceValue'
+                                value={interlinerReferenceValue}
+                                onChange={event => props.chargeDispatch({type: 'SET_INTERLINER_REFERENCE_VALUE', payload: event.target.value})}
+                                readOnly={readOnly || isInvoiced}
                             />
                             <InputGroup.Text>Actual Cost: </InputGroup.Text>
                             <FormControl
@@ -323,9 +373,9 @@ export default function BillingTab(props) {
                                 step={0.01}
                                 min={0}
                                 name='interlinerActualCost'
-                                value={props.interlinerActualCost}
-                                onChange={props.handleChanges}
-                                readOnly={props.readOnly || props.invoiceId}
+                                value={interlinerActualCost}
+                                onChange={event => props.chargeDispatch({type: 'SET_INTERLINER_ACTUAL_COST', payload: event.target.value})}
+                                readOnly={readOnly || isInvoiced}
                             />
                         </InputGroup>
                     </Col>
@@ -342,40 +392,43 @@ export default function BillingTab(props) {
                     <InputGroup>
                         <InputGroup.Text>Type: </InputGroup.Text>
                         <Select
-                            options={props.chargeTypes}
+                            options={chargeTypes}
                             getOptionLabel={type => type.name}
-                            value={props.chargeType}
-                            onChange={chargeType => props.handleChanges({target: {name: 'chargeType', type: 'text', value: chargeType}})}
-                            isDisabled={props.readOnly || props.invoiceId}
+                            getOptionValue={type => type.payment_type_id}
+                            value={chargeType}
+                            onChange={chargeType => props.chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeType})}
+                            isDisabled={readOnly || isInvoiced}
                         />
                     </InputGroup>
                 </Col>
-                {props.chargeType.name === 'Account' &&
+                {chargeType?.name === 'Account' &&
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Account: </InputGroup.Text>
                             <Select
-                                options={props.accounts}
+                                options={accounts}
                                 getOptionLabel={account => account.account_number + ' - ' + account.name}
                                 getOptionValue={account => account.account_id}
                                 isSearchable
-                                onChange={account => props.handleChanges({target: {name: 'chargeAccount', type: 'object', value: account}})}
-                                value={props.chargeAccount}
-                                isDisabled={props.readOnly || props.invoiceId}
+                                onChange={account => props.chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: account})}
+                                value={chargeAccount}
+                                isDisabled={readOnly || isInvoiced}
                             />
                         </InputGroup>
                     </Col>
                 }
-                {props.chargeType.name === 'Employee' &&
+                {chargeType?.name === 'Employee' &&
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Employee: </InputGroup.Text>
                             <Select
-                                options={props.employees}
+                                options={employees}
                                 isSearchable
-                                value={props.chargeEmployee}
-                                onChange={employee => props.handleChanges({target: {name: 'chargeEmployee', type: 'object', value: employee}})}
-                                isDisabled={props.readOnly || props.pickupManifestId || props.deliveryManifestId}
+                                getOptionLabel={employee => employee.label}
+                                getOptionValue={employee => employee.value}
+                                value={chargeEmployee}
+                                onChange={employee => props.chargeDispatch({type: 'SET_CHARGE_EMPLOYEE', payload: employee})}
+                                isDisabled={readOnly || pickupManifestId || deliveryManifestId}
                             />
                         </InputGroup>
                     </Col>
@@ -383,11 +436,11 @@ export default function BillingTab(props) {
                 <Col md={1}>
                     <Button
                         variant='success'
-                        onClick={props.addChargeTable}
+                        onClick={() => props.chargeDispatch({type: 'ADD_CHARGE_TABLE'})}
                         disabled={
-                            props.chargeType.name === 'Account' ? !props.chargeAccount :
-                            props.chargeType.name === 'Employee' ? !props.chargeEmployee :
-                            !props.chargeType
+                            chargeType?.name === 'Account' ? !chargeAccount :
+                            chargeType?.name === 'Employee' ? !chargeEmployee :
+                            !chargeType
                         }
                     ><i className='fas fa-plus'></i> Add</Button>
                 </Col>
@@ -395,7 +448,7 @@ export default function BillingTab(props) {
                     <Button
                         variant='warning'
                         onClick={props.generateCharges}
-                        disabled={props.readOnly || props.isPickupManifested || props.isDeliveryManifested || props.isInvoiced || props.charges.length > 1}
+                        disabled={readOnly || isPickupManifested || isDeliveryManifested || isInvoiced || charges?.length !== 1}
                     >Auto-price (BETA)</Button>
                 </Col>
             </Row>
@@ -403,16 +456,16 @@ export default function BillingTab(props) {
             <Row>
                 <Col md={2}>
                     <Card border='dark' style={{padding: '0px'}}>
-                        <Card.Header><h4 className='text-muted'>Charges</h4></Card.Header>
+                        <Card.Header><h4 className='text-muted'>Line Items</h4></Card.Header>
                         <Card.Body style={{padding: '0px'}}>
-                            {props.activeRatesheet &&
+                            {(activeRatesheet && rateTable?.length) &&
                                 <ReactTabulator
                                     id='lineItemSource'
                                     columns={[
                                         {title: 'Name', field: 'name', headerSort: false},
                                         {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
                                     ]}
-                                    data={props.activeRatesheet ? props.activeRatesheet.rates : []}
+                                    data={rateTable}
                                     options={{
                                         groupBy: 'type',
                                         groupHeader: (value, count, data, group) => lineItemTypeGroupFormatter(value, count, data, group),
@@ -421,7 +474,7 @@ export default function BillingTab(props) {
                                         movableRows: true,
                                         movableRowsReceiver: false,
                                         movableRowsSender: true,
-                                        movableRowsConnectedTables: ['#chargesDestination'],
+                                        movableRowsConnectedTables: ['#lineItemDestination'],
                                         layout: 'fitColumns'
                                     }}
                                 />
@@ -431,25 +484,27 @@ export default function BillingTab(props) {
                 </Col>
                 <Col md={10}>
                     <Row>
-                        {props.charges && props.charges.map((charge, index, charges) =>
+                        {charges && charges.map((charge, index, charges) =>
                             <Col
                                 style={{display: charge.toBeDeleted ? 'none' : ''}}
                                 key={index + '.' + charge.name}
-                                md={charges.reduce((counter, cur) => {return cur.toBeDeleted ? counter : ++counter}, 0) === 1 ? 12 : 
+                                md={charges.reduce((counter, cur) => {return cur.toBeDeleted ? counter : ++counter}, 0) === 1 ? 12 :
                                     charges.reduce((counter, cur) => {return cur.toBeDeleted ? counter : ++counter}, 0) === 2 ? 6 : 4}
                             >
                                 <Card border='dark' style={{padding: '0px'}}>
                                     <Card.Header>
                                         <Row>
-                                            <Col md={charge.lineItems && canChargeTableBeDeleted(charge) ? 10 : 11}>
+                                            <Col md={(charge.lineItems && canChargeTableBeDeleted(charge)) ? 10 : 11}>
                                                 <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                                             </Col>
-                                            {!props.readOnly &&
+                                            {!readOnly &&
                                                 <Col md={1}>
-                                                    <Button variant='success' size='sm' onClick={() => payOffAll(index)}><i className='fas fa-hand-holding-usd' title='Mark all as paid'></i></Button>
+                                                    <Button variant='success' size='sm' onClick={() => payOffAllLineItems(charge)}>
+                                                        <i className='fas fa-hand-holding-usd' title='Mark all as paid'></i>
+                                                    </Button>
                                                 </Col>
                                             }
-                                            {charge.lineItems && canChargeTableBeDeleted(charge) &&
+                                            {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
                                                 <Col md={1}>
                                                     <Button variant='danger' size='sm' onClick={() => deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i></Button>
                                                 </Col>
@@ -461,8 +516,8 @@ export default function BillingTab(props) {
                                                         <FormControl
                                                             name='charge_reference_value'
                                                             value={charge.charge_reference_value}
-                                                            onChange={handleChange}
-                                                            readOnly={props.readOnly}
+                                                            onChange={event => props.chargeDispatch({type: 'SET_CHARGE_REFERENCE_VALUE', payload: {index, value: event.target.value}})}
+                                                            readOnly={readOnly}
                                                             data-chargeindex={index}
                                                         />
                                                     </InputGroup>
@@ -472,28 +527,35 @@ export default function BillingTab(props) {
                                     </Card.Header>
                                     <Card.Body style={{padding: '0px'}}>
                                         <ReactTabulator
-                                            ref={charge.tableRef}
-                                            id={'chargesDestination'}
+                                            onRef={ref => charge.tableRef.current = ref.current}
+                                            id={'lineItemDestination'}
                                             columns={chargeTableColumns(charge.chargeType)}
                                             data={charge.lineItems}
                                             data-index={index}
-                                            options={{
+                                            events={{
                                                 cellEdited: cell => {
                                                     const field = cell.getField()
                                                     const row = cell.getRow()
                                                     const rowData = row.getData()
                                                     if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
                                                         row.update({driver_amount: cell.getValue()})
-
-                                                    props.chargeTableUpdated()
                                                 },
-                                                groupBy: charge.chargeType.name === 'Account' ? 'invoice_id' : charge.chargeType.name === 'Employee' ? 'manifest_id' : 'paid',
+                                                rowAdded: row => {
+                                                    row.getTable().setGroupBy(data => groupBy(data, charge))
+                                                    props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+                                                },
+                                                rowDeleted: row => {
+                                                    props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+                                                    charge.tableRef.current.redraw()
+                                                }
+                                            }}
+                                            options={{
+                                                groupBy: data => groupBy(data, charge),
                                                 groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
                                                 initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
                                                 layout: 'fitColumns',
                                                 movableRowsReceiver: 'add',
-                                                rowAdded: props.chargeTableUpdated,
-                                                rowDeleted: props.chargeTableUpdated,
+                                                reactiveData: false
                                             }}
                                         />
                                     </Card.Body>
@@ -504,10 +566,10 @@ export default function BillingTab(props) {
                 </Col>
             </Row>
             <LinkLineItemModal
-                handleChanges={props.handleChanges}
-                linkLineItemCell={props.linkLineItemCell}
-                linkLineItemToType={props.linkLineItemToType}
-                show={props.showLinkLineItemModal}
+                hide={hideLinkTo}
+                linkLineItemCell={linkLineItemCell}
+                linkLineItemToType={linkLineItemToType}
+                show={showLinkLineItemModal}
             />
         </Card>
     )

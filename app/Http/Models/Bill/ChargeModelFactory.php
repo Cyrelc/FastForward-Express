@@ -155,7 +155,7 @@ class ChargeModelFactory {
         $totalWeight = 0;
         $results = array();
         foreach($packages as $package)
-            $totalWeight += ($package['packageWeight'] * $package['packageCount']);
+            $totalWeight += ($package['weight'] * $package['count']);
 
         if(filter_var($useImperial, FILTER_VALIDATE_BOOLEAN))
             $totalWeight *= 0.453592;

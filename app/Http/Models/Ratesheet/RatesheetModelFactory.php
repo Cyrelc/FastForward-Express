@@ -56,13 +56,6 @@ class RatesheetModelFactory {
         return $model;
     }
 
-    public function ListForBillsPage($permissions) {
-        $ratesheetRepo = new Repos\RatesheetRepo();
-        //TODO - Does not separate out based on account permissions, instead is just grabbing all available for all users
-        if($permissions['createBasic'] || $permissions['editBasic'] || $permissions['createFull'])
-            return $ratesheetRepo->ListForBillsPage();
-    }
-
     static function PrepareDeliveryType($type, $new = true) {
         if($new)
             return [

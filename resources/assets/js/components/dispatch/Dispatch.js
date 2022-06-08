@@ -278,7 +278,7 @@ export default class Dispatch extends Component {
         const {name, value} = event.target
         this.setState({startDate: value}, () => {
 
-            makeFetchRequest('/bills/buildTable?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'), data => {
+            makeFetchRequest('/bills?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'), data => {
                 this.setState({bills: data}, this.refreshBills)
             })
         })

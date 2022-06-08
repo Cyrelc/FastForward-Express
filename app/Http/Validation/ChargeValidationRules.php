@@ -28,11 +28,11 @@ class ChargeValidationRules {
 		if(!filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN)) {
 			$rules = array_merge($rules, [
 				'packages' => 'required',
-				'packages.*.packageCount' => 'required|integer|min:1',
-				'packages.*.packageWeight' => 'required|numeric|min:1',
-				'packages.*.packageLength' => 'required|numeric|min:1',
-				'packages.*.packageWidth' => 'required|numeric|min:1',
-				'packages.*.packageHeight' => 'required|numeric|min:1'
+				'packages.*.count' => 'required|integer|min:1',
+				'packages.*.weight' => 'required|numeric|min:1',
+				'packages.*.length' => 'required|numeric|min:1',
+				'packages.*.width' => 'required|numeric|min:1',
+				'packages.*.height' => 'required|numeric|min:1'
 			]);
 			$messages = array_merge($messages, []);
 		}

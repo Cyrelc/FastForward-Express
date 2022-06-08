@@ -151,6 +151,12 @@ class AccountRepo {
         return $accounts;
     }
 
+    public function GetMyRatesheetIds($accountIds) {
+        $ratesheetIds = Account::whereIn('account_id', $accountIds);
+
+        return $ratesheetIds->pluck('ratesheet_id');
+    }
+
     public function GetWithUninvoicedLineItems($invoiceIntervals, $startDate, $endDate) {
         $accounts = Account::leftJoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
             ->leftJoin('accounts as parent_account', 'parent_account.account_id', '=', 'accounts.parent_account_id')
@@ -332,7 +338,7 @@ class AccountRepo {
                 'is_custom_field_mandatory'
             );
 
-        if($user && $user->accountUsers->count() > 0)
+        if($user && filter_var($user->accountUsers, FILTER_VALIDATE_BOOLEAN))
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
 
         return $accounts->get();

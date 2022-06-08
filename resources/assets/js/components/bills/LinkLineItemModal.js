@@ -1,121 +1,105 @@
-import React, {Component, createRef} from 'react'
+import React, {createRef, useState} from 'react'
 import {Alert, Button, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap' 
 
-export default class LinkLineItemModal extends Component {
-    constructor(props) {
-        super(props)
-        this.state={
-            targetObject: undefined,
-            searchValue: undefined,
-            targetId: undefined,
-            searchTextFieldRef: createRef()
-        }
-        this.handleChange = this.handleChange.bind(this)
-        this.searchLinkTo = this.searchLinkTo.bind(this)
-        this.submitLinkTo = this.submitLinkTo.bind(this)
-    }
+export default function LinkLineItemModal(props) {
+    const [targetObject, setTargetObject] = useState(undefined)
+    const [searchValue, setSearchValue] = useState(undefined)
+    const [targetId, setTargetId] = useState(undefined)
+    const searchTextFieldRef = createRef()
 
-    handleChange(event) {
-        const {name, value, checked, type} = event.target
-        this.setState({[name] : type === 'checkbox' ? checked : value})
-    }
+    const {linkLineItemCell, linkLineItemToType, show} = props
 
-    searchLinkTo() {
-        if (this.props.linkLineItemToType === 'Invoice') {
-            makeAjaxRequest('/invoices/getModel/' + this.state.searchValue, 'GET', null, response => {
+    const searchLinkTo = () => {
+        if (linkLineItemToType === 'Invoice') {
+            makeAjaxRequest(`/invoices/getModel/${searchValue}`, 'GET', null, response => {
                 response = JSON.parse(response)
-                this.handleChange({target: {name: 'targetObject', type: 'object', value: response}})
-                this.handleChange({target: {name: 'targetId', type: 'number', value: response.invoice.invoice_id}})
+                setTargetObject(response)
+                setTargetId(response.invoice.invoice_id)
             })
-        } else if (this.props.linkLineItemToType === 'Pickup Manifest' || this.props.linkLineItemToType == 'Delivery Manifest') {
-            makeAjaxRequest('/manifests/getModel/' + this.state.searchValue, 'GET', null, response => {
+        } else if (linkLineItemToType === 'Pickup Manifest' || linkLineItemToType == 'Delivery Manifest') {
+            makeAjaxRequest(`/manifests/getModel/${searchValue}`, 'GET', null, response => {
                 response = JSON.parse(response)
-                this.handleChange({target: {name: 'targetObject', type: 'object', value: response}})
-                this.handleChange({target: {name: 'targetId', type: 'number', value: response.manifest.manifest_id}})
+                setTargetObject(response)
+                setTargetId(response.manifest.manifest_id)
             })
         }
     }
 
-    submitLinkTo() {
+    const submitLinkTo = () => {
         const data = {
             action: 'create_link',
-            line_item_id: this.props.linkLineItemCell.getRow().getData().line_item_id,
-            link_type: this.props.linkLineItemToType,
-            link_to_target_id: this.state.targetId
+            line_item_id: linkLineItemCell.getRow().getData().line_item_id,
+            link_type: linkLineItemToType,
+            link_to_target_id: targetId
         }
 
         makeAjaxRequest('/bills/manageLineItemLinks', 'POST', data, response => {
-            this.props.linkLineItemCell.getRow().update(JSON.parse(response))
+            linkLineItemCell.getRow().update(JSON.parse(response))
 
-            this.props.handleChanges([
-                {target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}},
-                {target: {name: 'linkLineItemCell', type: 'object', value: null}}
-            ])
-            this.handleChange({target: {name: 'searchValue', type: 'number', value: undefined}})
-            this.handleChange({target: {name: 'targetObject', type: 'object', value: undefined}})
-            this.handleChange({target: {name: 'targetId', type: 'number', value: undefined}})
+            setSearchValue(undefined)
+            setTargetObject(undefined)
+            setTargetId(undefined)
+            props.hide()
         })
     }
 
-    render() {
-        return (
-            <Modal
-                autoFocus={false}
-                onHide={() => this.props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}
-                onShow={() => this.state.searchTextFieldRef.current.focus()}
-                show={this.props.show}
-            >
-                <Modal.Header closeButton><Modal.Title>Link Line Item to {this.props.linkLineItemToType}</Modal.Title></Modal.Header>
-                <Modal.Body>
+    return (
+        <Modal
+            autoFocus={false}
+            onHide={props.hide}
+            onShow={() => searchTextFieldRef.current.focus()}
+            show={show}
+        >
+            <Modal.Header closeButton><Modal.Title>Link Line Item to {linkLineItemToType}</Modal.Title></Modal.Header>
+            <Modal.Body>
+                <Row>
+                    <Col md={12}>
+                        <InputGroup>
+                            <InputGroup.Text>{linkLineItemToType} ID: </InputGroup.Text>
+                            <FormControl
+                                autoFocus={show}
+                                name='searchValue'
+                                value={searchValue}
+                                onKeyPress={(event) => {
+                                    if(event.key === 'Enter')
+                                        searchLinkTo()
+                                }}
+                                onChange={event => setSearchValue(event.target.value)}
+                                ref={searchTextFieldRef}
+                            />
+                        </InputGroup>
+                    </Col>
+                </Row>
+                {targetObject &&
                     <Row>
                         <Col md={12}>
-                            <InputGroup>
-                                <InputGroup.Text>{this.props.linkLineItemToType} ID: </InputGroup.Text>
-                                <FormControl
-                                    autoFocus={this.props.show}
-                                    name='searchValue'
-                                    value={this.state.searchValue}
-                                    onKeyPress={(event) => {
-                                        if(event.key === 'Enter')
-                                            this.searchLinkTo()
-                                    }}
-                                    onChange={this.handleChange}
-                                    ref={this.state.searchTextFieldRef}
-                                />
-                            </InputGroup>
-                        </Col>
-                    </Row>
-                    {this.state.targetObject &&
-                        <Row>
-                            <Col md={12}>
-                                {this.state.targetObject.manifest ?
-                                    'Manifest ID: ' + this.state.targetObject.manifest.manifest_id :
-                                    'Invoice ID: ' + this.state.targetObject.invoice.invoice_id
-                                }
-                            </Col>
-                            <Col md={12}>
-                                {this.state.targetObject.manifest ?
-                                    'Driver: ' + this.state.targetObject.employee.contact.first_name + " " + this.state.targetObject.employee.contact.last_name :
-                                    'Account: ' + this.state.targetObject.parent.name
-                                }
-                            </Col>
-                            {(this.state.targetObject.invoice && this.state.targetObject.invoice.finalized) &&
-                                <Col md={12}>
-                                    <Alert variant='warning'>
-                                        WARNING - Selected invoice has been finalized, this line item will be attached as an amendment
-                                    </Alert>
-                                </Col>
+                            {targetObject?.manifest ?
+                                'Manifest ID: ' + targetObject.manifest.manifest_id :
+                                'Invoice ID: ' + targetObject.invoice.invoice_id
                             }
-                        </Row>
-                    }
-                </Modal.Body>
-                <Modal.Footer className='justify-content-md-center'>
-                    <Button variant='light' onClick={() => props.handleChanges({target: {name: 'showLinkLineItemModal', type: 'boolean', value: false}})}>Cancel</Button>
-                    <Button variant='warning' onClick={this.searchLinkTo} disabled={!this.state.searchValue || !this.state.searchValue.length}><i className='fas fa-search'></i> Search</Button>
-                    <Button variant='success' onClick={this.submitLinkTo} disabled={!this.state.targetObject}><i className='fas fa-save'></i> Submit</Button>
-                </Modal.Footer>
-            </Modal>
-        )
-    }
+                        </Col>
+                        <Col md={12}>
+                            {targetObject?.manifest ?
+                                'Driver: ' + targetObject.employee.contact.first_name + " " + targetObject.employee.contact.last_name :
+                                'Account: ' + targetObject.parent.name
+                            }
+                        </Col>
+                        {(targetObject?.invoice && targetObject?.invoice.finalized) &&
+                            <Col md={12}>
+                                <Alert variant='warning'>
+                                    WARNING - Selected invoice has been finalized, this line item will be attached as an amendment
+                                </Alert>
+                            </Col>
+                        }
+                    </Row>
+                }
+            </Modal.Body>
+            <Modal.Footer className='justify-content-md-center'>
+                <Button variant='light' onClick={props.hide}>Cancel</Button>
+                <Button variant='warning' onClick={searchLinkTo} disabled={!searchValue?.length}><i className='fas fa-search'></i> Search</Button>
+                <Button variant='success' onClick={submitLinkTo} disabled={!targetObject}><i className='fas fa-save'></i> Submit</Button>
+            </Modal.Footer>
+        </Modal>
+    )
 }
 
