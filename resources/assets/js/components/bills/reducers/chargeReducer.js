@@ -28,7 +28,8 @@ export const initialState = {
     isDeliveryManifested: false,
     isInvoiced: false,
     isPickupManifested: false,
-    manifestIds: []
+    manifestIds: [],
+    ratesheets: []
 }
 
 export default function chargeReducer(state, action) {
@@ -119,7 +120,8 @@ export default function chargeReducer(state, action) {
                 chargeAccount: payload.accounts.length === 1 ? payload.accounts[0] : '',
                 chargeType: payload.chargeTypes.length === 1 ? payload.chargeTypes[0] : '',
                 chargeTypes: payload.chargeTypes,
-                interliners: payload.interliners
+                interliners: payload.interliners,
+                ratesheets: payload.ratesheets
             })
         case 'CONFIGURE_EXISTING': {
             const {accounts, bill, charges, charge_types, permissions} = payload

@@ -46,7 +46,8 @@ const Bill = (props) => {
                     activeRatesheet: data.ratesheets[0],
                     charges: data?.charges,
                     chargeTypes: data.charge_types,
-                    interliners: data.interliners
+                    interliners: data.interliners,
+                    ratesheets: data.ratesheets
                 }
             })
             packageDispatch({type: 'CONFIGURE_PACKAGES'})
