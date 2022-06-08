@@ -167,7 +167,7 @@ export default function chargeReducer(state, action) {
                     return {...charge, toBeDeleted: true}
                 return charge
             })
-            charges = charges.filter(charge => !charge.toBeDeleted && !charge.charge_id)
+            charges = charges.filter(charge => charge.toBeDeleted == true ? !!charge.charge_id : true)
             return Object.assign({}, state, {
                 charges
             })
