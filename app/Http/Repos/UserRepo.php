@@ -37,8 +37,6 @@ class UserRepo
             ->where('account_id', $accountId)
             ->pluck('user_id');
 
-        $initialAccountUserCount = AccountUser::where('contact_id', $contactId)->count();
-
         if(!$userId)
             abort(400, 'Unable to find a user with given credentials. Please try again or contact support');
 
@@ -49,7 +47,7 @@ class UserRepo
             ->where('account_id', $accountId)
             ->delete();
 
-        if(AccountUser::where('contact_id', $contactId)->get()->count() == 0) {
+        if(AccountUser::where('contact_id', $contactId)->count() == 0) {
             $user = User::where('user_id', $userId)->first();
             $user->delete();
             $contactRepo = new ContactRepo();
@@ -77,7 +75,7 @@ class UserRepo
     // }
 
     public function GetAccountUsers($accountId) {
-        $accountUsers = AccountUser::where('account_id', '=', $accountId)
+        $accountUsers = AccountUser::where('account_id', $accountId)
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('users', 'account_users.user_id', '=', 'users.user_id')
             ->leftJoin('email_addresses', 'account_users.contact_id', '=', 'email_addresses.contact_id')
