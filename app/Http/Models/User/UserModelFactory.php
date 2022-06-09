@@ -35,6 +35,18 @@ class UserModelFactory {
         return $model;
     }
 
+    public function getAccountUsers($accountId) {
+        $userRepo = new Repos\UserRepo();
+        $contactModelFactory = new Models\Partials\ContactModelFactory();
+
+        $accountUsers = $userRepo->GetAccountUsers($accountId);
+        foreach($accountUsers as $key => $accountUser) {
+            $accountUsers[$key]['roles'] = $contactModelFactory->GetRolesFromEmails($accountUser->contact_id);
+        }
+
+        return $accountUsers;
+    }
+
     public function getAccountUserCreateModel($req, $account) {
         $model = new AccountUserFormModel();
 

@@ -56,7 +56,7 @@ export default class ChangePasswordModal extends React.Component {
                             <ol>
                                 <li>Be at least eight characters long</li>
                                 <li>Contain one uppercase and one lowercase character</li>
-                                <li>Be more than 20 characters long, or contain a number or special character</li>
+                                <li>Be more than 20 characters long, <strong>or</strong> contain a number or special character</li>
                             </ol>
                             <hr/>
                             <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936' target='none'>xkcd.com/936</a></p>

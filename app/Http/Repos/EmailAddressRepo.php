@@ -5,9 +5,9 @@ use App\EmailAddress;
 
 class EmailAddressRepo {
     public function GetByContactId($cid) {
-        $ems = EmailAddress::where('contact_id', '=', $cid)->get();
+        $emails = EmailAddress::where('contact_id', '=', $cid)->get();
 
-        return $ems;
+        return $emails;
     }
 
     public function GetPrimaryByContactId($contact_id) {
@@ -18,9 +18,9 @@ class EmailAddressRepo {
     }
 
     public function GetById($id) {
-        $ad = EmailAddress::where('email_address_id', '=', $id)->first();
+        $email = EmailAddress::where('email_address_id', '=', $id)->first();
 
-        return $ad;
+        return $email;
     }
 
     public function Insert($ea) {
@@ -43,20 +43,20 @@ class EmailAddressRepo {
     }
 
     public function Delete($id) {
-        $addr = $this->GetById($id);
+        $email = $this->GetById($id);
 
-        if (!isset($addr)) return;
+        if (!isset($email)) return;
 
-        $addr->delete();
+        $email->delete();
     }
 
     public function DeleteByContact($cid) {
-        $eAddrs = $this->GetByContactId($cid);
+        $emails = $this->GetByContactId($cid);
 
-        if (!isset($eAddrs)) return;
+        if (!isset($emails)) return;
 
-        foreach($eAddrs as $eAddr) {
-            $this->delete($eAddr->email_address_id);
+        foreach($emails as $email) {
+            $this->delete($email->email_address_id);
         }
     }
 }

@@ -195,6 +195,7 @@ export default class UsersTab extends Component {
                                         <th>Primary Email</th>
                                         <th>Primary Phone</th>
                                         <th>Position</th>
+                                        <th>Email Types</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -223,10 +224,11 @@ export default class UsersTab extends Component {
                                                     </Button>
                                                 </ButtonGroup>
                                             </td>
-                                            <td>{user.enabled? <Badge variant='success'>Enabled</Badge> : <Badge variant='danger'>Disabled</Badge>} {user.name}</td>
+                                            <td>{user.enabled ? <Badge bg='success'>Enabled</Badge> : <Badge bg='secondary'>Disabled</Badge>} {user.name}</td>
                                             <td>{user.primary_email}</td>
                                             <td>{user.primary_phone}</td>
                                             <td>{user.position}</td>
+                                            <td>{user.roles.map(role => <Badge pill bg='info' text='dark'>{role}</Badge>)}</td>
                                         </tr>
                                     )}
                                 </tbody>

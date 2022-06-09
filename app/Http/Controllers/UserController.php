@@ -72,7 +72,7 @@ class UserController extends Controller {
     }
 
     public function getAccountUserModel(Request $req, $accountId, $contactId = null) {
-        $userModelFactory = new \App\Http\Models\User\UserModelFactory;
+        $userModelFactory = new User\UserModelFactory;
 
         if($contactId) {
             $model = $userModelFactory->getAccountUser($req, $contactId, $accountId);
@@ -97,8 +97,8 @@ class UserController extends Controller {
         if($req->user()->cannot('view', $account))
             abort(403);
 
-        $userRepo = new Repos\UserRepo();
-        $users = $userRepo->GetAccountUsers($accountId);
+        $userModelFactory = new User\UserModelFactory();
+        $users = $userModelFactory->GetAccountUsers($accountId);
 
         return json_encode($users);
     }

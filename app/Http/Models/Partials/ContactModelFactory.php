@@ -45,4 +45,22 @@ class ContactModelFactory {
 
         return $contact;
     }
+
+    public function getRolesFromEmails($contactId) {
+        $emailRepo = new Repos\EmailAddressRepo();
+        $emailAddresses = $emailRepo->GetByContactId($contactId);
+
+        $roles = array();
+        foreach($emailAddresses as $email) {
+            if(!isset($email->type))
+                continue;
+            $emailRoles = json_decode($email->type);
+            foreach($emailRoles as $role) {
+                if(!in_array($role->label, $roles))
+                    $roles[] = $role->label;
+            }
+        }
+
+        return $roles;
+    }
 }
