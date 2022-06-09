@@ -16,6 +16,7 @@ export default function Zone(props) {
                     <Col md='auto'>
                         <ButtonGroup>
                             <Button variant='danger' onClick={() => props.deleteZone(props.id)} size='sm'><i className='fas fa-trash'></i></Button>
+                            <Button variant='danger' onClick={() => props.zoneRemoveDuplicates(props.id)} size='sm'>Dedup</Button>
                         </ButtonGroup>
                     </Col>
                 </Row>

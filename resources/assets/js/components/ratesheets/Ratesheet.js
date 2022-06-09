@@ -19,6 +19,7 @@ export default class Ratesheet extends Component {
         super()
         this.state = {
             key: 'basic',
+            bypassDedupWarning: false,
             defaultZoneType: 'internal',
             deliveryTypes: [],
             drawingMap: 0,
@@ -54,6 +55,7 @@ export default class Ratesheet extends Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleImport = this.handleImport.bind(this)
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
+        this.zoneRemoveDuplicates = this.zoneRemoveDuplicates.bind(this)
         this.store = this.store.bind(this)
     }
 
@@ -328,11 +330,11 @@ export default class Ratesheet extends Component {
 
     handleZoneRateChange(event, id) {
         const {name, value} = event.target
-        var updated = this.state.zoneRates.map(obj => {
-            if(obj.id == id) {
-                return {...obj, [name]: value}
+        const updated = this.state.zoneRates.map(zoneRate => {
+            if(zoneRate.id == id) {
+                return {...zoneRate, [name]: value}
             }
-            return obj
+            return zoneRate
         })
         this.setState({zoneRates: updated})
     }
@@ -379,6 +381,35 @@ export default class Ratesheet extends Component {
             }
         }, errorResponse => {
             this.setState({savingMap: 100})
+        })
+    }
+
+    zoneRemoveDuplicates(id) {
+        if(!this.state.bypassDedupWarning){
+            if(confirm('Checks the selected zone for duplicate points and removes them - warning. If you are Ritchie, talk to Brandon before using'))
+                this.handleChange({target: {name: 'bypassDedupWarning', type: 'boolean', value: true}})
+            else
+                return
+        }
+
+        const dedup = this.state.mapZones.map(zone => {
+            if(zone.id == id) {
+                let filtered = []
+                let duplicates = []
+                let count = 0
+                const cleanedPath = zone.polygon.getPath().forEach(polyPoint => {
+                    if(filtered.find(testPoint => testPoint.lat() === polyPoint.lat() && testPoint.lng() === polyPoint.lng()) === undefined)
+                        filtered.push(polyPoint)
+                    else {
+                        duplicates.push({lat: polyPoint.lat(), lng: polyPoint.lng()})
+                        count++
+                    }
+                })
+                console.log(`${count} duplicates found`, filtered.length, duplicates)
+                zone.polygon.setPath(filtered)
+                return zone
+            }
+            return zone
         })
     }
 
@@ -449,6 +480,7 @@ export default class Ratesheet extends Component {
                                 handleChange={this.handleChange}
                                 deleteZone={this.deleteZone}
                                 editZone={this.editZone}
+                                zoneRemoveDuplicates={this.zoneRemoveDuplicates}
                             />
                         </Tab>
                         <Tab

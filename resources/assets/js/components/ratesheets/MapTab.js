@@ -1,5 +1,5 @@
 import React from 'react'
-import {Button, ButtonGroup, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton} from 'react-bootstrap'
+import {ButtonGroup, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton} from 'react-bootstrap'
 import Zone from './Zone'
 import Select from 'react-select'
 
@@ -82,6 +82,7 @@ export default function MapTab(props) {
                             editZone={props.editZone}
                             viewDetails={zone.viewDetails}
                             colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
+                            zoneRemoveDuplicates={props.zoneRemoveDuplicates}
                         />
                     )}
                     Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommedation is to create a simple polygon, and then edit it to fit your desired dimensions
