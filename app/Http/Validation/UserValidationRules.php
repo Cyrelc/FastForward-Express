@@ -1,10 +1,12 @@
 <?php
 namespace App\Http\Validation;
 
+use App\Rules\Password;
+
 class UserValidationRules {
-    public function GetValidationRules($req) {
+    public function GetPasswordValidationRules() {
         $rules = [
-            'password' => 'required|min:8',
+            'password' => ['required', 'min:8', new Password],
             'password_confirm' => 'required|same:password'
         ];
 
@@ -14,14 +16,6 @@ class UserValidationRules {
             'password_confirm.same' => 'Passwords must match',
             'password_confirm.required' => 'Password confirmation field can not be left blank'
         ];
-
-        if(strlen($req->password) < 20) {
-            $rules = array_merge($rules, ['password' => 'regex:"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_?<>0-9])[a-zA-Z\d\w\W].{8,}$"']);
-            $messages = array_merge($messages, ['password.regex' => 'Password is too weak. Please review the password requirements and try again']);
-        } else {
-            $rules = array_merge($rules, ['password' => 'regex:"^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d\w\W].{8,}$"']);
-            $messages = array_merge($messages, ['password.regex' => 'Password is too weak. Please review the password requirements and try again']);
-        }
 
         return ['rules' => $rules, 'messages' => $messages];
     }

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+{{-- <div class="container"> --}}
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
+        <div class="col-md-4 offset-md-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Reset Password</div>
+                <h5>Reset Password</h5>
 
                 <div class="panel-body">
                     <form class="form-horizontal" role="form" method="POST" action="{{ url('/password/reset') }}">
@@ -65,6 +65,16 @@
                 </div>
             </div>
         </div>
+        <div class='col-md-4'>
+            <h5>Passwords must:</h5>
+            <ol>
+                <li>Be at least eight characters long</li>
+                <li>Contain one uppercase and one lowercase character</li>
+                <li>Be more than 20 characters long, or contain a number or special character</li>
+            </ol>
+            <hr/>
+            <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936' target='none'>xkcd.com/936</a></p>
+        </div>
     </div>
-</div>
+{{-- </div> --}}
 @endsection
