@@ -23,12 +23,11 @@ class Password implements Rule
      * @param  mixed  $value
      * @return bool
      */
-    public function passes($attribute, $value)
-    {
-        if(strlen($attribute) < 20) {
-            return preg_match("/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_?<>0-9])[a-zA-Z\d\w\W].{8,}$/", $attribute);
+    public function passes($attribute, $value) {
+        if(strlen($value) < 20) {
+            return preg_match("/(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*_?<>0-9])[a-zA-Z\d\w\W].{8,}/", $value);
         } else {
-            return preg_match("/^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d\w\W].{8,}$/", $attribute);
+            return preg_match("/(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d\w\W].{8,}/", $value);
         }
     }
 

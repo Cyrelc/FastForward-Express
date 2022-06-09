@@ -20,7 +20,7 @@ class UserController extends Controller {
 
         DB::beginTransaction();
         $userValidation = new \App\Http\Validation\UserValidationRules();
-        $temp = $userValidation->GetPasswordValidationRules($req);
+        $temp = $userValidation->GetPasswordValidationRules();
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
