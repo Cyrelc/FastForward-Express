@@ -155,7 +155,11 @@ class App extends Component {
                                 {this.hasAnyPermission(this.props.frontEndPermissions.accounts) &&
                                     <NavDropdown title='Accounts' id='navbar-accounts' align='end'>
                                         {(this.props.authenticatedAccountUsers && this.props.accounts.length == 1) &&
-                                            <LinkContainer to={'/app/accounts/' + this.props.authenticatedAccountUsers[0].account_id}><NavDropdown.Item>{this.props.accounts.find(account => account.value === this.props.authenticatedAccountUsers[0].account_id).label}</NavDropdown.Item></LinkContainer>
+                                            <LinkContainer to={'/app/accounts/' + this.props.authenticatedAccountUsers[0].account_id}>
+                                                <NavDropdown.Item>
+                                                    {this.props.accounts.find(account => account.value === this.props.authenticatedAccountUsers[0].account_id).label}
+                                                </NavDropdown.Item>
+                                            </LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.accounts.viewAny &&
                                             <LinkContainer to='/app/accounts'><NavDropdown.Item><i className='fa fa-list'></i> List Accounts</NavDropdown.Item></LinkContainer>

@@ -200,14 +200,19 @@ Date.prototype.addDays = function(days) {
 
 function configureFakeLink(url, redirectFunction, altDisplayField = null, altRedirectField = null) {
     return {
-        cssClass: 'fakeLink',
         cellClick: (e, cell) => {
-            redirectFunction(url + (altRedirectField ? cell.getRow().getData()[altRedirectField] : cell.getValue()))
+            const redirectTo = altRedirectField ? cell.getRow().getData()[altRedirectField] : cell.getValue()
+            if(redirectTo)
+                redirectFunction(`${url}${redirectTo}`)
         },
         headerClick: false,
-        ...altDisplayField ? {
-            formatter: (cell) => {return cell.getRow().getData()[altDisplayField]}
-        } :{}
+        formatter: (cell) => {
+            const displayValue = altDisplayField ? cell.getRow().getData()[altDisplayField] : cell.getValue()
+            console.log(displayValue)
+            if(displayValue)
+                return `<a href="javascript::void(0)">${displayValue}</a>`
+            return ''
+        }
     }
 }
 
