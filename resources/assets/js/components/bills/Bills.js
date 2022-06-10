@@ -250,7 +250,7 @@ class Bills extends Component {
         }
 
         if(confirm(`Are you sure you wish to delete bill ${data.bill_id}?\nThis action can not be undone`)) {
-            makeAjaxRequest(`/bills/delete/${data.bill_id}`, 'GET', null, response => {
+            makeAjaxRequest(`/bills/${data.bill_id}`, 'DELETE', null, response => {
                 this.props.fetchTableData()
             })
         }

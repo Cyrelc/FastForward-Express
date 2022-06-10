@@ -201,7 +201,7 @@ export default function billReducer(state, action) {
         }
         case 'SET_ACTIVE_RATESHEET': {
             // CREDIT CARDS WILL USE THE RATESHEET OF THE ACCOUNT THEY ARE LINKED TO :-D
-            const deliveryTypes = JSON.parse(payload.delivery_types).map(deliveryType => {return {...deliveryType, time: parseInt(deliveryType.time)}})
+            const deliveryTypes = JSON.parse(payload.delivery_types).map(deliveryType => {return {...deliveryType, time: parseFloat(deliveryType.time)}})
             const deliveryType = state.deliveryType ? deliveryTypes.find(type => type.id === state.deliveryType.id) : deliveryTypes[0]
             return Object.assign({}, state, {
                 deliveryType,
