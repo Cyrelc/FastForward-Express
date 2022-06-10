@@ -36,6 +36,10 @@ class AccountPolicy
         return $user->can('accountUsers.delete.*.*');
     }
 
+    public function impersonateAccountUsers(User $user) {
+        return $user->can('accountUsers.impersonate.*');
+    }
+
     /**
      * Determine whether the user can view any models.
      *

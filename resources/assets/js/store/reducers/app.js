@@ -28,6 +28,7 @@ const initialState = {
         ratesheets: {}
     },
     invoiceIntervals: [],
+    isImpersonating: false,
     parentAccounts: [],
     paymentTypes: []
 }
@@ -46,6 +47,7 @@ const reducer = (state = initialState, action) => {
                 employees: action.payload.employees,
                 frontEndPermissions: action.payload.frontEndPermissions,
                 invoiceIntervals: action.payload.invoice_intervals,
+                isImpersonating: action.payload.is_impersonating,
                 parentAccounts: action.payload.parent_accounts,
                 paymentTypes: action.payload.payment_types
             }

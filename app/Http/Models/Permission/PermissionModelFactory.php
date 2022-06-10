@@ -35,6 +35,8 @@ class PermissionModelFactory {
                 'editInvoicing' => $user->can('updateInvoicing', $account),
                 'editPaymentMethods' => $user->can('updatePaymentMethods', $account),
                 'editPayments' => $user->can('updatePayments', $account),
+
+                'impersonateAccountUsers' => $user->can('impersonateAccountUsers', $account),
     
                 'viewActivityLog' => $user->can('viewActivityLog', $account),
                 'viewBills' => $user->can('viewBills', $account),
@@ -164,6 +166,7 @@ class PermissionModelFactory {
             'createAccountUsers' => $user ? $user->can('accountUsers.create.*.*') : false,
             'deleteAccountUsers' => $user ? $user->can('accountUsers.delete.*.*') : false,
             'editAccountUsers' => $user ? $user->can('accountUsers.edit.*.*') : false,
+            'impersonateAccountUsers' => $user ? $user->can('accountUsers.impersonate.*') : false,
             /* App settings */
             'editAppSettings' => $user ? $user->can('appSettings.edit.*.*') : false,
             /* Bills */

@@ -100,6 +100,7 @@ class UserCollector {
             'accountUsers.create.*.*' => 'createAccountUsers',
             'accountUsers.delete.*.*' => 'deleteAccountUsers',
             'accountUsers.edit.*.*' => 'editAccountUsers',
+            'accountUsers.impersonate.*' => 'impersonateAccountUsers',
             /* App Settings */
             'appSettings.edit.*.*' => 'editAppSettings',
             /* Bills */

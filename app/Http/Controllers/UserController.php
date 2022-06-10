@@ -6,6 +6,7 @@ use App\Http\Repos;
 use App\Http\Models\User;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use DB;
 
@@ -111,6 +112,18 @@ class UserController extends Controller {
             return $contactRepo->GetById($req->user()->accountUser->contact_id);
     }
 
+    public function impersonate(Request $req) {
+        if($req->user()->cannot('accountUsers.impersonate.*'))
+            abort(403);
+
+        $userRepo = new Repos\UserRepo();
+        $accountUser = $userRepo->GetAccountUser($req->contact_id, $req->account_id);
+        if($req->session()->missing('original_user_id'))
+            $req->session()->put('original_user_id', Auth::user()->user_id);
+
+        Auth::loginUsingId($accountUser->user_id);
+    }
+
     public function LinkAccountUser(Request $req, $contactId, $accountId) {
         $contactRepo = new Repos\ContactRepo();
         $userRepo = new Repos\UserRepo();
@@ -207,6 +220,14 @@ class UserController extends Controller {
         DB::commit();
 
         return ['success' => true];
+    }
+
+    public function unimpersonate(Request $req) {
+        $originalUserId = $req->session()->pull('original_user_id');
+        if(!$originalUserId)
+            abort(403);
+
+        Auth::loginUsingId($originalUserId);
     }
 }
 ?>

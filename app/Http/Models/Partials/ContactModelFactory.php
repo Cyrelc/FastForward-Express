@@ -52,7 +52,7 @@ class ContactModelFactory {
 
         $roles = array();
         foreach($emailAddresses as $email) {
-            if(!isset($email->type))
+            if(!$email->type)
                 continue;
             $emailRoles = json_decode($email->type);
             foreach($emailRoles as $role) {

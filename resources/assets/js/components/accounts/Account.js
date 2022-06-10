@@ -385,6 +385,7 @@ class Account extends Component {
                                     canDeleteAccountUsers={this.state.permissions.deleteAccountUsers}
                                     canEditAccountUsers={this.state.permissions.editAccountUsersBasic}
                                     canEditAccountUserPermissions={this.state.permissions.editAccountUserPermissions}
+                                    canImpersonateAccountUsers={this.state.permissions.impersonateAccountUsers}
                                     canViewAccountUserActivityLogs={this.state.permissions.viewAccountUserActivityLogs}
                                 />
                             </Tab>

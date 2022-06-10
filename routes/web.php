@@ -122,6 +122,8 @@ Route::group(
             Route::get('/users/checkIfEmailTaken/{email}', 'UserController@checkIfEmailTaken');
             Route::post('/users/checkIfAccountUserExists', 'UserController@checkIfAccountUserExists');
             Route::get('/users/linkAccountUser/{contactId}/{accountId}', 'UserController@LinkAccountUser');
+            Route::post('/users/impersonate', 'UserController@impersonate');
+            Route::get('/users/unimpersonate', 'UserController@unimpersonate');
             //API
             // Route::resource('/customers', 'AccountController',
             //     ['only' => ['index', 'create', 'edit', 'store']]);

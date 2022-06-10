@@ -3,6 +3,7 @@ namespace App\Http\Models\Home;
 
 use App\Http\Repos;
 use App\Http\Models;
+use Illuminate\Support\Facades\Auth;
 
 class HomeModelFactory {
     public function GetAppConfiguration($req) {
@@ -21,6 +22,7 @@ class HomeModelFactory {
         $model->authenticatedEmployee = $req->user()->employee;
         $model->authenticatedAccountUsers = $req->user()->accountUsers;
         $model->authenticatedUserId = $req->user()->user_id;
+        $model->is_impersonating = $req->session()->has('original_user_id');
         $model->payment_types = $paymentRepo->GetPaymentTypesList();
 
         if($model->authenticatedEmployee) {

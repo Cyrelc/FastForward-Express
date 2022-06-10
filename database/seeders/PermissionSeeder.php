@@ -42,6 +42,7 @@ class PermissionSeeder extends Seeder
             'accountUsers.edit.basic.my',
             'accountUsers.edit.permissions.children',
             'accountUsers.edit.permissions.my',
+            'accountUsers.impersonate.*',
             'accountUsers.view.permissions.children',
             'accountUsers.view.permissions.my',
             'accountUsers.view.activityLog.my',

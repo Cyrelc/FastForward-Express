@@ -16,7 +16,7 @@
         <script src="{{asset('/js/utils.js')}}?{{config('view.version')}}"></script>
 
         <!-- Fonts -->
-        <link href='https://use.fontawesome.com/releases/v5.8.1/css/all.css' rel='stylesheet' type='text/css' />
+        <link href='https://use.fontawesome.com/releases/v5.15.4/css/all.css' rel='stylesheet' type='text/css' />
         <link href='https://fonts.googleapis.com/css?family=Lato:100,300,400,700' rel='stylesheet' type='text/css' />
 
         <!-- Styles -->

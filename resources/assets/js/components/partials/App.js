@@ -41,6 +41,7 @@ class App extends Component {
         this.getLandingPage = this.getLandingPage.bind(this)
         this.handleChange = this.handleChange.bind(this)
         this.toggleChangePasswordModal = this.toggleChangePasswordModal.bind(this)
+        this.unimpersonate = this.unimpersonate.bind(this)
     }
 
     componentDidMount() {
@@ -80,6 +81,10 @@ class App extends Component {
 
     toggleChangePasswordModal() {
         this.setState({showChangePasswordModal: !this.state.showChangePasswordModal})
+    }
+
+    unimpersonate() {
+        makeAjaxRequest('/users/unimpersonate', 'GET', null, response => location.reload())
     }
 
     render() {
@@ -231,11 +236,14 @@ class App extends Component {
                                 {this.props.frontEndPermissions.appSettings.edit &&
                                     <LinkContainer to='/app/appSettings'><NavLink>App Settings</NavLink></LinkContainer>
                                 }
-                                <NavDropdown title={<span><i className={this.getUserIcon()}></i> {this.props.contact ? this.props.contact.first_name + " " + this.props.contact.last_name : 'User'} </span>} align='end'>
+                                <NavDropdown title={<span>{this.props.isImpersonating ? <i className='fas fa-people-arrows' style={{paddingRight: '5px'}}></i> : ''}<i className={this.getUserIcon()}></i> {this.props.contact ? this.props.contact.first_name + " " + this.props.contact.last_name : 'User'} </span>} align='end'>
                                     {this.props.authenticatedEmployee && this.props.authenticatedEmployee.employee_id &&
                                         <LinkContainer to={'/app/employees/' + this.props.authenticatedEmployee.employee_id}><NavDropdown.Item><i className='fas fa-user-ninja'></i> {this.props.contact.first_name + " " + this.props.contact.last_name}</NavDropdown.Item></LinkContainer>
                                     }
                                     <NavDropdown.Item onClick={this.toggleChangePasswordModal}><i className='fas fa-user-shield'></i> Change Password</NavDropdown.Item>
+                                    {this.props.isImpersonating &&
+                                        <NavDropdown.Item onClick={this.unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</NavDropdown.Item>
+                                    }
                                     <NavDropdown.Item href='/logout'><i className='fas fa-door-open'></i> Log Out</NavDropdown.Item>
                                 </NavDropdown>
                             </Nav>
@@ -349,7 +357,8 @@ const mapStateToProps = store => {
         authenticatedUserId: store.app.authenticatedUserId,
         contact: store.app.authenticatedUserContact,
         employees: store.app.employees,
-        frontEndPermissions: store.app.frontEndPermissions
+        frontEndPermissions: store.app.frontEndPermissions,
+        isImpersonating: store.app.isImpersonating
     }
 }
 

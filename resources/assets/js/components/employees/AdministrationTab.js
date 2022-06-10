@@ -13,6 +13,20 @@ export default function AdministrationTab(props) {
         ' - See basic pertinent information regarding bills assigned to them\n' +
         ' - View bills where they are assigned as either pickup or delivery driver'
 
+    const {employeePermissions, enabled, handlePermissionChange, readOnly} = props
+
+    const permissionsDisabled = (!enabled || readOnly)
+
+    const PermissionCheckbox = (props) => {
+        return <Form.Check
+            checked={employeePermissions[props.name]}
+            label={props.label ? props.label : null}
+            name={props.name}
+            onChange={handlePermissionChange}
+            disabled={!enabled || readOnly}
+        ></Form.Check>
+    }
+
     return (
         <Card border='dark'>
             <Card.Header>
@@ -117,89 +131,92 @@ export default function AdministrationTab(props) {
                                 {/* Accounts */}
                                 <tr>
                                     <th>Accounts</th>
-                                    <td><Form.Check checked={props.employeePermissions.createAccounts} name='createAccounts' onChange={props.handlePermissionChange} disabled={!props.enabled || props.readOnly}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createAccounts'></PermissionCheckbox></td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.viewAccountsBasic} name='viewAccountsBasic' disabled={!props.enabled || props.readOnly} label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.viewAccountsFull} name='viewAccountsFull' disabled={!props.enabled || props.readOnly} label='Full' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='viewAccountsBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='viewAccountsFull' label='Full'></PermissionCheckbox>
                                     </td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.editAccountsBasic} name='editAccountsBasic' disabled={!props.enabled || props.readOnly} label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.editAccountsFull} name='editAccountsFull' disabled={!props.enabled || props.readOnly} label='Full' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='editAccountsBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='editAccountsFull' label='Full'></PermissionCheckbox>
                                     </td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <th>Account Users</th>
-                                    <td><Form.Check checked={props.employeePermissions.createAccountUsers} disabled={!props.enabled || props.readOnly} name='createAccountUsers' onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createAccountUsers'></PermissionCheckbox></td>
                                     <td></td>
-                                    <td><Form.Check checked={props.employeePermissions.editAccountUsers} disabled={!props.enabled || props.readOnly} name='editAccountUsers' onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.deleteAccountUsers} disabled={!props.enabled || props.readOnly} name='deleteAccountUsers' onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td>
+                                        <PermissionCheckbox name='editAccountUsers' label='Edit'></PermissionCheckbox>
+                                        <PermissionCheckbox name='impersonateAccountUsers' label='Impersonate'></PermissionCheckbox>
+                                    </td>
+                                    <td><PermissionCheckbox name='deleteAccountUsers'></PermissionCheckbox></td>
                                 </tr>
                                 <tr>
                                     <th>Administrator App Settings</th>
                                     <td></td>
                                     <td></td>
-                                    <td><Form.Check checked={props.employeePermissions.editAppSettings} disabled={!props.enabled || props.readOnly} name='editAppSettings' onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='editAppSettings'></PermissionCheckbox></td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <th>Bills (All)</th>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.createBillsBasic} name='createBillsBasic' label='Basic' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.createBillsFull} name='createBillsFull' label='Full' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='createBillsBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='createBillsFull' label='Full'></PermissionCheckbox>
                                     </td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.viewBillsBasic} name='viewBillsBasic' disabled={!props.enabled || props.readOnly} label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.viewBillsDispatch} name='viewBillsDispatch' disabled={!props.enabled || props.readOnly} label='Dispatch' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.viewBillsBilling} name='viewBillsBilling' disabled={!props.enabled || props.readOnly} label='Billing' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.viewBillsActivityLog} name='viewBillsActivityLog' disabled={!props.enabled || props.readOnly} label='ActivityLog' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='viewBillsBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='viewBillsDispatch' label='Dispatch'></PermissionCheckbox>
+                                        <PermissionCheckbox name='viewBillsBilling' label='Billing'></PermissionCheckbox>
+                                        <PermissionCheckbox name='viewBillsActivityLog' label='ActivityLog'></PermissionCheckbox>
                                     </td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.editBillsBasic} disabled={!props.enabled || props.readOnly} name='editBillsBasic' label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.editBillsDispatch} disabled={!props.enabled || props.readOnly} name='editBillsDispatch' label='Dispatch' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.editBillsBilling} disabled={!props.enabled || props.readOnly} name='editBillsBilling' label='Billing' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='editBillsBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='editBillsDispatch' label='Dispatch'></PermissionCheckbox>
+                                        <PermissionCheckbox name='editBillsBilling' label='Billing'></PermissionCheckbox>
                                     </td>
-                                    <td><Form.Check checked={props.employeePermissions.deleteBills} disabled={!props.enabled || props.readOnly} name='deleteBills' onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='deleteBills'></PermissionCheckbox></td>
                                 </tr>
                                 <tr>
                                     <th>Chargebacks</th>
                                     <td></td>
-                                    <td><Form.Check checked={props.employeePermissions.viewChargebacks} name='viewChargebacks' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.editChargebacks} name='editChargebacks' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='viewChargebacks'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='editChargebacks'></PermissionCheckbox></td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <th>Employees</th>
-                                    <td><Form.Check checked={props.employeePermissions.createEmployees} name='createEmployees' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createEmployees'></PermissionCheckbox></td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.viewEmployeesBasic} name='viewEmployeesBasic' disabled={!props.enabled || props.readOnly} label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.viewEmployeesAdvanced} name='viewEmployeesAdvanced' disabled={!props.enabled || props.readOnly} label='Full' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='viewEmployeesBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='viewEmployeesAdvanced' label='Full'></PermissionCheckbox>
                                     </td>
                                     <td>
-                                        <Form.Check checked={props.employeePermissions.editEmployeesBasic} name='editEmployeesBasic' disabled={!props.enabled || props.readOnly} label='Basic' onChange={props.handlePermissionChange}></Form.Check>
-                                        <Form.Check checked={props.employeePermissions.editEmployeesAdvanced} name='editEmployeesAdvanced' disabled={!props.enabled || props.readOnly} label='Full' onChange={props.handlePermissionChange}></Form.Check>
+                                        <PermissionCheckbox name='editEmployeesBasic' label='Basic'></PermissionCheckbox>
+                                        <PermissionCheckbox name='editEmployeesAdvanced' label='Full'></PermissionCheckbox>
                                     </td>
                                     <td></td>
                                 </tr>
                                 <tr>
                                     <th>Invoices</th>
-                                    <td><Form.Check checked={props.employeePermissions.createInvoices} name='createInvoices' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.viewInvoices} name='viewInvoices' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.editInvoices} name='editInvoices' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.deleteInvoices} name='deleteInvoices' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createInvoices'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='viewInvoices'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='editInvoices'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='deleteInvoices'></PermissionCheckbox></td>
                                 </tr>
                                 <tr>
                                     <th>Manifests</th>
-                                    <td><Form.Check checked={props.employeePermissions.createManifests} name='createManifests' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.viewManifests} name='viewManifests' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.editManifests} name='editManifests' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.deleteManifests} name='deleteManifests' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createManifests'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='viewManifests'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='editManifests'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='deleteManifests'></PermissionCheckbox></td>
                                 </tr>
                                 <tr>
                                     <th>Payments</th>
-                                    <td><Form.Check checked={props.employeePermissions.createPayments} name='createPayments' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.viewPayments} name='viewPayments' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
-                                    <td><Form.Check checked={props.employeePermissions.editPayments}  name='editPayments' disabled={!props.enabled || props.readOnly} onChange={props.handlePermissionChange}></Form.Check></td>
+                                    <td><PermissionCheckbox name='createPayments'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='viewPayments'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox  name='editPayments'></PermissionCheckbox></td>
                                     <td></td>
                                 </tr>
                             </tbody>

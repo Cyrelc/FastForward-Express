@@ -71,10 +71,6 @@ Class AdminController extends Controller {
             'success' => true,
         ]);
     }
-
-    public function hashPassword(Request $req) {
-        return Hash::make(preg_replace('/\s+/', '', $req->password));
-    }
 }
 
 ?>

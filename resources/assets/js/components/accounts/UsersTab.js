@@ -45,6 +45,7 @@ export default class UsersTab extends Component {
         this.editAccountUser = this.editAccountUser.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
         this.handlePermissionChange = this.handlePermissionChange.bind(this)
+        this.impersonate = this.impersonate.bind(this)
         this.refreshAccountUsers = this.refreshAccountUsers.bind(this)
         this.storeAccountUser = this.storeAccountUser.bind(this)
     }
@@ -142,6 +143,16 @@ export default class UsersTab extends Component {
         this.setState({accountUserPermissions: accountUserPermissions})
     }
 
+    impersonate(contact_id) {
+        const data = {
+            contact_id,
+            account_id: this.props.accountId
+        }
+        makeAjaxRequest('/users/impersonate', 'POST', data, response => {
+            location.reload()
+        })
+    }
+
     refreshAccountUsers() {
         makeAjaxRequest('/users/getAccountUsers/' + this.props.accountId, 'GET', null, response => {
             response = JSON.parse(response)
@@ -222,6 +233,15 @@ export default class UsersTab extends Component {
                                                     >
                                                         <i className='fas fa-key'></i>
                                                     </Button>
+                                                    {this.props.canImpersonateAccountUsers &&
+                                                        <Button
+                                                            title='Impersonate'
+                                                            variant='info'
+                                                            onClick={() => this.impersonate(user.contact_id)}
+                                                        >
+                                                            <i className='fas fa-people-arrows'></i>
+                                                        </Button>
+                                                    }
                                                 </ButtonGroup>
                                             </td>
                                             <td>{user.enabled ? <Badge bg='success'>Enabled</Badge> : <Badge bg='secondary'>Disabled</Badge>} {user.name}</td>
