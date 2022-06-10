@@ -107,8 +107,8 @@ export default function billReducer(state, action) {
         case 'CHECK_REFERENCE_VALUES': {
             const {account, value, prevValue} = payload
             return Object.assign({}, state, {
-                pickup: {...state.pickup, referenceValue: (state.pickup.account.account_id === account.account_id && state.pickup.referenceValue === prevValue) ? value : state.pickup.referenceValue},
-                delivery: {...state.delivery, referenceValue: (state.delivery.account.account_id === account.account_id && state.delivery.referenceValue === prevValue) ? value : state.delivery.referenceValue}
+                pickup: {...state.pickup, referenceValue: (state.pickup.account?.account_id === account.account_id && state.pickup.referenceValue === prevValue) ? value : state.pickup.referenceValue},
+                delivery: {...state.delivery, referenceValue: (state.delivery.account?.account_id === account.account_id && state.delivery.referenceValue === prevValue) ? value : state.delivery.referenceValue}
             })
         }
         case 'CONFIGURE_BILL':
