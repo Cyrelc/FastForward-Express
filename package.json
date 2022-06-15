@@ -50,20 +50,21 @@
         "luxon": "^2.4.0",
         "pusher-js": "^6.0.3",
         "react-bootstrap": "^2.1.0",
+        "react-countdown": "^2.3.2",
         "react-currency-input-field": "^3.6.4",
         "react-datepicker": "^4.6.0",
         "react-pro-sidebar": "^0.7.1",
+        "react-pusher": "^0.2.0",
         "react-querybuilder": "^3.9.9",
         "react-redux": "^7.2.4",
         "react-router-bootstrap": "^0.25.0",
         "react-router-dom": "^5.2.0",
         "react-select": "^4.3.1",
-        "react-tabulator": "^0.18.1",
+        "react-tabulator": "^0.15.0",
         "redux": "^4.1.0",
         "redux-thunk": "^2.3.0",
         "save": "^2.4.0",
         "snazzy-info-window": "^1.1.1",
-        "tabulator5.2": "npm:tabulator-tables@5.2",
         "tempusdominus-core": "^5.19.0"
     }
 }

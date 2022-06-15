@@ -17,10 +17,13 @@ class DispatchController extends Controller {
 
         DB::beginTransaction();
 
-        $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($req->employee_id, null);
+        if(isset($req->employee_id)) {
+            $employeeRepo = new Repos\EmployeeRepo();
+            $employee = $employeeRepo->GetById($req->employee_id, null);
 
-        $bill = $billRepo->AssignToDriver($req->bill_id, $employee);
+            $bill = $billRepo->AssignToDriver($req->bill_id, $employee);
+        } else
+            $bill = $billRepo->AssignToDriver($req->bill_id, null);
 
         DB::commit();
 
@@ -29,6 +32,16 @@ class DispatchController extends Controller {
         return response()->json([
             'success' => true
         ]);
+    }
+
+    public function GetBills(Request $req) {
+        if($req->user()->cannot('viewDispatch', Bill::Class))
+            abort(403);
+
+        $billRepo = new Repos\BillRepo();
+        $bills = $billRepo->GetForDispatch($req);
+
+        return json_encode($bills);
     }
 
     public function GetDrivers(Request $req) {

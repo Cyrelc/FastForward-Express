@@ -27,17 +27,17 @@ class BillRepo {
     }
 
     public function AssignToDriver($billId, $employee) {
-        $old = $this->GetById($billId);
+        $bill = $this->GetById($billId);
 
-        $old->pickup_driver_id = $employee->employee_id;
-        $old->delivery_driver_id = $employee->employee_id;
-        $old->pickup_driver_commission = $employee->pickup_commission / 100;
-        $old->delivery_driver_commission = $employee->delivery_commission / 100;
-        $old->time_dispatched = new \DateTime();
+        $bill->pickup_driver_id = $employee ? $employee->employee_id : null;
+        $bill->delivery_driver_id = $employee ? $employee->employee_id : null;
+        $bill->pickup_driver_commission = $employee ? $employee->pickup_commission / 100 : null;
+        $bill->delivery_driver_commission = $employee ? $employee->delivery_commission / 100 : null;
+        $bill->time_dispatched = $employee ? new \DateTime() : null;
 
-        $old->save();
+        $bill->save();
 
-        return $old;
+        return $bill;
     }
 
     public function CountByDriver($driverId) {
@@ -270,6 +270,33 @@ class BillRepo {
         return $bills->get();
     }
 
+    public function GetForDispatch($req) {
+        $bills = Bill::leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
+            ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
+            ->select(
+                'bill_id',
+                'delivery_address.lat as delivery_address_lat',
+                'delivery_address.lng as delivery_address_lng',
+                'delivery_driver_id',
+                'pickup_address.lat as pickup_address_lat',
+                'pickup_address.lng as pickup_address_lng',
+                'pickup_driver_id',
+                'time_delivered',
+                'time_delivery_scheduled',
+                'time_dispatched',
+                'time_pickup_scheduled',
+                'time_picked_up',
+            );
+
+        $filteredBills = QueryBuilder::for($bills)
+            ->allowedFilters([
+                AllowedFilter::custom('dispatch', new Dispatch),
+                AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
+            ]);
+
+        return $filteredBills->get();
+    }
+
     public function GetInvoiceSubtotalByField($invoiceId, $fieldName, $fieldValue) {
         $subtotal = LineItem::where('invoice_id', $invoiceId)
             ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
@@ -468,16 +495,16 @@ class BillRepo {
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {
-        $old = $this->GetById($billId);
+        $bill = $this->GetById($billId);
 
         if($type === 'pickup')
-            $old->time_picked_up = $time;
+            $bill->time_picked_up = $time;
         else if ($type === 'delivery')
-            $old->time_delivered = $time;
+            $bill->time_delivered = $time;
 
-        $old->save();
+        $bill->save();
 
-        return $old;
+        return $bill;
     }
 
     public function Update($bill, $permissions) {
@@ -532,11 +559,11 @@ class BillRepo {
             'time_call_received' => 'Please enter the time the call was received',
             'time_delivery_scheduled' => 'Please enter the approximate delivery time',
             'time_dispatched' => 'Please enter the time the call was dispatched',
-
         ];
 
         $accountRepo = new AccountRepo();
         $chargeRepo = new ChargeRepo();
+        $contactRepo = new ContactRepo();
         $lineItemRepo = new LineItemRepo();
         $paymentRepo = new PaymentRepo();
 
@@ -569,8 +596,14 @@ class BillRepo {
                         $requiredFields[] = $account->custom_field;
                 }
                 $lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
-                if(count($lineItems) === 0)
-                    $requiredFields[] = $charge->name . ' requires at least one line item';
+                if(count($lineItems) === 0) {
+                    $name = $charge->type;
+                    if($name === 'Account')
+                        $name = $charge->charge_account_name;
+                    else if($name === 'Employee')
+                        $name = $charge->charge_employee_name;
+                    $requiredFields[] = 'Charge to ' . $name . ' requires at least one line item';
+                }
                 else
                     foreach($lineItems as $lineItem) {
                         if($lineItem['name'] === 'Interliner' && !in_array('interliner_id', $requiredFields))
@@ -595,9 +628,6 @@ class BillRepo {
 
         $bill->percentage_complete = $percentageComplete;
         $bill->incomplete_fields = $incompleteFields;
-        activity('system_debug')
-            ->performedOn($bill)
-            ->log(implode(',', $incompleteFields));
 
         $bill->save(['timestamps' => false]);
     }

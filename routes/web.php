@@ -60,7 +60,8 @@ Route::group(
             Route::get('/chargebacks/delete/{id}', 'ChargebackController@delete');
 
             Route::post('/dispatch/assignBillToDriver', 'DispatchController@AssignBillToDriver');
-            Route::get('/dispatch/GetDrivers', 'DispatchController@GetDrivers');
+            Route::get('/dispatch/getDrivers', 'DispatchController@GetDrivers');
+            Route::get('/dispatch/getBills', 'DispatchController@GetBills');
             Route::post('/dispatch/setBillPickupOrDeliveryTime', 'DispatchController@SetBillPickupOrDeliveryTime');
 
             Route::get('/employees/buildTable', 'EmployeeController@buildTable');

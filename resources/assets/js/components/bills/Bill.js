@@ -152,7 +152,7 @@ const Bill = (props) => {
                     description: billState.description,
                     is_min_weight_size: packageState.packageIsMinimum ? true : false,
                     is_pallet: packageState.packageIsPallet,
-                    packages: packageState.tableRef.current.getData(),
+                    packages: packageState.packageIsMinimum ? [] : packageState.tableRef.current.table.getData(),
                     pickup_account_id: billState.pickup.account?.account_id,
                     pickup_address_formatted: billState.pickup.addressFormatted,
                     pickup_address_lat: billState.pickup.addressLat,
@@ -190,7 +190,7 @@ const Bill = (props) => {
             if(billId ? permissions.editBilling : permissions.createFull) {
                 data = {...data,
                     charges: chargeState.charges?.map(charge => {
-                        return {...charge, lineItems: charge.tableRef.current.getData()}
+                        return {...charge, lineItems: charge.tableRef.current.table.getData()}
                     }),
                     interliner_cost: chargeState.interlinerActualCost,
                     interliner_id: chargeState.interliner?.value,
@@ -345,7 +345,7 @@ const Bill = (props) => {
                             })}</h5>
                         </Badge>
                     }
-                    {(!billId && permissions?.createFull) &&
+                    {(billId ? permissions.editBasic : permissions.createFull) &&
                         <Navbar.Collapse className='justify-content-end' style={{paddingRight: '15px'}}>
                             {!billId &&
                                 <NavDropdown title='Persist Fields'>

@@ -118,10 +118,6 @@ export default function BasicTab(props) {
         {title: `Total Volume ${useImperial ? '(in\u00B3)' : '(cm\u00B3)'}`, field: 'totalVolume', topCalc: 'sum'}
     ]
 
-    useEffect(() => {
-        props.packageState.tableRef.current?.setColumns(packageColumns)
-    }, [useImperial])
-
     return (
         <Card border='dark'>
             <Card.Header>
@@ -165,37 +161,35 @@ export default function BasicTab(props) {
                                     />
                                 </Col>
                             }
-                            {!packageIsMinimum &&
-                                <Col md={12}>
-                                    <ReactTabulator
-                                        onRef={ref => props.packageState.tableRef.current = ref.current}
-                                        columns={packageColumns}
-                                        data={packages}
-                                        events={{
-                                            cellEdited: cell => {
-                                                const fieldName = cell.getField()
-                                                const row = cell.getRow()
-                                                const rowData = row.getData()
-                                                if(fieldName === 'count' || 'weight') {
-                                                    const totalWeight = parseInt(rowData.count) * parseFloat(rowData.weight)
-                                                    row.update({'totalWeight': isNaN(totalWeight) ? null : totalWeight})
-                                                }
-                                                if(fieldName === 'count' || 'height' || 'width' || 'length') {
-                                                    const totalVolume = parseInt(rowData.count) * parseFloat(rowData.length) * parseInt(rowData.height) * parseInt(rowData.width)
-                                                    row.update({'totalVolume': isNaN(totalVolume) ? null : totalVolume})
-                                                }
-                                                // props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            },
-                                            // rowAdded: row => {
-                                            //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            // },
-                                            // rowDeleted: row => {
-                                            //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            // }
-                                        }}
-                                    />
-                                </Col>
-                            }
+                            <Col md={12} style={{display: packageIsMinimum ? 'none' : 'block'}}>
+                                <ReactTabulator
+                                    ref={props.packageState.tableRef}
+                                    columns={packageColumns}
+                                    data={packages}
+                                    options={{
+                                        cellEdited: cell => {
+                                            const fieldName = cell.getField()
+                                            const row = cell.getRow()
+                                            const rowData = row.getData()
+                                            if(fieldName === 'count' || 'weight') {
+                                                const totalWeight = parseInt(rowData.count) * parseFloat(rowData.weight)
+                                                row.update({'totalWeight': isNaN(totalWeight) ? null : totalWeight})
+                                            }
+                                            if(fieldName === 'count' || 'height' || 'width' || 'length') {
+                                                const totalVolume = parseInt(rowData.count) * parseFloat(rowData.length) * parseInt(rowData.height) * parseInt(rowData.width)
+                                                row.update({'totalVolume': isNaN(totalVolume) ? null : totalVolume})
+                                            }
+                                            // props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+                                        },
+                                        // rowAdded: row => {
+                                        //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+                                        // },
+                                        // rowDeleted: row => {
+                                        //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+                                        // }
+                                    }}
+                                />
+                            </Col>
                         </Row>
                     </Col>
                 </Row>

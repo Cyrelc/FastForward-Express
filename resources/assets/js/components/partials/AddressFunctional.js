@@ -1,14 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {Autocomplete, GoogleMap, Marker} from '@react-google-maps/api'
 
 const defaultCenter = {lat: 53.544389, lng: -113.49072669}
 
 const libraries = ['places']
-
-const MapMarker = () => {
-    return <i className='fas fa-map-marker fa-2x' style={{color: 'red'}}></i>
-}
 
 export default function Address(props) {
     const [mapCenter, setMapCenter] = useState(defaultCenter)

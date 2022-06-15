@@ -256,7 +256,7 @@ export default function BillingTab(props) {
     const moneyColumnStandardParams = {
         editor:'number',
         formatter: 'money',
-        formatterParams: {thousand: ',', symbol: '$'},
+        formatterParams: {thousand: ',', symbol: '$', selectContents: true},
         editorParams: {step: 0.01},
         hozAlign: 'right',
         topCalc: 'sum',
@@ -527,12 +527,17 @@ export default function BillingTab(props) {
                                     </Card.Header>
                                     <Card.Body style={{padding: '0px'}}>
                                         <ReactTabulator
-                                            onRef={ref => charge.tableRef.current = ref.current}
-                                            id={'lineItemDestination'}
+                                            ref={charge.tableRef}
+                                            id='lineItemDestination'
                                             columns={chargeTableColumns(charge.chargeType)}
                                             data={charge.lineItems}
-                                            data-index={index}
-                                            events={{
+                                            options={{
+                                                groupBy: data => groupBy(data, charge),
+                                                groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
+                                                initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+                                                layout: 'fitColumns',
+                                                movableRows: true,
+                                                movableRowsReceiver: 'add',
                                                 cellEdited: cell => {
                                                     const field = cell.getField()
                                                     const row = cell.getRow()
@@ -548,14 +553,6 @@ export default function BillingTab(props) {
                                                     props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
                                                     charge.tableRef.current.redraw()
                                                 }
-                                            }}
-                                            options={{
-                                                groupBy: data => groupBy(data, charge),
-                                                groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
-                                                initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                                                layout: 'fitColumns',
-                                                movableRowsReceiver: 'add',
-                                                reactiveData: false
                                             }}
                                         />
                                     </Card.Body>

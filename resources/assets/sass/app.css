@@ -36,3 +36,19 @@
     width: 80%;
     max-width: 80%!important;
 }
+
+.bg-tomato {
+    background-color: tomato!important;
+}
+.bg-orange {
+    background-color: orange!important
+}
+.bg-gold {
+    background-color: gold!important
+}
+.bg-lightgreen {
+    background-color: lightgreen!important;
+}
+.bg-gainsboro {
+    background-color: white!important
+}

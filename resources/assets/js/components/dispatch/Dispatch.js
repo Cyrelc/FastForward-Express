@@ -1,424 +1,371 @@
-import React, {Component} from 'react'
-import {Row, Col, InputGroup, Button, Modal, ToastHeader} from 'react-bootstrap'
-import * as moment from 'moment/moment'
+import React, {useEffect, useRef, useState} from 'react'
+import {Button, Card, Col, InputGroup, Modal, Row} from 'react-bootstrap'
+import {DateTime} from 'luxon'
 import DatePicker from 'react-datepicker'
+import {ReactTabulator, reactFormatter} from 'react-tabulator'
+import Countdown from 'react-countdown'
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 
-import Bills from './Bills'
-import Driver from './Driver'
 import Map from './Map'
 
-export default class Dispatch extends Component {
-    constructor() {
-        window.moment = moment
-        super()
-        this.state = {
-            bills: [],
-            drivers: [],
-            endDate: undefined,
-            rowInTransit: false,
-            setTimeModalBillId: null,
-            setTimeModalTime: new Date(),
-            setTimeModalField: null,
-            setTimeModalView: false,
-            startDate: null,
-            viewUnassigned: true,
-            billColumns: [
-                {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
-                {
-                    title: 'Bill ID',
-                    field: 'bill_id',
-                    cellDblClick: (event, row) => window.open('/bills/edit/' + row.getData().bill_id)
-                },
-                {
-                    title: 'Pickup',
-                    field: 'time_pickup_scheduled',
-                    formatter: 'datetimediff',
-                    formatterParams: {humanize: true, suffix: true},
-                    cellClick: (event, cell) => {this.handleChange({target: {name: 'setTimeModalView', type: 'checkbox', checked: true, value: cell}})}
-                },
-                {
-                    title: 'Delivery',
-                    field: 'time_delivery_scheduled',
-                    formatter: 'datetimediff',
-                    formatterParams: {humanize: true, suffix: true},
-                    cellClick: (event, cell) => {this.handleChange({target: {name: 'setTimeModalView', type: 'checkbox', checked: true, value: cell}})}
-                },
-                {
-                    title: 'View',
-                    field: null,
-                    headerSort: false,
-                    formatter: (cell) => {return cell.getRow().getData().view ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye-slash"></i>'},
-                    cellClick: (event, cell) => {this.handleChange({target: {name: 'viewBill', type: 'checkbox', value: cell.getRow().getData().bill_id}})},
-                    headerClick: (event, column) => {this.handleChange({target: {name: 'viewDriver', type: 'checkbox', value: column.getTable().element.getAttribute('data-employeeid')}})},
-                },
-                {title: '', field: 'timeUntilPickup', visible: false},
-                {title: '', field: 'timeUntilDelivery', visible: false},
-                {title: '', field: 'view', visible: false},
-            ]
+const durationRenderer = ({days, hours, minutes}, cell) => {
+    const data = cell.getRow().getData()
+    const field = cell.getField()
+    const actualTime = field === 'time_pickup_scheduled' ? data.time_picked_up : data.time_delivered
+    const scheduledTime = DateTime.fromJSDate(cell.getValue())
+    const timeRemaining = scheduledTime.diffNow('minutes')
+
+    if(!!actualTime)
+        return <span>Done <i className='far fa-check-square'></i></span>
+    else {
+        return <span>{`${timeRemaining < 0 ? '- ' : ''} ${days > 0 ? days + 'd,' : ''} ${hours > 0 ? hours +'h,' : ''} ${minutes}m`}</span>
+    }
+}
+
+function DurationFormatter(props) {
+    return (
+        <Countdown
+            date={props.cell.getValue()}
+            intervalDelay={60000}
+            overtime={true}
+            renderer={stuff => durationRenderer(stuff, props.cell)}
+        />
+    )
+}
+
+const formatBill = data => {
+    return {
+        bill_id: data.bill.bill_id,
+        pickup_address_lat: data.pickup_address.lat,
+        pickup_address_lng: data.pickup_address.lng,
+        delivery_address_lat: data.delivery_address.lat,
+        delivery_address_lng: data.delivery_address.lng,
+        pickup_driver_id: data.bill.pickup_driver_id,
+        delivery_driver_id: data.bill.delivery_driver_id,
+        time_picked_up: Date.parse(data.bill.time_picked_up),
+        time_delivered: Date.parse(data.bill.time_delivered),
+        time_pickup_scheduled: Date.parse(data.bill.time_pickup_scheduled),
+        time_delivery_scheduled: Date.parse(data.bill.time_delivery_scheduled),
+        view: true
+    }
+}
+
+const getBackgroundColour = (timeRemaining, actualTime) => {
+    if(actualTime != null)
+        return 'lightgreen'
+    else {
+        if(timeRemaining < 0)
+            return 'tomato'
+        else if(timeRemaining < 60)
+            return 'orange'
+        else if (timeRemaining < 120)
+            return 'gold'
+    }
+    return 'gainsboro'
+}
+
+const paintBills = bills => {
+    return bills.map(bill => {
+        const timeUntilPickup = DateTime.fromJSDate(bill.time_pickup_scheduled).diffNow('minutes').minutes
+        const timeUntilDelivery = DateTime.fromJSDate(bill.time_delivery_scheduled).diffNow('minutes').minutes
+        return {
+            ...bill,
+            pickupBackgroundColour: getBackgroundColour(timeUntilPickup, bill.time_picked_up),
+            deliveryBackgroundColour: getBackgroundColour(timeUntilDelivery, bill.time_delivered)
         }
-        this.handleChange = this.handleChange.bind(this)
-        this.handleStartDateEvent = this.handleStartDateEvent.bind(this)
-        this.refreshBills = this.refreshBills.bind(this)
+    })
+}
+
+const rowFormatter = row => {
+    const data = row.getData()
+    const pickupElement = row.getCell('time_pickup_scheduled').getElement()
+    const deliveryElement = row.getCell('time_delivery_scheduled').getElement()
+    pickupElement.style.backgroundColor = data.pickupBackgroundColour
+    deliveryElement.style.backgroundColor = data.deliveryBackgroundColour
+}
+
+export default function Dispatch(props) {
+    const [billDate, setBillDate] = useState(new Date())
+    const [bills, setBills] = useState([])
+    const [drivers, setDrivers] = useState([])
+    const [pendingBillEvents, setPendingBillEvents] = useState(new Array())
+    const [rowInTransit, setRowInTransit] = useState(false)
+
+    const [showTimeModal, setShowTimeModal] = useState(false)
+    const [timeModalField, setTimeModalField] = useState('')
+    const [timeModalActualTime, setTimeModalActualTime] = useState(new Date())
+    const [timeModalBillId, setTimeModalBillId] = useState(null)
+
+    const handleBillEventRef = useRef()
+    handleBillEventRef.current = billEvent => {
+        const currentDate = DateTime.fromJSDate(billDate)
+        const timePickupScheduled = DateTime.fromFormat(billEvent.time_pickup_scheduled, 'yyyy-MM-dd hh:mm:ss')
+        const timeDeliveryScheduled = DateTime.fromFormat(billEvent.time_delivery_scheduled, 'yyyy-MM-dd hh:mm:ss')
+        const existingBill = bills.find(bill => bill.bill_id === billEvent.bill_id)
+        const matchesCurrentDate = currentDate.hasSame(timePickupScheduled, 'day') || currentDate.hasSame(timeDeliveryScheduled, 'day')
+        // Potential cases:
+        // 1. Bill is in the list, and the current date NO LONGER matches our current watch date -> remove bill from list
+        // 2. If bill matches our date insert/update functionality will be handled by the pending bills logic
+        // first instance is the only one where we don't require an ajax call for more information, that's why it's broken out this way
+        if(existingBill && !matchesCurrentDate) {
+            setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'remove', bill: billEvent}]))
+        } else if (matchesCurrentDate) {
+            makeAjaxRequest(`/bills/${billEvent.bill_id}`, 'GET', null, response => {
+                const data = JSON.parse(response)
+                const pendingBill = formatBill(data)
+                if(existingBill) {
+                    setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'update', bill: pendingBill}]))
+                } else {
+                    setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'add', bill: pendingBill}]))
+                }
+            })
+        }
     }
 
-    componentDidMount() {
-        makeFetchRequest('/dispatch/GetDrivers', data => {
-            const drivers = data.map(driver => {return {...driver, view: true}})
-            this.setState({drivers: drivers}, this.handleStartDateEvent({target: {name: 'startDate', type: 'date', value: new Date()}}))
+    useEffect(() => {
+        makeAjaxRequest('/dispatch/getDrivers', 'GET', null, response => {
+            response = JSON.parse(response)
+            setDrivers(Object.values(response).map(driver => {return {...driver, view: true}}))
         })
 
-        var timer = setInterval(() => {this.refreshBills()}, 20000)
-
-        const options = {
+        window.echo = new Echo({
             broadcaster: 'pusher',
             key: 'c6a722255496d5cc54e4',
             cluster: 'us3',
             forceTLS: true
-        }
-
-        const echo = new Echo(options)
-
-        echo.private('dispatch').listen('BillCreated', e => {
-            const startDate = moment(this.state.startDate)
-            if(moment(e.time_pickup_scheduled.date).isSame(startDate, 'day') || moment(e.time_delivery_scheduled.date).isSame(startDate, 'day')) {
-                makeFetchRequest('/bills/getModel/' + e.bill_id, data => {
-                    const bill = this.formatNewBill(data)
-                    const bills = this.state.bills
-                    bills[bills.length] = bill
-                    this.setState({bills: bills})
-                })
-            }
-        }).listen('BillUpdated', e => {
-            console.log('Received bill updated event for bill_id: ' + e.bill_id)
-            const startDate = moment(this.state.startDate)
-            const bill = this.state.bills.filter(bill => bill.bill_id === e.bill_id)
-            const matchesCurrentDate = (moment(e.time_pickup_scheduled.date).isSame(startDate, 'day') || moment(e.time_delivery_scheduled.date).isSame(startDate, 'day'))
-            /*
-            * Potential cases:
-            * 1. Bill is in the list, and something other than date has changed, such as address -> update the bill details
-            * 2. Bill is in the list, and the current date NO LONGER matches our current watch date -> remove bill from list
-            * 3. Bill is not in list, but has had the date modify to match our filter criteria -> add bill to list
-            */
-            if(bill[0] && matchesCurrentDate) {
-                console.log('Bill found. Date matches. Updating data')
-                makeFetchRequest('/bills/getModel' + e.bill_id, data => {
-                    const bills = this.state.bills.map(b => {
-                        if(b.bill_id === e.bill_id)
-                            return this.updateBill(b, data)
-                        else
-                            return b;
-                    })
-                    this.setState({bills: bills})
-                })
-            } else if (bill[0]) {
-                console.log('Bill found. Date no longer matches. Removing from view')
-                const bills = this.state.bills.filter(bill => bill.bill_id != e.bill_id)
-                this.setState({bills: bills})
-            } else if (matchesCurrentDate) {
-                console.log('Bill not found. Date matches. Adding to view')
-                makeFetchRequest('/bills/getModel/' + e.bill_id, data => {
-                    var bills = this.state.bills
-                    bills[bills.length] = this.formatNewBill(data)
-                    this.setState({bills: bills})
-                })
-            }
-        })
-    }
-
-    formatNewBill(data) {
-        return {
-            bill_id: data.bill.bill_id,
-            pickup_address_lat: data.pickup_address.lat,
-            pickup_address_lng: data.pickup_address.lng,
-            delivery_address_lat: data.delivery_address.lat,
-            delivery_address_lng: data.delivery_address.lng,
-            pickup_driver_id: data.bill.pickup_driver_id,
-            delivery_driver_id: data.bill.delivery_driver_id,
-            time_picked_up: data.bill.time_picked_up,
-            time_delivered: data.bill.time_delivered,
-            time_pickup_scheduled: data.bill.time_pickup_scheduled,
-            time_delivery_scheduled: data.bill.time_delivery_scheduled
-        }
-    }
-
-    getBackgroundColor(time_action_performed, time_remaining) {
-        if(time_action_performed != null)
-            return 'lightgreen'
-        else if(time_remaining < 0)
-            return 'tomato'
-        else if(time_remaining < 1200)
-            return 'orange'
-        else if (time_remaining < 2400)
-            return 'gold'
-        else
-            return 'undefined'
-    }
-
-    refreshBills() {
-        if(this.state.rowInTransit)
-            return
-        const bills = this.state.bills.map(bill => {
-            const timeUntilPickup = Math.floor(moment(bill.time_pickup_scheduled).diff(moment()) / 1000)
-            const timeUntilDelivery = Math.floor(moment(bill.time_delivery_scheduled).diff(moment()) / 1000)
-            const pickupBackgroundColor = this.getBackgroundColor(bill.time_picked_up, timeUntilPickup)
-            const deliveryBackgroundColor = this.getBackgroundColor(bill.time_delivered, timeUntilDelivery)
-            return {
-                ...bill,
-                view: bill.view === undefined ? true : bill.view,
-                timeUntilPickup: timeUntilPickup,
-                timeUntilDelivery: timeUntilDelivery,
-                pickupBackgroundColor: pickupBackgroundColor,
-                deliveryBackgroundColor: deliveryBackgroundColor
-            }
-        })
-        this.setState({bills: bills})
-    }
-
-    rowFormatter(row) {
-        const data = row.getData()
-        const pickupElement = row.getCell('time_pickup_scheduled').getElement()
-        const deliveryElement = row.getCell('time_delivery_scheduled').getElement()
-        pickupElement.style.backgroundColor = data.pickupBackgroundColor
-        deliveryElement.style.backgroundColor = data.deliveryBackgroundColor
-    }
-
-    //change handlers
-
-    handleAssignBillEvent(event) {
-        const {value, employee_id} = event.target
-
-        const bills = this.state.bills.map(bill => {
-            if(bill.bill_id === value)
-                return {...bill, pickup_driver_id: employee_id, delivery_driver_id: employee_id}
-            else
-                return bill
         })
 
-        const data = {
-            employee_id: employee_id,
-            bill_id: value
-        }
+        window.echo.private('dispatch').listen('BillUpdated', event => handleBillEventRef.current(event)).listen('BillCreated', event => handleBillEventRef.current(event))
 
+        const interval = setInterval(() => {
+            if(!rowInTransit)
+                setBills(bills => paintBills(bills))
+        }, 60000)
+    }, [])
+
+    useEffect(() => {
+        const date = DateTime.fromJSDate(billDate).toFormat('yyyy-MM-dd')
+        makeAjaxRequest(`/dispatch/getBills?filter[dispatch]=true&filter[time_pickup_scheduled]=${date},${date}`, 'GET', null, response => {
+            response = JSON.parse(response)
+            const bills = response.map(bill => {
+                return {...bill,
+                    view: bill.view === undefined ? true : bill.view,
+                    time_pickup_scheduled: Date.parse(bill.time_pickup_scheduled),
+                    time_delivery_scheduled: Date.parse(bill.time_delivery_scheduled)
+                }
+            })
+            setBills(paintBills(bills))
+        })
+    }, [billDate])
+
+    useEffect(() => {
+        if(!rowInTransit && pendingBillEvents.length) {
+            pendingBillEvents.forEach(event => {
+                if(event.type === 'remove')
+                    setBills(bills => paintBills(bills.filter(bill => bill.bill_id != event.bill.bill_id)))
+                else if(event.type === 'add')
+                    setBills(bills => paintBills(bills.concat([event.bill])))
+                else if(event.type === 'update')
+                    setBills(bills => paintBills(bills.map(bill => {
+                        if(bill.bill_id === event.bill.bill_id)
+                            return event.bill
+                        return bill
+                    })))
+            })
+            setPendingBillEvents(new Array())
+        }
+    }, [pendingBillEvents, rowInTransit])
+
+    const assignBill = (bill_id, employee_id = null) => {
+        const data = {bill_id, employee_id}
         makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {
             toastr.clear()
+            setBills(paintBills(bills => bills.map(bill => {
+                if(bill.bill_id === bill_id)
+                    return {...bill, pickup_driver_id: employee_id, delivery_driver_id: employee_id}
+                return bill
+            })))
         })
-
-        return {bills: bills}
     }
 
-    handleChange(event) {
-        const {name, value, type, checked} = event.target
-        var temp = {}
-        switch(name) {
-            case 'assignBill':
-                temp = this.handleAssignBillEvent(event)
-                break
-            case 'setTimeModalView':
-                temp = this.handleSetTimeModalViewEvent(event)
-                break
-            case 'startDate':
-                temp = this.handleStartDateEvent(event)
-                break
-            case 'viewBill':
-                temp = this.handleViewBillEvent(event)
-                break
-            case 'viewDriver':
-                temp = this.handleViewDriverEvent(event)
-                break
-            case 'setTime':
-                temp = this.handleSetTimeEvent(event)
-                break;
-            default:
-                temp[name] = type === 'checkbox' ? checked : value
-        }
-        this.setState(temp)
+    const billColumns = [
+        {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
+        {title: 'Bill ID', field: 'bill_id', cellDblClick: (event, cell) => window.open(`/app/bills/${cell.getValue()}`)},
+        {
+            cellClick: (event, cell) => setTimeModalView(cell),
+            field: 'time_pickup_scheduled',
+            formatter: reactFormatter(<DurationFormatter/>),
+            title: 'Pickup',
+            hozAlign: 'right'
+        },
+        {
+            cellClick: (event, cell) => setTimeModalView(cell),
+            title: 'Delivery',
+            field: 'time_delivery_scheduled',
+            formatter: reactFormatter(<DurationFormatter/>),
+            hozAlign: 'right',
+        },
+        {
+            title: 'View',
+            field: null,
+            headerSort: false,
+            formatter: (cell) => {return cell.getRow().getData().view ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye-slash"></i>'},
+            width: 60,
+            cellClick: (event, cell) => toggleBillView(cell),
+            headerClick: (event, column) => toggleTableBillView(column.getTable().element.getAttribute('data-employeeid'))
+            // headerClick: (event, column) => {this.handleChange({target: {name: 'viewDriver', type: 'checkbox', value: column.getTable().element.getAttribute('data-employeeid')}})},
+        },
+        {title: 'Picked Up', field: 'time_picked_up', visible: false},
+        {title: 'Delivered', field: 'time_delivered', visible: false}
+    ]
+
+    const setTimeModalView = cell => {
+        setTimeModalActualTime(new Date())
+        setTimeModalField(cell.getField() === 'time_pickup_scheduled' ? 'pickup' : 'delivery')
+        setTimeModalBillId(cell.getRow().getData().bill_id)
+        setShowTimeModal(true)
     }
 
-    handleSetTimeModalViewEvent(event) {
-        const {name, value, type, checked} = event.target
-        var temp = {setTimeModalView: checked}
-        if(checked) {
-            const bill_id = value.getRow().getData().bill_id
-            const field = value.getField()
-            const time = new Date()
-            temp = {...temp, setTimeModalBillId: bill_id, setTimeModalField: field, setTimeModalTime: time}
-        }
-        return temp
-    }
-
-    handleSetTimeEvent(event) {
-        const csrfToken = document.head.querySelector("[name~=csrf-token][content]").content
-        const type = this.state.setTimeModalField === 'time_pickup_scheduled' ? 'pickup' : 'delivery'
-        const data = {
-            bill_id: this.state.setTimeModalBillId,
-            type: type,
-            time: this.state.setTimeModalTime.toLocaleString("en-US")
-        }
+    const submitActualTime = () => {
+        const data = {bill_id: timeModalBillId, type: timeModalField, time: timeModalActualTime.toLocaleString('en-US')}
         makeAjaxRequest('/dispatch/setBillPickupOrDeliveryTime', 'POST', data, response => {
             toastr.clear()
-        })
-
-        var bills = this.state.bills.map(bill => {
-            if(bill.bill_id === this.state.setTimeModalBillId)
-                if(this.state.setTimeModalField === 'time_pickup_scheduled')
-                    return {...bill, time_picked_up: this.state.setTimeModalTime, pickupBackgroundColor: 'lightgreen'}
-                else
-                    return {...bill, time_delivered: this.state.setTimeModalTime, deliveryBackgroundColor: 'lightgreen'}
-            else
+            const refreshedBills = bills.map(bill => {
+                if(bill.bill_id === timeModalBillId) {
+                    if(timeModalField === 'pickup')
+                        return {...bill, time_picked_up: timeModalActualTime, pickupBackgroundColour: 'lightgreen'}
+                    return {...bill, time_delivered: timeModalActualTime, deliveryBackgroundColour: 'lightgreen'}
+                }
                 return bill
-        })
-        //If a bill has been picked up and delivered, remove it from our view it no longer belongs there
-        bills = bills.filter(bill => {return (bill.time_picked_up == null || bill.time_delivered == null || bill.pickup_driver_id == null || bill.delivery_driver_id == null)})
-        return {bills: bills, setTimeModalView: false}
-    }
-
-    handleStartDateEvent(event) {
-        const {name, value} = event.target
-        this.setState({startDate: value}, () => {
-
-            makeFetchRequest('/bills?filter[dispatch]&filter[time_pickup_scheduled]=' + moment(this.state.startDate).format('YYYY-MM-DD') + ',' + moment(this.state.startDate).add(1, 'd').format('YYYY-MM-DD'), data => {
-                this.setState({bills: data}, this.refreshBills)
             })
+            setBills(paintBills(refreshedBills.filter(bill => (bill.time_picked_up == null || bill.time_delivered == null || bill.delivery_driver == null || bill.pickup_driver == null))))
         })
+        setShowTimeModal(false)
     }
 
-    handleViewBillEvent(event) {
-        const {name, value, type, checked} = event.target
-        const bills = this.state.bills.map(bill => {
-            if(bill.bill_id === value)
+    const toggleBillView = cell => {
+        const data = cell.getRow().getData()
+        setBills(paintBills(bills.map(bill => {
+            const isPastPickupTime = DateTime.fromJSDate(data.pickup_time_scheduled).diffNow('seconds') < 0
+            const isPastDeliveryTime = DateTime.fromJSDate(data.delivery_time_scheduled).diffNow('seconds') < 0
+            if(bill.bill_id === data.bill_id && !isPastPickupTime && !isPastDeliveryTime)
                 return {...bill, view: !bill.view}
-            else
-                return bill
-        })
-
-        return {bills: bills}
+            return bill
+        })))
     }
 
-    handleViewDriverEvent(event) {
-        const {name, value, type, checked} = event.target
-        var viewUnassigned = value === null ? !this.state.viewUnassigned : this.state.viewUnassigned
-        var view = viewUnassigned
-        const drivers = this.state.drivers.map(driver => {
-            if(driver.employee_id == value) {
+    const toggleTableBillView = employeeId => {
+        let view = false
+        setDrivers(drivers.map(driver => {
+            if(driver.employee_id == employeeId) {
                 view = !driver.view
-                return {...driver, view: !driver.view}
+                return {...driver, view}
             }
-            else
-                return driver
-        })
-        const bills = this.state.bills.map(bill => {
-            if(bill.pickup_driver_id == value || bill.delivery_driver_id == value)
-                return {...bill, view: view}
-            else
-                return bill
-        })
-        return {drivers: drivers, bills: bills, viewUnassigned: viewUnassigned}
+            return driver
+        }))
+        setBills(paintBills(bills.map(bill => {
+            const isPastPickupTime = DateTime.fromJSDate(bill.pickup_time_scheduled).diffNow('seconds') < 0
+            const isPastDeliveryTime = DateTime.fromJSDate(bill.delivery_time_scheduled).diffNow('seconds') < 0
+            if((bill.pickup_driver_id == employeeId || bill.delivery_driver_id == employeeId) && !isPastPickupTime && !isPastDeliveryTime)
+                return {...bill, view}
+            return bill
+        })))
     }
 
-    render() {
-        return (
-            <span>
+    return (
+        <Row>
+            <Col md={9}>
+                <Map
+                    bills={bills}
+                />
+            </Col>
+            <Col md={3}>
                 <Row>
-                    <Col md={9}>
-                        <Map
-                            bills={this.state.bills}
-                        />
-                    </Col>
-                    <hr/><hr/>
-                    <Col md={3}>
-                        <Row>
-                            <Col md={11} className='text-center'>
-                                <InputGroup>
-                                    <InputGroup.Text>Date</InputGroup.Text>
-                                    <DatePicker
-                                        dateFormat='MMMM d, yyyy'
-                                        className='form-control'
-                                        onChange={value => this.handleChange({target: {name: 'startDate', type: 'datetime', value: value}})}
-                                        selected={this.state.startDate}
-                                        wrapperClassName='form-control'
-                                    />
-                                </InputGroup>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={12} className='text-center'>
-                                <h4 className='text-muted'>New Bills</h4>
-                            </Col>
-                        </Row>
-                        <Row style={{height: '25vh', overflowY: 'scroll'}}>
-                            <Col md={12}>
-                                <Bills
-                                    bills={this.state.bills}
-                                    billColumns={this.state.billColumns}
-                                    drivers={this.state.drivers}
-                                    handleChange={this.handleChange}
-
-                                    rowFormatter={this.rowFormatter}
-                                />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={12} className={'text-center'}>
-                                <h4 className='text-muted'>Drivers</h4>
-                            </Col>
-                        </Row>
-                        <Row style={{maxHeight: '55vh', overflowY: 'scroll'}}>
-                            <Col md={12}>
-                                {this.state.drivers.map(driver =>
-                                    <Driver
-                                        key={driver.employee_id}
-                                        billColumns={this.state.billColumns}
-                                        bills={this.state.bills}
-                                        driver={driver}
-
-                                        handleChange={this.handleChange}
-                                        rowFormatter={this.rowFormatter}
-                                    />
-                                )}
-                            </Col>
-                        </Row>
-                    </Col>
-                </Row>
-                <Modal show={this.state.setTimeModalView} onHide={() => this.handleChange({target: {name: 'setTimeModalView', type: 'checkbox', checked: false}})}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Set actual {this.state.setTimeModalField === 'time_pickup_scheduled' ? 'pickup' : 'delivery'} time for bill {this.state.setTimeModalBillId}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
+                    <Col md={12} className='text-center'>
                         <InputGroup>
+                            <InputGroup.Text>Date</InputGroup.Text>
                             <DatePicker
-                                showTimeSelect
-                                timeIntervals={5}
-                                dateFormat='MMMM d, yyyy h:mm aa'
+                                dateFormat='MMMM d, yyyy'
                                 className='form-control'
-                                selected={this.state.setTimeModalTime}
-                                onChange={value => this.handleChange({target: {name: 'setTimeModalTime', type: 'datetime', value: value}})}
+                                onChange={setBillDate}
+                                selected={billDate}
                                 wrapperClassName='form-control'
                             />
-                            <Button onClick={() => this.handleChange({target: {name: 'setTime'}})}>Set</Button>
                         </InputGroup>
-                    </Modal.Body>
-                </Modal>
-            </span>
-        )
-    }
-
-    updateBill(old, data) {
-        return {
-            ...old,
-            pickup_address_lat: data.pickup_address.lat,
-            pickup_address_lng: data.pickup_address.lng,
-            delivery_address_lat: data.delivery_address.lat,
-            delivery_address_lng: data.delivery_address.lng,
-            pickup_driver_id: data.bill.pickup_driver_id,
-            delivery_driver_id: data.bill.delivery_driver_id,
-            time_picked_up: data.bill.time_picked_up,
-            time_delivered: data.bill.time_delivered,
-            time_pickup_scheduled: data.bill.time_pickup_scheduled,
-            time_delivery_scheduled: data.bill.time_delivery_scheduled
-        }
-    }
+                    </Col>
+                    <Col md={12} className='text-center'>
+                        <h4 className='text-muted'>New Bills</h4>
+                    </Col>
+                    <Col md={12} style={{maxHeight: '25vh', overflowY: 'scroll'}}>
+                        <ReactTabulator
+                            columns={billColumns}
+                            data={bills.filter(bill => !bill.pickup_driver_id || !bill.delivery_driver_id)}
+                            id='unassigned-bills-table'
+                            options={{
+                                layout: 'fitColumns',
+                                movableRows: true,
+                                movableRowsConnectedTables: '#driver-table',
+                                movableRowsSender: 'delete',
+                                movableRowsReceiver: 'add',
+                                movableRowsReceived: row => assignBill(row.getData().bill_id),
+                                movableRowsSendingStart: () => setRowInTransit(true),
+                                movableRowsSendingStop: () => setRowInTransit(false),
+                                rowFormatter: rowFormatter
+                            }}
+                        />
+                    </Col>
+                    <Col md={12} className='text-center'>
+                        <h4 className='text-muted'>Drivers</h4>
+                    </Col>
+                    <Row style={{maxHeight: '55vh', overflowY: 'scroll'}}>
+                        {drivers && drivers.map(driver =>
+                            <Col md={12} key={driver.employee_id}>
+                                <Card style={{padding:'5px'}}>
+                                    <Card.Header><h6>{`${driver.employee_number} - `} {driver.first_name} {driver.last_name}{driver.company_name ? ` (${driver.company_name})` : ''}</h6></Card.Header>
+                                    <Card.Body style={{padding: 0}}>
+                                        <ReactTabulator
+                                            id='driver-table'
+                                            columns={billColumns}
+                                            data={bills.filter(bill => bill.pickup_driver_id === driver.employee_id || bill.delivery_driver_id === driver.employee_id)}
+                                            data-employeeid={driver.employee_id}
+                                            options={{
+                                                movableRows: true,
+                                                movableRowsReceiver: 'add',
+                                                movableRowsSender: 'delete',
+                                                movableRowsConnectedTables: ['#unassigned-bills-table', '#driver-table'],
+                                                movableRowsReceived: row => assignBill(row.getData().bill_id, driver.employee_id),
+                                                movableRowsSendingStart: () => setRowInTransit(true),
+                                                movableRowsSendingStop: () => setRowInTransit(false),
+                                                rowFormatter: rowFormatter
+                                            }}
+                                        />
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        )}
+                    </Row>
+                </Row>
+            </Col>
+            <Modal show={showTimeModal} onHide={() => setShowTimeModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Set actual {timeModalField} time for bill {timeModalBillId}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <InputGroup>
+                        <DatePicker
+                            showTimeSelect
+                            timeIntervals={5}
+                            dateFormat='MMMM d, yyyy h:mm aa'
+                            className='form-control'
+                            selected={timeModalActualTime}
+                            onChange={value => setTimeModalActualTime(value)}
+                            wrapperClassName='form-control'
+                        />
+                        <Button onClick={submitActualTime}>Set</Button>
+                    </InputGroup>
+                </Modal.Body>
+            </Modal>
+        </Row>
+    )
 }
-
-// ReactDom.render(<Dispatch />, document.getElementById('dispatch'))

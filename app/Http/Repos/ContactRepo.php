@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\AccountUser;
 use App\Contact;
+use App\Employee;
 use App\EmployeeEmergencyContact;
 
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,13 @@ class ContactRepo {
 
     public function GetById($contactId) {
         $contact = Contact::where('contact_id', $contactId)->first();
+
+        return $contact;
+    }
+
+    public function GetByEmployeeId($employeeId) {
+        $employee = Employee::where('employee_id', $employeeId)->first();
+        $contact = Contact::where('contact_id', $employee->contact_id)->first();
 
         return $contact;
     }

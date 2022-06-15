@@ -13,11 +13,11 @@ export default function packageReducer(state, action) {
 
     switch(type) {
         case 'CONFIGURE_PACKAGES': {
-            state.tableRef?.current.setData(initialState.packages)
+            state.tableRef.current?.table?.setData(initialState.packages)
             return Object.assign({}, state, {...initialState})
         }
         case 'CONFIGURE_EXISTING':
-            state.tableRef?.current.setData(initialState.packages)
+            state.tableRef.current?.table?.setData(initialState.packages)
             return Object.assign({}, state, {
                 packageIsMinimum: payload.bill.is_min_weight_size,
                 packageIsPallet: payload.bill.is_pallet,
@@ -27,10 +27,6 @@ export default function packageReducer(state, action) {
         case 'DELETE_PACKAGE':
             return Object.assign({}, state, {
                 packages: state.packages.filter(parcel => parcel.id != payload)
-            })
-        case 'SET_TABLE_REF':
-            return Object.assign({}, state, {
-                tableRef: payload
             })
         case 'TOGGLE_PACKAGE_IS_MINIMUM':
             return Object.assign({}, state, {

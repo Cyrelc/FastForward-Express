@@ -27,7 +27,14 @@ class EmployeeRepo {
     public function GetActiveDriversWithContact() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
-            ->where('is_driver', true)
+            ->select(
+                'company_name',
+                'employee_id',
+                'employee_number',
+                'first_name',
+                'is_enabled',
+                'last_name'
+            )->where('is_driver', true)
             ->where('is_enabled', true);
 
         return $employees->get();

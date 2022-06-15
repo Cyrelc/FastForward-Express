@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 
-import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row, Table, ToastHeader} from 'react-bootstrap'
+import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row, Table} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 
 export default function ManageCreditCardsModal(props) {
