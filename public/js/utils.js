@@ -208,7 +208,6 @@ function configureFakeLink(url, redirectFunction, altDisplayField = null, altRed
         headerClick: false,
         formatter: (cell) => {
             const displayValue = altDisplayField ? cell.getRow().getData()[altDisplayField] : cell.getValue()
-            console.log(displayValue)
             if(displayValue)
                 return `<a href="javascript::void(0)">${displayValue}</a>`
             return ''
