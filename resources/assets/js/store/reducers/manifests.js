@@ -8,10 +8,9 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
 /**
  * Initial State
  */
-
  const initialState = {
      columns: [],
-     queryString: '',
+     queryString: localStorage.getItem('manifestsQueryString'),
      sortedList: [],
      manifestTable: []
  }
@@ -19,6 +18,7 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
  const reducer = (state = initialState, action) => {
      switch(action.type) {
         case actionTypes.SET_MANIFESTS_QUERY_STRING:
+            localStorage.setItem('manifestsQueryString', action.payload)
             return {...state, queryString: action.payload}
         case actionTypes.SET_MANIFESTS_SORTED_LIST:
             return {...state, sortedList: action.payload}
@@ -31,7 +31,7 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
  }
 
 export async function fetchManifests(dispatch, getState) {
-    makeAjaxRequest('/manifests/buildTable' + getState().manifests.queryString, 'GET', null, response => {
+    makeAjaxRequest(`/manifests${getState().manifests.queryString}`, 'GET', null, response => {
         const manifests = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_MANIFESTS_TABLE, payload: manifests == undefined ? [] : manifests})
     })

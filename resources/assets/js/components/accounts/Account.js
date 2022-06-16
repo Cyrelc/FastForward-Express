@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {Badge, Button, ButtonGroup, Col, Row, Tab, Tabs} from 'react-bootstrap'
-import { connect } from 'react-redux'
-import { LinkContainer } from 'react-router-bootstrap'
+import {connect} from 'react-redux'
+import {LinkContainer} from 'react-router-bootstrap'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdvancedTab from './AdvancedTab'

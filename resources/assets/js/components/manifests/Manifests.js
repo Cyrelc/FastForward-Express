@@ -16,7 +16,7 @@ function printManifests(selectedRows, options = null) {
     const download = options?.download ? options.download : false;
     const withoutBills = options?.withoutBills ? options.withoutBills : false;
 
-    window.open('/manifests/' + (download ? 'download/' : 'print/') + data + (withoutBills ? '?without_bills=true' : ''))
+    window.open(`/manifests/${download ? 'download' : 'print'}/${data}${withoutBills ? '?without_bills=true' : ''}`)
 }
 
 // const groupBy = 'end_date'
@@ -105,7 +105,7 @@ class Manifests extends Component {
 
     cellContextMenuFormatter(cell) {
         if(cell.getData().manifest_id)
-            return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
+            return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars fa-sm"></i></button>'
     }
 
     deleteManifest(cell) {

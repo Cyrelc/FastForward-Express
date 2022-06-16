@@ -7,10 +7,9 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
 /**
  * Initial State
  */
-
 const initialState = {
     columns: [],
-    queryString: '?filter[finalized]=false',
+    queryString: localStorage.getItem('invoicesQueryString'),
     sortedList: [],
     invoiceTable: []
 }
@@ -23,6 +22,7 @@ const initialState = {
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.SET_INVOICES_QUERY_STRING:
+            localStorage.setItem('invoicesQueryString', action.payload)
             return {...state, queryString: action.payload}
         case actionTypes.SET_INVOICES_SORTED_LIST:
             return {...state, sortedList: action.payload}

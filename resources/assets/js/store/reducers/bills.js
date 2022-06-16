@@ -1,3 +1,4 @@
+import {DateTime} from 'luxon'
 /**
  * Invoice table view reducer
  */
@@ -11,7 +12,7 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
 const initialState = {
     billsTable: [],
     columns: [],
-    queryString: '?filter[percentage_complete]=,100',
+    queryString: localStorage.getItem('billsQueryString'),
     sortedList: [],
     tableLoading: true
 }
@@ -22,6 +23,7 @@ const initialState = {
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.SET_BILLS_QUERY_STRING:
+            localStorage.setItem('billsQueryString', action.payload)
             return {...state, queryString: action.payload}
         case actionTypes.SET_BILLS_SORTED_LIST:
             return {...state, sortedList: action.payload}

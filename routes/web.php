@@ -48,7 +48,7 @@ Route::group(
 
             Route::get('/bills', 'BillController@buildTable');
             Route::get('/bills/create', 'BillController@getModel');
-            Route::get('/bills/{billId?}', 'BillController@getModel');
+            Route::get('/bills/{billId}', 'BillController@getModel');
             Route::get('/bills/chart', 'AdminController@getChart');
             Route::delete('/bills/{billId}', 'BillController@delete');
             Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
@@ -87,13 +87,13 @@ Route::group(
             Route::post('/invoices/store', 'InvoiceController@store');
             // Route::get('/invoices/regather/{invoiceId}', 'InvoiceController@regather');
 
+            Route::get('/manifests', 'ManifestController@buildTable');
             Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
+            Route::get('/manifests/{manifest_id}', 'ManifestController@getModel');
             Route::post('/manifests/store', 'ManifestController@store');
             Route::get('/manifests/delete/{id}', 'ManifestController@delete');
-            Route::get('/manifests/getModel/{manifest_id}', 'ManifestController@getModel');
             Route::get('/manifests/download/{manifestIds}', 'ManifestController@download');
             Route::get('/manifests/print/{manifestIds}', 'ManifestController@print');
-            Route::get('/manifests/buildTable', 'ManifestController@buildTable');
 
             Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
             Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');

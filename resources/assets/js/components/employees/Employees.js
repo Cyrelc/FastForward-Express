@@ -7,6 +7,8 @@ import { fetchEmployees } from '../../store/reducers/employees'
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 import ReduxTable from '../partials/ReduxTable'
 
+const defaultQueryString = '?filter[active]=true'
+
 /**
  * Table constants
  */
@@ -88,6 +90,7 @@ class Employees extends Component {
             <div>
                 <ReduxTable
                     columns={this.props.columns.length ? this.props.columns : this.state.columns}
+                    defaultQueryString={defaultQueryString}
                     fetchTableData={this.props.fetchTableData}
                     filters={filters}
                     groupByOptions={groupByOptions}

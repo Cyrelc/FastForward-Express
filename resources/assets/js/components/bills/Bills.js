@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { push } from 'connected-react-router'
+import {DateTime} from 'luxon'
 
 import ReduxTable from '../partials/ReduxTable'
-import { fetchBills } from '../../store/reducers/bills'
+import {fetchBills} from '../../store/reducers/bills'
 import * as actionTypes from '../../store/actions'
 
 const baseGroupByOptions = [
@@ -234,8 +235,17 @@ class Bills extends Component {
             ] : []),
             withSelected: []
         }
+        this.defaultQueryString = this.defaultQueryString.bind(this)
         this.deleteBill = this.deleteBill.bind(this)
         this.handleChange = this.handleChange.bind(this)
+    }
+
+    defaultQueryString() {
+        const billsPermissions = this.props.frontEndPermissions.bills
+        if(billsPermissions.delete || billsPermissions.billing || billsPermissions.dispatch)
+            return '?filter[percentage_complete]=,100'
+        const billsSinceDate = DateTime.now().minus({months: 4})
+        return `?filter[time_pickup_scheduled]=${billsSinceDate.toFormat('yyyy-MM-dd')}`
     }
 
     deleteBill(cell) {
@@ -266,6 +276,7 @@ class Bills extends Component {
             <ReduxTable
                 columns={this.props.columns.length ? this.props.columns : this.state.columns}
                 dataUrl='/bills/buildTable'
+                defaultQueryString={this.defaultQueryString()}
                 fetchTableData={this.props.fetchTableData}
                 filters={this.state.filters}
                 groupByOptions={this.state.groupByOptions}

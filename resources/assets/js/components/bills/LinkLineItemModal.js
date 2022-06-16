@@ -17,7 +17,7 @@ export default function LinkLineItemModal(props) {
                 setTargetId(response.invoice.invoice_id)
             })
         } else if (linkLineItemToType === 'Pickup Manifest' || linkLineItemToType == 'Delivery Manifest') {
-            makeAjaxRequest(`/manifests/getModel/${searchValue}`, 'GET', null, response => {
+            makeAjaxRequest(`/manifests/${searchValue}`, 'GET', null, response => {
                 response = JSON.parse(response)
                 setTargetObject(response)
                 setTargetId(response.manifest.manifest_id)

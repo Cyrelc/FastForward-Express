@@ -181,11 +181,20 @@ class Invoices extends Component {
                 ...withSelected
             ]
         }
+        this.defaultQueryString = this.defaultQueryString.bind(this)
+    }
+
+    defaultQueryString() {
+        if(this.props.authenticatedEmployee)
+            return '?filter[finalized]=false'
+        else
+            return ''
     }
 
     render() {
         return <ReduxTable
             columns={this.props.columns.length ? this.props.columns : this.state.columns}
+            defaultQueryString={this.defaultQueryString()}
             fetchTableData={this.props.fetchTableData}
             filters={this.state.filters}
             groupByOptions={groupByOptions}
@@ -217,6 +226,7 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
+        authenticatedEmployee: store.app.authenticatedEmployee,
         columns: store.invoices.columns,
         frontEndPermissions: store.app.frontEndPermissions,
         invoiceTable: store.invoices.invoiceTable,

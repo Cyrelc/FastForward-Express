@@ -1,5 +1,5 @@
 import React, {Component, createRef} from 'react'
-import { ReactTabulator } from 'react-tabulator'
+import {ReactTabulator} from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Dropdown, Modal, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
@@ -8,8 +8,12 @@ import TableFilters from './TableFilters'
 export default class ReduxTable extends Component {
     constructor(props) {
         super(props)
-        if(!window.location.search && this.props.reduxQueryString)
-            this.props.redirect(window.location.pathname + this.props.reduxQueryString)
+        if(!window.location.search) {
+            if(this.props.reduxQueryString)
+                this.props.redirect(window.location.pathname + this.props.reduxQueryString)
+            else if(this.props.defaultQueryString)
+                this.props.redirect(`${window.location.pathname}${this.props.defaultQueryString}`)
+        }
         this.state = {
             filters: this.parseFilters(),
             tableRef: createRef()
@@ -216,13 +220,11 @@ export default class ReduxTable extends Component {
                                     }}
                                     groupBy={this.props.groupBy}
                                     initialSort={this.props.initialSort}
-                                    maxHeight='55vh'
-                                    minHeight='55vh'
                                     options={{
                                         debugInvalidOptions: false,
                                         layout: 'fitColumns',
                                         pagination: 'local',
-                                        paginationSize: 25
+                                        paginationSize: 20
                                     }}
                                     printAsHtml={true}
                                     printStyled={true}

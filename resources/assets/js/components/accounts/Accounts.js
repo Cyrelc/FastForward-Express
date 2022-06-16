@@ -6,10 +6,10 @@ import ReduxTable from '../partials/ReduxTable'
 import { fetchAccounts } from '../../store/reducers/accounts'
 import * as actionTypes from '../../store/actions'
 
+const defaultQueryString = '?filter[active]=true'
 /**
  * Table constants including definitions
  */
-
 const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Parent Account', value: 'parent_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].parent_name}},
@@ -77,6 +77,7 @@ class Accounts extends Component {
     render() {
         return <ReduxTable
             columns={this.props.columns.length ? this.props.columns : this.state.columns}
+            defaultQueryString={defaultQueryString}
             fetchTableData={this.props.fetchTableData}
             filters={this.state.filters}
             groupByOptions={groupByOptions}

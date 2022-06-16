@@ -8,13 +8,14 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
 const initialState = {
     columns: [],
     accountsTable: [],
-    queryString: '?filter[active]=true',
+    queryString: localStorage.getItem('accountsQueryString'),
     sortedList: []
 }
 
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.SET_ACCOUNTS_QUERY_STRING:
+            localStorage.setItem('accountsQueryString', action.payload)
             return {...state, queryString: action.payload}
         case actionTypes.SET_ACCOUNTS_SORTED_LIST:
             return {...state, sortedList: action.payload}

@@ -1,7 +1,6 @@
 /**
  * Employees table view reducer
  */
-import { createRef } from 'react'
 import * as actionTypes from '../actions'
 import * as commonTableFunctions from '../partials/commonTableFunctions'
 
@@ -15,7 +14,7 @@ import * as commonTableFunctions from '../partials/commonTableFunctions'
 const initialState = {
     columns: [],
     employeesTable: [],
-    queryString: '?filter[active]=true',
+    queryString: localStorage.getItem('employeesQueryString'),
     sortedList: [],
 }
 /**
@@ -24,6 +23,7 @@ const initialState = {
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.SET_EMPLOYEES_QUERY_STRING:
+            localStorage.setItem('employeesQueryString', action.payload)
             return {...state, queryString: action.payload}
         case actionTypes.SET_EMPLOYEES_SORTED_LIST:
             return {...state, sortedList: action.payload}
