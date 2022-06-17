@@ -83,7 +83,7 @@ const Bill = (props) => {
             delivery_type_id: deliveryType.id,
             package_is_minimum: packageIsMinimum,
             package_is_pallet: packageIsPallet,
-            packages: packages,
+            packages: packageState.packageIsMinimum ? [] : packageState.tableRef.current.table.getData(),
             pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng},
             ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
             time_pickup_scheduled: pickupTimeScheduled,
@@ -313,7 +313,7 @@ const Bill = (props) => {
                                         placement={"right"}
                                         overlay={<Tooltip><ul>{billState.incompleteFields.map(field => <li key={field}>{field}</li>)}</ul></Tooltip>}
                                     >
-                                        <i className='fas fa-question-circle'/>
+                                        <i className='fas fa-question-circle' style={{paddingLeft: '10px'}}/>
                                     </OverlayTrigger> : null
                                 }
                             </h5>
@@ -471,7 +471,7 @@ const Bill = (props) => {
                         <li>TRANSPORT ANY DOCUMENTS OR GOODS DECLARED TO HAVE A VALUE IN EXCESS OF $500.00 CAD</li>
                         <li>TRANSFORT ANY SPECIES</li>
                     </ol>
-                    IF NO VALUE IS DECLARED ON THE FACE HEREOF, OR IF A SHIPMENT HAS A DECLARED VALUE IN EXCESS OF $500 CAD AND NO PRIOR SPECIAL AGREEMENT IN WRITING HAS BEEN OBTAINED THIS SHALL BE DEEMED TO BE AN AGREEMENT THAT THE VALUE OF THE GOODS SHIPPED IS $2.00 / LB ($4.41 / KG) AND CARRIER ShALL NOT BE LIABLE FOR ANY DAMAGES IN EXCESS THEREOF
+                    IF NO VALUE IS DECLARED ON THE FACE HEREOF, OR IF A SHIPMENT HAS A DECLARED VALUE IN EXCESS OF $500 CAD AND NO PRIOR SPECIAL AGREEMENT IN WRITING HAS BEEN OBTAINED THIS SHALL BE DEEMED TO BE AN AGREEMENT THAT THE VALUE OF THE GOODS SHIPPED IS $2.00 / LB ($4.41 / KG) AND CARRIER SHALL NOT BE LIABLE FOR ANY DAMAGES IN EXCESS THEREOF
                     UNDER NO CIRCUMSTANCES WILL THE CARRIER BE LIABLE FOR ANY INCIDENTAL OR CONSEQUENTIAL DAMAGES
                     <h4>DANGEROUS GOODS</h4>
                     CARRIER WILL NOT BE LIABLE FOR ANY LOSS, DAMAGE, FAILURE TO PERFORM OR DELAY FOR GOODS THAT ARE PROHIBITED, RESTRICTED, OR REQUIRED TO BE CARRIED IN SPECIAL CONTAINERS BY C.T.C., I.A.T.A, OR OTHERWISE, UNLESS SHIPPER FULLY DISCLOSES NATURE OF DANGEROUS GOODS AND SAME HAVE BEEN PROPERLY CONTAINED. SHIPPER AGREES TO INDEMNIFY CARRIER FOR ALL COSTS AND DAMAGES CAUSED BY ITS FAILURE TO DISCLOSE AND/OR PROPERLY CONTAIN DANGEROUS GOODS

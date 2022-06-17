@@ -16,7 +16,7 @@ class ChargeValidationRules {
             'pickup_address.lng' => 'required|numeric',
             'delivery_address.lat' => 'required|numeric',
             'delivery_address.lng' => 'required|numeric',
-            'packages' => 'required',
+            'packages' => 'required_if:package_is_minimum,false',
             'package_is_minimum' => 'required',
             'package_is_pallet' => 'required',
             'time_pickup_scheduled' => 'required',

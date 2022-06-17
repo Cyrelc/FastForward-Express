@@ -20,7 +20,8 @@
         "aws/aws-sdk-php": "^3.198",
         "laravel/sanctum": "^2.12",
         "daltcore/lara-pdf-merger": "^2.0",
-        "nesk/puphpeteer": "^2.0"
+        "nesk/puphpeteer": "^2.0",
+        "laravel/tinker": "^2.7"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
