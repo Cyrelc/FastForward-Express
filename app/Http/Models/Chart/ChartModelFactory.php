@@ -53,7 +53,7 @@ class ChartModelFactory {
         return $bills;
     }
 
-    public function GetMonthlyBills($dateGroupBy, $startDate, $endDate, $groupBy, $summationType) {
+    public function GetMonthlyBills($dateGroupBy, $startDate, $endDate, $groupBy, $summationType, $filterBy = null) {
         if($dateGroupBy === 'day') {
             $startDate = date("Y-m-01", strtotime($endDate));
             $endDate = date("Y-m-t", strtotime($endDate));
@@ -70,7 +70,7 @@ class ChartModelFactory {
         $model = new \stdClass();
         $model->keys = [];
 
-        $bills = $billRepo->GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy);
+        $bills = $billRepo->GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy, $filterBy);
 
         if(sizeof($bills) != 0) {
             foreach($bills as $billResult) {
@@ -85,6 +85,5 @@ class ChartModelFactory {
 
         return $model;
     }
-
 }
 

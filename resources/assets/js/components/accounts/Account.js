@@ -6,6 +6,7 @@ import {LinkContainer} from 'react-router-bootstrap'
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdvancedTab from './AdvancedTab'
 import BasicTab from './BasicTab'
+import Charts from './Charts'
 import ChildAccounts from './ChildAccounts'
 import InvoicingTab from './InvoicingTab'
 import PaymentsTab from './payments/PaymentsTab'
@@ -353,7 +354,7 @@ class Account extends Component {
                                 readOnly={ !this.state.accountId && this.state.permissions.create ? false : !this.state.permissions.editInvoicing }
                             />
                         </Tab>
-                        { ( this.state.permissions.editAdvanced || !this.state.accountId && this.state.permissions.create ) &&
+                        {(this.state.permissions.editAdvanced || !this.state.accountId && this.state.permissions.create ) &&
                             <Tab eventKey='advanced' title={<h4>Advanced</h4>}>
                                 <AdvancedTab
                                     accountNumber={this.state.accountNumber}
@@ -390,7 +391,7 @@ class Account extends Component {
                                 />
                             </Tab>
                         }
-                        { this.state.accountId && this.state.permissions.viewPayments &&
+                        {this.state.accountId && this.state.permissions.viewPayments &&
                             <Tab eventKey='payments' title={<h4>Payments</h4>}>
                                 <PaymentsTab
                                     accountBalance={this.state.accountBalance}
@@ -404,11 +405,16 @@ class Account extends Component {
                                 />
                             </Tab>
                         }
-                        { this.state.childAccountList && this.state.childAccountList.length > 0 && this.state.permissions.viewChildren &&
+                        {this.state.childAccountList && this.state.childAccountList.length > 0 && this.state.permissions.viewChildren &&
                             <Tab eventKey='childAccounts' title={<h4>Child Accounts</h4>}>
                                 <ChildAccounts
                                     childAccountList={this.state.childAccountList}
                                 />
+                            </Tab>
+                        }
+                        {this.state.permissions.viewPayments &&
+                            <Tab eventKey='analytics' title={<h4>Analytics</h4>}>
+                                <Charts/>
                             </Tab>
                         }
                         { this.state.activityLog && this.state.permissions.viewActivityLog &&

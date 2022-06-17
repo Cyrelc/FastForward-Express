@@ -37,6 +37,7 @@ Route::group(
 
             Route::post('/accounts/store', 'AccountController@store');
             Route::get('/accounts/buildTable', 'AccountController@buildTable');
+            Route::get('/accounts/chart', 'AccountController@getChart');
             Route::get('/accounts/toggleActive/{accountId}', 'AccountController@toggleActive');
             Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
             Route::post('/accounts/adjustCredit', 'AccountController@adjustAccountCredit');
@@ -47,9 +48,9 @@ Route::group(
             Route::get('/app/{route}', 'HomeController@index');
 
             Route::get('/bills', 'BillController@buildTable');
+            Route::get('/bills/chart', 'AdminController@getChart');
             Route::get('/bills/create', 'BillController@getModel');
             Route::get('/bills/{billId}', 'BillController@getModel');
-            Route::get('/bills/chart', 'AdminController@getChart');
             Route::delete('/bills/{billId}', 'BillController@delete');
             Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
             Route::post('/bills/store', 'BillController@store');

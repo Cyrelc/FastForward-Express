@@ -241,7 +241,15 @@ class BillRepo {
         return $bills->get();
     }
 
-    public function GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy = false) {
+    /**
+     * Gets a list of all bills fitting criteria
+     * @param dateGroupBy 'day', 'month', or 'year'
+     * @param startDate php parseable date string
+     * @param endDate php parseable date string
+     * @param groupBy whether or not we are grouping by anything other than date
+     * @param filterBy a key = value dictionary to only return bills matching that parameter Ex. {'column' => 'account_id', 'value' => 11}
+     */
+    public function GetChartMonthly($dateGroupBy, $startDate, $endDate, $groupBy = false, $filterBy = false) {
         $bills = Bill::whereDate('time_pickup_scheduled', '>=', $startDate)
             ->whereDate('time_pickup_scheduled', '<=', $endDate)
             ->leftJoin('employees', 'employees.employee_id', '=', 'bills.pickup_driver_id')
@@ -261,6 +269,10 @@ class BillRepo {
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
                 DB::raw('sum(case when pickup_driver_id = employees.employee_id and delivery_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2) when pickup_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) when delivery_driver_id = employees.employee_id then round(driver_amount * delivery_driver_id, 2) end) as driver_income')
             );
+
+        if($filterBy) {
+            $bills->where($filterBy['column'], $filterBy['value']);
+        }
 
         if($groupBy === 'none')
             $bills->groupBy($dateGroupBy);

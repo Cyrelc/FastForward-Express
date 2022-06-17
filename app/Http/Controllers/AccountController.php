@@ -8,6 +8,7 @@ use DB;
 use App\Http\Repos;
 
 use App\Http\Models\Account;
+use App\Http\Models\Chart;
 use App\Http\Models\Permission;
 
 use \App\Http\Validation;
@@ -68,6 +69,20 @@ class AccountController extends Controller {
             $model = $accountRepo->ListAll(null);
 
         return json_encode($model);
+    }
+
+    public function getChart(Request $req) {
+        $accountRepo = new Repos\AccountRepo();
+        $chartModelFactory = new Chart\ChartModelFactory();
+
+        $account = $accountRepo->GetById($req->account_id);
+        if(!$account || $req->user()->cannot('viewPayments', $account))
+            abort(403);
+
+        $filterBy = ['column' => 'charge_account_id', 'value' => $req->account_id];
+        $bills = $chartModelFactory->GetMonthlyBills('month', $req->start_date, $req->end_date, 'delivery_type', $req->summationType, $filterBy);
+
+        return json_encode($bills);
     }
 
     public function getModel(Request $req, $accountId = null) {
