@@ -14,8 +14,8 @@ class CreateInterlinersTable extends Migration
     {
         Schema::create('interliners', function (Blueprint $table) {
             $table->increments('interliner_id');
-            $table->string('name');
             $table->unsignedInteger('address_id');
+            $table->string('name');
 
 			$table->foreign('address_id')->references('address_id')->on('addresses');
         });

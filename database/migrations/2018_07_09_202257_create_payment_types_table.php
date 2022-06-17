@@ -16,9 +16,9 @@ class CreatePaymentTypesTable extends Migration
         Schema::create('payment_types', function (Blueprint $table) {
             $table->increments('payment_type_id');
 
+            $table->unsignedInteger('default_ratesheet_id');
             $table->string('name');
             $table->string('required_field')->nullable()->default(null);
-            $table->unsignedInteger('default_ratesheet_id');
 
             $table->foreign('default_ratesheet_id')->references('ratesheet_id')->on('ratesheets');
         });

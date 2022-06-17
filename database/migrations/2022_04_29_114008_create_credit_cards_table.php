@@ -15,9 +15,9 @@ class CreateCreditCardsTable extends Migration
     {
         Schema::create('credit_cards', function (Blueprint $table) {
             $table->increments('credit_card_id')->unique();
-            $table->unsignedInteger('payment_type_id');
             $table->unsignedInteger('account_id');
             $table->string('data_key')->unique();
+            $table->unsignedInteger('payment_type_id');
             $table->timestamps();
 
             $table->foreign('payment_type_id')->references('payment_type_id')->on('payment_types');

@@ -15,16 +15,17 @@ class CreateMonerisTransactionsTable extends Migration
     {
         Schema::create('moneris_transactions', function (Blueprint $table) {
             $table->increments('moneris_transaction_id');
+
             $table->unsignedInteger('credit_card_id');
-            $table->string('type');
-            $table->string('order_id');
             $table->unsignedInteger('invoice_id')->nullable();
+            $table->string('order_id');
+            $table->string('type');
             $table->unsignedInteger('user_id');
             $table->timestamps();
 
             $table->foreign('credit_card_id')->references('credit_card_id')->on('credit_cards');
-            $table->foreign('user_id')->references('user_id')->on('users');
             $table->foreign('invoice_id')->references('invoice_id')->on('invoices');
+            $table->foreign('user_id')->references('user_id')->on('users');
         });
     }
 

@@ -19,12 +19,6 @@ class CreateAddressesTable extends Migration
             $table->float('lat')->nullable();
             $table->float('lng')->nullable();
             $table->string('place_id')->nullable()->default(null);
-            $table->string('street'); //to be deprecated
-            $table->string('street2'); //to be deprecated
-            $table->string('city'); //to be deprecated
-            $table->string('zip_postal'); //to be deprecated
-            $table->string('state_province'); //to be deprecated
-            $table->string('country'); //to be deprecated
             $table->boolean('is_primary')->default(true);
             $table->unsignedInteger('contact_id')->nullable();
 

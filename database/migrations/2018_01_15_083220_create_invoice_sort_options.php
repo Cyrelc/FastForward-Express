@@ -14,10 +14,10 @@ class CreateInvoiceSortOptions extends Migration
     {
         Schema::create('invoice_sort_options', function (Blueprint $table) {
             $table->increments('invoice_sort_option_id');
-            $table->string('database_field_name')->unique();
-            $table->string('friendly_name')->unique();
             $table->boolean('can_be_subtotaled')->default(false);
             $table->string('contingent_field')->nullable();
+            $table->string('database_field_name')->unique();
+            $table->string('friendly_name')->unique();
         });
     }
 

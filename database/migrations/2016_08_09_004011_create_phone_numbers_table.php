@@ -14,11 +14,12 @@ class CreatePhoneNumbersTable extends Migration
     {
         Schema::create('phone_numbers', function (Blueprint $table) {
             $table->increments('phone_number_id');
-            $table->string('type');
-            $table->string('phone_number');
+
+            $table->unsignedInteger('contact_id');
             $table->string('extension_number')->nullable();
             $table->boolean('is_primary')->default(true);
-            $table->unsignedInteger('contact_id');
+            $table->string('phone_number');
+            $table->string('type');
             
             $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });

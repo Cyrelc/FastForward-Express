@@ -15,7 +15,7 @@ class CreateAccountsTable extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->increments('account_id');
             $table->float('account_balance')->default(0);
-            $table->string('account_number');
+            $table->string('account_number')->unique();
             $table->boolean('active')->default(true);
             $table->unsignedInteger('billing_address_id')->nullable();
             $table->boolean('can_be_parent')->default(true);
@@ -38,7 +38,6 @@ class CreateAccountsTable extends Migration
 			// $table->float('fuel_surcharge');
             $table->boolean('use_parent_ratesheet')->default(0);
 
-			$table->unique('account_number');
 			$table->foreign('billing_address_id')->references('address_id')->on('addresses');
             $table->foreign('shipping_address_id')->references('address_id')->on('addresses');
             $table->foreign('parent_account_id')->references('account_id')->on('accounts');

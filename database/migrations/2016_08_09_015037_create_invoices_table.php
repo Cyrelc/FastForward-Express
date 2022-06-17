@@ -15,17 +15,16 @@ class CreateInvoicesTable extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->increments('invoice_id');
             $table->unsignedInteger('account_id');
-            $table->date('date');
             $table->date('bill_start_date');
             $table->date('bill_end_date');
             $table->float('balance_owing');
             $table->float('bill_cost');
+            $table->date('date');
+            $table->float('discount')->nullable();
+            $table->boolean('finalized')->default(0);
+            $table->float('min_invoice_amount')->nullable();
             $table->float('tax');
             $table->float('total_cost');
-            $table->float('fuel_surcharge');
-            $table->float('discount')->nullable();
-            $table->float('min_invoice_amount')->nullable();
-            $table->boolean('finalized')->default(0);
 
 			$table->foreign('account_id')->references('account_id')->on('accounts');
         });

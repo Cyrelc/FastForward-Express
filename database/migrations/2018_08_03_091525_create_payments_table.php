@@ -14,13 +14,14 @@ class CreatePaymentsTable extends Migration
     {
         Schema::create('payments', function(Blueprint $table) {
             $table->increments('payment_id');
+
             $table->unsignedInteger('account_id')->nullable();
-            $table->unsignedInteger('invoice_id')->nullable();
-            $table->date('date');
             $table->float('amount');
+            $table->string('comment')->nullable();
+            $table->date('date');
+            $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('payment_type_id');
             $table->string('reference_value')->nullable();
-            $table->string('comment')->nullable();
 
             $table->foreign('account_id')->references('account_id')->on('accounts');
             $table->foreign('invoice_id')->references('invoice_id')->on('invoices');
