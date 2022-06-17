@@ -338,7 +338,7 @@ class AccountRepo {
                 'is_custom_field_mandatory'
             );
 
-        if($user && filter_var($user->accountUsers, FILTER_VALIDATE_BOOLEAN))
+        if($user && $user->accountUsers)
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
 
         return $accounts->get();
