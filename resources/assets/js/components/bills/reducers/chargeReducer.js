@@ -90,7 +90,7 @@ export default function chargeReducer(state, action) {
         case 'CHECK_FOR_INTERLINER': {
             let hasInterliner = false
             state.charges.map(charge => {
-                const data = charge.tableRef.current.getData()
+                const data = charge.tableRef.current.table.getData()
                 console.log(data)
                 data.forEach(row => {
                     if(row.name === 'Interliner' && !row.toBeDeleted)

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -58,6 +59,8 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $req->session()->regenerate();
+            activity('auth')->performedOn($req->user())
+                ->log('Successfully authenticated user');
 
             return redirect()->intended('/');
         }
