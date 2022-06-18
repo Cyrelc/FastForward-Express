@@ -20,7 +20,7 @@ const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
 }
 
 export default function DispatchTab(props) {
-    const {billId, delivery, drivers, internalComments, pickup, timeDispatched, timeCallReceived} = props.billState
+    const {billId, delivery, drivers, internalComments, pickup, timeDispatched, timeCallReceived, timeTenFoured} = props.billState
 
     const {charges, isDeliveryManifested, isPickupManifested, readOnly} = props
 
@@ -169,7 +169,6 @@ export default function DispatchTab(props) {
                             yearDropdownItemNumber={15}
                             scrollableYearDropdown
                             selected={timeCallReceived}
-                            onChange={datetime => props.billDispatch({type: 'SET_TIME_CALL_RECEIVED', payload: datetime})}
                             readOnly={true}
                             className='form-control'
                             wrapperClassName='form-control'
@@ -184,8 +183,20 @@ export default function DispatchTab(props) {
                             timeIntervals={15}
                             dateFormat='MMMM d, yyyy h:mm aa'
                             selected={timeDispatched}
-                            onChange={datetime => props.handleChanges({target: {name: 'timeDispatched', type:'date', value: datetime}})}
-                            onFocus={timeDispatched === '' ? props.handleChanges({target: {name: 'timeDispatched', type: 'date', value: new Date()}}) : null}
+                            readOnly={true}
+                            className='form-control'
+                            wrapperClassName='form-control'
+                        />
+                    </InputGroup>
+                </Col>
+                <Col md={3}>
+                    <InputGroup>
+                        <InputGroup.Text>Time 10-4: </InputGroup.Text>
+                        <DatePicker
+                            showTimeSelect
+                            timeIntervals={15}
+                            dateFormat='MMMM d, yyyy h:mm aa'
+                            selected={timeTenFoured}
                             readOnly={true}
                             className='form-control'
                             wrapperClassName='form-control'

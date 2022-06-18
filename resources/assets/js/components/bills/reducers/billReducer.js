@@ -96,8 +96,9 @@ export const initialState = {
     repeatInterval: null,
     repeatIntervals: [],
     skipInvoicing: false,
-    timeDispatched: null,
     timeCallReceived: null,
+    timeDispatched: null,
+    timeTenFoured: null,
     updatedAt: ''
 }
 
@@ -170,7 +171,8 @@ export default function billReducer(state, action) {
                     timeActual: Date.parse(bill.time_picked_up),
                     timeScheduled: Date.parse(bill.time_pickup_scheduled)
                 },
-                readOnly: permissions.viewBasic && !permissions.editBasic
+                readOnly: permissions.viewBasic && !permissions.editBasic,
+                timeTenFoured: bill.time_ten_foured
             }
 
             if(permissions.viewActivityLog)

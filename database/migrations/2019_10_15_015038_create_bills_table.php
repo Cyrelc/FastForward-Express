@@ -38,14 +38,15 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_driver_id')->nullable();
             $table->unsignedInteger('pickup_manifest_id')->nullable();
             $table->string('pickup_reference_value')->nullable();
-            $table->unsignedInteger('repeat_interval')->nullable();
+            $table->unsignedInteger('repeat_interval')->nullable()->default(null);
             $table->boolean('skip_invoicing')->default(false);
             $table->datetime('time_call_received');
-            $table->datetime('time_delivered')->nullable();
+            $table->datetime('time_delivered')->nullable()->default(null);
             $table->datetime('time_delivery_scheduled');
-            $table->datetime('time_dispatched')->nullable();
-            $table->datetime('time_picked_up')->nullable();
+            $table->datetime('time_dispatched')->nullable()->default(null);
+            $table->datetime('time_picked_up')->nullable()->default(null);
             $table->datetime('time_pickup_scheduled');
+            $table->datetime('time_ten_foured')->nullable()->default(null);
             $table->boolean('use_imperial')->default(false);
 
             $table->timestamps();
