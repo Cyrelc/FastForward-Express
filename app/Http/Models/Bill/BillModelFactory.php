@@ -41,7 +41,7 @@ class BillModelFactory{
 		$selectionsRepo = new Repos\SelectionsRepo();
 
 		if($permissions['createFull']) {
-			$model->accounts = $accountRepo->ListForBillsPage(null);
+			$model->accounts = $accountRepo->ListForBillsPage($req->user());
 			$model->employees = $employeeRepo->GetDriverList();
 			$model->interliners = $interlinerRepo->GetInterlinersList();
 			$model->charge_types = $paymentRepo->GetPaymentTypes();

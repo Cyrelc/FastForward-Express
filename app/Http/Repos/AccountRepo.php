@@ -338,7 +338,7 @@ class AccountRepo {
                 'is_custom_field_mandatory'
             );
 
-        if(!$user->employee)
+        if($user->cannot('createFull', Bill::class))
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
 
         return $accounts->get();
