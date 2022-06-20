@@ -85,7 +85,7 @@ class Bills extends Component {
                     headerSort: false,
                     print: false
                 }] : [],
-                {
+                ... this.props.frontEndPermissions.bills.create ? [{
                     formatter: cell => "<button class='btn btn-sm btn-success'><i class='fas fa-copy'></i></button>",
                     titleFormatter: () => "<i class='fas fa-copy'></i>",
                     width: 50,
@@ -94,7 +94,8 @@ class Bills extends Component {
                     cellClick: (e, cell) => this.copyBill(cell),
                     headerSort: false,
                     print: false
-                }, {
+                }] : [],
+                {
                     formatter: cell => {if(cell.getRow().getData()) return '<i class="fa fa-plus-circle"></i>'; else return '<i class="fas fa-minus-circle"'},
                     title: 'Charges',
                     width: 70,
