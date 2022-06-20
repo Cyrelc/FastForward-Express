@@ -40,6 +40,65 @@ class BillRepo {
         return $bill;
     }
 
+    public function CopyBill($user, $billId) {
+        $accountRepo = new AccountRepo();
+        $addressRepo = new AddressRepo();
+        $chargeRepo = new ChargeRepo();
+        $lineItemRepo = new LineItemRepo();
+
+        $bill = $this->getById($billId);
+        $newPickupAddress = $bill->pickupAddress->replicate();
+        $newPickupAddress->save();
+        $newDeliveryAddress = $bill->deliveryAddress->replicate();
+        $newDeliveryAddress->save();
+
+        $pickupTime = new \DateTime($bill->time_pickup_scheduled);
+        $deliveryTime = new \DateTime($bill->time_delivery_scheduled);
+
+        $newBill = $bill->replicate();
+        $newBill->bill_number = null;
+        $newBill->delivery_address_id = $newDeliveryAddress->address_id;
+        $newBill->pickup_address_id = $newPickupAddress->address_id;
+        $newBill->repeat_interval = null;
+        $newBill->time_call_received = new \DateTime();
+        $newBill->time_delivered = null;
+        $newBill->time_delivery_scheduled = (new \DateTime())->setTime($deliveryTime->format('H'), $deliveryTime->format('i'));
+        $newBill->time_dispatched = ($bill->pickup_driver_id && $bill->delivery_driver_id) ? new \DateTime() : null;
+        $newBill->time_picked_up = null;
+        $newBill->time_pickup_scheduled = (new \DateTime())->setTime($pickupTime->format('H'), $pickupTime->format('i'));
+        $newBill->time_ten_foured = null;
+        // remove driver info if user cannot create full bill
+        if($user->accountUsers) {
+            $newBill->delivery_driver_commission = null;
+            $newBill->delivery_driver_id = null;
+            $newBill->pickup_driver_commission = null;
+            $newBill->pickup_driver_id = null;
+        }
+        $newBill->save();
+
+        foreach($bill->charges as $charge) {
+            $newCharge = $charge->replicate();
+            $newCharge->bill_id = $newBill->bill_id;
+            $newCharge->created_at = new \DateTime();
+            $newCharge->updated_at = new \DateTime();
+            $newCharge->save();
+            foreach($charge->lineItems as $lineItem) {
+                $newLineItem = $lineItem->replicate();
+                $newLineItem->charge_id = $newCharge->charge_id;
+                $newLineItem->created_at = new \DateTime();
+                $newLineItem->updated_at = new \DateTime();
+                $newLineItem->amendment_number = null;
+                $newLineItem->invoice_id = null;
+                $newLineItem->pickup_manifest_id = null;
+                $newLineItem->delivery_manifest_id = null;
+                $newLineItem->paid = false;
+                $newLineItem->save();
+            }
+        }
+
+        return $newBill;
+    }
+
     public function CountByDriver($driverId) {
 	    $count = Bill::where('pickup_driver_id', '=', $driverId)
             ->orWhere('delivery_driver_id', '=', $driverId)
@@ -392,12 +451,6 @@ class BillRepo {
         return $bills->get();
     }
 
-    public function GetRepeatingBills($repeatIntervalId) {
-        $bills = Bill::where('repeat_interval', '=', $repeatIntervalId);
-
-        return $bills->get();
-    }
-
     public function GetRepeatingBillsForToday() {
         $selectionsRepo = new SelectionsRepo();
         $dailyId = $selectionsRepo->GetSelectionByTypeAndValue('repeat_interval', 'daily')->selection_id;
@@ -497,6 +550,7 @@ class BillRepo {
                 AllowedFilter::exact('skip_invoicing'),
                 AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
                 AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
+                AllowedFilter::custom('time_ten_foured', new DateBetween),
                 AllowedFilter::exact('charge_type_id', 'charges.charge_type_id'),
                 AllowedFilter::custom('percentage_complete', new NumberBetween),
                 AllowedFilter::exact('pickup_driver_id'),

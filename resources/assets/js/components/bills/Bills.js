@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { connect } from 'react-redux'
-import { push } from 'connected-react-router'
+import {connect} from 'react-redux'
+import {push} from 'connected-react-router'
 import {DateTime} from 'luxon'
 
 import ReduxTable from '../partials/ReduxTable'
@@ -86,6 +86,15 @@ class Bills extends Component {
                     print: false
                 }] : [],
                 {
+                    formatter: cell => "<button class='btn btn-sm btn-success'><i class='fas fa-copy'></i></button>",
+                    titleFormatter: () => "<i class='fas fa-copy'></i>",
+                    width: 50,
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    cellClick: (e, cell) => this.copyBill(cell),
+                    headerSort: false,
+                    print: false
+                }, {
                     formatter: cell => {if(cell.getRow().getData()) return '<i class="fa fa-plus-circle"></i>'; else return '<i class="fas fa-minus-circle"'},
                     title: 'Charges',
                     width: 70,
@@ -238,6 +247,16 @@ class Bills extends Component {
         this.defaultQueryString = this.defaultQueryString.bind(this)
         this.deleteBill = this.deleteBill.bind(this)
         this.handleChange = this.handleChange.bind(this)
+    }
+
+    copyBill = cell => {
+        const billId = cell.getRow().getData().bill_id
+        if(confirm(`Are you certain you wish to make a copy of bill ${billId}?`)) {
+            makeAjaxRequest(`/bills/copy/${billId}`, 'GET', null, response => {
+                toastr.success(`Successfully copied bill ${billId} to new bill ${response.bill_id}`)
+                this.props.fetchTableData()
+            })
+        }
     }
 
     defaultQueryString() {

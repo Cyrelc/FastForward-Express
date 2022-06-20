@@ -27,6 +27,26 @@ class BillController extends Controller {
         return json_encode($bills);
     }
 
+    public function copyBill(Request $req, $billId) {
+        $billRepo = new Repos\BillRepo();
+        $bill = $billRepo->GetById($billId);
+
+        if($req->user()->cannot('copyBill', $bill))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $bill = $billRepo->CopyBill($req->user(), $billId);
+
+        DB::commit();
+        event(new BillCreated($bill));
+
+        return response()->json([
+            'bill_id' => $bill->bill_id,
+            'success' => true
+        ]);
+    }
+
     public function delete(Request $req, $billId) {
         $billRepo = new Repos\BillRepo();
         $bill = $billRepo->GetById($billId);
@@ -39,7 +59,7 @@ class BillController extends Controller {
 
         DB::commit();
         return response()->json([
-            'success' => true
+            'success' => true,
         ]);
     }
 

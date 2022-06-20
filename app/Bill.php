@@ -104,4 +104,12 @@ class Bill extends Model
     public function charges() {
         return $this->hasMany(Charge::class, 'bill_id');
     }
+
+    public function pickupAddress() {
+        return $this->hasOne(Address::class, 'address_id', 'pickup_address_id');
+    }
+
+    public function deliveryAddress() {
+        return $this->hasOne(Address::class, 'address_id', 'delivery_address_id');
+    }
 }

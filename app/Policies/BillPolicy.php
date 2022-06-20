@@ -11,66 +11,13 @@ class BillPolicy
 {
     use HandlesAuthorization;
 
-    /**
-     * Determine whether the user can view any models.
-     *
-     * @param  \App\User  $user
-     * @return mixed
-     */
-    public function viewAny(User $user) {
-        return $user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.edit.*.*', 'bills.edit.basic.*', 'bills.view.basic.my', 'bills.view.basic.children') ||
-            $user->employee && $user->employee->is_driver;
-    }
-
-    public function viewAll(User $user) {
-        return $user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.view.dispatch.*', 'bills.view.billing.*', 'bills.edit.*.*', 'bills.edit.basic.*', 'bills.edit.dispatch.*', 'bills.edit.billing.*');
-    }
-
-    /**
-     * Determine whether the user can view the model.
-     *
-     * @param  \App\User  $user
-     * @param  \App\Bill  $bill
-     * @return mixed
-     */
-    public function viewBasic(User $user, Bill $bill) {
-        if($user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.edit.*.*', 'bills.edit.basic.*'))
+    public function copyBill(User $user, Bill $bill) {
+        if($user->hasAnyPermission('bills.create.basic.*', 'bills.create.*.*'))
             return true;
-        else if($user->employee && ($user->employee->employee_id === $bill->pickup_driver_id || $user->employee->employee_id === $bill->delivery_driver_id))
+        else if($user->accountUsers && $this->billBelongsToMyAccounts($user, $bill))
             return true;
-        else if($user->accountUsers && $user->hasAnyPermission('bills.view.basic.my', 'bills.view.basic.children')) {
-            $accountRepo = new Repos\AccountRepo();
-            $chargeRepo = new Repos\ChargeRepo();
-
-            $charges = $chargeRepo->GetByBillId($bill->bill_id);
-            $myAccounts = $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children'));
-
-            $chargeArray = array();
-
-            foreach($charges as $charge)
-                if($charge->account_id)
-                    $chargeArray[] = $charge->account_id;
-
-            if(count($chargeArray) > 0)
-                return count(array_intersect($chargeArray, $myAccounts)) > 0;
-
-            return false;
-        }
         return false;
     }
-
-    public function viewDispatch(User $user) {
-        return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.dispatch.*', 'bills.edit.dispatch.*');
-    }
-
-    public function viewBilling(User $user) {
-        return $user->hasAnyPermission('bills.view.billing.*', 'bills.edit.billing.*');
-    }
-
-    public function viewActivityLog(User $user, Bill $bill) {
-        return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.activityLog.*');
-    }
-
     /**
      * Determine whether the user can create models.
      *
@@ -81,6 +28,10 @@ class BillPolicy
         return $user->hasAnyPermission('bills.create.basic.my', 'bills.create.basic.children', 'bills.create.basic.*', 'bills.create.*.*');
     }
 
+    public function createBasicAnyAccount(User $user) {
+        return $user->hasAnyPermission('bills.create.basic.*', 'bills.create.*.*');
+    }
+
     /**
      * Determine whether the user can create models.
      *
@@ -89,6 +40,18 @@ class BillPolicy
      */
     public function createFull(User $user) {
         return $user->can('bills.create.*.*');
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     *
+     * @param  \App\User  $user
+     * @param  \App\Bill  $bill
+     * @return mixed
+     */
+    public function delete(User $user, Bill $bill)
+    {
+        return $user->can('bills.delete');
     }
 
     /**
@@ -111,15 +74,66 @@ class BillPolicy
         return $user->hasAnyPermission('bills.edit.billing.*');
     }
 
+    public function viewActivityLog(User $user, Bill $bill) {
+        return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.activityLog.*');
+    }
+
+    public function viewAll(User $user) {
+        return $user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.view.dispatch.*', 'bills.view.billing.*', 'bills.edit.*.*', 'bills.edit.basic.*', 'bills.edit.dispatch.*', 'bills.edit.billing.*');
+    }
+
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether the user can view any models.
+     *
+     * @param  \App\User  $user
+     * @return mixed
+     */
+    public function viewAny(User $user) {
+        return $user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.edit.*.*', 'bills.edit.basic.*', 'bills.view.basic.my', 'bills.view.basic.children') ||
+            $user->employee && $user->employee->is_driver;
+    }
+
+    /**
+     * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
      * @param  \App\Bill  $bill
      * @return mixed
      */
-    public function delete(User $user, Bill $bill)
-    {
-        return $user->can('bills.delete');
+    public function viewBasic(User $user, Bill $bill) {
+        if($user->hasAnyPermission('bills.view.*.*', 'bills.view.basic.*', 'bills.edit.*.*', 'bills.edit.basic.*'))
+            return true;
+        else if($user->employee && ($user->employee->employee_id === $bill->pickup_driver_id || $user->employee->employee_id === $bill->delivery_driver_id))
+            return true;
+        else if($user->accountUsers && $this->billBelongsToMyAccounts($user, $bill))
+            return true;
+        return false;
+    }
+
+    public function viewBilling(User $user) {
+        return $user->hasAnyPermission('bills.view.billing.*', 'bills.edit.billing.*');
+    }
+
+    public function viewDispatch(User $user) {
+        return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.dispatch.*', 'bills.edit.dispatch.*');
+    }
+
+    /**
+     * Private functions
+     */
+    private function billBelongsToMyAccounts($user, $bill) {
+        $accountRepo = new Repos\AccountRepo();
+        $chargeRepo = new Repos\ChargeRepo();
+
+        $charges = $bill->charges;
+        $myAccountIds = $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children'));
+
+        $chargeArray = array();
+
+        foreach($charges as $charge)
+            if($charge->charge_account_id && in_array($charge->charge_account_id, $myAccountIds))
+                return true;
+
+        return false;
     }
 }

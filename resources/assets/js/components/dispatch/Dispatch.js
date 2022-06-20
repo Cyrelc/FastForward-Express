@@ -100,8 +100,8 @@ export default function Dispatch(props) {
     const handleBillEventRef = useRef()
     handleBillEventRef.current = billEvent => {
         const currentDate = DateTime.fromJSDate(billDate)
-        const timePickupScheduled = DateTime.fromFormat(billEvent.time_pickup_scheduled, 'yyyy-MM-dd hh:mm:ss')
-        const timeDeliveryScheduled = DateTime.fromFormat(billEvent.time_delivery_scheduled, 'yyyy-MM-dd hh:mm:ss')
+        const timePickupScheduled = DateTime.fromSQL(billEvent.time_pickup_scheduled.date)
+        const timeDeliveryScheduled = DateTime.fromSQL(billEvent.time_delivery_scheduled.date)
         const existingBill = bills.find(bill => bill.bill_id === billEvent.bill_id)
         const matchesCurrentDate = currentDate.hasSame(timePickupScheduled, 'day') || currentDate.hasSame(timeDeliveryScheduled, 'day')
         // Potential cases:
