@@ -338,7 +338,7 @@ class AccountRepo {
                 'is_custom_field_mandatory'
             );
 
-        if($user && $user->accountUsers)
+        if(!$user->employee)
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
 
         return $accounts->get();

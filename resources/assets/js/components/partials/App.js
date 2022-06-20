@@ -104,7 +104,7 @@ class App extends Component {
                                             <LinkContainer to='/app/bills'><NavDropdown.Item><i className='fa fa-list'></i> List Bills</NavDropdown.Item></LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.bills.create &&
-                                            <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Bill</NavDropdown.Item></LinkContainer>
+                                            <LinkContainer to='/app/bills/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> Create Bill</NavDropdown.Item></LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.appSettings.edit &&
                                             <LinkContainer to='/app/bills/trend'><NavDropdown.Item><i className='fas fa-chart-bar'></i> Trend</NavDropdown.Item></LinkContainer>
@@ -170,7 +170,7 @@ class App extends Component {
                                             <LinkContainer to='/app/accounts'><NavDropdown.Item><i className='fa fa-list'></i> List Accounts</NavDropdown.Item></LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.accounts.create &&
-                                            <NavDropdown.Item href='/app/accounts/create'><i className='fa fa-plus-square'></i> New Account</NavDropdown.Item>
+                                            <NavDropdown.Item href='/app/accounts/create'><i className='fa fa-plus-square'></i> Create Account</NavDropdown.Item>
                                         }
                                         {this.props.frontEndPermissions.appSettings.edit &&
                                             <LinkContainer to='/app/accountsReceivable'><NavDropdown.Item><i className=''></i> Accounts Receivable</NavDropdown.Item></LinkContainer>
@@ -192,7 +192,7 @@ class App extends Component {
                                             <LinkContainer to='/app/employees'><NavDropdown.Item><i className='fa fa-list'></i> List Employees</NavDropdown.Item></LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.employees.create &&
-                                            <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> New Employee</NavDropdown.Item></LinkContainer>
+                                            <LinkContainer to='/app/employees/create'><NavDropdown.Item><i className='fa fa-plus-square'></i> Create Employee</NavDropdown.Item></LinkContainer>
                                         }
                                         {this.props.frontEndPermissions.chargebacks.viewAny &&
                                             <NavDropdown.Item href='/app/chargebacks'><i className='fas fa-cash-register'></i> Chargebacks</NavDropdown.Item>
