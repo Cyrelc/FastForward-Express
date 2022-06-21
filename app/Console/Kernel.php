@@ -25,8 +25,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        activity('system_debug')->log('Schedule run');
-        $schedule->call(new GenerateRepeatingBills)->dailyAt('4:00')->weekdays();
+        $schedule->call(new GenerateRepeatingBills)->dailyAt('5:00')->weekDays();
+        $schedule->call(function() {
+            activity('system_heartbeat')->log('system heartbeat');
+        })->everyTenMinutes();
         // $schedule->call(function() {
         //     $generateRepeatingBills = new GenerateRepeatingBills;
         //     $generateRepeatingBills('monthly');

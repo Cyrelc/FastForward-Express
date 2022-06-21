@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Events\BillCreated;
 use App\Http\Repos;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,14 +18,17 @@ class GenerateRepeatingBills {
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
 
-        activity('system_debug')->log('Running daily and weekly recurring bills');
+        activity('system_scheduler')->log('Running daily and weekly recurring bills');
         $repeatingBills = $billRepo->GetRepeatingBillsForToday();
-        if(!$repeatingBills)
+        if(!$repeatingBills) {
+            activity('system_scheduler')->log('No repeating bills found for today');
             return;
+        }
         foreach($repeatingBills as $repeatingBill) {
             // handle bill
+            activity('system_scheduler')->log('attempting to copy bill ' . $repeatingBill->bill_id);
             $bill = $billRepo->CopyBill($user, $repeatingBill->bill_id);
-            event(BillCreated($bill));
+            event(new BillCreated($bill));
         }
     }
 }
