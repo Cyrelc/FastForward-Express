@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useReducer, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, FormCheck, Modal, Nav, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
 
@@ -69,6 +69,16 @@ const Bill = (props) => {
                 billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
             }
         })
+    }
+
+    const copyBill = () => {
+        if(!billId)
+            return
+        if(confirm(`Are you certain you wish to make a copy of bill ${billId}?\nThe pickup and delivery date will be changed to today, but all other fields including times, will remain the same`)) {
+            makeAjaxRequest(`/bills/copy/${billId}`, 'GET', null, response => {
+                toastr.success(`Successfully copied bill ${billId} to new bill ${response.bill_id}`)
+            })
+        }
     }
 
     const generateCharges = useCallback(() => {
@@ -345,25 +355,25 @@ const Bill = (props) => {
                             })}</h5>
                         </Badge>
                     }
-                    {(billId ? permissions.editBasic : permissions.createFull) &&
-                        <Navbar.Collapse className='justify-content-end' style={{paddingRight: '15px'}}>
-                            {!billId &&
-                                <NavDropdown title='Persist Fields'>
-                                    <ul style={{listStyleType: 'none', padding: '4px 10px'}}>
-                                        {billState.persistFields.sort((a, b) => a.label > b.label ? 1 : -1).map(persistField =>
-                                            <li key={persistField.name}>
-                                                <FormCheck
-                                                    name={persistField.name}
-                                                    label={persistField.label}
-                                                    checked={persistField.checked}
-                                                    onChange={event => billDispatch({type: 'TOGGLE_PERSIST_FIELD', name: event.target.name, checked: event.target.checked})}
-                                                    style={{whiteSpace: 'nowrap'}}
-                                                />
-                                            </li>
-                                        )}
-                                    </ul>
-                                </NavDropdown>
-                            }
+                    <Navbar.Collapse className='justify-content-end' style={{paddingRight: '15px'}}>
+                        {(!billId && permissions.createFull) &&
+                            <NavDropdown title='Persist Fields'>
+                                <ul style={{listStyleType: 'none', padding: '4px 10px'}}>
+                                    {billState.persistFields.sort((a, b) => a.label > b.label ? 1 : -1).map(persistField =>
+                                        <li key={persistField.name}>
+                                            <FormCheck
+                                                name={persistField.name}
+                                                label={persistField.label}
+                                                checked={persistField.checked}
+                                                onChange={event => billDispatch({type: 'TOGGLE_PERSIST_FIELD', name: event.target.name, checked: event.target.checked})}
+                                                style={{whiteSpace: 'nowrap'}}
+                                            />
+                                        </li>
+                                    )}
+                                </ul>
+                            </NavDropdown>
+                        }
+                        {(permissions.createFull || permissions.editDispatch) &&
                             <Button
                                 variant={billState.applyRestrictions ? 'dark' : 'danger'}
                                 onClick={() => billDispatch({type: 'TOGGLE_RESTRICTIONS'})}
@@ -372,8 +382,15 @@ const Bill = (props) => {
                             >
                                 <i className={billState.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> {billState.applyRestrictions ? 'Remove Time Restrictions' : 'Restore Time Restrictions'}
                             </Button>
-                        </Navbar.Collapse>
-                    }
+                        }
+                        {(billId && (permissions.createBasic || permissions.createFull)) &&
+                            <Button
+                                variant='success'
+                                onClick={copyBill}
+                                title='Copy Bill'
+                            ><i className='fas fa-copy'></i> Copy Bill</Button>
+                        }
+                    </Navbar.Collapse>
                 </Navbar>
             </Col>
             <Col md={11}>
