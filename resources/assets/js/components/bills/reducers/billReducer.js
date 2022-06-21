@@ -141,6 +141,7 @@ export default function billReducer(state, action) {
             let newState = {
                 accounts: accounts,
                 billId: bill.bill_id,
+                billNumber: bill.bill_number,
                 delivery: {
                     ...state.delivery,
                     account: state.accounts.find(account => account.account_id === bill.delivery_account_id),

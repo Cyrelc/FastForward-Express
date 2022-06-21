@@ -592,7 +592,6 @@ class BillRepo {
                 $old->$field = $bill[$field];
             }
 
-
         if($permissions['editBilling'])
             foreach(Bill::$billingFields as $field)
                 $old->$field = $bill[$field];
