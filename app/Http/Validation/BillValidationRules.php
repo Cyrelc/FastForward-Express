@@ -67,12 +67,12 @@ class BillValidationRules {
 		if($pickupAccount && $pickupAccount->custom_field && $pickupAccount->is_custom_field_mandatory)
 			$rules = array_merge($rules, ['pickup_reference_value' => ['required', new AlphaNumSpace]]);
 
-		if(filter_var($req->user()->accountUsers, FILTER_VALIDATE_BOOLEAN)) {
-			$basic = $this->getBasicValidationRulesAccountUser($req);
+		if($req->user()->employee) {
+			$basic = $this->getBasicValidationRulesEmployee($req);
 			$rules = array_merge($rules, $basic['rules']);
 			$messages = array_merge($messages, $basic['messages']);
 		} else {
-			$basic = $this->getBasicValidationRulesEmployee($req);
+			$basic = $this->getBasicValidationRulesAccountUser($req);
 			$rules = array_merge($rules, $basic['rules']);
 			$messages = array_merge($messages, $basic['messages']);
 		}
@@ -101,6 +101,10 @@ class BillValidationRules {
 		$paymentRepo = new Repos\PaymentRepo();
 		$accountPaymentTypeId = (int)$paymentRepo->GetAccountPaymentType()->payment_type_id;
 
+		$chargeAccount = $accountRepo->GetById($req->charge_account_id);
+		$deliveryAccount = $accountRepo->GetById($req->delivery_account_id);
+		$pickupAccount = $accountRepo->GetById($req->pickup_account_id);
+
 		$validAccounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'));
 		$validAccountIds = [];
 
@@ -119,22 +123,37 @@ class BillValidationRules {
 
 		$rules = [
 			'accept_terms_and_conditions' => 'required|accepted',
-			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', Rule::in($validAccountIds)],
-			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
 			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
+			'charge_reference_value' => 'exclude_unless:',
+			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
+			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
 			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
+			'time_delivery_expected' => ['required|data|after:time_pickup_expected'],
 			'time_pickup_expected' => ['required|date|after:' . $minDateTime],
-			'time_delivery_expected' => ['required|data|after:time_pickup_expected']
 		];
 
 		$messages = [
+			'charge_account_id.required' => 'Please select a valid account to charge the bill to',
+			'charge_type.payment_type_id.in' => 'Selected payment method appears to be invalid',
+			'charge_type.payment_type_id.required' => 'Please select a payment method',
 			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
 			'pickup_account_id.required' => 'Pickup Account is required when address input type is Account',
-			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
-			'charge_type.payment_type_id.required' => 'Please select a payment method',
-			'charge_type.payment_type_id.in' => 'Selected payment method appears to be invalid',
-			'charge_account_id.required' => 'Please select a valid account to charge the bill to'
 		];
+
+		if($chargeAccount && $chargeAccount->is_custom_field_mandatory) {
+			$rules = array_merge($rules, ['charge_reference_value' => 'required']);
+			$messages = array_merge($messages, ['charge_reference_value.required' => $chargeAccount->custom_field . ' can not be empty']);
+		}
+
+		if($pickupAccount && $pickupAccount->is_custom_field_mandatory) {
+			$rules = array_merge($rules, ['pickup_reference_value' => 'required']);
+			$messages = array_merge($messages, ['pickup_reference_value.required' => $pickupAccount->custom_field . ' can not be empty']);
+		}
+
+		if($deliveryAccount && $deliveryAccount->is_custom_field_mandatory) {
+			$rules = array_merge($rules, ['delivery_reference_value' => 'required']);
+			$messages = array_merge($messages, ['delivery_reference_value.required' => $deliveryAccount->custom_field . ' can not be empty']);
+		}
 
 		return ['rules' => $rules, 'messages' => $messages];
 	}

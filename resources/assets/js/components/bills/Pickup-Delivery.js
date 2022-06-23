@@ -90,6 +90,7 @@ export default function Pickup_Delivery(props) {
                                     key={type}
                                     variant='outline-secondary'
                                     disabled={readOnly}
+                                    size='sm'
                                 >{type}</ToggleButton>
                             )}
                             </ToggleButtonGroup>
