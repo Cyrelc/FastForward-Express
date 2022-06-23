@@ -151,7 +151,7 @@ export default function billReducer(state, action) {
                     addressName: delivery_address.name,
                     addressPlaceId: delivery_address.place_id,
                     addressType: bill.delivery_account_id ? 'Account' : 'Search',
-                    reference_value: bill.delivery_reference_value,
+                    referenceValue: bill.delivery_reference_value,
                     timeActual: Date.parse(bill.time_delivered),
                     timeScheduled: Date.parse(bill.time_delivery_scheduled)
                 },
