@@ -414,10 +414,12 @@ class Account extends Component {
                         }
                         {this.state.permissions.viewPayments &&
                             <Tab eventKey='analytics' title={<h4>Analytics</h4>}>
-                                <Charts/>
+                                <Charts
+                                    accountId={this.state.accountId}
+                                />
                             </Tab>
                         }
-                        { this.state.activityLog && this.state.permissions.viewActivityLog &&
+                        {this.state.activityLog && this.state.permissions.viewActivityLog &&
                             <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
                                 <ActivityLogTab
                                     activityLog={this.state.activityLog}

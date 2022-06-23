@@ -76,7 +76,7 @@ class AccountController extends Controller {
         $chartModelFactory = new Chart\ChartModelFactory();
 
         $account = $accountRepo->GetById($req->account_id);
-        if(!$account || $req->user()->cannot('viewPayments', $account))
+        if($req->user()->cannot('viewPayments', $account))
             abort(403);
 
         $filterBy = ['column' => 'charge_account_id', 'value' => $req->account_id];

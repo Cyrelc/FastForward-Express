@@ -8,21 +8,25 @@ export default function Charts(props) {
     const [keys, setKeys] = useState([])
     const [summationType, setSummationType] = useState('count')
 
+    const {accountId} = props
+
     useEffect(() => {
+        if(!accountId)
+            return
         const endDate = DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).startOf('month')
         const startDate = endDate.minus({months: 12})
         const data = {
-            account_id: 11,
+            account_id: props.accountId,
             end_date: endDate.toFormat('yyyy-MM-dd'),
             start_date: startDate.toFormat('yyyy-MM-dd'),
             summationType
         }
-        makeAjaxRequest('/accounts/chart', 'GET', data, response => {
+        makeAjaxRequest(`/accounts/chart`, 'GET', data, response => {
             response = JSON.parse(response)
             setChartData(Object.values(response.bills).map(value => {return value}))
             setKeys(response.keys)
         })
-    }, [summationType])
+    }, [accountId, summationType])
 
     return (
         <Card>
