@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- <div class="container"> --}}
     <div class="row">
         <div class="col-md-4 offset-md-2">
             <div class="panel panel-default">
@@ -17,7 +16,7 @@
                             <label class="col-md-4 control-label">E-Mail Address</label>
 
                             <div class="col-md-6">
-                                <input type="email" class="form-control" name="email" value="{{ $email or old('email') }}">
+                                <input type="email" class="form-control" name="email" value="{{ $email }}">
 
                                 @if ($errors->has('email'))
                                     <span class="help-block">
@@ -76,5 +75,4 @@
             <p>For strong and secure password creation tips, please see <a href='https://xkcd.com/936' target='none'>xkcd.com/936</a></p>
         </div>
     </div>
-{{-- </div> --}}
 @endsection
