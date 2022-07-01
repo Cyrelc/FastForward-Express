@@ -31,10 +31,6 @@
         <link rel='stylesheet' type='text/css' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css' />
         <link rel='stylesheet' type='text/css' href='/css/toastr.min.css' />
 
-        <!--Global Scripts-->
-        <script type="text/javascript" src="{{URL::to('/')}}/js/moment.min.js"></script>
-        <script type="text/javascript" src="{{URL::to('/')}}/js/bootstrap-datetimepicker.min.js"></script>
-
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-211586883-1"></script>
         <script>
