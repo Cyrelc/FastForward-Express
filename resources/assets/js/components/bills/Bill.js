@@ -18,7 +18,7 @@ const Bill = (props) => {
 
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
-    const {accounts, billId, deliveryType, permissions, readOnly} = billState
+    const {accounts, billId, deliveryType, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds} = chargeState
@@ -56,6 +56,13 @@ const Bill = (props) => {
                 billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                const currentBillIndex = props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
+                if(currentBillIndex != -1) {
+                    const prevBillId = currentBillIndex == 0 ? null : props.sortedBills[currentBillIndex - 1]
+                    const nextBillId = currentBillIndex <= props.sortedBills.length ? props.sortedBills[currentBillIndex + 1] : null
+                    billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
+                    billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                }
 
                 if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
                     const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
@@ -455,17 +462,17 @@ const Bill = (props) => {
             <Col md={11} className='text-center'>
                 <ButtonGroup>
                     {billId &&
-                        <LinkContainer to={'/app/bills/' + billState.prevBillId}>
-                            <Button variant='secondary' disabled={!billState.prevBillId}>
-                                <i className='fas fa-arrow-circle-left'></i> Back - {billState.prevBillId}
+                        <LinkContainer to={`/app/bills/${prevBillId}`}>
+                            <Button variant='secondary' disabled={!prevBillId}>
+                                <i className='fas fa-arrow-circle-left'></i> Back - {prevBillId}
                             </Button>
                         </LinkContainer>
                     }
                     {getStoreButton()}
                     {billId &&
-                        <LinkContainer to={'/app/bills/' + billState.nextBillId}>
-                            <Button variant='secondary' disabled={!billState.nextBillId}>
-                                Next - {billState.nextBillId} <i className='fas fa-arrow-circle-right'></i>
+                        <LinkContainer to={`/app/bills/${nextBillId}`}>
+                            <Button variant='secondary' disabled={!nextBillId}>
+                                Next - {nextBillId} <i className='fas fa-arrow-circle-right'></i>
                             </Button>
                         </LinkContainer>
                     }

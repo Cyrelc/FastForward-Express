@@ -90,9 +90,12 @@ export const initialState = {
     incompleteFields: [],
     internalComments: '',
     key: 'basic',
+    nextBillId: null,
     permissions: [],
     persistFields: initialPersistFields,
     pickup: initialPickupDelivery,
+    prevBillId: null,
+    // readOnly: true,
     repeatInterval: null,
     repeatIntervals: [],
     skipInvoicing: false,
@@ -255,6 +258,8 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {description: payload})
         case 'SET_INTERNAL_COMMENTS':
             return Object.assign({}, state, {internalComments: payload})
+        case 'SET_NEXT_BILL_ID':
+            return Object.assign({}, state, {nextBillId: payload})
         case 'SET_PICKUP_ACCOUNT': {
             return Object.assign({}, state, {
                 pickup: {
@@ -313,9 +318,12 @@ export default function billReducer(state, action) {
         }
         case 'SET_PICKUP_VALUE':
             return Object.assign({}, state, {pickup: {...state.pickup, [payload.name]: payload.value}})
+        case 'SET_PREV_BILL_ID':
+            return Object.assign({}, state, {prevBillId: payload})
         case 'SET_REPEAT_INTERVAL':
             return Object.assign({}, state, {repeatInterval: payload})
         case 'SET_TAB_KEY':
+            window.location.hash = payload
             return Object.assign({}, state, {key: payload})
         case 'SET_TIME_CALL_RECEIVED':
             return Object.assign({}, state, {timeCallReceived: payload})
