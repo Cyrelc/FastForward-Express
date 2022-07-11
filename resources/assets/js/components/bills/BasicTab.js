@@ -1,18 +1,28 @@
-import React, {Fragment, useEffect, useState} from 'react'
-import {Card, Col, FormControl, FormCheck, InputGroup, Row} from 'react-bootstrap'
+import React, {Fragment, useEffect} from 'react'
+import {Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Tooltip, Form} from 'react-bootstrap'
 import Select from 'react-select'
 import {DateTime} from 'luxon'
 import {ReactTabulator} from 'react-tabulator'
+import DatePicker from 'react-datepicker'
 
-import Pickup_Delivery from './Pickup-Delivery'
+import Address from '../partials/AddressFunctional'
 
-const packageCountInfo = 'Package count is for multiples of similar or uniform packages. Please enter weight, length, width, and height per package. It will be multiplied by the package count'
+const filterDates = date => {
+    const dateTime = DateTime.fromJSDate(date)
+    if(dateTime.hasSame(DateTime.local(), "days"))
+        return true
+    if(dateTime.diffNow("days") < 0)
+        return false
+    const day = date.getDay()
+    return day !== 0 && day !== 6
+}
 
 export default function BasicTab(props) {
     const {
         accounts,
         addressTypes,
         applyRestrictions,
+        billId,
         businessHoursMax,
         businessHoursMin,
         delivery,
@@ -26,7 +36,7 @@ export default function BasicTab(props) {
 
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = props.packageState
 
-    const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, invoiceIds, isInvoiced} = props.chargeState
+    const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, isInvoiced} = props.chargeState
 
     const pickupTimeFilter = time => {
         const dateTime = DateTime.fromJSDate(time)
@@ -78,6 +88,25 @@ export default function BasicTab(props) {
         props.billDispatch({type: 'CHECK_REFERENCE_VALUES', payload})
         props.chargeDispatch({type: 'CHECK_REFERENCE_VALUES', payload})
     }
+
+    useEffect(() => {
+        if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
+            makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
+                props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
+                if(!billId)
+                    props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+            })
+        }
+    }, [pickup.addressLat, pickup.addressLng])
+
+    useEffect(() => {
+        if(delivery.addressLat && delivery.addressLng && props.chargeState.activeRatesheet)
+            makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`, 'GET', null, response => {
+                props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
+                if(!billId)
+                    props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+            })
+    }, [delivery.addressLat, delivery.addressLng])
 
     const packageColumns = [
         {
@@ -194,28 +223,128 @@ export default function BasicTab(props) {
                     </Col>
                 </Row>
                 <hr/>
-                <Row className='pad-top'>
-                    <Col md={2}><h4 className='text-muted'>Billing</h4></Col>
-                    <Col md={10}>
+                <Row>
+                    <Col md={2}><h4 className='text-muted'>Addresses</h4></Col>
+                    <Col md={5}>
+                        <Address
+                            id='pickup'
+                            header='Pickup'
+                            data={{
+                                account: pickup.account,
+                                formatted: pickup.addressFormatted,
+                                lat: pickup.addressLat,
+                                lng: pickup.addressLng,
+                                name: pickup.addressName,
+                                placeId: pickup.placeId,
+                                type: pickup.addressType,
+                                referenceValue: pickup.referenceValue
+                            }}
+                            addressTypes={addressTypes}
+                            handleChange={event => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: event.target.name, value: event.target.value}})}
+                            handleReferenceValueChange={handleReferenceValueChange}
+                            handleAccountChange={account => props.billDispatch({type: 'SET_PICKUP_ACCOUNT', payload: account})}
+                            accounts={accounts}
+                            readOnly={readOnly}
+                            showAddressSearch={true}
+                        />
+                    </Col>
+                    <Col md={5}>
+                        <Address
+                            id='delivery'
+                            header='Delivery'
+                            data={{
+                                account: delivery.account,
+                                formatted: delivery.addressFormatted,
+                                lat: delivery.addressLat,
+                                lng: delivery.addressLng,
+                                name: delivery.addressName,
+                                placeId: delivery.placeId,
+                                type: delivery.addressType,
+                                referenceValue: delivery.referenceValue
+                            }}
+                            addressTypes={addressTypes}
+                            handleChange={event => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: event.target.name, value: event.target.value}})}
+                            handleReferenceValueChange={handleReferenceValueChange}
+                            handleAccountChange={account => props.billDispatch({type: 'SET_DELIVERY_ACCOUNT', payload: account})}
+                            accounts={accounts}
+                            readOnly={readOnly}
+                            showAddressSearch={true}
+                        />
+                    </Col>
+                </Row>
+                <hr/>
+                <Row>
+                    <Col md={2}><h4 className='text-muted'>Scheduling</h4></Col>
+                    <Col md={4}>
+                        <InputGroup>
+                            <InputGroup.Text>Delivery Type:</InputGroup.Text>
+                            <Select
+                                options={deliveryTypes}
+                                getOptionLabel={type => type.friendlyName + ' (Est. ~' + type.time + ' hours)'}
+                                getOptionValue={type => type.id}
+                                value={deliveryType}
+                                onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}
+                                isDisabled={readOnly || isInvoiced}
+                                isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                        <InputGroup>
+                            <InputGroup.Text>Pickup Time: </InputGroup.Text>
+                            <DatePicker
+                                showTimeSelect
+                                timeIntervals={15}
+                                dateFormat='MMMM d, yyyy h:mm aa'
+                                onChange={value => props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})}
+                                showMonthDropdown
+                                monthDropdownItemNumber={15}
+                                scrollableMonthDropdown
+                                selected={pickup.timeScheduled}
+                                readOnly={readOnly}
+                                className='form-control'
+                                //Rules for non-admins only
+                                filterDate={applyRestrictions && filterDates}
+                                filterTime={applyRestrictions && pickupTimeFilter}
+                                wrapperClassName='form-control'
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={3}>
+                        <InputGroup>
+                            <InputGroup.Text>Delivery Time: </InputGroup.Text>
+                            <DatePicker
+                                showTimeSelect
+                                timeIntervals={15}
+                                dateFormat='MMMM d, yyyy h:mm aa'
+                                onChange={value => props.billDispatch({type: 'SET_DELIVERY_TIME_EXPECTED', payload: value})}
+                                showMonthDropdown
+                                monthDropdownItemNumber={15}
+                                scrollableMonthDropdown
+                                selected={delivery.timeScheduled}
+                                readOnly={applyRestrictions || readOnly}
+                                className='form-control'
+                                //Rules for non-admins only
+                                filterDate={applyRestrictions && filterDates}
+                                filterTime={applyRestrictions && deliveryTimeFilter}
+                                wrapperClassName='form-control'
+                            />
+                            <OverlayTrigger
+                                overlay={<Tooltip>The estimated time of delivery based on the information entered</Tooltip>}
+                                placement='left'
+                            >
+                                <InputGroup.Text><i className='fas fa-info-circle'></i></InputGroup.Text>
+                            </OverlayTrigger>
+                        </InputGroup>
+                    </Col>
+                </Row>
+                <hr/>
+                {(!permissions.viewBilling && !permissions.createFull) &&
+                    <Fragment>
                         <Row>
-                            <Col md={4}>
-                                <InputGroup>
-                                    <InputGroup.Text>Delivery Type:</InputGroup.Text>
-                                    <Select
-                                        options={deliveryTypes}
-                                        getOptionLabel={type => type.friendlyName + ' (Est. ~' + type.time + ' hours)'}
-                                        getOptionValue={type => type.id}
-                                        value={deliveryType}
-                                        onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}
-                                        isDisabled={readOnly || isInvoiced}
-                                        isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
-                                    />
-                                </InputGroup>
-                            </Col>
-                        </Row>
-                        <Row>
-                            {(!permissions.viewBilling && !permissions.createFull) &&
-                                <Fragment>
+                            <Col md={2}><h4 className='text-muted'>Billing</h4></Col>
+                            <Col md={10}>
+                                <Row>
                                     <Col md={4}>
                                         <InputGroup>
                                             <InputGroup.Text>Payment Type: </InputGroup.Text>
@@ -263,13 +392,13 @@ export default function BasicTab(props) {
                                                 }
                                             </Col>
                                         </Fragment>
-                                }
-                                </Fragment>
-                            }
+                                    }
+                                </Row>
+                            </Col>
                         </Row>
-                    </Col>
-                </Row>
-                <hr/>
+                        <hr/>
+                    </Fragment>
+                }
                 <Row className='pad-top'>
                     <Col md={2}><h4 className='text-muted'>Notes</h4></Col>
                     <Col md={10}>
@@ -284,61 +413,6 @@ export default function BasicTab(props) {
                     </Col>
                 </Row>
             </Card.Header>
-            <Card.Body>
-                <Row>
-                    <Col md={6}>
-                        <Pickup_Delivery
-                            id='pickup'
-                            header={
-                                <h4>Pickup</h4>
-                            }
-                            accounts={props.billState.accounts}
-                            addressTypes={addressTypes}
-                            applyRestrictions={applyRestrictions}
-                            billDispatch={props.billDispatch}
-                            data={pickup}
-                            dateTimeReadOnly={false}
-                            handleAccountChange={account => props.billDispatch({type: 'SET_PICKUP_ACCOUNT', payload: account})}
-                            handleReferenceValueChange={handleReferenceValueChange}
-                            handleTimeChange={value => props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})}
-                            handleValueChange={event => props.billDispatch({type: 'SET_PICKUP_VALUE', payload:{name: event.target.name, value: event.target.value}})}
-                            readOnly={readOnly || isInvoiced}
-                            timeFilter={pickupTimeFilter}
-                            timeTooltip={"The earliest time the driver will pick up the package. Please have the package ready by the time indicated."}
-                        />
-                    </Col>
-                    <Col md={6}>
-                        <Pickup_Delivery
-                            id='delivery'
-                            friendlyName='Delivery'
-                            header={
-                                <Row>
-                                    <Col md={2}>
-                                        <h4>Delivery</h4>
-                                    </Col>
-                                    <Col md={10}>
-                                        <Card style={{background: 'darkorange', display: 'inline-block', padding: '5px'}}>
-                                            <h6><i className='fas fa-exclamation-triangle'></i> Times may vary depending on multiple, bulk orders, and size of shipment</h6>
-                                        </Card>
-                                    </Col>
-                                </Row>
-                            }
-                            applyRestrictions={applyRestrictions}
-                            data={delivery}
-                            addressTypes={addressTypes}
-                            accounts={props.billState.accounts}
-                            dateTimeReadOnly={applyRestrictions}
-                            readOnly={readOnly || isInvoiced}
-                            timeFilter={deliveryTimeFilter}
-                            timeTooltip={"The estimated time of delivery based on the information entered"}
-                            handleAccountChange={account => props.billDispatch({type: 'SET_DELIVERY_ACCOUNT', payload: account})}
-                            handleReferenceValueChange={handleReferenceValueChange}
-                            handleTimeChange={value => props.billDispatch({type: 'SET_DELIVERY_TIME_EXPECTED', payload: value})}
-                            handleValueChange={event => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: event.target.name, value: event.target.value}})}
-                        />
-                    </Col>
-                </Row>
-            </Card.Body>
         </Card>
     )
 }

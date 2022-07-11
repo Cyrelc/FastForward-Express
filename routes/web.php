@@ -106,6 +106,7 @@ Route::group(['middleware' => 'auth'],
         Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
         Route::post('/ratesheets/store', 'RatesheetController@store');
         Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
+        Route::get('/ratesheets/{ratesheetId}/getZone', 'RatesheetController@GetZone');
 
         Route::get('/logout', 'Auth\LoginController@logout');
 

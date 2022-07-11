@@ -91,7 +91,6 @@ export default function chargeReducer(state, action) {
             let hasInterliner = false
             state.charges.map(charge => {
                 const data = charge.tableRef.current.table.getData()
-                console.log(data)
                 data.forEach(row => {
                     if(row.name === 'Interliner' && !row.toBeDeleted)
                         hasInterliner = true
@@ -102,7 +101,6 @@ export default function chargeReducer(state, action) {
             })
         }
         case 'CHECK_REFERENCE_VALUES': {
-            console.log('checking charge reference values and updating where appropriate!')
             const {account, value, prevValue} = payload
             return Object.assign({}, state, {
                 charges: state.charges?.length ? state.charges.map(charge => {

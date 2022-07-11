@@ -32,7 +32,7 @@ export default class ChangePasswordModal extends React.Component {
     submitChangePassword() {
         const data = {
             password: this.state.newPassword,
-            password_confirm: this.state.confirmPassword
+            password_confirmation: this.state.confirmPassword
         }
         makeAjaxRequest('/users/changePassword/' + this.props.userId, 'POST', data, response => {
             toastr.clear()

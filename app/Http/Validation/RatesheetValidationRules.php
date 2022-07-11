@@ -82,6 +82,14 @@ class RatesheetValidationRules {
             }
         return ['rules' => $rules, 'messages' => $messages];
     }
+
+    public function GetZoneRequestValidationRules($req) {
+        $rules = [
+            'ratesheet_id' => ['required', 'exists:ratesheets'],
+            'lat' => ['required'],
+            'lng' => ['required']
+        ];
+    }
 }
 
 ?>

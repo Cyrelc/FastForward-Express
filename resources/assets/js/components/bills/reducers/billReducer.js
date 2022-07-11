@@ -38,12 +38,40 @@ const isPickupTimeValid = (dateTime, businessHoursMin, businessHoursMax, deliver
  * @param {DateTime} time
  * @returns {DateTime} result
  */
-const getValidPickupTime = (time, businessHoursMin, businessHoursMax, deliveryTypes) => {
+const getValidPickupTime = (time, businessHoursMin, businessHoursMax, deliveryTypes, prevTime = null) => {
     //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
-    if(isPickupTimeValid(time, businessHoursMin, businessHoursMax, deliveryTypes) === true)
-        return time
-    else
-        return getValidPickupTime(time.plus({minutes: 15}), businessHoursMin, businessHoursMax, deliveryTypes)
+    while(!isPickupTimeValid(time, businessHoursMin, businessHoursMax, deliveryTypes))
+        time = time.plus({minutes: 15})
+
+    if(!time.hasSame(DateTime.local(), 'day') && !time.hasSame(prevTime, 'day'))
+        toastr.warning(
+            'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
+            'Insufficient time',
+            {
+                positionClass: 'toast-bottom-full-width',
+                showDuration: 300,
+                timeOut: 5000,
+                extendedTImeout: 5000
+            }
+        )
+
+    return time
+}
+
+const getDeliveryEstimates = (deliveryTypes, pickupZone = null, deliveryZone = null) => {
+    return deliveryTypes.map(deliveryType => {
+        const originalTime = deliveryType.originalTime ? deliveryType.originalTime : parseFloat(deliveryType.time)
+        let time = originalTime
+        if(pickupZone?.additional_time)
+            time += parseFloat(pickupZone.additional_time)
+        if(deliveryZone?.additional_time)
+            time += parseFloat(deliveryZone.additional_time)
+        return {
+            ...deliveryType,
+            originalTime,
+            time
+        }}
+    )
 }
 
 const initialPersistFields = [
@@ -72,6 +100,7 @@ const initialPickupDelivery = {
     referenceValue: '',
     timeActual: '',
     timeScheduled: new Date(),
+    zone: null
 }
 
 export const initialState = {
@@ -207,7 +236,7 @@ export default function billReducer(state, action) {
         }
         case 'SET_ACTIVE_RATESHEET': {
             // CREDIT CARDS WILL USE THE RATESHEET OF THE ACCOUNT THEY ARE LINKED TO :-D
-            const deliveryTypes = JSON.parse(payload.delivery_types).map(deliveryType => {return {...deliveryType, time: parseFloat(deliveryType.time)}})
+            const deliveryTypes = getDeliveryEstimates(JSON.parse(payload.delivery_types))
             const deliveryType = state.deliveryType ? deliveryTypes.find(type => type.id === state.deliveryType.id) : deliveryTypes[0]
             return Object.assign({}, state, {
                 deliveryType,
@@ -254,6 +283,11 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {
                 delivery: {...state.delivery, [payload.name]: payload.value}
             })
+        case 'SET_DELIVERY_ZONE':
+            return Object.assign({}, state, {
+                delivery: {...state.delivery, zone: payload},
+                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, state.pickup.zone, payload)
+            })
         case 'SET_DESCRIPTION':
             return Object.assign({}, state, {description: payload})
         case 'SET_INTERNAL_COMMENTS':
@@ -296,7 +330,7 @@ export default function billReducer(state, action) {
                     const intervals = Math.ceil(pickupTimeScheduled.minute / 15)
                     pickupTimeScheduled = intervals == 4 ? pickupTimeScheduled.set({minute: 0}).plus({hours: 1}) : pickupTimeScheduled.set({minute: intervals * 15})
                 }
-                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, businessHoursMin, businessHoursMax, deliveryTypes)
+                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, businessHoursMin, businessHoursMax, deliveryTypes, state.pickup.timeScheduled)
                 const luxonBusinessHoursMax = DateTime.fromJSDate(businessHoursMax)
                 const lastDeliveryTime = pickupTimeScheduled.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
                 const hoursBetweenPickupAndEndOfDay = lastDeliveryTime.diff(pickupTimeScheduled, 'minutes').as('hours')
@@ -318,6 +352,11 @@ export default function billReducer(state, action) {
         }
         case 'SET_PICKUP_VALUE':
             return Object.assign({}, state, {pickup: {...state.pickup, [payload.name]: payload.value}})
+        case 'SET_PICKUP_ZONE':
+            return Object.assign({}, state, {
+                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone),
+                pickup: {...state.pickup, zone: payload}
+            })
         case 'SET_PREV_BILL_ID':
             return Object.assign({}, state, {prevBillId: payload})
         case 'SET_REPEAT_INTERVAL':

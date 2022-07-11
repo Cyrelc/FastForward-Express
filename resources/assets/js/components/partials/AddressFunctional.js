@@ -1,21 +1,22 @@
 import React, {useEffect, useState} from 'react'
-import {Col, FormControl, InputGroup, Row} from 'react-bootstrap'
+import {Card, Col, FormControl, InputGroup, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
 import {Autocomplete, GoogleMap, Marker} from '@react-google-maps/api'
+import Select from 'react-select'
 
 const defaultCenter = {lat: 53.544389, lng: -113.49072669}
 
 const libraries = ['places']
 
 export default function Address(props) {
-    const [mapCenter, setMapCenter] = useState(defaultCenter)
-    const [markerCoords, setMarkerCoords] = useState(null)
     const [autocomplete, setAutocomplete] = useState(null)
     const [clearAutoComplete, setClearAutoComplete] = useState(true)
+    const [mapCenter, setMapCenter] = useState(defaultCenter)
+    const [markerCoords, setMarkerCoords] = useState(null)
     const [zoom, setZoom] = useState(10)
 
-    const {readOnly, showAddressSearch} = props
+    const {accounts, readOnly, showAddressSearch} = props
 
-    const {formatted, lat, lng, name, type} = props.address
+    const {account, formatted, lat, lng, name, type, referenceValue} = props.data
 
     useEffect(() => {
         const newCoordinates = {lat: lat ? lat : 53.544389, lng: lng ? lng : -113.49072669}
@@ -57,68 +58,151 @@ export default function Address(props) {
     }
 
     return (
-        <Row className='justify-content-md-center'>
-            {(showAddressSearch && clearAutoComplete) &&
-                <Col md={11} style={{display: type === 'Search' ? 'block' : 'none'}}>
-                    <InputGroup>
-                        <InputGroup.Text>Address Search: </InputGroup.Text>
-                        <Autocomplete
-                            className='form-control autocomplete-wrapper'
-                            fields={['geometry', 'name', 'formatted_address', 'place_id']}
-                            onChange={console.log}
-                            onLoad={setAutocomplete}
-                            onPlaceChanged={updateAddress}
-                        >
-                            <FormControl type='text' readOnly={readOnly}/>
-                        </Autocomplete>
-                    </InputGroup>
-                </Col>
-            }
-            {type === 'Manual' ?
-                <Col md={11} style={{backgroundColor: 'orange'}}>
-                    Having trouble finding an address in search? Use "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.
+        <Card>
+            <Card.Header>
+                <Row>
+                    <Col>
+                        <Card.Title style={{display: 'inline'}}>
+                            <h4 style={{display: 'inline'}}>{props.header}</h4>
+                        </Card.Title>
+                    </Col>
+                    <Col className='justify-content-end'>
+                        <InputGroup style={{paddingTop: 0}}>
+                            <InputGroup.Text>Type: </InputGroup.Text>
+                            <ToggleButtonGroup
+                                type='radio'
+                                name={`${props.id}AddressType`}
+                                value={type}
+                                onChange={value => props.handleChange({target: {name: 'addressType', value}})}
+                                disabled={readOnly}
+                            >
+                                <ToggleButton
+                                    id={`${props.id}.address.type.search`}
+                                    value='Search'
+                                    key='Search'
+                                    variant='outline-secondary'
+                                    disabled={readOnly}
+                                    size='sm'
+                                >Search</ToggleButton>
+                                {props.accounts?.length &&
+                                    <ToggleButton
+                                        id={`${props.id}.address.type.account`}
+                                        value='Account'
+                                        key='Account'
+                                        variant='outline-secondary'
+                                        disabled={readOnly}
+                                        size='sm'
+                                    >Account</ToggleButton>
+                                }
+                                <ToggleButton
+                                    id={`${props.id}.address.type.manual`}
+                                    value='Manual'
+                                    key='Manual'
+                                    variant='outline-secondary'
+                                    disabled={readOnly}
+                                    size='sm'
+                                >Manual</ToggleButton>
+                            </ToggleButtonGroup>
+                        </InputGroup>
+                    </Col>
+                </Row>
+            </Card.Header>
+            <Card.Body>
+                <Row className='justify-content-md-center'>
+                    {(showAddressSearch && clearAutoComplete) &&
+                        <Col md={12} style={{display: type === 'Search' ? 'block' : 'none'}}>
+                            <InputGroup>
+                                <InputGroup.Text>Search: </InputGroup.Text>
+                                <Autocomplete
+                                    className='form-control autocomplete-wrapper'
+                                    fields={['geometry', 'name', 'formatted_address', 'place_id']}
+                                    location={mapCenter}
+                                    onChange={console.log}
+                                    onLoad={setAutocomplete}
+                                    onPlaceChanged={updateAddress}
+                                    radius={100}
+                                >
+                                    <FormControl type='text' readOnly={readOnly}/>
+                                </Autocomplete>
+                            </InputGroup>
+                        </Col>
+                    }
+                    {type === 'Manual' ?
+                        <Col md={12} style={{backgroundColor: 'orange', fontSize: 12}}>
+                            Having trouble finding an address in search? Use "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.
+                            <br/>
+                        </Col>
+                        : null
+                    }
+                    {type === 'Account' &&
+                        <Col md={12}>
+                            <InputGroup>
+                                <InputGroup.Text>Select Account: </InputGroup.Text>
+                                <Select
+                                    options={accounts}
+                                    isSearchable
+                                    value={account}
+                                    onChange={props.handleAccountChange}
+                                    isDisabled={readOnly}
+                                />
+                            </InputGroup>
+                        </Col>
+                    }
+                    {(type === 'Account' && account?.custom_field) &&
+                        <Col md={12}>
+                            <InputGroup>
+                                <InputGroup.Text>{props.data.account.custom_field}</InputGroup.Text>
+                                <FormControl
+                                    name={`${props.id}ReferenceValue`}
+                                    value={referenceValue}
+                                    onChange={event => props.handleReferenceValueChange(account, referenceValue, event.target.value)}
+                                    readOnly={readOnly}
+                                />
+                            </InputGroup>
+                        </Col>
+                    }
+                    <Col md={12}>
+                        <InputGroup>
+                            <InputGroup.Text>Name: </InputGroup.Text>
+                            <FormControl
+                                type='text'
+                                name={'addressName'}
+                                value={name}
+                                onChange={props.handleChange}
+                                readOnly={readOnly}
+                            />
+                        </InputGroup>
+                    </Col>
+                    {type === 'Manual' &&
+                        <Col md={12}>
+                            <InputGroup>
+                                <InputGroup.Text>Address: </InputGroup.Text>
+                                <FormControl
+                                    type='text'
+                                    name={'addressFormatted'}
+                                    value={formatted}
+                                    onChange={props.handleChange}
+                                    readOnly={readOnly || type != 'Manual'}
+                                />
+                            </InputGroup>
+                        </Col>
+                    }
                     <br/>
-                </Col>
-                : null
-            }
-            <Col md={11}>
-                <InputGroup>
-                    <InputGroup.Text>Name: </InputGroup.Text>
-                    <FormControl 
-                        type='text' 
-                        name={'addressName'}
-                        value={name}
-                        onChange={props.handleChange}
-                        readOnly={readOnly}
-                    />
-                </InputGroup>
-            </Col>
-            <Col md={11}>
-                <InputGroup>
-                    <InputGroup.Text>Address: </InputGroup.Text>
-                    <FormControl
-                        type='text'
-                        name={'addressFormatted'}
-                        value={formatted}
-                        onChange={props.handleChange}
-                        readOnly={readOnly || type != 'Manual'}
-                    />
-                </InputGroup>
-            </Col>
-            <br/>
-            <Col md={11}>
-                <GoogleMap
-                    center={mapCenter}
-                    mapContainerStyle={{height: '300px', marginTop: 20}}
-                    onClick={handleMapClickEvent}
-                    options={{
-                        disableDefaultUI: true
-                    }}
-                    zoom={zoom}
-                >
-                    {markerCoords && <Marker position={markerCoords}/>}
-                </GoogleMap>
-            </Col>
-        </Row>
+                    <Col md={12}>
+                        <GoogleMap
+                            center={mapCenter}
+                            mapContainerStyle={{height: '250px', marginTop: 20}}
+                            onClick={handleMapClickEvent}
+                            options={{
+                                disableDefaultUI: true
+                            }}
+                            zoom={zoom}
+                        >
+                            {markerCoords && <Marker position={markerCoords}/>}
+                        </GoogleMap>
+                    </Col>
+                </Row>
+            </Card.Body>
+        </Card>
     )
 }

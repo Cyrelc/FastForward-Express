@@ -10,6 +10,8 @@ use App\Http\Repos;
 use App\Http\Models\Ratesheet;
 use \App\Http\Validation\Utils;
 use \App\Http\Validation;
+use App\Http\Models\Bill\ChargeModelFactory;
+
 
 class RatesheetController extends Controller {
 
@@ -33,6 +35,18 @@ class RatesheetController extends Controller {
             $ratesheetModel = $modelFactory->GetCreateModel();
 
         return json_encode($ratesheetModel);
+    }
+
+    public function GetZone(Request $req, $ratesheetId) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('getChargesFrom', $ratesheet))
+            abort(403);
+
+        $chargeModelFactory = new ChargeModelFactory();
+
+        return $chargeModelFactory->GetZone($ratesheetId, $req->lat, $req->lng);
     }
 
     public function store(Request $req) {

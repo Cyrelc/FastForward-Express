@@ -18,6 +18,27 @@ class ChargeModelFactory {
         return array_merge($distanceCharges, $packageCharges, $timeCharges);
     }
 
+    public function GetZone($ratesheetId, $lat, $lng) {
+        $pointInPolygonAcceptableResponses = ['inside', 'vertex', 'boundary'];
+
+        $pointLocation = new MapLogic\PointLocation;
+        $ratesheetRepo = new Repos\RatesheetRepo;
+
+        $zones = $ratesheetRepo->GetMapZones($ratesheetId);
+
+        foreach($zones as $key => $zone) {
+            $jsonCoordinates = json_decode($zone['coordinates']);
+            $coordinateArray = array();
+            foreach($jsonCoordinates as $coordinate)
+                $coordinateArray[] = $coordinate->lat . ' ' . $coordinate->lng;
+            if($coordinateArray[0] != end($coordinateArray))
+                $coordinateArray[] = $coordinateArray[0];
+
+            if(in_array($pointLocation->pointInPolygon($lat . ' ' . $lng, $coordinateArray), $pointInPolygonAcceptableResponses))
+                return $this->prepareZone($zone);
+        }
+    }
+
     /**
      * Calculates distance charges based on ratesheet specifications in two primary modes
      * 1) Basic Mode
@@ -48,27 +69,8 @@ class ChargeModelFactory {
         /**
          * Find the zones containing the pickup and delivery locations
          */
-        $pickupZone = null;
-        $deliveryZone = null;
-        $pointInPolygonAcceptableResponses = ['inside', 'vertex', 'boundary'];
-
-        foreach($zones as $key => $zone) {
-            $jsonCoordinates = json_decode($zone['coordinates']);
-            $coordinateArray = array();
-            foreach($jsonCoordinates as $coordinate)
-                $coordinateArray[] = $coordinate->lat . ' ' . $coordinate->lng;
-            if($coordinateArray[0] != end($coordinateArray))
-                $coordinateArray[] = $coordinateArray[0];
-
-            if($pickupZone == null && in_array($pointLocation->pointInPolygon($pickupCoordinates, $coordinateArray), $pointInPolygonAcceptableResponses))
-                $pickupZone = $this->prepareZone($zone);
-
-            if($deliveryZone == null && in_array($pointLocation->pointInPolygon($deliveryCoordinates, $coordinateArray), $pointInPolygonAcceptableResponses))
-                $deliveryZone = $this->prepareZone($zone);
-
-            if($pickupZone && $deliveryZone)
-                break;
-        }
+        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress->lat, $pickupAddress->lng);
+        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress->lat, $pickupAddress->lng);
 
         /**
          * If one or both requests are outside of a programmed deliverable area, then we throw an exception: The system cannot automatically calculate the pricing, this must be done manually
@@ -192,8 +194,11 @@ class ChargeModelFactory {
      * 
      */
 
-    private function countZonesCrossed($pickupZone, $deliveryZone, $zones, $ratesheet, $deliveryType) {
+    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheetId, $deliveryType) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
+
+        $zones = $ratesheetRepo->GetMapZones($ratesheetId);
 
         $unvisitedSet = $zones->toArray();
         $startIndex = array_search($pickupZone->zone_id, array_column($unvisitedSet, 'zone_id'));
