@@ -462,7 +462,7 @@ const Bill = (props) => {
             <Col md={11} className='text-center'>
                 <ButtonGroup>
                     {billId &&
-                        <LinkContainer to={`/app/bills/${prevBillId}`}>
+                        <LinkContainer to={`/app/bills/${prevBillId}#${window.location.hash?.substr(1)}`}>
                             <Button variant='secondary' disabled={!prevBillId}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevBillId}
                             </Button>
@@ -470,7 +470,7 @@ const Bill = (props) => {
                     }
                     {getStoreButton()}
                     {billId &&
-                        <LinkContainer to={`/app/bills/${nextBillId}`}>
+                        <LinkContainer to={`/app/bills/${nextBillId}#${window.location.hash?.substr(1)}`}>
                             <Button variant='secondary' disabled={!nextBillId}>
                                 Next - {nextBillId} <i className='fas fa-arrow-circle-right'></i>
                             </Button>

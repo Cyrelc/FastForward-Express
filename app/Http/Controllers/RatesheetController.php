@@ -44,6 +44,11 @@ class RatesheetController extends Controller {
         if($req->user()->cannot('getChargesFrom', $ratesheet))
             abort(403);
 
+        $validation = new Validation\RatesheetValidationRules();
+        $zoneRequestValidation = $validation->GetZoneRequestValidationRules($req);
+
+        $this->validate($req, $zoneRequestValidation['rules'], $zoneRequestValidation['messages']);
+
         $chargeModelFactory = new ChargeModelFactory();
 
         return $chargeModelFactory->GetZone($ratesheetId, $req->lat, $req->lng);

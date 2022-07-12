@@ -33,6 +33,7 @@ export default function DispatchTab(props) {
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select
                             options={billId ? drivers : drivers.filter(driver => driver.active)}
+                            isClearable
                             isSearchable
                             value={pickup.driver}
                             onChange={driver => props.billDispatch({type: 'SET_PICKUP_DRIVER', payload: driver})}
@@ -90,6 +91,7 @@ export default function DispatchTab(props) {
                         <InputGroup.Text>Driver: </InputGroup.Text>
                         <Select 
                             options={billId ? drivers : drivers.filter(driver => driver.active)}
+                            isClearable
                             isSearchable
                             value={delivery.driver}
                             onChange={driver => props.billDispatch({type: 'SET_DELIVERY_DRIVER', payload: driver})}

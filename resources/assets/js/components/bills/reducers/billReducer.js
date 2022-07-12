@@ -169,7 +169,6 @@ export default function billReducer(state, action) {
                 repeat_intervals
             } = payload
 
-            // const thisBillIndex = payload.sortedBills
             let newState = {
                 accounts: accounts,
                 billId: bill.bill_id,
@@ -212,10 +211,10 @@ export default function billReducer(state, action) {
                 newState.activityLog = activity_log
 
             if(permissions.viewDispatch) {
-                newState.delivery.driver = state.drivers.find(driver => driver.employee_id === bill.delivery_driver_id)
+                newState.delivery.driver = bill.delivery_driver_id ? state.drivers.find(driver => driver.employee_id === bill.delivery_driver_id) : ''
                 newState.delivery.driverCommission = bill.delivery_driver_commission
                 newState.internalComments = bill.internal_comments ? bill.internal_comments : ''
-                newState.pickup.driver = state.drivers.find(driver => driver.employee_id === bill.pickup_driver_id)
+                newState.pickup.driver = bill.pickup_driver_id ? state.drivers.find(driver => driver.employee_id === bill.pickup_driver_id) : ''
                 newState.pickup.driverCommission = bill.pickup_driver_commission
                 newState.timeDispatched = Date.parse(bill.time_dispatched)
                 newState.timeCallReceived = Date.parse(bill.time_call_received)
