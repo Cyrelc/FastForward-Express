@@ -140,7 +140,7 @@ class PaymentController extends Controller {
             }
         }
 
-        if($accountAdjustment != 0) {
+        if(floatval($accountAdjustment) != 0) {
             $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
             $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment));
         }

@@ -31,6 +31,7 @@ const initialState = {
     invoiceComment: '',
     invoiceSortOrder: [],
     isGstExempt: false,
+    key: 'basic',
     minInvoiceAmount: '',
     nextAccountIndex: null,
     parentAccount: '',
@@ -93,6 +94,7 @@ class Account extends Component {
                 const thisAccountIndex = this.props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
                 const prevAccountIndex = thisAccountIndex <= 0 ? null : this.props.sortedAccounts[thisAccountIndex - 1]
                 const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === this.props.sortedAccounts.length - 1) ? null : this.props.sortedAccounts[thisAccountIndex + 1]
+                const key = window.location.hash ? window.location.hash.substr(1) : 'basic'
                 setup = {
                     ...setup,
                     accountBalance: response.account.account_balance,
@@ -109,7 +111,7 @@ class Account extends Component {
                     invoiceInterval: response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === response.account.invoice_interval),
                     invoiceSeparatelyFromParent: response.account.invoice_separately_from_parent,
                     isGstExempt: response.account.gst_exempt,
-                    key: this.state.key == 'childAccounts' && !response.account.can_be_parent ? 'basic' : this.state.key,
+                    key: key == 'childAccounts' && !response.account.can_be_parent ? 'basic' : key,
                     minInvoiceAmount: response.account.min_invoice_amount,
                     nextAccountIndex: nextAccountIndex,
                     parentAccount: (response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : null,
@@ -173,6 +175,8 @@ class Account extends Component {
             if(name === 'parentAccount' && this.state.parentAccount == '') {
                 temp['useParentRatesheet'] = true
             }
+            if(name === 'key')
+                window.location.hash = value
             temp[name] = type === 'checkbox' ? checked : value
         })
         this.setState(temp)
@@ -267,7 +271,7 @@ class Account extends Component {
                 </Col>
                 <Col md={4} >
                     <h4>
-                        { this.state.accountId ? 
+                        {this.state.accountId ? 
                             this.state.permissions.editAdvanced ? 
                                 <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
                                     if(confirm('Are you sure you wish to ' + (this.state.active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + this.state.accountName + '?')) {
@@ -279,15 +283,15 @@ class Account extends Component {
                                 : <Badge variant={this.state.active ? 'success' : 'danger'}>{this.state.active ? 'Active' : 'Inactive'}</Badge>
                             : null
                         }
-                        { this.state.permissions.viewPayments && this.state.accountBalance &&
+                        {this.state.permissions.viewPayments && this.state.accountBalance &&
                             <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '15px'}}>Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
                         }
-                        { this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
+                        {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
                             <Badge variant='danger'>Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
                         }
                     </h4>
                 </Col>
-                { this.state.accountId &&
+                {this.state.accountId &&
                     <Col md={2} style={{textAlign: 'right'}}>
                         <ButtonGroup>
                             {this.state.permissions.viewInvoices &&

@@ -5,7 +5,6 @@ import CurrencyInput from 'react-currency-input-field'
 import Select from 'react-select'
 
 export default function PaymentModal(props) {
-
     const [accountAdjustment, setAccountAdjustment] = useState(0);
     const [autoCalc, setAutoCalc] = useState(true);
     const [comment, setComment] = useState('');
@@ -21,8 +20,10 @@ export default function PaymentModal(props) {
             setIsLoading(true)
             makeAjaxRequest(`/payments/accountPayment/${props.accountId}`, 'GET', null, response => {
                 response = JSON.parse(response)
-                setPaymentTypes(response.payment_types)
                 setOutstandingInvoices(response.outstanding_invoices)
+                setPaymentTypes(response.payment_types)
+                setPaymentReferenceValue('')
+                setSelectedPaymentType(undefined)
                 setIsLoading(false)
             })
         } else {
@@ -112,6 +113,22 @@ export default function PaymentModal(props) {
         })
     }
 
+    const togglePayOffInvoice = invoiceId => {
+        const invoices = outstandingInvoices.map(invoice => {
+            if(invoice.invoice_id === invoiceId) {
+                const isPayOffChecked = !invoice?.isPayOffChecked
+                setPaymentAmount(paymentAmount => parseFloat(paymentAmount + (isPayOffChecked ? invoice.balance_owing : -invoice.balance_owing)))
+                return {
+                    ...invoice,
+                    isPayOffChecked,
+                    payment_amount: isPayOffChecked ? parseFloat(invoice.balance_owing) : 0
+                }
+            }
+            return invoice
+        })
+        setOutstandingInvoices(invoices)
+    }
+
     return (
         <Modal show={props.show} onHide={hideModal} size='lg'>
             <Modal.Header closeButton>
@@ -187,6 +204,7 @@ export default function PaymentModal(props) {
                             <Table striped bordered size='sm'>
                                 <thead>
                                     <tr>
+                                        {!autoCalc && <th></th>}
                                         <th>Invoice ID</th>
                                         <th>Invoice Date</th>
                                         <th>Balance Owing</th>
@@ -196,6 +214,14 @@ export default function PaymentModal(props) {
                                 <tbody>
                                     {outstandingInvoices.map(invoice =>
                                         <tr key={invoice.invoice_id}>
+                                            {!autoCalc &&
+                                                <td>
+                                                    <FormCheck
+                                                        checked={invoice?.isPayOffChecked}
+                                                        onChange={() => togglePayOffInvoice(invoice.invoice_id)}
+                                                    />
+                                                </td>
+                                            }
                                             <td>{invoice.invoice_id}</td>
                                             <td>{invoice.bill_end_date}</td>
                                             <td style={{textAlign: 'right'}}>{invoice.balance_owing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</td>
