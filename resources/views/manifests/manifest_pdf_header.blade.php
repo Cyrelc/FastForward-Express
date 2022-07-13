@@ -22,7 +22,7 @@
             <h2>Fast Forward Express Ltd.</h2>
         </td>
         <td style='text-align: right' width:'30%'>
-            <h4>Box 11117<br/>Edmonton, AB<br/>T5J 3K4</h4>
+            <h4>Box 11117<br/>Edmonton, AB<br/>T5J 2K4</h4>
         </td>
     </table>
 </div>
