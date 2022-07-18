@@ -124,7 +124,6 @@ class BillValidationRules {
 		$rules = [
 			'accept_terms_and_conditions' => 'required|accepted',
 			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
-			'charge_reference_value' => 'exclude_unless:',
 			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
 			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
 			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
