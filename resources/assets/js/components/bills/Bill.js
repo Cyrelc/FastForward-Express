@@ -55,7 +55,6 @@ const Bill = (props) => {
             if(data.bill?.bill_id) {
                 billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
                 packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 const currentBillIndex = props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
                 if(currentBillIndex != -1) {
