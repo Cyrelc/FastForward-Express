@@ -85,7 +85,6 @@ class RatesheetValidationRules {
 
     public function GetZoneRequestValidationRules($req) {
         $rules = [
-            'ratesheet_id' => ['required', 'exists:ratesheets'],
             'lat' => ['required', 'numeric'],
             'lng' => ['required', 'numeric']
         ];
