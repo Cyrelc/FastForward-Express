@@ -3,9 +3,9 @@ import {Badge, Button, ButtonGroup, Col, FormCheck, Modal, Navbar, NavDropdown, 
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
 
-import BillReducer, { initialState as initialBillState } from './reducers/billReducer'
+import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
-import PackageReducer, { initialState as initialPackageState } from './reducers/packageReducer'
+import PackageReducer, {initialState as initialPackageState} from './reducers/packageReducer'
 import ActivityLogTab from '../partials/ActivityLogTab'
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'

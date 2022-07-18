@@ -87,7 +87,7 @@ export default function PaymentsTab(props) {
                     canEditPayments={props.canEditPayments}
                     hide={() => setShowAdjustAccountCreditModal(false)}
                     refreshPaymentsTab={refreshModel}
-                    setAccountBalance={(value) => props.handleChange({target: {name: 'accountBalance', type: 'number', value: value}})}
+                    setAccountBalance={(value) => props.handleChanges({target: {name: 'accountBalance', type: 'number', value: value}})}
                     show={showAdjustAccountCreditModal}
                 />
             }

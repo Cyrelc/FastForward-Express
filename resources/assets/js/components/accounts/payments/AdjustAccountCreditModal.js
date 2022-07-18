@@ -10,8 +10,10 @@ export default function AdjustAccountCreditModal(props) {
     const [comment, setComment] = useState('')
 
     const storeAccountCredit = () => {
-        if(!props.editPayments)
+        if(!props.canEditPayments) {
+            console.log("Error - missing permission 'Edit payments'")
             return
+        }
         const data = {
             account_id: props.accountId,
             bill_id: billId,
