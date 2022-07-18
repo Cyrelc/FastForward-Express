@@ -23,6 +23,7 @@ class Bill extends Model
         'delivery_type',
         'description',
         'incomplete_fields',
+        'interliner_cost',
         'interliner_id',
         'interliner_reference_value',
         'internal_comments',
@@ -84,6 +85,7 @@ class Bill extends Model
     ];
 
     public static $billingFields = [
+        'interliner_cost',
         'interliner_id',
         'interliner_reference_value',
         'repeat_interval',

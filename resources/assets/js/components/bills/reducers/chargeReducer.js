@@ -153,7 +153,7 @@ export default function chargeReducer(state, action) {
                         newState.isDeliveryManifested = true
                     }
                 })
-                newState.interliner = bill.interliner_id ? state.interliners.find(interliner => interliner.interliner_id === bill.interliner_id) : ''
+                newState.interliner = bill.interliner_id ? state.interliners.find(interliner => interliner.value === bill.interliner_id) : ''
                 newState.interlinerActualCost = bill.interliner_cost
                 newState.interlinerReferenceValue = bill.interliner_reference_value
             }
