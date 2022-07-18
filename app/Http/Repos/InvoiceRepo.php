@@ -40,8 +40,6 @@ class InvoiceRepo {
 
         if($invoice === null)
             abort(404, 'Invoice does not exist');
-        if($invoice->finalized)
-            abort(403, 'Unable to detach from finalized invoice');
         if($lineItem->charge->bill->percentage_complete != 100)
             abort(400, 'Bill must be completed before invoicing');
         if($lineItem->invoice_id != null)

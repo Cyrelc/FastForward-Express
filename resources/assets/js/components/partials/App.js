@@ -213,7 +213,7 @@ class App extends Component {
                                                     onKeyPress={event => {
                                                         if(event.key === 'Enter' && this.state.manifestId) {
                                                             const manifestId = this.state.manifestId
-                                                            this.setState({manifestId: ''}, () => this.props.redirect('/app/manifests/' + this.state.manifestId))
+                                                            this.setState({manifestId: ''}, () => this.props.redirect(`/app/manifests/${manifestId}`))
                                                         }
                                                     }}
                                                 />

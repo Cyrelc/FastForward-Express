@@ -175,17 +175,17 @@ export default function BillingTab(props) {
                 {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
             ] : [],
             ... data.invoice_id ? [
-                {label: '<i class="fas fa-unlink"></i> Remove Invoice Link', action: () => removeLink(cell, 'Invoice'), disabled: data.finalized},
+                {label: `<i class="fas fa-unlink"></i> Remove Invoice Link (ID: ${data.invoice_id})`, action: () => removeLink(cell, 'Invoice'), disabled: data.finalized},
             ] : [
                 {label: '<i class="fas fa-link"></i> Link To Invoice', action: (e, cell) => linkTo(cell, 'Invoice')}
             ],
             ... data.pickup_manifest_id ? [
-                {label: '<i class="fas fa-unlink"></i> Remove Pickup Manifest Link', action: () => removeLink(cell, 'Pickup Manifest')},
+                {label: `<i class="fas fa-unlink"></i> Remove Pickup Manifest Link (ID: ${data.pickup_manifest_id})`, action: () => removeLink(cell, 'Pickup Manifest')},
             ] : [
                 {label: '<i class="fas fa-link"></i> Link To Pickup Manifest', action: (e, cell) => linkTo(cell, 'Pickup Manifest')}
             ],
             ... data.delivery_manifest_id ? [
-                {label: '<i class="fas fa-unlink"></i> Remove Delivery Manifest Link', action: () => removeLink(cell, 'Delivery Manifest')}
+                {label: `<i class="fas fa-unlink"></i> Remove Delivery Manifest Link (ID: ${data.delivery_manifest_id})`, action: () => removeLink(cell, 'Delivery Manifest')}
             ] : [
                 {label: '<i class="fas fa-link"></i> Link To Delivery Manifest', action: (e, cell) => linkTo(cell, 'Delivery Manifest')}
             ]
