@@ -132,6 +132,8 @@ export default function chargeReducer(state, action) {
                         newState.invoiceIds.push(invoice_id)
                         newState.isInvoiced = true
                     }
+                    if(lineItem.name === 'Interliner')
+                        newState.hasInterliner = true
                 })
             })
             if(permissions.viewBasic && !permissions.viewBilling) {
