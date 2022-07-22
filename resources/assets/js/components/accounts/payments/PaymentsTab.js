@@ -1,10 +1,12 @@
-import React, {Fragment, useEffect, useState} from 'react'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Badge, Button, Card, Col, Row} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 
 import AdjustAccountCreditModal from './AdjustAccountCreditModal'
 import ManageCreditCardsModal from './ManageCreditCardsModal'
 import PaymentModal from './PaymentModal'
+
+const initialSort = [{column: 'date', dir: 'desc'}, {column: 'payment_id', dir:'desc'}]
 
 export default function PaymentsTab(props) {
 
@@ -14,7 +16,10 @@ export default function PaymentsTab(props) {
     const [showManageCreditCardsModal, setShowManageCreditCardsModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
 
+    const tableRef = useRef()
+
     const columns = [
+        {title: 'Payment ID', field: 'payment_id', visible: false},
         {title: 'Invoice ID', field: 'invoice_id', formatter: props.viewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
         {title: 'Invoice Date', field: 'invoice_date'},
         {title: 'Payment Received On', field: 'date'},
@@ -29,6 +34,7 @@ export default function PaymentsTab(props) {
             response = JSON.parse(response)
             setOutstandingInvoiceCount(response.outstandingInvoiceCount)
             setPayments(response.payments)
+            tableRef.current.table.setSort(initialSort)
         })
     }
 
@@ -69,15 +75,15 @@ export default function PaymentsTab(props) {
                     <ReactTabulator
                         data={payments}
                         columns={columns}
-                        initialSort={[{column:'date', dir:'desc'}]}
-                        maxHeight='80vh'
+                        maxHeight='75vh'
                         options={{
                             layout: 'fitColumns',
                             pagination: 'local',
-                            paginationSize: 20
+                            paginationSize: 15
                         }}
                         printAsHtml={true}
                         printStyled={true}
+                        ref={tableRef}
                     />
                 </Card.Body>
             </Card>

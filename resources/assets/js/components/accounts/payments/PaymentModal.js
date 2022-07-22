@@ -36,7 +36,10 @@ export default function PaymentModal(props) {
     useEffect(() => {
         const startingValue = paymentAmount ? toFixedNumber(paymentAmount, 2) : 0
         const adjustment = outstandingInvoices.reduce((remainder, invoice) => remainder -= (invoice.payment_amount ? parseFloat(invoice.payment_amount) : 0), startingValue)
-        setAccountAdjustment(adjustment ? adjustment : 0)
+        if(selectedPaymentType?.name === 'Account')
+            setAccountAdjustment(paymentAmount ? -paymentAmount : 0)
+        else
+            setAccountAdjustment(adjustment ? adjustment : 0)
     }, [paymentAmount, outstandingInvoices])
 
     const handleInvoicePaymentAmountChange = (invoiceId, value) => {
@@ -90,7 +93,6 @@ export default function PaymentModal(props) {
     }, [paymentAmount, autoCalc])
 
     const storePayment = () => {
-        console.log("YAY")
         if(!props.canEditPayments)
             return
         if(selectedPaymentType == '' || selectedPaymentType == undefined) {

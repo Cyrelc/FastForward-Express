@@ -18,14 +18,14 @@ class PaymentCollector {
         ];
     }
 
-    public function CollectAccountPayment($req, $account_adjustment) {
+    public function CollectAccountPayment($req, $account_adjustment, $comment = null) {
         return [
             'account_id' => $req->account_id,
             'date' => date('Y-m-d'),
             'amount' => $account_adjustment,
             'payment_type_id' => $req->payment_type_id,
             'reference_value' => $req->reference_value,
-            'comment' => $req->comment
+            'comment' => $comment ? $comment : $req->comment
         ];
     }
 

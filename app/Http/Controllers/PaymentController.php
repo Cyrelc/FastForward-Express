@@ -139,10 +139,10 @@ class PaymentController extends Controller {
                     $accountAdjustment -= $outstandingInvoice['payment_amount'];
             }
         }
-
-        if(floatval($accountAdjustment) != 0) {
+        if(!floatval($accountAdjustment) == 0) {
             $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
-            $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment));
+            $comment = floatval($accountAdjustment > 0) ? 'Account credit applied' : 'Payment made from account balance';
+            $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment, $comment));
         }
 
         if($req->credit_card_id) {

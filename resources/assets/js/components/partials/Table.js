@@ -220,9 +220,9 @@ export default class Table extends Component {
                                 ref={this.state.tableRef}
                                 columns={this.props.columns}
                                 data={this.state.data}
-                                initialSort={this.props.initialSort}
                                 maxHeight='80vh'
                                 options={{
+                                    initialSort:this.props.initialSort,
                                     layout: 'fitColumns',
                                     pagination:'local',
                                     paginationSize:50,
