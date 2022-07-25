@@ -93,7 +93,7 @@ export default function BasicTab(props) {
         if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
-                if(!billId)
+                if(!billId && applyRestrictions)
                     props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
             })
         }
@@ -103,7 +103,7 @@ export default function BasicTab(props) {
         if(delivery.addressLat && delivery.addressLng && props.chargeState.activeRatesheet)
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
-                if(!billId)
+                if(!billId && applyRestrictions)
                     props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
             })
     }, [delivery.addressLat, delivery.addressLng])

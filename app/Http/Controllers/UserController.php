@@ -113,15 +113,25 @@ class UserController extends Controller {
     }
 
     public function impersonate(Request $req) {
-        if($req->user()->cannot('accountUsers.impersonate.*'))
-            abort(403);
-
         $userRepo = new Repos\UserRepo();
-        $accountUser = $userRepo->GetAccountUser($req->contact_id, $req->account_id);
+        $impersonateUser = null;
+
+        if($req->employee_id) {
+            if($req->user()->cannot('employees.impersonate.*.*'))
+                abort(403);
+
+            $impersonateUser = $userRepo->GetUserByEmployeeId($req->employee_id);
+        } else {
+            if($req->user()->cannot('accountUsers.impersonate.*'))
+                abort(403);
+
+            $impersonateUser = $userRepo->GetAccountUser($req->contact_id, $req->account_id);
+        }
+
         if($req->session()->missing('original_user_id'))
             $req->session()->put('original_user_id', Auth::user()->user_id);
 
-        Auth::loginUsingId($accountUser->user_id);
+        Auth::loginUsingId($impersonateUser->user_id);
     }
 
     public function LinkAccountUser(Request $req, $contactId, $accountId) {

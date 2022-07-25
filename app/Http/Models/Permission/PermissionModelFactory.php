@@ -230,9 +230,10 @@ class PermissionModelFactory {
         ];
         $model->employees = [
             'create' => $user->can('create', Employee::class),
+            'edit' => $user->can('employees.edit.*.*'),
+            'impersonate' => $user->can('employees.impersonate.*'),
             'viewAny' => $user->can('viewAny', Employee::class),
             'viewAll' => $user->can('viewAll', Employee::class),
-            'edit' => $user->can('employees.edit.*.*')
         ];
         $model->invoices = [
             'create' => $user->can('create', Invoice::class),

@@ -57,7 +57,8 @@ class Employees extends Component {
             return undefined
         var menuItems = [
             {label: data.active ? 'Disable' : 'Enable', action: () => this.toggleEmployeeActive(cell)},
-            {label: 'Change Password', action: () => this.toggleChangePasswordModal(cell), disabled: !data.active}
+            {label: 'Change Password', action: () => this.toggleChangePasswordModal(cell), disabled: !data.active},
+            ...this.props.frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => this.impersonateEmployee(cell)}] : []
         ]
 
         return menuItems
@@ -66,6 +67,13 @@ class Employees extends Component {
     cellContextMenuFormatter(cell) {
         if(cell.getData().employee_id)
             return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
+    }
+
+    impersonateEmployee(cell) {
+        const employee_id = cell.getRow().getData().employee_id
+        makeAjaxRequest(`/users/impersonate`, 'POST', {'employee_id': employee_id}, response => {
+            location.reload()
+        })
     }
 
     toggleEmployeeActive(cell) {
