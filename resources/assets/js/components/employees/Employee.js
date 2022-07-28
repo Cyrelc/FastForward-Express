@@ -289,22 +289,26 @@ class Employee extends Component {
         if(this.state.permissions.editAdvanced)
             data = {...data,
                 birth_date: this.state.birthDate.toLocaleString('en-us'),
-                company_name: this.state.companyName,
-                delivery_commission: this.state.deliveryCommission,
+                employee_number: this.state.employeeNumber,
                 is_driver: this.state.driver,
                 is_enabled: this.state.enabled,
+                permissions: this.state.employeePermissions,
+                position: this.state.position,
+                sin: this.state.SIN,
+                start_date: this.state.startDate.toLocaleString('en-us')
+            }
+
+        if(this.state.permissions.editAdvanced && this.state.driver)
+            data = {...data,
+                company_name: this.state.companyName,
+                delivery_commission: this.state.deliveryCommission,
                 drivers_license_expiration_date: this.state.driversLicenseExpirationDate.toLocaleString('en-us'),
                 drivers_license_number: this.state.driversLicenseNumber,
-                employee_number: this.state.employeeNumber,
-                permissions: this.state.employeePermissions,
                 insurance_expiration_date: this.state.insuranceExpirationDate.toLocaleString('en-us'),
                 insurance_number: this.state.insuranceNumber,
                 license_plate_number: this.state.licensePlateNumber,
                 license_plate_expiration_date: this.state.licensePlateExpirationDate.toLocaleString('en-us'),
                 pickup_commission: this.state.pickupCommission,
-                position: this.state.position,
-                sin: this.state.SIN,
-                start_date: this.state.startDate.toLocaleString('en-us')
             }
 
         makeAjaxRequest('/employees/store', 'POST', data, response => {

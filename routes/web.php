@@ -127,6 +127,7 @@ Route::group(['middleware' => 'auth'],
         Route::get('/users/linkAccountUser/{contactId}/{accountId}', 'UserController@LinkAccountUser');
         Route::post('/users/impersonate', 'UserController@impersonate');
         Route::get('/users/unimpersonate', 'UserController@unimpersonate');
+        Route::get('/users/sendPasswordReset/{userId}', 'UserController@sendPasswordResetEmail');
         //API
         // Route::resource('/customers', 'AccountController',
         //     ['only' => ['index', 'create', 'edit', 'store']]);

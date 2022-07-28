@@ -34,6 +34,7 @@ class PartialsValidationRules {
         $messages = [
             'first_name.required' => 'User first name field can not be empty',
             'last_name.required' => 'User last name field can not be empty',
+            'phone_numbers.*.type' => 'Phone number type is a required field'
         ];
         if($userId) {
             $rules = array_merge($rules, ['emails.*.email' => 'unique:users,email,' . $userId . ',user_id']);

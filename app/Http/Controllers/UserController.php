@@ -8,6 +8,7 @@ use App\Http\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use DB;
 
 class UserController extends Controller {
@@ -155,6 +156,25 @@ class UserController extends Controller {
     //     $userRepo->setPrimaryAccountUser($contact_id);
     //     return;
     // }
+
+    public function sendPasswordResetEmail(Request $req, $userId) {
+        $userRepo = new Repos\UserRepo();
+        $targetUser = $userRepo->GetById($userId);
+
+        if(!$targetUser)
+            abort(404);
+
+        if($req->user()->cannot('updatePassword', $targetUser))
+            abort(403);
+
+        $token = Password::getRepository()->create($targetUser);
+        $targetUser->sendPasswordResetNotification($token);
+
+        return response()->json([
+            'success' => true,
+            'email' => $targetUser->email
+        ]);
+    }
 
     public function storeAccountUser(Request $req) {
         $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
