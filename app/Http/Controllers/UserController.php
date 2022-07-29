@@ -39,14 +39,26 @@ class UserController extends Controller {
         $userRepo = new Repos\UserRepo();
         foreach($req->emails as $email) {
             $user = $userRepo->GetUserByPrimaryEmail($email['email']);
-            if($user && $user->accountUsers()) {
+            if($user && $user->accountUsers) {
+                $accountRepo = new Repos\AccountRepo();
                 $contactRepo = new Repos\ContactRepo();
                 $contact = $contactRepo->GetById($user->accountUsers[0]->contact_id);
+                $accounts = array();
+                foreach($user->accountUsers as $accountUser) {
+                    $account = $accountUser->account;
+                    array_push($accounts, [
+                        'account_number' => $account->account_number,
+                        'label' => $account->name,
+                        'value' => $account->account_id,
+                        ]
+                    );
+                }
                 return response()->json([
                     'success' => true,
                     'email_in_use' => true,
                     'contact_id' => $contact ? $contact->contact_id : null,
-                    'name' => $contact ? $contact->first_name . ' ' . $contact->last_name : null
+                    'name' => $contact ? $contact->first_name . ' ' . $contact->last_name : null,
+                    'accounts' => $accounts
                 ]);
             }
         }

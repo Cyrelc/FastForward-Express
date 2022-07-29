@@ -180,7 +180,7 @@ export default class UsersTab extends Component {
         } else
             makeAjaxRequest('/users/checkIfAccountUserExists', 'POST', data, response => {
                 if(response.email_in_use) {
-                    if(confirm('This email is already in use by another user: ' + response.name + '. Would you instead like to link the existing user to this account?'))
+                    if(confirm(`This email is already in use by another user: ${response.name} \n\n On accounts:\n ${response.accounts.map(account => `\t${account.account_number} - ${account.label}`)} \n\n Would you instead like to link the existing user to this account?`))
                         makeAjaxRequest('/users/linkAccountUser/' + response.contact_id + '/' + this.props.accountId, 'GET', null, response => {
                             this.refreshAccountUsers()
                         })
