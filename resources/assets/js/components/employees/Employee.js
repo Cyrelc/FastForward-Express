@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, Fragment} from 'react'
 import {Button, ButtonGroup, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
@@ -159,9 +159,9 @@ class Employee extends Component {
 
     render() {
         return (
-            <span>
+            <Fragment>
                 {(this.state.employeeId && this.state.driver == 1) &&
-                    <Row md={11} className='justify-content-md-center'>
+                    <Row className='justify-content-md-center'>
                         <Col md={6}>
                             <ListGroup className='list-group-horizontal' as='ul'>
                                 {this.state.driversLicenseExpirationDate < new Date() &&
@@ -178,14 +178,14 @@ class Employee extends Component {
                                 }
                             </ListGroup>
                         </Col>
-                        <Col md={5} style={{textAlign: 'right'}}>
+                        <Col md={6} style={{textAlign: 'right'}}>
                             <LinkContainer to={'/app/manifests?filter[driver_id]=' + this.state.employeeId}><Button variant='secondary'>Manifests</Button></LinkContainer>
                             <LinkContainer to={'/app/bills?filter[pickup_driver_id]=' + this.state.employeeId}><Button variant='secondary'>All Bills</Button></LinkContainer>
                         </Col>
                     </Row>
                 }
-                <Row md={11} className='justify-content-md-center'>
-                    <Col md={11}>
+                <Row className='justify-content-md-center'>
+                    <Col md={12}>
                         <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                             <Tab eventKey='basic' title={<h4>Basic</h4>}>
                                 <BasicTab
@@ -262,7 +262,7 @@ class Employee extends Component {
                         </ButtonGroup>
                     </Col>
                 </Row>
-            </span>
+            </Fragment>
         )
     }
 

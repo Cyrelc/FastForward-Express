@@ -9,7 +9,7 @@ import Select from 'react-select'
 function NavBar(props) {
     const [billId, setBillId] = useState('')
     const [invoiceId, setInvoiceId] = useState('')
-    const [isCollapsed, setIsCollapsed] = useState(false)
+    const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
     const [manifestId, setManifestId] = useState('')
 
     const getUserIcon = () => {
@@ -35,6 +35,11 @@ function NavBar(props) {
         makeAjaxRequest('/users/unimpersonate', 'GET', null, response => location.reload())
     }
 
+    const toggleCollapsed = () => {
+        localStorage.setItem('isNavBarCollapsed', !isCollapsed)
+        setIsCollapsed(!isCollapsed)
+    }
+
     return (
         <ProSidebar
             collapsed={isCollapsed}
@@ -47,7 +52,7 @@ function NavBar(props) {
                             <h5>{isCollapsed ? 'FFE' : 'Fast Forward Express'}</h5>
                         </MenuItem>
                     </LinkContainer>
-                    <i className={isCollapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={event => setIsCollapsed(!isCollapsed)}/>
+                    <i className={isCollapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed}/>
                 </Menu>
             </SidebarHeader>
             <SidebarContent>

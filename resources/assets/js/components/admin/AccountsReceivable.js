@@ -37,7 +37,7 @@ export default class AccountsReceivable extends Component {
     render() {
         return (
             <Row className='justify-content-md-center'>
-                <Col md={11} className='justify-content-center'>
+                <Col md={12} className='justify-content-center'>
                     <Card border='dark'>
                         <Card.Header>
                             <Row>

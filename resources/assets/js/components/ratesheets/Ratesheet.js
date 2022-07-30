@@ -415,14 +415,14 @@ export default class Ratesheet extends Component {
 
     render() {
         return (
-            <Row md={11} className='justify-content-md-center'>
+            <Row className='justify-content-md-center'>
                 <Modal show={this.state.drawingMap < 100}>
                     <h4>Drawing map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
                 </Modal>
                 <Modal show={this.state.savingMap < 100}>
                     <h4>Saving map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
                 </Modal>
-                <Col md={11}>
+                <Col md={12}>
                     <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChange({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
                             <BasicRatesTab

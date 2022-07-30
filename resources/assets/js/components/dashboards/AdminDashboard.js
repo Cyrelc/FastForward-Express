@@ -65,8 +65,8 @@ export default class AdminDashboard extends Component {
         ]
 
         return (
-            <Row md={11} className='justify-content-md-center'>
-                <Col md={11}>
+            <Row className='justify-content-md-center'>
+                <Col md={12}>
                     <Card>
                         <Card.Header><Card.Title>Admin Dashboard</Card.Title></Card.Header>
                         <Card.Body>
@@ -88,7 +88,7 @@ export default class AdminDashboard extends Component {
                                 </Col>
                                 <Col md={9}>
                                     <h4>Bill Counts Per Day Year Over Year</h4>
-                                    <div style={{height: '50vh', width: '65vw'}}>
+                                    <div style={{height: '50vh', width: '60vw'}}>
                                         <ResponsiveCalendar
                                             data={this.state.calendarHeatChart}
                                             from={this.state.calendarStartDate}
@@ -98,7 +98,7 @@ export default class AdminDashboard extends Component {
                                     </div>
                                     <hr/>
                                     <h4>Income/Outgoing</h4>
-                                    <div style={{height: '50vh', width: '70vw'}}>
+                                    <div style={{height: '50vh', width: '60vw'}}>
                                         <ResponsiveLine
                                             animate={true}
                                             axisBottom={{

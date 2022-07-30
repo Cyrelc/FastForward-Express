@@ -303,7 +303,7 @@ class Account extends Component {
                         </ButtonGroup>
                     </Col>
                 }
-                <Col md={11}>
+                <Col md={12}>
                     <Tabs id='accountTabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='basic' title={<h4>Basic Info</h4>}>
                             <BasicTab
