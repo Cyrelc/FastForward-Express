@@ -26,7 +26,7 @@
         @yield('head')
     </head>
 
-    <body style='min-height: 100%; width: 99.2vw'>
+    <body style='min-height: 100%'>
         @yield('body')
     </body>
 

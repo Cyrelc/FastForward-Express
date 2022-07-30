@@ -291,7 +291,7 @@ export default function BasicTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Text>Pickup Time: </InputGroup.Text>
+                            <InputGroup.Text>Package Ready: </InputGroup.Text>
                             <DatePicker
                                 showTimeSelect
                                 timeIntervals={15}
@@ -312,7 +312,7 @@ export default function BasicTab(props) {
                     </Col>
                     <Col md={3}>
                         <InputGroup>
-                            <InputGroup.Text>Delivery Time: </InputGroup.Text>
+                            <InputGroup.Text>Delivery By: </InputGroup.Text>
                             <DatePicker
                                 showTimeSelect
                                 timeIntervals={15}

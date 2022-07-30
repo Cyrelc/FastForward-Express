@@ -1,5 +1,5 @@
 import React, {Component, createRef} from 'react'
-import { ReactTabulator } from 'react-tabulator'
+import {ReactTabulator} from 'react-tabulator'
 import {Button, ButtonGroup, Card, Col, Dropdown, Row, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 
@@ -135,107 +135,103 @@ export default class Table extends Component {
 
     render() {
         return (
-            <Row>
-                <Col md={12}>
-                    <Card>
-                        <Card.Header>
-                            <Row>
-                                <Col md={1}>
-                                    <Card.Title>{this.state.pageTitle}</Card.Title>
-                                </Col>
-                                <Col md={2}>
-                                    <InputGroup>
-                                        <InputGroup.Text>Group By: </InputGroup.Text>
-                                        <Select
-                                            options={this.state.groupByOptions}
-                                            value={this.state.groupBy}
-                                            onChange={value => this.handleGroupByChange(value)}
-                                            isDisabled={this.state.groupByOptions.length === 0}
-                                        />
-                                    </InputGroup>
-                                </Col>
-                                <Col md={6}>
-                                    <InputGroup>
-                                        <InputGroup.Text>Select Active Filters: </InputGroup.Text>
-                                        <Select
-                                            options={this.state.filters}
-                                            value={this.state.filters.filter(filter => filter.active)}
-                                            getOptionLabel={option => option.name}
-                                            onChange={filters => this.handleChange({target: {name: 'activeFilters', type: 'array', value: filters}})}
-                                            isDisabled={this.state.filters.length === 0}
-                                            isMulti
-                                        />
-                                        <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
-                                    </InputGroup>
-                                </Col>
-                                <Col md={3}>
-                                    <ButtonGroup>
-                                        <Dropdown>
-                                            <Dropdown.Toggle variant='dark' id='column_select'>View Columns</Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                {this.state.columns.map(column =>
-                                                    <Dropdown.Item
-                                                        key={column.field}
-                                                        style={{color: column.visible === false  ? 'red' : 'black'}}
-                                                        onClick={() => this.handleActiveColumnsChange(column.field)}
-                                                    >{column.title}</Dropdown.Item>
-                                                )}
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                        <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
-                                        {this.props.withSelected &&
-                                            <Dropdown>
-                                                <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
-                                                <Dropdown.Menu>
-                                                    {this.props.withSelected.map(menuItem =>
-                                                        <Dropdown.Item
-                                                            key={menuItem.label}
-                                                            onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
-                                                        >{menuItem.label}</Dropdown.Item>
-                                                    )}
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        }
-                                        {this.props.createObjectFunction &&
-                                            <Button variant='success' onClick={this.props.createObjectFunction}><i className='fas fa-square-plus'></i>Create {this.props.pageTitle}</Button>
-                                        }
-                                    </ButtonGroup>
-                                </Col>
-                            </Row>
-                        </Card.Header>
-                        {this.state.filters.some(filter => filter.active) && 
-                            <Card.Body>
-                                <Row>
-                                    <Col md={12}>
-                                        <TableFilters
-                                            filters={this.state.filters}
-                                            handleChange={this.handleChange}
-                                        />
-                                    </Col>
-                                </Row>
-                            </Card.Body>
-                        }
-                        <Card.Footer>
-                            <ReactTabulator
-                                ref={this.state.tableRef}
-                                columns={this.props.columns}
-                                data={this.state.data}
-                                maxHeight='80vh'
-                                options={{
-                                    initialSort:this.props.initialSort,
-                                    layout: 'fitColumns',
-                                    pagination:'local',
-                                    paginationSize:50,
-                                }}
-                                printAsHtml={true}
-                                printStyled={true}
-                                selectable={this.props.selectable}
-                                selectableCheck={() => {return this.props.selectable ? true : false}}
-                            />
-                        </Card.Footer>
-                    </Card>
-                </Col>
-            </Row>
+            <Card>
+                <Card.Header>
+                    <Row>
+                        <Col md={1}>
+                            <Card.Title>{this.state.pageTitle}</Card.Title>
+                        </Col>
+                        <Col md={2}>
+                            <InputGroup>
+                                <InputGroup.Text>Group By: </InputGroup.Text>
+                                <Select
+                                    options={this.state.groupByOptions}
+                                    value={this.state.groupBy}
+                                    onChange={value => this.handleGroupByChange(value)}
+                                    isDisabled={this.state.groupByOptions.length === 0}
+                                />
+                            </InputGroup>
+                        </Col>
+                        <Col md={6}>
+                            <InputGroup>
+                                <InputGroup.Text>Select Active Filters: </InputGroup.Text>
+                                <Select
+                                    options={this.state.filters}
+                                    value={this.state.filters.filter(filter => filter.active)}
+                                    getOptionLabel={option => option.name}
+                                    onChange={filters => this.handleChange({target: {name: 'activeFilters', type: 'array', value: filters}})}
+                                    isDisabled={this.state.filters.length === 0}
+                                    isMulti
+                                />
+                                <Button variant='success' onClick={this.refreshTable} disabled={this.state.filters.length === 0}>Apply Filters</Button>
+                            </InputGroup>
+                        </Col>
+                        <Col md={3}>
+                            <ButtonGroup>
+                                <Dropdown>
+                                    <Dropdown.Toggle variant='dark' id='column_select'>View Columns</Dropdown.Toggle>
+                                    <Dropdown.Menu>
+                                        {this.state.columns.map(column =>
+                                            <Dropdown.Item
+                                                key={column.field}
+                                                style={{color: column.visible === false  ? 'red' : 'black'}}
+                                                onClick={() => this.handleActiveColumnsChange(column.field)}
+                                            >{column.title}</Dropdown.Item>
+                                        )}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                                <Button variant='primary' onClick={() => this.state.tableRef.current.table.print()}>Print Table <i className='fas fa-print'></i></Button>
+                                {this.props.withSelected &&
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant='dark' id='withSelected'>With Selected</Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            {this.props.withSelected.map(menuItem =>
+                                                <Dropdown.Item
+                                                    key={menuItem.label}
+                                                    onClick={() => menuItem.onClick(this.state.tableRef.current.table.getSelectedRows())}
+                                                >{menuItem.label}</Dropdown.Item>
+                                            )}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                }
+                                {this.props.createObjectFunction &&
+                                    <Button variant='success' onClick={this.props.createObjectFunction}><i className='fas fa-square-plus'></i>Create {this.props.pageTitle}</Button>
+                                }
+                            </ButtonGroup>
+                        </Col>
+                    </Row>
+                </Card.Header>
+                {this.state.filters.some(filter => filter.active) &&
+                    <Card.Body>
+                        <Row>
+                            <Col md={12}>
+                                <TableFilters
+                                    filters={this.state.filters}
+                                    handleChange={this.handleChange}
+                                />
+                            </Col>
+                        </Row>
+                    </Card.Body>
+                }
+                <Card.Footer>
+                    <ReactTabulator
+                        ref={this.state.tableRef}
+                        columns={this.props.columns}
+                        data={this.state.data}
+                        maxHeight='80vh'
+                        options={{
+                            initialSort:this.props.initialSort,
+                            layout: 'fitColumns',
+                            pagination:'local',
+                            paginationSize:50,
+                        }}
+                        printAsHtml={true}
+                        printStyled={true}
+                        selectable={this.props.selectable}
+                        selectableCheck={() => {return this.props.selectable ? true : false}}
+                    />
+                </Card.Footer>
+            </Card>
         )
     }
 }

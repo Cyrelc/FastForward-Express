@@ -313,8 +313,8 @@ const Bill = (props) => {
     }, [chargeAccount, permissions, accounts, chargeState.chargeType])
 
     return (
-        <Row md={11} className='justify-content-md-center'>
-            <Col md={11}>
+        <Row className='justify-content-md-center'>
+            <Col md={12}>
                 <Navbar expand='md' variant='dark' bg='dark'>
                     <Navbar.Brand style={{paddingLeft: '15px'}}>
                         <h4>{billId ? `Bill ID: ${billId}` : 'Create Bill'}</h4>
@@ -400,7 +400,7 @@ const Bill = (props) => {
                     </Navbar.Collapse>
                 </Navbar>
             </Col>
-            <Col md={11}>
+            <Col md={12}>
                 <Tabs id='bill-tabs' className='nav-justified' activeKey={billState.key} onSelect={key =>billDispatch({type: 'SET_TAB_KEY', payload: key})}>
                     <Tab eventKey='basic' title={<h4>Pickup/Delivery Info <i className='fas fa-map-pin'></i></h4>}>
                         <BasicTab
@@ -459,7 +459,7 @@ const Bill = (props) => {
                     />
                 </Col>
             }
-            <Col md={11} className='text-center'>
+            <Col md={12} className='text-center'>
                 <ButtonGroup>
                     {billId &&
                         <LinkContainer to={`/app/bills/${prevBillId}#${window.location.hash?.substr(1)}`}>

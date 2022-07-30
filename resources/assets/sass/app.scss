@@ -1,4 +1,8 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+$sidebar-bg-color: 'linear-gradient(to bottom, black, #0770b1, black)';
+$sidebar-collapsed-width: 85px;
+
+@import '~react-pro-sidebar/dist/scss/styles.scss';
 @import '~bootstrap/scss/bootstrap';
 @import '~react-datepicker/dist/react-datepicker.css';
 @import '~react-tabulator/lib/styles.css';

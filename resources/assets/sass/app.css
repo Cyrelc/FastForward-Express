@@ -6,6 +6,11 @@
     padding: 15px;
 }
 
+.popper-inner {
+    min-width: 15vw;
+    min-height: 75vh;
+}
+
 .pac-container {
     z-index: 999999999999999 !important;
 }
