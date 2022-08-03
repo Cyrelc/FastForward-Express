@@ -1,5 +1,5 @@
-import React, {Component} from 'react'
-import {Badge, Button, ButtonGroup, Col, Row, Tab, Tabs} from 'react-bootstrap'
+import React, {Component, Fragment} from 'react'
+import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, NavLink, Row, Tab, Tabs} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
 
@@ -263,46 +263,58 @@ class Account extends Component {
     render() {
         return (
             <Row className='justify-content-md-center' style={{paddingTop: '20px'}}>
-                <Col md={5}>
-                    { (this.state.account_id && this.state.parentAccount.value != undefined) &&
-                        <h4>Parent: <LinkContainer to={'/app/accounts/' + this.state.parentAccount.value}><a>{this.state.parentAccount.label}</a></LinkContainer></h4>
-                    }
-                    <h4><Badge bg='secondary'>{this.state.accountId ? 'Manage Account ' + this.state.accountId + " - " + this.state.accountName : 'Create Account'}</Badge></h4>
-                </Col>
-                <Col md={4} >
-                    <h4>
-                        {this.state.accountId ? 
-                            this.state.permissions.editAdvanced ? 
-                                <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
-                                    if(confirm('Are you sure you wish to ' + (this.state.active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + this.state.accountName + '?')) {
-                                        makeAjaxRequest('/accounts/toggleActive/' + this.state.accountId, 'GET', null, response => {
-                                            this.setState({active: !this.state.active})
-                                        })
+                <Col md={12}>
+                    <Navbar expand='md' variant='dark' bg='dark'>
+                        <Container>
+                            <Nav>
+                                <Navbar.Brand style={{paddingLeft: '15px'}} align='start'>
+                                    {this.state.accountId ?
+                                        <Fragment>
+                                            {this.state.parentAccount?.value &&
+                                                <h4>
+                                                    Parent: <LinkContainer to={`/app/accounts/${this.state.parentAccount.value}`}><a>{this.state.parentAccount.label}</a></LinkContainer>
+                                                </h4>
+                                            }
+                                            <h4>{`Manage Account: ${this.state.accountId} - ${this.state.accountName}`}</h4>
+                                        </Fragment>
+                                        : <h4>Create Account</h4>
                                     }
-                                }}>{this.state.active ? 'Active' : 'Inactive'}</Button>
-                                : <Badge variant={this.state.active ? 'success' : 'danger'}>{this.state.active ? 'Active' : 'Inactive'}</Badge>
-                            : null
-                        }
-                        {this.state.permissions.viewPayments && this.state.accountBalance &&
-                            <Badge variant={this.state.accountBalance >= 0 ? 'success' : 'danger'} style={{marginRight: '15px'}}>Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
-                        }
-                        {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
-                            <Badge variant='danger'>Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Badge>
-                        }
-                    </h4>
+                                </Navbar.Brand>
+                            </Nav>
+                            {this.state.accountId &&
+                                <Nav>
+                                    {this.state.permissions.editAdvanced ? 
+                                        <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
+                                            if(confirm('Are you sure you wish to ' + (this.state.active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + this.state.accountName + '?')) {
+                                                makeAjaxRequest('/accounts/toggleActive/' + this.state.accountId, 'GET', null, response => {
+                                                    this.setState({active: !this.state.active})
+                                                })
+                                            }
+                                        }}>{this.state.active ? 'Active' : 'Inactive'}</Button>
+                                        : <Badge variant={this.state.active ? 'success' : 'danger'}>{this.state.active ? 'Active' : 'Inactive'}</Badge>
+                                    }
+                                    {this.state.permissions.viewPayments && this.state.accountBalance &&
+                                        <Badge
+                                            bg={this.state.accountBalance >= 0 ? 'success' : 'danger'}
+                                            style={{marginRight: '15px'}}
+                                        >
+                                            <h5>
+                                                Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                            </h5>
+                                        </Badge>
+                                    }
+                                    {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
+                                        <Badge bg='danger'>
+                                            <h5>
+                                                Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                            </h5>
+                                        </Badge>
+                                    }
+                                </Nav>
+                            }
+                        </Container>
+                    </Navbar>
                 </Col>
-                {this.state.accountId &&
-                    <Col md={2} style={{textAlign: 'right'}}>
-                        <ButtonGroup>
-                            {this.state.permissions.viewInvoices &&
-                                <LinkContainer to={'/app/invoices?filter[account_id]=' + this.state.accountId}><Button variant='secondary'>Invoices</Button></LinkContainer>
-                            }
-                            {this.state.permissions.viewBills &&
-                                <LinkContainer to={'/app/bills?filter[charge_account_id]=' + this.state.accountId}><Button variant='secondary'>Bills</Button></LinkContainer>
-                            }
-                        </ButtonGroup>
-                    </Col>
-                }
                 <Col md={12}>
                     <Tabs id='accountTabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
                         <Tab eventKey='basic' title={<h4>Basic Info</h4>}>

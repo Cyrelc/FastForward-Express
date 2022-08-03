@@ -173,20 +173,18 @@ export default function Address(props) {
                             />
                         </InputGroup>
                     </Col>
-                    {type === 'Manual' &&
-                        <Col md={12}>
-                            <InputGroup>
-                                <InputGroup.Text>Address: </InputGroup.Text>
-                                <FormControl
-                                    type='text'
-                                    name={'addressFormatted'}
-                                    value={formatted}
-                                    onChange={props.handleChange}
-                                    readOnly={readOnly || type != 'Manual'}
-                                />
-                            </InputGroup>
-                        </Col>
-                    }
+                    <Col md={12}>
+                        <InputGroup>
+                            <InputGroup.Text>Address: </InputGroup.Text>
+                            <FormControl
+                                type='text'
+                                name={'addressFormatted'}
+                                value={formatted}
+                                onChange={props.handleChange}
+                                readOnly={readOnly || type != 'Manual'}
+                            />
+                        </InputGroup>
+                    </Col>
                     <br/>
                     <Col md={12}>
                         <GoogleMap
