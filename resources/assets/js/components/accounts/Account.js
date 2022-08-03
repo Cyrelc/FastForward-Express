@@ -262,7 +262,7 @@ class Account extends Component {
 
     render() {
         return (
-            <Row className='justify-content-md-center' style={{paddingTop: '20px'}}>
+            <Row className='justify-content-md-center'>
                 <Col md={12}>
                     <Navbar expand='md' variant='dark' bg='dark'>
                         <Container>
@@ -285,7 +285,7 @@ class Account extends Component {
                                 <Nav>
                                     {this.state.permissions.editAdvanced ? 
                                         <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
-                                            if(confirm('Are you sure you wish to ' + (this.state.active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + this.state.accountName + '?')) {
+                                            if(confirm(`Are you sure you wish to ${this.state.active ? 'DEACTIVATE' : 'ACTIVATE'} account ${this.state.accountName}?`)) {
                                                 makeAjaxRequest('/accounts/toggleActive/' + this.state.accountId, 'GET', null, response => {
                                                     this.setState({active: !this.state.active})
                                                 })
@@ -298,16 +298,16 @@ class Account extends Component {
                                             bg={this.state.accountBalance >= 0 ? 'success' : 'danger'}
                                             style={{marginRight: '15px'}}
                                         >
-                                            <h5>
+                                            <h6>
                                                 Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                            </h5>
+                                            </h6>
                                         </Badge>
                                     }
                                     {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
                                         <Badge bg='danger'>
-                                            <h5>
+                                            <h6>
                                                 Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                            </h5>
+                                            </h6>
                                         </Badge>
                                     }
                                 </Nav>
