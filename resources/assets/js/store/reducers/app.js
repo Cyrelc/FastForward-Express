@@ -30,7 +30,8 @@ const initialState = {
     invoiceIntervals: [],
     isImpersonating: false,
     parentAccounts: [],
-    paymentTypes: []
+    paymentTypes: [],
+    repeatIntervals: []
 }
 
 const reducer = (state = initialState, action) => {
@@ -49,7 +50,8 @@ const reducer = (state = initialState, action) => {
                 invoiceIntervals: action.payload.invoice_intervals,
                 isImpersonating: action.payload.is_impersonating,
                 parentAccounts: action.payload.parent_accounts,
-                paymentTypes: action.payload.payment_types
+                paymentTypes: action.payload.payment_types,
+                repeatIntervals: action.payload.repeat_intervals
             }
     }
     return state

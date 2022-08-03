@@ -191,7 +191,7 @@ function NavBar(props) {
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.manifests.viewAny &&
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px'}}>
+                                <InputGroup>
                                     <InputGroup.Text>Manifest ID: </InputGroup.Text>
                                     <FormControl
                                         name={'manifestId'}
@@ -228,10 +228,10 @@ function NavBar(props) {
             </SidebarContent>
             <SidebarFooter>
                 <Menu iconShape='circle'>
-                    <SubMenu title={<h5>{props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'}</h5>} icon={<i className={getUserIcon()}/>}>
+                    <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
                         {props.authenticatedEmployee?.employee_id &&
                             <LinkContainer to={`/app/employees/${props.authenticatedEmployee.employee_id}`}>
-                                <MenuItem icon={<i className='fas fa-user-ninja'></i>}>Employee Info</MenuItem>
+                                <MenuItem icon={<i className='fas fa-user-ninja'></i>}>{`${props.contact.first_name} ${props.contact.last_name}`}</MenuItem>
                             </LinkContainer>
                         }
                         <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
@@ -243,8 +243,6 @@ function NavBar(props) {
                         </LinkContainer>
                     </SubMenu>
                 </Menu>
-                {/* <NavDropdown title={<span>{props.isImpersonating ? <i className='fas fa-people-arrows' style={{paddingRight: '5px'}}></i> : ''}<i className={getUserIcon()}></i> {props.contact ? props.contact.first_name + " " + props.contact.last_name : 'User'} </span>} align='end'>
-                </NavDropdown> */}
             </SidebarFooter>
         </ProSidebar>
     )

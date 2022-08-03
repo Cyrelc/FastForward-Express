@@ -39,6 +39,9 @@ class HomeModelFactory {
             if($req->user()->can('bills.edit.dispatch.*')) {
                 $model->drivers = $employeeRepo->GetDriverList();
             }
+            if($req->user()->can('bills.edit.billing.*')) {
+                $model->repeat_intervals = $selectionsRepo->GetSelectionsListByType('repeat_interval');
+            }
         } else if(count($model->authenticatedAccountUsers) > 0) {
             $model->contact = $contactRepo->GetById($model->authenticatedAccountUsers[0]->contact_id);
             $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($model->authenticatedAccountUsers[0]->account_id)));
