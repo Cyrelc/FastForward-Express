@@ -12,7 +12,6 @@
         "spatie/laravel-activitylog": "^3.1",
         "fideloper/proxy": "^4.0",
         "spatie/laravel-query-builder": "^3.0",
-        "altynbek07/laravel-config-writer": "^1.2",
         "laravel/ui": "^3.0",
         "pusher/pusher-php-server": "~4.0",
         "spatie/laravel-permission": "^4.0",
@@ -23,7 +22,8 @@
         "nesk/puphpeteer": "^2.0",
         "laravel/tinker": "^2.7",
         "stripe/stripe-php": "^8.12",
-        "laravel/cashier": "^13.13"
+        "laravel/cashier": "^13.13",
+        "daftspunk/laravel-config-writer": "^1.1"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

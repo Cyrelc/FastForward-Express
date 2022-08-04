@@ -13,6 +13,7 @@ export default function AccountingTab(props) {
                         <InputGroup>
                             <InputGroup.Text>GST: </InputGroup.Text>
                             <FormControl
+                                disabled
                                 type='number'
                                 min={0}
                                 max={100}

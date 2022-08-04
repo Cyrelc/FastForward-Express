@@ -161,6 +161,7 @@ return [
         /*
          * Developer Added (3rd party) Providers
          */
+        October\Rain\Config\ServiceProvider::class,
     ],
 
     /*
@@ -175,7 +176,6 @@ return [
     */
 
     'aliases' => [
-
         'App' => Illuminate\Support\Facades\App::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
         'Auth' => Illuminate\Support\Facades\Auth::class,

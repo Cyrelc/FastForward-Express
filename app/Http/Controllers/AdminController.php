@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Artisan;
-// use Config;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Models\Admin;
 use App\Http\Models\Chart;
 use App\Http\Repos;
+
+// use October\Rain\Config;
 
 Class AdminController extends Controller {
     public function getAccountsReceivable(Request $req, $startDate, $endDate) {
@@ -61,9 +62,11 @@ Class AdminController extends Controller {
         foreach($req->paymentTypes as $paymentType)
             $paymentRepo->UpdatePaymentType($paymentType);
 
-        Config::write('ffe_config.gst', (float)$req->gst);
+        // TODO - config writing currently not working
+        // As this wasn't an ideal solution anyways, might be time for a new one
+        // Config::write('ffe_config.gst', (float)$req->gst);
         // we have to clear the config cache after writing
-        Artisan::call('config:cache');
+        // Artisan::call('config:cache');
 
         DB::commit();
 
