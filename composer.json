@@ -21,7 +21,9 @@
         "laravel/sanctum": "^2.12",
         "daltcore/lara-pdf-merger": "^2.0",
         "nesk/puphpeteer": "^2.0",
-        "laravel/tinker": "^2.7"
+        "laravel/tinker": "^2.7",
+        "stripe/stripe-php": "^8.12",
+        "laravel/cashier": "^13.13"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

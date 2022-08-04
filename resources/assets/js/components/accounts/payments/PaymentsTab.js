@@ -3,17 +3,16 @@ import {Badge, Button, Card, Col, Row} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 
 import AdjustAccountCreditModal from './AdjustAccountCreditModal'
-import ManageCreditCardsModal from './ManageCreditCardsModal'
+import ManagePaymentMethodsModal from './ManagePaymentMethodsModal'
 import PaymentModal from './PaymentModal'
 
 const initialSort = [{column: 'date', dir: 'desc'}, {column: 'payment_id', dir:'desc'}]
 
 export default function PaymentsTab(props) {
-
     const [outstandingInvoiceCount, setOutstandingInvoiceCount] = useState(0)
     const [payments, setPayments] = useState([])
     const [showAdjustAccountCreditModal, setShowAdjustAccountCreditModal] = useState(false)
-    const [showManageCreditCardsModal, setShowManageCreditCardsModal] = useState(false)
+    const [showManagePaymentMethodsModal, setShowManagePaymentMethodsModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
 
     const tableRef = useRef()
@@ -54,13 +53,13 @@ export default function PaymentsTab(props) {
                                         variant='primary'
                                         onClick={() => setShowPaymentModal(true)}
                                         disabled={outstandingInvoiceCount <= 0}
-                                    ><i className='fas fa-money-check-alt'></i> Receive Payment <Badge bg='secondary'>{outstandingInvoiceCount}</Badge>
+                                    ><i className='fas fa-money-check-alt'></i> Process Payment <Badge bg='secondary'>{outstandingInvoiceCount}</Badge>
                                     </Button>
                                 </Col>
                             }
                             {props.canEditPaymentMethods &&
                                 <Col>
-                                    <Button variant='info' onClick={() => setShowManageCreditCardsModal(true)}><i className='fas fa-solid fa-credit-card'></i> Manage Credit Cards</Button>
+                                    <Button variant='info' onClick={() => setShowManagePaymentMethodsModal(true)}><i className='fas fa-solid fa-credit-card'></i> Manage Payment Methods</Button>
                                 </Col>
                             }
                             {props.canEditPayments &&
@@ -98,10 +97,10 @@ export default function PaymentsTab(props) {
                 />
             }
             {props.canEditPaymentMethods &&
-                <ManageCreditCardsModal
+                <ManagePaymentMethodsModal
                     accountId={props.accountId}
-                    hide={() => setShowManageCreditCardsModal(false)}
-                    show={showManageCreditCardsModal}
+                    hide={() => setShowManagePaymentMethodsModal(false)}
+                    show={showManagePaymentMethodsModal}
                 />
             }
             {props.canEditPayments &&

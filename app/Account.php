@@ -3,10 +3,12 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Cashier\Billable;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Account extends Model
 {
+    use Billable;
     use LogsActivity;
 
     public $primaryKey = 'account_id';

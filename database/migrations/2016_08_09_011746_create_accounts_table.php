@@ -34,6 +34,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('send_paper_invoices')->default(false);
             $table->unsignedInteger('shipping_address_id');
             $table->date('start_date');
+            $table->string('stripe_id')->nullable()->index();
             // $table->boolean('charge_interest')->default(true);
 			// $table->float('fuel_surcharge');
             $table->boolean('use_parent_ratesheet')->default(0);

@@ -96,12 +96,14 @@ Route::group(['middleware' => 'auth'],
         Route::get('/manifests/download/{manifestIds}', 'ManifestController@download');
         Route::get('/manifests/print/{manifestIds}', 'ManifestController@print');
 
+        Route::delete('/paymentMethods/{accountId}', 'PaymentController@DeletePaymentMethod');
+        Route::get('/paymentMethods/{accountId}', 'PaymentController@GetAccountPaymentMethods');
+        Route::get('/paymentMethods/{accountId}/create', 'PaymentController@GetSetupIntent');
+        Route::post('/paymentMethods/{accountId}/setDefault', 'PaymentController@SetDefaultPaymentMethod');
+
         Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
         Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
-        Route::get('/payments/getCreditCards/{accountId}', 'PaymentController@GetCreditCardsForAccount');
         Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
-        Route::post('/payments/storeCreditCard', 'PaymentController@StoreCreditCard');
-        Route::get('/payments/getCreditCardFull/{creditCardId}', 'PaymentController@GetCreditCardFull');
 
         Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
         Route::post('/ratesheets/store', 'RatesheetController@store');
