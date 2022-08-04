@@ -238,9 +238,7 @@ function NavBar(props) {
                         {props.isImpersonating &&
                             <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
                         }
-                        <LinkContainer to='/logout'>
-                            <MenuItem icon={<i className='fas fa-door-open'></i>}> Log Out</MenuItem>
-                        </LinkContainer>
+                        <MenuItem icon={<i className='fas fa-door-open'></i>}><a href='/logout'>Log Out</a></MenuItem>
                     </SubMenu>
                 </Menu>
             </SidebarFooter>
