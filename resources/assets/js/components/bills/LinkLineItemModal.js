@@ -50,7 +50,9 @@ export default function LinkLineItemModal(props) {
             onShow={() => searchTextFieldRef.current.focus()}
             show={show}
         >
-            <Modal.Header closeButton><Modal.Title>Link Line Item to {linkLineItemToType}</Modal.Title></Modal.Header>
+            <Modal.Header closeButton>
+                <Modal.Title>Link Line Item to {linkLineItemToType}</Modal.Title>
+            </Modal.Header>
             <Modal.Body>
                 <Row>
                     <Col md={12}>
@@ -61,8 +63,11 @@ export default function LinkLineItemModal(props) {
                                 name='searchValue'
                                 value={searchValue}
                                 onKeyPress={(event) => {
-                                    if(event.key === 'Enter')
+                                    if(event.key === 'Enter') {
+                                        if(targetObject && searchValue == targetId)
+                                            submitLinkTo()
                                         searchLinkTo()
+                                    }
                                 }}
                                 onChange={event => setSearchValue(event.target.value)}
                                 ref={searchTextFieldRef}
@@ -84,20 +89,22 @@ export default function LinkLineItemModal(props) {
                                 'Account: ' + targetObject.parent.name
                             }
                         </Col>
-                        {(targetObject?.invoice && targetObject?.invoice.finalized) &&
+                        {targetObject?.invoice?.finalized ?
                             <Col md={12}>
                                 <Alert variant='warning'>
-                                    WARNING - Selected invoice has been finalized, this line item will be attached as an amendment
+                                    Selected invoice has been finalized, this line item will be attached as an amendment
                                 </Alert>
-                            </Col>
+                            </Col> : null
                         }
                     </Row>
                 }
             </Modal.Body>
             <Modal.Footer className='justify-content-md-center'>
                 <Button variant='light' onClick={props.hide}>Cancel</Button>
-                <Button variant='warning' onClick={searchLinkTo} disabled={!searchValue?.length}><i className='fas fa-search'></i> Search</Button>
-                <Button variant='success' onClick={submitLinkTo} disabled={!targetObject}><i className='fas fa-save'></i> Submit</Button>
+                {(targetObject && targetId == searchValue) ?
+                    <Button variant='success' onClick={submitLinkTo} disabled={!targetObject}><i className='fas fa-save'></i> Submit</Button> :
+                    <Button variant='warning' onClick={searchLinkTo} disabled={!searchValue?.length}><i className='fas fa-search'></i> Search</Button>
+                }
             </Modal.Footer>
         </Modal>
     )
