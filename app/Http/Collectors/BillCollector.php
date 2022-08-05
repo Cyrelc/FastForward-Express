@@ -10,7 +10,7 @@ class BillCollector {
 			'bill_id' => $req->bill_id,
 			'delivery_account_id' => $req->delivery_address_type === "Account" ? $req->delivery_account_id : null,
 			'delivery_address_id' => $deliveryAddressId,
-			'delivery_reference_value' => $req->delivery_address_type == 'Account' ? $req->delivery_reference_value : null,
+			'delivery_reference_value' => $req->delivery_address_type == 'Account' ? trim($req->delivery_reference_value) : null,
 			'delivery_type' => $req->delivery_type['id'],
 			'description' => $req->description,
 			'is_min_weight_size' => filter_var($req->is_min_weight_size, FILTER_VALIDATE_BOOLEAN),
@@ -18,7 +18,7 @@ class BillCollector {
 			'packages' => json_encode($req->packages),
 			'pickup_account_id' => $req->pickup_address_type === "Account" ? $req->pickup_account_id : null,
 			'pickup_address_id' => $pickupAddressId,
-			'pickup_reference_value' => $req->pickup_address_type === 'Account' ? $req->pickup_reference_value : null,
+			'pickup_reference_value' => $req->pickup_address_type === 'Account' ? trim($req->pickup_reference_value) : null,
 			'time_pickup_scheduled' => (new \DateTime($req->time_pickup_scheduled))->format('Y-m-d H:i:s'),
 			'time_delivery_scheduled' => (new \DateTime($req->time_delivery_scheduled))->format('Y-m-d H:i:s'),
 			'use_imperial' => filter_var($req->use_imperial, FILTER_VALIDATE_BOOLEAN)
@@ -45,7 +45,7 @@ class BillCollector {
 			$collectedBill = array_merge($collectedBill, [
 				'amount' => $req->amount == "" ? null : $req->amount,
 				'interliner_id' => $req->interliner_id == "" ? null : $req->interliner_id,
-				'interliner_reference_value' => $req->interliner_id == "" ? null : $req->interliner_reference_value,
+				'interliner_reference_value' => $req->interliner_id == "" ? null : trim($req->interliner_reference_value),
 				'interliner_cost' => $req->interliner_id == "" ? null : $req->interliner_cost,
 				'interliner_cost_to_customer' => $req->interliner_id == "" ? null : $req->interliner_cost_to_customer,
 				'repeat_interval' => $req->repeat_interval ? $req->repeat_interval : null,
@@ -70,7 +70,7 @@ class BillCollector {
 			$temp = [
 				'bill_id' => $billId,
 				'charge_id' => isset($charge['charge_id']) ? $charge['charge_id'] : null,
-				'charge_reference_value' => $charge['charge_reference_value'],
+				'charge_reference_value' => trim($charge['charge_reference_value']),
 				'charge_reference_value_label' => $charge['charge_reference_value_label'],
 				'charge_reference_value_required' => filter_var($charge['charge_reference_value_required'], FILTER_VALIDATE_BOOLEAN),
 				'charge_type_id' => $chargeType->payment_type_id,
@@ -110,13 +110,13 @@ class BillCollector {
 		$myAccounts = $accountRepo->GetMyAccountIds($req->user(), $req->user()->can('bills.create.basic.children'));
 		if(isset($req->charge_account_id) && in_array($req->charge_account_id, $myAccounts)) {
 			$chargeAccountId = $req->charge_account_id;
-			$chargeReferenceValue = $req->charge_reference_value;
+			$chargeReferenceValue = trim($req->charge_reference_value);
 		} else if(isset($req->pickup_account_id) && in_array($req->pickup_account_id, $myAccounts)) {
 			$chargeAccountId = $req->pickup_account_id;
-			$chargeReferenceValue = $req->pickup_reference_value;
+			$chargeReferenceValue = trim($req->pickup_reference_value);
 		} else if(isset($req->delivery_account_id) && in_array($req->delivery_account_id, $myAccounts)) {
 			$chargeAccountId = $req->delivery_account_id;
-			$chargeReferenceValue = $req->delivery_reference_value;
+			$chargeReferenceValue = trim($req->delivery_reference_value);
 		} else
 			abort(403, 'Attempting to create bill and charge to account not owned by the user');
 
@@ -126,7 +126,7 @@ class BillCollector {
 			'bill_id' => $billId,
 			'charge_account_id' => $chargeAccount->account_id,
 			'charge_id' => isset($charge['charge_id']) ? $charge['charge_id'] : null,
-			'charge_reference_value' => $chargeReferenceValue,
+			'charge_reference_value' => trim($chargeReferenceValue),
 			'charge_reference_value_label' => $chargeAccount->custom_field,
 			'charge_reference_value_required' => filter_var($chargeAccount->is_custom_field_mandatory, FILTER_VALIDATE_BOOLEAN),
 			'charge_type_id' => $paymentRepo->GetAccountPaymentType()->payment_type_id,
