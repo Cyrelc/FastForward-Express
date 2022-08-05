@@ -9,21 +9,20 @@ class PaymentValidationRules {
         $accountRepo = new Repos\AccountRepo();
 
         $account = $accountRepo->GetById($req->account_id);
-
         $accountPaymentType = $paymentRepo->GetPaymentTypeByName('Account');
-        $paymentType = $paymentRepo->GetPaymentType($req->payment_type_id);
 
-        $rules = [
-            'account_id' => 'required',
-            'payment_type_id' => 'required',
-            'credit_card_id' => 'sometimes|required'
-        ];
-
+        $rules = ['account_id' => 'required|exists:accounts,account_id'];
         $messages = [
             'account_id.required' => 'Account Id invalid. Please try again',
-            'payment_type_id.required' => 'Please select a valid payment method',
-            'credit_card_id.required' => 'Please select a valid payment method'
+            'account_id.exists' => 'Invalid account id. Please try again'
         ];
+
+        if($req->payment_method_on_file)
+            $this->GetStripePaymentMethodValidationRules($req, $account, $rules, $messages);
+        else
+            $this->GetStaticPaymentTypeValidationRules($req, $rules, $messages);
+
+        $paymentType = $paymentRepo->GetPaymentType($req->payment_type_id);
 
         $invoice_total = 0;
 
@@ -50,6 +49,34 @@ class PaymentValidationRules {
         }
 
         return ['rules' => $rules, 'messages' => $messages];
+    }
+
+    private function GetStripePaymentMethodValidationRules($req, $account, $rules, $messages) {
+        $paymentRepo = new Repos\PaymentRepo();
+
+        $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
+        if(!$paymentMethod)
+            abort(422, 'Error: Unable to find requested payment method. Has it been removed?');
+
+        $paymentType = $paymentRepo->GetPaymentTypeByName($paymentMethod->card->brand);
+        if(!$paymentType)
+            abort(422, 'Error: Unable to find requested payment type ' . $paymentMethod->card->brand . ' in our database. Please try another payment method or contact support');
+        $req->payment_type_id = $paymentType->payment_type_id;
+
+        $rules = array_merge($rules, ['payment_method_id' => 'required']);
+
+        $messages = array_merge($messages, []);
+    }
+
+    private function GetStaticPaymentTypeValidationRules($req, $rules, $messages) {
+        $rules = array_merge($rules, [
+            'payment_type_id' => 'required|exists:payment_methods,payment_method_id'
+        ]);
+
+        $messages = array_merge($messages, [
+            'payment_type_id.required' => 'Please select a valid payment type',
+            'payment_type_id.exists' => 'Please select a valid payment type'
+        ]);
     }
 }
 

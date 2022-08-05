@@ -12,8 +12,8 @@ export default function PaymentModal(props) {
     const [outstandingInvoices, setOutstandingInvoices] = useState([]);
     const [paymentReferenceValue, setPaymentReferenceValue] = useState('');
     const [paymentAmount, setPaymentAmount] = useState(undefined);
-    const [paymentTypes, setPaymentTypes] = useState([])
-    const [selectedPaymentType, setSelectedPaymentType] = useState(undefined);
+    const [paymentMethods, setPaymentMethods] = useState([])
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(undefined);
 
     useEffect(() => {
         if(props.show) {
@@ -21,13 +21,19 @@ export default function PaymentModal(props) {
             makeAjaxRequest(`/payments/accountPayment/${props.accountId}`, 'GET', null, response => {
                 response = JSON.parse(response)
                 setOutstandingInvoices(response.outstanding_invoices)
-                setPaymentTypes(response.payment_types)
+                setPaymentMethods(response.payment_methods)
+                const defaultPaymentMethod = response.payment_methods.find(paymentMethod => {
+                    console.log(paymentMethod.is_default)
+                    return paymentMethod.is_default
+                })
+                console.log(defaultPaymentMethod)
+                if(defaultPaymentMethod)
+                    setSelectedPaymentMethod(defaultPaymentMethod)
                 setPaymentReferenceValue('')
-                setSelectedPaymentType(undefined)
                 setIsLoading(false)
             })
         } else {
-            setPaymentTypes([])
+            setPaymentMethods([])
             setOutstandingInvoices([])
             setIsLoading(false)
         }
@@ -36,36 +42,11 @@ export default function PaymentModal(props) {
     useEffect(() => {
         const startingValue = paymentAmount ? toFixedNumber(paymentAmount, 2) : 0
         const adjustment = outstandingInvoices.reduce((remainder, invoice) => remainder -= (invoice.payment_amount ? parseFloat(invoice.payment_amount) : 0), startingValue)
-        if(selectedPaymentType?.name === 'Account')
+        if(selectedPaymentMethod?.name === 'Account')
             setAccountAdjustment(paymentAmount ? -paymentAmount : 0)
         else
             setAccountAdjustment(adjustment ? adjustment : 0)
     }, [paymentAmount, outstandingInvoices])
-
-    const handleInvoicePaymentAmountChange = (invoiceId, value) => {
-        setOutstandingInvoices(outstandingInvoices.map(invoice => {
-            if(invoice.invoice_id == invoiceId) {
-                if(value > invoice.balance_owing)
-                    return {...invoice, payment_amount: invoice.balance_owing}
-                else
-                    return {...invoice, payment_amount: value}
-            }
-            else
-                return invoice
-        }))
-    }
-
-    const hideModal = () => {
-        setPaymentAmount('')
-        props.hide()
-    }
-
-    const toggleAutoCalc = () => {
-        setAccountAdjustment(0)
-        setAutoCalc(!autoCalc)
-        setPaymentAmount('')
-        setOutstandingInvoices(outstandingInvoices.map(invoice => { return {...invoice, payment_amount: ''}}))
-    }
 
     useEffect(() => {
         if(autoCalc) {
@@ -92,20 +73,57 @@ export default function PaymentModal(props) {
         }
     }, [paymentAmount, autoCalc])
 
+    const getPaymentTypeOptionLabel = option => {
+        if(option.name === 'Account')
+            return `Account (${props.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})})`
+        if(option.payment_method_on_file) {
+            return <div>
+                {option.is_default && <i className='fas fa-star'></i>}
+                <i className='fab fa-cc-visa fa-lg'></i> {option.name}
+            </div>
+        }
+        return option.name
+    }
+
+    const handleInvoicePaymentAmountChange = (invoiceId, value) => {
+        setOutstandingInvoices(outstandingInvoices.map(invoice => {
+            if(invoice.invoice_id == invoiceId) {
+                if(value > invoice.balance_owing)
+                    return {...invoice, payment_amount: invoice.balance_owing}
+                else
+                    return {...invoice, payment_amount: value}
+            }
+            else
+                return invoice
+        }))
+    }
+
+    const hideModal = () => {
+        setPaymentAmount('')
+        props.hide()
+    }
+
+    const toggleAutoCalc = () => {
+        setAccountAdjustment(0)
+        setAutoCalc(!autoCalc)
+        setPaymentAmount('')
+        setOutstandingInvoices(outstandingInvoices.map(invoice => { return {...invoice, payment_amount: ''}}))
+    }
+
     const storePayment = () => {
         if(!props.canEditPayments)
             return
-        if(selectedPaymentType == '' || selectedPaymentType == undefined) {
+        if(selectedPaymentMethod == '' || selectedPaymentMethod == undefined) {
             toastr.error('Please select a payment method')
             return
         }
         const data = {
             account_id: props.accountId,
-            credit_card_id: selectedPaymentType.credit_card_id,
             outstanding_invoices: outstandingInvoices,
             payment_amount: paymentAmount,
-            payment_type_id: selectedPaymentType.payment_type_id,
-            reference_value: selectedPaymentType.credit_card_id ? selectedPaymentType.name.substr(-4) : paymentReferenceValue,
+            payment_method_id: selectedPaymentMethod.payment_method_id,
+            payment_method_on_file: selectedPaymentMethod.payment_method_on_file ? true : false,
+            reference_value: selectedPaymentMethod.payment_method_on_file ? selectedPaymentMethod.last_four : paymentReferenceValue,
             comment: comment
         }
 
@@ -148,17 +166,18 @@ export default function PaymentModal(props) {
                             <InputGroup>
                                 <InputGroup.Text>Payment Type</InputGroup.Text>
                                 <Select
-                                    getOptionLabel={option => option.name === 'Account' ? 'Account (' + props.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}) + ')' : option.name}
+                                    getOptionLabel={option => getPaymentTypeOptionLabel(option)}
                                     getOptionValue={option => option.payment_type_id}
-                                    options={props.accountBalance > 0 ? paymentTypes : paymentTypes.filter(paymentType => paymentType.name != 'Account')}
-                                    onChange={setSelectedPaymentType}
+                                    options={props.accountBalance > 0 ? paymentMethods : paymentMethods.filter(paymentType => paymentType.name != 'Account')}
+                                    onChange={setSelectedPaymentMethod}
+                                    value={selectedPaymentMethod}
                                 />
                             </InputGroup>
                         </Col>
-                        {selectedPaymentType?.required_field &&
+                        {selectedPaymentMethod?.required_field &&
                             <Col md={6}>
                                 <InputGroup>
-                                    <InputGroup.Text>{selectedPaymentType.required_field}</InputGroup.Text>
+                                    <InputGroup.Text>{selectedPaymentMethod.required_field}</InputGroup.Text>
                                     <FormControl
                                         name='paymentReferenceValue'
                                         onChange={event => setPaymentReferenceValue(event.target.value)}

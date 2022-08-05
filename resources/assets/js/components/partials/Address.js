@@ -150,7 +150,7 @@ export default class Address extends React.Component {
                     </InputGroup>
                 </Col>
                 <br/>
-                <Col id={this.props.id + '-map'} style={{height: 300, marginTop: 20}} md={11}></Col>
+                <Col id={this.props.id + '-map'} style={{height: 250, marginTop: 20}} md={11}></Col>
             </Row>
         )
     }

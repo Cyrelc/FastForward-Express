@@ -106,6 +106,8 @@ class PaymentController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
+        $account = $accountRepo->GetById($req->account_id);
+
         if($req->payment_type_id == $accountPaymentTypeId)
             $accountAdjustment = -(float)$req->payment_amount;
         else
@@ -128,45 +130,21 @@ class PaymentController extends Controller {
             $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment, $comment));
         }
 
-        // if($req->credit_card_id) {
-        //     $creditCard = $paymentRepo->GetCreditCardById($req->credit_card_id);
+        if($req->payment_method_id) {
+            $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+            $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
 
-        //     $orderId = 'ord_' . date_create('now')->format('Y-m-d_H:i:s');
-        //     $orderId .= substr($orderIdentifier, 0, 50 - strlen($orderId));
-
-        //     $transactionArray = array (
-        //         'type' => 'res_purchase_cc',
-        //         'data_key' => $creditCard->data_key,
-        //         'order_id' => $orderId,
-        //         'amount' => $req->payment_amount,
-        //         'crypt_type' => env('MONERIS_CRYPT_TYPE'),
-        //         'cust_id' => $req->account_id
-        //     );
-
-        //     $mpgTransaction = new mpgClasses\mpgTransaction($transactionArray);
-        //     $mpgRequest = new mpgClasses\mpgRequest($mpgTransaction);
-        //     $mpgRequest->setProcCountryCode('CA');
-        //     $mpgRequest->setTestMode(env('MONERIS_TEST_MODE'));
-
-        //     $mpgHttpPost = new mpgClasses\mpgHttpsPost(env('MONERIS_STORE_ID'), env('MONERIS_API_TOKEN'), $mpgRequest);
-
-        //     $mpgResponse = $mpgHttpPost->getMpgResponse();
-
-        //     if($mpgResponse->getResSuccess() == true) {
-        //         foreach($req->outstanding_invoices as $invoice) {
-        //             if($invoice['payment_amount'] > 0) {
-        //                 $paymentRepo->LogMonerisTransaction([
-        //                     'account_id' => $req->account_id,
-        //                     'credit_card_id' => $req->credit_card_id,
-        //                     'invoice_id' => $invoice['invoice_id'],
-        //                     'order_id' => $orderId,
-        //                     'type' => 'res_purchase_cc',
-        //                     'user_id' => $req->user()->user_id
-        //                 ]);
-        //             }
-        //         }
-        //     }
-        // }
+            foreach($req->outstanding_invoices as $outstandingInvoice) {
+                $stripe->paymentIntents->create([
+                    'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
+                    'confirm' => true,
+                    'currency' => env('CASHIER_CURRENCY'),
+                    'customer' => $account->stripe_id,
+                    'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
+                    'payment_method' => $paymentMethod->id,
+                ]);
+            }
+        }
 
         DB::commit();
         return response()->json(['success' => true]);

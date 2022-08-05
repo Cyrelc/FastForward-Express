@@ -1,11 +1,10 @@
-import React, {Fragment, useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
 
 import {Button, Col, Dropdown, Modal, Row, Table} from 'react-bootstrap'
 
-// TODO - load public key dynamically
-const stripePromise = loadStripe('pk_test_51LRe4lKVi17410h9BhkjwSAFsEFmzPH7lPEB9jgyxyPmwFAGteYicCSVqG9ZHwTwdVGuLdYdQK5xW6V40iYA4p6900fs0DppDf')
+const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
 export default function ManagePaymentMethodsModal(props) {
     const [clientSecret, setClientSecret] = useState(null)

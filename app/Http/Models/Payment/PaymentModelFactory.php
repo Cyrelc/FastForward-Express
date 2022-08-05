@@ -59,6 +59,7 @@ class PaymentModelFactory {
                 'is_default' => $defaultPaymentMethod ? $paymentMethod->id == $defaultPaymentMethod->id : false,
                 'is_expired' => new \DateTime() > $expiryDate,
                 'is_prepaid' => true,
+                'last_four' => $paymentMethod->card->last4,
                 'name' => '**** **** **** ' . $paymentMethod->card->last4,
                 'payment_method_id' => $paymentMethod->id,
                 'payment_method_on_file' => true,
