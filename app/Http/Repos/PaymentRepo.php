@@ -25,6 +25,7 @@ class PaymentRepo {
                 'amount',
                 'payments.payment_type_id',
                 'payment_types.name as payment_type',
+                DB::raw('case when payment_intent_id is null then false else true end as has_stripe_transaction'),
                 'reference_value',
                 'comment'
             );

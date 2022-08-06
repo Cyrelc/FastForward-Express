@@ -83,9 +83,6 @@ class AccountModelFactory {
                 $model->activity_log[$key]->properties = json_decode($log->properties);
         }
 
-        // $model->prev_id = $accountRepo->GetPrevActiveById($accountId);
-        // $model->next_id = $accountRepo->GetNextActiveById($accountId);
-
         return $model;
     }
 

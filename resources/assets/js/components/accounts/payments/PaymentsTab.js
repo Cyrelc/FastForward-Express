@@ -22,7 +22,12 @@ export default function PaymentsTab(props) {
         {title: 'Invoice ID', field: 'invoice_id', formatter: props.viewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
         {title: 'Invoice Date', field: 'invoice_date'},
         {title: 'Payment Received On', field: 'date'},
-        {title: 'Payment Method', field: 'payment_type', headerFilter: true},
+        {title: 'Payment Method', field: 'payment_type', headerFilter: true, formatter: cell => {
+            const data = cell.getRow().getData()
+            if(data.has_stripe_transaction)
+                return `${cell.getValue()}     <i class='fab fa-stripe fa-lg fa-border' style='float: right'></i>`
+            return cell.getValue()
+        }},
         {title: 'Reference Number', field: 'reference_value', headerFilter: true},
         {title: 'Comment', field: 'comment'},
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'}
@@ -31,7 +36,7 @@ export default function PaymentsTab(props) {
     const refreshModel = () => {
         makeAjaxRequest(`/payments/${props.accountId}`, 'GET', null, response => {
             response = JSON.parse(response)
-            setOutstandingInvoiceCount(response.outstandingInvoiceCount)
+            setOutstandingInvoiceCount(response.outstanding_invoice_count)
             setPayments(response.payments)
             tableRef.current.table.setSort(initialSort)
         })
@@ -108,6 +113,7 @@ export default function PaymentsTab(props) {
                     accountBalance={props.accountBalance}
                     accountId={props.accountId}
                     canEditPayments={props.canEditPayments}
+                    handleChanges={props.handleChanges}
                     hide={() => setShowPaymentModal(false)}
                     refreshPaymentsTab={refreshModel}
                     show={showPaymentModal}

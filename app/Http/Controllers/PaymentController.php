@@ -113,41 +113,49 @@ class PaymentController extends Controller {
         else
             $accountAdjustment = (float)$req->payment_amount;
 
+        if(filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN)) {
+            $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+            $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
+        }
 
         foreach($req->outstanding_invoices as $outstandingInvoice) {
             if($outstandingInvoice['payment_amount'] && $outstandingInvoice['payment_amount'] > 0 && $invoiceRepo->GetById($outstandingInvoice['invoice_id'])->balance_owing > 0) {
-                $orderIdentifier .= '_' . $outstandingInvoice['invoice_id'];
+                $paymentIntent = null;
 
-                $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice));
+                if(filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN)) {
+                    $paymentIntent = $stripe->paymentIntents->create([
+                        'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
+                        'confirm' => true,
+                        'currency' => env('CASHIER_CURRENCY'),
+                        'customer' => $account->stripe_id,
+                        'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
+                        'payment_method' => $paymentMethod->id,
+                    ]);
+                }
+
+                $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent));
                 $invoiceRepo->AdjustBalanceOwing($outstandingInvoice['invoice_id'], -$outstandingInvoice['payment_amount']);
                 if($req->payment_type_id != $accountPaymentTypeId)
-                    $accountAdjustment -= $outstandingInvoice['payment_amount'];
+                $accountAdjustment -= $outstandingInvoice['payment_amount'];
             }
         }
+
         if(!floatval($accountAdjustment) == 0) {
             $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
             $comment = floatval($accountAdjustment > 0) ? 'Account credit applied' : 'Payment made from account balance';
             $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment, $comment));
         }
 
-        if($req->payment_method_id) {
-            $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
-            $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
-
-            foreach($req->outstanding_invoices as $outstandingInvoice) {
-                $stripe->paymentIntents->create([
-                    'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
-                    'confirm' => true,
-                    'currency' => env('CASHIER_CURRENCY'),
-                    'customer' => $account->stripe_id,
-                    'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
-                    'payment_method' => $paymentMethod->id,
-                ]);
-            }
-        }
-
         DB::commit();
-        return response()->json(['success' => true]);
+
+        $newAccountBalance = $accountRepo->GetById($account->account_id)->account_balance;
+        $newBalanceOwing = $invoiceRepo->CalculateAccountBalanceOwing($account->account_id);
+
+        return response()->json([
+            'account_balance' => $newAccountBalance,
+            'balance_owing' => $newBalanceOwing,
+            'success' => true
+        ]);
     }
 
     public function SetDefaultPaymentMethod(Request $req, $accountId) {

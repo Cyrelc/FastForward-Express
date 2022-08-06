@@ -17,17 +17,19 @@ class PaymentValidationRules {
             'account_id.exists' => 'Invalid account id. Please try again'
         ];
 
-        if($req->payment_method_on_file)
+        if(filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN))
             $this->GetStripePaymentMethodValidationRules($req, $account, $rules, $messages);
         else
             $this->GetStaticPaymentTypeValidationRules($req, $rules, $messages);
 
         $paymentType = $paymentRepo->GetPaymentType($req->payment_type_id);
 
-        $invoice_total = 0;
+        $invoiceTotal = 0;
 
         foreach($req->outstanding_invoices as $key => $invoice) {
-            $invoice_total += floatval($invoice['payment_amount']);
+            if(!array_key_exists('payment_amount', $invoice))
+                continue;
+            $invoiceTotal += floatval($invoice['payment_amount']);
             $rules = array_merge($rules, [
                 'outstanding_invoices.' . $key . '.payment_amount' => 'numeric|between:0,' . floatval(str_replace(',', '', $invoice['balance_owing'])),
                 'outstanding_invoices.' . $key . '.invoice_id' => 'required|numeric|exists:invoices,invoice_id'
@@ -39,7 +41,7 @@ class PaymentValidationRules {
             $rules = array_merge($rules, ['payment_amount' => 'required|numeric|between:0,' . floatval(str_replace(',', '', $account->account_balance))]);
             $messages = array_merge($rules, ['payment_amount.between' => 'Payment amount cannot exceed account balance']);
         } else {
-            $rules = array_merge($rules, ['payment_amount' => 'required|numeric|min:' . $invoice_total]);
+            $rules = array_merge($rules, ['payment_amount' => 'required|numeric|min:' . $invoiceTotal]);
             $messages = array_merge($messages, ['payment_amount.min' => 'Payment amount must match or exceed invoice total payments']);
         }
 

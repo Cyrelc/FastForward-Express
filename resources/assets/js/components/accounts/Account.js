@@ -97,7 +97,7 @@ class Account extends Component {
                 const key = window.location.hash ? window.location.hash.substr(1) : 'basic'
                 setup = {
                     ...setup,
-                    accountBalance: response.account.account_balance,
+                    accountBalance: parseFloat(response.account.account_balance),
                     accountId: response.account.account_id,
                     accountName: response.account.name,
                     accountNumber: response.account.account_number,
@@ -299,7 +299,7 @@ class Account extends Component {
                                             style={{marginRight: '15px'}}
                                         >
                                             <h6>
-                                                Account Credit: {parseFloat(this.state.accountBalance).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                                Account Credit: {this.state.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
                                             </h6>
                                         </Badge>
                                     }

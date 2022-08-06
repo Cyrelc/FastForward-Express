@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, {Fragment, useEffect, useState} from 'react'
 
 import {Button, ButtonGroup, Col, FormCheck, FormControl, InputGroup, Modal, Row, Table} from 'react-bootstrap'
 import CurrencyInput from 'react-currency-input-field'
@@ -23,10 +23,8 @@ export default function PaymentModal(props) {
                 setOutstandingInvoices(response.outstanding_invoices)
                 setPaymentMethods(response.payment_methods)
                 const defaultPaymentMethod = response.payment_methods.find(paymentMethod => {
-                    console.log(paymentMethod.is_default)
                     return paymentMethod.is_default
                 })
-                console.log(defaultPaymentMethod)
                 if(defaultPaymentMethod)
                     setSelectedPaymentMethod(defaultPaymentMethod)
                 setPaymentReferenceValue('')
@@ -77,10 +75,11 @@ export default function PaymentModal(props) {
         if(option.name === 'Account')
             return `Account (${props.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})})`
         if(option.payment_method_on_file) {
-            return <div>
+            return <Fragment>
                 {option.is_default && <i className='fas fa-star'></i>}
-                <i className='fab fa-cc-visa fa-lg'></i> {option.name}
-            </div>
+                {option.brand == 'visa' && <Fragment><i className='fab fa-cc-visa fa-lg'></i> {option.name}</Fragment>}
+                {option.brand == 'mastercard' && <Fragment><i className='fab fa-cc-mastercard fa-lg'></i> {option.name}</Fragment>}
+            </Fragment>
         }
         return option.name
     }
@@ -100,6 +99,7 @@ export default function PaymentModal(props) {
 
     const hideModal = () => {
         setPaymentAmount('')
+        setIsLoading(false)
         props.hide()
     }
 
@@ -117,18 +117,22 @@ export default function PaymentModal(props) {
             toastr.error('Please select a payment method')
             return
         }
+        setIsLoading(true)
         const data = {
             account_id: props.accountId,
             outstanding_invoices: outstandingInvoices,
             payment_amount: paymentAmount,
-            payment_method_id: selectedPaymentMethod.payment_method_id,
+            payment_type_id: selectedPaymentMethod.payment_type_id,
             payment_method_on_file: selectedPaymentMethod.payment_method_on_file ? true : false,
-            reference_value: selectedPaymentMethod.payment_method_on_file ? selectedPaymentMethod.last_four : paymentReferenceValue,
+            reference_value: selectedPaymentMethod.payment_method_on_file ? selectedPaymentMethod.name : paymentReferenceValue,
             comment: comment
         }
 
         makeAjaxRequest('/payments/accountPayment', 'POST', data, response => {
             props.refreshPaymentsTab()
+            props.handleChanges({target: {name: 'accountBalance', value: response.account_balance}})
+            props.handleChanges({target: {name: 'balanceOwing', value: response.balance_owing}})
+            setIsLoading(false)
             hideModal()
         })
     }
