@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Repos;
+use App\Http\Validation;
 use App\Http\Models\User;
 
 use Illuminate\Http\Request;
@@ -45,13 +46,12 @@ class UserController extends Controller {
                 $contact = $contactRepo->GetById($user->accountUsers[0]->contact_id);
                 $accounts = array();
                 foreach($user->accountUsers as $accountUser) {
-                    $account = $accountUser->account;
+                    $account = $accountRepo->GetById($accountUser->account_id);
                     array_push($accounts, [
                         'account_number' => $account->account_number,
                         'label' => $account->name,
                         'value' => $account->account_id,
-                        ]
-                    );
+                    ]);
                 }
                 return response()->json([
                     'success' => true,
@@ -202,7 +202,8 @@ class UserController extends Controller {
 
         $permissions = $permissionModelFactory->GetAccountUserPermissions($req->user(), $originalAccountUser, $account);
 
-        $partialsValidation = new \App\Http\Validation\PartialsValidationRules();
+        $partialsValidation = new Validation\PartialsValidationRules();
+        $userValidation = new Validation\UserValidationRules();
 
         $userId = $originalAccountUser ? $originalAccountUser->user_id : null;
 
@@ -222,8 +223,7 @@ class UserController extends Controller {
         if($contactId == null) {
             $isEdit = false;
             $contactId = $contactRepo->Insert($contact)->contact_id;
-        }
-        else {
+        } else {
             $contactRepo->Update($contact);
             $isEdit = true;
         }
@@ -234,6 +234,7 @@ class UserController extends Controller {
         $emailRepo = new Repos\EmailAddressRepo();
 
         $primaryEmailAddress = $emailRepo->GetPrimaryByContactId($contactId)->email;
+        $existingUser = $userRepo->GetByEmail();
         $user = $userCollector->CollectAccountUser($req, $contactId, $primaryEmailAddress, $userId);
 
         if($isEdit) {
