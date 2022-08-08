@@ -42,7 +42,8 @@ class AccountRepo {
                 'name',
                 DB::raw('sum(total_cost) as total_cost'),
                 DB::raw('sum(balance_owing) as balance_owing'),
-                'bill_end_date'
+                'bill_end_date',
+                DB::raw('"Account" as type')
             )->groupBy('account_id')
             ->where('total_cost', '>', 0)
             ->orderBy('account_id');

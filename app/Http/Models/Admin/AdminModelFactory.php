@@ -27,9 +27,16 @@ class AdminModelFactory{
 
         $model = new \stdClass();
         $model->accounts_receivable = $accountRepo->GetAccountsReceivable($startDate, $endDate);
-        $model->prepaid_accounts_receivable = $billRepo->GetPrepaidAccountsReceivable($startDate, $endDate);
-        foreach($model->prepaid_accounts_receivable as $prepaid)
-            $prepaid->amount = floatval($prepaid->amount);
+
+        $prepaidAccountsReceivable = $billRepo->GetPrepaidAccountsReceivable($startDate, $endDate);
+        foreach($prepaidAccountsReceivable as $prepaid) {
+            $model->accounts_receivable[] = [
+                'account_number' => $prepaid->payment_type_name,
+                'name' => $prepaid->payment_type_name,
+                'total_cost' => $prepaid->amount,
+                'type' => 'Prepaid'
+            ];
+        }
 
         return $model;
     }
