@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Validation;
 use App\Http\Models\User;
@@ -207,13 +208,13 @@ class UserController extends Controller {
 
         $userId = $originalAccountUser ? $originalAccountUser->user_id : null;
 
-        $temp = $partialsValidation->GetContactValidationRules($req, $userId, $req->contact_id);
-        $this->validate($req, $temp['rules'], $temp['messages']);
+        $partialsValidationRules = $partialsValidation->GetContactValidationRules($req, $userId);
+        $this->validate($req, $partialsValidationRules['rules'], $partialsValidationRules['messages']);
 
         DB::beginTransaction();
 
-        $contactCollector = new \App\Http\Collectors\ContactCollector();
-        $userCollector = new \App\Http\Collectors\UserCollector();
+        $contactCollector = new Collectors\ContactCollector();
+        $userCollector = new Collectors\UserCollector();
 
         //Begin Contact
         $contactId = $req->contact_id;
@@ -234,7 +235,7 @@ class UserController extends Controller {
         $emailRepo = new Repos\EmailAddressRepo();
 
         $primaryEmailAddress = $emailRepo->GetPrimaryByContactId($contactId)->email;
-        $existingUser = $userRepo->GetByEmail();
+
         $user = $userCollector->CollectAccountUser($req, $contactId, $primaryEmailAddress, $userId);
 
         if($isEdit) {

@@ -37,8 +37,18 @@ class PartialsValidationRules {
             'phone_numbers.*.type' => 'Phone number type is a required field'
         ];
         if($userId) {
-            $rules = array_merge($rules, ['emails.*.email' => 'unique:users,email,' . $userId . ',user_id']);
-            $messages = array_merge($messages, ['emails.*.email.unique' => 'Requested email address is being used for login. Please select another']);
+            $userRepo = new \App\Http\Repos\UserRepo();
+            foreach($req->emails as $key => $email) {
+                $existingUser = $userRepo->GetUserByPrimaryEmail($email['email']);
+                if($existingUser) {
+                    $accountsList = [];
+                    foreach($existingUser->accountUsers as $accountUser) {
+                        $accountsList[] = $accountUser->account_id;
+                    }
+                    $rules = array_merge($rules, ['emails.' . $key . '.email' => 'unique:users,email,' . $userId . ',user_id']);
+                    $messages = array_merge($messages, ['emails.' . $key . '.email.unique' => 'Requested email address is being used for login on account ' . implode(',', $accountsList) . '. Please select another.']);
+                }
+            }
         }
 
         if(isset($req->address_formatted)) {
