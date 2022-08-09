@@ -10,7 +10,7 @@ export default function MapTab(props) {
             <strong>Internal</strong> and <strong>Peripheral</strong><br/><br/>
             <strong>Peripheral Zones</strong> are areas outside of your regular delivery service area. They have additional costs, and time requirements associated with them.<br/><br/>
             <strong>Internal Zones</strong> are areas within your regular delivery service area. You can either have <strong>one</strong> internal zone, in which case there will be no associated charge with crossing that zone, or you can have <strong>many</strong> internal zones. If you choose to have many, then define them on the map and the map will be able to automatically calculate how many zones were crossed for a delivery, and charge the correct rate.<br/><br/>
-            <strong>Note: for internal zones to be considered adjacent to one another, they must share (snap to) a minimum of two points.</strong>
+            <strong>Note: for internal zones to be considered adjacent to one another, they must share (snap to) a minimum of one point.</strong>
         </Popover>
     )
 

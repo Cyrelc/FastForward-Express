@@ -130,20 +130,20 @@ export default class Ratesheet extends Component {
         google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
         const coordinates = this.getCoordinates(polygon)
         const name = zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex
-        const polyLabel = new SnazzyInfoWindow({
-            map: this.state.map,
-            content: name,
-            position: this.getCenter(coordinates),
-            showCloseButton: false,
-            panOnOpen: false,
-            padding: '7px'
-        })
+        // const polyLabel = new SnazzyInfoWindow({
+        //     map: this.state.map,
+        //     content: name,
+        //     position: this.getCenter(coordinates),
+        //     showCloseButton: false,
+        //     panOnOpen: false,
+        //     padding: '7px'
+        // })
         const neighbourLabel = new google.maps.Marker({
             map: null,
             label: 'A',
             position: this.getCenter(coordinates),
         })
-        polyLabel.open()
+        // polyLabel.open()
         var newZone = {
             id: polygon.zIndex,
             name : name,
@@ -153,7 +153,7 @@ export default class Ratesheet extends Component {
             coordinates: coordinates,
             neighbourLabel: neighbourLabel,
             zoneId: zone ? zone.zone_id : null,
-            polyLabel: polyLabel
+            // polyLabel: polyLabel
         }
         if(type === 'peripheral') {
             const cost = zone ? JSON.parse(zone.additional_costs) : null
@@ -186,7 +186,7 @@ export default class Ratesheet extends Component {
                 if(zone.id === id) {
                     deleteIndex = index
                     zone.polygon.setMap(null)
-                    zone.polyLabel.setMap(null)
+                    // zone.polyLabel.setMap(null)
                 }
             })
             this.setState({mapZones: this.state.mapZones.filter((zone, index) => index !== deleteIndex)})
