@@ -304,7 +304,7 @@ class Account extends Component {
                                         </Badge>
                                     }
                                     {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
-                                        <Badge bg='danger'>
+                                        <Badge bg={this.state.balanceOwing > 0 ? 'danger' : 'success'}>
                                             <h6>
                                                 Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
                                             </h6>

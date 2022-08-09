@@ -27,7 +27,7 @@ export default function EditAccountUser(props) {
                 configureModal(response)
             })
         } else {
-            if(!props.permissions.canCreateAccountUsers)
+            if(!props.canCreateAccountUsers)
                 return
             makeAjaxRequest(`/users/getAccountUserModel/${props.accountId}`, 'GET', null, response => {
                 response = JSON.parse(response)
@@ -58,7 +58,6 @@ export default function EditAccountUser(props) {
             events = [events]
         events.forEach(event => {
             const {name, type, value, checked} = event.target
-            console.log(name, type, value)
             if(name == 'firstName')
                 setFirstName(value)
             if(name == 'lastName')

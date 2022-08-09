@@ -189,9 +189,9 @@ export default function AccountUsersTab(props) {
                 <EditAccountUser
                     accountId={props.accountId}
                     canBeParent={props.canBeParent}
+                    canCreateAccountUsers={props.canCreateAccountUsers}
                     contactId={contactId}
                     hide={() => setShowAccountUserModal(false)}
-                    permissions={props.permissions}
                     refreshAccountUsers={refreshAccountUsers}
                     show={showAccountUserModal}
                 />
