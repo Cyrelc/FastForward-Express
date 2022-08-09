@@ -116,15 +116,15 @@ Route::group(['middleware' => 'auth'],
         Route::post('/appsettings/store', 'AdminController@store');
         Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
 
+        Route::post('/users/{account_id}/{contact_id}/setPrimary', 'UserController@setPrimary');
         Route::post('/users/changePassword/{id}', 'UserController@changePassword');
         Route::get('/users/generatePassword', 'UserController@generatePassword');
         Route::get('/users/getAccountUsers/{id}', 'UserController@getAccountUsers');
         Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
         Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
-        Route::get('/users/createAccountUser/{id}', 'UserController@createAccountUser');
+        Route::get('/users/createAccountUser/{accountId}', 'UserController@createAccountUser');
         Route::get('/users/deleteAccountUser/{contactId}/{accountId}', 'UserController@deleteAccountUser');
         Route::get('/users/getAccountUserModel/{accountId}/{contactId?}', 'UserController@getAccountUserModel');
-        Route::get('/users/checkIfEmailTaken/{email}', 'UserController@checkIfEmailTaken');
         Route::post('/users/checkIfAccountUserExists', 'UserController@checkIfAccountUserExists');
         Route::get('/users/linkAccountUser/{contactId}/{accountId}', 'UserController@LinkAccountUser');
         Route::post('/users/impersonate', 'UserController@impersonate');

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import {FormControl, ButtonGroup, Button, Table} from 'react-bootstrap'
 import Select from 'react-select'
 
@@ -8,20 +8,10 @@ const emailTypesTitle = 'Email types are used to identify which users would like
 
 export default function Emails(props) {
     function addEmail() {
-        const emails = props.emailAddresses
-        emails[emails.length] = {email: '', is_primary: emails.length === 0, type: ''}
+        const emails = props.emailAddresses.concat([{email: '', is_primary: props.emailAddresses.length === 0, type: ''}])
         props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
     }
 
-    function checkIfExists(event) {
-        if(!props.handleExistingEmailAddress)
-            return
-        const {name, type, value} = event.target
-        makeAjaxRequest('/users/checkIfEmailTaken/' + value, 'GET', null, response => {
-            if(response.email_in_use)
-                props.handleExistingEmailAddress(response)
-        })
-    }
     /**
      * If the email exists in database (has email_address_id) then mark it as to be deleted,
      * Otherwise if it is a new email_address that they have changed their mind about, simply filter it out
@@ -95,7 +85,6 @@ export default function Emails(props) {
                                         data-email-index={index}
                                         name='email'
                                         onChange={handleEmailChange}
-                                        onBlur={checkIfExists}
                                         placeholder='email@address.domain'
                                         readOnly={props.readOnly}
                                         value={email.email}

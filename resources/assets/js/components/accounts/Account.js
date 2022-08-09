@@ -3,6 +3,7 @@ import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, NavLink, Row, T
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
 
+import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdvancedTab from './AdvancedTab'
 import BasicTab from './BasicTab'
@@ -10,7 +11,6 @@ import Charts from './Charts'
 import ChildAccounts from './ChildAccounts'
 import InvoicingTab from './InvoicingTab'
 import PaymentsTab from './payments/PaymentsTab'
-import UsersTab from './UsersTab'
 
 const initialState = {
     accountId: null,
@@ -393,7 +393,7 @@ class Account extends Component {
                         }
                         {this.state.accountId &&
                             <Tab eventKey='users' title={<h4>Users</h4>}>
-                                <UsersTab
+                                <AccountUsersTab
                                     accountId={this.props.match.params.accountId}
                                     authenticatedUserContact={this.props.authenticatedUserContact}
                                     canBeParent={this.state.canBeParent}

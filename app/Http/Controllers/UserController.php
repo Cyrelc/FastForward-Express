@@ -189,6 +189,17 @@ class UserController extends Controller {
         ]);
     }
 
+    public function setPrimary(Request $req, $accountId, $contactId) {
+        $accountRepo = new Repos\AccountRepo();
+        $account = $accountRepo->GetById($accountId);
+
+        if($req->user()->cannot('updateAccountUsersBasic', $account))
+            abort(403);
+
+        $userRepo = new Repos\UserRepo();
+        $userRepo->SetAccountUserAsPrimary($accountId, $contactId);
+    }
+
     public function storeAccountUser(Request $req) {
         $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
 

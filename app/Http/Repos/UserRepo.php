@@ -153,6 +153,16 @@ class UserRepo
         return $new;
     }
 
+    public function SetAccountUserAsPrimary($accountId, $contactId) {
+        AccountUser::where('account_id', $accountId)
+            ->where('contact_id', '!=', $contactId)
+            ->update(['is_primary' => 0]);
+
+        AccountUser::where('account_id', $accountId)
+            ->where('contact_id', $contactId)
+            ->update(['is_primary' => 1]);
+    }
+
     public function Update($user, $updatePermissions = false) {
         $old = $this->GetById($user['user_id']);
 

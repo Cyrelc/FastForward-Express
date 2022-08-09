@@ -5,8 +5,9 @@ import MaskedInput from 'react-maskedinput'
 
 export default function Phones(props) {
     function addPhone() {
-        const phones = props.phoneNumbers
-        phones[phones.length] = {phone: '', extension: '', type: '', is_primary: phones.length === 0}
+        const phones = props.phoneNumbers.concat([
+            {phone: '', extension: '', type: '', is_primary: props.phoneNumbers.length === 0}
+        ])
         props.handleChanges({target: {name: 'phoneNumbers', type: 'objects', value: phones}})
     }
 

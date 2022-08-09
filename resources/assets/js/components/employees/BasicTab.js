@@ -1,5 +1,5 @@
 import React from 'react'
-import {Card, Col, Row} from 'react-bootstrap'
+import {Card} from 'react-bootstrap'
 
 import Contact from '../partials/Contact'
 import EmergencyContacts from './EmergencyContacts'
