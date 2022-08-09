@@ -1,6 +1,7 @@
 import React from 'react'
 import {FormControl, ButtonGroup, Button, Table} from 'react-bootstrap'
 import Select from 'react-select'
+import MaskedInput from 'react-maskedinput'
 
 export default function Phones(props) {
     function addPhone() {
@@ -78,12 +79,14 @@ export default function Phones(props) {
                                 </td>
                                 <td>
                                     <FormControl
+                                        as={MaskedInput}
                                         data-phone-index={index}
                                         name='phone_number'
                                         placeholder='(XXX) XXX-XXXX'
                                         value={phone.phone_number}
                                         onChange={handlePhoneChange}
                                         readOnly={props.readOnly}
+                                        mask="(111) 111-1111"
                                     />
                                 </td>
                                 <td>

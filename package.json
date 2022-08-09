@@ -55,6 +55,7 @@
         "react-countdown": "^2.3.2",
         "react-currency-input-field": "^3.6.4",
         "react-datepicker": "^4.6.0",
+        "react-maskedinput": "^4.0.1",
         "react-pro-sidebar": "^0.7.1",
         "react-pusher": "^0.2.0",
         "react-querybuilder": "^3.9.9",
