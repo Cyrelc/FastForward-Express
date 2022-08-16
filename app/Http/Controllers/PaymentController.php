@@ -174,5 +174,22 @@ class PaymentController extends Controller {
             'success' => true
         ]);
     }
+
+    public function UndoPayment(Request $req) {
+        if($req->user()->cannot('undo', Payment::class))
+            abort(403);
+
+        $paymentRepo = new Repos\PaymentRepo();
+        $payment = $paymentRepo->GetById($req->payment_id);
+
+        if($payment->invoice_id) {
+            $invoiceRepo = new Repos\InvoiceRepo();
+            $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
+        } else {
+            $accountRepo = new Repos\AccountRepo();
+            $accountRepo->AdjustBalance($payment->account_id, -($payment->amount));
+        }
+        $payment->delete();
+    }
 }
 ?>

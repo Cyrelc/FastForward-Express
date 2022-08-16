@@ -417,6 +417,7 @@ class Account extends Component {
                                     createPayments={this.state.permissions.createPayments}
                                     canEditPaymentMethods={this.state.permissions.editPaymentMethods}
                                     canEditPayments={this.state.permissions.editPayments}
+                                    canUndoPayments={this.state.permissions.undoPayments}
                                     viewInvoices={this.state.permissions.viewInvoices}
                                 />
                             </Tab>

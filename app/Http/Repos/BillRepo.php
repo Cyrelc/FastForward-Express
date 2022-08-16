@@ -468,6 +468,7 @@ class BillRepo {
 
     public function Insert($bill) {
         $new = new Bill;
+        $new->created_by = Auth::user()->user_id;
 
         $new = $new->create($bill);
 
@@ -694,7 +695,7 @@ class BillRepo {
         $bill->percentage_complete = $percentageComplete;
         $bill->incomplete_fields = $incompleteFields;
 
-        $bill->save(['timestamps' => false]);
+        $bill->saveQuietly(['timestamps' => false]);
     }
 
     private function IsDeliveryDriverEditable($billId) {

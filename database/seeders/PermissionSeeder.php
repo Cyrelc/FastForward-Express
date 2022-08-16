@@ -106,6 +106,7 @@ class PermissionSeeder extends Seeder
 
         $paymentPermissions = [
             'payments.create.*.*',
+            'payments.delete.*.*',
             'payments.edit.*',
             'payments.view.*.*',
             'payments.view.children',

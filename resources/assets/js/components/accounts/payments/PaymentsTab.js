@@ -17,7 +17,38 @@ export default function PaymentsTab(props) {
 
     const tableRef = useRef()
 
+    const undoPayment = cell => {
+        if(!props.canUndoPayments) {
+            console.log("Does not have permission to undo payments")
+            return
+        }
+        const rowData = cell.getRow().getData()
+        if(rowData.has_stripe_transaction) {
+            console.log('Unable to undo payment, as it is a stripe transaction')
+            return
+        }
+        const data = {
+            payment_id: rowData.payment_id
+        }
+        if(confirm(`Are you certain you would like to undo the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
+            makeAjaxRequest(`/payments/undo`, 'DELETE', data, response => {
+                refreshModel()
+            })
+    }
+
     const columns = [
+        ...props.canUndoPayments ? [
+            {
+                formatter: cell => {if(!cell.getRow().getData().has_stripe_transaction) return "<button class='btn btn-sm btn-danger'><i class='fas fa-undo'></i></button>"},
+                titleFormatter: () => "<i class='fas fa-undo'></i>",
+                width: 50,
+                hozAlign: 'center',
+                headerHozAlign: 'center',
+                headerSort: false,
+                print: false,
+                cellClick: (e, cell) => undoPayment(cell)
+            }
+        ] : [],
         {title: 'Payment ID', field: 'payment_id', visible: false},
         {title: 'Invoice ID', field: 'invoice_id', formatter: props.viewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
         {title: 'Invoice Date', field: 'invoice_date'},
@@ -58,7 +89,7 @@ export default function PaymentsTab(props) {
                                         variant='primary'
                                         onClick={() => setShowPaymentModal(true)}
                                         disabled={outstandingInvoiceCount <= 0}
-                                    ><i className='fas fa-money-check-alt'></i> Process Payment <Badge bg='secondary'>{outstandingInvoiceCount}</Badge>
+                                    ><i className='fas fa-money-check-alt'></i> Process Payment <Badge bg='secondary'>{outstandingInvoiceCount ? outstandingInvoiceCount : <i className='fas fa-spinner fa-spin'></i>}</Badge>
                                     </Button>
                                 </Col>
                             }

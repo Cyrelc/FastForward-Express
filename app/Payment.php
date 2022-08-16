@@ -3,11 +3,13 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Payment extends Model
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     public $primaryKey = "payment_id";
     public $timestamps = false;

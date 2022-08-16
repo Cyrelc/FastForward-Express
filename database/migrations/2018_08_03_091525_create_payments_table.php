@@ -13,6 +13,8 @@ class CreatePaymentsTable extends Migration
     public function up()
     {
         Schema::create('payments', function(Blueprint $table) {
+            $table->softDeletes();
+
             $table->increments('payment_id');
 
             $table->unsignedInteger('account_id')->nullable();

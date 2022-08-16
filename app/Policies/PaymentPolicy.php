@@ -16,8 +16,11 @@ class PaymentPolicy
      * @param  \App\User  $user
      * @return mixed
      */
-    public function create(User $user)
-    {
+    public function create(User $user) {
         return $user->can('payments.create.*.*');
+    }
+
+    public function undo(User $user) {
+        return $user->can('payments.delete.*.*');
     }
 }

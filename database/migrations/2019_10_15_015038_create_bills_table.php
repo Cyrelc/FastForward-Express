@@ -16,6 +16,7 @@ class CreateBillsTable extends Migration
             $table->increments('bill_id');
 
             $table->string('bill_number')->nullable();
+            $table->unsignedInteger('created_by');
             $table->unsignedInteger('delivery_account_id')->nullable();
             $table->unsignedInteger('delivery_address_id');
             $table->float('delivery_driver_commission')->nullable();
@@ -30,6 +31,7 @@ class CreateBillsTable extends Migration
             $table->string('internal_comment');
             $table->boolean('is_min_weight_size')->default(0);
             $table->boolean('is_pallet')->default(0);
+            // $table->boolean('is_template')->default(0);
             $table->text('packages')->nullable();
             $table->integer('percentage_complete');
             $table->unsignedInteger('pickup_account_id')->nullable();
@@ -52,6 +54,7 @@ class CreateBillsTable extends Migration
             $table->timestamps();
             $table->unique('bill_number');
             
+            $table->foreign('created_by')->references('user_id')->on('users');
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
 			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
             $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');

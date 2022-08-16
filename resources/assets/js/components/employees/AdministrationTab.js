@@ -216,8 +216,8 @@ export default function AdministrationTab(props) {
                                     <th>Payments</th>
                                     <td><PermissionCheckbox name='createPayments'></PermissionCheckbox></td>
                                     <td><PermissionCheckbox name='viewPayments'></PermissionCheckbox></td>
-                                    <td><PermissionCheckbox  name='editPayments'></PermissionCheckbox></td>
-                                    <td></td>
+                                    <td><PermissionCheckbox name='editPayments'></PermissionCheckbox></td>
+                                    <td><PermissionCheckbox name='undoPayments'></PermissionCheckbox></td>
                                 </tr>
                             </tbody>
                         </Table>

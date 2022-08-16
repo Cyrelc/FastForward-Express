@@ -104,6 +104,7 @@ Route::group(['middleware' => 'auth'],
         Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
         Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
         Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
+        Route::delete('/payments/undo', 'PaymentController@UndoPayment');
 
         Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
         Route::post('/ratesheets/store', 'RatesheetController@store');
