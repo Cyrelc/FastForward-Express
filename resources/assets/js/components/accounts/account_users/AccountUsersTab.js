@@ -115,7 +115,7 @@ export default function AccountUsersTab(props) {
                                         <td>
                                             {hasAnyPermissions(user.contact_id) && 
                                                 <Dropdown>
-                                                    <Dropdown.Toggle variant='secondary' id='manage-account-user-menu'>
+                                                    <Dropdown.Toggle size='sm' variant='secondary' id='manage-account-user-menu'>
                                                         <i className='fas fa-bars'></i>
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu>
