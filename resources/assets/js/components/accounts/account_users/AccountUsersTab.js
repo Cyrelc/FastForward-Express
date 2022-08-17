@@ -62,6 +62,11 @@ export default function AccountUsersTab(props) {
         return testPermissions.some(element => element == true)
     }
 
+    const hideAccountUserModal = () => {
+        setShowAccountUserModal(false)
+        setContactId('')
+    }
+
     const impersonate = contact_id => {
         const data = {
             contact_id,
@@ -152,7 +157,7 @@ export default function AccountUsersTab(props) {
                                                                 onClick={() => deleteAccountUser(user.contact_id)}
                                                                 variant='danger'
                                                                 title={user.belongs_to_count == 1 ? 'Delete' : 'Unlink'}
-                                                            >
+                                                        >
                                                                 <i className='fas fa-trash'></i> Delete
                                                             </Dropdown.Item>
                                                         }
@@ -170,7 +175,7 @@ export default function AccountUsersTab(props) {
                                             }
                                         </td>
                                         <td>
-                                            {user.enabled ? <Badge bg='success'>Enabled</Badge> : <Badge bg='secondary'>Disabled</Badge>}
+                                            {<Badge bg={user.enabled ? 'success' : 'secondary'} style={{marginRight: '7px'}}>{user.enabled ? 'Enabled' : 'Disabled'}</Badge>}
                                             {user.name}
                                             {user.is_primary ? <Badge bg='warning' text='dark' style={{float: 'right'}}><i className='fas fa-star'></i> Primary</Badge> : null}
                                         </td>
@@ -191,7 +196,7 @@ export default function AccountUsersTab(props) {
                     canBeParent={props.canBeParent}
                     canCreateAccountUsers={props.canCreateAccountUsers}
                     contactId={contactId}
-                    hide={() => setShowAccountUserModal(false)}
+                    hide={hideAccountUserModal}
                     refreshAccountUsers={refreshAccountUsers}
                     show={showAccountUserModal}
                 />
