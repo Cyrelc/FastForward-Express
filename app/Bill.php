@@ -14,6 +14,7 @@ class Bill extends Model
 
     protected $fillable = [
         'bill_number',
+        'created_by',
         'delivery_account_id',
         'delivery_address_id',
         'delivery_driver_commission',

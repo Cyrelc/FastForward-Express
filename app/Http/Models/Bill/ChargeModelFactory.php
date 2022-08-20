@@ -69,8 +69,8 @@ class ChargeModelFactory {
         /**
          * Find the zones containing the pickup and delivery locations
          */
-        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress->lat, $pickupAddress->lng);
-        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress->lat, $pickupAddress->lng);
+        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress['lat'], $pickupAddress['lng']);
+        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $deliveryAddress['lat'], $deliveryAddress['lng']);
 
         /**
          * If one or both requests are outside of a programmed deliverable area, then we throw an exception: The system cannot automatically calculate the pricing, this must be done manually

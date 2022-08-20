@@ -55,7 +55,21 @@ class LineItemRepo {
 
     public function GetByChargeId($chargeId) {
         $lineItems = LineItem::where('charge_id', $chargeId)
-            ->leftJoin('invoices', 'invoices.invoice_id', 'line_items.invoice_id');
+            ->leftJoin('invoices', 'invoices.invoice_id', 'line_items.invoice_id')
+            ->select(
+                'line_item_id',
+                'charge_id',
+                'driver_amount',
+                'invoices.invoice_id',
+                'pickup_manifest_id',
+                'delivery_manifest_id',
+                'name',
+                'paid',
+                'price',
+                'type',
+                'amendment_number',
+                'finalized as invoice_is_finalized',
+            );
 
         return $lineItems->get();
     }

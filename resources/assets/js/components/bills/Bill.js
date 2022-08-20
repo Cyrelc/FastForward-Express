@@ -17,6 +17,7 @@ const Bill = (props) => {
     const [packageState, packageDispatch] = useReducer(PackageReducer, initialPackageState)
 
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
+    const [awaitingCharges, setAwaitingCharges] = useState(false)
 
     const {accounts, billId, deliveryType, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled} = billState.delivery
@@ -88,7 +89,9 @@ const Bill = (props) => {
         }
     }
 
-    const generateCharges = useCallback(() => {
+    const generateCharges = useCallback((overwrite = false) => {
+        if(awaitingCharges)
+            return
         if(charges?.length !== 1) {
             toastr.error('Unable to generate charges where there is not exactly one charge recipient present')
             return
@@ -107,14 +110,21 @@ const Bill = (props) => {
             time_delivery_scheduled: deliveryTimeScheduled,
             use_imperial: useImperial
         }
+        setAwaitingCharges(true)
 
         makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
             response = JSON.parse(response)
-            response.forEach(charge => {
-                charges[0].tableRef.current.table.addRow(charge);
-            })
-            toastr.warning('This feature is currently experimental. Please review the charges generated carefully for any inconsistencies')
-        })
+            if(overwrite)
+                charges[0].tableRef.current.table.replaceData(response)
+            else
+                response.forEach(charge => {
+                    charges[0].tableRef.current.table.addRow(charge);
+                })
+            setAwaitingCharges(false)
+            toastr.warning('Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies')
+        },
+        error => {setAwaitingCharges(false)}
+        )
     }, [
         activeRatesheet,
         chargeAccount,
@@ -122,6 +132,7 @@ const Bill = (props) => {
         deliveryAddressLat,
         deliveryAddressLng,
         deliveryTimeScheduled,
+        deliveryType,
         packageIsMinimum,
         packageIsPallet,
         packages,
@@ -271,7 +282,7 @@ const Bill = (props) => {
         }
     }, [])
 
-    // If the bill ID changes, reload all fields with new data (for spa navigation)
+    // If the bill ID changes, reload all fields with new data (for SPA navigation)
     useEffect(() => {
         configureBill()
         if(params.billId === 'create')
@@ -311,6 +322,36 @@ const Bill = (props) => {
         if(charges?.length === 0 && permissions.createBasic && !permissions.createFull && !billId && accounts.length === 1 && chargeState.chargeType)
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
     }, [chargeAccount, permissions, accounts, chargeState.chargeType])
+
+    useEffect(() => {
+        let conditionsMet = false
+        if(!!activeRatesheet.ratesheet_id && !billId && !!deliveryAddressLat && !!deliveryAddressLng && !!pickupAddressLat && !!pickupAddressLng && !!deliveryType) {
+            if(packageIsMinimum) {
+                conditionsMet = true
+            } else {
+                if(packages.length > 0) {
+                    conditionsMet = packages.reduce(currentPackage => {
+                        return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
+                    })
+                }
+            }
+        }
+        if(permissions.createFull && conditionsMet)
+            generateCharges(true)
+    }, [
+        activeRatesheet,
+        billId,
+        charges,
+        deliveryAddressLat,
+        deliveryAddressLng,
+        deliveryType,
+        packageIsMinimum,
+        packageIsPallet,
+        packages,
+        pickupAddressLat,
+        pickupAddressLng,
+        useImperial,
+    ])
 
     return (
         <Row className='justify-content-md-center'>

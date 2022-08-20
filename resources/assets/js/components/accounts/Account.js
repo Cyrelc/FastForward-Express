@@ -286,7 +286,7 @@ class Account extends Component {
                                     {this.state.permissions.editAdvanced ? 
                                         <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
                                             if(confirm(`Are you sure you wish to ${this.state.active ? 'DEACTIVATE' : 'ACTIVATE'} account ${this.state.accountName}?`)) {
-                                                makeAjaxRequest('/accounts/toggleActive/' + this.state.accountId, 'GET', null, response => {
+                                                makeAjaxRequest(`/accounts/toggleActive/${this.state.accountId}`, 'GET', null, response => {
                                                     this.setState({active: !this.state.active})
                                                 })
                                             }
