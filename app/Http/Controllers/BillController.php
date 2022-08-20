@@ -249,6 +249,7 @@ class BillController extends Controller {
     }
 
     private function handleLineItems($lineItems, $chargeId) {
+        $invoiceRepo = new Repos\InvoiceRepo();
         $lineItemRepo = new Repos\LineItemRepo();
 
         foreach($lineItems as $lineItem) {
@@ -257,8 +258,18 @@ class BillController extends Controller {
                 if(!$lineItem['line_item_id'])
                     continue;
                 $lineItemRepo->Delete($lineItem['line_item_id']);
-            } else if($lineItem['line_item_id'])
-                $lineItemRepo->UpdateAsBill($lineItem);
+            } else if($lineItem['line_item_id']) {
+                $invoiceId = $lineItemRepo->GetById($lineItem['line_item_id'])->invoice_id;
+                if($invoiceId != null) {
+                    $invoice = $invoiceRepo->GetById($invoiceId);
+                    if(!$invoice->is_finalized) {
+                        $lineItemRepo->UpdateAsBill($lineItem);
+                        $invoiceRepo->RegatherInvoice($invoice);
+                    } else
+                        abort(422, 'Unable to modify price on line item: Attached invoice has been finalized');
+                } else
+                    $lineItemRepo->UpdateAsBill($lineItem);
+            }
             else {
                 $lineItem['charge_id'] = $chargeId;
                 $lineItemRepo->Insert($lineItem);

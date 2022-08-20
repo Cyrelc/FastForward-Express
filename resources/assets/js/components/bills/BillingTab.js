@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Col, Row, FormControl, InputGroup} from 'react-bootstrap'
+import {Button, Card, Col, Dropdown, Row, FormControl, InputGroup} from 'react-bootstrap'
 import Select from 'react-select'
 import {ReactTabulator} from 'react-tabulator'
 
-import LinkLineItemModal from './LinkLineItemModal'
+import LinkLineItemModal from './modals/LinkLineItemModal'
+// import PriceAmendmentModal from './modals/PriceAmendmentModal'
+// import ReassignChargesModal from './ReassignChargesModal'
 
 const commonRateNames = ['Adjustment', 'Refund', 'Other', 'Incorrect Information', 'Interliner']
 
@@ -15,6 +17,13 @@ const repeatingBillsTitleText = 'Daily bills will be generated on and assigned t
 function canLineItemBeDeleted(row) {
     const rowData = row.getData()
     if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.paid)
+        return true
+    return false
+}
+
+function canLineItemBeEdited(row) {
+    const rowData = row.getData()
+    if(!rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.paid && !rowData.invoice_is_finalized)
         return true
     return false
 }
@@ -110,10 +119,13 @@ function payOffAllLineItems(charge) {
 }
 
 export default function BillingTab(props) {
+    const [priceAdjustCharge, setPriceAdjustCharge] = useState({})
     const [rateTable, setRateTable] = useState([])
-    const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
-    const [linkLineItemToType, setLinkLineItemToType] = useState('')
     const [linkLineItemCell, setLinkLineItemCell] = useState('')
+    const [linkLineItemToType, setLinkLineItemToType] = useState('')
+    const [showPriceAmendmentModal, setShowPriceAmendmentModal] = useState(false)
+    const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
+    const [showReassignModal, setReassignModal] = useState(false)
 
     const {
         activeRatesheet,
@@ -199,7 +211,7 @@ export default function BillingTab(props) {
         return readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
     }
 
-    const canChargeTableBeDeleted = charge => {
+    function canChargeTableBeDeleted(charge) {
         if(!charge || !!props.readOnly)
             return false
         return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
@@ -223,6 +235,7 @@ export default function BillingTab(props) {
             {title: 'Paid?', field: 'paid', formatter: 'tickCross', cellClick: (e, cell) => {cell.setValue(!cell.getValue())}, width: 45, hozAlign: 'center', headerSort: false},
             {title: 'Line Item ID', field: 'line_item_id', visible: false},
             {title: 'Invoice ID', field: 'invoice_id', visible: false},
+            {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: false},
             {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: false},
             {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: false}
         ]
@@ -239,6 +252,11 @@ export default function BillingTab(props) {
             props.chargeDispatch({type: 'DELETE_CHARGE_TABLE', payload: index})
         }
     }
+
+    // function hidePriceAmendmentModal() {
+    //     setPriceAdjustCharge({})
+    //     setShowPriceAmendmentModal(false)
+    // }
 
     function hideLinkTo() {
         setLinkLineItemCell(null)
@@ -257,7 +275,7 @@ export default function BillingTab(props) {
         editor:'number',
         formatter: 'money',
         formatterParams: {thousand: ',', symbol: '$', selectContents: true},
-        editorParams: {step: 0.01},
+        editorParams: {step: 0.01, verticalNavigation: 'table', onWheel: (e) => e.target.blur()},
         hozAlign: 'right',
         topCalc: 'sum',
         topCalcParams: {precision: 2},
@@ -265,8 +283,21 @@ export default function BillingTab(props) {
         topCalcFormatterParams: {thousand: ',', symbol: '$'},
         sorter: 'number',
         editable: cell => {
-            return props.readOnly ? false : canLineItemBeDeleted(cell.getRow())
+            return props.readOnly ? false : canLineItemBeEdited(cell.getRow())
         }
+    }
+
+    // function makePriceAmendment(charge) {
+    //     if(!charge.lineItems) {
+    //         console.log('ERROR: No line items present')
+    //         return
+    //     }
+    //     setPriceAdjustCharge(charge)
+    //     setShowPriceAmendmentModal(true)
+    // }
+
+    const reassignCharge = charge => {
+        console.log("NOT YET IMPLEMENTED (How did you even get here??)")
     }
 
     function removeLink(cell, type) {
@@ -494,21 +525,26 @@ export default function BillingTab(props) {
                                 <Card border='dark' style={{padding: '0px'}}>
                                     <Card.Header>
                                         <Row>
-                                            <Col md={(charge.lineItems && canChargeTableBeDeleted(charge)) ? 10 : 11}>
+                                            <Col md={11}>
                                                 <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                                             </Col>
-                                            {!readOnly &&
-                                                <Col md={1}>
-                                                    <Button variant='success' size='sm' onClick={() => payOffAllLineItems(charge)}>
-                                                        <i className='fas fa-hand-holding-usd' title='Mark all as paid'></i>
-                                                    </Button>
-                                                </Col>
-                                            }
-                                            {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
-                                                <Col md={1}>
-                                                    <Button variant='danger' size='sm' onClick={() => deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i></Button>
-                                                </Col>
-                                            }
+                                            <Col md={1}>
+                                                <Dropdown>
+                                                    <Dropdown.Toggle variant='secondary' id={`amendment-dropdown-${charge.charge_id}`}>
+                                                        <i className='fas fa-bars'></i>
+                                                    </Dropdown.Toggle>
+                                                    <Dropdown.Menu>
+                                                        {false && <Dropdown.Item onClick={() => makePriceAmendment(charge)}>Price Adjustment</Dropdown.Item>}
+                                                        {false &&
+                                                            <Dropdown.Item onClick={() => reassignCharge(charge)}></Dropdown.Item>
+                                                        }
+                                                        <Dropdown.Item onClick={() => payOffAllLineItems(charge)}>Mark as Paid</Dropdown.Item>
+                                                        {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
+                                                            <Dropdown.Item onClick={() => deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
+                                                        }
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            </Col>
                                             {charge.charge_reference_value_label !== null &&
                                                 <Col md={12}>
                                                     <InputGroup>
@@ -568,6 +604,11 @@ export default function BillingTab(props) {
                 linkLineItemToType={linkLineItemToType}
                 show={showLinkLineItemModal}
             />
+            {/* <PriceAmendmentModal
+                charge={priceAdjustCharge}
+                hide={hidePriceAmendmentModal}
+                show={showPriceAmendmentModal}
+            /> */}
         </Card>
     )
 }
