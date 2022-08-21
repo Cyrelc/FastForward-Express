@@ -14,7 +14,8 @@ use App\Http\Models\Invoice;
 use App\Http\Services;
 use Nesk\Puphpeteer\Puppeteer;
 
-use LynX39\LaraPdfMerger\Facades\PdfMerger;
+use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
+
 
 class InvoiceController extends Controller {
     private $storagePath;
@@ -128,7 +129,9 @@ class InvoiceController extends Controller {
 
         $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
 
-        return $pdfMerger->save($fileName, 'inline');
+        $pdfMerger->save($fileName, 'inline');
+
+        return response()->file($fileName);
     }
 
     public function download(Request $req, $invoiceIds) {

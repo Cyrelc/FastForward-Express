@@ -12,7 +12,8 @@ use App\Http\Models\Manifest;
 use Illuminate\Http\Request;
 use Nesk\Puphpeteer\Puppeteer;
 
-use LynX39\LaraPdfMerger\Facades\PdfMerger;
+use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
+
 
 class ManifestController extends Controller {
     private $storagePath;
@@ -124,7 +125,9 @@ class ManifestController extends Controller {
 
         $this->cleanPdfs($files);
 
-        return $pdfMerger->save($fileName, 'inline');
+        $pdfMerger->save($fileName, 'inline');
+
+        return response()->file($fileName);
     }
 
     public function store(Request $req) {
