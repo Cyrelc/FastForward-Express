@@ -10,12 +10,20 @@ use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Models\Bill;
 use App\Http\Models\Permission;
+use Nesk\Puphpeteer\Puppeteer;
 
 use DB;
 use Illuminate\Http\Request;
 use Validator;
 
 class BillController extends Controller {
+    public function __construct() {
+        $this->middleware('auth');
+
+        $this->storagePath = storage_path() . '/app/public/';
+        $this->folderName = 'bills.' . time();
+    }
+
     public function buildTable(Request $req) {
         $user = $req->user();
         if($user->cannot('viewAny', Bill::class))
@@ -143,6 +151,49 @@ class BillController extends Controller {
         }
 
         return json_encode($lineItemRepo->GetById($lineItem->line_item_id));
+    }
+
+    public function print(Request $req, $billId) {
+        $billRepo = new Repos\BillRepo();
+
+        $bill = $billRepo->GetById($billId);
+
+        if($req->user()->cannot('viewBasic', $bill))
+            abort(403);
+
+        $puppeteer = new Puppeteer;
+        $billModelFactory = new Bill\BillModelFactory();
+        $permissionModelFactory = new Permission\PermissionModelFactory();
+
+        $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
+
+        $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+
+        $path = $this->storagePath . $this->folderName . '/';
+        $fileName = 'bill_' . $model->bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $model->bill->time_pickup_scheduled);
+        mkdir($path);
+
+        $file = view('bills.bill_print_view', compact('model'))->render();
+        file_put_contents($path . $fileName . '.html', $file);
+        $page = $puppeteer->launch()->newPage();
+        $page->goto('file://' . $path . $fileName . '.html');
+        // $page->addStyleTag(['path' => public_path('css/bill_pdf.css')]);
+        $page->pdf([
+            'displayHeaderFooter' => true,
+            'footerTemplate' => view('bills.bill_footer')->render(),
+            'headerTemplate' => view('bills.bill_header', compact('model'))->render(),
+            'margin' => [
+                'top' => 80,
+                'bottom' => 70,
+                'left' => 30,
+                'right' => 30
+            ],
+            'path' => $path . $fileName . '.pdf',
+        ]);
+
+        unlink($path . $fileName . '.html');
+
+        return response()->file($path . $fileName . '.pdf');
     }
 
     public function store(Request $req) {

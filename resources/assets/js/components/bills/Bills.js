@@ -285,7 +285,7 @@ function Bills(props) {
     return (
         <ReduxTable
             columns={props.columns.length ? props.columns : columns}
-            dataUrl='/bills/buildTable'
+            dataUrl='/bills'
             defaultQueryString={defaultQueryString()}
             fetchTableData={props.fetchTableData}
             filters={filters}

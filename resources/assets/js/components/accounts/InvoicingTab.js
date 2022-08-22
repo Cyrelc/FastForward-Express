@@ -43,7 +43,9 @@ export default function InvoicingTab(props) {
                                 value={props.invoiceInterval}
                                 isDisabled={props.readOnly}
                             />
-                            <InputGroup.Text><i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i></InputGroup.Text>
+                            <InputGroup.Text>
+                                <i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i>
+                            </InputGroup.Text>
                         </InputGroup>
                     </Col>
                     <Col md={2} style={{paddingTop: '20px'}}>
@@ -58,7 +60,7 @@ export default function InvoicingTab(props) {
                     <Col md={2} style={{paddingTop: '20px'}}>
                         <FormCheck
                             name='sendEmailInvoices'
-                            label='Send Email Invoices'
+                            label='Digital Invoice Notifications'
                             checked={props.sendEmailInvoices}
                             onChange={props.handleChanges}
                             disabled={!props.sendPaperInvoices || props.readOnly}

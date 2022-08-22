@@ -438,6 +438,14 @@ const Bill = (props) => {
                                 title='Copy Bill'
                             ><i className='fas fa-copy'></i> Copy Bill</Button>
                         }
+                        {(billId && permissions.createFull) &&
+                            <Button
+                                href={billId ? `/bills/print/${billId}` : null}
+                                target='_blank'
+                                title='Print Bill'
+                                variant='succes'
+                            ><i className='fas fa-print'></i> Print</Button>
+                        }
                     </Navbar.Collapse>
                 </Navbar>
             </Col>

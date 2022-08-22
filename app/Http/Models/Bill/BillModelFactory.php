@@ -106,10 +106,10 @@ class BillModelFactory{
 
 		if($permissions['viewBilling']) {
 			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
-			$charges = $chargeRepo->GetForBill($model->bill->bill_id, null);
+			$charges = $chargeRepo->GetByBillId($model->bill->bill_id, null);
 			$model->charges = $charges;
 		} else
-			$model->charges = $chargeRepo->GetForBill($model->bill->bill_id);
+			$model->charges = $chargeRepo->GetByBillId($model->bill->bill_id);
 		foreach($model->charges as $key => $charge)
 			$model->charges[$key]->lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
 

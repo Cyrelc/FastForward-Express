@@ -169,7 +169,8 @@ class BillRepo {
     }
 
     public function GetById($billId, $permissions = null) {
-        $bill = Bill::where('bill_id', $billId);
+        $bill = Bill::where('bill_id', $billId)
+            ->leftJoin('selections', 'selections.value', '=', 'bills.delivery_type');
 
         if($permissions)
             $bill->select(

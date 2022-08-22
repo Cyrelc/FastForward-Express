@@ -60,6 +60,7 @@ class Bill extends Model
         'delivery_address_id',
         'delivery_reference_value',
         'delivery_type',
+        'selections.name as delivery_type_friendly',
         'description',
         'is_min_weight_size',
         'is_pallet',

@@ -39,7 +39,7 @@ const reducer = (state = initialState, action) => {
 
 export async function fetchBills(dispatch, getState) {
     dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: true})
-    makeAjaxRequest(`/bills${getState().bills.queryString}`, 'GET', null, response => {
+    makeAjaxRequest(`/billsList${getState().bills.queryString}`, 'GET', null, response => {
         const bills = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_BILLS_TABLE, payload: bills == undefined ? [] : bills})
         dispatch({type: actionTypes.SET_BILLS_TABLE_LOADING, payload: false})

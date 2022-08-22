@@ -116,7 +116,7 @@ class Invoice extends Component {
                 <Col md={4} style={{textAlign: 'right'}}>
                     <ButtonGroup>
                         <Button
-                            href={this.state.invoice ? '/invoices/print/' + this.state.invoice.invoice_id + '?show_line_items=' + this.state.showLineItems + '&amendments_only=' + this.state.amendmentsOnly : null}
+                            href={this.state.invoice ? `/invoices/print/${this.state.invoice.invoice_id}?show_line_items=${this.state.showLineItems}&amendments_only=${this.state.amendmentsOnly}` : null}
                             target='_blank'
                             variant='success'
                         ><i className='fas fa-print'> Generate PDF</i></Button>

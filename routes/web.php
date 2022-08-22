@@ -11,21 +11,17 @@
 |
 */
 
-/*
-Controller actions:
-index
-create
-store
-show
-edit
-update
-destroy
-*/
-
-/*
-    Note: All authentication middleware also occurs in controllers.
-    It is redundant here.
-*/
+Route::middleware(['auth'])->controller(BillController::class)->group(function() {
+    Route::get('/billsList', 'buildTable');
+    Route::get('/bills/create', 'getModel');
+    Route::get('/bills/{billId}', 'getModel');
+    Route::delete('/bills/{billId}', 'delete');
+    Route::post('/bills/manageLineItemLinks', 'manageLineItemLinks');
+    Route::post('/bills/store', 'store');
+    Route::post('/bills/generateCharges', 'generateCharges');
+    Route::get('/bills/copy/{billId}', 'copyBill');
+    Route::get('/bills/print/{billId}', 'print');
+});
 
 // Authenticated views
 Route::group(['middleware' => 'auth'],
@@ -44,17 +40,9 @@ Route::group(['middleware' => 'auth'],
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
 
-        Route::get('/app/{route}', 'HomeController@index');
-
-        Route::get('/bills', 'BillController@buildTable');
         Route::get('/bills/chart', 'AdminController@getChart');
-        Route::get('/bills/create', 'BillController@getModel');
-        Route::get('/bills/{billId}', 'BillController@getModel');
-        Route::delete('/bills/{billId}', 'BillController@delete');
-        Route::post('/bills/manageLineItemLinks', 'BillController@manageLineItemLinks');
-        Route::post('/bills/store', 'BillController@store');
-        Route::post('/bills/generateCharges', 'BillController@generateCharges');
-        Route::get('/bills/copy/{billId}', 'BillController@copyBill');
+
+        Route::get('/app/{route}', 'HomeController@index');
 
         Route::get('/chargebacks/buildTable', 'ChargebackController@buildTable');
         Route::post('/chargebacks/store', 'ChargebackController@store');
