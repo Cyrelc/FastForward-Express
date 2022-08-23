@@ -60,7 +60,6 @@ class Bill extends Model
         'delivery_address_id',
         'delivery_reference_value',
         'delivery_type',
-        'selections.name as delivery_type_friendly',
         'description',
         'is_min_weight_size',
         'is_pallet',
@@ -100,6 +99,7 @@ class Bill extends Model
     public static $readOnlyFields = [
         'bill_id',
         'created_at',
+        'selections.name as delivery_type_friendly',
         'incomplete_fields',
         'percentage_complete',
         'updated_at'

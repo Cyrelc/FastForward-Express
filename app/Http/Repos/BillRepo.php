@@ -178,7 +178,7 @@ class BillRepo {
                     $permissions['viewBasic'] ? Bill::$basicFields : [],
                     $permissions['viewDispatch'] ? Bill::$dispatchFields : [],
                     $permissions['viewBilling'] ? Bill::$billingFields : [],
-                    Bill::$readOnlyFields
+                    Bill::$readOnlyFields,
                 )
             );
 
