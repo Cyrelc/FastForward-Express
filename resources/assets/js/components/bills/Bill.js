@@ -443,7 +443,7 @@ const Bill = (props) => {
                                 href={billId ? `/bills/print/${billId}` : null}
                                 target='_blank'
                                 title='Print Bill'
-                                variant='succes'
+                                variant='success'
                             ><i className='fas fa-print'></i> Print</Button>
                         }
                     </Navbar.Collapse>
