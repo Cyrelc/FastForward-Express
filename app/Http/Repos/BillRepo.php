@@ -46,7 +46,7 @@ class BillRepo {
         $chargeRepo = new ChargeRepo();
         $lineItemRepo = new LineItemRepo();
 
-        $bill = $this->getById($billId);
+        $bill = Bill::where('bill_id', $billId)->first();
         $newPickupAddress = $bill->pickupAddress->replicate();
         $newPickupAddress->save();
         $newDeliveryAddress = $bill->deliveryAddress->replicate();
