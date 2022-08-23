@@ -186,7 +186,7 @@ class ManifestController extends Controller {
 
             $file = view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render();
             file_put_contents($path . $fileName . '.html', $file);
-            $page = $puppeteer->launch()->newPage();
+            $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
             $page->goto('file://' . $path . $fileName . '.html');
             $page->addStyleTag(['path' => public_path('css/manifest_pdf.css')]);
             $page->pdf([

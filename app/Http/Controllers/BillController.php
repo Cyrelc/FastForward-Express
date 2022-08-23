@@ -175,7 +175,7 @@ class BillController extends Controller {
 
         $file = view('bills.bill_print_view', compact('model'))->render();
         file_put_contents($path . $fileName . '.html', $file);
-        $page = $puppeteer->launch()->newPage();
+        $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
         $page->goto('file://' . $path . $fileName . '.html');
         // $page->addStyleTag(['path' => public_path('css/bill_pdf.css')]);
         $page->pdf([
