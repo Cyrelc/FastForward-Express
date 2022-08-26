@@ -108,6 +108,12 @@
             {{$model->bill->description}}
             <hr/>
         @endif
+        <div style="width: 20%; float: left">Pickup</div>
+        <div style="width: 40%; float: left">Print:</div><div style="width: 40%; float: right">Sign: </div>
+        <hr/>
+        <div style="width: 20%; float: left">Delivery</div>
+        <div style="width: 40%; float: left">Print:</div><div style="width: 40%; float: right">Sign: </div>
+        <hr/>
         @foreach($model->charges as $charge)
             <table class='charge-table'>
                 <thead>
