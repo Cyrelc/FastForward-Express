@@ -149,5 +149,36 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'support',
             'type' => 'contact_type'
         ]);
+// Rate types
+        DB::table('selections')->insert([
+            'name' => 'Common Rate',
+            'value' => 'commonRate',
+            'type' => 'charge_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Distance Rate',
+            'value' => 'distanceRate',
+            'type' => 'charge_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Legacy Rate',
+            'value' => 'legacyRate',
+            'type' => 'charge_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Misc Rate',
+            'value' => 'miscellaneousRate',
+            'type' => 'charge_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Time Rate',
+            'value' => 'timeRate',
+            'type' => 'charge_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Weight Rate',
+            'value' => 'weightRate',
+            'type' => 'charge_type'
+        ]);
     }
 }

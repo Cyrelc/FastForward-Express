@@ -181,9 +181,9 @@ class BillController extends Controller {
         $page->pdf([
             'displayHeaderFooter' => true,
             'footerTemplate' => view('bills.bill_footer')->render(),
-            'headerTemplate' => view('bills.bill_header', compact('model'))->render(),
+            'landscape' => true,
             'margin' => [
-                'top' => 80,
+                'top' => 0,
                 'bottom' => 70,
                 'left' => 30,
                 'right' => 30
