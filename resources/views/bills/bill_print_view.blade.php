@@ -108,11 +108,9 @@
             {{$model->bill->description}}
             <hr/>
         @endif
-        <div style="width: 20%; float: left">Pickup</div>
-        <div style="width: 40%; float: left">Print:</div><div style="width: 40%; float: right">Sign: </div>
+        <h5 style="width: 50%; float: left; margin-top: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-top: 0px">Sign: </h5>
         <hr/>
-        <div style="width: 20%; float: left">Delivery</div>
-        <div style="width: 40%; float: left">Print:</div><div style="width: 40%; float: right">Sign: </div>
+        <h5 style="width: 50%; float: left; margin-top: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-top: 0px">Sign: </h5>
         <hr/>
         @foreach($model->charges as $charge)
             <table class='charge-table'>

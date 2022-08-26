@@ -13,9 +13,19 @@
 <div class='footer'>
     <table>
         <tr>
-            <td style='width: 30%'>(780) 458-1074<br/>GST# 133746107</td>
-            <td style='width: 40%; text-align: center;'>Page: <span class='pageNumber inline'></span> of <span class='totalPages inline'></span></td>
-            <td style='width: 30%; text-align: right'><a href='www.fastforwardexpress.com'>Fastfex@telus.net</a></td>
+            <td style='width: 30%'>
+                <a href='www.fastforwardexpress.ca'>contactus@fastforwardexpress.com</a><br/>
+                (780) 458-1074<br/>
+                GST# 133746107
+            </td>
+            <td style='width: 40%; text-align: center;'>Page: <span class='pageNumber inline'>
+                </span> of <span class='totalPages inline'></span>
+            </td>
+            <td style='width: 30%; text-align: right'>
+                <a href='www.fastforwardexpress.com'>fastfex@telus.net</a><br/>
+                (780) 458-1074<br/>
+                GST# 133746107
+            </td>
         </tr>
     </table>
 </div>
