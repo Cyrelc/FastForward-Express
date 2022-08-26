@@ -438,7 +438,7 @@ const Bill = (props) => {
                                 title='Copy Bill'
                             ><i className='fas fa-copy'></i> Copy Bill</Button>
                         }
-                        {(billId && permissions.createFull) &&
+                        {billId &&
                             <Button
                                 href={billId ? `/bills/print/${billId}` : null}
                                 target='_blank'
