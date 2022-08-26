@@ -1,7 +1,8 @@
-import React, {Component} from 'react'
-import {Tabs, Tab, Nav, Row, Col, ListGroup, Button} from 'react-bootstrap'
+import React, {Component, useState} from 'react'
+import {Badge, Button, Col, ListGroup, Nav, Row, Tab, Tabs} from 'react-bootstrap'
 
 import AccountingTab from './AccountingTab'
+// import CompanyInfoTab from './CompanyInfoTab'
 import InterlinersTab from './InterlinersTab'
 import RatesheetsTab from './RatesheetsTab'
 // import MiscTab from './MiscTab'
@@ -12,6 +13,7 @@ export default class AppSettings extends Component {
         super()
         this.state = {
             //todo: Business hours open/closed, but will require application restart like GST does for editing
+            activeKey: 'accounting',
             gst: '',
             interliners: [],
             paymentTypes: [],
@@ -28,7 +30,9 @@ export default class AppSettings extends Component {
         document.title = 'Application Settings - ' + document.title
         makeAjaxRequest('/appsettings/get', 'GET', null, response => {
             response = JSON.parse(response)
+            console.log(window.location.hash ? window.location.hash.substring(1) : 'pants')
             this.setState({
+                activeKey: window.location.hash ? window.location.hash.substring(1) : 'accounting',
                 gst: response.gst,
                 interliners: response.interliners,
                 paymentTypes: response.payment_types,
@@ -64,14 +68,21 @@ export default class AppSettings extends Component {
 
     render() {
         return (
-            <Tab.Container defaultActiveKey='accounting'>
-                <Row className='text-center justify-content-md-center'><h4 className='text-muted'>NOTE: Changes made on this page <u>will affect only <strong>new</strong> objects or calculations.</u> They will not affect anything previously created.</h4></Row>
+            <Tab.Container activeKey={this.state.activeKey}>
+                <Row className='text-center justify-content-md-center'>
+                    <Badge bg='warning'>
+                        <h4 className='text-muted'>NOTE: Changes made on this page <u>will affect only <strong>new</strong> objects or calculations, or edits of old objects.</u> They will not affect anything previously created.</h4>
+                    </Badge>
+                </Row>
                 <Row>
                     <Col md={2}>
                         <Nav variant='pills' className='flex-column'>
                             <Nav.Item>
                                 <Nav.Link eventKey='accounting'>Accounting</Nav.Link>
                             </Nav.Item>
+                            {/* <Nav.Item>
+                                <Nav.Link eventKey='company-info'>Company Info</Nav.Link>
+                            </Nav.Item> */}
                             <Nav.Item>
                                 <Nav.Link eventKey='interliners'>Interliners</Nav.Link>
                             </Nav.Item>
@@ -98,6 +109,13 @@ export default class AppSettings extends Component {
                                 />
                             </Tab.Pane>
                         </Tab.Content>
+                        {/* <Tab.Content>
+                            <Tab.Pane eventKey='company-info'>
+                                <CompanyInfoTab
+                                    handleChange={this.handleChange}
+                                />
+                            </Tab.Pane>
+                        </Tab.Content> */}
                         <Tab.Content>
                             <Tab.Pane eventKey='interliners'>
                                 <InterlinersTab

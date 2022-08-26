@@ -61,17 +61,17 @@ function NavBar(props) {
                         <SubMenu title={<h5>Bills</h5>} icon={<i className='fas fa-boxes fa-lg'/>}>
                             {props.frontEndPermissions.bills.viewAny &&
                                 <LinkContainer to='/app/bills'>
-                                    <MenuItem><i className='fa fa-list'></i> List Bills</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Bills</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.bills.create &&
                                 <LinkContainer to='/app/bills/create'>
-                                    <MenuItem><i className='fa fa-plus-square'></i> Create Bill</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.appSettings.edit &&
                                 <LinkContainer to='/app/bills/trend'>
-                                    <MenuItem><i className='fas fa-chart-bar'></i> Trend</MenuItem>
+                                    <MenuItem icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.bills.viewAny &&
@@ -99,12 +99,12 @@ function NavBar(props) {
                         <SubMenu title={<h5> Invoices</h5>} icon={<i className='fas fa-file-invoice-dollar fa-lg'/>}>
                             {props.frontEndPermissions.invoices.viewAny &&
                                 <LinkContainer to='/app/invoices'>
-                                    <MenuItem><i className='fa fa-list'></i> List Invoices</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Invoices</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.invoices.create &&
                                 <LinkContainer to='/app/invoices/generate'>
-                                    <MenuItem><i className='fa fa-plus-square'></i> Generate Invoices</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Generate Invoices</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.invoices.viewAny &&
@@ -128,27 +128,27 @@ function NavBar(props) {
                         </SubMenu>
                     }
                     {hasAnyPermission(props.frontEndPermissions.accounts) &&
-                        <SubMenu title={<h5> Accounts</h5>} icon={<i className='fas fa-building fa-lg'/>}>
+                        <SubMenu title={<h5> Accounts</h5>} icon={<i className='fas fa-city fa-lg'/>}>
                             {(props.authenticatedAccountUsers && props.accounts.length == 1) &&
                                 <LinkContainer to={`/app/accounts/${props.authenticatedAccountUsers[0].account_id}`}>
-                                    <MenuItem>
+                                    <MenuItem icon={<i className='fas fa-building'></i>}>
                                         {props.accounts.find(account => account.value === props.authenticatedAccountUsers[0].account_id).label}
                                     </MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.accounts.viewAny &&
                                 <LinkContainer to='/app/accounts'>
-                                    <MenuItem><i className='fa fa-list'></i> List Accounts</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Accounts</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.accounts.create &&
                                 <LinkContainer to='/app/accounts/create'>
-                                    <MenuItem href='/app/accounts/create'><i className='fa fa-plus-square'></i> Create Account</MenuItem>
+                                    <MenuItem href='/app/accounts/create' icon={<i className='fa fa-plus-square'></i>}>Create Account</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.appSettings.edit &&
                                 <LinkContainer to='/app/accountsReceivable'>
-                                    <MenuItem><i className='fas fa-balance-scale'></i> Accounts Receivable</MenuItem>
+                                    <MenuItem icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
                                 </LinkContainer>
                             }
                             {(props.frontEndPermissions.accounts.viewAny && props.accounts.length > 1) &&
@@ -167,27 +167,27 @@ function NavBar(props) {
                         <SubMenu title={<h5> Employees</h5>} icon={<i className='fas fa-id-card-alt fa-lg'/>}>
                             {props.frontEndPermissions.employees.viewAll &&
                                 <LinkContainer to='/app/employees'>
-                                    <MenuItem><i className='fa fa-list'></i> List Employees</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Employees</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.employees.create &&
                                 <LinkContainer to='/app/employees/create'>
-                                    <MenuItem><i className='fa fa-plus-square'></i> Create Employee</MenuItem>
+                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Create Employee</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.chargebacks.viewAny &&
                                 <LinkContainer to='/app/chargebacks'>
-                                    <MenuItem><i className='fas fa-cash-register'></i> Chargebacks</MenuItem>
+                                    <MenuItem icon={<i className='fas fa-cash-register'></i>}> Chargebacks</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.manifests.viewAny &&
                                 <LinkContainer to='/app/manifests'>
-                                    <MenuItem><i className='fas fa-clipboard-list'></i> Manifests</MenuItem>
+                                    <MenuItem icon={<i className='fas fa-clipboard-list'></i>}>Manifests</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.manifests.create &&
                                 <LinkContainer to='/app/manifests/generate'>
-                                    <MenuItem><i className='fas fa-clipboard'></i> Generate Manifests</MenuItem>
+                                    <MenuItem icon={<i className='fas fa-clipboard'></i>}>Generate Manifests</MenuItem>
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.manifests.viewAny &&
@@ -220,9 +220,17 @@ function NavBar(props) {
                         </LinkContainer>
                     }
                     {props.frontEndPermissions.appSettings.edit &&
-                        <LinkContainer to='/app/appSettings'>
-                            <MenuItem icon={<i className='fas fa-toolbox fa-lg'></i>}> <h5>App Settings</h5></MenuItem>
-                        </LinkContainer>
+                        <SubMenu title={<h5>App Settings</h5>} icon={<i className='fas fa-toolbox fa-lg'></i>}>
+                            <LinkContainer to='/app/appSettings#accounting'>
+                                <MenuItem icon={<i className='fas fa-calculator'></i>}>Accounting</MenuItem>
+                            </LinkContainer>
+                            <LinkContainer to='/app/appSettings#interliners'>
+                                <MenuItem icon={<i className='fas fa-shipping-fast'></i>}>Interliners</MenuItem>
+                            </LinkContainer>
+                            <LinkContainer to='/app/appSettings#ratesheets'>
+                                <MenuItem icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
+                            </LinkContainer>
+                        </SubMenu>
                     }
                 </Menu>
             </SidebarContent>
