@@ -1,63 +1,5 @@
 import {DateTime} from 'luxon'
 
-/**
- * Checks if a requested time is a valid request based on: business hours, and deliveryTypes
- * @param {DateTime} dateTime (luxon DateTime object) 
- * @param {DateTime} businessHoursMin
- * @param {DateTime} businessHoursMax
- * @param {Array[Object]} deliveryTypes
- * 
- * @returns {Boolean}
- */
-const isPickupTimeValid = (dateTime, businessHoursMin, businessHoursMax, deliveryTypes) => {
-    // If requested time is in the past
-    if(dateTime.diffNow('minutes').minutes < 0)
-        return false
-    // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
-    if(dateTime.weekday === 6 || dateTime.weekday === 7)
-        return false
-    // If requested time is AFTER business hours - (modified for shortest delivery window)
-    const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-    const luxonBusinessHoursMax = (DateTime.fromJSDate(businessHoursMax)).minus({hours: minimumTimeToDoADelivery})
-    const lastPickupTime = dateTime.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
-    if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
-        return false
-    // If requested time is BEFORE business hours - (no modification required)
-    const luxonBusinessHoursMin = DateTime.fromJSDate(businessHoursMin)
-    const firstPickupTime = dateTime.set({hour: luxonBusinessHoursMin.hour, minute: luxonBusinessHoursMin.minute})
-    if(dateTime.diff(firstPickupTime, 'minutes').minutes < 0)
-        return false
-
-    return true
-}
-
-/**
- * Takes the current state, and a requested time value, and will return the **next** valid option 
- * after testing recursively in 15 minute increments
- * @param {object} state
- * @param {DateTime} time
- * @returns {DateTime} result
- */
-const getValidPickupTime = (time, businessHoursMin, businessHoursMax, deliveryTypes, prevTime = null) => {
-    //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
-    while(!isPickupTimeValid(time, businessHoursMin, businessHoursMax, deliveryTypes))
-        time = time.plus({minutes: 15})
-
-    if(!time.hasSame(DateTime.local(), 'day') && !time.hasSame(prevTime, 'day'))
-        toastr.warning(
-            'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
-            'Insufficient time',
-            {
-                positionClass: 'toast-bottom-full-width',
-                showDuration: 300,
-                timeOut: 5000,
-                extendedTImeout: 5000
-            }
-        )
-
-    return time
-}
-
 const getDeliveryEstimates = (deliveryTypes, pickupZone = null, deliveryZone = null) => {
     return deliveryTypes.map(deliveryType => {
         const originalTime = deliveryType.originalTime ? deliveryType.originalTime : parseFloat(deliveryType.time)
@@ -136,6 +78,68 @@ export const initialState = {
 
 export default function billReducer(state, action) {
     const {type, payload} = action
+
+    /**
+     * Checks if a requested time is a valid request based on: business hours, and deliveryTypes
+     * @param {DateTime} dateTime (luxon DateTime object)
+     * @param {DateTime} businessHoursMin
+     * @param {DateTime} businessHoursMax
+     * @param {Array[Object]} deliveryTypes
+     *
+     * @returns {Boolean}
+     */
+    const isPickupTimeValid = (dateTime, deliveryTypes) => {
+        // If requested time is in the past
+        if(dateTime.diffNow('minutes').minutes < 0)
+            return false
+        // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
+        if(dateTime.weekday === 6 || dateTime.weekday === 7)
+            return false
+        // If requested time is AFTER business hours - (modified for shortest delivery window)
+        const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
+        const luxonBusinessHoursMax = (DateTime.fromJSDate(state.businessHoursMax)).minus({hours: minimumTimeToDoADelivery})
+        const lastPickupTime = dateTime.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
+        console.log(lastPickupTime)
+        if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
+            return false
+        // If requested time is BEFORE business hours - (no modification required)
+        const luxonBusinessHoursMin = DateTime.fromJSDate(state.businessHoursMin)
+        const firstPickupTime = dateTime.set({hour: luxonBusinessHoursMin.hour, minute: luxonBusinessHoursMin.minute})
+        if(dateTime.diff(firstPickupTime, 'minutes').minutes < 0)
+            return false
+
+        return true
+    }
+
+    /**
+     * Takes the current state, and a requested time value, and will return the **next** valid option 
+     * after testing recursively in 15 minute increments
+     * @param {object} state
+     * @param {DateTime} time
+     * @returns {DateTime} result
+     */
+    const getValidPickupTime = (time, deliveryTypes, prevTime = null) => {
+        if(time instanceof Date)
+            time = DateTime.fromJSDate(time)
+        //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
+        while(!isPickupTimeValid(time, deliveryTypes))
+            time = time.plus({minutes: 15})
+
+        if(!time.hasSame(DateTime.local(), 'day') && (prevTime && !time.hasSame(prevTime, 'day')))
+            toastr.warning(
+                'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
+                'Insufficient time',
+                {
+                    positionClass: 'toast-bottom-full-width',
+                    showDuration: 300,
+                    timeOut: 5000,
+                    extendedTImeout: 5000
+                }
+            )
+
+        return time
+    }
+
     switch(action.type) {
         case 'CHECK_REFERENCE_VALUES': {
             const {account, value, prevValue} = payload
@@ -268,15 +272,20 @@ export default function billReducer(state, action) {
         case 'SET_DELIVERY_TIME_EXPECTED':
             return Object.assign({}, state, {delivery: {...state.delivery, timeScheduled: payload}})
         case 'SET_DELIVERY_TYPE':
-            if(state.applyRestrictions)
+            console.log("SETTING DELIVERY")
+            if(state.applyRestrictions) {
+                const pickupTimeScheduled = getValidPickupTime(state.pickup.timeScheduled, [payload])
                 return Object.assign({}, state, {
                     deliveryType: payload,
                     delivery: {
                         ...state.delivery,
-                        timeScheduled: DateTime.fromJSDate(state.pickup.timeScheduled).plus({hours: payload.time}).toJSDate()
+                        timeScheduled: pickupTimeScheduled.plus({hours: payload.time}).toJSDate()
+                    },
+                    pickup: {
+                        timeScheduled: pickupTimeScheduled.toJSDate()
                     }
                 })
-            else
+            } else
                 return Object.assign({}, state, {deliveryType: payload})
         case 'SET_DELIVERY_VALUE':
             return Object.assign({}, state, {
@@ -322,14 +331,14 @@ export default function billReducer(state, action) {
             })
         case 'SET_PICKUP_TIME_EXPECTED': {
             if(state.applyRestrictions) {
-                const {businessHoursMax, businessHoursMin, deliveryTypes} = state
+                const {businessHoursMax, deliveryTypes} = state
                 // round to nearest 15 minutes
                 let pickupTimeScheduled = DateTime.fromJSDate(payload)
                 if(pickupTimeScheduled.minute % 15 != 0) {
                     const intervals = Math.ceil(pickupTimeScheduled.minute / 15)
                     pickupTimeScheduled = intervals == 4 ? pickupTimeScheduled.set({minute: 0}).plus({hours: 1}) : pickupTimeScheduled.set({minute: intervals * 15})
                 }
-                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, businessHoursMin, businessHoursMax, deliveryTypes, state.pickup.timeScheduled)
+                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, deliveryTypes, state.pickup.timeScheduled)
                 const luxonBusinessHoursMax = DateTime.fromJSDate(businessHoursMax)
                 const lastDeliveryTime = pickupTimeScheduled.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
                 const hoursBetweenPickupAndEndOfDay = lastDeliveryTime.diff(pickupTimeScheduled, 'minutes').as('hours')
