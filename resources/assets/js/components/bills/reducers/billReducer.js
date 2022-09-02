@@ -282,6 +282,7 @@ export default function billReducer(state, action) {
                         timeScheduled: pickupTimeScheduled.plus({hours: payload.time}).toJSDate()
                     },
                     pickup: {
+                        ...state.pickup,
                         timeScheduled: pickupTimeScheduled.toJSDate()
                     }
                 })
