@@ -149,7 +149,7 @@ export default function BasicTab(props) {
 
     return (
         <Card border='dark'>
-            <Card.Header>
+            <Card.Body>
                 <Row>
                     <Col md={2}>
                         <h4 className='text-muted'>Package Info</h4>
@@ -412,7 +412,7 @@ export default function BasicTab(props) {
                         />
                     </Col>
                 </Row>
-            </Card.Header>
+            </Card.Body>
         </Card>
     )
 }

@@ -169,11 +169,13 @@ class BillController extends Controller {
 
         $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
+        $showCharges = isset($req->showCharges);
+
         $path = $this->storagePath . $this->folderName . '/';
         $fileName = 'bill_' . $model->bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $model->bill->time_pickup_scheduled);
         mkdir($path);
 
-        $file = view('bills.bill_print_view', compact('model'))->render();
+        $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
         file_put_contents($path . $fileName . '.html', $file);
         $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
         $page->goto('file://' . $path . $fileName . '.html');

@@ -29,6 +29,14 @@
     top: 10px;
     margin-left: -3px;
 }
+.waybill-header {
+    width: 100%
+}
+.waybill-header * {
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+}
 </style>
 @for($i = 0; $i < 2; $i++)
     @if($i == 0)
@@ -36,16 +44,29 @@
     @else
         <div style='width: 48%; float: right'>
     @endif
-        <table style='width: 100%'>
-            <td style='width: 80%; text-align: center'>
-                <h3 style='padding-top: 10px'>Fast Forward Express</h3>
-                <h2 style='padding-top: 0px; margin-bottom: 0px'>Bill # {{$model->bill->bill_id}}</h2>
-            </td>
-            <td style='width: 20%;'>
-                <div class='visible-print text-center' style='margin-top: 0px'>
-                    {!! QrCode::size(90)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
-                </div>
-            </td>
+        <table class='waybill-header'>
+            <tr>
+                <td style='width: 80%;'>
+                    <h3 style='padding-top: 10px'>Fast Forward Express</h3>
+                </td>
+                <td style='width: 20%;' rowspan='3'>
+                    <div class='visible-print text-center' style='margin: 0px; padding: 0px'>
+                        {!! QrCode::size(80)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h2>Bill # {{$model->bill->bill_id}}</h2>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h5 style="width: 20%; float: left;">Drivers</h5>
+                    <h5 style="width: 40%; float: left;">Pickup: {{$model->bill->pickup_driver_number}}</h5>
+                    <h5 style="width: 40%; float: right;">Delivery: {{$model->bill->delivery_driver_number}}</h5>
+                </td>
+            </tr>
         </table>
         <hr/>
         <table class='addresses'>
@@ -108,46 +129,46 @@
             {{$model->bill->description}}
             <hr/>
         @endif
-        <h5 style="width: 50%; float: left; margin-top: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-top: 0px">Sign: </h5>
+        <h5 style="width: 50%; float: left; margin-bottom: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-bottom: 0px">Sign: </h5>
         <hr/>
-        <h5 style="width: 50%; float: left; margin-top: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-top: 0px">Sign: </h5>
-        <hr/>
-        @foreach($model->charges as $charge)
-            <table class='charge-table'>
-                <thead>
-                    <tr>
-                        @if($charge->charge_account_name)
-                            <th colSpan='3'>{{$charge->account_id . ' - ' . $charge->charge_account_name}}</th>
-                        @else
-                            <th colSpan='3'>{{$charge->type}}
-                        @endif
-                    </tr>
-                </thead>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($charge->lineItems as $lineItem)
+        @if($showCharges)
+            @foreach($model->charges as $charge)
+                <table class='charge-table'>
+                    <thead>
                         <tr>
-                            <td>{{$lineItem->name}}</td>
-                            <td>{{$lineItem->friendly_type_name}}</td>
-                            <td>${{$lineItem->price}}</td>
+                            @if($charge->charge_account_name)
+                                <th colSpan='3'>{{$charge->account_id . ' - ' . $charge->charge_account_name}}</th>
+                            @else
+                                <th colSpan='3'>{{$charge->type}}
+                            @endif
                         </tr>
-                    @endforeach
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th>Total</th>
-                        <td></td>
-                        <td>${{number_format(floatval($charge->price), 2)}}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        @endforeach
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($charge->lineItems as $lineItem)
+                            <tr>
+                                <td>{{$lineItem->name}}</td>
+                                <td>{{$lineItem->friendly_type_name}}</td>
+                                <td>${{$lineItem->price}}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total</th>
+                            <td></td>
+                            <td>${{number_format(floatval($charge->price), 2)}}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            @endforeach
+        @endif
     </div>
     @if($i == 0)
         <div class="vertical-line"></div>

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useReducer, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
 
@@ -439,12 +439,31 @@ const Bill = (props) => {
                             ><i className='fas fa-copy'></i> Copy Bill</Button>
                         }
                         {billId &&
-                            <Button
-                                href={billId ? `/bills/print/${billId}` : null}
-                                target='_blank'
-                                title='Print Bill'
-                                variant='success'
-                            ><i className='fas fa-print'></i> Print</Button>
+                            <Dropdown
+                                align='end'
+                                as={ButtonGroup}
+                            >
+                                <Button
+                                    href={billId ? `/bills/print/${billId}` : null}
+                                    target='_blank'
+                                    title='Print Bill'
+                                    variant='success'
+                                ><i className='fas fa-print'></i> Print</Button>
+                                <Dropdown.Toggle
+                                    id='print-button-split'
+                                    split
+                                    variant='success'
+                                >
+                                    <Dropdown.Menu>
+                                        <Dropdown.Item
+                                            href={billId ? `/bills/print/${billId}?showCharges` : null}
+                                            target='_blank'
+                                            title='Print Bill with Charges'
+                                            variant='success'
+                                        >Print with Charges</Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown.Toggle>
+                            </Dropdown>
                         }
                     </Navbar.Collapse>
                 </Navbar>
