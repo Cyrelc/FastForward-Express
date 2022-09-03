@@ -81,6 +81,7 @@ class BillModelFactory{
 		$addressRepo = new Repos\AddressRepo();
 		$billRepo = new Repos\BillRepo();
 		$chargeRepo = new Repos\ChargeRepo();
+		$employeeRepo = new Repos\EmployeeRepo();
 		$interlinerRepo = new Repos\InterlinerRepo();
 		$lineItemRepo = new Repos\LineItemRepo();
 		$paymentRepo = new Repos\PaymentRepo();
@@ -123,6 +124,8 @@ class BillModelFactory{
 		$model->delivery_address = $addressRepo->GetById($model->bill->delivery_address_id);
 
 		$model->bill->packages = json_decode($model->bill->packages);
+		$model->bill->pickup_driver_number = $employeeRepo->GetById($model->bill->pickup_driver_id, null)->employee_number;
+		$model->bill->delivery_driver_number = $employeeRepo->GetById($model->bill->delivery_driver_id, null)->employee_number;
 		$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 
 		$model->ratesheet_id = 1;

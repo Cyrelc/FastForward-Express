@@ -67,6 +67,7 @@ class Bill extends Model
         'pickup_account_id',
         'pickup_address_id',
         'pickup_reference_value',
+        'proof_of_delivery_required',
         'time_pickup_scheduled',
         'time_delivery_scheduled',
         'use_imperial'

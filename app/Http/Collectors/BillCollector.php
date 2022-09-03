@@ -19,6 +19,7 @@ class BillCollector {
 			'pickup_account_id' => $req->pickup_address_type === "Account" ? $req->pickup_account_id : null,
 			'pickup_address_id' => $pickupAddressId,
 			'pickup_reference_value' => $req->pickup_address_type === 'Account' ? trim($req->pickup_reference_value) : null,
+			'proof_of_delivery_required' => filter_var($req->proof_of_delivery_required, FILTER_VALIDATE_BOOLEAN),
 			'time_pickup_scheduled' => (new \DateTime($req->time_pickup_scheduled))->format('Y-m-d H:i:s'),
 			'time_delivery_scheduled' => (new \DateTime($req->time_delivery_scheduled))->format('Y-m-d H:i:s'),
 			'use_imperial' => filter_var($req->use_imperial, FILTER_VALIDATE_BOOLEAN)

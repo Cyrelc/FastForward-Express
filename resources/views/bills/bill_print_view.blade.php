@@ -99,6 +99,9 @@
                 <td style='text-align: center'>{{substr($model->bill->time_delivery_scheduled, 0, -3)}}</td>
             </tr>
         </table>
+        <div style="text-align: center">
+            <input type='checkbox' @if($model->bill->proof_of_delivery_required == 1) checked @endif>Proof of Delivery Required</input>
+        </div>
         <hr/>
         @if(!$model->bill->is_min_weight_size)
             <table style="width: 100%">

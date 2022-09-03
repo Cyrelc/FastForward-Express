@@ -189,6 +189,7 @@ const Bill = (props) => {
                     pickup_address_place_id: billState.pickup.addressPlaceId,
                     pickup_address_type: billState.pickup.addressType,
                     pickup_reference_value: billState.pickup.referenceValue,
+                    proof_of_delivery_required: packageState.proofOfDeliveryRequired,
                     time_delivery_scheduled: billState.delivery.timeScheduled.toLocaleString("en-US"),
                     time_pickup_scheduled: billState.pickup.timeScheduled.toLocaleString("en-US"),
                     updated_at: billState.updatedAt.toLocaleString("en-US"),

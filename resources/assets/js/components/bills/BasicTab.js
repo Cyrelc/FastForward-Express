@@ -34,7 +34,7 @@ export default function BasicTab(props) {
         readOnly,
     } = props.billState
 
-    const {packageIsMinimum, packageIsPallet, packages, useImperial} = props.packageState
+    const {packageIsMinimum, packageIsPallet, packages, proofOfDeliveryRequired, useImperial} = props.packageState
 
     const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, isInvoiced} = props.chargeState
 
@@ -156,7 +156,17 @@ export default function BasicTab(props) {
                     </Col>
                     <Col md={10}>
                         <Row>
-                            <Col md={4}>
+                            <Col md={3}>
+                                <FormCheck
+                                    name='proofOfDeliveryRequired'
+                                    label='Proof of Delivery Required'
+                                    value={proofOfDeliveryRequired}
+                                    checked={proofOfDeliveryRequired}
+                                    disabled={readOnly || isInvoiced}
+                                    onChange={event => props.packageDispatch({type: 'TOGGLE_PROOF_OF_DELIVERY'})}
+                                />
+                            </Col>
+                            <Col md={3}>
                                 <FormCheck
                                     name='packageIsMinimum'
                                     label='Package is smaller than 30 cm&#179; (1 foot&#179;)'
@@ -167,7 +177,7 @@ export default function BasicTab(props) {
                                 />
                             </Col>
                             {!packageIsMinimum &&
-                                <Col md={4}>
+                                <Col md={3}>
                                     <FormCheck
                                         name='packageIsPallet'
                                         label='Is a pallet'
@@ -179,7 +189,7 @@ export default function BasicTab(props) {
                                 </Col>
                             }
                             {!packageIsMinimum &&
-                                <Col md={4}>
+                                <Col md={3}>
                                     <FormCheck
                                         name='useImperial'
                                         label='Use Imperial Measurements'
