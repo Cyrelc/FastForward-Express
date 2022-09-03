@@ -35,7 +35,6 @@
 .waybill-header * {
     padding: 0px;
     margin: 0px;
-    text-align: center;
 }
 </style>
 @for($i = 0; $i < 2; $i++)
@@ -44,31 +43,39 @@
     @else
         <div style='width: 48%; float: right'>
     @endif
-        <table class='waybill-header'>
-            <tr>
-                <td style='width: 80%;'>
-                    <h3 style='padding-top: 10px'>Fast Forward Express</h3>
-                </td>
-                <td style='width: 20%;' rowspan='3'>
-                    <div class='visible-print text-center' style='margin: 0px; padding: 0px'>
-                        {!! QrCode::size(80)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <h2>Bill # {{$model->bill->bill_id}}</h2>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <h5 style="width: 20%; float: left;">Drivers</h5>
-                    <h5 style="width: 40%; float: left;">Pickup: {{$model->bill->pickup_driver_number}}</h5>
-                    <h5 style="width: 40%; float: right;">Delivery: {{$model->bill->delivery_driver_number}}</h5>
-                </td>
-            </tr>
-        </table>
-        <hr/>
+        <div>
+            <div style="width: 80%; float: left">
+                <table class='waybill-header'>
+                    <tr>
+                        <td colspan='3' style='text-align: center'>
+                            <h3 style='padding-top: 10px'>Fast Forward Express</h3>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan='3' style='text-align: center'>
+                            <h2>Bill # {{$model->bill->bill_id}}</h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style='width: 20%'>
+                            <strong>Drivers</strong>
+                        </td>
+                        <td>
+                            <strong>Pickup: <u>{{$model->bill->pickup_driver_number}}</u></strong>
+                        </td>
+                        <td>
+                            <strong>Delivery: <u>{{$model->bill->delivery_driver_number}}</u></strong>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style='width: 20%; float: right'>
+                <div class='visible-print'>
+                    {!! QrCode::size(90)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
+                </div>
+            </div>
+        </div>
+        <hr style='width: 100%; float: left'/>
         <table class='addresses'>
             <tbody>
                 <tr>
@@ -99,9 +106,6 @@
                 <td style='text-align: center'>{{substr($model->bill->time_delivery_scheduled, 0, -3)}}</td>
             </tr>
         </table>
-        <div style="text-align: center">
-            <input type='checkbox' @if($model->bill->proof_of_delivery_required == 1) checked @endif>Proof of Delivery Required</input>
-        </div>
         <hr/>
         @if(!$model->bill->is_min_weight_size)
             <table style="width: 100%">
@@ -132,6 +136,9 @@
             {{$model->bill->description}}
             <hr/>
         @endif
+        <div>
+            <input type='checkbox' @if($model->bill->proof_of_delivery_required == 1) checked @endif>Proof of Delivery Required</input>
+        </div>
         <h5 style="width: 50%; float: left; margin-bottom: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-bottom: 0px">Sign: </h5>
         <hr/>
         @if($showCharges)
