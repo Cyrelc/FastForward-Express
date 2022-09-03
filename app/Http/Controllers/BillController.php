@@ -271,6 +271,22 @@ class BillController extends Controller {
         ]);
     }
 
+    public function template(Request $req, $billId) {
+        $billRepo = new Repos\BillRepo();
+
+        $bill = $billRepo->GetByid($billId);
+
+        if($req->user()->cannot('view', $billId) && $req->user()->cannot('createBasic', Bill::class))
+            abort(403);
+
+        $isTemplate = $billRepo->toggleTemplate($billId)->is_template;
+
+        return response()->json([
+            'success' => true,
+            'is_template' => $isTemplate
+        ]);
+    }
+
     /**
      * Private functions
      */

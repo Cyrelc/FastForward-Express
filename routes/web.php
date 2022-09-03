@@ -14,6 +14,7 @@
 Route::middleware(['auth'])->controller(BillController::class)->group(function() {
     Route::get('/billsList', 'buildTable');
     Route::get('/bills/create', 'getModel');
+    Route::get('/bills/template/{billId}', 'template');
     Route::get('/bills/{billId}', 'getModel');
     Route::delete('/bills/{billId}', 'delete');
     Route::post('/bills/manageLineItemLinks', 'manageLineItemLinks');

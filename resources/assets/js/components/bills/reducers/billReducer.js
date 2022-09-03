@@ -60,6 +60,7 @@ export const initialState = {
     description: '',
     incompleteFields: [],
     internalComments: '',
+    isTemplate: false,
     key: 'basic',
     nextBillId: null,
     permissions: [],
@@ -192,6 +193,7 @@ export default function billReducer(state, action) {
                 },
                 deliveryType: state.deliveryTypes.find(type => type.id === bill.delivery_type),
                 description: bill.description ? bill.description : '',
+                isTemplate: bill.is_template,
                 percentComplete: bill.percentage_complete,
                 permissions: permissions,
                 pickup: {
@@ -301,6 +303,8 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {description: payload})
         case 'SET_INTERNAL_COMMENTS':
             return Object.assign({}, state, {internalComments: payload})
+        case 'SET_IS_TEMPLATE':
+            return Object.assign({}, state, {isTemplate: payload})
         case 'SET_NEXT_BILL_ID':
             return Object.assign({}, state, {nextBillId: payload})
         case 'SET_PICKUP_ACCOUNT': {

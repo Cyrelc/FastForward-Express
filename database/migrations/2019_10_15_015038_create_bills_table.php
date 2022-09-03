@@ -31,7 +31,7 @@ class CreateBillsTable extends Migration
             $table->string('internal_comment');
             $table->boolean('is_min_weight_size')->default(0);
             $table->boolean('is_pallet')->default(0);
-            // $table->boolean('is_template')->default(0);
+            $table->boolean('is_template')->default(0);
             $table->text('packages')->nullable();
             $table->integer('percentage_complete');
             $table->unsignedInteger('pickup_account_id')->nullable();
@@ -40,6 +40,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_driver_id')->nullable();
             $table->unsignedInteger('pickup_manifest_id')->nullable();
             $table->string('pickup_reference_value')->nullable();
+            $table->boolean('proof_of_delivery_required')->default(0);
             $table->unsignedInteger('repeat_interval')->nullable()->default(null);
             $table->boolean('skip_invoicing')->default(false);
             $table->datetime('time_call_received');

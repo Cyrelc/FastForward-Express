@@ -19,7 +19,7 @@ const Bill = (props) => {
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
     const [awaitingCharges, setAwaitingCharges] = useState(false)
 
-    const {accounts, billId, deliveryType, nextBillId, permissions, prevBillId, readOnly} = billState
+    const {accounts, billId, deliveryType, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds} = chargeState
@@ -152,6 +152,12 @@ const Bill = (props) => {
             else
                 return <Button variant='primary' disabled>{billId ? 'Update' : 'Create'}</Button>
         }
+    }
+
+    const toggleTemplate = () => {
+        makeAjaxRequest(`/bills/template/${billId}`, 'GET', null, response => {
+            billDispatch({type: 'SET_IS_TEMPLATE', payload: response.is_template})
+        })
     }
 
     const toggleTermsAndConditions = event => {
@@ -430,6 +436,14 @@ const Bill = (props) => {
                                 title='Toggle restrictions'
                             >
                                 <i className={billState.applyRestrictions ? 'fas fa-lock' : 'fas fa-unlock'}></i> {billState.applyRestrictions ? 'Remove Time Restrictions' : 'Restore Time Restrictions'}
+                            </Button>
+                        }
+                        {(billId && (permissions.createBasic || permissions.createFull)) &&
+                            <Button
+                                onClick={toggleTemplate}
+                                variant='warning'
+                            >
+                                <i className={`${isTemplate ? 'fas' : 'far'} fa-star`}></i>Template
                             </Button>
                         }
                         {(billId && (permissions.createBasic || permissions.createFull)) &&

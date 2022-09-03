@@ -156,6 +156,13 @@ function Bills(props) {
             type: 'SelectFilter',
             value: 'charge_account_id'
         },
+        ...props.frontEndPermissions.bills.create ? [
+            {
+                name: 'Is Template',
+                type: 'BooleanFilter',
+                value: 'is_template'
+            }
+        ] : [],
         {
             isMulti: true,
             name: 'Parent Account',
@@ -235,7 +242,7 @@ function Bills(props) {
                 type: 'SelectFilter',
                 value: 'pickup_driver_id',
             },
-        ] : []
+        ] : [],
     ]
 
     const groupBy = ''

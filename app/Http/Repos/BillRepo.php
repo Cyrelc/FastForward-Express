@@ -547,6 +547,7 @@ class BillRepo {
                 AllowedFilter::exact('delivery_driver_id'),
                 AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
+                AllowedFilter::exact('is_template'),
                 AllowedFilter::exact('paid', 'line_items.paid'),
                 AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
                 AllowedFilter::exact('skip_invoicing'),
@@ -570,6 +571,15 @@ class BillRepo {
         else if ($type === 'delivery')
             $bill->time_delivered = $time;
 
+        $bill->save();
+
+        return $bill;
+    }
+
+    public function ToggleTemplate($billId) {
+        $bill = Bill::where('bill_id', $billId)->first();
+
+        $bill->is_template = !filter_var($bill->is_template, FILTER_VALIDATE_BOOLEAN);
         $bill->save();
 
         return $bill;
