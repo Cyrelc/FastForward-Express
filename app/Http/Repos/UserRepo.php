@@ -78,10 +78,14 @@ class UserRepo
         $accountUsers = AccountUser::where('account_id', $accountId)
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('users', 'account_users.user_id', '=', 'users.user_id')
-            ->leftJoin('email_addresses', 'account_users.contact_id', '=', 'email_addresses.contact_id')
-            ->leftJoin('phone_numbers', 'account_users.contact_id', '=', 'phone_numbers.contact_id')
-            ->where('email_addresses.is_primary', true)
-            ->where('phone_numbers.is_primary', true)
+            ->leftJoin('email_addresses', function($join) {
+                $join->on('account_users.contact_id', '=', 'email_addresses.contact_id')
+                    ->where('email_addresses.is_primary', true);
+            })
+            ->leftJoin('phone_numbers', function($join) {
+                $join->on('account_users.contact_id', '=', 'phone_numbers.contact_id')
+                    ->where('phone_numbers.is_primary', true);
+            })
             ->select(
                 'account_users.contact_id',
                 'users.user_id',
