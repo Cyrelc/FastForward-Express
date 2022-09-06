@@ -42,10 +42,9 @@ class ChargeRepo {
             ->leftJoin('accounts', 'accounts.account_id', '=', 'charges.charge_account_id')
             ->leftJoin('employees', 'employees.employee_id', '=', 'charges.charge_employee_id')
             ->leftJoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-            ->select(
+            ->select(array_merge([
                 'charges.charge_id',
                 DB::raw('SUM(line_items.price) as price'),
-                DB::raw('SUM(line_items.driver_amount) as driver_amount'),
                 DB::raw('case when charges.charge_account_id is not null then accounts.custom_field when charges.charge_employee_id is null then payment_types.required_field end as charge_reference_value_label'),
                 DB::raw('case when charges.charge_account_id is not null then accounts.is_custom_field_mandatory when charges.charge_employee_id is null then payment_types.required_field is null end as charge_reference_value_required'),
                 'accounts.account_id',
@@ -54,10 +53,14 @@ class ChargeRepo {
                 'charge_reference_value',
                 'charge_type_id',
                 'payment_types.name as type',
-                'charges.charge_employee_id as employee_id',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as charge_employee_name'),
                 DB::raw('case when charges.charge_account_id is not null then concat(accounts.account_number, " - ", accounts.name) when charges.charge_employee_id is not null then concat(contacts.first_name, " ", contacts.last_name) else payment_types.name end as name')
-            );
+            ],
+            $this->employeeId ? [
+                DB::raw('SUM(line_items.driver_amount) as driver_amount'),
+                'charges.charge_employee_id as employee_id',
+            ] : []
+        ));
 
         if($this->myAccounts)
             $charges->whereIn('charges.charge_account_id', $this->myAccounts);

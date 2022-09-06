@@ -327,7 +327,7 @@ class BillRepo {
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m - %b") as month'),
                 'pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
-                DB::raw('sum(case when pickup_driver_id = employees.employee_id and delivery_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2) when pickup_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) when delivery_driver_id = employees.employee_id then round(driver_amount * delivery_driver_id, 2) end) as driver_income')
+                DB::raw('sum(case when bills.pickup_driver_id = employees.employee_id and bills.delivery_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2) when bills.pickup_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) when bills.delivery_driver_id = employees.employee_id then round(driver_amount * bills.delivery_driver_id, 2) end) as driver_income')
             );
 
         if($filterBy) {
@@ -495,6 +495,8 @@ class BillRepo {
                     'bills.bill_id',
                     'bill_number',
                     'charge_account.account_id as charge_account_id',
+                    'charge_account.name as charge_account_name',
+                    'charge_account.account_number as charge_account_number',
                     'charges.charge_type_id as charge_type_id',
                     DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
                     'delivery_address.formatted as delivery_address_formatted',
@@ -512,9 +514,9 @@ class BillRepo {
                     'time_delivered'
                 ],
                 $req->user()->can('viewDispatch', Bill::class) ? [
-                    'delivery_driver_id',
+                    'bills.delivery_driver_id',
                     DB::raw('concat(delivery_employee_contact.first_name, " ", delivery_employee_contact.last_name) as delivery_employee_name'),
-                    'pickup_driver_id',
+                    'bills.pickup_driver_id',
                     DB::raw('concat(pickup_employee_contact.first_name, " ", pickup_employee_contact.last_name) as pickup_employee_name'),
                 ] : [],
                 $req->user()->can('viewBilling', Bill::class) ? [

@@ -8,62 +8,41 @@ import {fetchBills} from '../../store/reducers/bills'
 import * as actionTypes from '../../store/actions'
 
 const baseGroupByOptions = [
-    {label: 'None', value: null},
-    {label: 'Account ID', value: 'charge_account_number', groupHeader: (value, count, data, group) => {return data[0].charge_account_number + ' - ' + data[0].charge_account_name + '<span style="color: red">\t(' + count + ')</span>'}},
-    {label: 'Delivery Address', value: 'delivery_address_formatted', groupHeader: (value, count, data, group) => {return (data[0].delivery_address_name ? data[0].delivery_address_name : value) + '<span style="color: red">\t(' + count + ')</span>'}},
-    {label: 'Parent Account', value: 'parent_account'},
-    {label: 'Payment Type', value: 'payment_type_id'},
-    {label: 'Pickup Address', value: 'pickup_address_formatted', groupHeader: (value, count, data, group) => {return (data[0].pickup_address_name ? data[0].pickup_address_name : value) + '<span style="color: red">\t(' + count + ')</span>'}}
+    {
+        label: 'None',
+        value: null
+    },
+    {
+        label: 'Account ID',
+        value: 'charge_account_number',
+        groupHeader: (value, count, data, group) => {
+            return `${data[0].charge_account_number} - ${data[0].charge_account_name} <span style="color: red">\t(${count})</span>`
+        }
+    },
+    {
+        label: 'Delivery Address',
+        value: 'delivery_address_formatted',
+        groupHeader: (value, count, data, group) => {
+            return `${data[0].delivery_address_name ? data[0].delivery_address_name : value} <span style="color: red">\t(${count})</span>`}
+    },
+    {
+        label: 'Parent Account',
+        value: 'parent_account'
+    },
+    {
+        label: 'Payment Type',
+        value: 'payment_type_id'
+    },
+    {
+        label: 'Pickup Address',
+        value: 'pickup_address_formatted',
+        groupHeader: (value, count, data, group) => {
+            return `${data[0].pickup_address_name ? data[0].pickup_address_name : value} <span style="color: red">\t(${count})</span>`
+        }
+    }
 ]
 
 const initialSort = [{column:'bill_id', dir: 'desc'}]
-
-const rowFormatter = row => {
-    const rowData = row._row.getData ? row.getData() : undefined
-    if(!rowData?.bill_id)
-        return
-
-    const holderEl = document.createElement('div')
-
-    holderEl.style.boxSizing = "border-box";
-    holderEl.style.padding = "10px 30px 10px 10px";
-    holderEl.style.borderTop = "1px solid #333";
-    holderEl.style.borderBotom = "1px solid #333";
-    holderEl.style.background = "#ddd";
-    holderEl.setAttribute('class', 'charges_' + rowData.bill_id)
-    holderEl.style.display = 'none'
-
-    const chargeTable = document.createElement('table')
-    chargeTable.style.border = '2px solid black'
-    chargeTable.style.borderCollapse = 'collapse'
-    chargeTable.style.width = '100%'
-
-    if(rowData.charges) {
-        const thead = chargeTable.createTHead()
-        const theadRow = thead.insertRow(0)
-        theadRow.insertCell(0).outerHTML = '<th>Charge ID</th>'
-        theadRow.insertCell(1).outerHTML = '<th>Price</th>'
-        theadRow.insertCell(2).outerHTML = '<th>Driver Amount</th>'
-        theadRow.insertCell(3).outerHTML = '<th>Type</th>'
-        theadRow.insertCell(4).outerHTML = '<th>Charge Account</th>'
-        theadRow.insertCell(5).outerHTML = '<th>Charge Employee</th>'
-        theadRow.insertCell(6).outerHTML = '<th>Charge Reference Value</th>'
-        const tbody = chargeTable.createTBody()
-        rowData.charges.forEach(charge => {
-            const row = tbody.insertRow(0)
-            row.insertCell(0).innerHTML = charge.charge_id
-            row.insertCell(1).innerHTML = charge.price
-            row.insertCell(2).innerHTML = charge.driver_amount
-            row.insertCell(3).innerHTML = charge.type
-            row.insertCell(4).innerHTML = charge.charge_account_name
-            row.insertCell(5).innerHTML = charge.charge_employee_name
-            row.insertCell(6).innerHTML = charge.charge_reference_value
-        })
-    }
-
-    holderEl.appendChild(chargeTable)
-    row.getElement().appendChild(holderEl)
-}
 
 function Bills(props) {
     /**
@@ -105,6 +84,7 @@ function Bills(props) {
             {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/app/bills/', props.redirect), sorter:'number'},
             {title: 'Waybill #', field: 'bill_number'},
             {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
+            {title: 'Delivery Address Name', field: 'delivery_address_name', visible: false},
             ... (props.frontEndPermissions.bills.dispatch || props.authenticatedEmployee) ? [
                 {title: 'Delivery Driver', field: 'delivery_employee_name', ...configureFakeLink('/app/employees/', props.redirect, null, 'delivery_driver_id'), visible: false},
                 {title: 'Pickup Driver', field: 'pickup_employee_name', ...configureFakeLink('/app/employees/', props.redirect, null, 'pickup_driver_id')},
@@ -116,6 +96,7 @@ function Bills(props) {
             ] : [],
             {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', props.redirect), visible: false},
             {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
+            {title: 'Pickup Address Name', field: 'pickup_address_name', visible: false},
             {title: 'Scheduled Pickup', field: 'time_pickup_scheduled'},
             {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false},
             {title: 'Type', field: 'type'},
@@ -250,6 +231,59 @@ function Bills(props) {
     const groupByOptions = baseGroupByOptions.concat(...props.frontEndPermissions.bills.edit ? [
             {label: 'Pickup Employee', value: 'pickup_driver_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].pickup_employee_name + '<span style="color: red">\t(' + count + ')</span>'}}
         ] : [])
+
+        const rowFormatter = row => {
+            const rowData = row._row.getData ? row.getData() : undefined
+            if(!rowData?.bill_id)
+                return
+
+            const holderEl = document.createElement('div')
+
+            holderEl.style.boxSizing = "border-box";
+            holderEl.style.padding = "10px 30px 10px 10px";
+            holderEl.style.borderTop = "1px solid #333";
+            holderEl.style.borderBotom = "1px solid #333";
+            holderEl.style.background = "#ddd";
+            holderEl.setAttribute('class', 'charges_' + rowData.bill_id)
+            holderEl.style.display = 'none'
+
+            const chargeTable = document.createElement('table')
+            chargeTable.style.border = '2px solid black'
+            chargeTable.style.borderCollapse = 'collapse'
+            chargeTable.style.width = '100%'
+
+            const chargeColumns = [
+                // {'name': 'Charge ID', 'field': 'charge_id'},
+                {'name': 'Type', 'field': 'type'},
+                {'name': 'Price', 'field': 'price'},
+                ... props.frontEndPermissions.bills.createFull ? [
+                    {'name': 'Driver Amount', 'field': 'driver_amount'}
+                ] : [],
+                {'name': 'Charge Account', 'field': 'charge_account_name'},
+                ... props.frontEndPermissions.bills.createFull ? [
+                    {'name': 'Charge Employee', 'field': 'charge_employee_name'}
+                ] : [],
+                {'name': 'Charge Reference Value', 'field': 'charge_reference_value'},
+            ]
+
+            if(rowData.charges) {
+                const thead = chargeTable.createTHead()
+                const theadRow = thead.insertRow(0)
+                chargeColumns.forEach((column, index) => {
+                    theadRow.insertCell(index).outerHTML = `<th>${column.name}</th>`
+                })
+                const tbody = chargeTable.createTBody()
+                rowData.charges.forEach(charge => {
+                    const row = tbody.insertRow(0)
+                    chargeColumns.forEach((column, index) => {
+                        row.insertCell(index).innerHTML = charge[column.field]
+                    })
+                })
+            }
+
+            holderEl.appendChild(chargeTable)
+            row.getElement().appendChild(holderEl)
+        }
 
     const withSelected = []
 
