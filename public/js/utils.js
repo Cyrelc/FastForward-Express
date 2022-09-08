@@ -225,3 +225,11 @@ function toFixedNumber(num, digits, base) {
     var pow = Math.pow(base || 10, digits)
     return Math.round(num * pow) / pow
 }
+
+function formatPhoneNumber(phone) {
+    let cleaned = ('' + phone).replace(/\D/g, '')
+    let match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
+    if (match) {
+        return `(${match[1]}) ${match[2]}-${match[3]}`
+    }
+}

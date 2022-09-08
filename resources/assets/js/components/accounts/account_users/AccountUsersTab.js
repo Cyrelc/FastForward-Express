@@ -180,7 +180,7 @@ export default function AccountUsersTab(props) {
                                             {user.is_primary ? <Badge bg='warning' text='dark' style={{float: 'right'}}><i className='fas fa-star'></i> Primary</Badge> : null}
                                         </td>
                                         <td>{user.primary_email}</td>
-                                        <td>{user.primary_phone}</td>
+                                        <td>{formatPhoneNumber(user.primary_phone)}</td>
                                         <td>{user.position}</td>
                                         <td>{user.roles.map(role => <Badge pill bg='info' text='dark'>{role}</Badge>)}</td>
                                     </tr>
