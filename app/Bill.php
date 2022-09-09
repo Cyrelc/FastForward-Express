@@ -63,6 +63,7 @@ class Bill extends Model
         'description',
         'is_min_weight_size',
         'is_pallet',
+        'is_template',
         'packages',
         'pickup_account_id',
         'pickup_address_id',

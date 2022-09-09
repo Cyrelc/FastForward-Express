@@ -68,7 +68,7 @@ export const initialState = {
     pickup: initialPickupDelivery,
     prevBillId: null,
     // readOnly: true,
-    repeatInterval: null,
+    repeatInterval: undefined,
     repeatIntervals: [],
     skipInvoicing: false,
     timeCallReceived: null,
