@@ -1,14 +1,15 @@
-import {createRef} from 'react'
-
 const basicCharge = (chargeType) => {
     return {
         chargeType: chargeType,
         charge_type_id: chargeType.payment_type_id,
         charge_reference_value: '',
         lineItems: [],
-        tableRef: createRef(null),
         testCounter: 0
     }
+}
+
+function canChargeTableBeDeleted(charge) {
+    return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
 }
 
 export const initialState = {
@@ -89,9 +90,8 @@ export default function chargeReducer(state, action) {
             })
         case 'CHECK_FOR_INTERLINER': {
             let hasInterliner = false
-            state.charges.map(charge => {
-                const data = charge.tableRef.current.table.getData()
-                data.forEach(row => {
+            state.charges.forEach(charge => {
+                charge.lineItems.forEach(row => {
                     if(row.name === 'Interliner' && !row.toBeDeleted)
                         hasInterliner = true
                 })
@@ -99,6 +99,22 @@ export default function chargeReducer(state, action) {
             return Object.assign({}, state, {
                 hasInterliner
             })
+        }
+        case 'CHECK_INVOICES_AND_MANIFESTS': {
+            let isDeliveryManifested = false
+            let isInvoiced = false
+            let isPickupManifested = false
+            state.charges.forEach(charge => {
+                charge.lineItems.forEach(lineItem => {
+                    if(lineItem.invoice_id)
+                        isInvoiced = true
+                    if(lineItem.pickup_manifest_id)
+                        isPickupManifested = true
+                    if(lineItem.delivery_manifest_id)
+                        isDeliveryManifested = true
+                })
+            })
+            return Object.assign({}, state, {isDeliveryManifested, isInvoiced, isPickupManifested})
         }
         case 'CHECK_REFERENCE_VALUES': {
             const {account, value, prevValue} = payload
@@ -125,7 +141,10 @@ export default function chargeReducer(state, action) {
             const {accounts, bill, charges, charge_types, permissions} = payload
             let newState = {charges: [], invoiceIds: [], manifestIds: []}
             charges?.forEach(charge => {
-                newState.charges.push({...charge, chargeType: state.chargeTypes.find(chargeType => chargeType.payment_type_id === charge.charge_type_id), tableRef: createRef()})
+                newState.charges.push({
+                    ...charge,
+                    chargeType: state.chargeTypes.find(chargeType => chargeType.payment_type_id === charge.charge_type_id)
+                })
                 charge.lineItems?.forEach(lineItem => {
                     const {invoice_id} = lineItem
                     if(invoice_id && !newState.invoiceIds.includes(invoice_id)) {
@@ -163,7 +182,7 @@ export default function chargeReducer(state, action) {
             // If the table has no ID (has not been stored) we can delete it straight out, otherwise mark it as to be deleted
             // TODO - Rules?!?!!? Don't just delete things that we aren't allowed, bad!
             let charges = state.charges.map((charge, index) => {
-                if(index === payload)
+                if(index === payload && canChargeTableBeDeleted(charge))
                     return {...charge, toBeDeleted: true}
                 return charge
             })
@@ -217,22 +236,6 @@ export default function chargeReducer(state, action) {
             return Object.assign({}, state, {interlinerActualCost: payload})
         case 'SET_INTERLINER_REFERENCE_VALUE':
             return Object.assign({}, state, {interlinerReferenceValue: payload})
-        case 'CHECK_INVOICES_AND_MANIFESTS': {
-            let isDeliveryManifested = false
-            let isInvoiced = false
-            let isPickupManifested = false
-            state.charges.forEach(charge => {
-                charge.lineItems.forEach(lineItem => {
-                    if(lineItem.invoice_id)
-                        isInvoiced = true
-                    if(lineItem.pickup_manifest_id)
-                        isPickupManifested = true
-                    if(lineItem.delivery_manifest_id)
-                        isDeliveryManifested = true
-                })
-            })
-            return Object.assign({}, state, {isDeliveryManifested, isInvoiced, isPickupManifested})
-        }
         case 'UPDATE_LINE_ITEMS': {
             const lineItems = payload.data.filter(lineItem => lineItem.line_item_id ? true : lineItem.deleted != true)
             const charges = state.charges.map((charge, index) => {

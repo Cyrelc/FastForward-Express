@@ -58,18 +58,20 @@ class LineItemRepo {
             ->leftJoin('invoices', 'invoices.invoice_id', 'line_items.invoice_id')
             ->leftJoin('selections', 'selections.value', 'line_items.type')
             ->select(
-                'line_item_id',
-                'charge_id',
-                'driver_amount',
-                'invoices.invoice_id',
-                'pickup_manifest_id',
-                'delivery_manifest_id',
-                'line_items.name',
-                'paid',
-                'price',
-                'line_items.type',
                 'amendment_number',
+                'charge_id',
+                'delivery_driver_id',
+                'delivery_manifest_id',
+                'driver_amount',
                 'finalized as invoice_is_finalized',
+                'invoices.invoice_id',
+                'line_item_id',
+                'line_items.name',
+                'line_items.type',
+                'paid',
+                'pickup_driver_id',
+                'pickup_manifest_id',
+                'price',
                 'selections.name as friendly_type_name'
             );
 
@@ -115,6 +117,7 @@ class LineItemRepo {
             ->where('invoice_id', null)
             ->where('skip_invoicing', 0)
             ->where('percentage_complete', 100)
+            ->where('price', '!=', 0)
             ->get();
 
         $amendmentNumber = $asAmendment ? LineItem::where('invoice_id', $invoice->invoice_id)->max('amendment_number') + 1 : null;
@@ -140,7 +143,18 @@ class LineItemRepo {
     public function Update($lineItem) {
         $old = $this->GetById($lineItem['line_item_id']);
 
-        $fields = ['amount', 'driver_amount', 'invoice_id', 'pickup_manifest_id', 'delivery_manifest_id', 'paid', 'type'];
+        $fields = [
+            'amount',
+            'delivery_driver_id',
+            'delivery_manifest_id',
+            'driver_amount',
+            'invoice_id',
+            'pickup_driver_id',
+            'pickup_manifest_id',
+            'paid',
+            'type'
+        ];
+
         foreach($fields as $field)
             if(array_key_exists($field, $lineItem))
                 $old->$field = $lineItem[$field];
@@ -152,10 +166,12 @@ class LineItemRepo {
     public function UpdateAsBill($lineItem) {
         $old = LineItem::where('line_item_id', $lineItem['line_item_id'])->first();
 
-        $old->price = $lineItem['price'];
+        $old->delivery_driver_id = $lineItem['delivery_driver_id'];
         $old->driver_amount = $lineItem['driver_amount'];
-        $old->type = $lineItem['type'];
         $old->paid = $lineItem['paid'];
+        $old->pickup_driver_id = $lineItem['pickup_driver_id'];
+        $old->price = $lineItem['price'];
+        $old->type = $lineItem['type'];
 
         return $old->save();
     }

@@ -20,18 +20,22 @@ class CreateLineItemsTable extends Migration
 
             $table->unsignedInteger('amendment_number')->nullable()->default(null);
             $table->unsignedInteger('charge_id');
+            $table->unsignedInteger('delivery_driver_id')->nullable()->default(null);
             $table->unsignedInteger('delivery_manifest_id')->nullable()->default(null);
             $table->decimal('driver_amount');
             $table->unsignedInteger('invoice_id')->nullable()->default(null);
             $table->string('name');
             $table->boolean('paid');
+            $table->unsignedInteger('pickup_driver_id')->nullable()->default(null);
             $table->unsignedInteger('pickup_manifest_id')->nullable()->default(null);
             $table->decimal('price');
             $table->string('type');
 
             $table->foreign('charge_id')->references('charge_id')->on('charges');
+            $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');
             $table->foreign('delivery_manifest_id')->references('manifest_id')->on('manifests');
             $table->foreign('invoice_id')->references('invoice_id')->on('invoices');
+            $table->foreign('pickup_driver_id')->references('employee_id')->on('employees');
             $table->foreign('pickup_manifest_id')->references('manifest_id')->on('manifests');
         });
     }

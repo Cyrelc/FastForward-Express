@@ -96,7 +96,11 @@ class ManifestRepo {
                 'manifest_id',
                 'employees.employee_id',
                 DB::raw('concat(first_name, " ", last_name) as employee_name'),
-                DB::raw('(select count(distinct bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id where pickup_manifest_id = manifests.manifest_id or delivery_manifest_id = manifests.manifest_id) as bill_count'),
+                DB::raw('(select count(distinct bill_id) from line_items
+                    left join charges on charges.charge_id = line_items.charge_id
+                    where pickup_manifest_id = manifests.manifest_id or
+                    delivery_manifest_id = manifests.manifest_id)
+                as bill_count'),
                 'date_run',
                 'manifests.start_date',
                 'end_date'
@@ -120,37 +124,30 @@ class ManifestRepo {
 
         $pickupLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->where(function ($query) use ($driverId, $startDate, $endDate) {
-                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
-                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
-                    ->where('driver_amount', '!=', 0)
-                    ->where('pickup_driver_id', $driverId)
-                    ->where('pickup_manifest_id', null)
-                    ->where('percentage_complete', 100);
-            })->get();
+            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->where('driver_amount', '!=', 0)
+            ->where(DB::raw('coalesce(line_items.pickup_driver_id, bills.pickup_driver_id)'), $driverId)
+            ->where('pickup_manifest_id', null)
+            ->where('percentage_complete', 100)
+            ->get();
 
         $deliveryLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->where(function ($query) use ($driverId, $startDate, $endDate) {
-                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
-                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
-                    ->where('driver_amount', '!=', 0)
-                    ->where('delivery_driver_id', $driverId)
-                    ->where('delivery_manifest_id', null)
-                    ->where('percentage_complete', 100);
-            })->get();
+            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->where('driver_amount', '!=', 0)
+            ->where(DB::raw('coalesce(line_items.delivery_driver_id, bills.delivery_driver_id)'), $driverId)
+            ->where('delivery_manifest_id', null)
+            ->where('percentage_complete', 100)
+            ->get();
 
         $chargebackLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->where(function ($query) use ($driverId, $startDate, $endDate) {
-                $query->whereDate('time_pickup_scheduled', '>=', $startDate)
-                    ->whereDate('time_pickup_scheduled', '<=', $endDate)
-                    ->where('charge_employee_id', $driverId)
-                    ->where('price', '!=', 0)
-                    ->where('percentage_complete', 100)
-                    ->where('pickup_manifest_id', null)
-                    ->where('delivery_manifest_id', null);
-            });
+            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->where('charge_employee_id', $driverId)
+            ->where('price', '!=', 0)
+            ->where('percentage_complete', 100)
+            ->where('pickup_manifest_id', null)
+            ->where('delivery_manifest_id', null);
 
         $chargebackBills = clone $chargebackLineItems;
         $chargebackBills = $chargebackBills->select(
@@ -164,11 +161,15 @@ class ManifestRepo {
 
         foreach($pickupLineItems as $lineItem) {
             $lineItem->pickup_manifest_id = $manifestId;
+            if($lineItem->pickup_driver_id == null)
+                $lineItem->pickup_driver_id = $driverId;
             $lineItem->save();
         }
 
         foreach($deliveryLineItems as $lineItem) {
             $lineItem->delivery_manifest_id = $manifestId;
+            if($lineItem->delivery_driver_id == null)
+                $lineItem->delivery_driver_id = $driverId;
             $lineItem->save();
         }
 

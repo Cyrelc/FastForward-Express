@@ -178,10 +178,50 @@ class EmployeeRepo {
                 'employees.employee_id',
                 'employee_number',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as label'),
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as valid_bill_count'),
-                // DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete = 100 and date(time_pickup_scheduled) <= cast("' . $startDate . '" as date)) as legacy_bill_count'),
-                DB::raw('0 as legacy_bill_count'),
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where ((pickup_driver_id = employees.employee_id and pickup_manifest_id is null) or (delivery_driver_id = employees.employee_id and delivery_manifest_id is null)) and driver_amount > 0 and percentage_complete < 100 and date(time_pickup_scheduled) <= cast("' . $endDate . '" as date)) as incomplete_bill_count')
+                DB::raw('(
+                    select count(distinct bills.bill_id)
+                    from line_items left join charges on charges.charge_id = line_items.charge_id
+                    left join bills on bills.bill_id = charges.bill_id
+                    where (
+                        (pickup_manifest_id is null and coalesce(line_items.pickup_driver_id, bills.pickup_driver_id) = employees.employee_id) or
+                        (delivery_manifest_id is null and coalesce(line_items.delivery_driver_id, bills.delivery_driver_id) = employees.employee_id)) and
+                        driver_amount != 0 and
+                        percentage_complete = 100
+                        and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)
+                    ) as valid_bill_count'
+                ),
+                DB::raw('(
+                    select count(distinct bills.bill_id) from line_items
+                        left join charges on charges.charge_id = line_items.charge_id
+                        left join bills on bills.bill_id = charges.bill_id
+                        where (
+                            (pickup_manifest_id is null and coalesce(line_items.pickup_driver_id, bills.pickup_driver_id) = employees.employee_id)
+                            or (delivery_manifest_id is null and coalesce(line_items.delivery_driver_id, bills.delivery_driver_id) = employees.employee_id)
+                        )
+                        and driver_amount != 0
+                        and percentage_complete = 100
+                        and date(time_pickup_scheduled) < cast("' . $startDate . '" as date)
+                    ) as legacy_bill_count'
+                ),
+                DB::raw(
+                    '(select count(distinct bills.bill_id) from line_items
+                        left join charges on charges.charge_id = line_items.charge_id
+                        left join bills on bills.bill_id = charges.bill_id
+                            where (
+                                (pickup_manifest_id is null and coalesce(line_items.pickup_driver_id, bills.pickup_driver_id) = employees.employee_id)
+                                or (delivery_manifest_id is null and coalesce(line_items.delivery_driver_id, bills.delivery_driver_id) = employees.employee_id)
+                            )
+                            and driver_amount > 0
+                            and percentage_complete < 100
+                            and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)
+                        ) +
+                        (select count(distinct bills.bill_id) from bills
+                            where date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)
+                            and bill_id not in (select bill_id from line_items left join charges on charges.charge_id = line_items.charge_id)
+                            and (pickup_driver_id = employees.employee_id or delivery_driver_id = employees.employee_id)
+                        )
+                    as incomplete_bill_count'
+                ),
             )->havingRaw('valid_bill_count > 0')
             ->orHavingRaw('legacy_bill_count > 0')
             ->orHavingRaw('incomplete_bill_count > 0');

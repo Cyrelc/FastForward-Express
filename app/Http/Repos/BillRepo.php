@@ -282,9 +282,28 @@ class BillRepo {
                 'bill_number',
                 'time_pickup_scheduled',
                 'selections.name as delivery_type',
-                DB::raw('case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . ' then "Pickup And Delivery" when pickup_manifest_id = ' . $manifestId . ' then "Pickup Only" when delivery_manifest_id = ' . $manifestId . ' then "Delivery Only" end as type'),
+                DB::raw('
+                    case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . '
+                        then "Pickup And Delivery"
+                    when pickup_manifest_id = ' . $manifestId . '
+                        then "Pickup Only"
+                    when delivery_manifest_id = ' . $manifestId . '
+                        then "Delivery Only"
+                    end as type'
+                ),
                 DB::raw('DATE_FORMAT(time_pickup_scheduled, "%Y-%m-%d") as day'),
-                DB::raw('round(sum(case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . ' then driver_amount * pickup_driver_commission + driver_amount * delivery_driver_commission when pickup_manifest_id = ' . $manifestId . ' then driver_amount * pickup_driver_commission when delivery_manifest_id = ' . $manifestId . ' then driver_amount * delivery_driver_commission end), 2) as driver_income')
+                DB::raw(
+                    'round(
+                        sum(
+                            case when pickup_manifest_id = ' . $manifestId . ' and delivery_manifest_id = ' . $manifestId . '
+                                then driver_amount * pickup_driver_commission + driver_amount * delivery_driver_commission
+                            when pickup_manifest_id = ' . $manifestId . '
+                                then driver_amount * pickup_driver_commission
+                            when delivery_manifest_id = ' . $manifestId . '
+                                then driver_amount * delivery_driver_commission
+                            end)
+                        , 2)
+                    as driver_income')
             )->orderBy('time_pickup_scheduled')
             ->orderBy('bills.bill_id')
             ->groupBy('bills.bill_id');
@@ -325,9 +344,17 @@ class BillRepo {
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
                 'employees.employee_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m - %b") as month'),
-                'pickup_driver_id',
+                'bills.pickup_driver_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y") as year'),
-                DB::raw('sum(case when bills.pickup_driver_id = employees.employee_id and bills.delivery_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2) when bills.pickup_driver_id = employees.employee_id then round(driver_amount * pickup_driver_commission, 2) when bills.delivery_driver_id = employees.employee_id then round(driver_amount * bills.delivery_driver_id, 2) end) as driver_income')
+                DB::raw('sum(case
+                    when bills.pickup_driver_id = employees.employee_id and bills.delivery_driver_id = employees.employee_id
+                        then round(driver_amount * pickup_driver_commission, 2) + round(driver_amount * delivery_driver_commission, 2)
+                    when bills.pickup_driver_id = employees.employee_id
+                        then round(driver_amount * pickup_driver_commission, 2)
+                    when bills.delivery_driver_id = employees.employee_id
+                        then round(driver_amount * bills.delivery_driver_id, 2)
+                    end)
+                as driver_income')
             );
 
         if($filterBy) {
@@ -483,7 +510,7 @@ class BillRepo {
             ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
             ->leftJoin('interliners', 'interliners.interliner_id', '=', 'bills.interliner_id')
             ->leftJoin('employees as pickup_employee', 'pickup_employee.employee_id', '=', 'bills.pickup_driver_id')
-            ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'bills.pickup_driver_id')
+            ->leftJoin('employees as delivery_employee', 'delivery_employee.employee_id', '=', 'bills.delivery_driver_id')
             ->leftJoin('contacts as pickup_employee_contact', 'pickup_employee.contact_id', '=', 'pickup_employee_contact.contact_id')
             ->leftJoin('contacts as delivery_employee_contact', 'delivery_employee.contact_id', '=', 'delivery_employee_contact.contact_id')
             ->leftJoin('selections as deliveryType', 'deliveryType.value', '=', 'bills.delivery_type')
@@ -536,8 +563,8 @@ class BillRepo {
             $bills->whereIn('charges.charge_account_id', $this->myAccounts);
         }
         else if($this->employeeId && Auth::user()->cannot('viewAll', Bill::class)) {
-            $bills->where('pickup_driver_id', $this->employeeId)
-                ->orWhere('delivery_driver_id', $this->employeeId);
+            $bills->where('bills.pickup_driver_id', $this->employeeId)
+                ->orWhere('bills.delivery_driver_id', $this->employeeId);
         }
 
         $filteredBills = QueryBuilder::for($bills)
@@ -558,7 +585,7 @@ class BillRepo {
                 AllowedFilter::custom('time_ten_foured', new DateBetween),
                 AllowedFilter::exact('charge_type_id', 'charges.charge_type_id'),
                 AllowedFilter::custom('percentage_complete', new NumberBetween),
-                AllowedFilter::exact('pickup_driver_id'),
+                AllowedFilter::exact('pickup_driver_id', 'bills.pickup_driver_id'),
                 AllowedFilter::exact('repeat_interval')
             ]);
 
@@ -595,7 +622,8 @@ class BillRepo {
 
         if($permissions['editBasic'])
             foreach(Bill::$basicFields as $field)
-                $old->$field = $bill[$field];
+                if(isset($bill[$field]))
+                    $old->$field = $bill[$field];
 
         if($permissions['editDispatch'])
             foreach(Bill::$dispatchFields as $field) {

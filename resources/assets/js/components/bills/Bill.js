@@ -224,9 +224,7 @@ const Bill = (props) => {
 
             if(billId ? permissions.editBilling : permissions.createFull) {
                 data = {...data,
-                    charges: chargeState.charges?.map(charge => {
-                        return {...charge, lineItems: charge.tableRef.current.table.getData()}
-                    }),
+                    charges: chargeState.charges,
                     interliner_cost: chargeState.interlinerActualCost,
                     interliner_id: chargeState.interliner?.value,
                     interliner_reference_value: chargeState.interlinerReferenceValue,
