@@ -24,7 +24,7 @@ class InvoiceController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/app/public/';
+        $this->storagePath = storage_path() . '/app/public/storage/invoices/';
         $this->folderName = 'invoices.' . time();
     }
 

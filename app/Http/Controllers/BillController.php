@@ -20,7 +20,7 @@ class BillController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/app/public/';
+        $this->storagePath = storage_path() . '/app/public/storage/bills/';
         $this->folderName = 'bills.' . time();
     }
 
