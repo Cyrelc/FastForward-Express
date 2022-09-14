@@ -124,7 +124,7 @@ class ManifestRepo {
 
         $pickupLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->whereBetween(DB::raw('date(time_pickup_scheduled)'), [$startDate, $endDate])
             ->where('driver_amount', '!=', 0)
             ->where(DB::raw('coalesce(line_items.pickup_driver_id, bills.pickup_driver_id)'), $driverId)
             ->where('pickup_manifest_id', null)
@@ -133,7 +133,7 @@ class ManifestRepo {
 
         $deliveryLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->whereBetween(DB::raw('date(time_pickup_scheduled)'), [$startDate, $endDate])
             ->where('driver_amount', '!=', 0)
             ->where(DB::raw('coalesce(line_items.delivery_driver_id, bills.delivery_driver_id)'), $driverId)
             ->where('delivery_manifest_id', null)
@@ -142,7 +142,7 @@ class ManifestRepo {
 
         $chargebackLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-            ->whereBetween('time_pickup_scheduled', [date($startDate), date($endDate)])
+            ->whereBetween(DB::raw('date(time_pickup_scheduled)'), [$startDate, $endDate])
             ->where('charge_employee_id', $driverId)
             ->where('price', '!=', 0)
             ->where('percentage_complete', 100)

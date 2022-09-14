@@ -84,11 +84,11 @@ class EmployeeRepo {
     public function GetEmergencyContacts($employeeId) {
         $emergency_contacts = EmployeeEmergencyContact::where('employee_id', '=', $employeeId)
             ->leftJoin('contacts', 'employee_emergency_contacts.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('phone_numbers', function($join){
+            ->leftJoin('phone_numbers', function($join) {
                 $join->on('phone_numbers.contact_id', '=', 'employee_emergency_contacts.contact_id');
                 $join->on('phone_numbers.is_primary', '=', DB::raw(true));
             })
-            ->leftJoin('email_addresses', function($join){
+            ->leftJoin('email_addresses', function($join) {
                 $join->on('email_addresses.contact_id', '=', 'employee_emergency_contacts.contact_id');
                 $join->on('email_addresses.is_primary', '=', DB::raw(true));
             })
