@@ -20,8 +20,8 @@ class BillController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/app/public/storage/bills/';
-        $this->folderName = 'bills.' . time();
+        $this->storagePath = storage_path() . '/bills/';
+        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
     }
 
     public function buildTable(Request $req) {
@@ -173,7 +173,7 @@ class BillController extends Controller {
 
         $path = $this->storagePath . $this->folderName . '/';
         $fileName = 'bill_' . $model->bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $model->bill->time_pickup_scheduled);
-        mkdir($path);
+        mkdir($path, 0777, true);
 
         $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
         file_put_contents($path . $fileName . '.html', $file);

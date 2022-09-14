@@ -22,8 +22,8 @@ class ManifestController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/app/public/storage/manifests/';
-        $this->folderName = 'manifests.' . time();
+        $this->storagePath = storage_path() . '/manifests/';
+        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
     }
 
     public function buildTable(Request $req) {
@@ -174,7 +174,7 @@ class ManifestController extends Controller {
 
         $files = array();
         $path = $this->storagePath . $this->folderName . '/';
-        mkdir($path);
+        mkdir($path, 0777, true);
 
         foreach($manifestIds as $manifestId) {
             $model = $manifestModelFactory->GetById($req->user(), $manifestId);

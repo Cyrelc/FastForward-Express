@@ -24,8 +24,8 @@ class InvoiceController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/app/public/storage/invoices/';
-        $this->folderName = 'invoices.' . time();
+        $this->storagePath = storage_path() . '/invoices/';
+        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
     }
 
     public function buildTable(Request $req) {
@@ -221,7 +221,7 @@ class InvoiceController extends Controller {
 
         $files = array();
         $path = $this->storagePath . $this->folderName . '/';
-        mkdir($path);
+        mkdir($path, 0777, true);
 
         foreach($invoiceIds as $invoiceId) {
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
