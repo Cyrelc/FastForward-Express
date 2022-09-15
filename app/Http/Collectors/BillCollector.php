@@ -88,12 +88,12 @@ class BillCollector {
 			if(isset($charge['lineItems']))
 				foreach($charge['lineItems'] as $lineItem) {
 					$temp['line_items'][] = [
-						'delivery_driver_id' => $lineItem['delivery_driver_id'] ?? null,
+						'delivery_driver_id' => $lineItem['delivery_driver_id'] ? $lineItem['delivery_driver_id'] : null,
 						'driver_amount' => isset($lineItem['driver_amount']) ? $lineItem['driver_amount'] : 0,
 						'line_item_id' => isset($lineItem['line_item_id']) ? $lineItem['line_item_id'] : null,
 						'name' => $lineItem['name'],
 						'paid' => filter_var($lineItem['paid'], FILTER_VALIDATE_BOOLEAN),
-						'pickup_driver_id' => $lineItem['pickup_driver_id'] ?? null,
+						'pickup_driver_id' => $lineItem['pickup_driver_id'] ? $lineItem['pickup_driver_id'] : null,
 						'price' => isset($lineItem['price']) ? $lineItem['price'] : 0,
 						'to_be_deleted' => $temp['to_be_deleted'] ? true : (isset($lineItem['toBeDeleted']) ? filter_var($lineItem['toBeDeleted'], FILTER_VALIDATE_BOOLEAN) : false),
 						'type' => $lineItem['type']
