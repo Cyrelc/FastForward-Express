@@ -30,7 +30,7 @@ export default function ChangePasswordModal(props) {
         }
         makeAjaxRequest(`/users/changePassword/${props.userId}`, 'POST', data, response => {
             toastr.clear()
-            this.props.toggleModal()
+            props.toggleModal()
             toastr.success('Password was successfully changed', 'Success')
         })
     }
