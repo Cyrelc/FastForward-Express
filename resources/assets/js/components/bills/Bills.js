@@ -139,9 +139,10 @@ function Bills(props) {
         },
         ...props.frontEndPermissions.bills.create ? [
             {
+                default: true,
                 name: 'Is Template',
                 type: 'BooleanFilter',
-                value: 'is_template'
+                value: 'is_template',
             }
         ] : [],
         {

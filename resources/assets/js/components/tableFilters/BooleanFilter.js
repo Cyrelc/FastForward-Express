@@ -16,6 +16,9 @@ export default class BooleanFilter extends Component {
         if(window.location.search.includes('filter[' + this.props.filter.value + ']=')) {
             const filterValue = window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0]
             this.handleChange(filterValue === 'true')
+        } else if (this.props.filter.default) {
+            this.setState({boolState: this.props.filter.default})
+            this.handleChange(this.props.filter.default)
         }
     }
 
