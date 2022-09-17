@@ -70,6 +70,7 @@ function groupHeaderFormatter(key, count, data, group) {
 export default function Charge(props) {
     const [linkLineItemCell, setLinkLineItemCell] = useState('')
     const [linkLineItemToType, setLinkLineItemToType] = useState('')
+    const [showDetails, setShowDetails] = useState(false)
     const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
 
@@ -78,17 +79,17 @@ export default function Charge(props) {
 
     const {
         charge,
-        charges,
+        chargeCount,
+        drivers,
         index,
         lineItemTypeFormatter,
         readOnly
     } = props
 
     useEffect(() => {
-        console.log('trigger redraw')
-        console.log(tableRef.current.table)
-        tableRef?.current?.table?.redraw()
-    }, [charges.length])
+        if(tableRef?.current?.table)
+            tableRef.current.table.setGroupHeader(groupHeaderFormatter)
+    }, [showDetails])
 
     const actionCellContextMenu = cell => {
         const data = cell.getRow().getData()
@@ -137,19 +138,52 @@ export default function Charge(props) {
                 print: false,
                 width: 45
             },
-            {title: 'Line Item ID', field: 'line_item_id', visible: false},
+            {title: 'Line Item ID', field: 'line_item_id', visible: showDetails},
             {title: 'Name', field: 'name'},
             {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), headerSort: false, hozAlign: 'center', width: 45},
             {title: 'Price', field: 'price', ...moneyColumnStandardParams},
             {title: 'Driver Amount', field: 'driver_amount', ...moneyColumnStandardParams},
-            ... chargeType.name === 'Account' ? [{title: 'Invoice ID', field: 'invoice_id', visible: false}] : chargeType.name === 'Employee' ? [{title: 'Manifest ID', field: 'manifest_id', visible: false}] : [],
+            ... chargeType.name === 'Account' ? [
+                {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => {redirectToCellValue('invoices', cell)}}
+            ] : chargeType.name === 'Employee' ? [
+                {title: 'Manifest ID', field: 'manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)}
+            ] : [],
             {title: 'Paid?', field: 'paid', formatter: 'tickCross', cellClick: (e, cell) => {cell.setValue(!cell.getValue())}, width: 45, hozAlign: 'center', headerSort: false},
-            {title: 'Invoice ID', field: 'invoice_id', visible: false, cellClick: (e, cell) => {redirectToCellValue('invoices', cell)}},
-            {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: false, formatter: 'tickCross'},
-            {title: 'Pickup Driver ID', field: 'pickup_driver_id', visible: false, cellClick: (e, cell) => redirectToCellValue('employees', cell)},
-            {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: false, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
-            {title: 'Delivery Driver ID', field: 'delivery_driver_id', visible: false, cellClick: (e, cell) => redirectToCellValue('employees', cell)},
-            {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: false, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
+            {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: showDetails, formatter: 'tickCross'},
+            {
+                editor:'select',
+                editorParams: {
+                    listItemFormatter: (value, title) => {
+                        return title
+                    },
+                    values: drivers
+                },
+                field: 'pickup_driver_id',
+                formatter: cell => {
+                    const driver = drivers.find(driver => driver.value === cell.getValue())
+                    return driver ? driver.label : null
+                },
+                title: 'Pickup Driver ID',
+                visible: showDetails,
+            },
+            {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
+            {
+                editor:'select',
+                editorParams: {
+                    listItemFormatter: (value, title) => {
+                        return title
+                    },
+                    values: drivers
+                },
+                field: 'delivery_driver_id',
+                formatter: cell => {
+                    const driver = drivers.find(driver => driver.value === cell.getValue())
+                    return driver ? driver.label : null
+                },
+                title: 'Delivery Driver ID',
+                visible: showDetails,
+            },
+            {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
         ]
     }
 
@@ -226,128 +260,122 @@ export default function Charge(props) {
         })
     }
 
-    const toggleDetails = () => {
-        tableRef.current.table.toggleColumn('line_item_id')
-        tableRef.current.table.toggleColumn('invoice_id')
-        tableRef.current.table.toggleColumn('invoice_is_finalized')
-        tableRef.current.table.toggleColumn('pickup_driver_id')
-        tableRef.current.table.toggleColumn('pickup_manifest_id')
-        tableRef.current.table.toggleColumn('delivery_driver_id')
-        tableRef.current.table.toggleColumn('delivery_manifest_id')
-        tableRef.current.table.setGroupHeader(groupHeaderFormatter)
-        tableRef.current.table.redraw()
-    }
-
     return (
-        <Card border='dark'>
-            <Card.Header>
-                <Row>
-                    <Col md={9}>
-                        <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
-                    </Col>
-                    <Col md={3}>
-                        <Dropdown
-                            align='end'
-                            as={ButtonGroup}
-                            size='sm'
-                            style={{float: 'right'}}
-                        >
-                            <Button
-                                onClick={toggleDetails}
-                                variant='secondary'
-                            >Toggle Details</Button>
-                            <Dropdown.Toggle variant='secondary' id={`amendment-dropdown-${charge.charge_id}`}>
-                                <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => payOffAllLineItems(charge)}>
-                                        <i className='fas fa-tags'></i> Mark as Paid
-                                    </Dropdown.Item>
-                                    {/* <Dropdown.Item onClick={() => reassignDriver(charge)}>
-                                        <i className='fas fa-exchange-alt'></i> Reassign Driver
-                                    </Dropdown.Item> */}
-                                    <Dropdown.Item onClick={() => makePriceAdjustment(charge, index)}>
-                                        <i className='fas fa-eraser'></i> Price Adjustment
-                                    </Dropdown.Item>
-                                    {/* <Dropdown.Item onClick={() => reassignCharge(charge)}>
-                                        <i className='fas fa-exchange-alt'></i> Reassign Charge
-                                    </Dropdown.Item>} */}
-                                    {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
-                                        <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
-                                    }
-                                </Dropdown.Menu>
-                            </Dropdown.Toggle>
-                        </Dropdown>
-                    </Col>
-                    {charge.charge_reference_value_label !== null &&
-                        <Col md={12}>
-                            <InputGroup>
-                                <InputGroup.Text>{charge.charge_reference_value_label}: </InputGroup.Text>
-                                <FormControl
-                                    name='charge_reference_value'
-                                    value={charge.charge_reference_value}
-                                    onChange={event => props.chargeDispatch({type: 'SET_CHARGE_REFERENCE_VALUE', payload: {index, value: event.target.value}})}
-                                    readOnly={readOnly}
-                                    data-chargeindex={index}
-                                />
-                            </InputGroup>
+        <Col
+            style={{display: charge.toBeDeleted ? 'none' : ''}}
+            key={index + '.' + charge.name}
+            md={(chargeCount > 1 && !showDetails) ? 6 : 12}
+        >
+            <Card border='dark'>
+                <Card.Header>
+                    <Row>
+                        <Col md={9}>
+                            <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                         </Col>
-                    }
-                </Row>
-            </Card.Header>
-            <Card.Body>
-                <ReactTabulator
-                    ref={tableRef}
-                    columns={chargeTableColumns(charge.chargeType)}
-                    data={charge.lineItems}
-                    id='lineItemDestination'
-                    options={{
-                        cellEdited: cell => {
-                            const field = cell.getField()
-                            const row = cell.getRow()
-                            const rowData = row.getData()
-                            if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
-                                row.update({driver_amount: cell.getValue()})
-                            props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
-                        },
-                        groupBy: data => groupBy(data, charge),
-                        groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
-                        initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                        layout: 'fitColumns',
-                        movableRows: true,
-                        movableRowsConnectedTables: ['#lineItemSource'],
-                        movableRowsReceiver: 'add',
-                        rowAdded: row => {
-                            row.getTable().setGroupBy(data => groupBy(data, charge))
-                            const data = row.getTable().getData()
-                            props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
-                            props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                        },
-                        rowDeleted: row => {
-                            props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                            const data = row.getTable().getData()
-                            props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
+                        <Col md={3}>
+                            <Dropdown
+                                align='end'
+                                as={ButtonGroup}
+                                size='sm'
+                                style={{float: 'right'}}
+                            >
+                                <Button
+                                    onClick={() => setShowDetails(!showDetails)}
+                                    variant='secondary'
+                                ><i className={`fas fa-${showDetails ? 'compress' : 'expand'}-alt`}></i> Toggle Details</Button>
+                                <Dropdown.Toggle variant='secondary' id={`amendment-dropdown-${charge.charge_id}`}>
+                                    <Dropdown.Menu>
+                                        <Dropdown.Item onClick={() => payOffAllLineItems(charge)}>
+                                            <i className='fas fa-tags'></i> Mark as Paid
+                                        </Dropdown.Item>
+                                        {/* <Dropdown.Item onClick={() => reassignDriver(charge)}>
+                                            <i className='fas fa-exchange-alt'></i> Reassign Driver
+                                        </Dropdown.Item> */}
+                                        <Dropdown.Item onClick={() => makePriceAdjustment(charge, index)}>
+                                            <i className='fas fa-eraser'></i> Price Adjustment
+                                        </Dropdown.Item>
+                                        {/* <Dropdown.Item onClick={() => reassignCharge(charge)}>
+                                            <i className='fas fa-exchange-alt'></i> Reassign Charge
+                                        </Dropdown.Item>} */}
+                                        {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
+                                            <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
+                                        }
+                                    </Dropdown.Menu>
+                                </Dropdown.Toggle>
+                            </Dropdown>
+                        </Col>
+                        {charge.charge_reference_value_label !== null &&
+                            <Col md={12}>
+                                <InputGroup>
+                                    <InputGroup.Text>{charge.charge_reference_value_label}: </InputGroup.Text>
+                                    <FormControl
+                                        name='charge_reference_value'
+                                        value={charge.charge_reference_value}
+                                        onChange={event => props.chargeDispatch({type: 'SET_CHARGE_REFERENCE_VALUE', payload: {index, value: event.target.value}})}
+                                        readOnly={readOnly}
+                                        data-chargeindex={index}
+                                    />
+                                </InputGroup>
+                            </Col>
                         }
-                    }}
-                />
-            </Card.Body>
-            {showLinkLineItemModal &&
-                <LinkLineItemModal
-                    hide={hideLinkTo}
-                    linkLineItemCell={linkLineItemCell}
-                    linkLineItemToType={linkLineItemToType}
-                    show={showLinkLineItemModal}
-                />
-            }
-            {showPriceAdjustModal &&
-                <PriceAdjustModal
-                    charge={charge}
-                    delivery={props.delivery}
-                    hide={hidePriceAdjustModal}
-                    pickup={props.pickup}
-                    show={showPriceAdjustModal}
-                    tableRef={tableRef}
-                />
-            }
-        </Card>
+                    </Row>
+                </Card.Header>
+                <Card.Body>
+                    <ReactTabulator
+                        ref={tableRef}
+                        columns={chargeTableColumns(charge.chargeType)}
+                        data={charge.lineItems}
+                        id='lineItemDestination'
+                        options={{
+                            cellEdited: cell => {
+                                const field = cell.getField()
+                                const row = cell.getRow()
+                                const rowData = row.getData()
+                                if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
+                                    row.update({driver_amount: cell.getValue()})
+                                props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
+                            },
+                            groupBy: data => groupBy(data, charge),
+                            groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
+                            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+                            layout: 'fitColumns',
+                            movableRows: true,
+                            movableRowsConnectedTables: ['#lineItemSource'],
+                            movableRowsReceiver: 'add',
+                            rowAdded: row => {
+                                row.getTable().setGroupBy(data => groupBy(data, charge))
+                                const data = row.getTable().getData()
+                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
+                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+                            },
+                            rowDeleted: row => {
+                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+                                const data = row.getTable().getData()
+                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
+                            }
+                        }}
+                    />
+                </Card.Body>
+                {showLinkLineItemModal &&
+                    <LinkLineItemModal
+                        hide={hideLinkTo}
+                        linkLineItemCell={linkLineItemCell}
+                        linkLineItemToType={linkLineItemToType}
+                        show={showLinkLineItemModal}
+                    />
+                }
+                {showPriceAdjustModal &&
+                    <PriceAdjustModal
+                        charge={charge}
+                        delivery={props.delivery}
+                        hide={hidePriceAdjustModal}
+                        pickup={props.pickup}
+                        show={showPriceAdjustModal}
+                        tableRef={tableRef}
+                    />
+                }
+            </Card>
+        </Col>
     )
 }
 

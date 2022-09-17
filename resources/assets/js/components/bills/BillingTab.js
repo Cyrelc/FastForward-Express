@@ -315,23 +315,20 @@ export default function BillingTab(props) {
                 </Col>
                 <Col md={10}>
                     <Row>
-                        {charges && charges.map((charge, index, charges) =>
-                            <Col
-                                style={{display: charge.toBeDeleted ? 'none' : ''}}
-                                key={index + '.' + charge.name}
-                                md={charges.reduce((counter, cur) => {return cur.toBeDeleted ? counter : ++counter}, 0) === 1 ? 12 : 6}
-                            >
-                                <Charge
-                                    charge={charge}
-                                    chargeDispatch={props.chargeDispatch}
-                                    charges={charges}
-                                    delivery={props.billState.delivery}
-                                    index={index}
-                                    lineItemTypeFormatter={lineItemTypeFormatter}
-                                    pickup={props.billState.pickup}
-                                    readOnly={readOnly}
-                                />
-                            </Col>
+                        {charges?.map((charge, index, charges) =>
+                            <Charge
+                                charge={charge}
+                                chargeCount={charges.filter(charge => !charge.toBeDeleted).length}
+                                chargeDispatch={props.chargeDispatch}
+                                charges={charges}
+                                delivery={props.billState.delivery}
+                                drivers={props.billState.drivers}
+                                index={index}
+                                key={index}
+                                lineItemTypeFormatter={lineItemTypeFormatter}
+                                pickup={props.billState.pickup}
+                                readOnly={readOnly}
+                            />
                         )}
                     </Row>
                 </Col>
