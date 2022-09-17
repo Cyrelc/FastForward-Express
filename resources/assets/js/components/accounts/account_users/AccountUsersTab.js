@@ -201,11 +201,13 @@ export default function AccountUsersTab(props) {
                     show={showAccountUserModal}
                 />
             }
-            <ChangePasswordModal
-                show={showChangePasswordModal}
-                userId={userId}
-                toggleModal={() => setShowChangePasswordModal(false)}
-            />
+            {showChangePasswordModal &&
+                <ChangePasswordModal
+                    show={showChangePasswordModal}
+                    userId={userId}
+                    toggleModal={() => setShowChangePasswordModal(false)}
+                />
+            }
         </Row>
     )
 }

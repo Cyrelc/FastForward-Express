@@ -47,8 +47,8 @@ export default function ChangePasswordModal(props) {
                         <hr/>
                         <p>Passwords must:</p>
                         <ol>
-                            <li>Be at least eight characters long</li>
-                            <li>Contain one uppercase and one lowercase character</li>
+                            <li>Be at least nine characters long</li>
+                            <li>Contain at least one uppercase and one lowercase character</li>
                             <li>Be more than 20 characters long, <strong>or</strong> contain a number or special character</li>
                         </ol>
                         <hr/>

@@ -159,11 +159,13 @@ class App extends Component {
                         </Switch>
                     </Col>
                 </Row>
-                <ChangePasswordModal
-                    show={this.state.showChangePasswordModal}
-                    userId={this.props.authenticatedUserId}
-                    toggleModal={this.toggleChangePasswordModal}
-                />
+                {this.state.showChangePasswordModal &&
+                    <ChangePasswordModal
+                        show={this.state.showChangePasswordModal}
+                        userId={this.props.authenticatedUserId}
+                        toggleModal={this.toggleChangePasswordModal}
+                    />
+                }
             </ConnectedRouter>
         )
     }

@@ -112,11 +112,13 @@ class Employees extends Component {
                     tableData={this.props.tableData}
                     toggleColumnVisibility={this.props.toggleColumnVisibility}
                 />
-                <ChangePasswordModal
-                    show={this.state.showChangePasswordModal}
-                    userId={this.state.changePasswordModalUserId}
-                    toggleModal={this.toggleChangePasswordModal}
-                />
+                {this.state.showChangePasswordModal &&
+                    <ChangePasswordModal
+                        show={this.state.showChangePasswordModal}
+                        userId={this.state.changePasswordModalUserId}
+                        toggleModal={this.toggleChangePasswordModal}
+                    />
+                }
             </div>
         )
     }
