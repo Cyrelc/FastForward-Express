@@ -258,7 +258,7 @@ export default function BillingTab(props) {
                                     getOptionValue={employee => employee.value}
                                     value={chargeEmployee}
                                     onChange={employee => props.chargeDispatch({type: 'SET_CHARGE_EMPLOYEE', payload: employee})}
-                                    isDisabled={readOnly || pickupManifestId || deliveryManifestId}
+                                    isDisabled={readOnly}
                                 />
                             </InputGroup>
                         </Col>
