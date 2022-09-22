@@ -87,13 +87,16 @@ class BillCollector {
 			// Process line items
 			if(isset($charge['lineItems']))
 				foreach($charge['lineItems'] as $lineItem) {
+					$pickupDriverId = (isset($lineItem['pickup_driver_id']) && $lineItem['pickup_driver_id']) ? $lineItem['pickup_driver_id'] : null;
+					$deliveryDriverId = (isset($lineItem['delivery_driver_id']) && $lineItem['delivery_driver_id']) ? $lineItem['delivery_driver_id'] : null;
+
 					$temp['line_items'][] = [
-						'delivery_driver_id' => isset($lineItem['delivery_driver_id']) ? $lineItem['delivery_driver_id'] : null,
+						'delivery_driver_id' => $deliveryDriverId,
 						'driver_amount' => isset($lineItem['driver_amount']) ? $lineItem['driver_amount'] : 0,
 						'line_item_id' => isset($lineItem['line_item_id']) ? $lineItem['line_item_id'] : null,
 						'name' => $lineItem['name'],
 						'paid' => filter_var($lineItem['paid'], FILTER_VALIDATE_BOOLEAN),
-						'pickup_driver_id' => isset($lineItem['pickup_driver_id']) ? $lineItem['pickup_driver_id'] : null,
+						'pickup_driver_id' => $pickupDriverId,
 						'price' => isset($lineItem['price']) ? $lineItem['price'] : 0,
 						'to_be_deleted' => $temp['to_be_deleted'] ? true : (isset($lineItem['toBeDeleted']) ? filter_var($lineItem['toBeDeleted'], FILTER_VALIDATE_BOOLEAN) : false),
 						'type' => $lineItem['type']
