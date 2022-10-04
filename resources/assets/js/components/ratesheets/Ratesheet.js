@@ -1,16 +1,26 @@
 import React, {Component} from 'react'
 import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
 import SnazzyInfoWindow from 'snazzy-info-window'
+import polylabel from 'polylabel'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
 import BasicRatesTab from './BasicRatesTab'
-import DistanceRatesTab from './DistanceRatesTab'
 import ImportRatesModal from './ImportRatesModal'
 import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
 import VolumeRatesTab from './VolumeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
+import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
+
+const polyColours = {
+    internalStroke : '#3651c9',
+    internalFill: '#8491c9',
+    outlyingStroke: '#d16b0c',
+    outlyingFill: '#e8a466',
+    peripheralStroke:'#2c9122',
+    peripheralFill: '#3bd82d'
+}
 
 var polygonNextIndex = 0;
 
@@ -30,7 +40,6 @@ export default class Ratesheet extends Component {
             mapZones: [],
             mapZoom: 11,
             miscRates: [],
-            polyColours: {internalStroke : '#3651c9', internalFill: '#8491c9', outlyingStroke: '#d16b0c', outlyingFill: '#e8a466', peripheralStroke:'#2c9122', peripheralFill: '#3bd82d'},
             polySnapper: null,
             ratesheetId: null,
             ratesheetName: '',
@@ -117,33 +126,27 @@ export default class Ratesheet extends Component {
     createPolygon(polygon, zone = null) {
         var strokeColour, fillColour, type
         if(zone) {
-            strokeColour = this.state.polyColours[zone.type + 'Stroke']
-            fillColour = this.state.polyColours[zone.type + 'Fill']
+            strokeColour = polyColours[`${zone.type}Stroke`]
+            fillColour = polyColours[`${zone.type}Fill`]
             type = zone.type
         } else {
-            strokeColour = this.state.polyColours[this.state.defaultZoneType + 'Stroke']
-            fillColour = this.state.polyColours[this.state.defaultZoneType + 'Fill']
+            strokeColour = polyColours[`${this.state.defaultZoneType}Stroke'`]
+            fillColour = polyColours[`${this.state.defaultZoneType}Fill`]
             type = this.state.defaultZoneType
         }
         polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: polygonNextIndex++})
         polygon.addListener('click', () => this.editZone(polygon.zIndex))
         google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
-        const coordinates = this.getCoordinates(polygon)
+        const coordinates = this.getCoordinates(polygon).map(coordinatePair => {
+            return [coordinatePair.lat, coordinatePair.lng]
+        })
         const name = zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex
-        // const polyLabel = new SnazzyInfoWindow({
-        //     map: this.state.map,
-        //     content: name,
-        //     position: this.getCenter(coordinates),
-        //     showCloseButton: false,
-        //     panOnOpen: false,
-        //     padding: '7px'
-        // })
+        const position = polylabel([coordinates])
         const neighbourLabel = new google.maps.Marker({
             map: null,
             label: 'A',
-            position: this.getCenter(coordinates),
+            position: {lat: position[0], lng: position[1]},
         })
-        // polyLabel.open()
         var newZone = {
             id: polygon.zIndex,
             name : name,
@@ -153,7 +156,6 @@ export default class Ratesheet extends Component {
             coordinates: coordinates,
             neighbourLabel: neighbourLabel,
             zoneId: zone ? zone.zone_id : null,
-            // polyLabel: polyLabel
         }
         if(type === 'peripheral') {
             const cost = zone ? JSON.parse(zone.additional_costs) : null
@@ -225,24 +227,6 @@ export default class Ratesheet extends Component {
 
     getCoordinates(polygon) {
         return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
-    }
-
-    getCenter(coordinates) {
-        var minX = coordinates[0].lat;
-        var maxX = coordinates[0].lat;
-        var minY = coordinates[0].lng;
-        var maxY = coordinates[0].lng;
-        coordinates.forEach(coordinate => {
-            if(coordinate.lat < minX)
-                minX = coordinate.lat
-            if(coordinate.lat > maxX)
-                maxX = coordinate.lat
-            if(coordinate.lng < minY)
-                minY = coordinate.lng
-            if(coordinate.lng > maxY)
-                maxY = coordinate.lng
-        })
-        return new google.maps.LatLng(minX + ((maxX - minX) / 2), minY + ((maxY - minY) / 2))
     }
 
     handleChange(event, section, id) {
@@ -454,17 +438,6 @@ export default class Ratesheet extends Component {
                                 handleChange={this.handleChange}
                             />
                         </Tab>
-                        {this.state.useInternalZonesCalc &&
-                            <Tab eventKey='distances' title={<h4><i className='fas fa-directions'></i> Distance Rates</h4>}>
-                                <DistanceRatesTab
-                                    deliveryTypes={this.state.deliveryTypes}
-                                    useInternalZonesCalc={this.state.useInternalZonesCalc}
-                                    zoneRates={this.state.zoneRates}
-
-                                    handleChange={this.handleChange}
-                                />
-                            </Tab>
-                        }
                         <Tab eventKey='volume' title={<h4><i className='fas fa-ruler-combined'></i> Volume Rates</h4>}>
                             <VolumeRatesTab
 
@@ -472,7 +445,7 @@ export default class Ratesheet extends Component {
                         </Tab>
                         <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
                             <MapTab
-                                polyColours = {this.state.polyColours}
+                                polyColours = {polyColours}
                                 defaultZoneType = {this.state.defaultZoneType}
                                 snapPrecision={this.state.snapPrecision}
                                 mapZones={this.state.mapZones}
