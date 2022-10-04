@@ -290,7 +290,7 @@ export default function BasicTab(props) {
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
                             <Select
                                 options={deliveryTypes}
-                                getOptionLabel={type => type.friendlyName + ' (Est. ~' + type.time + ' hours)'}
+                                getOptionLabel={type => `${type.friendlyName} (Est. ~${type.time} hours)`}
                                 getOptionValue={type => type.id}
                                 value={deliveryType}
                                 onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}

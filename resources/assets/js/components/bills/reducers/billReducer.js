@@ -274,7 +274,6 @@ export default function billReducer(state, action) {
         case 'SET_DELIVERY_TIME_EXPECTED':
             return Object.assign({}, state, {delivery: {...state.delivery, timeScheduled: payload}})
         case 'SET_DELIVERY_TYPE':
-            console.log("SETTING DELIVERY")
             if(state.applyRestrictions) {
                 const pickupTimeScheduled = getValidPickupTime(state.pickup.timeScheduled, [payload])
                 return Object.assign({}, state, {
@@ -294,11 +293,15 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {
                 delivery: {...state.delivery, [payload.name]: payload.value}
             })
-        case 'SET_DELIVERY_ZONE':
+        case 'SET_DELIVERY_ZONE': {
+            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.pickup.zone)
+            const deliveryType = deliveryTypes.find(deliveryType => state.deliveryType.value === deliveryType.value)
             return Object.assign({}, state, {
                 delivery: {...state.delivery, zone: payload},
-                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, state.pickup.zone, payload)
+                deliveryType,
+                deliveryTypes,
             })
+        }
         case 'SET_DESCRIPTION':
             return Object.assign({}, state, {description: payload})
         case 'SET_INTERNAL_COMMENTS':
@@ -366,8 +369,11 @@ export default function billReducer(state, action) {
         case 'SET_PICKUP_VALUE':
             return Object.assign({}, state, {pickup: {...state.pickup, [payload.name]: payload.value}})
         case 'SET_PICKUP_ZONE':
+            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone)
+            const deliveryType = deliveryTypes.find(deliveryType => state.deliveryType.value === deliveryType.value)
             return Object.assign({}, state, {
-                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone),
+                deliveryType,
+                deliveryTypes,
                 pickup: {...state.pickup, zone: payload}
             })
         case 'SET_PREV_BILL_ID':
