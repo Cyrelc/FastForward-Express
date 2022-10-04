@@ -5,7 +5,7 @@ import {ReactTabulator} from 'react-tabulator'
 
 import Charge from './Charge'
 
-const commonRateNames = ['Adjustment', 'Refund', 'Other', 'Incorrect Information', 'Interliner']
+const commonRateNames = ['Adjustment', 'Refund', 'Other', 'Incorrect Information', 'Interliner', 'GST']
 
 const repeatingBillsTitleText = 'Daily bills will be generated on and assigned to every weekday until disabled\n' +
 'Weekly bills will be generated Sundays, and will be assigned for pickup and delivery on the same day of the week as the original\n' +
