@@ -17,6 +17,8 @@ class BillUpdated implements ShouldBroadcast
     public $bill_id;
     public $time_pickup_scheduled;
     public $time_delivery_scheduled;
+    public $pickup_driver_id;
+    public $delivery_driver_id;
     /**
      * Create a new event instance.
      *
@@ -28,6 +30,8 @@ class BillUpdated implements ShouldBroadcast
         $this->bill_id = $bill->bill_id;
         $this->time_pickup_scheduled = $bill->time_pickup_scheduled;
         $this->time_delivery_scheduled = $bill->time_delivery_scheduled;
+        $this->pickup_driver_id = $bill->pickup_driver_id;
+        $this->delivery_driver_id = $bill->delivery_driver_id;
     }
 
     /**

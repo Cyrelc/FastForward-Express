@@ -100,8 +100,8 @@ export default function Dispatch(props) {
     const handleBillEventRef = useRef()
     handleBillEventRef.current = billEvent => {
         const currentDate = DateTime.fromJSDate(billDate)
-        const timePickupScheduled = DateTime.fromSQL(billEvent.time_pickup_scheduled.date)
-        const timeDeliveryScheduled = DateTime.fromSQL(billEvent.time_delivery_scheduled.date)
+        const timePickupScheduled = DateTime.fromSQL(billEvent.time_pickup_scheduled)
+        const timeDeliveryScheduled = DateTime.fromSQL(billEvent.time_delivery_scheduled)
         const existingBill = bills.find(bill => bill.bill_id === billEvent.bill_id)
         const matchesCurrentDate = currentDate.hasSame(timePickupScheduled, 'day') || currentDate.hasSame(timeDeliveryScheduled, 'day')
         // Potential cases:
@@ -136,7 +136,9 @@ export default function Dispatch(props) {
             forceTLS: true
         })
 
-        window.echo.private('dispatch').listen('BillUpdated', event => handleBillEventRef.current(event)).listen('BillCreated', event => handleBillEventRef.current(event))
+        window.echo.private('dispatch')
+            .listen('BillUpdated', event => handleBillEventRef.current(event))
+            .listen('BillCreated', event => handleBillEventRef.current(event))
 
         const interval = setInterval(() => {
             if(!rowInTransit)
@@ -181,11 +183,6 @@ export default function Dispatch(props) {
         const data = {bill_id, employee_id}
         makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {
             toastr.clear()
-            setBills(paintBills(bills => bills.map(bill => {
-                if(bill.bill_id === bill_id)
-                    return {...bill, pickup_driver_id: employee_id, delivery_driver_id: employee_id}
-                return bill
-            })))
         })
     }
 
