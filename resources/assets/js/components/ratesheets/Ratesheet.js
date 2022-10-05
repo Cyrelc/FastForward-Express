@@ -11,7 +11,7 @@ import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
 import VolumeRatesTab from './VolumeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
-import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
+// import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
 
 const polyColours = {
     internalStroke : '#3651c9',
