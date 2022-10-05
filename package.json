@@ -50,6 +50,7 @@
         "laravel-echo": "^1.10.0",
         "lodash": "^4.17.21",
         "luxon": "^2.4.0",
+        "polylabel": "^1.1.0",
         "pusher-js": "^6.0.3",
         "react-bootstrap": "^2.1.0",
         "react-countdown": "^2.3.2",
