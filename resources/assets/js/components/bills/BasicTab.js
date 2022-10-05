@@ -292,7 +292,7 @@ export default function BasicTab(props) {
                                 options={deliveryTypes}
                                 getOptionLabel={type => `${type.friendlyName} (Est. ~${type.time} hours)`}
                                 getOptionValue={type => type.id}
-                                value={deliveryType}
+                                value={deliveryTypes.find(dt => dt.id === deliveryType.id)}
                                 onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}
                                 isDisabled={readOnly || isInvoiced}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}

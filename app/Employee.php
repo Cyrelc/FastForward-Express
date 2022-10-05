@@ -38,10 +38,10 @@ class Employee extends Model
     protected static $submitEmptyLogs = false;
 
     public function contact() {
-        return $this->hasOne(Contact::class);
+        return $this->hasOne(Contact::class, 'contact_id', 'contact_id');
     }
 
-    public function contacts() {
+    public function emergencyContacts() {
         return $this->belongsToMany('App\Contact', 'employee_emergency_contacts');
     }
 

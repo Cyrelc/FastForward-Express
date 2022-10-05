@@ -294,12 +294,9 @@ export default function billReducer(state, action) {
                 delivery: {...state.delivery, [payload.name]: payload.value}
             })
         case 'SET_DELIVERY_ZONE': {
-            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.pickup.zone)
-            const deliveryType = deliveryTypes.find(deliveryType => state.deliveryType.value === deliveryType.value)
             return Object.assign({}, state, {
                 delivery: {...state.delivery, zone: payload},
-                deliveryType,
-                deliveryTypes,
+                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, payload, state.pickup.zone),
             })
         }
         case 'SET_DESCRIPTION':
@@ -369,11 +366,8 @@ export default function billReducer(state, action) {
         case 'SET_PICKUP_VALUE':
             return Object.assign({}, state, {pickup: {...state.pickup, [payload.name]: payload.value}})
         case 'SET_PICKUP_ZONE':
-            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone)
-            const deliveryType = deliveryTypes.find(deliveryType => state.deliveryType.value === deliveryType.value)
             return Object.assign({}, state, {
-                deliveryType,
-                deliveryTypes,
+                deliveryTypes: getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone),
                 pickup: {...state.pickup, zone: payload}
             })
         case 'SET_PREV_BILL_ID':
