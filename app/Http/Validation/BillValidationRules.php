@@ -2,7 +2,7 @@
 namespace App\Http\Validation;
 
 use App\Http\Repos;
-use App\Rules\AlphaNumSpace;
+use App\Rules\AlphaNumDashUnderscoreSpace;
 use Illuminate\Validation\Rule;
 
 class BillValidationRules {
@@ -62,12 +62,12 @@ class BillValidationRules {
 		// Handle account reference values
 		$deliveryAccount = $req->delivery_account_id ? $accountRepo->GetById($req->delivery_account_id) : null;
 		if($deliveryAccount && $deliveryAccount->custom_field && $deliveryAccount->is_custom_field_mandatory)
-			$rules = array_merge($rules, ['delivery_reference_value' => ['required', new AlphaNumSpace]]);
+			$rules = array_merge($rules, ['delivery_reference_value' => ['required', new AlphaNumDashUnderscoreSpace]]);
 		$pickupAccount = $req->pickup_account_id ? $accountRepo->GetById($req->pickup_account_id) : null;
 		if($pickupAccount && $pickupAccount->custom_field && $pickupAccount->is_custom_field_mandatory)
-			$rules = array_merge($rules, ['pickup_reference_value' => ['required', new AlphaNumSpace]]);
+			$rules = array_merge($rules, ['pickup_reference_value' => ['required', new AlphaNumDashUnderscoreSpace]]);
 
-		if($req->user()->employee) {
+		if($req->user()->employee || $req->user()->hasRole('superAdmin')) {
 			$basic = $this->getBasicValidationRulesEmployee($req);
 			$rules = array_merge($rules, $basic['rules']);
 			$messages = array_merge($messages, $basic['messages']);
@@ -217,11 +217,11 @@ class BillValidationRules {
 					$account = $accountRepo->GetById($charge['charge_account_id']);
 					if($account->custom_field && $account->is_custom_field_mandatory) {
 						$rules = array_merge($rules, [
-							'charges.' . $key . '.charge_reference_value' => ['required', new AlphaNumSpace]
+							'charges.' . $key . '.charge_reference_value' => ['required', new AlphaNumDashUnderscoreSpace]
 						]);
 						$messages = array_merge($messages, [
 							'charges.' . $key . '.charge_reference_value.required' => $account->custom_field . ' is required',
-							'charges.' . $key . '.charge_reference_value.AlphaNumSpace' => $account->custom_field . ' can only contain alpha numeric characters'
+							'charges.' . $key . '.charge_reference_value.AlphaNumDashUnderscoreSpace' => $account->custom_field . ' can only contain alpha numeric characters, dashes, or underscores'
 						]);
 					}
 				} else if($charge['chargeType']['payment_type_id'] === $paymentRepo->GetPaymentTypeByName('Employee')) {

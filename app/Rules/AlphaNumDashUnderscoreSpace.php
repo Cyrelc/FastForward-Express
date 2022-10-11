@@ -4,7 +4,7 @@ namespace App\Rules;
 
 use Illuminate\Contracts\Validation\Rule;
 
-class AlphaNumSpace implements Rule
+class AlphaNumDashUnderscoreSpace implements Rule
 {
     /**
      * Create a new rule instance.
@@ -25,7 +25,7 @@ class AlphaNumSpace implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^[a-zA-Z0-9\s]+$/', $value);
+        return preg_match('/^[a-zA-Z0-9\s-_]+$/', $value);
     }
 
     /**
@@ -35,6 +35,6 @@ class AlphaNumSpace implements Rule
      */
     public function message()
     {
-        return 'The :attribute must only contain alpha-numeric characters, or spaces.';
+        return 'The :attribute must only contain alpha-numeric characters, dash, underscore, or whitespace.';
     }
 }
