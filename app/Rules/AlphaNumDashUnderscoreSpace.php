@@ -25,7 +25,7 @@ class AlphaNumDashUnderscoreSpace implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^[a-zA-Z0-9\s-_]+$/', $value);
+        return preg_match('/^[a-zA-Z0-9\s\-_]+$/', $value);
     }
 
     /**
