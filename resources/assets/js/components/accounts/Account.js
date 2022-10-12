@@ -249,9 +249,9 @@ class Account extends Component {
                 use_parent_ratesheet: this.state.useParentRatesheet
             }
 
-        makeAjaxRequest('/accounts/store', 'POST', data, response => {
+        makeAjaxRequest('/accounts', 'POST', data, response => {
             toastr.clear()
-            toastr.success('Account ' + response.account_id + 'successfully ' + this.state.accountId  ? 'updated' : 'created', 'Success', {
+            toastr.success(`Account ${response.account_id} successfully ${this.state.accountId  ? 'updated' : 'created'}`, 'Success', {
                 'onHidden': () => {
                     if(!this.state.accountId)
                         this.props.redirect('/accounts/' + response.account_id)
