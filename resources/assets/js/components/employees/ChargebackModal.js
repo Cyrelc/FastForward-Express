@@ -68,7 +68,7 @@ export default class ChargebackModal extends Component {
             employee_ids: this.state.selectedEmployees.map(employee => {return employee.value}),
             name: this.state.chargebackName
         }
-        makeAjaxRequest('/chargebacks/store', 'POST', data, response => {
+        makeAjaxRequest('/chargebacks', 'POST', data, response => {
             this.props.toggleRefreshTable()
             this.props.toggleModal()
         })

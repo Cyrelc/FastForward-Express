@@ -71,7 +71,7 @@ export default class GenerateInvoices extends Component {
             start_date: this.state.startDate.toLocaleString('en-US'),
             end_date: this.state.endDate.toLocaleString('en-US')
         }
-        makeAjaxRequest('/invoices/store', 'POST', data, response => {
+        makeAjaxRequest('/invoices', 'POST', data, response => {
             toastr.clear()
             toastr.success('Successfully generated invoices', 'Success', {
                 'progressBar' : true,

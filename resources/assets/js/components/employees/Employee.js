@@ -311,7 +311,7 @@ class Employee extends Component {
                 pickup_commission: this.state.pickupCommission,
             }
 
-        makeAjaxRequest('/employees/store', 'POST', data, response => {
+        makeAjaxRequest('/employees', 'POST', data, response => {
             toastr.clear()
             if(this.state.employeeId) {
                 this.setState({updatedAt: response.updated_at})

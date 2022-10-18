@@ -17,16 +17,6 @@ class EmployeeController extends Controller {
         $this->middleware('auth');
     }
 
-    public function buildTable(Request $req) {
-        if($req->user()->cannot('viewAll', Employee::class))
-            abort(403);
-
-        $employeeRepo = new Repos\EmployeeRepo();
-        $employees = $employeeRepo->ListAll($req);
-
-        return json_encode($employees);
-    }
-
     public function deleteEmergencyContact(Request $req) {
         $employeeRepo = new Repos\EmployeeRepo();
         $employee = $employeeRepo->GetById($req->employee_id);
@@ -91,6 +81,16 @@ class EmployeeController extends Controller {
         }
 
         return json_encode($model);
+    }
+
+    public function index(Request $req) {
+        if($req->user()->cannot('viewAll', Employee::class))
+            abort(403);
+
+        $employeeRepo = new Repos\EmployeeRepo();
+        $employees = $employeeRepo->ListAll($req);
+
+        return json_encode($employees);
     }
 
     public function store(Request $req) {

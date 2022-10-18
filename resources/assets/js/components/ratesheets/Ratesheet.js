@@ -82,7 +82,7 @@ export default class Ratesheet extends Component {
         google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
         this.setState({map: map, mapDrawingManager: drawingManager, ratesheetId: params.ratesheetId}, () => {
             document.title = params.ratesheetId ? 'Edit Ratesheet - ' + params.ratesheetId : 'Create Ratesheet'
-            makeAjaxRequest(params.ratesheetId ? '/ratesheets/getModel/'  + params.ratesheetId : '/ratesheets/getModel/', 'GET', null, response => {
+            makeAjaxRequest(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create', 'GET', null, response => {
                 response = JSON.parse(response)
                 var timeRates = response.timeRates.map(rate => {
                     return {...rate, brackets: rate.brackets.map(bracket => {

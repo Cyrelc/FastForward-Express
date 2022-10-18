@@ -164,11 +164,6 @@ class UserController extends Controller {
 
         DB::commit();
     }
-    // public function setPrimaryAccountUser($contact_id) {
-    //     $userRepo = new Repos\UserRepo();
-    //     $userRepo->setPrimaryAccountUser($contact_id);
-    //     return;
-    // }
 
     public function sendPasswordResetEmail(Request $req, $userId) {
         $userRepo = new Repos\UserRepo();

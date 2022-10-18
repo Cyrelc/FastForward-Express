@@ -28,7 +28,7 @@ const reducer = (state = initialState, action) => {
 }
 
 export async function fetchAccounts(dispatch, getState) {
-    makeAjaxRequest('/accounts/buildTable' + getState().accounts.queryString, 'GET', null, response => {
+    makeAjaxRequest(`/accounts${getState().accounts.queryString}`, 'GET', null, response => {
         const accounts = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_ACCOUNTS_TABLE, payload: accounts === undefined ? [] : accounts})
     })

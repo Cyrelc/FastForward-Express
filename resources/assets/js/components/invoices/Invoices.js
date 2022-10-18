@@ -30,8 +30,8 @@ function cellContextMenuFormatter(cell) {
 
 function deleteInvoice(cell) {
     const data = cell.getData()
-    if(data.payment_count == 0 && confirm('Are you sure you wish to delete invoice ' + data.invoice_id + '?\nThis action can not be undone')) {
-        makeFetchRequest('/invoices/delete/' + data.invoice_id, response => {
+    if(data.payment_count == 0 && confirm(`Are you sure you wish to delete invoice ${data.invoice_id}?\nThis action can not be undone`)) {
+        makeAjaxRequest(`/invoices/${data.invoice_id}`, 'DELETE', null, response => {
             location.reload()
         })
     }

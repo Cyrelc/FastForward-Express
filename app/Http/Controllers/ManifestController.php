@@ -26,21 +26,6 @@ class ManifestController extends Controller {
         $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
     }
 
-    public function buildTable(Request $req) {
-        $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $user = $req->user();
-        if($user->cannot('viewAny', Manifest::class))
-            abort(403);
-        elseif($user->can('manifests.view.*'))
-            $model = $manifestModelFactory->ListAll($req);
-        elseif($user->employee && $user->employee->is_driver)
-            $model = $manifestModelFactory->ListAll($req, $user->employee->employee_id);
-        else
-            abort(403);
-
-        return json_encode($model);
-    }
-
     public function delete(Request $req, $manifestId) {
         $manifestRepo = new Repos\ManifestRepo();
         $manifest = $manifestRepo->GetById($manifestId);
@@ -102,6 +87,21 @@ class ManifestController extends Controller {
 
         $manifestModelFactory = new Manifest\ManifestModelFactory();
         $model = $manifestModelFactory->GetById($req->user(), $manifestId);
+
+        return json_encode($model);
+    }
+
+    public function index(Request $req) {
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $user = $req->user();
+        if($user->cannot('viewAny', Manifest::class))
+            abort(403);
+        elseif($user->can('manifests.view.*'))
+            $model = $manifestModelFactory->ListAll($req);
+        elseif($user->employee && $user->employee->is_driver)
+            $model = $manifestModelFactory->ListAll($req, $user->employee->employee_id);
+        else
+            abort(403);
 
         return json_encode($model);
     }

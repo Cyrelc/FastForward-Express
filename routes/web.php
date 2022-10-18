@@ -11,33 +11,119 @@
 |
 */
 
-Route::middleware(['auth'])->controller(BillController::class)->group(function() {
-    Route::get('/billsList', 'buildTable');
-    Route::get('/bills/create', 'getModel');
-    Route::get('/bills/template/{billId}', 'template');
-    Route::get('/bills/{billId}', 'getModel');
-    Route::delete('/bills/{billId}', 'delete');
-    Route::post('/bills/manageLineItemLinks', 'manageLineItemLinks');
-    Route::post('/bills/store', 'store');
-    Route::post('/bills/generateCharges', 'generateCharges');
-    Route::get('/bills/copy/{billId}', 'copyBill');
-    Route::get('/bills/print/{billId}', 'print');
+Route::middleware(['auth'])->controller(AccountController::class)->prefix('accounts')->group(function() {
+    Route::get('/chart', 'getChart');
+    Route::get('/toggleActive/{accountId}', 'toggleActive');
+    Route::get('/getShippingAddress', 'getShippingAddress');
+    Route::post('/adjustCredit', 'adjustAccountCredit');
+    Route::get('/getModel/{accountId?}', 'getModel');
+    Route::post('/', 'store');
+    Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')->group(function() {
+    Route::get('/create', 'getModel');
+    Route::get('/template/{billId}', 'template');
+    Route::post('/manageLineItemLinks', 'manageLineItemLinks');
+    Route::post('/store', 'store');
+    Route::post('/generateCharges', 'generateCharges');
+    Route::get('/copy/{billId}', 'copyBill');
+    Route::get('/print/{billId}', 'print');
+    Route::get('/{billId}', 'getModel');
+    Route::delete('/{billId}', 'delete');
+    Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(ChargebackController::class)->prefix('chargebacks')->group(function() {
+    Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::delete('/{id}', 'delete');
+});
+
+Route::middleware(['auth'])->controller(DispatchController::class)->prefix('dispatch')->group(function() {
+    Route::post('/assignBillToDriver', 'AssignBillToDriver');
+    Route::get('/getDrivers', 'GetDrivers');
+    Route::get('/getBills', 'GetBills');
+    Route::post('/setBillPickupOrDeliveryTime', 'SetBillPickupOrDeliveryTime');
+});
+
+Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('employees')->group(function() {
+    Route::get('/emergencyContacts/getModel/{id?}', 'getEmergencyContactModel');
+    Route::post('/emergencyContacts/store/{id?}', 'storeEmergencyContact');
+    Route::post('/emergencyContacts/delete', 'deleteEmergencyContact');
+    Route::get('/getModel/{id?}', 'getModel');
+    Route::post('/', 'store');
+    Route::get('/toggleActive/{id}', 'toggleActive');
+    Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(InterlinerController::class)->prefix('interliners')->group(function() {
+    Route::get('/', 'buildTable');
+    Route::post('/store', 'store');
+});
+
+Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoices')->group(function() {
+    Route::get('/', 'buildTable');
+    Route::delete('/{id}', 'delete');
+    Route::get('/download/{invoiceIds}', 'download');
+    Route::get('/finalize/{invoiceIds}', 'finalize');
+    Route::post('/getAccountsToInvoice', 'getAccountsToInvoice');
+    Route::get('/getModel/{invoiceId?}','getModel');
+    Route::get('/getOutstanding', 'getOutstandingByAccountId');
+    Route::get('/print/{invoiceIds}', 'print');
+    Route::get('/printPreview/{invoiceId}', 'printPreview');
+    Route::post('/', 'store');
+    // Route::get('/invoices/regather/{invoiceId}', 'regather');
+});
+
+Route::middleware(['auth'])->controller(ManifestController::class)->prefix('manifests')->group(function() {
+    Route::get('/getDriversToManifest', 'getDriversToManifest');
+    Route::get('/{manifest_id}', 'getModel');
+    Route::post('/store', 'store');
+    Route::delete('/{id}', 'delete');
+    Route::get('/download/{manifestIds}', 'download');
+    Route::get('/print/{manifestIds}', 'print');
+    Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(PaymentController::class)->prefix('paymentMethods')->group(function() {
+    Route::delete('/{accountId}', 'DeletePaymentMethod');
+    Route::get('/{accountId}', 'GetAccountPaymentMethods');
+    Route::get('/{accountId}/create', 'GetSetupIntent');
+    Route::post('/{accountId}/setDefault', 'SetDefaultPaymentMethod');
+});
+
+Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
+    Route::get('/create', 'getModel');
+    Route::get('/{id?}', 'getModel');
+    Route::get('/', 'buildTable');
+    Route::post('/', 'store');
+    Route::get('/{ratesheetId}/getZone', 'GetZone');
+});
+
+Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {
+    Route::post('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
+    Route::post('/changePassword/{id}', 'changePassword');
+    Route::get('/generatePassword', 'generatePassword');
+    Route::get('/getAccountUsers/{id}', 'getAccountUsers');
+    Route::post('/storeAccountUser', 'storeAccountUser');
+    Route::get('/editAccountUser/{id}', 'editAccountUser');
+    Route::get('/createAccountUser/{accountId}', 'createAccountUser');
+    Route::get('/deleteAccountUser/{contactId}/{accountId}', 'deleteAccountUser');
+    Route::get('/getAccountUserModel/{accountId}/{contactId?}', 'getAccountUserModel');
+    Route::post('/checkIfAccountUserExists', 'checkIfAccountUserExists');
+    Route::get('/linkAccountUser/{contactId}/{accountId}', 'LinkAccountUser');
+    Route::post('/impersonate', 'impersonate');
+    Route::get('/unimpersonate', 'unimpersonate');
+    Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
 });
 
 // Authenticated views
-Route::group(['middleware' => 'auth'],
+Route::group(['middleware' => ['auth']],
     function() {
         Route::get('/', 'HomeController@index');
         Route::get('/getDashboard', 'HomeController@getDashboard');
         Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
-
-        Route::post('/accounts/store', 'AccountController@store');
-        Route::get('/accounts/buildTable', 'AccountController@buildTable');
-        Route::get('/accounts/chart', 'AccountController@getChart');
-        Route::get('/accounts/toggleActive/{accountId}', 'AccountController@toggleActive');
-        Route::get('/accounts/getShippingAddress', 'AccountController@getShippingAddress');
-        Route::post('/accounts/adjustCredit', 'AccountController@adjustAccountCredit');
-        Route::get('/accounts/getModel/{accountId?}', 'AccountController@getModel');
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
 
@@ -45,81 +131,16 @@ Route::group(['middleware' => 'auth'],
 
         Route::get('/app/{route}', 'HomeController@index');
 
-        Route::get('/chargebacks/buildTable', 'ChargebackController@buildTable');
-        Route::post('/chargebacks/store', 'ChargebackController@store');
-        Route::get('/chargebacks/delete/{id}', 'ChargebackController@delete');
-
-        Route::post('/dispatch/assignBillToDriver', 'DispatchController@AssignBillToDriver');
-        Route::get('/dispatch/getDrivers', 'DispatchController@GetDrivers');
-        Route::get('/dispatch/getBills', 'DispatchController@GetBills');
-        Route::post('/dispatch/setBillPickupOrDeliveryTime', 'DispatchController@SetBillPickupOrDeliveryTime');
-
-        Route::get('/employees/buildTable', 'EmployeeController@buildTable');
-        Route::get('/employees/emergencyContacts/getModel/{id?}', 'EmployeeController@getEmergencyContactModel');
-        Route::post('/employees/emergencyContacts/store/{id?}', 'EmployeeController@storeEmergencyContact');
-        Route::post('/employees/emergencyContacts/delete', 'EmployeeController@deleteEmergencyContact');
-        Route::get('/employees/getModel/{id?}', 'EmployeeController@getModel');
-        Route::post('/employees/store', 'EmployeeController@store');
-        Route::get('/employees/toggleActive/{id}', 'EmployeeController@toggleActive');
-
-        Route::get('/interliners/buildTable', 'InterlinerController@buildTable');
-        Route::post('/interliners/store', 'InterlinerController@store');
-
-        Route::get('/invoices/buildTable', 'InvoiceController@buildTable');
-        Route::get('/invoices/delete/{id}', 'InvoiceController@delete');
-        Route::get('/invoices/download/{invoiceIds}', 'InvoiceController@download');
-        Route::get('/invoices/finalize/{invoiceIds}', 'InvoiceController@finalize');
-        Route::post('/invoices/getAccountsToInvoice', 'InvoiceController@getAccountsToInvoice');
-        Route::get('/invoices/getModel/{invoiceId?}','InvoiceController@getModel');
-        Route::get('/invoices/getOutstanding', 'InvoiceController@getOutstandingByAccountId');
-        Route::get('/invoices/print/{invoiceIds}', 'InvoiceController@print');
-        Route::get('/invoices/printPreview/{invoiceId}', 'InvoiceController@printPreview');
-        Route::post('/invoices/store', 'InvoiceController@store');
-        // Route::get('/invoices/regather/{invoiceId}', 'InvoiceController@regather');
-
-        Route::get('/manifests', 'ManifestController@buildTable');
-        Route::get('/manifests/getDriversToManifest', 'ManifestController@getDriversToManifest');
-        Route::get('/manifests/{manifest_id}', 'ManifestController@getModel');
-        Route::post('/manifests/store', 'ManifestController@store');
-        Route::get('/manifests/delete/{id}', 'ManifestController@delete');
-        Route::get('/manifests/download/{manifestIds}', 'ManifestController@download');
-        Route::get('/manifests/print/{manifestIds}', 'ManifestController@print');
-
-        Route::delete('/paymentMethods/{accountId}', 'PaymentController@DeletePaymentMethod');
-        Route::get('/paymentMethods/{accountId}', 'PaymentController@GetAccountPaymentMethods');
-        Route::get('/paymentMethods/{accountId}/create', 'PaymentController@GetSetupIntent');
-        Route::post('/paymentMethods/{accountId}/setDefault', 'PaymentController@SetDefaultPaymentMethod');
-
         Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
         Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
         Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
         Route::delete('/payments/undo', 'PaymentController@UndoPayment');
-
-        Route::get('/ratesheets/buildTable', 'RatesheetController@buildTable');
-        Route::post('/ratesheets/store', 'RatesheetController@store');
-        Route::get('/ratesheets/getModel/{id?}', 'RatesheetController@getModel');
-        Route::get('/ratesheets/{ratesheetId}/getZone', 'RatesheetController@GetZone');
 
         Route::get('/logout', 'Auth\LoginController@logout');
 
         Route::get('/appsettings/get', 'AdminController@getModel');
         Route::post('/appsettings/store', 'AdminController@store');
         Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
-
-        Route::post('/users/{account_id}/{contact_id}/setPrimary', 'UserController@setPrimary');
-        Route::post('/users/changePassword/{id}', 'UserController@changePassword');
-        Route::get('/users/generatePassword', 'UserController@generatePassword');
-        Route::get('/users/getAccountUsers/{id}', 'UserController@getAccountUsers');
-        Route::post('/users/storeAccountUser', 'UserController@storeAccountUser');
-        Route::get('/users/editAccountUser/{id}', 'UserController@editAccountUser');
-        Route::get('/users/createAccountUser/{accountId}', 'UserController@createAccountUser');
-        Route::get('/users/deleteAccountUser/{contactId}/{accountId}', 'UserController@deleteAccountUser');
-        Route::get('/users/getAccountUserModel/{accountId}/{contactId?}', 'UserController@getAccountUserModel');
-        Route::post('/users/checkIfAccountUserExists', 'UserController@checkIfAccountUserExists');
-        Route::get('/users/linkAccountUser/{contactId}/{accountId}', 'UserController@LinkAccountUser');
-        Route::post('/users/impersonate', 'UserController@impersonate');
-        Route::get('/users/unimpersonate', 'UserController@unimpersonate');
-        Route::get('/users/sendPasswordReset/{userId}', 'UserController@sendPasswordResetEmail');
         //API
         // Route::resource('/customers', 'AccountController',
         //     ['only' => ['index', 'create', 'edit', 'store']]);
@@ -133,21 +154,17 @@ Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
     Route::get('/{object}/{action}/{object_id?}', 'HomeController@index');
 });
 
-//Guest views
-Route::group(['middleware' => 'guest'],
-    function() {
-        Route::get('/about', 'GuestController@about');
-        Route::get('/contact', 'GuestController@contact');
-        Route::post('/contact', 'GuestController@submitContactForm');
-        Route::get('/home', 'GuestController@home');
-        Route::post('/requestAccount', 'GuestController@requestAccount');
-        Route::get('/requestDelivery', 'GuestController@requestDelivery');
-        Route::post('/requestDelivery', 'GuestController@requestDeliveryForm');
-        Route::get('requestQuote', 'GuestController@requestQuote');
-        Route::get('/services', 'GuestController@services');
-    }
-);
-
-// Route::post('/sanctum', 'LoginController@getSanctumToken');
+//Guest views web
+Route::middleware(['guest'])->controller(GuestController::class)->group(function() {
+    Route::get('/about', 'about');
+    Route::get('/contact', 'contact');
+    Route::post('/contact', 'submitContactForm');
+    Route::get('/home', 'home');
+    Route::post('/requestAccount', 'requestAccount');
+    Route::get('/requestDelivery', 'requestDelivery');
+    Route::post('/requestDelivery', 'requestDeliveryForm');
+    Route::get('requestQuote', 'requestQuote');
+    Route::get('/services', 'services');
+});
 
 Route::auth();

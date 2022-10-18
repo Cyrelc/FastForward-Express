@@ -9,16 +9,6 @@ use App\Http\Repos;
 use App\Http\Models\Chargeback;
 
 class ChargebackController extends Controller {
-    public function buildTable(Request $req) {
-        if($req->user()->cannot('viewAny', Chargeback::class))
-            abort(403);
-
-        $chargebackRepo = new Repos\ChargebackRepo();
-        $chargebacks = $chargebackRepo->ListAll();
-
-        return json_encode($chargebacks);
-    }
-
     public function delete(Request $req, $chargebackId) {
         $chargebackRepo = new Repos\ChargebackRepo();
 
@@ -33,6 +23,16 @@ class ChargebackController extends Controller {
 
         DB::commit();
         return;
+    }
+
+    public function index(Request $req) {
+        if($req->user()->cannot('viewAny', Chargeback::class))
+            abort(403);
+
+        $chargebackRepo = new Repos\ChargebackRepo();
+        $chargebacks = $chargebackRepo->ListAll();
+
+        return json_encode($chargebacks);
     }
 
     public function store(Request $req) {

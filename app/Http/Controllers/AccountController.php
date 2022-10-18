@@ -57,20 +57,6 @@ class AccountController extends Controller {
         ]);
     }
 
-    public function buildTable(Request $req) {
-        $user = $req->user();
-        if($user->cannot('viewAny', Account::class))
-            abort(403);
-
-        $accountRepo = new Repos\AccountRepo();
-        if(count($user->accountUsers) > 0)
-            $model = $accountRepo->ListAll($user, $user->can('viewChildAccounts', $accountRepo->GetById($user->accountUsers[0]->account_id)));
-        else if($user->employee || $user->hasRole('superAdmin'))
-            $model = $accountRepo->ListAll(null);
-
-        return json_encode($model);
-    }
-
     public function getChart(Request $req) {
         $accountRepo = new Repos\AccountRepo();
         $chartModelFactory = new Chart\ChartModelFactory();
@@ -126,6 +112,20 @@ class AccountController extends Controller {
             abort(403);
 
         return $addressRepo->GetById($account->shipping_address_id);
+    }
+
+    public function index(Request $req) {
+        $user = $req->user();
+        if($user->cannot('viewAny', Account::class))
+            abort(403);
+
+        $accountRepo = new Repos\AccountRepo();
+        if(count($user->accountUsers) > 0)
+            $model = $accountRepo->ListAll($user, $user->can('viewChildAccounts', $accountRepo->GetById($user->accountUsers[0]->account_id)));
+        else if($user->employee || $user->hasRole('superAdmin'))
+            $model = $accountRepo->ListAll(null);
+
+        return json_encode($model);
     }
 
     public function store(Request $req) {

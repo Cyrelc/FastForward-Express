@@ -44,7 +44,7 @@ class Chargebacks extends Component {
     deleteChargeback(cell) {
         const data = cell.getData()
         if(confirm('Are you sure you wish to delete chargeback ' + data.chargeback_id + '?\nThis action can not be undone'))
-            makeAjaxRequest('/chargebacks/delete/' + cell.getData().chargeback_id, 'GET', null, response => {
+            makeAjaxRequest(`/chargebacks/${cell.getData().chargeback_id}`, 'DELETE', null, response => {
                 this.toggleRefreshTable()
             })
     }
@@ -73,7 +73,7 @@ class Chargebacks extends Component {
         return (
             <div>
                 <Table
-                    baseRoute='/chargebacks/buildTable'
+                    baseRoute='/chargebacks'
                     columns={columns}
                     createObjectFunction={this.createChargeback}
                     filters={[

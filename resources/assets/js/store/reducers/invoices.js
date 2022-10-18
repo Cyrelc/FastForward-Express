@@ -35,7 +35,7 @@ const reducer = (state = initialState, action) => {
 }
 
 export async function fetchInvoices(dispatch, getState) {
-    makeAjaxRequest('/invoices/buildTable' + getState().invoices.queryString, 'GET', null, response => {
+    makeAjaxRequest(`/invoices${getState().invoices.queryString}`, 'GET', null, response => {
         const invoices = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_INVOICES_TABLE, payload: invoices == undefined ? [] : invoices})
     })

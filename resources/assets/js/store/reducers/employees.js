@@ -36,7 +36,7 @@ const reducer = (state = initialState, action) => {
 }
 
 export async function fetchEmployees(dispatch, getState) {
-    makeAjaxRequest('/employees/buildTable' + getState().employees.queryString, 'GET', null, response => {
+    makeAjaxRequest(`/employees${getState().employees.queryString}`, 'GET', null, response => {
         const employees = JSON.parse(response)
         dispatch({type: actionTypes.UPDATE_EMPLOYEES_TABLE, payload: employees == undefined ? [] : employees})
     })

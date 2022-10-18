@@ -17,7 +17,7 @@ export default function ImportRatesModal(props) {
     function getRatesheet(ratesheetId) {
         if(props.importRatesheet && ratesheetId === props.importRatesheet.ratesheet_id)
             return
-        makeAjaxRequest('/ratesheets/getModel/' + ratesheetId, 'GET', null, response => {
+        makeAjaxRequest(`/ratesheets/${ratesheetId}`, 'GET', null, response => {
             props.handleChange({target: {name: 'importRatesheet', type: 'object', value: JSON.parse(response)}})
         })
     }

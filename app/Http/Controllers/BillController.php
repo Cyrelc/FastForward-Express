@@ -24,17 +24,6 @@ class BillController extends Controller {
         $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
     }
 
-    public function buildTable(Request $req) {
-        $user = $req->user();
-        if($user->cannot('viewAny', Bill::class))
-            abort(403);
-
-        $billModelFactory = new Bill\BillModelFactory();
-        $bills = $billModelFactory->BuildTable($req);
-
-        return json_encode($bills);
-    }
-
     public function copyBill(Request $req, $billId) {
         $billRepo = new Repos\BillRepo();
         $bill = $billRepo->GetById($billId);
@@ -126,6 +115,17 @@ class BillController extends Controller {
         }
 
         return json_encode($model);
+    }
+
+    public function index(Request $req) {
+        $user = $req->user();
+        if($user->cannot('viewAny', Bill::class))
+            abort(403);
+
+        $billModelFactory = new Bill\BillModelFactory();
+        $bills = $billModelFactory->BuildTable($req);
+
+        return json_encode($bills);
     }
 
     public function manageLineItemLinks(Request $req) {
