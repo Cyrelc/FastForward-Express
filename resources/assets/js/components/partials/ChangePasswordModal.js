@@ -63,6 +63,12 @@ export default function ChangePasswordModal(props) {
                                 value={newPassword}
                                 onChange={event => setNewPassword(event.target.value)}
                             />
+                            <Button
+                                variant='light'
+                                onClick={() => setViewPassword(!viewPassword)}
+                            >
+                                <i className='fas fa-eye'></i>
+                            </Button>
                         </InputGroup>
                     </Col>
                     <Col md={11}>
@@ -74,6 +80,12 @@ export default function ChangePasswordModal(props) {
                                 value={confirmPassword}
                                 onChange={event => setConfirmPassword(event.target.value)}
                             />
+                            <Button
+                                variant='light'
+                                onClick={() => setViewPassword(!viewPassword)}
+                            >
+                                <i className='fas fa-eye'></i>
+                            </Button>
                         </InputGroup>
                     </Col>
                 </Row>
