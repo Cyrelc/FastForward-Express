@@ -51,9 +51,9 @@ Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('empl
     Route::get('/emergencyContacts/{id?}', 'getEmergencyContactModel');
     Route::post('/emergencyContacts', 'storeEmergencyContact');
     Route::delete('/emergencyContacts', 'deleteEmergencyContact');
+    Route::get('/create', 'getModel');
     Route::get('/', 'index');
     Route::post('/', 'store');
-    Route::get('/create', 'getModel');
     Route::get('/{id}', 'getModel');
     Route::get('/toggleActive/{id}', 'toggleActive');
 });
