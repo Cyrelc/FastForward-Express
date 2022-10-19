@@ -89,9 +89,10 @@ export default function billReducer(state, action) {
      *
      * @returns {Boolean}
      */
-    const isPickupTimeValid = (dateTime, deliveryTypes) => {
+    const isPickupTimeValid = (dateTime, deliveryTypes, startDate = null) => {
+        const compareDate = startDate ?? DateTime.now();
         // If requested time is in the past
-        if(dateTime.diffNow('minutes').minutes < 0)
+        if(dateTime.diff(compareDate, 'minutes').minutes < 0)
             return false
         // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
         if(dateTime.weekday === 6 || dateTime.weekday === 7)
@@ -100,7 +101,6 @@ export default function billReducer(state, action) {
         const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
         const luxonBusinessHoursMax = (DateTime.fromJSDate(state.businessHoursMax)).minus({hours: minimumTimeToDoADelivery})
         const lastPickupTime = dateTime.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
-        console.log(lastPickupTime)
         if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
             return false
         // If requested time is BEFORE business hours - (no modification required)
@@ -120,10 +120,11 @@ export default function billReducer(state, action) {
      * @returns {DateTime} result
      */
     const getValidPickupTime = (time, deliveryTypes, prevTime = null) => {
+        prevTime = DateTime.fromJSDate(prevTime)
         if(time instanceof Date)
             time = DateTime.fromJSDate(time)
         //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
-        while(!isPickupTimeValid(time, deliveryTypes))
+        while(!isPickupTimeValid(time, deliveryTypes, prevTime))
             time = time.plus({minutes: 15})
 
         if(!time.hasSame(DateTime.local(), 'day') && (prevTime && !time.hasSame(prevTime, 'day')))
@@ -275,7 +276,7 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {delivery: {...state.delivery, timeScheduled: payload}})
         case 'SET_DELIVERY_TYPE':
             if(state.applyRestrictions) {
-                const pickupTimeScheduled = getValidPickupTime(state.pickup.timeScheduled, [payload])
+                const pickupTimeScheduled = getValidPickupTime(state.pickup.timeScheduled, [payload], state.timeCallReceived)
                 return Object.assign({}, state, {
                     deliveryType: payload,
                     delivery: {
