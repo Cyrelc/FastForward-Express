@@ -48,13 +48,14 @@ Route::middleware(['auth'])->controller(DispatchController::class)->prefix('disp
 });
 
 Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('employees')->group(function() {
-    Route::get('/emergencyContacts/getModel/{id?}', 'getEmergencyContactModel');
-    Route::post('/emergencyContacts/store/{id?}', 'storeEmergencyContact');
+    Route::get('/emergencyContacts/{id?}', 'getEmergencyContactModel');
+    Route::post('/emergencyContacts', 'storeEmergencyContact');
     Route::delete('/emergencyContacts', 'deleteEmergencyContact');
-    Route::get('/{id?}', 'getModel');
-    Route::post('/', 'store');
-    Route::get('/toggleActive/{id}', 'toggleActive');
     Route::get('/', 'index');
+    Route::post('/', 'store');
+    Route::get('/create', 'getModel');
+    Route::get('/{id}', 'getModel');
+    Route::get('/toggleActive/{id}', 'toggleActive');
 });
 
 Route::middleware(['auth'])->controller(InterlinerController::class)->prefix('interliners')->group(function() {

@@ -23,6 +23,7 @@ export default class AppSettings extends Component {
             blockedDateReason: ''
         }
         this.handleChange = this.handleChange.bind(this)
+        this.handleTabChange = this.handleTabChange.bind(this)
         this.store = this.store.bind(this)
     }
 
@@ -30,7 +31,6 @@ export default class AppSettings extends Component {
         document.title = 'Application Settings - ' + document.title
         makeAjaxRequest('/appsettings/get', 'GET', null, response => {
             response = JSON.parse(response)
-            console.log(window.location.hash ? window.location.hash.substring(1) : 'pants')
             this.setState({
                 activeKey: window.location.hash ? window.location.hash.substring(1) : 'accounting',
                 gst: response.gst,
@@ -39,6 +39,11 @@ export default class AppSettings extends Component {
                 ratesheets: response.ratesheets,
             })
         })
+    }
+
+    componentDidUpdate(prevProps) {
+        if(prevProps.location.hash != window.location.hash)
+            this.setState({...this.state, activeKey: window.location.hash.substr(1)})
     }
 
     handleChange(event) {
@@ -66,93 +71,111 @@ export default class AppSettings extends Component {
         return {paymentTypes: paymentTypes}
     }
 
+    handleTabChange(eventKey) {
+        window.location.hash = eventKey
+        this.setState({...this.state, activeKey: eventKey})
+    }
+
     render() {
         return (
-            <Tab.Container activeKey={this.state.activeKey}>
-                <Row className='text-center justify-content-md-center'>
+            <Row className='text-center justify-content-md-center'>
+                <Col md={12}>
                     <Badge bg='warning'>
                         <h4 className='text-muted'>NOTE: Changes made on this page <u>will affect only <strong>new</strong> objects or calculations, or edits of old objects.</u> They will not affect anything previously created.</h4>
                     </Badge>
-                </Row>
-                <Row>
-                    <Col md={2}>
-                        <Nav variant='pills' className='flex-column'>
-                            <Nav.Item>
-                                <Nav.Link eventKey='accounting'>Accounting</Nav.Link>
-                            </Nav.Item>
-                            {/* <Nav.Item>
-                                <Nav.Link eventKey='company-info'>Company Info</Nav.Link>
-                            </Nav.Item> */}
-                            <Nav.Item>
-                                <Nav.Link eventKey='interliners'>Interliners</Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey='ratesheets'>Ratesheets</Nav.Link>
-                            </Nav.Item>
-                            {/* <Nav.Item>
-                                <Nav.Link eventKey='scheduling'>Scheduling</Nav.Link>
-                            </Nav.Item> */}
-                            {/* <Nav.Item>
-                                <Nav.Link eventKey='misc'>Miscellaneous</Nav.Link>
-                            </Nav.Item> */}
-                        </Nav>
-                    </Col>
-                    <Col md={10}>
-                        <Tab.Content>
-                            <Tab.Pane eventKey='accounting'>
-                                <AccountingTab
-                                    gst={this.state.gst}
-                                    paymentTypes={this.state.paymentTypes}
-                                    ratesheets={this.state.ratesheets}
+                </Col>
+                <Col md={12}>
+                    <Tab.Container activeKey={this.state.activeKey} onChange={(event) => console.log(event)}>
+                        <Row>
+                            <Col md={2}>
+                                <Nav variant='pills' className='flex-column'>
+                                    <Nav.Item>
+                                        <Nav.Link
+                                            eventKey='accounting'
+                                            onClick={() => this.handleTabChange('accounting')}
+                                        >Accounting</Nav.Link>
+                                    </Nav.Item>
+                                    {/* <Nav.Item>
+                                        <Nav.Link eventKey='company-info'>Company Info</Nav.Link>
+                                    </Nav.Item> */}
+                                    <Nav.Item>
+                                        <Nav.Link
+                                            eventKey='interliners'
+                                            onClick={() => this.handleTabChange('interliners')}
+                                        >Interliners</Nav.Link>
+                                    </Nav.Item>
+                                    <Nav.Item>
+                                        <Nav.Link
+                                            eventKey='ratesheets'
+                                            onClick={() => this.handleTabChange('ratesheets')}
+                                        >Ratesheets</Nav.Link>
+                                    </Nav.Item>
+                                    {/* <Nav.Item>
+                                        <Nav.Link eventKey='scheduling'>Scheduling</Nav.Link>
+                                    </Nav.Item> */}
+                                    {/* <Nav.Item>
+                                        <Nav.Link eventKey='misc'>Miscellaneous</Nav.Link>
+                                    </Nav.Item> */}
+                                </Nav>
+                            </Col>
+                            <Col md={10}>
+                                <Tab.Content>
+                                    <Tab.Pane eventKey='accounting'>
+                                        <AccountingTab
+                                            gst={this.state.gst}
+                                            paymentTypes={this.state.paymentTypes}
+                                            ratesheets={this.state.ratesheets}
 
-                                    handleChange={this.handleChange}
-                                />
-                            </Tab.Pane>
-                        </Tab.Content>
-                        {/* <Tab.Content>
-                            <Tab.Pane eventKey='company-info'>
-                                <CompanyInfoTab
-                                    handleChange={this.handleChange}
-                                />
-                            </Tab.Pane>
-                        </Tab.Content> */}
-                        <Tab.Content>
-                            <Tab.Pane eventKey='interliners'>
-                                <InterlinersTab
-                                    interliners={this.state.interliners}
+                                            handleChange={this.handleChange}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                                {/* <Tab.Content>
+                                    <Tab.Pane eventKey='company-info'>
+                                        <CompanyInfoTab
+                                            handleChange={this.handleChange}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content> */}
+                                <Tab.Content>
+                                    <Tab.Pane eventKey='interliners'>
+                                        <InterlinersTab
+                                            interliners={this.state.interliners}
 
-                                    handleChange={this.handleChange}
-                                />
-                            </Tab.Pane>
-                        </Tab.Content>
-                        <Tab.Content>
-                            <Tab.Pane eventKey='ratesheets'>
-                                <RatesheetsTab
-                                    ratesheets={this.state.ratesheets}
-                                />
-                            </Tab.Pane>
-                        </Tab.Content>
-                        {/* <Tab.Content>
-                            <Tab.Pane eventKey='scheduling'>
-                                <SchedulingTab
-                                    blockedDate={this.state.blockedDate}
-                                    blockedDateReason={this.state.blockedDateReason}
-                                    handleChange={this.handleChange}
-                                />
-                            </Tab.Pane>
-                        </Tab.Content> */}
-                        {/* <Tab.Content>
-                            <Tab.Pane eventKey='misc'>
-                            </Tab.Pane>
-                        </Tab.Content> */}
-                    </Col>
-                </Row>
-                <Row>
-                    <Col md={12} className='text-center'>
-                        <Button variant='primary' onClick={this.store}>Submit</Button>
-                    </Col>
-                </Row>
-            </Tab.Container>
+                                            handleChange={this.handleChange}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                                <Tab.Content>
+                                    <Tab.Pane eventKey='ratesheets'>
+                                        <RatesheetsTab
+                                            ratesheets={this.state.ratesheets}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                                {/* <Tab.Content>
+                                    <Tab.Pane eventKey='scheduling'>
+                                        <SchedulingTab
+                                            blockedDate={this.state.blockedDate}
+                                            blockedDateReason={this.state.blockedDateReason}
+                                            handleChange={this.handleChange}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content> */}
+                                {/* <Tab.Content>
+                                    <Tab.Pane eventKey='misc'>
+                                    </Tab.Pane>
+                                </Tab.Content> */}
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={12} className='text-center'>
+                                <Button variant='primary' onClick={this.store}>Submit</Button>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
+                </Col>
+            </Row>
         )
     }
 

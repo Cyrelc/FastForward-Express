@@ -180,7 +180,7 @@ class EmployeeController extends Controller {
         DB::beginTransaction();
 
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($req->employee_id);
+        $employee = $employeeRepo->GetById($req->employee_id, null);
         if($req->user()->cannot('updateBasic', $employee))
             abort(403);
 

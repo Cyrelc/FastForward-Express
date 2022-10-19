@@ -32,7 +32,7 @@ export default class EmergencyContacts extends Component {
     }
 
     addEmergencyContact() {
-        fetch('/employees/emergencyContacts/getModel')
+        fetch('/employees/emergencyContacts')
         .then(response => {return response.json()})
         .then(data => {
             this.setState({
@@ -62,7 +62,7 @@ export default class EmergencyContacts extends Component {
     }
 
     editEmergencyContact(emergencyContactId) {
-        makeAjaxRequest('/employees/emergencyContacts/getModel/' + emergencyContactId, 'GET', null, response => {
+        makeAjaxRequest(`/employees/emergencyContacts/${emergencyContactId}`, 'GET', null, response => {
             response = JSON.parse(response)
             this.setState({
                 contactId: response.contact_id,
@@ -110,7 +110,7 @@ export default class EmergencyContacts extends Component {
             position: this.state.position
         }
         $.ajax({
-            'url': '/employees/emergencyContacts/store',
+            'url': '/employees/emergencyContacts',
             'type': 'POST',
             'data': data,
             'success': response => {
