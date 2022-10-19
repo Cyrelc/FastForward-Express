@@ -70,7 +70,7 @@ class Employee extends Component {
 
     configureEmployee() {
         const {match: {params}} = this.props
-        const fetchUrl = params.employeeId ? `/employees/${params.employeeId}` : '/employees'
+        const fetchUrl = params.employeeId ? `/employees/${params.employeeId}` : '/employees/create'
         params.employeeId ? document.title = `Edit Employee - ${params.employeeId}` : 'Create Employee'
 
         makeAjaxRequest(fetchUrl, 'GET', null, response => {
