@@ -50,12 +50,12 @@ export default class EmergencyContacts extends Component {
         const emergencyContact = this.props.emergencyContacts.filter(contact => contact.contact_id === contactId)[0]
         if(this.props.emergencyContacts.length <= 1)
             return
-        if(confirm('Are you sure you wish to delete contact ' + emergencyContact.name + '?\nThis action can not be undone')) {
+        if(confirm(`Are you sure you wish to delete contact ${emergencyContact.name}?\nThis action can not be undone`)) {
             const data = {
                 contact_id: contactId,
                 employee_id: this.props.employeeId
             }
-            makeAjaxRequest('/employees/emergencyContacts/delete', 'POST', data, response => {
+            makeAjaxRequest('/employees/emergencyContacts', 'DELETE', data, response => {
                 this.props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
             })
         }
