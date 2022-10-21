@@ -122,7 +122,7 @@ export default class ReduxTable extends Component {
                             <Row>
                                 <Col md={1}>
                                     <Card.Title>{this.props.pageTitle}</Card.Title>
-                                    <h6>{this.props.tableData.length.toLocaleString('en-US')} results</h6>
+                                    <h6>{this.props.tableData.length?.toLocaleString('en-US')} results</h6>
                                 </Col>
                                 <Col md={2}>
                                     <InputGroup>

@@ -132,7 +132,7 @@ class EmployeeRepo {
             ->pluck('email_address_id')->toArray();
         $relevantIds['phone_ids'] = \App\PhoneNumber::whereIn('contact_id', $relevantIds['contact_ids'])
             ->pluck('phone_number_id')->toArray();
-        $relevantIds['address_ids'] = \App\Address::whereIn('contact_id', $relevantIds)
+        $relevantIds['address_ids'] = \App\Address::whereIn('contact_id', $relevantIds['contact_ids'])
             ->pluck('address_id')->toArray();
 
         return $relevantIds;
