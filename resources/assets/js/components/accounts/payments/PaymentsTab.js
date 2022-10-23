@@ -9,7 +9,7 @@ import PaymentModal from './PaymentModal'
 const initialSort = [{column: 'date', dir: 'desc'}, {column: 'payment_id', dir:'desc'}]
 
 export default function PaymentsTab(props) {
-    const [outstandingInvoiceCount, setOutstandingInvoiceCount] = useState(0)
+    const [outstandingInvoiceCount, setOutstandingInvoiceCount] = useState(null)
     const [payments, setPayments] = useState([])
     const [showAdjustAccountCreditModal, setShowAdjustAccountCreditModal] = useState(false)
     const [showManagePaymentMethodsModal, setShowManagePaymentMethodsModal] = useState(false)
@@ -89,7 +89,9 @@ export default function PaymentsTab(props) {
                                         variant='primary'
                                         onClick={() => setShowPaymentModal(true)}
                                         disabled={outstandingInvoiceCount <= 0}
-                                    ><i className='fas fa-money-check-alt'></i> Process Payment <Badge bg='secondary'>{outstandingInvoiceCount ? outstandingInvoiceCount : <i className='fas fa-spinner fa-spin'></i>}</Badge>
+                                    >
+                                        <i className='fas fa-money-check-alt'></i> Process Payment
+                                        <Badge bg='secondary' style={{marginLeft: '10px'}}>{outstandingInvoiceCount == null ? <i className='fas fa-spinner fa-spin'></i> : outstandingInvoiceCount}</Badge>
                                     </Button>
                                 </Col>
                             }

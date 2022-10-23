@@ -10,14 +10,12 @@ export default function AccountUsersTab(props) {
     const [showAccountUserModal, setShowAccountUserModal] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
     const [userId, setUserId] = useState(undefined)
-
-    useEffect(() => {
-        refreshAccountUsers()
-    }, [])
+    const [isTableLoading, setIsTableLoading] = useState(true)
 
     useEffect(() => {
         setAccountUsers([])
-        refreshAccountUsers()
+        if(props.accountId)
+            refreshAccountUsers()
     }, [props.accountId])
 
     const addAccountUser = () => {
@@ -78,10 +76,12 @@ export default function AccountUsersTab(props) {
     }
 
     const refreshAccountUsers = () => {
+        setIsTableLoading(true)
         makeAjaxRequest(`/users/getAccountUsers/${props.accountId}`, 'GET', null, response => {
             response = JSON.parse(response)
             setAccountUsers(response)
             setShowAccountUserModal(false)
+            setIsTableLoading(false)
         })
     }
 
@@ -99,7 +99,7 @@ export default function AccountUsersTab(props) {
                     <Card.Body>
                         <Table striped bordered>
                             <thead>
-                                <tr>
+                                <tr key='head'>
                                     <th width='50px'>
                                         {props.canCreateAccountUsers &&
                                             <Button size='sm' variant='success' onClick={addAccountUser} >
@@ -115,7 +115,13 @@ export default function AccountUsersTab(props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {accountUsers.map(user =>
+                                {isTableLoading ?
+                                    <tr>
+                                        <td colSpan={6}>
+                                            <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+                                        </td>
+                                    </tr>
+                                    : accountUsers.map(user =>
                                     <tr key={user.name}>
                                         <td>
                                             {hasAnyPermissions(user.contact_id) && 

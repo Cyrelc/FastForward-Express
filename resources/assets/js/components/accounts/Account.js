@@ -254,7 +254,7 @@ class Account extends Component {
             toastr.success(`Account ${response.account_id} successfully ${this.state.accountId  ? 'updated' : 'created'}`, 'Success', {
                 'onHidden': () => {
                     if(!this.state.accountId)
-                        this.props.redirect('/accounts/' + response.account_id)
+                        this.props.history.push(`/app/accounts/${response.account_id}`)
                 }
             })
         })
@@ -448,13 +448,21 @@ class Account extends Component {
                 <Col md={4} style={{textAlign: 'center'}}>
                     <ButtonGroup>
                         {(this.state.accountId && this.state.viewChildren != false) &&
-                            <LinkContainer to={'/app/accounts/' + this.state.prevAccountIndex}><Button variant='info' disabled={!this.state.prevAccountIndex}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}</Button></LinkContainer>
+                            <LinkContainer to={`/app/accounts/${this.state.prevAccountIndex}${window.location.hash}`}>
+                                <Button variant='info' disabled={!this.state.prevAccountIndex}>
+                                    <i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}
+                                </Button>
+                            </LinkContainer>
                         }
                         {(this.state.permissions.editBasic || this.state.permissions.editInvoicing || this.state.permissions.editAdvanced || (this.state.accountId === null && this.state.permissions.create)) &&
                             <Button variant='primary' onClick={this.storeAccount}>Submit</Button>
                         }
                         {this.state.accountId && this.state.viewChildren != false &&
-                            <LinkContainer to={'/app/accounts/' + this.state.nextAccountIndex}><Button variant='info' disabled={!this.state.nextAccountIndex}>Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
+                            <LinkContainer to={`/app/accounts/${this.state.nextAccountIndex}${window.location.hash}`}>
+                                <Button variant='info' disabled={!this.state.nextAccountIndex}>
+                                    Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i>
+                                </Button>
+                            </LinkContainer>
                         }
                     </ButtonGroup>
                 </Col>

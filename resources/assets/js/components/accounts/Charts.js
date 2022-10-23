@@ -23,7 +23,8 @@ export default function Charts(props) {
         }
         makeAjaxRequest(`/accounts/chart`, 'GET', data, response => {
             response = JSON.parse(response)
-            setChartData(Object.values(response.bills).map(value => {return value}))
+            if(response.bills)
+                setChartData(Object.values(response.bills).map(value => {return value}))
             setKeys(response.keys)
         })
     }, [accountId, summationType])
