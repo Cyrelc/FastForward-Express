@@ -11,6 +11,7 @@ import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
 import VolumeRatesTab from './VolumeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
+import DistanceRatesTab from './DistanceRatesTab'
 // import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
 
 const polyColours = {
@@ -351,13 +352,13 @@ export default class Ratesheet extends Component {
             timeRates: this.state.timeRates.slice(),
             miscRates: this.state.miscRates.slice()
         }
-        makeAjaxRequest('/ratesheets/store', 'POST', data, response => {
+        makeAjaxRequest('/ratesheets', 'POST', data, response => {
             toastr.clear()
             this.setState({savingMap: 100})
             if(this.state.ratesheetId) {
-                toastr.success(this.state.ratesheetName + ' was successfully updated!', 'Success', {'onHidden': function(){location.reload()}})
+                toastr.success(`${this.state.ratesheetName} was successfully updated!`, 'Success', {'onHidden': function(){location.reload()}})
             } else {
-                toastr.success(this.state.ratesheetName + ' was successfully created', 'Success', {
+                toastr.success(`${this.state.ratesheetName} was successfully created`, 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
                     'showDuration': 500,
@@ -426,6 +427,17 @@ export default class Ratesheet extends Component {
                                 handleZoneRateChange={this.handleZoneRateChange}
                             />
                         </Tab>
+                        {this.state.useInternalZonesCalc &&
+                            <Tab eventKey='distance' title={<h4><i className='fas fa-map'></i>Distance Rates</h4>}>
+                                <DistanceRatesTab
+                                    deliveryTypes={this.state.deliveryTypes}
+                                    handleChange={this.handleChange}
+                                    handleZoneRateChange={this.handleZoneRateChange}
+                                    useInternalZonesCalc={this.state.useInternalZonesCalc}
+                                    zoneRates={this.state.zoneRates}
+                                />
+                            </Tab>
+                        }
                         <Tab eventKey='weight' title={<h4><i className='fas fa-weight'></i> Weight Rates</h4>}>
                             <WeightRatesTab
                                 handleChange={this.handleChange}
