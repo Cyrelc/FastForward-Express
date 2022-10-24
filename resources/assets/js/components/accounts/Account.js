@@ -53,7 +53,6 @@ const initialState = {
     showInvoiceLineItems: false,
     startDate: new Date(),
     useShippingForBillingAddress: true,
-    useParentRatesheet: false,
     users: []
 }
 
@@ -126,7 +125,6 @@ class Account extends Component {
                     showInvoiceLineItems: response.account.show_invoice_line_items,
                     startDate: Date.parse(response.account.start_date),
                     useShippingForBillingAddress: response.account.billing_address_id === null,
-                    useParentRatesheet: response.account.use_parent_ratesheet
                 }
             }
 
@@ -172,9 +170,6 @@ class Account extends Component {
         var temp = {}
         events.forEach(event => {
             const {name, type, value, checked} = event.target
-            if(name === 'parentAccount' && this.state.parentAccount == '') {
-                temp['useParentRatesheet'] = true
-            }
             if(name === 'key')
                 window.location.hash = value
             temp[name] = type === 'checkbox' ? checked : value
@@ -246,7 +241,6 @@ class Account extends Component {
                 parent_account_id: this.state.parentAccount ? this.state.parentAccount.value : null,
                 ratesheet_id: this.state.ratesheet ? this.state.ratesheet.value : null,
                 start_date: this.state.startDate.toLocaleString(),
-                use_parent_ratesheet: this.state.useParentRatesheet
             }
 
         makeAjaxRequest('/accounts', 'POST', data, response => {
@@ -383,7 +377,6 @@ class Account extends Component {
                                     ratesheet={this.state.ratesheet}
                                     sendBills={this.state.sendBills}
                                     startDate={this.state.startDate}
-                                    useParentRatesheet={this.state.useParentRatesheet}
 
                                     parentAccounts={this.state.parentAccounts}
                                     ratesheets={this.state.ratesheets}

@@ -65,7 +65,7 @@ export default function AdvancedTab(props) {
                                 options={props.ratesheets}
                                 value={props.ratesheet}
                                 onChange={value => props.handleChanges({target: {name: 'ratesheet', type: 'object', value: value}})}
-                                isDisabled={props.readOnly || props.useParentRatesheet}
+                                isDisabled={props.readOnly}
                             />
                         </InputGroup>
                     </Col>
@@ -122,15 +122,6 @@ export default function AdvancedTab(props) {
                             label='Send Bills'
                             checked={props.sendBills}
                             onChange={props.handleChanges}
-                        />
-                    </Col>
-                    <Col md={2}>
-                        <FormCheck
-                            name='useParentRatesheet'
-                            label='Use Parent Ratesheet'
-                            checked={props.useParentRatesheet}
-                            onChange={props.handleChanges}
-                            disabled={props.canBeParent || props.readOnly}
                         />
                     </Col>
                     <Col md={2}>

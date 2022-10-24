@@ -25,6 +25,7 @@ class CreateAccountsTable extends Migration
             $table->string('invoice_interval');
             $table->text('invoice_comment')->nullable();
             $table->text('invoice_sort_order');
+            $table->boolean('is_custom_field_mandatory')->default(false);
             $table->float('min_invoice_amount')->default(0);
             $table->string('name')->unique();
             $table->unsignedInteger('parent_account_id')->nullable();
@@ -33,11 +34,11 @@ class CreateAccountsTable extends Migration
             $table->boolean('send_email_invoices')->default(true);
             $table->boolean('send_paper_invoices')->default(false);
             $table->unsignedInteger('shipping_address_id');
+            $table->boolean('show_invoice_line_items')->default(false);
             $table->date('start_date');
             $table->string('stripe_id')->nullable()->index();
             // $table->boolean('charge_interest')->default(true);
 			// $table->float('fuel_surcharge');
-            $table->boolean('use_parent_ratesheet')->default(0);
 
 			$table->foreign('billing_address_id')->references('address_id')->on('addresses');
             $table->foreign('shipping_address_id')->references('address_id')->on('addresses');

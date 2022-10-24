@@ -130,7 +130,7 @@ function NavBar(props) {
                     {hasAnyPermission(props.frontEndPermissions.accounts) &&
                         <SubMenu title={<h5> Accounts</h5>} icon={<i className='fas fa-city fa-lg'/>}>
                             {(props.authenticatedAccountUsers && props.accounts.length == 1) &&
-                                <LinkContainer to={`/app/accounts/${props.authenticatedAccountUsers[0].account_id}`}>
+                                <LinkContainer to={`/app/accounts/${props.authenticatedAccountUsers[0]?.account_id}`}>
                                     <MenuItem icon={<i className='fas fa-building'></i>}>
                                         {props.accounts.find(account => account.value === props.authenticatedAccountUsers[0].account_id).label}
                                     </MenuItem>

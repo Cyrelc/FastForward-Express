@@ -7,14 +7,13 @@ class AccountCollector {
         $advancedArray = [];
         if($accountPermissions['editAdvanced']) {
             $canBeParent = filter_var($req->can_be_parent, FILTER_VALIDATE_BOOLEAN);
-            $useParentRatesheet = filter_var($req->use_parent_ratesheet, FILTER_VALIDATE_BOOLEAN);
 
             $parentAccountId = $req->parent_account_id;
             if($canBeParent || $req->parent_account_id === "")
                 $parentAccountId = null;
 
             $ratesheetId = $req->ratesheet_id;
-            if($useParentRatesheet || $req->ratesheet_id == '')
+            if($req->ratesheet_id == '')
                 $ratesheetId = null;
 
             $advancedArray = [
@@ -27,7 +26,6 @@ class AccountCollector {
                 'parent_account_id'=>$parentAccountId,
                 'ratesheet_id'=>$ratesheetId,
                 'start_date'=>(new \DateTime($req->input('start_date')))->format('Y-m-d'),
-                'use_parent_ratesheet'=>$canBeParent ? null : $useParentRatesheet
             ];
         }
 
