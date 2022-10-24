@@ -139,7 +139,7 @@ export default function Charge(props) {
                 width: 45
             },
             {title: 'Line Item ID', field: 'line_item_id', visible: showDetails},
-            {title: 'Name', field: 'name'},
+            {title: 'Name', field: 'name', editor: 'input'},
             {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), headerSort: false, hozAlign: 'center', width: 45},
             {title: 'Price', field: 'price', ...moneyColumnStandardParams},
             {title: 'Driver Amount', field: 'driver_amount', ...moneyColumnStandardParams},

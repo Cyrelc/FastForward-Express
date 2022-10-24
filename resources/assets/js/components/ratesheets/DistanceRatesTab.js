@@ -29,6 +29,8 @@ export default function DistanceRatesTab(props) {
                                         </td>
                                     )}
                                 </tr>
+                            </thead>
+                            <thead>
                                 <tr>
                                     <td>
                                         <h5 className='text-muted'>Additional Time: </h5>
