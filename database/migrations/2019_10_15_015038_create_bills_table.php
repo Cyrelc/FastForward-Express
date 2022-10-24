@@ -21,14 +21,14 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('delivery_address_id');
             $table->float('delivery_driver_commission')->nullable();
             $table->unsignedInteger('delivery_driver_id')->nullable();
-            $table->unsignedInteger('delivery_manifest_id')->nullable();
             $table->string('delivery_reference_value')->nullable();
             $table->string('delivery_type')->nullable();
-            $table->string('description');
-            $table->string('incomplete_fields')->nullable();
+            $table->text('description');
+            $table->text('incomplete_fields')->nullable();
+            $table->float('interliner_cost')->nullable();
             $table->unsignedInteger('interliner_id')->nullable();
             $table->string('interliner_reference_value')->nullable();
-            $table->string('internal_comment');
+            $table->text('internal_comments')->nullable();
             $table->boolean('is_min_weight_size')->default(0);
             $table->boolean('is_pallet')->default(0);
             $table->boolean('is_template')->default(0);
@@ -38,7 +38,6 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_address_id');
             $table->float('pickup_driver_commission')->nullable();
             $table->unsignedInteger('pickup_driver_id')->nullable();
-            $table->unsignedInteger('pickup_manifest_id')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->boolean('proof_of_delivery_required')->default(0);
             $table->unsignedInteger('repeat_interval')->nullable()->default(null);
