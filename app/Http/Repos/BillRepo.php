@@ -19,7 +19,7 @@ class BillRepo {
     private $employeeId;
 
     public function __construct() {
-        $user = Auth::user();
+        $user = Auth::user() ?? auth('sanctum')->user();
 
         $accountRepo = new AccountRepo();
         $this->myAccounts = $user->accountUsers ? $accountRepo->GetMyAccountIds($user, $user->can('bills.view.basic.children')) : null;
@@ -233,7 +233,10 @@ class BillRepo {
             $bills[0]->bills = $billQuery->get();
         } else {
             if($subtotalBy->database_field_name === 'time_pickup_scheduled')
-                $subtotalIds = Bill::where('invoice_id', $invoiceId)->select(DB::raw('date(time_pickup_scheduled) as pickup_date'))->groupBy('pickup_date')->pluck('pickup_date');
+                $subtotalIds = LineItem::where('invoice_id', $invoiceId)
+                    ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+                    ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+                    ->select(DB::raw('date(time_pickup_scheduled) as pickup_date'))->groupBy('pickup_date')->pluck('pickup_date');
             else
                 $subtotalIds = Bill::leftJoin('charges', 'charges.bill_id', '=', 'bills.bill_id')
                     ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
@@ -365,6 +368,40 @@ class BillRepo {
             $bills->groupBy($dateGroupBy);
         else
             $bills->groupBy($dateGroupBy, $groupBy);
+
+        return $bills->get();
+    }
+
+    public function GetDriverDispatch($employeeId) {
+        $bills = Bill::leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
+            ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
+            ->where(function ($query) use ($employeeId) {
+                $query->where('pickup_driver_id', $employeeId)
+                    ->orWhere('delivery_driver_id', $employeeId);
+            })->where(function($query) {
+                $query->where('time_picked_up', null)
+                    ->orWhere('time_delivered', null)
+                    ->orWhere('time_ten_foured', null);
+            })->select(
+                'bill_id',
+                'delivery_address.lat as delivery_address_lat',
+                'delivery_address.lng as delivery_address_lng',
+                'delivery_address.name as delivery_address_name',
+                'delivery_address.formatted as delivery_address_formatted',
+                'delivery_type',
+                'description',
+                'internal_comments',
+                'pickup_address.lat as pickup_address_lat',
+                'pickup_address.lng as pickup_address_lng',
+                'pickup_address.name as pickup_address_name',
+                'pickup_address.formatted as pickup_address_formatted',
+                'time_delivery_scheduled',
+                'time_delivered',
+                'time_dispatched',
+                'time_pickup_scheduled',
+                'time_picked_up',
+                'time_ten_foured',
+            );
 
         return $bills->get();
     }
@@ -525,7 +562,7 @@ class BillRepo {
                     'charge_account.name as charge_account_name',
                     'charge_account.account_number as charge_account_number',
                     'charges.charge_type_id as charge_type_id',
-                    DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
+                    DB::raw('MIN(case when invoice_id is not null then 0 when line_items.pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
                     'delivery_address.formatted as delivery_address_formatted',
                     'delivery_address.name as delivery_address_name',
                     'deliveryType.name as type',
