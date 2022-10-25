@@ -533,7 +533,7 @@ class BillRepo {
 
     public function Insert($bill) {
         $new = new Bill;
-        $new->created_by = Auth::user()->user_id;
+        $bill['created_by'] = Auth::user()->user_id;
 
         $new = $new->create($bill);
 
