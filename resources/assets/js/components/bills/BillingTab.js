@@ -274,13 +274,6 @@ export default function BillingTab(props) {
                             }
                         ><i className='fas fa-plus'></i> Add</Button>
                     </Col>
-                    <Col md={2}>
-                        <Button
-                            variant='warning'
-                            onClick={props.generateCharges}
-                            disabled={readOnly || isPickupManifested || isDeliveryManifested || isInvoiced || charges?.length !== 1}
-                        >Auto-price (BETA)</Button>
-                    </Col>
                 </Row>
             </Card.Body>
             <hr/>
@@ -323,11 +316,12 @@ export default function BillingTab(props) {
                                 charges={charges}
                                 delivery={props.billState.delivery}
                                 drivers={props.billState.drivers}
+                                generateCharges={props.generateCharges}
                                 index={index}
                                 key={index}
                                 lineItemTypeFormatter={lineItemTypeFormatter}
                                 pickup={props.billState.pickup}
-                                readOnly={readOnly}
+                                readOnly={readOnly || isPickupManifested || isDeliveryManifested || isInvoiced}
                             />
                         )}
                     </Row>

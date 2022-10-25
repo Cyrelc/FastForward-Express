@@ -89,22 +89,21 @@ const Bill = (props) => {
         }
     }
 
-    const generateCharges = useCallback((overwrite = false) => {
+    const generateCharges = useCallback((chargeIndex, overwrite = false) => {
         if(awaitingCharges)
             return
-        if(charges?.length !== 1) {
-            toastr.error('Unable to generate charges where there is not exactly one charge recipient present')
-            return
-        }
+
+        const charge = charges[chargeIndex]
 
         const data = {
-            charge_account_id: chargeAccount ? chargeAccount.account_id : null,
+            charge_account_id: charge?.account_id,
             delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng},
             delivery_type_id: deliveryType.id,
             package_is_minimum: packageIsMinimum,
             package_is_pallet: packageIsPallet,
-            packages: packageState.packageIsMinimum ? [] : packageState.tableRef.current.table.getData(),
+            packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
             pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng},
+            // TODO: replace this with ratesheet logic (mine > parents > default)
             ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
             time_pickup_scheduled: pickupTimeScheduled,
             time_delivery_scheduled: deliveryTimeScheduled,
@@ -114,12 +113,11 @@ const Bill = (props) => {
 
         makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
             response = JSON.parse(response)
-            if(overwrite)
-                charges[0].tableRef.current.table.replaceData(response)
-            else
-                response.forEach(charge => {
-                    charges[0].tableRef.current.table.addRow(charge);
-                })
+            if(overwrite) {
+                chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+            } else {
+                chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+            }
             setAwaitingCharges(false)
             toastr.warning('Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies')
         },
@@ -342,7 +340,7 @@ const Bill = (props) => {
             }
         }
         if(permissions.createFull && conditionsMet)
-            generateCharges(true)
+            generateCharges(0, true)
     }, [
         activeRatesheet,
         billId,
@@ -514,7 +512,7 @@ const Bill = (props) => {
                                 billState={billState}
                                 chargeDispatch={chargeDispatch}
                                 chargeState={chargeState}
-                                generateCharges={() => generateCharges()}
+                                generateCharges={generateCharges}
                             />
                         </Tab>
                     }

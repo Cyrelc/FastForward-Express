@@ -263,16 +263,23 @@ export default function Charge(props) {
     return (
         <Col
             style={{display: charge.toBeDeleted ? 'none' : ''}}
-            key={index + '.' + charge.name}
+            key={`${index}.${charge.name}`}
             md={(chargeCount > 1 && !showDetails) ? 6 : 12}
         >
             <Card border='dark'>
                 <Card.Header>
                     <Row>
-                        <Col md={9}>
+                        <Col md={8}>
                             <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                         </Col>
-                        <Col md={3}>
+                        <Col md={2}>
+                            <Button
+                                variant='warning'
+                                onClick={() => props.generateCharges(index)}
+                                disabled={props.readOnly}
+                            >Auto-price (BETA)</Button>
+                        </Col>
+                        <Col md={2}>
                             <Dropdown
                                 align='end'
                                 as={ButtonGroup}
@@ -282,7 +289,9 @@ export default function Charge(props) {
                                 <Button
                                     onClick={() => setShowDetails(!showDetails)}
                                     variant='secondary'
-                                ><i className={`fas fa-${showDetails ? 'compress' : 'expand'}-alt`}></i> Toggle Details</Button>
+                                >
+                                    <i className={`fas fa-${showDetails ? 'compress' : 'expand'}-alt`}></i> Toggle Details
+                                </Button>
                                 <Dropdown.Toggle variant='secondary' id={`amendment-dropdown-${charge.charge_id}`}>
                                     <Dropdown.Menu>
                                         <Dropdown.Item onClick={() => payOffAllLineItems(charge)}>
@@ -345,13 +354,13 @@ export default function Charge(props) {
                             rowAdded: row => {
                                 row.getTable().setGroupBy(data => groupBy(data, charge))
                                 const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
+                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
                                 props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
                             },
                             rowDeleted: row => {
                                 props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
                                 const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', 'payload': {data, index}})
+                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
                             }
                         }}
                     />

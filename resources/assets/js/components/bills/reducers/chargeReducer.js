@@ -88,6 +88,16 @@ export default function chargeReducer(state, action) {
             return Object.assign({}, state, {
                 charges: state.charges.concat([newCharge])
             })
+        case 'ADD_LINE_ITEMS': {
+            const charges = state.charges.map((charge, index) => {
+                if(index == payload.index)
+                    return {...charge, lineItems: charge.lineItems.concat(payload.data)}
+                return charge
+            })
+            return Object.assign({}, state, {
+                charges
+            })
+        }
         case 'CHECK_FOR_INTERLINER': {
             let hasInterliner = false
             state.charges.forEach(charge => {
