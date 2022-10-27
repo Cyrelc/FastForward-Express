@@ -338,12 +338,13 @@ class BillRepo {
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('charges', 'charges.bill_id', '=', 'bills.bill_id')
             ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
+            ->leftJoin('selections', 'selections.value', '=', 'bills.delivery_type')
             ->select(
                 DB::raw('sum(price) as amount'),
                 DB::raw('count(distinct(bills.bill_id)) as count'),
                 'charge_account_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m-%d (%a)") as day'),
-                'delivery_type',
+                'selections.name as delivery_type',
                 DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
                 'employees.employee_id',
                 DB::raw('date_format(time_pickup_scheduled, "%Y-%m - %b") as month'),

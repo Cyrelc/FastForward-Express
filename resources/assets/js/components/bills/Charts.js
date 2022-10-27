@@ -113,18 +113,19 @@ export default class Charts extends Component {
                             </Row>
                         </Card.Header>
                         <Card.Body>
-                            <div style={{height: '75vh', width: '90vw'}}>
+                            <div style={{height: '80vh', width: '80vw'}}>
                                 <ResponsiveBar
+                                    axisBottom={{tickRotation: 45}}
                                     data={this.state.data}
                                     keys={this.state.keys}
                                     indexBy='indexKey'
-                                    labelFormat={(this.state.summationType.value === 'amount' || this.state.summationType.value === 'driver_income') ? '$.2f' : ''}
+                                    label={group => ['amount', 'driver_income'].includes(this.state.summationType.value) ? group.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}) : group.value}
                                     legends={[{
                                         dataFrom: 'keys',
                                         anchor: 'bottom-right',
                                         direction: 'column', 
                                         justify: false,
-                                        translateX: 120, 
+                                        translateX: 120,
                                         translateY: 0,
                                         itemsSpacing: 2,
                                         itemWidth: 100,
@@ -133,7 +134,7 @@ export default class Charts extends Component {
                                         itemOpacity: 0.85,
                                         symbolSize: 20,
                                     }]}
-                                    margin={{ top: 50, right: 160, bottom: 50, left: 60}}
+                                    margin={{ top: 50, right: 160, bottom: 80, left: 60}}
                                     tooltip={data => {
                                         if(this.state.summationType.value === 'amount')
                                             return data.id + ' - $' + data.value.toLocaleString()

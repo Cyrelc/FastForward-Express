@@ -11,6 +11,35 @@
 |
 */
 
+// Authenticated views
+Route::group(['middleware' => ['auth']],
+    function() {
+        Route::get('/', 'HomeController@index');
+        Route::get('/getDashboard', 'HomeController@getDashboard');
+        Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
+
+        Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
+
+        Route::get('/bills/chart', 'AdminController@getChart');
+
+        Route::get('/app/{route}', 'HomeController@index');
+
+        Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
+        Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
+        Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
+        Route::delete('/payments/undo', 'PaymentController@UndoPayment');
+
+        Route::get('/logout', 'Auth\LoginController@logout');
+
+        Route::get('/appsettings/get', 'AdminController@getModel');
+        Route::post('/appsettings/store', 'AdminController@store');
+        Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
+        //API
+        // Route::resource('/customers', 'AccountController',
+        //     ['only' => ['index', 'create', 'edit', 'store']]);
+    }
+);
+
 Route::middleware(['auth'])->controller(AccountController::class)->prefix('accounts')->group(function() {
     Route::get('/chart', 'getChart');
     Route::get('/toggleActive/{accountId}', 'toggleActive');
@@ -32,6 +61,7 @@ Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')-
     Route::get('/{billId}', 'getModel');
     Route::delete('/{billId}', 'delete');
     Route::get('/', 'index');
+    Route::get('/trend', '');
 });
 
 Route::middleware(['auth'])->controller(ChargebackController::class)->prefix('chargebacks')->group(function() {
@@ -118,35 +148,6 @@ Route::middleware(['auth'])->controller(UserController::class)->prefix('users')-
     Route::get('/unimpersonate', 'unimpersonate');
     Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
 });
-
-// Authenticated views
-Route::group(['middleware' => ['auth']],
-    function() {
-        Route::get('/', 'HomeController@index');
-        Route::get('/getDashboard', 'HomeController@getDashboard');
-        Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
-
-        Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
-
-        Route::get('/bills/chart', 'AdminController@getChart');
-
-        Route::get('/app/{route}', 'HomeController@index');
-
-        Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
-        Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
-        Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
-        Route::delete('/payments/undo', 'PaymentController@UndoPayment');
-
-        Route::get('/logout', 'Auth\LoginController@logout');
-
-        Route::get('/appsettings/get', 'AdminController@getModel');
-        Route::post('/appsettings/store', 'AdminController@store');
-        Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
-        //API
-        // Route::resource('/customers', 'AccountController',
-        //     ['only' => ['index', 'create', 'edit', 'store']]);
-    }
-);
 
 //Authenticated SPA
 Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {

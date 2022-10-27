@@ -7,10 +7,12 @@ export default function Charts(props) {
     const [chartData, setChartData] = useState([])
     const [keys, setKeys] = useState([])
     const [summationType, setSummationType] = useState('count')
+    const [isLoading, setIsLoading] = useState(true)
 
     const {accountId} = props
 
     useEffect(() => {
+        setIsLoading(true)
         if(!accountId)
             return
         const endDate = DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}).startOf('month')
@@ -26,10 +28,13 @@ export default function Charts(props) {
             if(response.bills)
                 setChartData(Object.values(response.bills).map(value => {return value}))
             setKeys(response.keys)
+            setIsLoading(false)
         })
     }, [accountId, summationType])
 
-    return (
+    return (isLoading
+        ? <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+        :
         <Card>
             <Card.Header>
                 <InputGroup>
@@ -48,11 +53,11 @@ export default function Charts(props) {
                         indexBy='indexKey'
                         label={group => summationType === 'amount' ? group.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}) : group.value}
                         legends={[{
-                            dataFrom: 'keys',
                             anchor: 'bottom-right',
-                            direction: 'column', 
+                            dataFrom: 'keys',
+                            direction: 'column',
                             justify: false,
-                            translateX: 120, 
+                            translateX: 120,
                             translateY: 0,
                             itemsSpacing: 2,
                             itemWidth: 100,
