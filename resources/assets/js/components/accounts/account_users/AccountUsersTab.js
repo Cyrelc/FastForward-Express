@@ -188,7 +188,7 @@ export default function AccountUsersTab(props) {
                                         <td>{user.primary_email}</td>
                                         <td>{formatPhoneNumber(user.primary_phone)}</td>
                                         <td>{user.position}</td>
-                                        <td>{user.roles.map(role => <Badge pill bg='info' text='dark'>{role}</Badge>)}</td>
+                                        <td>{user.roles.map(role => <Badge pill bg='info' text='dark' key={`${user.contact_id}-${role}`}>{role}</Badge>)}</td>
                                     </tr>
                                 )}
                             </tbody>

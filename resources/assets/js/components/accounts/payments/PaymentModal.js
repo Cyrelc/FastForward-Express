@@ -142,7 +142,6 @@ export default function PaymentModal(props) {
         const invoices = outstandingInvoices.map(invoice => {
             if(invoice.invoice_id === invoiceId) {
                 const isPayOffChecked = !invoice?.isPayOffChecked
-                setPaymentAmount(paymentAmount => parseFloat(paymentAmount + (isPayOffChecked ? invoice.balance_owing : -invoice.balance_owing)))
                 return {
                     ...invoice,
                     isPayOffChecked,
@@ -151,6 +150,10 @@ export default function PaymentModal(props) {
             }
             return invoice
         })
+        const newPaymentAmount = invoices.reduce((runningTotal, invoice) =>
+            runningTotal += invoice?.isPayOffChecked ? parseFloat(invoice.balance_owing) : 0
+        , 0.00)
+        setPaymentAmount(newPaymentAmount.toFixed(2))
         setOutstandingInvoices(invoices)
     }
 
