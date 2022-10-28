@@ -29,6 +29,8 @@ class CreateAccountsTable extends Migration
             $table->float('min_invoice_amount')->default(0);
             $table->string('name')->unique();
             $table->unsignedInteger('parent_account_id')->nullable();
+            $table->smallInteger('pm_last_four')->nullable();
+            $table->string('pm_type')->nullable();
             $table->unsignedInteger('ratesheet_id')->nullable();
             $table->boolean('send_bills')->default(true);
             $table->boolean('send_email_invoices')->default(true);

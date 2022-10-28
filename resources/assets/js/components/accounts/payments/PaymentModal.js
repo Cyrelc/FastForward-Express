@@ -123,6 +123,7 @@ export default function PaymentModal(props) {
             outstanding_invoices: outstandingInvoices,
             payment_amount: paymentAmount,
             payment_type_id: selectedPaymentMethod.payment_type_id,
+            payment_method_id: selectedPaymentMethod.payment_method_id,
             payment_method_on_file: selectedPaymentMethod.payment_method_on_file ? true : false,
             reference_value: selectedPaymentMethod.payment_method_on_file ? selectedPaymentMethod.name : paymentReferenceValue,
             comment: comment
