@@ -140,7 +140,7 @@ class PaymentController extends Controller {
             }
         }
 
-        if(!floatval($accountAdjustment) == 0) {
+        if(number_format((float)$accountAdjustment, 2) != 0) {
             $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
             $comment = floatval($accountAdjustment > 0) ? 'Account credit applied' : 'Payment made from account balance';
             $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment, $comment));
