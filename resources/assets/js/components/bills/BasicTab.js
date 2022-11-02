@@ -147,6 +147,10 @@ export default function BasicTab(props) {
         {title: `Total Volume ${useImperial ? '(in\u00B3)' : '(cm\u00B3)'}`, field: 'totalVolume', topCalc: 'sum'}
     ]
 
+    useEffect(() => {
+        props.packageState.tableRef.current?.table?.setColumns(packageColumns)
+    }, [useImperial])
+
     return (
         <Card border='dark'>
             <Card.Body>
