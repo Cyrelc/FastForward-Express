@@ -328,7 +328,7 @@ const Bill = (props) => {
 
     useEffect(() => {
         let conditionsMet = false
-        if(!!activeRatesheet.ratesheet_id && !billId && !!deliveryAddressLat && !!deliveryAddressLng && !!pickupAddressLat && !!pickupAddressLng && !!deliveryType) {
+        if(!!activeRatesheet.ratesheet_id && !billId && !!deliveryAddressLat && !!deliveryAddressLng && !!pickupAddressLat && !!pickupAddressLng && !!deliveryType && charges[0]) {
             if(packageIsMinimum) {
                 conditionsMet = true
             } else {
@@ -339,12 +339,14 @@ const Bill = (props) => {
                 }
             }
         }
+        console.log(`conditionsMet = ${conditionsMet}`)
         if(permissions.createFull && conditionsMet)
             generateCharges(0, true)
     }, [
         activeRatesheet,
         billId,
-        charges,
+        charges[0]?.chargeType,
+        charges[0]?.charge_account_id,
         deliveryAddressLat,
         deliveryAddressLng,
         deliveryType,
