@@ -48,6 +48,7 @@ class ChargeRepo {
                 DB::raw('case when charges.charge_account_id is not null then accounts.custom_field when charges.charge_employee_id is null then payment_types.required_field end as charge_reference_value_label'),
                 DB::raw('case when charges.charge_account_id is not null then accounts.is_custom_field_mandatory when charges.charge_employee_id is null then payment_types.required_field is null end as charge_reference_value_required'),
                 'accounts.account_id',
+                'accounts.account_number as charge_account_number',
                 'accounts.name as charge_account_name',
                 'charge_account_id',
                 'charge_reference_value',

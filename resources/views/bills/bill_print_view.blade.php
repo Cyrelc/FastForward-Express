@@ -5,6 +5,9 @@
 .addresses > tr > td {
     width: 50%;
 }
+body table {
+    font-size: 0.9em
+}
 .charge-table {
     float: right;
 }
@@ -12,6 +15,15 @@
     border: 1px solid black;
     border-collapse: collapse;
     padding: 4px;
+}
+.delivery-details {
+    width: 100%
+}
+.delivery-details tr th {
+    text-align: left
+}
+.delivery-details tr td {
+    text-align: right
 }
 .text-left {
     padding-left: 2%;
@@ -38,11 +50,11 @@
 }
 </style>
 @for($i = 0; $i < 2; $i++)
-    @if($i == 0)
-        <div style='width: 48%; float: left'>
-    @else
-        <div style='width: 48%; float: right'>
-    @endif
+@if($i == 0)
+    <div style='width: 48%; float: left;'>
+@else
+    <div style='width: 48%; float: right;'>
+@endif
         <div>
             <div style="width: 80%; float: left">
                 <table class='waybill-header'>
@@ -71,7 +83,7 @@
             </div>
             <div style='width: 20%; float: right'>
                 <div class='visible-print'>
-                    {!! QrCode::size(90)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
+                    {!! QrCode::size(85)->generate('https://fastforwardexpress.ca/app/bills/' . $model->bill->bill_id); !!}
                 </div>
             </div>
         </div>
@@ -92,19 +104,33 @@
             </tbody>
         </table>
         <hr/>
-        <table style='width: 100%'>
-            <thead>
-                <tr>
-                    <th>Delivery Type</th>
-                    <th>Package Ready For Pickup</th>
-                    <th>Delivery By</th>
-                </tr>
-            </thead>
+        <table class='delivery-details'>
             <tr>
-                <td style='text-align: center'>{{$model->bill->delivery_type_friendly}}</td>
-                <td style='text-align: center'>{{substr($model->bill->time_pickup_scheduled, 0, -3)}}</td>
-                <td style='text-align: center'>{{substr($model->bill->time_delivery_scheduled, 0, -3)}}</td>
+                <th>Delivery Type</th>
+                <td>{{$model->bill->delivery_type_friendly}}</td>
             </tr>
+            <tr>
+                <th>Ready For Pickup</th>
+                <td>{{substr($model->bill->time_pickup_scheduled, 0, -3)}}</td>
+            </tr>
+            <tr>
+                <th>Delivery By</th>
+                <td>{{substr($model->bill->time_delivery_scheduled, 0, -3)}}</td>
+            </tr>
+            @if(!$showCharges)
+                @foreach($model->charges as $charge)
+                    <tr>
+                        <th>Charge To</th>
+                        @if($charge->charge_account_name)
+                            <td>{{$charge->charge_account_number . ' - ' . $charge->charge_account_name}}</td>
+                        @else
+                            <td>{{$charge->type}}</td>
+                        @endif
+                    </tr>
+                @endforeach
+            @endif
+        </table>
+        <table style='width: 100%'>
         </table>
         <hr/>
         @if(!$model->bill->is_min_weight_size)
@@ -137,7 +163,9 @@
             <hr/>
         @endif
         <div>
-            <input type='checkbox' @if($model->bill->proof_of_delivery_required == 1) checked @endif>Proof of Delivery Required</input>
+            <input type='checkbox' @if($model->bill->proof_of_delivery_required == 1) checked @endif>
+                Proof of Delivery Required
+            </input>
         </div>
         <h5 style="width: 50%; float: left; margin-bottom: 0px">Name:</h5><h5 style="width: 50%; float: right; margin-bottom: 0px">Sign: </h5>
         <hr/>
@@ -149,7 +177,7 @@
                             @if($charge->charge_account_name)
                                 <th colSpan='3'>{{$charge->account_id . ' - ' . $charge->charge_account_name}}</th>
                             @else
-                                <th colSpan='3'>{{$charge->type}}
+                                <th colSpan='3'>{{$charge->type}}</th>
                             @endif
                         </tr>
                     </thead>
@@ -179,8 +207,9 @@
                 </table>
             @endforeach
         @endif
-    </div>
+        </div>
     @if($i == 0)
         <div class="vertical-line"></div>
     @endif
+    </div>
 @endfor
