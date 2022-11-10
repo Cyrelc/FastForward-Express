@@ -21,8 +21,8 @@ export default class NumberBetween extends Component {
             this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
             this.setState({lowerBound: lowerBound, upperBound: upperBound})
         } else if (this.props.filter.defaultLowerBound || this.props.filter.defaultUpperBound) {
-            lowerBound = this.props.filter.defaultLowerBound ? this.props.filter.defaultLowerBound : ''
-            upperBound = this.props.filter.defaultUpperBound ? this.props.filter.defaultUpperBound : ''
+            const lowerBound = this.props.filter.defaultLowerBound ? this.props.filter.defaultLowerBound : ''
+            const upperBound = this.props.filter.defaultUpperBound ? this.props.filter.defaultUpperBound : ''
             const filterQueryString = 'filter[' + this.props.filter.value + ']=' + lowerBound + ',' + upperBound
             this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
             this.setState({lowerBound: lowerBound, upperBound: upperBound})
