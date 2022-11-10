@@ -169,14 +169,14 @@ class BillController extends Controller {
 
         $path = $this->storagePath . $this->folderName . '/';
 
-        $asInvoice = isset($req->asInvoice);
+        $printBillAsInvoice = isset($req->asInvoice);
 
         $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
         mkdir($path, 0777, true);
 
-        $model = $asInvoice ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions) : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+        $model = $printBillAsInvoice ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions) : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
-        if($asInvoice) {
+        if($printBillAsInvoice) {
             $amendmentsOnly = false;
 
             $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly'))->render();
@@ -189,15 +189,15 @@ class BillController extends Controller {
         file_put_contents($path . $fileName . '.html', $file);
         $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
         $page->goto('file://' . $path . $fileName . '.html');
-        if($asInvoice)
+        if($printBillAsInvoice)
             $page->addStyleTag(['path' => public_path('css/invoice_pdf.css')]);
         $page->pdf([
             'displayHeaderFooter' => true,
-            'footerTemplate' => $asInvoice ? view('invoices.invoice_table_footer')->render() : view('bills.bill_footer')->render(),
-            'headerTemplate' => view('invoices.invoice_table_header', compact('model'))->render(),
-            'landscape' => !$asInvoice,
+            'footerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_footer')->render() : view('bills.bill_footer')->render(),
+            'headerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render() : null,
+            'landscape' => !$printBillAsInvoice,
             'margin' => [
-                'top' => $asInvoice ? 80 : 0,
+                'top' => $printBillAsInvoice ? 80 : 0,
                 'bottom' => 70,
                 'left' => 30,
                 'right' => 30
