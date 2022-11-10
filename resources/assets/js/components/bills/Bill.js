@@ -474,12 +474,14 @@ const Bill = (props) => {
                                             title='Print Bill with Charges'
                                             variant='success'
                                         >Print with Charges</Dropdown.Item>
-                                        <Dropdown.Item
-                                            href={billId ? `/bills/print/${billId}?asInvoice` : null}
-                                            target='_blank'
-                                            title='Print Bill as Invoice'
-                                            variant='success'
-                                        >Print as Invoice</Dropdown.Item>
+                                        {permissions.editBilling &&
+                                            <Dropdown.Item
+                                                href={billId ? `/bills/print/${billId}?asInvoice` : null}
+                                                target='_blank'
+                                                title='Print Bill as Invoice'
+                                                variant='success'
+                                            >Print as Invoice</Dropdown.Item>
+                                        }
                                     </Dropdown.Menu>
                                 </Dropdown.Toggle>
                             </Dropdown>
