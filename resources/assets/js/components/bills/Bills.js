@@ -183,7 +183,8 @@ function Bills(props) {
             value: 'percentage_complete',
             step: 0.01,
             min: 0,
-            max: 100
+            max: 100,
+            defaultUpperBound: 100,
         },
         {
             name: 'Scheduled Pickup',
