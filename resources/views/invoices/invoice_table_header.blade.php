@@ -32,8 +32,10 @@ h2, h4, td, table {
     <table>
         <td class='invoiceInfo'>
             <h4>
-                Account Number: {{$model->parent->account_number}}<br/>
-                Invoice ID: {{$model->invoice->invoice_id}}<br/>
+                @if(!isset($printBillAsInvoice))
+                    Account Number: {{$model->parent->account_number}}<br/>
+                    Invoice ID: {{$model->invoice->invoice_id}}<br/>
+                @endif
                 Date: {{$model->invoice->bill_end_date}}
             </h4>
         </td>

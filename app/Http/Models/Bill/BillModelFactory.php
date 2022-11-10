@@ -160,10 +160,10 @@ class BillModelFactory{
 		$tax = $billCost * config('ffe_config.gst') / 100;
 
 		$model->parent = new \stdClass();
-		$model->parent->account_number = null;
+		$model->parent->account_number = 'Bill';
 		$model->parent->billing_address = $pickupAddress;
 		$model->parent->shipping_address = $deliveryAddress;
-		$model->parent->name = '';
+		$model->parent->name = $bill->bill_id;
 		$model->parent->invoice_comment = $bill->description;
 
 		$model->invoice = new \stdClass();
