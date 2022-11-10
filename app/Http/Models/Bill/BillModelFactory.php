@@ -135,6 +135,68 @@ class BillModelFactory{
 		return $model;
 	}
 
+	public function GetPrintAsInvoiceModel($billId, $permissions) {
+		$model = new Models\Invoice\InvoiceTable();
+
+		$addressRepo = new Repos\AddressRepo();
+		$billRepo = new Repos\BillRepo();
+		$chargeRepo = new Repos\ChargeRepo();
+		$selectionsRepo = new Repos\SelectionsRepo();
+
+		$bill = $billRepo->GetById($billId, $permissions);
+		$charges = $chargeRepo->GetByBillId($billId);
+		$deliveryAddress = $addressRepo->GetById($bill->delivery_address_id);
+		$pickupAddress = $addressRepo->GetById($bill->pickup_address_id);
+
+		$billCost = 0;
+		$unpaid = 0;
+		foreach($charges as $charge) {
+			foreach($charge->lineItems as $lineItem) {
+				$billCost += $lineItem->price;
+				if(!filter_var($lineItem->paid, FILTER_VALIDATE_BOOLEAN))
+					$unpaid += $lineItem->price;
+			}
+		}
+		$tax = $billCost * config('ffe_config.gst') / 100;
+
+		$model->parent = new \stdClass();
+		$model->parent->account_number = null;
+		$model->parent->billing_address = $pickupAddress;
+		$model->parent->shipping_address = $deliveryAddress;
+		$model->parent->name = '';
+		$model->parent->invoice_comment = $bill->description;
+
+		$model->invoice = new \stdClass();
+		$model->invoice->bill_cost = $billCost;
+		$model->invoice->bill_count = 1;
+		$model->invoice->finalized = $bill->percentage_complete == 100;
+		$model->invoice->min_invoice_amount = null;
+		$model->invoice->discount = 0;
+		$model->invoice->fuel_surcharge = 0;
+		$model->invoice->invoice_id = null;
+		$model->invoice->bill_end_date = $bill->time_pickup_scheduled;
+		$model->invoice->tax = number_format($tax, 2);
+		$model->invoice->total_cost = $billCost + $tax;
+
+		$model->tables = [];
+		$model->tables[0] = new \stdClass();
+		$model->tables[0]->headers = [
+			'Date' => 'time_pickup_scheduled',
+			'Bill ID' => 'bill_id',
+			'Waybill Number' => 'bill_number',
+			'Type' => 'delivery_type'
+		];
+
+		$deliveryType = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $bill->delivery_type);
+		$bill->delivery_type = $deliveryType->name;
+
+		$model->tables[0]->bills = [$bill];
+		$model->unpaid_invoices = [];
+		$model->account_owing = $billCost + $tax;
+
+		return $model;
+	}
+
 	private function setBusinessHours($model) {
 		//set minimum and maximum pickup times based on config settings
 		$business_hours_open = explode(':', config('ffe_config.business_hours_open'));

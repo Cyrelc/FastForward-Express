@@ -167,30 +167,43 @@ class BillController extends Controller {
 
         $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
 
-        $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
-
-        $showCharges = isset($req->showCharges);
-
         $path = $this->storagePath . $this->folderName . '/';
-        $fileName = 'bill_' . $model->bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $model->bill->time_pickup_scheduled);
+
+        $asInvoice = isset($req->asInvoice);
+
+        $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
         mkdir($path, 0777, true);
 
-        $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
+        $model = $asInvoice ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions) : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+
+        if($asInvoice) {
+            $amendmentsOnly = false;
+
+            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly'))->render();
+        } else {
+            $showCharges = isset($req->showCharges);
+
+            $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
+        }
+
         file_put_contents($path . $fileName . '.html', $file);
         $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
         $page->goto('file://' . $path . $fileName . '.html');
-        // $page->addStyleTag(['path' => public_path('css/bill_pdf.css')]);
+        if($asInvoice)
+            $page->addStyleTag(['path' => public_path('css/invoice_pdf.css')]);
         $page->pdf([
             'displayHeaderFooter' => true,
-            'footerTemplate' => view('bills.bill_footer')->render(),
-            'landscape' => true,
+            'footerTemplate' => $asInvoice ? view('invoices.invoice_table_footer')->render() : view('bills.bill_footer')->render(),
+            'headerTemplate' => view('invoices.invoice_table_header', compact('model'))->render(),
+            'landscape' => !$asInvoice,
             'margin' => [
-                'top' => 0,
+                'top' => $asInvoice ? 80 : 0,
                 'bottom' => 70,
                 'left' => 30,
                 'right' => 30
             ],
             'path' => $path . $fileName . '.pdf',
+            'printBackground' => true
         ]);
 
         unlink($path . $fileName . '.html');
