@@ -169,7 +169,7 @@ class BillModelFactory{
 		$model->invoice = new \stdClass();
 		$model->invoice->bill_cost = $billCost;
 		$model->invoice->bill_count = 1;
-		$model->invoice->finalized = $bill->percentage_complete == 100;
+		$model->invoice->finalized = $bill->percentage_complete == 100 ? 1 : 0;
 		$model->invoice->min_invoice_amount = null;
 		$model->invoice->discount = 0;
 		$model->invoice->fuel_surcharge = 0;
