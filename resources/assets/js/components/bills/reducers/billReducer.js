@@ -52,8 +52,8 @@ export const initialState = {
     applyRestrictions: true,
     billId: null,
     billNumber: '',
-    businessHoursMin: null,
-    businessHoursMax: null,
+    businessHoursMin: DateTime.now(),
+    businessHoursMax: DateTime.now(),
     delivery: initialPickupDelivery,
     deliveryType: '',
     deliveryTypes: [],
@@ -99,13 +99,12 @@ export default function billReducer(state, action) {
             return false
         // If requested time is AFTER business hours - (modified for shortest delivery window)
         const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-        const luxonBusinessHoursMax = (DateTime.fromJSDate(state.businessHoursMax)).minus({hours: minimumTimeToDoADelivery})
-        const lastPickupTime = dateTime.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
+        const adjustedBusinessHoursMax = state.businessHoursMax.minus({hours: minimumTimeToDoADelivery})
+        const lastPickupTime = dateTime.set({hour: adjustedBusinessHoursMax.hour, minute: adjustedBusinessHoursMax.minute})
         if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
             return false
         // If requested time is BEFORE business hours - (no modification required)
-        const luxonBusinessHoursMin = DateTime.fromJSDate(state.businessHoursMin)
-        const firstPickupTime = dateTime.set({hour: luxonBusinessHoursMin.hour, minute: luxonBusinessHoursMin.minute})
+        const firstPickupTime = dateTime.set({hour: state.businessHoursMin.hour, minute: state.businessHoursMin.minute})
         if(dateTime.diff(firstPickupTime, 'minutes').minutes < 0)
             return false
 
@@ -124,10 +123,12 @@ export default function billReducer(state, action) {
         if(time instanceof Date)
             time = DateTime.fromJSDate(time)
         //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
-        while(!isPickupTimeValid(time, deliveryTypes, prevTime))
-            time = time.plus({minutes: 15})
+        const adjustedTime = time
+        while(!isPickupTimeValid(adjustedTime, deliveryTypes, prevTime))
+            adjustedTime = adjustedTime.plus({minutes: 15})
 
-        if(!time.hasSame(DateTime.local(), 'day') && (prevTime && !time.hasSame(prevTime, 'day')))
+        if(!time.hasSame(adjustedTime, 'day')) {
+            toastr.clear()
             toastr.warning(
                 'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
                 'Insufficient time',
@@ -138,8 +139,9 @@ export default function billReducer(state, action) {
                     extendedTImeout: 5000
                 }
             )
+        }
 
-        return time
+        return adjustedTime
     }
 
     switch(action.type) {
@@ -155,8 +157,8 @@ export default function billReducer(state, action) {
                 ...initialState,
                 accounts: payload.accounts,
                 activeRatesheet: payload.ratesheets[0],
-                businessHoursMax: Date.parse(payload.time_max),
-                businessHoursMin: Date.parse(payload.time_min),
+                businessHoursMax: DateTime.fromISO(payload.time_max),
+                businessHoursMin: DateTime.fromISO(payload.time_min),
                 chargeTypes: payload.charge_types,
                 drivers: payload.drivers,
                 employees: payload.employees,
@@ -344,9 +346,8 @@ export default function billReducer(state, action) {
                     const intervals = Math.ceil(pickupTimeScheduled.minute / 15)
                     pickupTimeScheduled = intervals == 4 ? pickupTimeScheduled.set({minute: 0}).plus({hours: 1}) : pickupTimeScheduled.set({minute: intervals * 15})
                 }
-                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, deliveryTypes, state.pickup.timeScheduled)
-                const luxonBusinessHoursMax = DateTime.fromJSDate(businessHoursMax)
-                const lastDeliveryTime = pickupTimeScheduled.set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
+                pickupTimeScheduled = getValidPickupTime(pickupTimeScheduled, deliveryTypes, state.timeCallReceived)
+                const lastDeliveryTime = pickupTimeScheduled.set({hour: businessHoursMax.hour, minute: businessHoursMax.minute})
                 const hoursBetweenPickupAndEndOfDay = lastDeliveryTime.diff(pickupTimeScheduled, 'minutes').as('hours')
                 const sortedDeliveryTypes = deliveryTypes.sort((a, b) => a.time < b.time ? 1 : -1)
                 const deliveryType = sortedDeliveryTypes.find(type => type.time <= hoursBetweenPickupAndEndOfDay)
@@ -358,6 +359,7 @@ export default function billReducer(state, action) {
                         deliveryType: deliveryType
                     })
                 } else {
+                    toastr.clear()
                     toastr.error('An error has occurred with restricted time settings. Please contact support and describe the action you were attempting to perform')
                     return state
                 }

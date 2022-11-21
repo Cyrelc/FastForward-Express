@@ -11,10 +11,10 @@ const filterDates = date => {
     const dateTime = DateTime.fromJSDate(date)
     if(dateTime.hasSame(DateTime.local(), "days"))
         return true
-    if(dateTime.diffNow("days") < 0)
+    if(dateTime.diffNow("days").days < 0)
         return false
     const day = date.getDay()
-    return day !== 0 && day !== 6
+    return day !== 6 && day !== 7
 }
 
 export default function BasicTab(props) {
@@ -43,19 +43,18 @@ export default function BasicTab(props) {
         // If requested time is in the past
         if(dateTime.diffNow('minutes').minutes < 0)
             return false
-        // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
+        // If requested time is not a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
         if(dateTime.weekday === 6 || dateTime.weekday === 7)
             return false
-        // If requested time is AFTER business hours - (modified for shortest delivery window)
+        // If requested time is AFTER business hours - (modified for shortest available delivery window)
         const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-        const luxonBusinessHoursMax = (DateTime.fromJSDate(businessHoursMax)).minus({hours: minimumTimeToDoADelivery})
-        const lastPickupTime = DateTime.fromJSDate(time).set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
+        const adjustedBusinessHoursMax = businessHoursMax.minus({hours: minimumTimeToDoADelivery})
+        const lastPickupTime = DateTime.fromJSDate(time).set({hour: adjustedBusinessHoursMax.hour, minute: adjustedBusinessHoursMax.minute})
         if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
             return false
         // If requested time is BEFORE business hours - (no modification required)
-        const luxonBusinessHoursMin = DateTime.fromJSDate(businessHoursMin)
-        const firstPickupTime = DateTime.fromJSDate(time).set({hour: luxonBusinessHoursMin.hour, minute: luxonBusinessHoursMin.minute})
-        if(dateTime.diff(firstPickupTime, 'minutes').minutes < 0)
+        const earliestValidPickupTime = DateTime.fromJSDate(time).set({hour: businessHoursMin.hour, minute: businessHoursMin.minute})
+        if(dateTime.diff(earliestValidPickupTime, 'minutes').minutes < 0)
             return false
 
         return true
@@ -70,14 +69,13 @@ export default function BasicTab(props) {
         if(dateTime.weekday === 6 || dateTime.weekday === 7)
             return false
         // If requested time is AFTER business hours - (no modification required)
-        const luxonBusinessHoursMax = DateTime.fromJSDate(businessHoursMax)
-        const lastDeliveryTime = DateTime.fromJSDate(time).set({hour: luxonBusinessHoursMax.hour, minute: luxonBusinessHoursMax.minute})
+        const lastDeliveryTime = DateTime.fromJSDate(time).set({hour: businessHoursMax.hour, minute: businessHoursMax.minute})
         if(dateTime.diff(lastDeliveryTime, 'minutes').minutes > 0)
             return false
         // If requested time is BEFORE time_pickup_expected + minimum delivery time (as defined by deliveryTypes)
         const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-        const earliestPossibleDeliveryTime = DateTime.fromJSDate(pickup.timeScheduled).plus({hours: minimumTimeToDoADelivery})
-        if(dateTime.diff(earliestPossibleDeliveryTime, 'minutes').minutes <= 1)
+        const earliestValidDeliveryTime = DateTime.fromJSDate(pickup.timeScheduled).plus({hours: minimumTimeToDoADelivery})
+        if(dateTime.diff(earliestValidDeliveryTime, 'minutes').minutes <= 1)
             return false
 
         return true

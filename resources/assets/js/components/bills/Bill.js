@@ -339,7 +339,7 @@ const Bill = (props) => {
                 }
             }
         }
-        console.log(`conditionsMet = ${conditionsMet}`)
+
         if(permissions.createFull && conditionsMet)
             generateCharges(0, true)
     }, [
