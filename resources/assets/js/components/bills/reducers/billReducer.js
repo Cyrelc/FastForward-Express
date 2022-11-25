@@ -119,15 +119,15 @@ export default function billReducer(state, action) {
      * @returns {DateTime} result
      */
     const getValidPickupTime = (time, deliveryTypes, prevTime = null) => {
+        const originalTime = time
         prevTime = DateTime.fromJSDate(prevTime)
         if(time instanceof Date)
             time = DateTime.fromJSDate(time)
         //if valid, return, otherwise recursively add 15 minutes until you find one that is valid!
-        const adjustedTime = time
-        while(!isPickupTimeValid(adjustedTime, deliveryTypes, prevTime))
-            adjustedTime = adjustedTime.plus({minutes: 15})
+        while(!isPickupTimeValid(time, deliveryTypes, prevTime))
+            time = time.plus({minutes: 15})
 
-        if(!time.hasSame(adjustedTime, 'day')) {
+        if(!time.hasSame(originalTime, 'day')) {
             toastr.clear()
             toastr.warning(
                 'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
@@ -141,7 +141,7 @@ export default function billReducer(state, action) {
             )
         }
 
-        return adjustedTime
+        return time
     }
 
     switch(action.type) {
