@@ -172,7 +172,7 @@ const Bill = (props) => {
             var data = {bill_id: billId}
             if(billId ? permissions.editBasic : permissions.createBasic)
                 data = {...data,
-                    delivery_account_id: billState.delivery.account?.account_id,
+                    delivery_account_id: billState.delivery.addressType ? billState.delivery.account?.account_id : null,
                     delivery_address_formatted: billState.delivery.addressFormatted,
                     delivery_address_lat: billState.delivery.addressLat,
                     delivery_address_lng: billState.delivery.addressLng,
@@ -185,7 +185,7 @@ const Bill = (props) => {
                     is_min_weight_size: packageState.packageIsMinimum ? true : false,
                     is_pallet: packageState.packageIsPallet,
                     packages: packageState.packageIsMinimum ? [] : packageState.tableRef.current.table.getData(),
-                    pickup_account_id: billState.pickup.account?.account_id,
+                    pickup_account_id: billState.pickup.addressType == 'Account' ? billState.pickup.account?.account_id : null,
                     pickup_address_formatted: billState.pickup.addressFormatted,
                     pickup_address_lat: billState.pickup.addressLat,
                     pickup_address_lng: billState.pickup.addressLng,
