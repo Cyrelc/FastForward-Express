@@ -657,10 +657,9 @@ class BillRepo {
         $lineItems = $lineItemRepo->GetByBillId($bill['bill_id']);
 
         $old = $this->GetById($bill['bill_id']);
-
         if($permissions['editBasic'])
             foreach(Bill::$basicFields as $field)
-                if(isset($bill[$field]))
+                if(isset($bill[$field]) || $field == 'pickup_account_id' || $field == 'delivery_account_id')
                     $old->$field = $bill[$field];
 
         if($permissions['editDispatch'])
