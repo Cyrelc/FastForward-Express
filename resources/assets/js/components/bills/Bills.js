@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {push} from 'connected-react-router'
+import {push, routerMiddleware} from 'connected-react-router'
 import {DateTime} from 'luxon'
 
 import ReduxTable from '../partials/ReduxTable'
@@ -83,6 +83,12 @@ function Bills(props) {
             },
             {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/app/bills/', props.redirect), sorter:'number'},
             {title: 'Waybill #', field: 'bill_number'},
+            {title: props.customFieldName, field: 'custom_field_value', formatter: cell => {
+                const value = cell.getValue()
+                if(value)
+                    return value.slice(0, -1)
+                return null;
+            }},
             {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
             {title: 'Delivery Address Name', field: 'delivery_address_name', visible: false},
             ... (props.frontEndPermissions.bills.dispatch || props.authenticatedEmployee) ? [
@@ -130,6 +136,11 @@ function Bills(props) {
                 value: 'repeat_interval'
             },
         ] : [],
+        {
+            name: props.customFieldName ?? 'Custom Field',
+            type: 'StringFilter',
+            value: 'custom_field_value'
+        },
         {
             isMulti: true,
             name: 'Account',
@@ -365,6 +376,7 @@ const mapStateToProps = store => {
         billsTable: store.bills.billsTable,
         chargeTypes: store.app.paymentTypes,
         columns: store.bills.columns,
+        customFieldName: store.bills.customFieldName,
         drivers: store.app.drivers,
         frontEndPermissions: store.app.frontEndPermissions,
         parentAccounts: store.app.parentAccounts,

@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
+use App\Http\Filters\BillFilters\CustomFieldValue;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
@@ -563,6 +564,7 @@ class BillRepo {
                     'charge_account.name as charge_account_name',
                     'charge_account.account_number as charge_account_number',
                     'charges.charge_type_id as charge_type_id',
+                    DB::raw('CONCAT_WS(",", pickup_reference_value, delivery_reference_value, charge_reference_value) as custom_field_value'),
                     DB::raw('MIN(case when invoice_id is not null then 0 when line_items.pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
                     'delivery_address.formatted as delivery_address_formatted',
                     'delivery_address.name as delivery_address_name',
@@ -610,6 +612,7 @@ class BillRepo {
                 AllowedFilter::custom('price', new NumberBetween),
                 'bill_number',
                 AllowedFilter::exact('charge_account_id', 'charge_account.account_id'),
+                AllowedFilter::custom('custom_field_value', new CustomFieldValue),
                 AllowedFilter::custom('dispatch', new Dispatch),
                 AllowedFilter::exact('delivery_driver_id'),
                 AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
