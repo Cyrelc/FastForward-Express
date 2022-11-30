@@ -205,7 +205,7 @@ class BillController extends Controller {
         $page->pdf([
             'displayHeaderFooter' => true,
             'footerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_footer')->render() : view('bills.bill_footer')->render(),
-            'headerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render() : null,
+            'headerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render() : '',
             'landscape' => !$printBillAsInvoice,
             'margin' => [
                 'top' => $printBillAsInvoice ? 80 : 0,
