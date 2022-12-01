@@ -213,7 +213,7 @@ const Bill = (props) => {
                     bill_number: billState.billNumber,
                     delivery_driver_commission: billState.delivery.driverCommission,
                     delivery_driver_id: billState.delivery.driver?.employee_id,
-                    internal_comments: billState.internalNotes,
+                    internal_comments: billState.internalComments,
                     pickup_driver_id: billState.pickup.driver?.employee_id,
                     pickup_driver_commission: billState.pickup.driverCommission,
                     time_call_received: billState.timeCallReceived ? billState.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
