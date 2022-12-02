@@ -28,6 +28,7 @@ import Manifest from '../manifests/Manifest'
 import Manifests from '../manifests/Manifests'
 import PageNotFound from './PageNotFound'
 import Ratesheet from '../ratesheets/Ratesheet'
+import Search from '../search/Search'
 
 class App extends Component {
     constructor() {
@@ -71,6 +72,7 @@ class App extends Component {
                 <Row>
                     <Col md='auto' style={{height: '100vh'}}>
                         <NavBar
+                            history={this.props.history}
                             toggleChangePasswordModal={this.toggleChangePasswordModal}
                         />
                     </Col>
@@ -87,6 +89,7 @@ class App extends Component {
                                     return <Redirect to='/app/accounts'></Redirect>
                             }}></Route>
                             <Route exact path='/app/error404' component={PageNotFound}></Route>
+                            <Route path='/app/search' component={Search}></Route>
                             {this.props.frontEndPermissions.accounts.viewAny &&
                                 <Route path='/app/accounts' exact component={Accounts}></Route>
                             }

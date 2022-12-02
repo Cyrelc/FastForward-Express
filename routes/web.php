@@ -132,6 +132,10 @@ Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('rat
     Route::get('/{ratesheetId}/getZone', 'GetZone');
 });
 
+Route::middleware(['auth'])->controller(SearchController::class)->group(function() {
+    Route::get('/search', 'Search');
+});
+
 Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {
     Route::post('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
     Route::post('/changePassword/{id}', 'changePassword');

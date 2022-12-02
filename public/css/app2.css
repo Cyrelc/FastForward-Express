@@ -168,3 +168,7 @@ a.dropdown-toggle {
 	padding: 0px;
 	border: 2px solid black;
 }
+
+.nav-bar-search {
+	padding-right: 15px
+}

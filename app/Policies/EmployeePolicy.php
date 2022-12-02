@@ -27,7 +27,7 @@ class EmployeePolicy
 
     public function viewAny(User $user) {
         return $user->hasAnyPermission('employees.view.*.*', 'employees.edit.*.*', 'employees.view.basic.*', 'employees.edit.basic.*') ||
-            $user->employee && $user->is_enabled;
+            ($user->employee && $user->is_enabled);
     }
 
     public function viewAll(User $user) {

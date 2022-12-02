@@ -363,7 +363,7 @@ const Bill = (props) => {
             <Col md={12}>
                 <Navbar expand='md' variant='dark' bg='dark'>
                     <Navbar.Brand style={{paddingLeft: '15px'}}>
-                        <h4>{billId ? `Bill ID: ${billId}` : 'Create Bill'}</h4>
+                        <h4>{billId ? `Bill ID: B${billId}` : 'Create Bill'}</h4>
                     </Navbar.Brand>
                     {/* {(billId && billState.charges) &&
                         <ListGroup.Item variant='warning'></ListGroup.Item>

@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useRef, useState} from 'react'
 import {Menu, MenuItem, ProSidebar, SidebarContent, SidebarFooter, SidebarHeader, SubMenu} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
@@ -11,6 +11,8 @@ function NavBar(props) {
     const [invoiceId, setInvoiceId] = useState('')
     const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
     const [manifestId, setManifestId] = useState('')
+    const [searchTerm, setsearchTerm] = useState('')
+    const searchPopoverRef = useRef(null)
 
     const getUserIcon = () => {
         if(props.isImpersonating)
@@ -31,13 +33,19 @@ function NavBar(props) {
         return false
     }
 
-    const unimpersonate = () => {
-        makeAjaxRequest('/users/unimpersonate', 'GET', null, response => location.reload())
+    const performSearch = () => {
+        if(!searchTerm)
+            return
+        props.history.push(`/app/search?term=${searchTerm}`)
     }
 
     const toggleCollapsed = () => {
         localStorage.setItem('isNavBarCollapsed', !isCollapsed)
         setIsCollapsed(!isCollapsed)
+    }
+
+    const unimpersonate = () => {
+        makeAjaxRequest('/users/unimpersonate', 'GET', null, response => location.reload())
     }
 
     return (
@@ -152,14 +160,11 @@ function NavBar(props) {
                                 </LinkContainer>
                             }
                             {(props.frontEndPermissions.accounts.viewAny && props.accounts.length > 1) &&
-                                <InputGroup>
-                                    <Select
-                                        className='form-control'
-                                        options={props.accounts}
-                                        onChange={value => props.redirect(`/app/accounts/${value.value}`)}
-                                        wrapperClassName='form-control'
-                                    />
-                                </InputGroup>
+                                <Select
+                                    className='navbar-search'
+                                    options={props.accounts}
+                                    onChange={value => props.redirect(`/app/accounts/${value.value}`)}
+                                />
                             }
                         </SubMenu>
                     }
@@ -191,7 +196,7 @@ function NavBar(props) {
                                 </LinkContainer>
                             }
                             {props.frontEndPermissions.manifests.viewAny &&
-                                <InputGroup>
+                                <InputGroup style={{paddingRight: '15px'}}>
                                     <InputGroup.Text>Manifest ID: </InputGroup.Text>
                                     <FormControl
                                         name={'manifestId'}
@@ -208,6 +213,7 @@ function NavBar(props) {
                             }
                             {props.frontEndPermissions.employees.viewAll &&
                                 <Select
+                                    className='navbar-search'
                                     options={props.employees}
                                     onChange={value => props.redirect(`/app/employees/${value.value}`)}
                                 />
@@ -236,6 +242,38 @@ function NavBar(props) {
             </SidebarContent>
             <SidebarFooter>
                 <Menu iconShape='circle'>
+                {isCollapsed ?
+                    <SubMenu
+                        title='Search'
+                        icon={<i className='fas fa-search'></i>}
+                        onClick={() => searchPopoverRef.current.focus()}
+                    > 
+                        <MenuItem onClick={() => console.log('clicked MenuItem')}>
+                            <FormControl
+                                name={'searchTerm'}
+                                onChange={event => setsearchTerm(event.target.value)}
+                                value={searchTerm}
+                                ref={searchPopoverRef}
+                                onKeyPress={event => {
+                                    if(event.key === 'Enter' && searchTerm)
+                                        performSearch()
+                                }}
+                            />
+                        </MenuItem>
+                    </SubMenu>
+                    :
+                    <MenuItem icon={<i className='fas fa-search'></i>}>
+                        <FormControl
+                            name={'searchTerm'}
+                            onChange={event => setsearchTerm(event.target.value)}
+                            onKeyPress={event => {
+                                if(event.key === 'Enter' && searchTerm)
+                                    performSearch()
+                            }}
+                            value={searchTerm}
+                        />
+                    </MenuItem>
+                }
                     <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
                         {props.authenticatedEmployee?.employee_id &&
                             <LinkContainer to={`/app/employees/${props.authenticatedEmployee.employee_id}`}>
