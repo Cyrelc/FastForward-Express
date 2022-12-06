@@ -11,7 +11,7 @@ function NavBar(props) {
     const [invoiceId, setInvoiceId] = useState('')
     const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
     const [manifestId, setManifestId] = useState('')
-    const [searchTerm, setsearchTerm] = useState('')
+    const [searchTerm, setSearchTerm] = useState('')
     const searchPopoverRef = useRef(null)
 
     const getUserIcon = () => {
@@ -36,6 +36,7 @@ function NavBar(props) {
     const performSearch = () => {
         if(!searchTerm)
             return
+        setSearchTerm('')
         props.history.push(`/app/search?term=${searchTerm}`)
     }
 
@@ -251,7 +252,7 @@ function NavBar(props) {
                         <MenuItem onClick={() => console.log('clicked MenuItem')}>
                             <FormControl
                                 name={'searchTerm'}
-                                onChange={event => setsearchTerm(event.target.value)}
+                                onChange={event => setSearchTerm(event.target.value)}
                                 value={searchTerm}
                                 ref={searchPopoverRef}
                                 onKeyPress={event => {
@@ -265,7 +266,7 @@ function NavBar(props) {
                     <MenuItem icon={<i className='fas fa-search'></i>}>
                         <FormControl
                             name={'searchTerm'}
-                            onChange={event => setsearchTerm(event.target.value)}
+                            onChange={event => setSearchTerm(event.target.value)}
                             onKeyPress={event => {
                                 if(event.key === 'Enter' && searchTerm)
                                     performSearch()

@@ -16,11 +16,11 @@ const Search = (props) => {
         const rowData = cell.getRow().getData()
 
         const matches = Object.keys(rowData).map(key => {
-            if(key == 'link')
+            if(key == 'link' || key == 'object_id')
                 return null
             if(rowData[key] && rowData[key].toString().includes(searchTerm)) {
                 const reg = new RegExp(searchTerm, 'gi')
-                return `<b>${key}: </b>` + rowData[key].toString().replace(reg, str => {return `<span style='background-color: yellow'>${str}</span>`})
+                return rowData[key].toString().replace(reg, str => {return `<span style='background-color: yellow'>${str}</span>`})
             }
             return null
         }).filter(element => element != null)
@@ -33,7 +33,9 @@ const Search = (props) => {
 
     const tableColumns = [
         {title: 'Result Type', field: 'type', width: '10%'},
-        ...props.authenticatedEmployee ? [{title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')}] : [],
+        ...props.authenticatedEmployee ? [
+            {title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')}
+        ] : [],
         {title: 'Name', field: 'name', ...configureFakeLink('', history.push, null, 'link')},
         {title: 'Other', field: 'other', formatter: otherFieldsFormatter, headerSort: false}
     ]
