@@ -20,15 +20,20 @@ class SearchController extends Controller {
     
                 switch($classIdentifier) {
                     case 'A':
-                        $searchResults = array_merge($searchResults, $searchRepo->AccountSearch($objectId));
+                        $searchResults['accounts'] = array_merge($searchResults['accounts'], $searchRepo->AccountSearch($objectId));
+                        break;
                     case 'B':
-                        $searchResults = array_merge($searchResults, $searchRepo->BillSearch($objectId));
+                        $searchResults['bills'] = array_merge($searchResults['bills'], $searchRepo->BillSearch($objectId));
+                        break;
                     case 'E':
-                        $searchResults = array_merge($searchResults, $searchRepo->EmployeeSearch($objectId));
+                        $searchResults['employees'] = array_merge($searchResults['employees'], $searchRepo->EmployeeSearch($objectId));
+                        break;
                     case 'I':
-                        $searchResults = array_merge($searchResults, $searchRepo->InvoiceSearch($objectId));
+                        $searchResults['invoices'] = array_merge($searchResults['invoices'], $searchRepo->InvoiceSearch($objectId));
+                        break;
                     case 'M':
-                        $searchResults = array_merge($searchResults, $searchRepo->ManifestSearch($objectId));
+                        $searchResults['manifests'] = array_merge($searchResults['manifests'], $searchRepo->ManifestSearch($objectId));
+                        break;
                 }
             } else
                 $searchResults = array_merge($searchResults, $searchRepo->GlobalSearch($searchTerm));

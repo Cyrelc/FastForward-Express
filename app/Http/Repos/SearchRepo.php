@@ -83,6 +83,9 @@ class SearchRepo {
         $myAccounts = $this->user->accountUsers ? $accountRepo->GetMyAccountIds($this->user, $this->user->can('bills.view.basic.children')) : null;
 
         $bills = Charge::leftJoin('bills', 'bills.bill_id', 'charges.bill_id')
+            ->leftJoin('accounts as charge_account', 'charge_account.account_id', 'charges.charge_account_id')
+            ->leftJoin('accounts as delivery_account', 'delivery_account.account_id', 'bills.delivery_account_id')
+            ->leftJoin('accounts as pickup_account', 'pickup_account.account_id', 'bills.pickup_account_id')
             ->where(function($query) use ($searchTerm) {
                 $query->where('bills.bill_id', $searchTerm)
                 ->orWhere('bill_number', $searchTerm)
@@ -90,13 +93,15 @@ class SearchRepo {
                 ->orWhere('pickup_reference_value', 'like', '%' . $searchTerm . '%')
                 ->orWhere('delivery_reference_value', 'like', '%' . $searchTerm . '%');
             })->select(
-                'charge_account_id as account_id',
-                'bill_number',
+                'bill_number as name',
                 'charge_reference_value',
+                'charge_account.custom_field as charge_reference_field_name',
                 'delivery_reference_value',
+                'delivery_account.custom_field as delivery_reference_field_name',
                 DB::raw('CONCAT("/app/bills/", bills.bill_id) as link'),
                 'bills.bill_id as object_id',
                 'pickup_reference_value',
+                'pickup_account.custom_field as pickup_reference_field_name',
                 DB::raw('"Bill" as type'),
             );
 

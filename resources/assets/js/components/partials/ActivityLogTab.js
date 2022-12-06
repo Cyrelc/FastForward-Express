@@ -2,8 +2,8 @@ import React from 'react';
 import {Card, Table} from 'react-bootstrap';
 import {ReactTabulator, reactFormatter} from 'react-tabulator'
 
-function AttributeTable(props) {
-    const data = props.cell.getValue()
+function AttributeTable({cell}) {
+    const data = cell.getValue()
     return (
         <Table striped size='sm' width='100%' responsive>
             <thead>
@@ -45,7 +45,10 @@ export default function ActivityLogTab(props) {
                     data={activityLog}
                     height='70vh'
                     layout='fitDataStretch'
-                    pagination='local'
+                    options={{
+                        pagination: 'local',
+                        paginationSize: 10
+                    }}
                     responsiveLayout='collapse'
                 />
             </Card.Body>

@@ -26,14 +26,25 @@
     padding: 0!important
 }
 
+.search-other-table {
+    thead {
+        th {
+            border: 1px solid collapse;
+        }
+    }
+    // th, td {
+    //     border: 1px solid black collapse;
+    // }
+}
+
 .tabulator-cell.fakeLink {
     cursor:pointer;
     color:blue;
-}
 
-.tabulator-cell.fakeLink:hover {
-    text-decoration:underline;
-    color:darkblue;
+    &:hover{
+        text-decoration:underline;
+        color:darkblue;
+    }
 }
 
 .modal-80w {

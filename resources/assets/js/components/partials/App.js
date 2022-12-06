@@ -89,7 +89,7 @@ class App extends Component {
                                     return <Redirect to='/app/accounts'></Redirect>
                             }}></Route>
                             <Route exact path='/app/error404' component={PageNotFound}></Route>
-                            <Route path='/app/search' component={Search}></Route>
+                            <Route path='/app/search' exact component={Search}></Route>
                             {this.props.frontEndPermissions.accounts.viewAny &&
                                 <Route path='/app/accounts' exact component={Accounts}></Route>
                             }
