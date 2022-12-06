@@ -79,6 +79,7 @@ const Search = (props) => {
                     options={{
                         pagination:'local',
                         paginationSize:25,
+                        placeholder: 'No results found matching your request. Please try a different query'
                     }}
                     // responsiveLayout='collapse'
                 />
