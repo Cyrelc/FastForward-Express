@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, FormControl, InputGroup} from 'react-bootstrap'
+import {connect} from 'react-redux'
 import queryString from 'query-string'
 import {ReactTabulator} from 'react-tabulator'
 import {useHistory, useLocation} from 'react-router-dom'
@@ -32,7 +33,7 @@ const Search = (props) => {
 
     const tableColumns = [
         {title: 'Result Type', field: 'type', width: '10%'},
-        {title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')},
+        ...props.authenticatedEmployee ? [{title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')}] : [],
         {title: 'Name', field: 'name', ...configureFakeLink('', history.push, null, 'link')},
         {title: 'Other', field: 'other', formatter: otherFieldsFormatter, headerSort: false}
     ]
@@ -84,4 +85,10 @@ const Search = (props) => {
     )
 }
 
-export default Search;
+const mapStateToProps = store => {
+    return {
+        authenticatedEmployee: store.app.authenticatedEmployee
+    }
+}
+
+export default connect(mapStateToProps)(Search);
