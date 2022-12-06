@@ -125,17 +125,17 @@ class BillController extends Controller {
         $billModelFactory = new Bill\BillModelFactory();
         $bills = $billModelFactory->BuildTable($req);
 
-        $customFieldName = [];
+        $customFieldNames = [];
         if($req->user()->accountUsers()) {
             $accountRepo = new Repos\AccountRepo();
             foreach($req->user()->accountUsers as $accountUser)
-                $customFieldName[] = $accountRepo->GetById($accountUser->account_id)->custom_field;
+                $customFieldNames[] = $accountRepo->GetById($accountUser->account_id)->custom_field;
         }
 
         return response()->json([
             'success' => true,
             'bills' => $bills,
-            'custom_field_name' => sizeof($customFieldName) > 0 ? implode($customFieldName, ',') : null,
+            'custom_field_name' => sizeof($customFieldNames) > 0 ? implode(',', array_unique($customFieldNames)) : null,
         ]);
     }
 
