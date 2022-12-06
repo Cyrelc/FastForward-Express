@@ -32,7 +32,7 @@ const Search = (props) => {
 
     const tableColumns = [
         {title: 'Result Type', field: 'type', width: '10%'},
-        {title: 'Object ID', field: 'object_id', width: '10%'},
+        {title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')},
         {title: 'Name', field: 'name', ...configureFakeLink('', history.push, null, 'link')},
         {title: 'Other', field: 'other', formatter: otherFieldsFormatter, headerSort: false}
     ]
