@@ -133,14 +133,14 @@ class SearchRepo {
     }
 
     public function GlobalSearch($searchTerm) {
-        return [
-            'accounts' => $this->AccountSearch($searchTerm),
-            'accountUsers' => $this->AccountUserSearch($searchTerm),
-            'bills' => $this->BillSearch($searchTerm),
-            'employees' => $this->EmployeeSearch($searchTerm),
-            'invoices' => $this->InvoiceSearch($searchTerm),
-            'manifests' => $this->ManifestSearch($searchTerm)
-        ];
+        return array_merge(
+            $this->AccountSearch($searchTerm),
+            $this->AccountUserSearch($searchTerm),
+            $this->BillSearch($searchTerm),
+            $this->EmployeeSearch($searchTerm),
+            $this->InvoiceSearch($searchTerm),
+            $this->ManifestSearch($searchTerm)
+        );
     }
 
     public function InvoiceSearch($searchTerm) {
