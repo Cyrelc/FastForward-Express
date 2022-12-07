@@ -31,7 +31,7 @@ class SearchRepo {
 
         $accounts = Account::where(function($query) use ($searchTerm) {
                 $query->where('account_id', $searchTerm)
-                ->orWhere('account_number', $searchTerm)
+                ->orWhere('account_number', 'like', $searchTerm)
                 ->orWhere('name', 'like', '%' . $searchTerm . '%');
             })->select(
                 'account_number',
