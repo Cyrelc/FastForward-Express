@@ -106,7 +106,7 @@ class SearchRepo {
             );
 
         if($myAccounts)
-            $bills->whereIn('charge.charge_account_id', $myAccounts);
+            $bills->whereIn('charges.charge_account_id', $myAccounts);
 
         return $bills->get()->toArray();
     }
