@@ -27,7 +27,7 @@ class CreateAccountsTable extends Migration
             $table->text('invoice_sort_order');
             $table->boolean('is_custom_field_mandatory')->default(false);
             $table->float('min_invoice_amount')->default(0);
-            $table->string('name')->unique();
+            $table->fullText('name')->unique();
             $table->unsignedInteger('parent_account_id')->nullable();
             $table->smallInteger('pm_last_four')->nullable();
             $table->string('pm_type')->nullable();
