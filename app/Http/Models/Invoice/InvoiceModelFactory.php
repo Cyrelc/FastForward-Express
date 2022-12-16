@@ -51,7 +51,11 @@ class InvoiceModelFactory{
 			foreach($model->tables as $billSubTable) {
 				$subtotalDatabaseFieldName = $subtotalBy->database_field_name;
 				$billSubTable->subtotal = $billRepo->GetInvoiceSubtotalByField($invoiceId, $subtotalDatabaseFieldName, $billSubTable->bills[0]->$subtotalDatabaseFieldName);
-				$billSubTable->tax = $billSubTable->subtotal * 0.05;
+				if ($model->parent->gst_exempt)
+					$billSubTable->tax = number_format(0, 2, '.', '');
+				else
+					$billSubTable->tax = number_format(round($billSubTable->subtotal * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+
 				$billSubTable->total = $billSubTable->subtotal + $billSubTable->tax;
 			}
 		}
