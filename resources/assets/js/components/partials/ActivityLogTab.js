@@ -14,13 +14,34 @@ function AttributeTable({cell}) {
                 </tr>
             </thead>
             <tbody>
-                {Object.keys(data.attributes).map(key =>
-                    <tr key={Math.random()}>
-                        <th>{key}</th>
-                        <td style={{wordWrap: 'break-word'}}>{data.attributes[key]}</td>
-                        <td style={{wordWrap: 'break-work'}}>{data.old ? data.old[key] : ''}</td>
-                    </tr>
-                )}
+                {Object.keys(data.attributes).map(key => {
+                    let value = data.attributes[key]
+                    let oldValue = data?.old[key] ?? ''
+
+                    try {
+                        const parsedJSON = JSON.parse(data.attributes[key])
+                        if (parsedJSON)
+                            value = parsedJSON
+                    } catch (e) {}
+
+                    try {
+                        const parsedJSON = JSON.parse(data?.old[key])
+                        if(parsedJSON)
+                            oldValue = parsedJSON
+                    } catch (e) {}
+
+                    return (
+                        <tr key={Math.random()}>
+                            <th>{key}</th>
+                            <td>
+                                <pre>{JSON.stringify(value, null, '\t')}</pre>
+                            </td>
+                            <td>
+                                <pre>{JSON.stringify(oldValue, null, '\t')}</pre>
+                            </td>
+                        </tr>
+                    )
+                })}
             </tbody>
         </Table>
     )
