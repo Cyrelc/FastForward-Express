@@ -14,8 +14,7 @@ use App\Http\Models\Bill\ChargeModelFactory;
 
 
 class RatesheetController extends Controller {
-
-    public function buildTable(Request $req) {
+    public function BuildTable(Request $req) {
         if($req->user()->cannot('viewAny', Ratesheet::class))
             abort(403);
 
@@ -24,7 +23,24 @@ class RatesheetController extends Controller {
         return json_encode($model);
     }
 
-    public function getModel(Request $req, $ratesheetId = null) {
+    public function DeleteConditional(Request $req, $conditionalId) {
+        $conditionalRepo = new Repos\ConditionalRepo();
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $conditional = $conditionalRepo->GetById($conditionalId);
+        $ratesheet = $ratesheetRepo->GetById($conditional->ratesheet_id);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        $conditionalRepo->Delete($conditionalId);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function GetModel(Request $req, $ratesheetId = null) {
         $modelFactory = new Ratesheet\RatesheetModelFactory();
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
@@ -35,6 +51,17 @@ class RatesheetController extends Controller {
             $ratesheetModel = $modelFactory->GetCreateModel();
 
         return json_encode($ratesheetModel);
+    }
+
+    public function GetConditional(Request $req, $conditionalId) {
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        $conditionalRepo = new Repos\ConditionalRepo();
+
+        $conditional = $conditionalRepo->GetById($conditionalId);
+
+        return json_encode($conditional);
     }
 
     public function GetZone(Request $req, $ratesheetId) {
@@ -54,7 +81,18 @@ class RatesheetController extends Controller {
         return $chargeModelFactory->GetZone($ratesheetId, $req->lat, $req->lng);
     }
 
-    public function store(Request $req) {
+    public function ListConditionals(Request $req, $ratesheetId) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $conditionalRepo = new Repos\ConditionalRepo();
+
+        $conditionals = $conditionalRepo->GetByRatesheetId($ratesheetId);
+
+        return json_encode($conditionals);
+    }
+
+    public function Store(Request $req) {
         DB::beginTransaction();
 
         $ratesheetRepo = new Repos\RatesheetRepo();
@@ -103,6 +141,40 @@ class RatesheetController extends Controller {
         $this->updateNeighbours($ratesheetId);
 
         DB::commit();
+    }
+
+    public function StoreConditional(Request $req, $conditionalId = null) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $ratesheet = $ratesheetRepo->GetById($req->ratesheet_id);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $conditionalValidationRules = new Validation\ConditionalValidationRules();
+        $conditionalRules = $conditionalValidationRules->GetValidationRules($req, $conditionalId);
+        $this->validate($req, $conditionalRules['rules'], $conditionalRules['messages']);
+
+        $conditionalCollector = new Collectors\ConditionalCollector();
+
+        $conditional = $conditionalCollector->Collect($req, $conditionalId);
+
+        $conditionalRepo = new Repos\ConditionalRepo();
+
+        if($conditionalId) {
+            $stored = $conditionalRepo->Update($conditional);
+        } else {
+            $stored = $conditionalRepo->Insert($conditional);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'conditional_id' => $stored->conditional_id,
+            'success' => true
+        ]);
     }
 
     /**
