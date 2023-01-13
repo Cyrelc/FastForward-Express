@@ -6,6 +6,7 @@ use App\Http\Models;
 use App\Http\Repos;
 use App\Http\MapLogic;
 use Illuminate\Support\Facades\Log;
+use JWadhams\JsonLogic;
 
 class ChargeModelFactory {
     public function GenerateCharges($req) {
@@ -15,7 +16,16 @@ class ChargeModelFactory {
         $distanceCharges = $this->generateDistanceCharges($ratesheet, $req->pickup_address, $req->delivery_address, $req->delivery_type_id);
         $packageCharges = filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN) ? [] : $this->generatePackageCharges($ratesheet, $req->packages, $req->package_is_pallet, $req->use_imperial);
         $timeCharges = $this->generateTimeCharges($ratesheet, $req->time_pickup_scheduled, $req->time_delivery_scheduled);
-        return array_merge($distanceCharges, $packageCharges, $timeCharges);
+
+        $currentCharges = array_merge($distanceCharges, $packageCharges, $timeCharges);
+        $currentPrice = 0;
+        foreach($currentCharges as $charge) {
+            $currentPrice += $charge->getPrice();
+        }
+
+        $conditionalCharges = $this->generateConditionalCharges($ratesheet, $req, $currentPrice);
+
+        return array_merge($distanceCharges, $packageCharges, $timeCharges, $conditionalCharges);
     }
 
     public function GetZone($ratesheetId, $lat, $lng) {
@@ -37,6 +47,71 @@ class ChargeModelFactory {
             if(in_array($pointLocation->pointInPolygon($lat . ' ' . $lng, $coordinateArray), $pointInPolygonAcceptableResponses))
                 return $this->prepareZone($zone);
         }
+    }
+
+    /**
+     * Calculates which conditional charges apply by creating an object and comparing against stored json_logic data
+     * @param $ratesheet - standard ratesheet object pulled from database
+     * @param $req - the request, which will be used to generate a standard object for comparisons
+     *
+     * @return $results - an array of charges to add to the bill
+     */
+    private function generateConditionalCharges($ratesheet, $req, $currentPrice) {
+        $conditionalRepo = new Repos\ConditionalRepo();
+
+        $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'amount');
+        $percentConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'percent');
+
+        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng']);
+        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng']);
+
+        $bill = [
+            'delivery_address' => [
+                'zone_type' => $deliveryZone->type
+            ],
+            'pickup_address' => [
+                'zone_type' => $pickupZone->type
+            ],
+        ];
+
+        $results = array();
+
+        foreach($amountConditionals as $conditional) {
+            $rules = json_decode($conditional->json_logic, true);
+
+            if(JsonLogic::apply($rules, $bill)) {
+                $action = json_decode($conditional->action)->value;
+                $valueType = json_decode($conditional->value_type)->value;
+
+                if($action == 'discount') {
+                    if(($currentPrice - $conditional->value) > 0)
+                        $currentPrice -= $conditional->value;
+                    else
+                        $currentPrice = 0;
+                }
+                else
+                    $currentPrice += $conditional->value;
+
+                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $conditional->value);
+            }
+        }
+
+        foreach($percentConditionals as $conditional) {
+            $rules = json_decode($conditional->json_logic, true);
+
+            if(JsonLogic::apply($rules, $bill)) {
+                $action = json_decode($conditional->action)->value;
+                $valueType = json_decode($conditional->value_type)->value;
+
+                $price = number_format(round($conditional->value / 100 * $currentPrice, 2), 2);
+                if($action == 'discount')
+                    $price *= -1;
+
+                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $price);
+            }
+        }
+
+        return $results;
     }
 
     /**

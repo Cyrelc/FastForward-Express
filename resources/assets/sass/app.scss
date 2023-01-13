@@ -3,8 +3,9 @@ $sidebar-bg-color: 'linear-gradient(to bottom, black, #0770b1, black)';
 $sidebar-collapsed-width: 85px;
 
 @import '~react-pro-sidebar/dist/scss/styles.scss';
-@import '~bootstrap/scss/bootstrap';
+@import '~bootstrap/dist/css/bootstrap.min.css';
 @import '~react-datepicker/dist/react-datepicker.css';
 @import '~react-tabulator/lib/styles.css';
 @import '~react-tabulator/lib/css/tabulator.min.css';
+@import '~@react-awesome-query-builder/bootstrap/css/compact_styles.scss';
 @import './ffe.scss';

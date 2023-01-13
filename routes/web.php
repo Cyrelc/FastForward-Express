@@ -125,11 +125,15 @@ Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payme
 });
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
-    Route::get('/create', 'getModel');
-    Route::get('/{id?}', 'getModel');
-    Route::get('/', 'buildTable');
-    Route::post('/', 'store');
+    Route::get('/create', 'GetModel');
+    Route::get('/{id?}', 'GetModel');
+    Route::get('/', 'BuildTable');
+    Route::post('/', 'Store');
     Route::get('/{ratesheetId}/getZone', 'GetZone');
+    Route::delete('/conditional/{id}', 'DeleteConditional');
+    Route::get('/conditional/{id}', 'GetConditional');
+    Route::post('/conditional/{id?}', 'StoreConditional');
+    Route::get('/conditionals/{ratesheetId}', 'ListConditionals');
 });
 
 Route::middleware(['auth'])->controller(SearchController::class)->group(function() {

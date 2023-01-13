@@ -1,11 +1,11 @@
 import React, {Component} from 'react'
 import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
-import SnazzyInfoWindow from 'snazzy-info-window'
 import polylabel from 'polylabel'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
 import BasicRatesTab from './BasicRatesTab'
+import ConditionalsTab from './ConditionalsTab'
 import ImportRatesModal from './ImportRatesModal'
 import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
@@ -455,6 +455,14 @@ export default class Ratesheet extends Component {
 
                             />
                         </Tab>
+                        {this.state.ratesheetId &&
+                            <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
+                                <ConditionalsTab
+                                    mapZones={this.state.mapZones}
+                                    ratesheetId={this.state.ratesheetId}
+                                />
+                            </Tab>
+                        }
                         <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
                             <MapTab
                                 polyColours = {polyColours}
