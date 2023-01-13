@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
-import SnazzyInfoWindow from 'snazzy-info-window'
 import polylabel from 'polylabel'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'

@@ -1,12 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, InputGroup, FormControl, Modal, Row} from 'react-bootstrap'
-import {Query, Builder, BasicConfig, Utils as QbUtils} from 'react-awesome-query-builder'
-import BootstrapConfig from 'react-awesome-query-builder/lib/config/bootstrap'
+import {Query, Builder, Fields, Utils as QbUtils} from '@react-awesome-query-builder/ui'
+
+import {BootstrapConfig} from '@react-awesome-query-builder/bootstrap'
 import Select from 'react-select'
 
 const renderBuilder = (props) => (
     <div className='query-builder-container' style={{padding: '10px'}}>
-        <div className='query-builder qb-lite'>
+        <div className='query-builder'>
             <Builder {...props} />
         </div>
     </div>
@@ -16,8 +17,8 @@ const config = {
     ...BootstrapConfig,
     fields: {
         delivery_address: {
+            type: '!struct',
             label: 'Delivery Address',
-            type: '!group',
             subfields: {
                 zone_type: {
                     label: 'Zone Type',
@@ -33,8 +34,8 @@ const config = {
             }
         },
         pickup_address: {
+            type: '!struct',
             label: 'Pickup Address',
-            type: '!group',
             subfields: {
                 zone_type: {
                     label: 'Zone Type',
@@ -58,12 +59,10 @@ const ConditionalModal = props => {
     const [resultAction, setResultAction] = useState({value: 'charge', label: 'Charge'})
     const [valueType, setValueType] = useState({value: 'amount', label: 'Amount'})
     const [resultValue, setResultValue] = useState()
-    // const [config, setConfig]= useState(initialConfig)
     const [isLoading, setIsLoading] = useState(true)
 
     const {ratesheetId} = props
     const {conditional_id} = props.conditional
-    console.log(props.conditional)
 
     useEffect(() => {
         setQueryTree(QbUtils.checkTree(props.conditional ? QbUtils.loadFromJsonLogic(JSON.parse(props.conditional.json_logic), config) : QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
@@ -72,9 +71,6 @@ const ConditionalModal = props => {
         setValueType(props.conditional?.value_type ?? {value: 'amount', label: 'Amount'})
         setResultValue(props.conditional?.value ?? 0)
     }, [props.conditional])
-    // useEffect(() => {
-    //     console.log(config)
-    // }, [props.mapZones])
 
     const storeConditional = () => {
         try {
@@ -141,6 +137,10 @@ const ConditionalModal = props => {
                                 renderBuilder={renderBuilder}
                             />
                         </Col>
+                    </Row>
+                    <hr/>
+                    <Row>
+                        <text>{JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)}</text>
                     </Row>
                     <hr/>
                     <Row>

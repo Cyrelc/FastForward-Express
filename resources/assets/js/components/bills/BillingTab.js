@@ -26,6 +26,8 @@ function lineItemTypeFormatter(value) {
             return "<i class='fas fa-clock fa-lg' title='Time'></i>"
         case 'weightRate':
             return "<i class='fas fa-weight fa-lg' title='Weight'></i>"
+        case 'conditionalRate':
+            return "<i class='fas fa-code-branch' title='Conditional'></i>"
         default:
             return "<i class='fas fa-exclamation-triangle fa-lg'></i>"
     }

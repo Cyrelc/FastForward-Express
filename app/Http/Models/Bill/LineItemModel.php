@@ -22,6 +22,10 @@ class LineItemModel implements JsonSerializable {
         $this->paid = $paid;
     }
 
+    public function getPrice() {
+        return $this->price;
+    }
+
     public function jsonSerialize() {
         return array (
             'name' => $this->name,

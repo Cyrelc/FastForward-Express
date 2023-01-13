@@ -28,8 +28,14 @@ export default function ConditionalsTab(props) {
         setShowConditionalModal(true)
     }
 
+    const hideModal = () => {
+        setShowConditionalModal(false)
+        setEditConditional(false)
+    }
+
     const reload = () => {
         setIsLoading(true)
+        setEditConditional(false)
         makeAjaxRequest(`/ratesheets/conditionals/${props.ratesheetId}`, 'GET', null, response => {
             setConditionals(JSON.parse(response).map(conditional => {
                 return {...conditional, value_type: JSON.parse(conditional.value_type), action: JSON.parse(conditional.action)}
@@ -49,7 +55,7 @@ export default function ConditionalsTab(props) {
                     <Col md={2}>
                         <Button
                             variant='success'
-                            onClick={() => setShowConditionalModal(!showConditionalModal)}
+                            onClick={() => setShowConditionalModal(true)}
                         >
                             <i className='fas fa-plus'></i> Create
                         </Button>
@@ -112,7 +118,7 @@ export default function ConditionalsTab(props) {
             <ConditionalModal
                 conditional={editConditional}
                 mapZones={props.mapZones}
-                onHide={() => setShowConditionalModal(false)}
+                onHide={hideModal}
                 ratesheetId={props.ratesheetId}
                 reload={reload}
                 show={showConditionalModal}

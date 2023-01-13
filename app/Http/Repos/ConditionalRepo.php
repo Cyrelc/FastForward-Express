@@ -19,8 +19,11 @@ class ConditionalRepo {
         return $conditional->first();
     }
 
-    public function GetByRatesheetId($ratesheetId) {
+    public function GetByRatesheetId($ratesheetId, $type = null) {
         $conditionals = Conditional::where('ratesheet_id', $ratesheetId);
+
+        if($type)
+            $conditionals->where('value_type', 'like', "%$type%");
 
         return $conditionals->get();
     }
