@@ -17,7 +17,6 @@ class ZoneCollector {
         foreach($mapZones as $mapZone) {
             $zone = [
                 'coordinates' => $mapZone['coordinates'],
-                //todo -> ability to clone coordinates
                 'inherits_coordinates_from' => null,
                 'name' => $mapZone['name'],
                 'ratesheet_id' => $ratesheetId,

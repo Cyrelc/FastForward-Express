@@ -132,9 +132,7 @@ class RatesheetRepo {
         $old->coordinates = $zone['coordinates'];
         $old->inherits_coordinates_from = $zone['inherits_coordinates_from'];
         $old->name = $zone['name'];
-        // Currently, zones cannot be reassigned between ratesheets; Only created or deleted
-        // $old->ratesheet_id = $zone['ratesheet_id'];
-        // $old->type = $zone['type'];
+        $old->type = $zone['type'];
 
         $old->save();
         return $old;

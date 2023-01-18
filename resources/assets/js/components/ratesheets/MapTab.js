@@ -78,6 +78,7 @@ export default function MapTab(props) {
                             id={zone.id}
                             zone={zone}
                             handleChange={props.handleChange}
+                            handleZoneTypeChange={props.handleZoneTypeChange}
                             deleteZone={props.deleteZone}
                             editZone={props.editZone}
                             viewDetails={zone.viewDetails}

@@ -65,6 +65,7 @@ export default class Ratesheet extends Component {
         this.handleChange = this.handleChange.bind(this)
         this.handleImport = this.handleImport.bind(this)
         this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
+        this.handleZoneTypeChange = this.handleZoneTypeChange.bind(this)
         this.zoneRemoveDuplicates = this.zoneRemoveDuplicates.bind(this)
         this.store = this.store.bind(this)
     }
@@ -324,6 +325,21 @@ export default class Ratesheet extends Component {
         this.setState({zoneRates: updated})
     }
 
+    handleZoneTypeChange(event, id) {
+        const {value} = event.target
+        const strokeColour = polyColours[`${value}Stroke`]
+        const fillColour = polyColours[`${value}Fill`]
+
+        const updated = this.state.mapZones.map(mapZone => {
+            if(mapZone.id == id) {
+                mapZone.polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour})
+                return {...mapZone, type: value}
+            }
+            return mapZone
+        })
+        this.setState({mapZones: updated})
+    }
+
     prepareZoneForStore(zone) {
         var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(this.getCoordinates(zone.polygon)), zoneId: zone.zoneId}
         if(storeZone.type === 'peripheral') {
@@ -471,6 +487,7 @@ export default class Ratesheet extends Component {
                                 mapZones={this.state.mapZones}
 
                                 handleChange={this.handleChange}
+                                handleZoneTypeChange={this.handleZoneTypeChange}
                                 deleteZone={this.deleteZone}
                                 editZone={this.editZone}
                                 zoneRemoveDuplicates={this.zoneRemoveDuplicates}
