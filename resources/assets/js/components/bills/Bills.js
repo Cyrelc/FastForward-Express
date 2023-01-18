@@ -245,58 +245,58 @@ function Bills(props) {
             {label: 'Pickup Employee', value: 'pickup_driver_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].pickup_employee_name + '<span style="color: red">\t(' + count + ')</span>'}}
         ] : [])
 
-        const rowFormatter = row => {
-            const rowData = row._row.getData ? row.getData() : undefined
-            if(!rowData?.bill_id)
-                return
+    const rowFormatter = row => {
+        const rowData = row._row.getData ? row.getData() : undefined
+        if(!rowData?.bill_id)
+            return
 
-            const holderEl = document.createElement('div')
+        const holderEl = document.createElement('div')
 
-            holderEl.style.boxSizing = "border-box";
-            holderEl.style.padding = "10px 30px 10px 10px";
-            holderEl.style.borderTop = "1px solid #333";
-            holderEl.style.borderBotom = "1px solid #333";
-            holderEl.style.background = "#ddd";
-            holderEl.setAttribute('class', 'charges_' + rowData.bill_id)
-            holderEl.style.display = 'none'
+        holderEl.style.boxSizing = "border-box";
+        holderEl.style.padding = "10px 30px 10px 10px";
+        holderEl.style.borderTop = "1px solid #333";
+        holderEl.style.borderBotom = "1px solid #333";
+        holderEl.style.background = "#ddd";
+        holderEl.setAttribute('class', 'charges_' + rowData.bill_id)
+        holderEl.style.display = 'none'
 
-            const chargeTable = document.createElement('table')
-            chargeTable.style.border = '2px solid black'
-            chargeTable.style.borderCollapse = 'collapse'
-            chargeTable.style.width = '100%'
+        const chargeTable = document.createElement('table')
+        chargeTable.style.border = '2px solid black'
+        chargeTable.style.borderCollapse = 'collapse'
+        chargeTable.style.width = '100%'
 
-            const chargeColumns = [
-                // {'name': 'Charge ID', 'field': 'charge_id'},
-                {'name': 'Type', 'field': 'type'},
-                {'name': 'Price', 'field': 'price'},
-                ... props.frontEndPermissions.bills.createFull ? [
-                    {'name': 'Driver Amount', 'field': 'driver_amount'}
-                ] : [],
-                {'name': 'Charge Account', 'field': 'charge_account_name'},
-                ... props.frontEndPermissions.bills.createFull ? [
-                    {'name': 'Charge Employee', 'field': 'charge_employee_name'}
-                ] : [],
-                {'name': 'Charge Reference Value', 'field': 'charge_reference_value'},
-            ]
+        const chargeColumns = [
+            // {'name': 'Charge ID', 'field': 'charge_id'},
+            {'name': 'Type', 'field': 'type'},
+            {'name': 'Price', 'field': 'price'},
+            ... props.frontEndPermissions.bills.createFull ? [
+                {'name': 'Driver Amount', 'field': 'driver_amount'}
+            ] : [],
+            {'name': 'Charge Account', 'field': 'charge_account_name'},
+            ... props.frontEndPermissions.bills.createFull ? [
+                {'name': 'Charge Employee', 'field': 'charge_employee_name'}
+            ] : [],
+            {'name': 'Charge Reference Value', 'field': 'charge_reference_value'},
+        ]
 
-            if(rowData.charges) {
-                const thead = chargeTable.createTHead()
-                const theadRow = thead.insertRow(0)
+        if(rowData.charges) {
+            const thead = chargeTable.createTHead()
+            const theadRow = thead.insertRow(0)
+            chargeColumns.forEach((column, index) => {
+                theadRow.insertCell(index).outerHTML = `<th>${column.name}</th>`
+            })
+            const tbody = chargeTable.createTBody()
+            rowData.charges.forEach(charge => {
+                const row = tbody.insertRow(0)
                 chargeColumns.forEach((column, index) => {
-                    theadRow.insertCell(index).outerHTML = `<th>${column.name}</th>`
+                    row.insertCell(index).innerHTML = charge[column.field]
                 })
-                const tbody = chargeTable.createTBody()
-                rowData.charges.forEach(charge => {
-                    const row = tbody.insertRow(0)
-                    chargeColumns.forEach((column, index) => {
-                        row.insertCell(index).innerHTML = charge[column.field]
-                    })
-                })
-            }
-
-            holderEl.appendChild(chargeTable)
-            row.getElement().appendChild(holderEl)
+            })
         }
+
+        holderEl.appendChild(chargeTable)
+        row.getElement().appendChild(holderEl)
+    }
 
     const withSelected = []
 
