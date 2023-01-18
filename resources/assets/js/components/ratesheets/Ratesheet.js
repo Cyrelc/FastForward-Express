@@ -450,11 +450,11 @@ export default class Ratesheet extends Component {
                                 handleChange={this.handleChange}
                             />
                         </Tab>
-                        <Tab eventKey='volume' title={<h4><i className='fas fa-ruler-combined'></i> Volume Rates</h4>}>
+                        {/* <Tab eventKey='volume' title={<h4><i className='fas fa-ruler-combined'></i> Volume Rates</h4>}>
                             <VolumeRatesTab
 
                             />
-                        </Tab>
+                        </Tab> */}
                         {this.state.ratesheetId &&
                             <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
                                 <ConditionalsTab

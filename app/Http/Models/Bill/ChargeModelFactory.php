@@ -69,6 +69,9 @@ class ChargeModelFactory {
             'delivery_address' => [
                 'zone_type' => $deliveryZone->type
             ],
+            'package' => [
+                'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN)
+            ],
             'pickup_address' => [
                 'zone_type' => $pickupZone->type
             ],

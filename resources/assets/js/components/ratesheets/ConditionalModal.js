@@ -49,6 +49,16 @@ const config = {
                     }
                 }
             }
+        },
+        package: {
+            type: '!struct',
+            label: 'Package',
+            subfields: {
+                is_pallet: {
+                    label: 'Is Pallet',
+                    type: 'boolean',
+                }
+            }
         }
     }
 }
