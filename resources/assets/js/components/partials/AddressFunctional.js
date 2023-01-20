@@ -114,6 +114,7 @@ export default function Address(props) {
                             <InputGroup>
                                 <InputGroup.Text>Search: </InputGroup.Text>
                                 <Autocomplete
+                                    bounds={{north: mapCenter.lat + 1, south: mapCenter.lat - 1, east: mapCenter.lng + 1, west: mapCenter.lng - 1}}
                                     className='form-control autocomplete-wrapper'
                                     fields={['geometry', 'name', 'formatted_address', 'place_id']}
                                     location={mapCenter}
