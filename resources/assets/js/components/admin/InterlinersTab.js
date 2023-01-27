@@ -1,112 +1,100 @@
-import React, {Component} from 'react'
+import React, {useState, useEffect} from 'react'
 import {Button, Card, Table} from 'react-bootstrap'
 
 import InterlinerModal from './InterlinerModal'
 
-export default class InterlinersTab extends Component {
-    constructor() {
-        super()
-        this.state = {
-            interlinerAddressName: '',
-            interlinerAddressFormatted: '',
-            interlinerAddressLat: '',
-            interlinerAddressLng: '',
-            interlinerAddressPlaceId: '',
-            interlinerId: '',
-            interlinerName: '',
-            showInterlinerModal: false
-        }
-        this.handleChanges = this.handleChanges.bind(this)
-        this.storeInterliner = this.storeInterliner.bind(this)
-        this.toggleInterlinerModal = this.toggleInterlinerModal.bind(this)
-    }
+export default function InterlinersTab(props) {
+    const [interlinerId, setInterlinerId] = useState(null)
+    const [addressName, setAddressName] = useState('')
+    const [addressFormatted, setAddressFormatted] = useState('')
+    const [addressLat, setAddressLat] = useState('')
+    const [addressLng, setAddressLng] = useState('')
+    const [addressPlaceId, setPlaceId] = useState('')
+    const [interlinerName, setInterlinerName] = useState('')
+    const [showInterlinerModal, setShowInterlinerModal] = useState(false)
 
-    handleChanges(events) {
-        if(!Array.isArray(events))
-            events = [events]
-        var temp = {}
-        events.forEach(event => {
-            const {name, value, type, checked} = event.target
-            temp[name] = type === 'checkbox' ? checked : value
-        })
-        this.setState(temp)
-    }
-
-    storeInterliner() {
+    const storeInterliner = () => {
         const data = {
-            interliner_id: this.state.interlinerId,
-            name: this.state.interlinerName,
-            address_formatted: this.state.interlinerAddressFormatted,
-            address_lat: this.state.interlinerAddressLat,
-            address_lng: this.state.interlinerAddressLng,
-            address_name: this.state.interlinerAddressName,
-            address_place_id: this.state.interlinerAddressPlaceId
+            interliner_id: interlinerId,
+            name: interlinerName,
+            address_formatted: addressFormatted,
+            address_lat: addressLat,
+            address_lng: addressLng,
+            address_name: addressName,
+            address_place_id: addressPlaceId
         }
-        makeAjaxRequest('/interliners/store', 'POST', data, response => {
-            this.props.handleChange({target: {name: 'interliners', type: 'object', value: response.interliners}})
-            this.setState({showInterlinerModal: false})
+        makeAjaxRequest(`/interliners`, 'POST', data, response => {
+            console.log('success')
+            props.setInterliners(response.interliners)
+            setShowInterlinerModal(false)
         })
     }
 
-    toggleInterlinerModal(interliner = null) {
-        this.setState({
-            interlinerAddressFormatted: interliner ? interliner.address_formatted : '',
-            interlinerAddressLat: interliner ? interliner.address_lat : '',
-            interlinerAddressLng: interliner ? interliner.address_lng : '',
-            interlinerAddressName: interliner ? interliner.address_name : '',
-            interlinerAddressPlaceId: interliner ? interliner.address_place_id : '',
-            interlinerId: interliner ? interliner.interliner_id : '',
-            interlinerName: interliner ? interliner.interliner_name : '',
-            showInterlinerModal: !this.state.showInterlinerModal
-        })
+    const toggleInterlinerModal = (interliner = null) => {
+        console.log(interliner)
+        setAddressFormatted(interliner ? interliner.address_formatted : '')
+        setAddressLat(interliner ? interliner.address_lat : '')
+        setAddressLng(interliner ? interliner.address_lng : '')
+        setAddressName(interliner ? interliner.address_name : '')
+        setPlaceId(interliner ? interliner.address_place_id : '')
+        setInterlinerId(interliner ? interliner.interliner_id : '')
+        setInterlinerName(interliner ? interliner.interliner_name : '')
+        setShowInterlinerModal(!showInterlinerModal)
     }
 
-    render() {
-        return (
-            <Card border='dark'>
-                <Card.Header><h4 className='text-muted'>Interliners</h4></Card.Header>
-                <Card.Body>
-                    <Table size='sm'>
-                        <thead>
-                            <tr>
-                                <th><Button variant='success' size='sm' onClick={this.toggleInterlinerModal}><i className='fas fa-plus'></i></Button></th>
-                                <th>Interliner ID</th>
-                                <th>Interliner Name</th>
-                                <th>Address Name</th>
-                                <th>Address Formatted</th>
+    return (
+        <Card border='dark'>
+            <Card.Header><h4 className='text-muted'>Interliners</h4></Card.Header>
+            <Card.Body>
+                <Table size='sm'>
+                    <thead>
+                        <tr>
+                            <th><Button variant='success' size='sm' onClick={toggleInterlinerModal}><i className='fas fa-plus'></i></Button></th>
+                            <th>Interliner ID</th>
+                            <th>Interliner Name</th>
+                            <th>Address Name</th>
+                            <th>Address Formatted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {props.interliners.map(interliner =>
+                            <tr key={interliner.interliner_id}>
+                                <td>
+                                    <Button variant='warning' onClick={() => toggleInterlinerModal(interliner)} size='sm'>
+                                        <i className='fas fa-edit'></i>
+                                    </Button>
+                                </td>
+                                <td>{interliner.interliner_id}</td>
+                                <td>{interliner.interliner_name}</td>
+                                <td>{interliner.address_name}</td>
+                                <td>{interliner.address_formatted}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {this.props.interliners.map(interliner =>
-                                <tr key={interliner.interliner_id}>
-                                    <td><Button variant='warning' onClick={() => this.toggleInterlinerModal(interliner)} size='sm'><i className='fas fa-edit'></i></Button></td>
-                                    <td>{interliner.interliner_id}</td>
-                                    <td>{interliner.interliner_name}</td>
-                                    <td>{interliner.address_name}</td>
-                                    <td>{interliner.address_formatted}</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </Table>
-                </Card.Body>
-                <InterlinerModal
-                    interlinerAddress = {{
-                        type: 'Address',
-                        name: this.state.interlinerAddressName,
-                        formatted: this.state.interlinerAddressFormatted,
-                        lat: this.state.interlinerAddressLat,
-                        lng: this.state.interlinerAddressLng,
-                        placeId: this.state.interlinerAddressPlaceId
-                    }}
-                    interlinerId={this.state.interlinerId}
-                    interlinerName={this.state.interlinerName}
+                        )}
+                    </tbody>
+                </Table>
+            </Card.Body>
+            <InterlinerModal
+                interlinerAddress = {{
+                    type: 'Address',
+                    name: addressName,
+                    formatted: addressFormatted,
+                    lat: addressLat,
+                    lng: addressLng,
+                    placeId: addressPlaceId
+                }}
+                interlinerId={interlinerId}
+                interlinerName={interlinerName}
 
-                    handleChanges={this.handleChanges}
-                    show={this.state.showInterlinerModal}
-                    storeInterliner={this.storeInterliner}
-                    toggleModal={this.toggleInterlinerModal}
-                />
-            </Card>
-        )
-    }
+                setAddressFormatted={setAddressFormatted}
+                setAddressLat={setAddressLat}
+                setAddressLng={setAddressLng}
+                setAddressName={setAddressName}
+                setPlaceId={setPlaceId}
+
+                show={showInterlinerModal}
+                storeInterliner={storeInterliner}
+                toggleModal={() => setShowInterlinerModal(!showInterlinerModal)}
+            />
+        </Card>
+    )
 }

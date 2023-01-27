@@ -16,7 +16,18 @@ class GenerateRepeatingBills {
         Auth::loginUsingId($user->user_id);
 
         $addressRepo = new Repos\AddressRepo();
+        $appSettingsRepo = new Repos\ApplicationSettingsRepo();
         $billRepo = new Repos\BillRepo();
+
+        $today = (new DateTime())->setTime(12, 0, 0, 0);
+        $blockedDates = $appSettingsRepo->GetByType('blocked_date');
+        foreach($blockedDates as $date) {
+            $blockedDate = (new DateTime($date))->setTime(12, 0, 0, 0);
+            if($blockedDate == $today) {
+                activity('system_scheduler')->log('Skipped recurring bills due to matching holiday found: ' . $date->name);
+                return;
+            }
+        }
 
         activity('system_scheduler')->log('Running daily and weekly recurring bills');
         $repeatingBills = $billRepo->GetRepeatingBillsForToday();

@@ -135,7 +135,7 @@ export default function Address(props) {
                         </Col>
                         : null
                     }
-                    {type === 'Account' &&
+                    {(props.accounts?.length && type === 'Account') &&
                         <Col md={12}>
                             <InputGroup>
                                 <InputGroup.Text>Select Account: </InputGroup.Text>
@@ -149,10 +149,10 @@ export default function Address(props) {
                             </InputGroup>
                         </Col>
                     }
-                    {(type === 'Account' && account?.custom_field) &&
+                    {(props.accounts?.length && type === 'Account' && account?.custom_field) &&
                         <Col md={12}>
                             <InputGroup>
-                                <InputGroup.Text>{props.data.account.custom_field}</InputGroup.Text>
+                                <InputGroup.Text>{props.data?.account?.custom_field}</InputGroup.Text>
                                 <FormControl
                                     name={`${props.id}ReferenceValue`}
                                     value={referenceValue}

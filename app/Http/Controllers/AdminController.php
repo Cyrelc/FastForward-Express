@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use Artisan;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 
 use App\Http\Models\Admin;
 use App\Http\Models\Chart;
 use App\Http\Repos;
-
-// use October\Rain\Config;
 
 Class AdminController extends Controller {
     public function getAccountsReceivable(Request $req, $startDate, $endDate) {
@@ -43,7 +42,27 @@ Class AdminController extends Controller {
         return json_encode($model);
     }
 
-    public function store(Request $req) {
+    public function StoreBlockedDate(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $appSettingRepo = new Repos\ApplicationSettingsRepo();
+        $appSettingCollector = new \App\Http\Collectors\ApplicationSettingCollector();
+
+        $blockedDate = $appSettingCollector->CollectBlockedDate($req);
+        DB::beginTransaction();
+
+        $appSettingRepo->Insert($blockedDate);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'blocked_dates' => $appSettingRepo->GetByType('blocked_date')
+        ]);
+    }
+
+    public function StoreAccountingSettings(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
@@ -62,10 +81,8 @@ Class AdminController extends Controller {
         foreach($req->paymentTypes as $paymentType)
             $paymentRepo->UpdatePaymentType($paymentType);
 
-        // TODO - config writing currently not working
-        // As this wasn't an ideal solution anyways, might be time for a new one
-        // Config::write('ffe_config.gst', (float)$req->gst);
-        // we have to clear the config cache after writing
+        // Config::set('ffe_config.gst', (float)$req->gst);
+        // config(['ffe_config.gst' => (float)$req->gst]);
         // Artisan::call('config:cache');
 
         DB::commit();

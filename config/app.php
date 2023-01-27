@@ -161,7 +161,6 @@ return [
         /*
          * Developer Added (3rd party) Providers
          */
-        October\Rain\Config\ServiceProvider::class,
         SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
         Webklex\PDFMerger\Providers\PDFMergerServiceProvider::class,
     ],

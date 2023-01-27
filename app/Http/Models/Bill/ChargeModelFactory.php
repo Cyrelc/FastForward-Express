@@ -13,7 +13,9 @@ class ChargeModelFactory {
         $ratesheetRepo = new Repos\RatesheetRepo();
         $ratesheet = $ratesheetRepo->GetById($req->ratesheet_id);
 
-        $distanceCharges = $this->generateDistanceCharges($ratesheet, $req->pickup_address, $req->delivery_address, $req->delivery_type_id);
+        $bill = $this->mockBill($req);
+
+        $distanceCharges = $this->generateDistanceCharges($ratesheet, $bill);
         $packageCharges = filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN) ? [] : $this->generatePackageCharges($ratesheet, $req->packages, $req->package_is_pallet, $req->use_imperial);
         $timeCharges = $this->generateTimeCharges($ratesheet, $req->time_pickup_scheduled, $req->time_delivery_scheduled);
 
@@ -23,11 +25,14 @@ class ChargeModelFactory {
             $currentPrice += $charge->getPrice();
         }
 
-        $conditionalCharges = $this->generateConditionalCharges($ratesheet, $req, $currentPrice);
+        $conditionalCharges = $this->generateConditionalCharges($ratesheet, $bill, $req, $currentPrice);
 
         return array_merge($distanceCharges, $packageCharges, $timeCharges, $conditionalCharges);
     }
 
+    /**
+     * Finds the zone a given point falls within
+     */
     public function GetZone($ratesheetId, $lat, $lng) {
         $pointInPolygonAcceptableResponses = ['inside', 'vertex', 'boundary'];
 
@@ -50,32 +55,67 @@ class ChargeModelFactory {
     }
 
     /**
+     * If using internal zone crossed calculation, we must calculate how many zones have been crossed
+     * We do this by creating a list of all zones as unvisited, then one that has been visited, and place the pickup location in the visited
+     * Then systematically, we remove adjacent zones and add them to the visited list until we reach the destination,
+     * at which point we can return the distance (number of zones required to be crossed)
+     * 
+     * @param $pickupZone - the complete zone object wherein the pickup will occur
+     * @param $deliveryZone - as pickup zone but for delivery location
+     * @param $zones - the list of zones pertaining to this ratesheet, as they have already been gathered by the calling function no need to make a second database call
+     * @param $ratesheet - the ratesheet against which to check pricing
+     * @param $deliveryType - the deliveryType to check against the ratesheet for pricing
+     */
+    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheetId, $deliveryType) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $selectionsRepo = new Repos\SelectionsRepo();
+
+        $zones = $ratesheetRepo->GetMapZones($ratesheetId);
+
+        $unvisitedSet = $zones->toArray();
+        $startIndex = array_search($pickupZone->zone_id, array_column($unvisitedSet, 'zone_id'));
+        $visitedSet = array();
+        $visitedSet[] = $unvisitedSet[$startIndex];
+        $visitedSet[0]['distance'] = $distance = 1;
+        unset($unvisitedSet[$startIndex]);
+
+        while(!empty($unvisitedSet) && !in_array($deliveryZone->zone_id, array_column($visitedSet, 'zone_id'))) {
+            // activity('system_debug')->log('unvisitedset count:' . count($unvisitedSet));
+            foreach($visitedSet as $visitedZone)
+                if($visitedZone['distance'] === $distance && isset($visitedZone['neighbours'])) {
+                    foreach(json_decode($visitedZone['neighbours']) as $neighbourZoneId) {
+                        $neighbourZoneIndex = array_search($neighbourZoneId, array_column($unvisitedSet, 'zone_id'));
+                        if($neighbourZoneIndex) {
+                            $unvisitedSet[$neighbourZoneIndex]['distance'] = $distance + 1;
+                            $visitedSet[] = ($unvisitedSet[$neighbourZoneIndex]);
+                            unset($unvisitedSet[$neighbourZoneIndex]);
+                        }
+                    }
+                }
+            $distance++;
+        }
+
+        $zoneRates = json_decode($ratesheet->zone_rates);
+        $zoneRateId = array_search($distance, array_column($zoneRates, 'zones'));
+        $zoneRate = $zoneRates[$zoneRateId];
+        $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
+        $deliveryType .= '_cost';
+
+        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->$deliveryType);
+    }
+
+    /**
      * Calculates which conditional charges apply by creating an object and comparing against stored json_logic data
      * @param $ratesheet - standard ratesheet object pulled from database
      * @param $req - the request, which will be used to generate a standard object for comparisons
      *
      * @return $results - an array of charges to add to the bill
      */
-    private function generateConditionalCharges($ratesheet, $req, $currentPrice) {
+    private function generateConditionalCharges($ratesheet, $bill, $req, $currentPrice) {
         $conditionalRepo = new Repos\ConditionalRepo();
 
         $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'amount');
         $percentConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'percent');
-
-        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng']);
-        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng']);
-
-        $bill = [
-            'delivery_address' => [
-                'zone_type' => $deliveryZone->type
-            ],
-            'package' => [
-                'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN)
-            ],
-            'pickup_address' => [
-                'zone_type' => $pickupZone->type
-            ],
-        ];
 
         $results = array();
 
@@ -133,57 +173,42 @@ class ChargeModelFactory {
      *
      */
 
-    private function generateDistanceCharges($ratesheet, $pickupAddress, $deliveryAddress, $deliveryType) {
-        $ratesheetRepo = new Repos\RatesheetRepo();
-        $selectionsRepo = new Repos\SelectionsRepo();
-
-        $zones = $ratesheetRepo->GetMapZones($ratesheet->ratesheet_id);
-
+    private function generateDistanceCharges($ratesheet, $bill) {
         $pointLocation = new MapLogic\PointLocation;
-
-        $pickupCoordinates = $pickupAddress['lat'] . ' ' . $pickupAddress['lng'];
-        $deliveryCoordinates = $deliveryAddress['lat'] . ' ' . $deliveryAddress['lng'];
-
-        /**
-         * Find the zones containing the pickup and delivery locations
-         */
-        $pickupZone = $this->GetZone($ratesheet->ratesheet_id, $pickupAddress['lat'], $pickupAddress['lng']);
-        $deliveryZone = $this->GetZone($ratesheet->ratesheet_id, $deliveryAddress['lat'], $deliveryAddress['lng']);
 
         /**
          * If one or both requests are outside of a programmed deliverable area, then we throw an exception: The system cannot automatically calculate the pricing, this must be done manually
          */
-        if(!$pickupZone)
+        if(!$bill->pickup_address->zone)
             abort(400, 'Requested pickup was not in a designated zone! Please price manually');
-        else if (!$deliveryZone)
+        else if (!$bill->delivery_address->zone)
             abort(400, 'Requested delivery was not in a designated zone! Please price manually');
 
         $results = array();
         $crossableZoneTypes = ['internal', 'peripheral'];
 
-        if(in_array($pickupZone->type, $crossableZoneTypes) && in_array($deliveryZone->type, $crossableZoneTypes))
+        if(in_array($bill->pickup_address->zone->type, $crossableZoneTypes) && in_array($bill->delivery_address->zone->type, $crossableZoneTypes))
             if(filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN))
-                $results[] = $this->countZonesCrossed($pickupZone, $deliveryZone, $zones, $ratesheet, $deliveryType);
+                $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $zones, $ratesheet, $deliveryType);
             else {
-                $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
                 $deliveryTypes = json_decode($ratesheet->delivery_types);
-                $chargeDeliveryTypeIndex = array_search($deliveryType, array_column($deliveryTypes, 'id'));
+                $chargeDeliveryTypeIndex = array_search($bill->deliveryType, array_column($deliveryTypes, 'id'));
                 $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
-                $results[] = new LineItemModel($deliveryTypeFriendlyName, 'distanceRate', $chargeDeliveryType->cost);
+                $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost);
             }
         /**
          * If the pickup or delivery is in a peripheral or outlying zone, additional charges apply
          */
-        if($pickupZone->type == 'peripheral')
-            $results[] = new LineItemModel('Peripheral Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->regular);
-        else if ($pickupZone->type == 'outlying')
-            $results[] = new LineItemModel('Outlying Zone: ' . $pickupZone->zone_name, 'distanceRate', $pickupZone->additional_costs->$deliveryType);
+        if($bill->pickup_address->zone->type == 'peripheral')
+            $results[] = new LineItemModel('Peripheral Zone: ' . $bill->pickup_address->zone->name, 'distanceRate', $bill->pickup_address->zone->additional_costs->regular);
+        else if ($bill->pickup_address->zone->type == 'outlying')
+            $results[] = new LineItemModel('Outlying Zone: ' . $bill->pickup_address->zone->name, 'distanceRate', $bill->pickup_address->zone->additional_costs->{$bill->delivery_type->value});
 
-        if($deliveryZone->type == 'peripheral')
-            $results[] = new LineItemModel('Peripheral Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->regular);
-        else if ($deliveryZone->type == 'outlying')
-            $results[] = new LineItemModel('Outlying Zone: ' . $deliveryZone->zone_name, 'distanceRate', $deliveryZone->additional_costs->$deliveryType);
+        if($bill->delivery_address->zone->type == 'peripheral')
+            $results[] = new LineItemModel('Peripheral Zone: ' . $bill->delivery_address->zone->name, 'distanceRate', $bill->delivery_address->zone->additional_costs->regular);
+        else if ($bill->delivery_address->zone->type == 'outlying')
+            $results[] = new LineItemModel('Outlying Zone: ' . $bill->delivery_address->zone->name, 'distanceRate', $bill->delivery_address->zone->additional_costs->{$bill->delivery_type->value});
 
         return $results;
     }
@@ -234,8 +259,17 @@ class ChargeModelFactory {
 
         $totalWeight = 0;
         $results = array();
-        foreach($packages as $package)
+        $maxWidth = 0;
+        $maxLength = 0;
+        $maxHeight = 0;
+
+        foreach($packages as $package) {
+            $maxLength = $package['length'] > $maxLength ? $package['length'] : $maxLength;
+            $maxWidth = $package['width'] > $maxWidth ? $package['width'] : $maxWidth;
+            $maxHeight = $package['height'] > $maxHeight ? $package['height'] : $maxHeight;
+
             $totalWeight += ($package['weight'] * $package['count']);
+        }
 
         if(filter_var($useImperial, FILTER_VALIDATE_BOOLEAN))
             $totalWeight *= 0.453592;
@@ -258,62 +292,45 @@ class ChargeModelFactory {
         return $results;
     }
 
-    /**
-     * If using internal zone crossed calculation, we must calculate how many zones have been crossed
-     * We do this by creating a list of all zones as unvisited, then one that has been visited, and place the pickup location in the visited
-     * Then systematically, we remove adjacent zones and add them to the visited list until we reach the destination,
-     * at which point we can return the distance (number of zones required to be crossed)
-     * 
-     * @param $pickupZone - the complete zone object wherein the pickup will occur
-     * @param $deliveryZone - as pickup zone but for delivery location
-     * @param $zones - the list of zones pertaining to this ratesheet, as they have already been gathered by the calling function no need to make a second database call
-     * @param $ratesheet - the ratesheet against which to check pricing
-     * @param $deliveryType - the deliveryType to check against the ratesheet for pricing
-     * 
-     */
-
-    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheetId, $deliveryType) {
-        $ratesheetRepo = new Repos\RatesheetRepo();
+    private function mockBill($req) {
         $selectionsRepo = new Repos\SelectionsRepo();
 
-        $zones = $ratesheetRepo->GetMapZones($ratesheetId);
+        // $deliveryTypes = json_decode($ratesheet->delivery_types);
+        // $chargeDeliveryTypeIndex = array_search($deliveryType, array_column($deliveryTypes, 'id'));
+        // $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
-        $unvisitedSet = $zones->toArray();
-        $startIndex = array_search($pickupZone->zone_id, array_column($unvisitedSet, 'zone_id'));
-        $visitedSet = array();
-        $visitedSet[] = $unvisitedSet[$startIndex];
-        $visitedSet[0]['distance'] = $distance = 1;
-        unset($unvisitedSet[$startIndex]);
+        /* $bill = [
+            'delivery_address' => [
+                'zone' => [
+                    'type' => $deliveryZone->type
+                ]
+            ],
+            'package' => [
+                'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN)
+            ],
+            'pickup_address' => [
+                'zone' => [
+                    'type' => $pickupZone->type
+                ]
+            ],
+        ]; */
+        $bill = (object) [
+            'pickup_address' => (object) [
+                'zone' =>  $this->GetZone($req->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng'])
+            ],
+            'delivery_address' => (object) [
+                'zone' => $this->GetZone($req->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng'])
+            ],
+            'delivery_type' => $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $req->delivery_type_id)
+        ];
 
-        while(!empty($unvisitedSet) && !in_array($deliveryZone->zone_id, array_column($visitedSet, 'zone_id'))) {
-            activity('system_debug')->log('unvisitedset count:' . count($unvisitedSet));
-            foreach($visitedSet as $visitedZone)
-                if($visitedZone['distance'] === $distance && isset($visitedZone['neighbours'])) {
-                    foreach(json_decode($visitedZone['neighbours']) as $neighbourZoneId) {
-                        $neighbourZoneIndex = array_search($neighbourZoneId, array_column($unvisitedSet, 'zone_id'));
-                        if($neighbourZoneIndex) {
-                            $unvisitedSet[$neighbourZoneIndex]['distance'] = $distance + 1;
-                            $visitedSet[] = ($unvisitedSet[$neighbourZoneIndex]);
-                            unset($unvisitedSet[$neighbourZoneIndex]);
-                        }
-                    }
-                }
-            $distance++;
-        }
-
-        $zoneRates = json_decode($ratesheet->zone_rates);
-        $zoneRateId = array_search($distance, array_column($zoneRates, 'zones'));
-        $zoneRate = $zoneRates[$zoneRateId];
-        $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
-        $deliveryType .= '_cost';
-
-        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->$deliveryType);
+        return $bill;
     }
 
     private function prepareZone($zone) {
         return (object) [
             'zone_id' => $zone->zone_id,
-            'zone_name' => $zone->name,
+            'name' => $zone->name,
             'additional_costs' => json_decode($zone->additional_costs),
             'additional_time' => $zone->additional_time,
             'type' => $zone->type,

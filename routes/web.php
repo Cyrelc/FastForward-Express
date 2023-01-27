@@ -31,8 +31,6 @@ Route::group(['middleware' => ['auth']],
 
         Route::get('/logout', 'Auth\LoginController@logout');
 
-        Route::get('/appsettings/get', 'AdminController@getModel');
-        Route::post('/appsettings/store', 'AdminController@store');
         Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
         //API
         // Route::resource('/customers', 'AccountController',
@@ -48,6 +46,13 @@ Route::middleware(['auth'])->controller(AccountController::class)->prefix('accou
     Route::get('/getModel/{accountId?}', 'getModel');
     Route::post('/', 'store');
     Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(AdminController::class)->prefix('appsettings')->group(function() {
+    Route::get('/', 'AdminController@getModel');
+    Route::post('/accounting', 'AdminController@StoreAccountingSettings');
+    Route::post('/scheduling/blockedDates', 'AdminController@StoreBlockedDate');
+    Route::delete('/scheduling/blockedDates/{blockedDateId}', 'AdminController@DeleteBlockedDate');
 });
 
 Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')->group(function() {
@@ -90,7 +95,7 @@ Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('empl
 
 Route::middleware(['auth'])->controller(InterlinerController::class)->prefix('interliners')->group(function() {
     Route::get('/', 'buildTable');
-    Route::post('/store', 'store');
+    Route::post('/', 'store');
 });
 
 Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoices')->group(function() {

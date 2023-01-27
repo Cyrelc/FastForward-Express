@@ -7,6 +7,7 @@ use App\Http\Models\Admin;
 
 class AdminModelFactory{
     public function GetAppSettingsModel() {
+        $applicationSettingsRepo = new Repos\ApplicationSettingsRepo();
         $interlinerRepo = new Repos\InterlinerRepo();
         $paymentRepo = new Repos\PaymentRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
@@ -17,6 +18,7 @@ class AdminModelFactory{
         $model->interliners = $interlinerRepo->ListAll();
         $model->payment_types = $paymentRepo->GetPaymentTypes();
         $model->ratesheets = $ratesheetRepo->ListAllNameAndId();
+        $model->blocked_dates = $applicationSettingsRepo->GetByType('blocked_date');
 
         return $model;
     }

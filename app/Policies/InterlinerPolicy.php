@@ -41,7 +41,7 @@ class InterlinerPolicy
      */
     public function create(User $user)
     {
-        return $user->can('interliners.create');
+        return $user->can('appSettings.edit.*.*');
     }
 
     /**
@@ -53,6 +53,6 @@ class InterlinerPolicy
      */
     public function update(User $user, Interliner $interliner)
     {
-        return $user->can('interliners.edit.*');
+        return $user->can('appSettings.edit.*.*');
     }
 }
