@@ -73,7 +73,7 @@ export default function SchedulingTab(props) {
                             </thead>
                             <tbody>
                                 {props.blockedDates && props.blockedDates.map(date =>
-                                    <tr>
+                                    <tr key={date.date}>
                                         <td>
                                             <Button variant='danger' size='sm'>
                                                 <i className='fas fa-trash'></i>

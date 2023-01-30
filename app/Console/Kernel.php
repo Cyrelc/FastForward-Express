@@ -4,7 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Console\Commands\GenerateRepeatingBills;
+use App\Console\Commands;
 
 class Kernel extends ConsoleKernel
 {
@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        Commands\GenerateRepeatingBills::class,
         // Commands\Inspire::class,
     ];
 
@@ -25,7 +26,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->call(new GenerateRepeatingBills)->dailyAt('5:00')->weekDays();
+        $schedule->command(Commands\GenerateRepeatingBills::class)->dailyAt('5:00')->weekDays();
         $schedule->call(function() {
             activity('system_heartbeat')->log('system heartbeat');
         })->everyTenMinutes();

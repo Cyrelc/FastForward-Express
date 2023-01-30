@@ -14,7 +14,8 @@ return [
     */
 
     'commands' => [
-        App\Console\Commands\HashPassword::class
+        \App\Console\Commands\HashPassword::class,
+        \App\Console\Commands\GenerateRepeatingBills::class,
         // App\Console\Commands\ExampleCommand::class,
     ],
 
