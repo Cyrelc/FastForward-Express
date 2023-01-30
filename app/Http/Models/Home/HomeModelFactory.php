@@ -61,6 +61,7 @@ class HomeModelFactory {
         $comparisonDate = date('Y-m-d');
         $comparisonDate = strtotime($comparisonDate . ' + 90 days');
 
+        $appsettingsRepo = new Repos\ApplicationSettingsRepo();
         $billRepo = new Repos\BillRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $chartModelFactory = new \App\Http\Models\Chart\ChartModelFactory();
@@ -79,6 +80,7 @@ class HomeModelFactory {
         $model->employee_birthdays = $employeeRepo->GetEmployeeBirthdays();
         $model->ytd_chart = $chartModelFactory->GetAdminDashboardChart();
         $model->calendar_heat_chart = $chartModelFactory->GetCalendarHeatChart();
+        $model->upcoming_holidays = $appsettingsRepo->GetUpcomingHolidays();
 
         return $model;
     }

@@ -16,6 +16,19 @@ class ApplicationSettingsRepo {
         return $settings->get();
     }
 
+    public function GetUpcomingHolidays($days = 60) {
+        $targetDate = (new \DateTime())->modify('+' . $days . 'days');
+
+        $holidays = ApplicationSetting::where('type', 'blocked_date')
+            ->whereDate('value', '<=', $targetDate)
+            ->select(
+                'name',
+                'value',
+            );
+
+        return $holidays->get();
+    }
+
     public function Insert($appSetting) {
         $new = new ApplicationSetting;
 
