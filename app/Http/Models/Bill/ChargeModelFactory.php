@@ -192,7 +192,7 @@ class ChargeModelFactory {
                 $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $zones, $ratesheet, $deliveryType);
             else {
                 $deliveryTypes = json_decode($ratesheet->delivery_types);
-                $chargeDeliveryTypeIndex = array_search($bill->deliveryType, array_column($deliveryTypes, 'id'));
+                $chargeDeliveryTypeIndex = array_search($bill->delivery_type, array_column($deliveryTypes, 'id'));
                 $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
                 $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost);
