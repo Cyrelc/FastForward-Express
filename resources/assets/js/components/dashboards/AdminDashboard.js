@@ -59,7 +59,7 @@ export default function AdminDashboard(props) {
 
     const holidayColumns = [
         {title: 'Name', field: 'name'},
-        {title: 'Date', field: 'value'}
+        {title: 'Date', field: 'value', formatter: row => (new Date(row.getData().value)).toDateString()}
     ]
 
     return (
