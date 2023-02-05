@@ -82,7 +82,7 @@ class BillCollector {
 			if($chargeType->name === 'Account')
 				$temp['charge_account_id'] = $charge['charge_account_id'];
 			else if ($chargeType->name === 'Employee')
-				$temp['charge_employee_id'] = $charge['employee_id'];
+				$temp['charge_employee_id'] = $charge['charge_employee_id'];
 
 			// Process line items
 			if(isset($charge['lineItems']))
