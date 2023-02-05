@@ -36,6 +36,7 @@ const Bill = (props) => {
             data = JSON.parse(data)
             data.drivers = props.drivers
             data.employees = props.employees
+            data.use_imperial = props.userSettings.use_imperial_default
 
             billDispatch({type: 'CONFIGURE_BILL', payload: data})
             billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
@@ -51,7 +52,7 @@ const Bill = (props) => {
                     ratesheets: data.ratesheets
                 }
             })
-            packageDispatch({type: 'CONFIGURE_PACKAGES'})
+            packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
 
             if(data.bill?.bill_id) {
                 billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
@@ -599,8 +600,9 @@ const mapStateToProps = store => {
     return {
         drivers: store.app.drivers,
         employees: store.app.employees,
-        frontEndPermissions: store.app.frontEndPermissions,
-        sortedBills: store.bills.sortedList
+        frontEndPermissions: store.user.frontEndPermissions,
+        sortedBills: store.bills.sortedList,
+        userSettings: store.user.userSettings
     }
 }
 

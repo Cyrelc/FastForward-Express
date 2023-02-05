@@ -110,7 +110,7 @@ const mapStateToprops = store => {
         accounts: store.app.accounts,
         accountsTable: store.accounts.accountsTable,
         columns: store.accounts.columns,
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         invoice_intervals: store.app.invoiceIntervals,
         parent_accounts: store.app.parentAccounts,
         reduxQueryString: store.accounts.queryString,

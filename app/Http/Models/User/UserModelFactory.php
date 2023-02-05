@@ -60,6 +60,30 @@ class UserModelFactory {
 
         return $model;
     }
+
+    public function getUserConfiguration($req) {
+        $contactRepo = new Repos\ContactRepo();
+        $userRepo = new Repos\UserRepo();
+
+        $model = new UserConfigurationModel();
+
+        $permissionModelFactory = new Models\Permission\PermissionModelFactory;
+
+        $model->frontEndPermissions = $permissionModelFactory->getFrontEndPermissionsForUser($req->user());
+        $model->authenticatedEmployee = $req->user()->employee;
+        $model->authenticatedAccountUsers = $req->user()->accountUsers;
+        $model->authenticatedUserId = $req->user()->user_id;
+        $model->is_impersonating = $req->session()->has('original_user_id');
+        $model->user_settings = $userRepo->GetSettings($req->user()->user_id);
+        if($model->authenticatedEmployee)
+            $model->contact = $contactRepo->GetById($req->user()->employee->contact->contact_id);
+        else if (count($model->authenticatedAccountUsers) > 0)
+            $model->contact = $contactRepo->GetById($model->authenticatedAccountUsers[0]->contact_id);
+        else if ($req->user()->hasRole('superAdmin'))
+            $model->contact = ['first_name' => $req->user()->email];
+
+        return $model;
+    }
 }
 
 ?>

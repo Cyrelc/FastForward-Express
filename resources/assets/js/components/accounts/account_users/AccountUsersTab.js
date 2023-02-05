@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Badge, Button, ButtonGroup, Card, Col, Dropdown, Row, Table} from 'react-bootstrap'
+import {Badge, Button, Card, Col, Dropdown, Row, Table} from 'react-bootstrap'
 
 import ChangePasswordModal from '../../partials/ChangePasswordModal'
 import EditAccountUser from './EditAccountUser'

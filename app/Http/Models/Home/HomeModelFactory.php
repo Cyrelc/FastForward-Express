@@ -8,25 +8,16 @@ use Illuminate\Support\Facades\Auth;
 class HomeModelFactory {
     public function GetAppConfiguration($req) {
         $accountRepo = new Repos\AccountRepo();
-        $contactRepo = new Repos\ContactRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $paymentRepo = new Repos\PaymentRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
 
-        $permissionModelFactory = new Models\Permission\PermissionModelFactory;
-
         $model = new AppModel();
 
-        $model->frontEndPermissions = $permissionModelFactory->getFrontEndPermissionsForUser($req->user());
-        $model->authenticatedEmployee = $req->user()->employee;
-        $model->authenticatedAccountUsers = $req->user()->accountUsers;
-        $model->authenticatedUserId = $req->user()->user_id;
-        $model->is_impersonating = $req->session()->has('original_user_id');
         $model->payment_types = $paymentRepo->GetPaymentTypesList();
 
-        if($model->authenticatedEmployee) {
-            $model->contact = $contactRepo->GetById($model->authenticatedEmployee->contact_id);
+        if($req->user()->employee) {
             if($req->user()->can('viewAll', Account::class) || $req->user()->can('bills.view.basic.*'))
                 $model->accounts = $accountRepo->List(null);
             if($req->user()->can('viewAll', Account::class)) {
@@ -34,7 +25,7 @@ class HomeModelFactory {
                 $model->parent_accounts = $accountRepo->GetParentAccountsList();
             }
             if($req->user()->can('viewAll', Employee::class) || $req->user()->can('bills.view.dispatch.*')) {
-                $model->employees = $employeeRepo->GetEmployeesList($req->user()->can('viewAll', Employee::class) ? null : $model->authenticatedEmployee->employee_id);
+                $model->employees = $employeeRepo->GetEmployeesList($req->user()->can('viewAll', Employee::class) ? null : $req->user()->employee->employee_id);
             }
             if($req->user()->can('bills.edit.dispatch.*')) {
                 $model->drivers = $employeeRepo->GetDriverList();
@@ -42,16 +33,14 @@ class HomeModelFactory {
             if($req->user()->can('bills.edit.billing.*')) {
                 $model->repeat_intervals = $selectionsRepo->GetSelectionsListByType('repeat_interval');
             }
-        } else if(count($model->authenticatedAccountUsers) > 0) {
-            $model->contact = $contactRepo->GetById($model->authenticatedAccountUsers[0]->contact_id);
-            $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($model->authenticatedAccountUsers[0]->account_id)));
+        } else if(count($req->user()->accountUsers) > 0) {
+            $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($req->user()->accountUsers[0]->account_id)));
         } else if($req->user()->hasRole('superAdmin')) {
             $model->accounts = $accountRepo->List(null);
             $model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
             $model->parent_accounts = $accountRepo->GetParentAccountsList();
             $model->employees = $employeeRepo->GetEmployeesList(null);
             $model->drivers = $employeeRepo->GetDriverList(false);
-            $model->contact = ['first_name' => $req->user()->email];
         }
 
         return $model;

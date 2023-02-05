@@ -1,5 +1,5 @@
 import React, {Component, Fragment} from 'react'
-import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, NavLink, Row, Tab, Tabs} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
 
@@ -198,7 +198,7 @@ class Account extends Component {
         var data = {
             account_id: this.state.accountId
         }
-        if(this.state.permissions.editBasic || (!this.state.accountId && this.state.permissions.create))
+        if(this.state.accountId ? this.state.permissions.editBasic : this.state.permissions.create)
             data = {
                 ...data,
                 account_name: this.state.accountName,
@@ -215,13 +215,12 @@ class Account extends Component {
                 use_shipping_for_billing_address: this.state.useShippingForBillingAddress,
             }
 
-        if(this.state.permissions.editInvoicing || (!this.state.accountId && this.state.permissions.create))
+        if(this.state.accountId ? this.state.permissions.editInvoicing : this.state.permissions.create) {
             data = {
                 ...data,
                 custom_field: this.state.customTrackingField,
                 invoice_comment: this.state.invoiceComment,
                 invoice_interval: this.state.invoiceInterval.value,
-                // invoice_separately_from_parent: this.state.invoiceSeparatelyFromParent,
                 invoice_sort_order: this.state.invoiceSortOrder,
                 is_custom_field_mandatory: this.state.customFieldMandatory,
                 send_bills: this.state.sendBills,
@@ -229,8 +228,9 @@ class Account extends Component {
                 send_paper_invoices: this.state.sendPaperInvoices,
                 show_invoice_line_items: this.state.showInvoiceLineItems
             }
+        }
 
-        if(this.state.permissions.editAdvanced || (!this.state.accountId && this.state.permissions.create))
+        if(this.state.accountId ? this.state.permissions.editAdvanced : this.state.permissions.create)
             data = {
                 ...data,
                 account_number: this.state.accountNumber,
@@ -269,7 +269,7 @@ class Account extends Component {
                                                     Parent: <LinkContainer to={`/app/accounts/${this.state.parentAccount.value}`}><a>{this.state.parentAccount.label}</a></LinkContainer>
                                                 </h4>
                                             }
-                                            <h4>{`Manage Account: ${this.state.accountId} - ${this.state.accountName}`}</h4>
+                                            <h4>{`Manage Account: A${this.state.accountId} - ${this.state.accountName}`}</h4>
                                         </Fragment>
                                         : <h4>Create Account</h4>
                                     }
@@ -361,7 +361,7 @@ class Account extends Component {
                                 handleChanges={this.handleChanges}
                                 handleInvoiceSortOrderChange={this.handleInvoiceSortOrderChange}
                                 invoiceIntervals={this.state.invoiceIntervals}
-                                readOnly={ !this.state.accountId && this.state.permissions.create ? false : !this.state.permissions.editInvoicing }
+                                readOnly={!this.state.accountId && this.state.permissions.create ? false : !this.state.permissions.editInvoicing}
                             />
                         </Tab>
                         {(this.state.permissions.editAdvanced || !this.state.accountId && this.state.permissions.create ) &&
@@ -424,9 +424,7 @@ class Account extends Component {
                         }
                         {this.state.permissions.viewPayments &&
                             <Tab eventKey='analytics' title={<h4>Analytics</h4>}>
-                                <Charts
-                                    accountId={this.state.accountId}
-                                />
+                                <Charts accountId={this.state.accountId} />
                             </Tab>
                         }
                         {this.state.activityLog && this.state.permissions.viewActivityLog &&
@@ -466,7 +464,7 @@ class Account extends Component {
 
 const mapStateToProps = store => {
     return {
-        authenticatedUserContact: store.app.authenticatedUserContact,
+        authenticatedUserContact: store.user.authenticatedUserContact,
         sortedAccounts: store.accounts.sortedList
     }
 }

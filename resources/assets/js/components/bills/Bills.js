@@ -372,13 +372,13 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
-        authenticatedEmployee: store.app.authenticatedEmployee,
+        authenticatedEmployee: store.user.authenticatedEmployee,
         billsTable: store.bills.billsTable,
         chargeTypes: store.app.paymentTypes,
         columns: store.bills.columns,
         customFieldName: store.bills.customFieldName,
         drivers: store.app.drivers,
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         parentAccounts: store.app.parentAccounts,
         reduxQueryString: store.bills.queryString,
         repeatIntervals: store.app.repeatIntervals,

@@ -153,7 +153,7 @@ const mapStateToProps = store => {
     return {
         columns: store.manifests.columns,
         drivers: store.app.drivers,
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         manifestTable: store.manifests.manifestTable,
         reduxQueryString: store.manifests.queryString
     }

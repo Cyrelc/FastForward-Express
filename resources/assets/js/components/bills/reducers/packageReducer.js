@@ -15,7 +15,7 @@ export default function packageReducer(state, action) {
     switch(type) {
         case 'CONFIGURE_PACKAGES': {
             state.tableRef.current?.table?.setData(initialState.packages)
-            return Object.assign({}, state, {...initialState})
+            return Object.assign({}, state, {...initialState, useImperial: payload.use_imperial})
         }
         case 'CONFIGURE_EXISTING':
             state.tableRef.current?.table?.setData(initialState.packages)

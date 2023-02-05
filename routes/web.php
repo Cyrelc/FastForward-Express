@@ -160,6 +160,8 @@ Route::middleware(['auth'])->controller(UserController::class)->prefix('users')-
     Route::post('/impersonate', 'impersonate');
     Route::get('/unimpersonate', 'unimpersonate');
     Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
+    Route::post('/settings', 'storeSettings');
+    Route::get('/getConfiguration', 'GetUserConfiguration');
 });
 
 //Authenticated SPA

@@ -137,7 +137,7 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         columns: store.employees.columns,
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         reduxQueryString: store.employees.queryString,
         tableData: store.employees.employeesTable
     }

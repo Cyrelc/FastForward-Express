@@ -226,9 +226,9 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
-        authenticatedEmployee: store.app.authenticatedEmployee,
+        authenticatedEmployee: store.user.authenticatedEmployee,
         columns: store.invoices.columns,
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         invoiceTable: store.invoices.invoiceTable,
         reduxQueryString: store.invoices.queryString,
     }

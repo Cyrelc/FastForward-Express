@@ -150,4 +150,10 @@ class UserCollector {
 
         return $permissions;
     }
+
+    public function CollectSettings($req) {
+        return [
+            'use_imperial_default' => filter_var($req->use_imperial_default, FILTER_VALIDATE_BOOLEAN)
+        ];
+    }
 }

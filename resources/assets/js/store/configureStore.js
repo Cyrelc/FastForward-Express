@@ -8,6 +8,7 @@ import BillsReducer from './reducers/bills'
 import EmployeesReducer from './reducers/employees'
 import InvoicesReducer from './reducers/invoices'
 import ManifestReducer from './reducers/manifests'
+import UserReducer from './reducers/user'
 
 const createRootReducer = history => combineReducers({
         router: connectRouter(history),
@@ -16,7 +17,8 @@ const createRootReducer = history => combineReducers({
         bills: BillsReducer,
         employees: EmployeesReducer,
         invoices: InvoicesReducer,
-        manifests: ManifestReducer
+        manifests: ManifestReducer,
+        user: UserReducer
     })
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;

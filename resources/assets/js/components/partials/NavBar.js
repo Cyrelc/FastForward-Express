@@ -2,15 +2,11 @@ import React, {useRef, useState} from 'react'
 import {Menu, MenuItem, ProSidebar, SidebarContent, SidebarFooter, SidebarHeader, SubMenu} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
-import {FormControl, InputGroup} from 'react-bootstrap'
+import {FormControl} from 'react-bootstrap'
 import {push} from 'connected-react-router'
-import Select from 'react-select'
 
 function NavBar(props) {
-    const [billId, setBillId] = useState('')
-    const [invoiceId, setInvoiceId] = useState('')
     const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
-    const [manifestId, setManifestId] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
     const searchPopoverRef = useRef(null)
 
@@ -83,25 +79,6 @@ function NavBar(props) {
                                     <MenuItem icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
                                 </LinkContainer>
                             }
-                            {props.frontEndPermissions.bills.viewAny &&
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px'}}>
-                                    <InputGroup.Text>ID: </InputGroup.Text>
-                                    <FormControl
-                                        name={'billId'}
-                                        onChange={event => setBillId(event.target.value)}
-                                        type='number'
-                                        min='1'
-                                        value={billId}
-                                        onKeyPress={event => {
-                                            if(event.key === 'Enter' && billId) {
-                                                props.redirect(`/app/bills/${billId}`)
-                                                setBillId('')
-                                                setShowBillDropdown(false)
-                                            }
-                                        }}
-                                    />
-                                </InputGroup>
-                            }
                         </SubMenu>
                     }
                     {hasAnyPermission(props.frontEndPermissions.invoices) &&
@@ -115,24 +92,6 @@ function NavBar(props) {
                                 <LinkContainer to='/app/invoices/generate'>
                                     <MenuItem icon={<i className='fa fa-plus-square'></i>}>Generate Invoices</MenuItem>
                                 </LinkContainer>
-                            }
-                            {props.frontEndPermissions.invoices.viewAny &&
-                                <InputGroup style={{paddingLeft: '10px', paddingRight: '10px'}}>
-                                    <InputGroup.Text>ID: </InputGroup.Text>
-                                    <FormControl
-                                        name={'invoiceId'}
-                                        onChange={event => setInvoiceId(event.target.value)}
-                                        type='number'
-                                        min='1'
-                                        value={invoiceId}
-                                        onKeyPress={event => {
-                                            if(event.key === 'Enter' && invoiceId) {
-                                                props.redirect(`/app/invoices/${invoiceId}`)
-                                                setInvoiceId('')
-                                            }
-                                        }}
-                                    />
-                                </InputGroup>
                             }
                         </SubMenu>
                     }
@@ -159,13 +118,6 @@ function NavBar(props) {
                                 <LinkContainer to='/app/accountsReceivable'>
                                     <MenuItem icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
                                 </LinkContainer>
-                            }
-                            {(props.frontEndPermissions.accounts.viewAny && props.accounts.length > 1) &&
-                                <Select
-                                    className='navbar-search'
-                                    options={props.accounts}
-                                    onChange={value => props.redirect(`/app/accounts/${value.value}`)}
-                                />
                             }
                         </SubMenu>
                     }
@@ -196,29 +148,6 @@ function NavBar(props) {
                                     <MenuItem icon={<i className='fas fa-clipboard'></i>}>Generate Manifests</MenuItem>
                                 </LinkContainer>
                             }
-                            {props.frontEndPermissions.manifests.viewAny &&
-                                <InputGroup style={{paddingRight: '15px'}}>
-                                    <InputGroup.Text>Manifest ID: </InputGroup.Text>
-                                    <FormControl
-                                        name={'manifestId'}
-                                        onChange={event => setManifestId(event.target.value)}
-                                        value={manifestId}
-                                        onKeyPress={event => {
-                                            if(event.key === 'Enter' && manifestId) {
-                                                props.redirect(`/app/manifests/${manifestId}`)
-                                                setManifestId('')
-                                            }
-                                        }}
-                                    />
-                                </InputGroup>
-                            }
-                            {props.frontEndPermissions.employees.viewAll &&
-                                <Select
-                                    className='navbar-search'
-                                    options={props.employees}
-                                    onChange={value => props.redirect(`/app/employees/${value.value}`)}
-                                />
-                            }
                         </SubMenu>
                     }
                     {props.frontEndPermissions.bills.dispatch &&
@@ -236,6 +165,9 @@ function NavBar(props) {
                             </LinkContainer>
                             <LinkContainer to='/app/appSettings#ratesheets'>
                                 <MenuItem icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
+                            </LinkContainer>
+                            <LinkContainer to='/app/appSettings#scheduling'>
+                                <MenuItem icon={<i className='fas fa-calendar-alt'></i>}>Scheduling</MenuItem>
                             </LinkContainer>
                         </SubMenu>
                     }
@@ -282,6 +214,9 @@ function NavBar(props) {
                             </LinkContainer>
                         }
                         <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
+                        <LinkContainer to='/app/user_settings'>
+                            <MenuItem icon={<i className='fas fa-cog'></i>}>User Preferences</MenuItem>
+                        </LinkContainer>
                         {props.isImpersonating &&
                             <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
                         }
@@ -304,13 +239,13 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
-        authenticatedAccountUsers: store.app.authenticatedAccountUsers,
-        authenticatedEmployee: store.app.authenticatedEmployee,
-        authenticatedUserId: store.app.authenticatedUserId,
-        contact: store.app.authenticatedUserContact,
+        authenticatedAccountUsers: store.user.authenticatedAccountUsers,
+        authenticatedEmployee: store.user.authenticatedEmployee,
+        authenticatedUserId: store.user.authenticatedUserId,
+        contact: store.user.authenticatedUserContact,
         employees: store.app.employees,
-        frontEndPermissions: store.app.frontEndPermissions,
-        isImpersonating: store.app.isImpersonating
+        frontEndPermissions: store.user.frontEndPermissions,
+        isImpersonating: store.user.isImpersonating
     }
 }
 

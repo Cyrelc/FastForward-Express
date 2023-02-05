@@ -31,7 +31,8 @@ class AccountModelFactory {
         $model->ratesheets = $ratesheetRepo->GetRatesheetSelectList();
         $model->permissions = $permissions;
 
-        $model->account->invoice_sort_order = $this->composeInvoiceSortOptions();
+        $model->account->invoice_sort_order = $invoiceRepo->GetSortOrderForAccount();
+        // $model->account->invoice_sort_order = $this->composeInvoiceSortOptions();
 
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
@@ -61,7 +62,8 @@ class AccountModelFactory {
         $model->billing_address = $addressRepo->GetById($model->account->billing_address_id);
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
         $model->shipping_address = $addressRepo->GetById($model->account->shipping_address_id);
-        $model->account->invoice_sort_order = $this->composeInvoiceSortOptions($model->account->invoice_sort_order);
+        $model->account->invoice_sort_order = $invoiceRepo->GetSortOrderForAccount($accountId);
+        // $model->account->invoice_sort_order = $this->composeInvoiceSortOptions($model->account->invoice_sort_order);
 
         if($permissions['viewChildren'])
             $model->child_account_list = $accountRepo->GetChildAccountList($accountId);
@@ -86,37 +88,37 @@ class AccountModelFactory {
         return $model;
     }
 
-    private function composeInvoiceSortOptions($accountInvoiceSortOptions = []) {
-        $invoiceRepo = new Repos\InvoiceRepo();
-        $allSortOptions = $invoiceRepo->GetSortOptions();
+    // private function composeInvoiceSortOptions($accountInvoiceSortOptions = []) {
+    //     $invoiceRepo = new Repos\InvoiceRepo();
+    //     $allSortOptions = $invoiceRepo->GetSortOptionsForAccount();
 
-        /**
-         * First we iterate through the existing list, and remove any sort options we already have entries for
-         */
-        foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
-            foreach($allSortOptions as $key => $sortOption)
-                if($sortOption->invoice_sort_option_id == $accountInvoiceSortOption->invoice_sort_option_id)
-                    unset($allSortOptions[$key]);
+    //     /**
+    //      * First we iterate through the existing list, and remove any sort options we already have entries for
+    //      */
+    //     foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
+    //         foreach($allSortOptions as $key => $sortOption)
+    //             if($sortOption->invoice_sort_option_id == $accountInvoiceSortOption->invoice_sort_option_id)
+    //                 unset($allSortOptions[$key]);
 
-        /**
-         * Then we can add the "missing" (or new) ones
-         */
-        $counter = count($accountInvoiceSortOptions);
-        foreach($allSortOptions as $sortOption) {
-            $sortOption['priority'] = $counter;
-            array_push($accountInvoiceSortOptions, $sortOption);
-            $counter ++;
-        }
+    //     /**
+    //      * Then we can add the "missing" (or new) ones
+    //      */
+    //     $counter = count($accountInvoiceSortOptions);
+    //     foreach($allSortOptions as $sortOption) {
+    //         $sortOption['priority'] = $counter;
+    //         array_push($accountInvoiceSortOptions, $sortOption);
+    //         $counter ++;
+    //     }
 
-        foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
-            if($accountInvoiceSortOption->can_be_subtotaled) {
-                if(!isset($accountInvoiceSortOption->group_by))
-                    $accountInvoiceSortOption->group_by = false;
-            } else
-                $accountInvoiceSortOption->group_by = null;
+    //     foreach($accountInvoiceSortOptions as $accountInvoiceSortOption)
+    //         if($accountInvoiceSortOption->can_be_subtotaled) {
+    //             if(!isset($accountInvoiceSortOption->group_by))
+    //                 $accountInvoiceSortOption->group_by = false;
+    //         } else
+    //             $accountInvoiceSortOption->group_by = null;
 
-        return $accountInvoiceSortOptions;
-    }
+    //     return $accountInvoiceSortOptions;
+    // }
 }
 
 ?>

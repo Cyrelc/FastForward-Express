@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\AccountUser;
 use App\User;
+use App\UserSettings;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,8 @@ class UserRepo
             ->delete();
 
         if(AccountUser::where('contact_id', $contactId)->count() == 0) {
-            $user = User::where('user_id', $userId)->first();
+            $settings = \App\UserSettings::where('user_id', $userId)->delete();
+            $user = User::where('user_id', $userId)->delete();
             $user->delete();
             $contactRepo = new ContactRepo();
             $contactRepo->Delete($contactId);
@@ -107,6 +109,12 @@ class UserRepo
         return $user;
     }
 
+    public function GetSettings($userId) {
+        return UserSettings::where('user_id', $userId)
+            ->select('use_imperial_default')
+            ->first();
+    }
+
     public function GetUserByEmployeeId($employeeId) {
         $employee = \App\Employee::where('employee_id', $employeeId)->first();
         $user = \App\User::where('user_id', $employee->user_id)->first();
@@ -122,6 +130,7 @@ class UserRepo
 
     public function Insert($user) {
         $new = new User;
+        $newUserSettings = new \App\UserSettings;
 
         $user = array_merge($user, array(
             'password' => Hash::make(Str::random(15)),
@@ -130,6 +139,7 @@ class UserRepo
         ));
 
         $new = $new->create($user);
+        $newUserSettings->create(['user_id', $new->user_id]);
 
         return $new;
     }
@@ -142,6 +152,8 @@ class UserRepo
             $accountUser['is_primary'] = 0;
 
         $new = $new->create($accountUser);
+        $settings = new \App\UserSettings;
+        $settings->create(['user_id' => $new->user_id]);
 
         return $new;
     }
@@ -165,6 +177,11 @@ class UserRepo
         AccountUser::where('account_id', $accountId)
             ->where('contact_id', $contactId)
             ->update(['is_primary' => 1]);
+    }
+
+    public function StoreSettings($userId, $settings) {
+        $userSettings = UserSettings::where('user_id', $userId)
+            ->update($settings);
     }
 
     public function Update($user, $updatePermissions = false) {

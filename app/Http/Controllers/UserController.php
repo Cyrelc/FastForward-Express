@@ -126,6 +126,14 @@ class UserController extends Controller {
             return $contactRepo->GetById($req->user()->accountUser->contact_id);
     }
 
+    public function GetUserConfiguration(Request $req) {
+        $userModelFactory = new User\UserModelFactory;
+
+        $model = $userModelFactory->GetUserConfiguration($req);
+
+        return json_encode($model);
+    }
+
     public function impersonate(Request $req) {
         $userRepo = new Repos\UserRepo();
         $impersonateUser = null;
@@ -270,6 +278,15 @@ class UserController extends Controller {
         DB::commit();
 
         return ['success' => true];
+    }
+
+    public function storeSettings(Request $req) {
+        $userCollector = new Collectors\UserCollector();
+        $userRepo = new Repos\UserRepo();
+
+        $settings = $userCollector->collectSettings($req);
+
+        $userRepo->storeSettings($req->user()->user_id, $settings);
     }
 
     public function unimpersonate(Request $req) {

@@ -90,7 +90,7 @@ const Search = (props) => {
 
 const mapStateToProps = store => {
     return {
-        authenticatedEmployee: store.app.authenticatedEmployee
+        authenticatedEmployee: store.user.authenticatedEmployee
     }
 }
 

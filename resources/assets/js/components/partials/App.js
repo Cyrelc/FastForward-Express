@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {Redirect, Route, Switch} from 'react-router-dom'
 import {connect} from 'react-redux'
 import {fetchAppConfiguration} from '../../store/reducers/app'
+import {fetchUserConfiguration} from '../../store/reducers/user'
 import {ConnectedRouter, push} from 'connected-react-router'
 import {Col, Row} from 'react-bootstrap'
 
@@ -29,6 +30,7 @@ import Manifests from '../manifests/Manifests'
 import PageNotFound from './PageNotFound'
 import Ratesheet from '../ratesheets/Ratesheet'
 import Search from '../search/Search'
+import UserSettings from '../users/UserSettings'
 
 class App extends Component {
     constructor() {
@@ -46,6 +48,7 @@ class App extends Component {
 
     componentDidMount() {
         this.props.fetchAppConfiguration()
+        this.props.fetchUserConfiguration()
     }
 
     getLandingPage() {
@@ -90,6 +93,7 @@ class App extends Component {
                             }}></Route>
                             <Route exact path='/app/error404' component={PageNotFound}></Route>
                             <Route path='/app/search' exact component={Search}></Route>
+                            <Route path='/app/user_settings' exact component={UserSettings}></Route>
                             {this.props.frontEndPermissions.accounts.viewAny &&
                                 <Route path='/app/accounts' exact component={Accounts}></Route>
                             }
@@ -177,6 +181,7 @@ class App extends Component {
 const matchDispatchToProps = dispatch => {
     return {
         fetchAppConfiguration: () => dispatch(fetchAppConfiguration),
+        fetchUserConfiguration: () => dispatch(fetchUserConfiguration),
         redirect: url => dispatch(push(url))
     }
 }
@@ -184,13 +189,13 @@ const matchDispatchToProps = dispatch => {
 const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
-        authenticatedAccountUsers: store.app.authenticatedAccountUsers,
-        authenticatedEmployee: store.app.authenticatedEmployee,
-        authenticatedUserId: store.app.authenticatedUserId,
-        contact: store.app.authenticatedUserContact,
+        authenticatedAccountUsers: store.user.authenticatedAccountUsers,
+        authenticatedEmployee: store.user.authenticatedEmployee,
+        authenticatedUserId: store.user.authenticatedUserId,
+        contact: store.user.authenticatedUserContact,
         employees: store.app.employees,
-        frontEndPermissions: store.app.frontEndPermissions,
-        isImpersonating: store.app.isImpersonating
+        frontEndPermissions: store.user.frontEndPermissions,
+        isImpersonating: store.user.isImpersonating
     }
 }
 

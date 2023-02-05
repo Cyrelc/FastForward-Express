@@ -23,7 +23,8 @@
         "laravel/cashier": "^13.13",
         "simplesoftwareio/simple-qrcode": "~4",
         "webklex/laravel-pdfmerger": "^1.3",
-        "jwadhams/json-logic-php": "^1.5"
+        "jwadhams/json-logic-php": "^1.5",
+        "madorin/matex": "^1.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

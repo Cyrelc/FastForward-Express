@@ -331,7 +331,7 @@ class Invoice extends Component {
 
 const mapStateToProps = store => {
     return {
-        frontEndPermissions: store.app.frontEndPermissions,
+        frontEndPermissions: store.user.frontEndPermissions,
         sortedInvoices: store.invoices.sortedList
     }
 }
