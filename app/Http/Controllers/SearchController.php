@@ -14,28 +14,36 @@ class SearchController extends Controller {
         $searchResults = [];
 
         foreach($searchTerms as $searchTerm) {
+            $classIdentifier = null;
+
             if(preg_match('/[a-zA-Z]\s?+[0-9]+/i', $searchTerm)) {
                 $classIdentifier = substr($searchTerm, 0, 1);
-                $objectId = substr($searchTerm, 1);
+                $searchTerm = substr($searchTerm, 1);
+            } else if($req->objectType) {
+                $classIdentifier = substr($req->objectType, 0, 1);
+            }
 
+            if($classIdentifier)
                 switch(strtoupper($classIdentifier)) {
                     case 'A':
-                        $searchResults = array_merge($searchResults, $searchRepo->AccountSearch($objectId));
+                        $searchResults = array_merge($searchResults, $searchRepo->AccountSearch($searchTerm));
                         break;
                     case 'B':
-                        $searchResults = array_merge($searchResults, $searchRepo->BillSearch($objectId));
+                        $searchResults = array_merge($searchResults, $searchRepo->BillSearch($searchTerm));
                         break;
                     case 'E':
-                        $searchResults = array_merge($searchResults, $searchRepo->EmployeeSearch($objectId));
+                        $searchResults = array_merge($searchResults, $searchRepo->EmployeeSearch($searchTerm));
                         break;
                     case 'I':
-                        $searchResults = array_merge($searchResults, $searchRepo->InvoiceSearch($objectId));
+                        $searchResults = array_merge($searchResults, $searchRepo->InvoiceSearch($searchTerm));
                         break;
                     case 'M':
-                        $searchResults = array_merge($searchResults, $searchRepo->ManifestSearch($objectId));
+                        $searchResults = array_merge($searchResults, $searchRepo->ManifestSearch($searchTerm));
                         break;
+                    case 'U':
+                        $searchResults = array_merge($searchResults, $searchRepo->AccountUserSearch($searchTerm));
                 }
-            } else
+            else
                 $searchResults = array_merge($searchResults, $searchRepo->GlobalSearch($searchTerm));
         }
 

@@ -1,14 +1,33 @@
-import React, {useRef, useState} from 'react'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, MenuItem, ProSidebar, SidebarContent, SidebarFooter, SidebarHeader, SubMenu} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
-import {FormControl} from 'react-bootstrap'
 import {push} from 'connected-react-router'
+import {FormControl} from 'react-bootstrap'
+
+const objectTypes = [
+    {label: 'All', value: ''},
+    {label: 'Accounts', value: 'accounts'},
+    {label: 'Bills', value: 'bills'},
+    {label: 'Employees', value: 'employees'},
+    {label: 'Invoices', value: 'invoices'},
+    {label: 'Manifests', value: 'manifests'},
+    {label: 'User', value: 'user'}
+]
 
 function NavBar(props) {
     const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
+    const [searchObjectType, setSearchObjectState] = useState({label: 'All', value: ''})
     const [searchTerm, setSearchTerm] = useState('')
+    const [searchSubmenuOpen, setSearchSubmenuOpen] = useState(false)
     const searchPopoverRef = useRef(null)
+
+    useEffect(() => {
+        const storedSearchObjectType = localStorage.getItem('searchObjectType')
+        console.log(storedSearchObjectType)
+        if(storedSearchObjectType)
+            setSearchObjectState(JSON.parse(storedSearchObjectType))
+    }, [])
 
     const getUserIcon = () => {
         if(props.isImpersonating)
@@ -33,7 +52,14 @@ function NavBar(props) {
         if(!searchTerm)
             return
         setSearchTerm('')
-        props.history.push(`/app/search?term=${searchTerm}`)
+        props.history.push(`/app/search?term=${searchTerm}&objectType=${searchObjectType.value}`)
+    }
+
+    const setSearchObjectType = type => {
+        setSearchObjectState(type)
+        searchPopoverRef.current.focus()
+        localStorage.setItem('searchObjectType', JSON.stringify(type))
+        setSearchSubmenuOpen(false)
     }
 
     const toggleCollapsed = () => {
@@ -180,8 +206,20 @@ function NavBar(props) {
                         title='Search'
                         icon={<i className='fas fa-search'></i>}
                         onClick={() => searchPopoverRef.current.focus()}
-                    > 
-                        <MenuItem onClick={() => console.log('clicked MenuItem')}>
+                    >
+                        <SubMenu
+                            title={`Search: ${searchObjectType.label}`}
+                            onClick={() => setSearchSubmenuOpen(!searchSubmenuOpen)}
+                        >
+                            {
+                                objectTypes.map(objectType =>
+                                    <MenuItem key={objectType.value} onClick={() => setSearchObjectType(objectType)}>
+                                        {objectType.label}
+                                    </MenuItem>
+                                )
+                            }
+                        </SubMenu>
+                        <MenuItem>
                             <FormControl
                                 name={'searchTerm'}
                                 onChange={event => setSearchTerm(event.target.value)}
@@ -195,17 +233,33 @@ function NavBar(props) {
                         </MenuItem>
                     </SubMenu>
                     :
-                    <MenuItem icon={<i className='fas fa-search'></i>}>
-                        <FormControl
-                            name={'searchTerm'}
-                            onChange={event => setSearchTerm(event.target.value)}
-                            onKeyPress={event => {
-                                if(event.key === 'Enter' && searchTerm)
-                                    performSearch()
-                            }}
-                            value={searchTerm}
-                        />
-                    </MenuItem>
+                    <Fragment>
+                        <SubMenu
+                            open={searchSubmenuOpen}
+                            title={`Search: ${searchObjectType.label}`}
+                            onClick={() => setSearchSubmenuOpen(!searchSubmenuOpen)}
+                        >
+                            {
+                                objectTypes.map(objectType =>
+                                    <MenuItem key={objectType.value} onClick={() => setSearchObjectType(objectType)}>
+                                        {objectType.label}
+                                    </MenuItem>
+                                )
+                            }
+                        </SubMenu>
+                        <MenuItem icon={<i className='fas fa-search'></i>}>
+                            <FormControl
+                                ref={searchPopoverRef}
+                                name={'searchTerm'}
+                                onChange={event => setSearchTerm(event.target.value)}
+                                onKeyPress={event => {
+                                    if(event.key === 'Enter' && searchTerm)
+                                        performSearch()
+                                }}
+                                value={searchTerm}
+                            />
+                        </MenuItem>
+                    </Fragment>
                 }
                     <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
                         {props.authenticatedEmployee?.employee_id &&
