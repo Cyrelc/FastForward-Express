@@ -18,7 +18,7 @@ class SearchController extends Controller {
                 $classIdentifier = substr($searchTerm, 0, 1);
                 $objectId = substr($searchTerm, 1);
 
-                switch($classIdentifier) {
+                switch(strtoupper($classIdentifier)) {
                     case 'A':
                         $searchResults = array_merge($searchResults, $searchRepo->AccountSearch($objectId));
                         break;
