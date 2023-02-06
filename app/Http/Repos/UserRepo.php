@@ -51,7 +51,6 @@ class UserRepo
         if(AccountUser::where('contact_id', $contactId)->count() == 0) {
             $settings = \App\UserSettings::where('user_id', $userId)->delete();
             $user = User::where('user_id', $userId)->delete();
-            $user->delete();
             $contactRepo = new ContactRepo();
             $contactRepo->Delete($contactId);
         }
