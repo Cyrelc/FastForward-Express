@@ -139,7 +139,7 @@ class UserRepo
         ));
 
         $new = $new->create($user);
-        $newUserSettings->create(['user_id', $new->user_id]);
+        $newUserSettings->create(['user_id' => $new->user_id]);
 
         return $new;
     }
