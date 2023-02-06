@@ -13,6 +13,9 @@ use App\Http\Models\Permission;
 
 use \App\Http\Validation;
 use \App\Http\Validation\Utils;
+use Illuminate\Support\Facades\Auth;
+
+use App\AccountInvoiceSortOrder;
 
 class AccountController extends Controller {
     public function __construct() {
@@ -23,6 +26,16 @@ class AccountController extends Controller {
         $this->maxCount = env('DEFAULT_CUSTOMER_COUNT', $this->maxCount);
         $this->itemAge = env('DEFAULT_CUSTOMER_AGE', '6 month');
         $this->class = new \App\Account;
+
+        $count = AccountInvoiceSortOrder::all()->count();
+        if($count == 0) {
+            $accountRepo = new Repos\AccountRepo();
+
+            $accounts = $accountRepo->ListAll(Auth::user());
+            foreach($accounts as $account) {
+                $accountRepo->ConvertInvoiceSortOrder($account->account_id);
+            }
+        }
     }
 
     public function adjustAccountCredit(Request $req) {
@@ -144,10 +157,7 @@ class AccountController extends Controller {
         if($oldAccount) {
             //Can I edit this?
             $user = $req->user();
-            if( !$accountPermissions['editAdvanced'] &&
-                !$accountPermissions['editBasic'] &&
-                !$accountPermissions['editInvoicing']
-            )
+            if (!$accountPermissions['editAdvanced'] && !$accountPermissions['editBasic'] && !$accountPermissions['editInvoicing'])
                 abort(403);
         } else {
             if(!$accountPermissions['create'])
@@ -198,8 +208,8 @@ class AccountController extends Controller {
         }
 
         //BEGIN account
-        $acctCollector = new \App\Http\Collectors\AccountCollector();
-        $account = $acctCollector->Collect($req, $shippingId, $billingId, $accountPermissions);
+        $accountCollector = new \App\Http\Collectors\AccountCollector();
+        $account = $accountCollector->Collect($req, $shippingId, $billingId, $accountPermissions);
 
         $accountId = $req->input('account_id');
         if ($oldAccount)
@@ -209,6 +219,12 @@ class AccountController extends Controller {
         // Due to foreign key constraints, we check whether the billing address needs to be deleted AFTER updating the account and setting it to NULL
         if ($oldAccount && !$useSeparateBillingAddress && $oldAccount->billing_address_id != null)
             $addressRepo->Delete($oldAccount->billing_address_id);
+
+        //BEGIN invoice sort order
+        if ($accountPermissions['editInvoicing']) {
+            $invoiceSortOrder = $accountCollector->CollectInvoiceSortOrder($req, $accountId);
+            $accountRepo->StoreInvoiceSortOrder($invoiceSortOrder);
+        }
 
         DB::commit();
         //END account

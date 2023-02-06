@@ -47,12 +47,29 @@ class AccountCollector {
             'show_invoice_line_items'=>filter_var($req->show_invoice_line_items, FILTER_VALIDATE_BOOLEAN)
         ];
 
+        $invoiceSortOrder = [];
+
         return array_merge(
             ['account_id'=>$req->account_id],
             $accountPermissions['editAdvanced'] ? $advancedArray : [],
             $accountPermissions['editBasic'] ? $basicArray : [],
             $accountPermissions['editInvoicing'] ? $invoicingArray : []
         );
+    }
+
+    public function CollectInvoiceSortOrder($req, $accountId) {
+        $invoiceSortOrder = [];
+
+        foreach($req->invoice_sort_order as $entry)
+            $invoiceSortOrder[] = [
+                'account_id' => $accountId,
+                'account_invoice_sort_order_id' => $entry['account_invoice_sort_order_id'],
+                'priority' => $entry['priority'],
+                'invoice_sort_option_id' => $entry['invoice_sort_option_id'],
+                'subtotal_by' => $entry['subtotal_by']
+            ];
+
+        return $invoiceSortOrder;
     }
 }
 

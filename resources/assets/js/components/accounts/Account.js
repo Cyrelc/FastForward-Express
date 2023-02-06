@@ -64,7 +64,6 @@ class Account extends Component {
         }
         this.configureAccount = this.configureAccount.bind(this)
         this.handleChanges = this.handleChanges.bind(this)
-        this.handleInvoiceSortOrderChange = this.handleInvoiceSortOrderChange.bind(this)
         this.storeAccount = this.storeAccount.bind(this)
     }
 
@@ -175,17 +174,6 @@ class Account extends Component {
             temp[name] = type === 'checkbox' ? checked : value
         })
         this.setState(temp)
-    }
-
-    handleInvoiceSortOrderChange(row) {
-        const data = row.getTable().getData()
-        const invoiceSortOrder = this.state.invoiceSortOrder.map(sortItem => {
-            const index = data.findIndex(item => item.database_field_name === sortItem.database_field_name)
-            if(index >= 0)
-                return {...sortItem, priority: index}
-            return {...sortItem, priority: null}
-        }).sort((a, b) => a.priority - b.priority)
-        this.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: invoiceSortOrder}})
     }
 
     storeAccount() {
@@ -359,7 +347,6 @@ class Account extends Component {
                                 useShippingForBillingAddress={this.state.useShippingForBillingAddress}
 
                                 handleChanges={this.handleChanges}
-                                handleInvoiceSortOrderChange={this.handleInvoiceSortOrderChange}
                                 invoiceIntervals={this.state.invoiceIntervals}
                                 readOnly={!this.state.accountId && this.state.permissions.create ? false : !this.state.permissions.editInvoicing}
                             />

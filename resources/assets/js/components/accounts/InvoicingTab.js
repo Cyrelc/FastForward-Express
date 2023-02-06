@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import Select from 'react-select'
@@ -6,6 +6,8 @@ import Select from 'react-select'
 const addressFormattingTooltip = 'Addresses will begin a new line on commas'
 
 export default function InvoicingTab(props) {
+    const [filteredSortOptions, setFilteredSortOptions] = useState([])
+
     const columns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
         {formatter: 'rownum', headerSort: false, width: 40, minWidth: 40},
@@ -14,16 +16,45 @@ export default function InvoicingTab(props) {
         {title: 'InvoiceSortOptionId', field: 'invoice_sort_option_id', headerSort: false, visible: false},
         {title: 'Contingent Field', field: 'contingent_field', headerSort: false, visible: false},
         {title: 'Priority', field: 'priority', headerSort: false, visible: false},
-        {title: 'Subtotal By', field: 'group_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, headerHozAlign: 'center', hozAlign: 'center', headerSort: false, cellClick: ((e, cell) => {
+        {title: 'Subtotal By', field: 'subtotal_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, headerHozAlign: 'center', hozAlign: 'center', headerSort: false, cellClick: ((e, cell) => {
             const data = cell.getRow().getData()
+            if(!data.can_be_subtotaled)
+                return
             const invoiceSortOrder = props.invoiceSortOrder.map(option => {
                 if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
-                    return {...option, group_by: option.group_by == true ? false : true}
-                return {...option, group_by: option.can_be_subtotaled == '1' ? false : null}
+                    return {...option, subtotal_by: !option.subtotal_by}
+                return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
             })
             props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: invoiceSortOrder}})
         })}
     ]
+
+    const sortOrderTableRef = useRef();
+
+    useEffect(() => {
+        console.log('reconsidering invoice sort order options')
+        const newFilteredSortOptions = props.invoiceSortOrder.filter(invoiceSortItem => {
+            if(invoiceSortItem.contingent_field === 'can_be_parent' && !props.canBeParent)
+                return false;
+            if(invoiceSortItem.contingent_field === 'custom_field' && props.customTrackingField == '')
+                return false;
+            return true;
+        })
+        console.log(newFilteredSortOptions)
+        setFilteredSortOptions(newFilteredSortOptions)
+    }, [props.invoiceSortOrder, props.canBeParent, props.customTrackingField])
+
+    const handleInvoiceSortOrderChange = row => {
+        const data = row.getTable().getData()
+        const newInvoiceSortOrder = props.invoiceSortOrder.map(sortItem => {
+            const index = data.findIndex(item => item.database_field_name === sortItem.database_field_name)
+            console.log(sortItem)
+            if(index >= 0)
+                return {...sortItem, priority: index}
+            return {...sortItem, priority: null}
+        }).sort((a, b) => a.priority - b.priority)
+        props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: newInvoiceSortOrder}})
+    }
 
     return (
         <Card>
@@ -91,7 +122,12 @@ export default function InvoicingTab(props) {
                                 placeholder='Tracking Field Name (Optional)'
                                 readOnly={props.readOnly}
                             />
-                            <InputGroup.Text><i className='fas fa-question' title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number", etc.'></i></InputGroup.Text>
+                            <InputGroup.Text>
+                                <i
+                                    className='fas fa-question'
+                                    title='If you have an internal tracking number you wish to be able to reference, enter the name of it here. For example "PO Number"'
+                                ></i>
+                            </InputGroup.Text>
                         </InputGroup>
                     </Col>
                     <Col md={4} style={{paddingTop: '20px'}}>
@@ -128,22 +164,20 @@ export default function InvoicingTab(props) {
                         <h4 className='text-muted'>Order Bills By</h4>
                     </Col>
                     <Col md={5}>
-                        <ReactTabulator
-                            columns={columns}
-                            data={props.invoiceSortOrder.filter(invoiceSortItem => {
-                                if(invoiceSortItem.contingent_field === 'can_be_parent' && !props.canBeParent)
-                                    return false;
-                                if(invoiceSortItem.contingent_field === 'custom_field' && props.customTrackingField == '')
-                                    return false;
-                                return true;
-                            })}
-                            options={{
-                                layout: 'fitColumns',
-                                movableRows: props.readOnly ? false : true
-                            }}
-                            initialSort={[{field: 'priority', dir: 'asc'}]}
-                            rowMoved={row => props.handleInvoiceSortOrderChange(row)}
-                        />
+                        {filteredSortOptions.length &&
+                            <ReactTabulator
+                                ref={sortOrderTableRef}
+                                columns={columns}
+                                data={filteredSortOptions}
+                                options={{
+                                    height: '150px',
+                                    layout: 'fitColumns',
+                                    movableRows: !props.readOnly
+                                }}
+                                initialSort={[{field: 'priority', dir: 'asc'}]}
+                                rowMoved={handleInvoiceSortOrderChange}
+                            />
+                        }
                     </Col>
                 </Row>
             </Card.Body>

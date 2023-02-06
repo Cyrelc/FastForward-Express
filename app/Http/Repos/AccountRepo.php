@@ -3,6 +3,8 @@ namespace App\Http\Repos;
 
 use App\Account;
 use App\AccountUser;
+use App\AccountInvoiceSortOrder;
+use App\InvoiceSortOption;
 use App\Http\Filters\IsNull;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -18,6 +20,24 @@ class AccountRepo {
         $account->save();
 
         return $account;
+    }
+
+    public function ConvertInvoiceSortOrder($accountId) {
+        $account = Account::where('account_id', $accountId)->first();
+
+        $invoiceSortOrder = json_decode($account->invoice_sort_order);
+
+        usort($invoiceSortOrder, fn($a, $b) => intval($a->priority) > intval($b->priority));
+        foreach($invoiceSortOrder as $index => $sortEntry) {
+            $new = new AccountInvoiceSortOrder;
+
+            $new->create([
+                'subtotal_by' => $sortEntry->subtotal_by,
+                'invoice_sort_option_id' => $sortEntry->invoice_sort_option_id,
+                'priority' => $sortEntry->priority ?? $index,
+                'account_id' => $accountId,
+            ]);
+        }
     }
 
     public function GetAccountIdByAccountNumber($accountNumber) {
@@ -112,19 +132,20 @@ class AccountRepo {
         return $account->get();
     }
 
-    public function GetInvoiceSortOrder($accountId) {
-        /* To properly access the sort order we must:
-         * 1) Pull it from the account, and parse as JSON
-         * 2) Filter any with an empty priority (invalid for this account based on account settings)
-         * 3) Sort by priority
-         * Then return
-         */
-        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
-        $sortOrder = json_decode($sortOrder[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {return isset($var->priority) && $var->priority != "";});
-        usort($sortOrder, function($a, $b) {return ($a->priority - $b->priority);});
+    /**
+     * Gathers all sort options for account invoices
+     * Importantly, this starts with InvoiceSortOption and then joins the existing entries
+     * In this way, we both get entries for accounts without any, and if new options are added, they will still be merged with default values
+     */
+    public function GetInvoiceSortOrder($accountId = null) {
+        $sortOrder = DB::table('invoice_sort_options');
 
-        return $sortOrder;
+        if($accountId)
+            $sortOrder->leftJoin('account_invoice_sort_order', 'account_invoice_sort_order.invoice_sort_option_id', 'invoice_sort_options.invoice_sort_option_id')
+                ->where('account_id', $accountId)
+                ->orderBy('priority');
+
+        return $sortOrder->get();
     }
 
     public function GetMyAccountIds($user, $withChildren = false) {
@@ -230,8 +251,8 @@ class AccountRepo {
         $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
         $sortOrder = json_decode(json_decode($sortOrder)[0]);
         $sortOrder = array_filter($sortOrder, function($var) {
-            if(isset($var->group_by))
-                return filter_var($var->group_by, FILTER_VALIDATE_BOOLEAN);
+            if(isset($var->subtotal_by))
+                return filter_var($var->subtotal_by, FILTER_VALIDATE_BOOLEAN);
             return false;
         });
 
@@ -240,8 +261,9 @@ class AccountRepo {
 
     public function Insert($acct) {
         $new = new Account;
+        $result = $new->create($acct);
 
-        return $new->create($acct);
+        return $result;
     }
 
     public function IsNameUnique($accountNumber) {
@@ -343,6 +365,18 @@ class AccountRepo {
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
 
         return $accounts->get();
+    }
+
+    public function StoreInvoiceSortOrder($sortOrder) {
+        foreach($sortOrder as $entry) {
+            if($entry['account_invoice_sort_order_id']) {
+                $old = AccountInvoiceSortOrder::where('account_invoice_sort_order_id', $entry['account_invoice_sort_order_id'])
+                    ->update($entry);
+            } else {
+                $new = new AccountInvoiceSortOrder();
+                $new->create($sortOrder);
+            }
+        }
     }
 
     public function ToggleActive($account_id) {

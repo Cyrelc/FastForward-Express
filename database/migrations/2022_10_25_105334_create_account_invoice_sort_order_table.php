@@ -1,9 +1,10 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-class CreateAccountInvoiceSortEntries extends Migration
+class CreateAccountInvoiceSortOrderTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,12 +13,12 @@ class CreateAccountInvoiceSortEntries extends Migration
      */
     public function up()
     {
-        Schema::create('account_invoice_sort_entries', function (Blueprint $table) {
-            $table->increments('account_invoice_sort_entry_id');
+        Schema::create('account_invoice_sort_order', function (Blueprint $table) {
+            $table->increments('account_invoice_sort_order_id');
             $table->unsignedInteger('account_id');
             $table->unsignedInteger('invoice_sort_option_id');
-            $table->integer('priority');
-            $table->boolean('subtotal')->default(false);
+            $table->unsignedInteger('priority')->nullable();
+            $table->boolean('subtotal_by')->default(0);
 
             $table->foreign('account_id')->references('account_id')->on('accounts');
             $table->foreign('invoice_sort_option_id')->references('invoice_sort_option_id')->on('invoice_sort_options');
@@ -31,6 +32,6 @@ class CreateAccountInvoiceSortEntries extends Migration
      */
     public function down()
     {
-        Schema::drop('account_invoice_sort_entries');
+        Schema::dropIfExists('account_invoice_sort_order');
     }
 }
