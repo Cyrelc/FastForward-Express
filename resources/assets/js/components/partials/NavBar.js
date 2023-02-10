@@ -1,9 +1,9 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
-import {Menu, MenuItem, ProSidebar, SidebarContent, SidebarFooter, SidebarHeader, SubMenu} from 'react-pro-sidebar'
+import {Menu, menuClasses, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
-import {LinkContainer} from 'react-router-bootstrap'
 import {push} from 'connected-react-router'
-import {FormControl} from 'react-bootstrap'
+import {AsyncTypeahead, Highlighter} from 'react-bootstrap-typeahead'
+import {Link} from 'react-router-dom'
 
 const objectTypes = [
     {label: 'All', value: ''},
@@ -15,18 +15,131 @@ const objectTypes = [
     {label: 'User', value: 'user'}
 ]
 
+const FFETypeAhead = props => {
+    const {searchRef, isLoadingSearch, handleSearchSelect, performSearch, searchResults} = props
+
+    return (
+        <AsyncTypeahead
+            ref={searchRef}
+            id='react-typeahead'
+            align='left'
+            dropup
+            filterBy={() => true}
+            isLoading={isLoadingSearch}
+            labelKey='name'
+            minLength={3}
+            onChange={handleSearchSelect}
+            onSearch={performSearch}
+            options={searchResults}
+            placeholder="Type at least three characters to begin searching"
+            positionFixed
+            renderMenuItemChildren={(option, {text}) => {
+                return (
+                    <Fragment>
+                        <Highlighter search={text}>{option.name}</Highlighter>
+                        <br/>
+                        <small>Type: {option.type}</small>
+                        <br/>
+                        {option.type == 'Account' &&
+                            <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
+                        }
+                        {option.type == 'Account User' &&
+                            <SmallHighlighter search={text} text={`Email: ${option.email}`}/>
+                        }
+                        {option.type === 'Bill' &&
+                            <SmallHighlighter search={text} text={`Bill# ${option.bill_number}`}/>
+                        }
+                        {option.type == 'Bill' && option.charge_reference_field_name && option.charge_reference_value &&
+                            <SmallHighlighter search={text} text={`${option.charge_reference_field_name}: ${option.charge_reference_value}`}/>
+                        }
+                        {option.type == 'Bill' && option.delivery_reference_field_name && option.delivery_reference_value &&
+                            <SmallHighlighter search={text} text={`${option.delivery_reference_field_name}: ${option.delivery_reference_value}`}/>
+                        }
+                        {option.type == 'Bill' && option.pickup_reference_field_name && option.pickup_reference_value &&
+                            <SmallHighlighter search={text} text={`${option.pickup_reference_field_name}: ${option.pickup_reference_value}`} />
+                        }
+                    </Fragment>
+                )
+            }}
+            selectHint={(shouldSelectHint, event) => {
+                if(event.key == 'Enter')
+                    return true
+                return false
+            }}
+            size='sm'
+        />
+    )
+}
+
+const SidebarHeader = props => {
+    const {collapsed, collapseSidebar, menuItemStyles} = props
+
+    return (
+        <Menu iconShape='circle' menuItemStyles={menuItemStyles} style={{textAlign: 'center'}}>
+            <MenuItem component={<Link to='\' />} style={{textAlign: 'center'}}>
+                <h5>{collapsed ? 'FFE' : 'Fast Forward Express'}</h5>
+            </MenuItem>
+            <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={() => collapseSidebar(!collapsed)}/>
+            <hr/>
+        </Menu>
+    )
+}
+
+const SmallHighlighter = props => {
+    return (
+        <small>
+            <Highlighter search={props.search}>
+                {props.text}
+            </Highlighter>
+            <br/>
+        </small>
+    )
+}
+
 function NavBar(props) {
-    const [isCollapsed, setIsCollapsed] = useState(localStorage.getItem('isNavBarCollapsed') ? true : false)
-    const [searchObjectType, setSearchObjectState] = useState({label: 'All', value: ''})
-    const [searchTerm, setSearchTerm] = useState('')
-    const [searchSubmenuOpen, setSearchSubmenuOpen] = useState(false)
-    const searchPopoverRef = useRef(null)
+    const [isLoadingSearch, setIsLoadingSearch] = useState(false)
+    const [searchResults, setSearchResults] = useState([])
+    const searchRef = useRef(null)
+
+    const {collapsed, collapseSidebar, toggleSidebar} = useProSidebar();
+
+    const menuItemStyles = {
+        root: {
+            fontSize: '15px',
+            fontWeight: 400,
+            color: 'gainsboro'
+        },
+        icon: {
+            color: 'gainsboro',
+            [`&.${menuClasses.disabled}`]: {color: '#3e5e7e'}
+        },
+        SubMenuExpandIcon: {
+            color: '#gainsboro',
+        },
+        subMenuContent: {
+            backgroundColor: collapsed ? 'black' : 'transparent',
+            width: '250px'
+        },
+        button: {
+            [`&.${menuClasses.disabled}`]: {
+                color: '#3e5e7e'
+            },
+            '&:hover': {
+                backgroundColor: '#00458b',
+                color: '#b6c8d9'
+            }
+        },
+        label: ({open}) => {
+            fontWeight: open ? 600 : undefined
+        }
+    }
 
     useEffect(() => {
-        const storedSearchObjectType = localStorage.getItem('searchObjectType')
-        console.log(storedSearchObjectType)
-        if(storedSearchObjectType)
-            setSearchObjectState(JSON.parse(storedSearchObjectType))
+        collapseSidebar(!!localStorage.getItem('isNavBarCollapsed'))
+    }, [])
+
+    useEffect(() => {
+        toggleSidebar(false)
     }, [])
 
     const getUserIcon = () => {
@@ -39,6 +152,14 @@ function NavBar(props) {
         return 'fas fa-user-circle'
     }
 
+    /** Selections is always passed as an array even when multiselect is not enabled */
+    const handleSearchSelect = selections => {
+        if(selections.length) {
+            searchRef.current?.clear()
+            props.history.push(selections[0].link)
+        }
+    }
+
     const hasAnyPermission = permissionArray => {
         if(permissionArray === undefined)
             return false
@@ -48,18 +169,14 @@ function NavBar(props) {
         return false
     }
 
-    const performSearch = () => {
-        if(!searchTerm)
-            return
-        setSearchTerm('')
-        props.history.push(`/app/search?term=${searchTerm}&objectType=${searchObjectType.value}`)
-    }
-
-    const setSearchObjectType = type => {
-        setSearchObjectState(type)
-        searchPopoverRef.current.focus()
-        localStorage.setItem('searchObjectType', JSON.stringify(type))
-        setSearchSubmenuOpen(false)
+    const performSearch = (query) => {
+        setIsLoadingSearch(true)
+        makeAjaxRequest(`/search?query=${query}`, 'GET', null, response => {
+            setSearchResults(response)
+            setIsLoadingSearch(false)
+        }, error => {
+            setIsLoadingSearch(false)
+        })
     }
 
     const toggleCollapsed = () => {
@@ -72,213 +189,144 @@ function NavBar(props) {
     }
 
     return (
-        <ProSidebar
-            collapsed={isCollapsed}
-            style={{backgroundImage: 'linear-gradient(to bottom, black, #0770b1, black)'}}
+        <Sidebar
+            collapsed={collapsed}
+            toggled={true}
         >
-            <SidebarHeader style={{textAlign: 'center', listStyleType: 'none'}}>
-                <Menu iconShape='circle'>
-                    <LinkContainer to='/'>
-                        <MenuItem>
-                            <h5>{isCollapsed ? 'FFE' : 'Fast Forward Express'}</h5>
-                        </MenuItem>
-                    </LinkContainer>
-                    <i className={isCollapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed}/>
-                </Menu>
-            </SidebarHeader>
-            <SidebarContent>
-                <Menu iconShape='circle'>
-                    {hasAnyPermission(props.frontEndPermissions.bills) &&
-                        <SubMenu title={<h5>Bills</h5>} icon={<i className='fas fa-boxes fa-lg'/>}>
-                            {props.frontEndPermissions.bills.viewAny &&
-                                <LinkContainer to='/app/bills'>
-                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Bills</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.bills.create &&
-                                <LinkContainer to='/app/bills/create'>
-                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.appSettings.edit &&
-                                <LinkContainer to='/app/bills/trend'>
-                                    <MenuItem icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
-                                </LinkContainer>
-                            }
-                        </SubMenu>
-                    }
-                    {hasAnyPermission(props.frontEndPermissions.invoices) &&
-                        <SubMenu title={<h5> Invoices</h5>} icon={<i className='fas fa-file-invoice-dollar fa-lg'/>}>
-                            {props.frontEndPermissions.invoices.viewAny &&
-                                <LinkContainer to='/app/invoices'>
-                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Invoices</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.invoices.create &&
-                                <LinkContainer to='/app/invoices/generate'>
-                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Generate Invoices</MenuItem>
-                                </LinkContainer>
-                            }
-                        </SubMenu>
-                    }
-                    {hasAnyPermission(props.frontEndPermissions.accounts) &&
-                        <SubMenu title={<h5> Accounts</h5>} icon={<i className='fas fa-city fa-lg'/>}>
-                            {(props.authenticatedAccountUsers && props.accounts.length == 1) &&
-                                <LinkContainer to={`/app/accounts/${props.authenticatedAccountUsers[0]?.account_id}`}>
-                                    <MenuItem icon={<i className='fas fa-building'></i>}>
+            <div
+                style={{
+                    backgroundImage: 'linear-gradient(to bottom, black, #0770b1, black)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: '100%',
+                    color: '#808080'
+                }}
+            >
+                <SidebarHeader collapsed={collapsed} collapseSidebar={collapseSidebar} menuItemStyles={menuItemStyles}/>
+                <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
+                    <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
+                        {hasAnyPermission(props.frontEndPermissions.bills) &&
+                            <SubMenu label={<h5>Bills</h5>} icon={<i className='fas fa-boxes fa-lg'/>}>
+                                {props.frontEndPermissions.bills.viewAny &&
+                                    <MenuItem component={<Link to='/app/bills' />} icon={<i className='fa fa-list'></i>}>List Bills</MenuItem>
+                                }
+                                {props.frontEndPermissions.bills.create &&
+                                    <MenuItem component={<Link to='/app/bills/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <MenuItem component={<Link to='/app/bills/trend' />} icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
+                                }
+                            </SubMenu>
+                        }
+                        {hasAnyPermission(props.frontEndPermissions.invoices) &&
+                            <SubMenu label={<h5>Invoices</h5>} icon={<i className='fas fa-file-invoice-dollar fa-lg'/>}>
+                                {props.frontEndPermissions.invoices.viewAny &&
+                                    <MenuItem component={<Link to='/app/invoices' />} icon={<i className='fa fa-list'></i>}>List Invoices</MenuItem>
+                                }
+                                {props.frontEndPermissions.invoices.create &&
+                                    <MenuItem component={<Link to='/app/invoices/generate' />} icon={<i className='fa fa-plus-square'></i>}>Generate Invoices</MenuItem>
+                                }
+                            </SubMenu>
+                        }
+                        {hasAnyPermission(props.frontEndPermissions.accounts) &&
+                            <SubMenu label={<h5>Accounts</h5>} icon={<i className='fas fa-city fa-lg'/>}>
+                                {(props.authenticatedAccountUsers && props.accounts.length == 1) &&
+                                    <MenuItem component={<Link to={`/app/accounts/${props.authenticatedAccountUsers[0]?.account_id}`} />} icon={<i className='fas fa-building'></i>}>
                                         {props.accounts.find(account => account.value === props.authenticatedAccountUsers[0].account_id).label}
                                     </MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.accounts.viewAny &&
-                                <LinkContainer to='/app/accounts'>
-                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Accounts</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.accounts.create &&
-                                <LinkContainer to='/app/accounts/create'>
-                                    <MenuItem href='/app/accounts/create' icon={<i className='fa fa-plus-square'></i>}>Create Account</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.appSettings.edit &&
-                                <LinkContainer to='/app/accountsReceivable'>
-                                    <MenuItem icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
-                                </LinkContainer>
-                            }
-                        </SubMenu>
-                    }
-                    {hasAnyPermission(props.frontEndPermissions.employees) &&
-                        <SubMenu title={<h5> Employees</h5>} icon={<i className='fas fa-id-card-alt fa-lg'/>}>
-                            {props.frontEndPermissions.employees.viewAll &&
-                                <LinkContainer to='/app/employees'>
-                                    <MenuItem icon={<i className='fa fa-list'></i>}>List Employees</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.employees.create &&
-                                <LinkContainer to='/app/employees/create'>
-                                    <MenuItem icon={<i className='fa fa-plus-square'></i>}>Create Employee</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.chargebacks.viewAny &&
-                                <LinkContainer to='/app/chargebacks'>
-                                    <MenuItem icon={<i className='fas fa-cash-register'></i>}> Chargebacks</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.manifests.viewAny &&
-                                <LinkContainer to='/app/manifests'>
-                                    <MenuItem icon={<i className='fas fa-clipboard-list'></i>}>Manifests</MenuItem>
-                                </LinkContainer>
-                            }
-                            {props.frontEndPermissions.manifests.create &&
-                                <LinkContainer to='/app/manifests/generate'>
-                                    <MenuItem icon={<i className='fas fa-clipboard'></i>}>Generate Manifests</MenuItem>
-                                </LinkContainer>
-                            }
-                        </SubMenu>
-                    }
-                    {props.frontEndPermissions.bills.dispatch &&
-                        <LinkContainer to='/app/dispatch'>
-                            <MenuItem icon={<i className='fas fa-headset fa-lg'></i>}><h5>Dispatch</h5></MenuItem>
-                        </LinkContainer>
-                    }
-                    {props.frontEndPermissions.appSettings.edit &&
-                        <SubMenu title={<h5>App Settings</h5>} icon={<i className='fas fa-toolbox fa-lg'></i>}>
-                            <LinkContainer to='/app/appSettings#accounting'>
-                                <MenuItem icon={<i className='fas fa-calculator'></i>}>Accounting</MenuItem>
-                            </LinkContainer>
-                            <LinkContainer to='/app/appSettings#interliners'>
-                                <MenuItem icon={<i className='fas fa-shipping-fast'></i>}>Interliners</MenuItem>
-                            </LinkContainer>
-                            <LinkContainer to='/app/appSettings#ratesheets'>
-                                <MenuItem icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
-                            </LinkContainer>
-                            <LinkContainer to='/app/appSettings#scheduling'>
-                                <MenuItem icon={<i className='fas fa-calendar-alt'></i>}>Scheduling</MenuItem>
-                            </LinkContainer>
-                        </SubMenu>
-                    }
-                </Menu>
-            </SidebarContent>
-            <SidebarFooter>
-                <Menu iconShape='circle'>
-                {isCollapsed ?
-                    <SubMenu
-                        title='Search'
-                        icon={<i className='fas fa-search'></i>}
-                        onClick={() => searchPopoverRef.current.focus()}
-                    >
-                        <SubMenu
-                            title={`Search: ${searchObjectType.label}`}
-                            onClick={() => setSearchSubmenuOpen(!searchSubmenuOpen)}
-                        >
-                            {
-                                objectTypes.map(objectType =>
-                                    <MenuItem key={objectType.value} onClick={() => setSearchObjectType(objectType)}>
-                                        {objectType.label}
-                                    </MenuItem>
-                                )
-                            }
-                        </SubMenu>
-                        <MenuItem>
-                            <FormControl
-                                name={'searchTerm'}
-                                onChange={event => setSearchTerm(event.target.value)}
-                                value={searchTerm}
-                                ref={searchPopoverRef}
-                                onKeyPress={event => {
-                                    if(event.key === 'Enter' && searchTerm)
-                                        performSearch()
-                                }}
-                            />
-                        </MenuItem>
-                    </SubMenu>
-                    :
-                    <Fragment>
-                        <SubMenu
-                            open={searchSubmenuOpen}
-                            title={`Search: ${searchObjectType.label}`}
-                            onClick={() => setSearchSubmenuOpen(!searchSubmenuOpen)}
-                        >
-                            {
-                                objectTypes.map(objectType =>
-                                    <MenuItem key={objectType.value} onClick={() => setSearchObjectType(objectType)}>
-                                        {objectType.label}
-                                    </MenuItem>
-                                )
-                            }
-                        </SubMenu>
-                        <MenuItem icon={<i className='fas fa-search'></i>}>
-                            <FormControl
-                                ref={searchPopoverRef}
-                                name={'searchTerm'}
-                                onChange={event => setSearchTerm(event.target.value)}
-                                onKeyPress={event => {
-                                    if(event.key === 'Enter' && searchTerm)
-                                        performSearch()
-                                }}
-                                value={searchTerm}
-                            />
-                        </MenuItem>
-                    </Fragment>
-                }
-                    <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
-                        {props.authenticatedEmployee?.employee_id &&
-                            <LinkContainer to={`/app/employees/${props.authenticatedEmployee.employee_id}`}>
-                                <MenuItem icon={<i className='fas fa-user-ninja'></i>}>{`${props.contact.first_name} ${props.contact.last_name}`}</MenuItem>
-                            </LinkContainer>
+                                }
+                                {props.frontEndPermissions.accounts.viewAny &&
+                                    <MenuItem component={<Link to='/app/accounts' />} icon={<i className='fa fa-list'></i>}>List Accounts</MenuItem>
+                                }
+                                {props.frontEndPermissions.accounts.create &&
+                                    <MenuItem component={<Link to='/app/accounts/create' />} href='/app/accounts/create' icon={<i className='fa fa-plus-square'></i>}>Create Account</MenuItem>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <MenuItem component={<Link to='/app/accountsReceivable' />} icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
+                                }
+                            </SubMenu>
                         }
-                        <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
-                        <LinkContainer to='/app/user_settings'>
-                            <MenuItem icon={<i className='fas fa-cog'></i>}>User Preferences</MenuItem>
-                        </LinkContainer>
-                        {props.isImpersonating &&
-                            <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
+                        {hasAnyPermission(props.frontEndPermissions.employees) &&
+                            <SubMenu label={<h5>Employees</h5>} icon={<i className='fas fa-id-card-alt fa-lg'/>}>
+                                {props.frontEndPermissions.employees.viewAll &&
+                                    <MenuItem component={<Link to='/app/employees' />} icon={<i className='fa fa-list'></i>}>List Employees</MenuItem>
+                                }
+                                {props.frontEndPermissions.employees.create &&
+                                    <MenuItem component={<Link to='/app/employees/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Employee</MenuItem>
+                                }
+                                {props.frontEndPermissions.chargebacks.viewAny &&
+                                    <MenuItem component={<Link to='/app/chargebacks' />} icon={<i className='fas fa-cash-register'></i>}> Chargebacks</MenuItem>
+                                }
+                                {props.frontEndPermissions.manifests.viewAny &&
+                                    <MenuItem component={<Link to='/app/manifests' />} icon={<i className='fas fa-clipboard-list'></i>}>Manifests</MenuItem>
+                                }
+                                {props.frontEndPermissions.manifests.create &&
+                                    <MenuItem component={<Link to='/app/manifests/generate' />} icon={<i className='fas fa-clipboard'></i>}>Generate Manifests</MenuItem>
+                                }
+                            </SubMenu>
                         }
-                        <MenuItem icon={<i className='fas fa-door-open'></i>}><a href='/logout'>Log Out</a></MenuItem>
-                    </SubMenu>
-                </Menu>
-            </SidebarFooter>
-        </ProSidebar>
+                        {props.frontEndPermissions.bills.dispatch &&
+                            <MenuItem component={<Link to='/app/dispatch' />} icon={<i className='fas fa-headset fa-lg'></i>}><h5>Dispatch</h5></MenuItem>
+                        }
+                        {props.frontEndPermissions.appSettings.edit &&
+                            <SubMenu label={<h5>App Settings</h5>} icon={<i className='fas fa-toolbox fa-lg'></i>}>
+                                <MenuItem component={<Link to='/app/appSettings#accounting' />} icon={<i className='fas fa-calculator'></i>}>Accounting</MenuItem>
+                                <MenuItem component={<Link to='/app/appSettings#interliners' />} icon={<i className='fas fa-shipping-fast'></i>}>Interliners</MenuItem>
+                                <MenuItem component={<Link to='/app/appSettings#ratesheets' />} icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
+                                <MenuItem component={<Link to='/app/appSettings#scheduling' />} icon={<i className='fas fa-calendar-alt'></i>}>Scheduling</MenuItem>
+                            </SubMenu>
+                        }
+                    </Menu>
+                </div>
+                <hr/>
+                <div style={{display: 'flex', flexDirection: 'column'}}>
+                    <Menu iconShape='circle' menuItemStyles={{...menuItemStyles, subMenuContent: {...menuItemStyles.subMenuContent, overflow: 'visible'}}}>
+                        {collapsed ?
+                            <SubMenu
+                                label='Search'
+                                icon={<i className='fas fa-search'></i>}
+                                onOpenChange={isOpen => {
+                                    console.log('aaaahhh again', isOpen, searchRef)
+                                    if(isOpen)
+                                        searchRef.current?.focus()
+                                }}
+                            >
+                                <MenuItem style={{padding: '20px'}}>
+                                    <FFETypeAhead
+                                        handleSearchSelect={handleSearchSelect}
+                                        isLoadingSearch={isLoadingSearch}
+                                        performSearch={performSearch}
+                                        searchRef={searchRef}
+                                        searchResults={searchResults}
+                                    />
+                                </MenuItem>
+                            </SubMenu>
+                            :
+                            <MenuItem>
+                                <FFETypeAhead
+                                    handleSearchSelect={handleSearchSelect}
+                                    isLoadingSearch={isLoadingSearch}
+                                    performSearch={performSearch}
+                                    searchRef={searchRef}
+                                    searchResults={searchResults}
+                                />
+                            </MenuItem>
+                        }
+                        <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
+                            {props.authenticatedEmployee?.employee_id &&
+                                <MenuItem component={<Link to={`/app/employees/${props.authenticatedEmployee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>{`${props.contact.first_name} ${props.contact.last_name}`}</MenuItem>
+                            }
+                            <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
+                            <MenuItem component={<Link to='/app/user_settings' />} icon={<i className='fas fa-cog'></i>}>User Preferences</MenuItem>
+                            {props.isImpersonating &&
+                                <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
+                            }
+                            <MenuItem component={<Link to='/logout' />} icon={<i className='fas fa-door-open'></i>}>Log Out</MenuItem>
+                        </SubMenu>
+                    </Menu>
+                </div>
+            </div>
+        </Sidebar>
     )
 }
 

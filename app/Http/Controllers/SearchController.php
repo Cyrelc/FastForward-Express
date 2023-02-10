@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class SearchController extends Controller {
     public function Search(Request $req) {
         $searchRepo = new Repos\SearchRepo();
-        $searchTerms = explode(';', $req->term);
+        $searchTerms = explode(';', $req->input('query'));
         $searchResults = [];
 
         foreach($searchTerms as $searchTerm) {

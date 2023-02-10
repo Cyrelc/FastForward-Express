@@ -137,12 +137,14 @@ class Invoice extends Component {
                 </Col>
                 <Col md={11}>
                     <table style={{width: '100%'}}>
-                        <tr>
-                            <td style={{width: '40%'}}><h3><LinkContainer to={'/app/accounts/' + this.state.accountId}><a>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></LinkContainer></h3></td>
-                            <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
-                            <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && parseFloat(this.state.invoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'}))}</td>
-                            <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + (this.state.accountOwing && parseFloat(this.state.accountOwing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'}))}</td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <td style={{width: '40%'}}><h3><LinkContainer to={'/app/accounts/' + this.state.accountId}><a>{this.state.parent && (this.state.parent.account_number + ' - ' + this.state.parent.name)}</a></LinkContainer></h3></td>
+                                <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Bill Count\n' + (this.state.invoice && this.state.invoice.bill_count)}</td>
+                                <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{'Invoice Total\n' + (this.state.invoice && parseFloat(this.state.invoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'}))}</td>
+                                <td style={{...headerTDStyle, backgroundColor: 'orange'}}>{'Account Balance\n' + (this.state.accountOwing && parseFloat(this.state.accountOwing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'}))}</td>
+                            </tr>
+                        </tbody>
                     </table>
                 </Col>
                 <Col md={11}>
@@ -160,14 +162,14 @@ class Invoice extends Component {
                 }
                 {(!this.state.amendmentsOnly && this.state.tables) &&
                     Object.keys(this.state.tables).map(key =>
-                        <Col md={11}>
+                        <Col key={key} md={11}>
                             <Table striped bordered size='sm'>
                                 <thead>
                                     <tr>
                                         {Object.keys(this.state.tables[key].headers).map(headerKey => {
                                             if(headerKey === 'Amount')
-                                                return <td style={{textAlign: 'right'}}>{headerKey}</td>
-                                            return <td>{headerKey}</td>
+                                                return <td key={headerKey} style={{textAlign: 'right'}}>{headerKey}</td>
+                                            return <td key={headerKey}>{headerKey}</td>
                                         })}
                                     </tr>
                                 </thead>
@@ -180,24 +182,26 @@ class Invoice extends Component {
                                                         return <td>{getCorrectAddress(bill)}</td>
                                                     case 'amount':
                                                         if(this.state.showLineItems) {
-                                                            return <td width='15%' style={{textAlign: 'right'}}>
-                                                                <table style={{border: 'none', width: '100%'}}>
-                                                                    <tbody>
-                                                                        {bill.line_items.map(line_item =>
-                                                                            <tr key={line_item.line_item_id}>
-                                                                                <td style={{textAlign: 'left'}}>{line_item.name}</td>
-                                                                                <td>{parseFloat(line_item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                                            return (
+                                                                <td width='15%' style={{textAlign: 'right'}}>
+                                                                    <table style={{border: 'none', width: '100%'}}>
+                                                                        <tbody>
+                                                                            {bill.line_items.map(line_item =>
+                                                                                <tr key={line_item.line_item_id}>
+                                                                                    <td style={{textAlign: 'left'}}>{line_item.name}</td>
+                                                                                    <td>{parseFloat(line_item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                                                                </tr>
+                                                                            )}
+                                                                        </tbody>
+                                                                        <tfoot>
+                                                                            <tr>
+                                                                                <td style={{textAlign: 'left'}}><b>Total: </b></td>
+                                                                                <td><b>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b></td>
                                                                             </tr>
-                                                                        )}
-                                                                    </tbody>
-                                                                    <tfoot>
-                                                                        <tr>
-                                                                            <td style={{textAlign: 'left'}}><b>Total: </b></td>
-                                                                            <td><b>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b></td>
-                                                                        </tr>
-                                                                    </tfoot>
-                                                                </table>
-                                                            </td>
+                                                                        </tfoot>
+                                                                    </table>
+                                                                </td>
+                                                            )
                                                         } else
                                                             return <td width='10%' style={{textAlign: 'right'}}>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                                     case 'bill_id':

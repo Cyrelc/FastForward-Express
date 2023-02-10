@@ -34,7 +34,7 @@ class SearchRepo {
                 $words = array_filter($words, function($word) {
                     return strlen($word) > 2;
                 });
-                $words = '+' . implode(' +', $words);
+                $words = '+' . implode('* +', $words) . '*';
 
                 $query->where('account_id', $searchTerm)
                 ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
@@ -70,7 +70,7 @@ class SearchRepo {
                 'account_id',
                 'email_addresses.email',
                 DB::raw('CONCAT("/app/accounts/", account_id, "#users") as link'),
-                DB::raw('CONCAT(first_name, " ", last_name) as name'),
+                DB::raw('CONCAT(TRIM(first_name), " ", TRIM(last_name)) as name'),
                 'account_id as object_id',
                 DB::raw('"Account User" as type'),
             );
@@ -94,12 +94,13 @@ class SearchRepo {
             ->leftJoin('accounts as pickup_account', 'pickup_account.account_id', 'bills.pickup_account_id')
             ->where(function($query) use ($searchTerm) {
                 $query->where('bills.bill_id', $searchTerm)
-                ->orWhere('bill_number', $searchTerm)
+                ->orWhere('bill_number', 'like', '%' . $searchTerm . '%')
                 ->orWhere('charge_reference_value', 'like', '%' . $searchTerm . '%')
                 ->orWhere('pickup_reference_value', 'like', '%' . $searchTerm . '%')
                 ->orWhere('delivery_reference_value', 'like', '%' . $searchTerm . '%');
             })->select(
-                'bill_number as name',
+                'bill_number',
+                DB::raw('cast(bills.bill_id as char(255)) as name'),
                 'charge_reference_value',
                 'charge_account.custom_field as charge_reference_field_name',
                 'delivery_reference_value',
@@ -126,7 +127,7 @@ class SearchRepo {
             ->leftJoin('users', 'users.user_id', 'employees.user_id')
             ->where('email_addresses.email', 'like', '%' . $searchTerm . '%')
             ->orWhere('employee_id', $searchTerm)
-            ->orWhere(DB::raw('CONCAT(first_name, " ", last_name)'), 'like', '%' . $searchTerm . '%')
+            ->orWhere(DB::raw('CONCAT(TRIM(first_name), " ", TRIM(last_name))'), 'like', '%' . $searchTerm . '%')
             ->select(
                 'email_addresses.email',
                 DB::raw('CONCAT("/app/employees/", employee_id) as link'),
@@ -159,6 +160,7 @@ class SearchRepo {
                 'invoice_id as object_id',
                 DB::raw('concat("/app/invoices/", invoice_id) as link'),
                 DB::raw('"Invoice" as type'),
+                DB::raw('cast(invoice_id as char(255)) as name')
             );
 
         return $invoices->get()->toArray();
@@ -174,6 +176,7 @@ class SearchRepo {
                 DB::raw('concat("/app/manifests/", manifest_id) as link'),
                 'manifest_id as object_id',
                 DB::raw('"Manifest" as type'),
+                DB::raw('cast(manifest_id as char(255)) as name')
             );
 
         return $manifests->get()->toArray();
