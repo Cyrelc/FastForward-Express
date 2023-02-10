@@ -312,9 +312,11 @@ function NavBar(props) {
                                 />
                             </MenuItem>
                         }
-                        <SubMenu title={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
+                        <SubMenu label={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
                             {props.authenticatedEmployee?.employee_id &&
-                                <MenuItem component={<Link to={`/app/employees/${props.authenticatedEmployee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>{`${props.contact.first_name} ${props.contact.last_name}`}</MenuItem>
+                                <MenuItem component={<Link to={`/app/employees/${props.authenticatedEmployee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>
+                                    {`${props.contact.first_name} ${props.contact.last_name}`}
+                                </MenuItem>
                             }
                             <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
                             <MenuItem component={<Link to='/app/user_settings' />} icon={<i className='fas fa-cog'></i>}>User Preferences</MenuItem>
