@@ -17,7 +17,7 @@ class HomeModelFactory {
 
         $model->payment_types = $paymentRepo->GetPaymentTypesList();
 
-        if($req->user()->employee) {
+        if($req->user()->employee || $req->user()->hasRole('superAdmin')) {
             if($req->user()->can('viewAll', Account::class) || $req->user()->can('bills.view.basic.*'))
                 $model->accounts = $accountRepo->List(null);
             if($req->user()->can('viewAll', Account::class)) {
@@ -35,12 +35,6 @@ class HomeModelFactory {
             }
         } else if(count($req->user()->accountUsers) > 0) {
             $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($req->user()->accountUsers[0]->account_id)));
-        } else if($req->user()->hasRole('superAdmin')) {
-            $model->accounts = $accountRepo->List(null);
-            $model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
-            $model->parent_accounts = $accountRepo->GetParentAccountsList();
-            $model->employees = $employeeRepo->GetEmployeesList(null);
-            $model->drivers = $employeeRepo->GetDriverList(false);
         }
 
         return $model;
