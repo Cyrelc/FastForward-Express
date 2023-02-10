@@ -31,12 +31,16 @@ class AccountRepo {
         foreach($invoiceSortOrder as $index => $sortEntry) {
             $new = new AccountInvoiceSortOrder;
 
-            $new->create([
-                'subtotal_by' => $sortEntry->subtotal_by,
-                'invoice_sort_option_id' => $sortEntry->invoice_sort_option_id,
-                'priority' => $sortEntry->priority ?? $index,
-                'account_id' => $accountId,
-            ]);
+            try {
+                $new->create([
+                    'subtotal_by' => filter_var($sortEntry->group_by, FILTER_VALIDATE_BOOLEAN),
+                    'invoice_sort_option_id' => $sortEntry->invoice_sort_option_id,
+                    'priority' => $sortEntry->priority ?? $index,
+                    'account_id' => $accountId,
+                ]);
+            } catch (\Exception $e) {
+                dd($accountId, $sortEntry, $e);
+            }
         }
     }
 
@@ -248,15 +252,11 @@ class AccountRepo {
     }
 
     public function GetSubtotalByField($accountId) {
-        $sortOrder = Account::where('account_id', $accountId)->pluck('invoice_sort_order');
-        $sortOrder = json_decode(json_decode($sortOrder)[0]);
-        $sortOrder = array_filter($sortOrder, function($var) {
-            if(isset($var->subtotal_by))
-                return filter_var($var->subtotal_by, FILTER_VALIDATE_BOOLEAN);
-            return false;
-        });
+        $subtotalByField = AccountInvoiceSortOrder::leftJoin('invoice_sort_options', 'invoice_sort_options.invoice_sort_option_id', 'account_invoice_sort_order.invoice_sort_option_id')
+            ->where('account_id', $accountId)
+            ->where('subtotal_by', 1);
 
-        return array_pop($sortOrder);
+        return $subtotalByField->first();
     }
 
     public function Insert($acct) {
