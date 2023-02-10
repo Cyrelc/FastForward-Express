@@ -76,7 +76,7 @@ const SidebarHeader = props => {
 
     return (
         <Menu iconShape='circle' menuItemStyles={menuItemStyles} style={{textAlign: 'center'}}>
-            <MenuItem component={<Link to='\' />} style={{textAlign: 'center'}}>
+            <MenuItem component={<Link to='/' />} style={{textAlign: 'center'}}>
                 <h5>{collapsed ? 'FFE' : 'Fast Forward Express'}</h5>
             </MenuItem>
             <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={() => collapseSidebar(!collapsed)}/>
@@ -286,7 +286,6 @@ function NavBar(props) {
                                 label='Search'
                                 icon={<i className='fas fa-search'></i>}
                                 onOpenChange={isOpen => {
-                                    console.log('aaaahhh again', isOpen, searchRef)
                                     if(isOpen)
                                         searchRef.current?.focus()
                                 }}
@@ -323,7 +322,7 @@ function NavBar(props) {
                             {props.isImpersonating &&
                                 <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
                             }
-                            <MenuItem component={<Link to='/logout' />} icon={<i className='fas fa-door-open'></i>}>Log Out</MenuItem>
+                            <MenuItem onClick={() => window.location.href='/logout'} icon={<i className='fas fa-door-open' />}>Log Out</MenuItem>
                         </SubMenu>
                     </Menu>
                 </div>
