@@ -11,6 +11,16 @@ import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
 import DispatchTab from './DispatchTab'
 
+const unmanifestedDriverMismatchMessage = (
+`------------------PLEASE READ CAREFULLY------------------
+
+At least one unmanifested line item is assigned to a driver which no longer matches the pickup or delivery driver.
+
+Click "Okay" to reassign, or "Cancel" to leave them.
+
+Please remember you can view the driver who is assigned each line item by clicking the "Toggle details" button on the Billing tab`
+)
+
 const Bill = (props) => {
     const [billState, billDispatch] = useReducer(BillReducer, initialBillState)
     const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
@@ -20,8 +30,8 @@ const Bill = (props) => {
     const [awaitingCharges, setAwaitingCharges] = useState(false)
 
     const {accounts, billId, deliveryType, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
-    const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled} = billState.delivery
-    const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled} = billState.pickup
+    const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
+    const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds} = chargeState
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
@@ -276,6 +286,32 @@ const Bill = (props) => {
             billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
         }
     }
+
+    // If the pickup or delivery driver is changed, offer the user the option to update unmanifested line items
+    // This doesn't happen by default, as it would otherwise throw away customized line items
+    useEffect(() => {
+        const mismatchedLineItems = charges.filter(charge =>
+            charge.lineItems.some(lineItem => {
+                if(lineItem.delivery_manifest_id == null && lineItem.delivery_driver_id != deliveryDriver.employee_id)
+                    return true
+                if(lineItem.pickup_manifest_id == null && lineItem.pickup_driver_id != pickupDriver.employee_id)
+                    return true
+                return false
+            }
+        ))
+        if(mismatchedLineItems.length && confirm(unmanifestedDriverMismatchMessage)) {
+            charges.forEach((charge, index) => {
+                const updatedLineItems = charge.lineItems.map(lineItem => {
+                    return {
+                        ...lineItem,
+                        delivery_driver_id: lineItem.delivery_manifest_id ? lineItem.delivery_driver_id : deliveryDriver.employee_id,
+                        pickup_driver_id: lineItem.pickup_manifest_id ? lineItem.pickup_driver_id : pickupDriver.employee_id
+                    }
+                })
+                chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data: updatedLineItems, index: index}})
+            })
+        }
+    }, [pickupDriver.employee_id, deliveryDriver.employee_id])
 
     // On load => load the persist fields from local storage and make sure to check them off in the reducer
     useEffect(() => {
