@@ -31,7 +31,9 @@
     <div id="watermark">Invoice Not Finalized</div>
 @endif
 @if($model->parent->invoice_comment != '')
-    <p>{{$model->parent->invoice_comment}}</p><hr/><br/>
+    <p>{{$model->parent->invoice_comment}}</p>
+    <hr/>
+    <br/>
 @endif
 @if($amendmentsOnly == false)
     @foreach($model->tables as $table_key => $table)
@@ -39,7 +41,24 @@
             <thead>
                 <tr>
                     @foreach($table->headers as $key => $value)
-                        <td class='{{$value}}'> {{$key}} </td>
+                        @if($key == 'Pickup Address')
+                            @if($showPickupAndDeliveryAddress)
+                                <td class='address'>Pickup Address</td>
+                            @else
+                                @php
+                                    continue
+                                @endphp
+                                {{-- {{continue}} --}}
+                            @endif
+                        @elseif($key == 'Delivery Address')
+                            @if($showPickupAndDeliveryAddress)
+                                <td class='address'>Delivery Address</td>
+                            @else
+                                <td class='address'>Address</td>
+                            @endif
+                        @else
+                            <td class='{{$value}}'> {{$key}} </td>
+                        @endif
                     @endforeach
                 </tr>
             </thead>
@@ -73,14 +92,24 @@
                                         </table>
                                     </td>
                                 @endif
-                            @elseif($value == 'address')
-                                <td class='address'>
-                                    @if($bill->charge_account_id != $bill->delivery_account_id)
-                                        {{$bill->delivery_address_name}}
-                                    @elseif($bill->charge_account_id != $bill->pickup_account_id)
+                            @elseif($value == 'pickup_address_name')
+                                @if($showPickupAndDeliveryAddress)
+                                    <td class='address'>
                                         {{$bill->pickup_address_name}}
-                                    @endif
-                                </td>
+                                    </td>
+                                @endif
+                            @elseif($value == 'delivery_address_name')
+                                @if($showPickupAndDeliveryAddress)
+                                    <td class='address'>{{$bill->delivery_address_name}}</td>
+                                @else
+                                    <td class='address'>
+                                        @if($bill->charge_account_id != $bill->delivery_account_id)
+                                            {{$bill->delivery_address_name}}
+                                        @elseif($bill->charge_account_id != $bill->pickup_account_id)
+                                            {{$bill->pickup_address_name}}
+                                        @endif
+                                    </td>
+                                @endif
                             @elseif($value == 'bill_id')
                                 <td class='bill_id' style='min-width: 50px'>{{$bill->$value}}</td>
                             @elseif($value == 'delivery_type')

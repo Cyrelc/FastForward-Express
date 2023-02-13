@@ -37,6 +37,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('send_paper_invoices')->default(false);
             $table->unsignedInteger('shipping_address_id');
             $table->boolean('show_invoice_line_items')->default(false);
+            $table->boolean('show_pickup_and_delivery_address')->default(false);
             $table->date('start_date');
             $table->string('stripe_id')->nullable()->index();
             // $table->boolean('charge_interest')->default(true);

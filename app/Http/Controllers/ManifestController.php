@@ -121,7 +121,7 @@ class ManifestController extends Controller {
 
         $pdfMerger->merge();
 
-        $fileName = count($files) > 1 ? 'Manifests.' . time() . '.pdf' : array_key_first($files);
+        $fileName = $this->storagePath . count($files) > 1 ? 'Manifests.' . time() . '.pdf' : array_key_first($files);
 
         $this->cleanPdfs($files);
 

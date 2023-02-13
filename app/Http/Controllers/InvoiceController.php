@@ -127,7 +127,7 @@ class InvoiceController extends Controller {
 
         $this->cleanPdfs($files);
 
-        $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
+        $fileName = $this->storagePath . count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
 
         $pdfMerger->save($fileName, 'inline');
 
@@ -137,12 +137,12 @@ class InvoiceController extends Controller {
     public function download(Request $req, $invoiceIds) {
         $invoiceIds = explode(',', $invoiceIds);
         if(count($invoiceIds) > 50)
-            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
+            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
         $files = $this->preparePdfs($invoiceIds, $req);
 
         if(count($files) === 1) {
-            return \Response::download($files[array_key_first($files)]);
+            return response()->download($files[array_key_first($files)]);
         } else {
             $zip = new ZipArchive();
             $zipfile = $this->storagePath . $this->folderName . '.zip';
@@ -155,7 +155,7 @@ class InvoiceController extends Controller {
 
             $this->cleanPdfs($files);
 
-            return \Response::download($zipfile);
+            return response()->download($zipfile);
         }
     }
 
@@ -168,6 +168,7 @@ class InvoiceController extends Controller {
 
         $amendmentsOnly = $req->amendments_only ?? false;
         $showLineItems = $req->show_line_items ?? false;
+        $showPickupAndDeliveryAddress = $req->show_pickup_and_delivery_address ?? false;
 
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetById($req, $invoiceId);
@@ -213,11 +214,11 @@ class InvoiceController extends Controller {
      * 
      */
     private function preparePdfs($invoiceIds, $req) {
+        $accountRepo = new Repos\AccountRepo();
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $puppeteer = new Puppeteer;
 
-        $globalAmendmentsOnly = $req->amendments_only ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
-        $showLineItems = $req->show_line_items ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : false;
+        $globalAmendmentsOnly = isset($req->amendments_only) ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
 
         $files = array();
         $path = $this->storagePath . $this->folderName . '/';
@@ -225,6 +226,7 @@ class InvoiceController extends Controller {
 
         foreach($invoiceIds as $invoiceId) {
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
+            $account = $accountRepo->GetById($model->parent->account_id);
 
             if($req->user()->cannot('view', $model->invoice))
                 abort(403);
@@ -232,8 +234,10 @@ class InvoiceController extends Controller {
             $fileName = preg_replace('/\s+/', '_', $model->parent->name) . '-' . $model->invoice->invoice_id;
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
+            $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
+            $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
-            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'))->render();
+            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress'))->render();
             file_put_contents($path . $fileName . '.html', $file);
             $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
             $page->goto('file://' . $path . $fileName . '.html');

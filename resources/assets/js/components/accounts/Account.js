@@ -51,6 +51,7 @@ const initialState = {
     shippingAddressPlaceId: '',
     showInvoiceLayoutModal: false,
     showInvoiceLineItems: false,
+    showPickupAndDeliveryAddress: false,
     startDate: new Date(),
     useShippingForBillingAddress: true,
     users: []
@@ -122,6 +123,7 @@ class Account extends Component {
                     shippingAddressName: response.shipping_address.name,
                     shippingAddressPlaceId: response.shipping_address.place_id,
                     showInvoiceLineItems: response.account.show_invoice_line_items,
+                    showPickupAndDeliveryAddress: response.account.show_pickup_and_delivery_address,
                     startDate: Date.parse(response.account.start_date),
                     useShippingForBillingAddress: response.account.billing_address_id === null,
                 }
@@ -214,7 +216,8 @@ class Account extends Component {
                 send_bills: this.state.sendBills,
                 send_email_invoices: this.state.sendEmailInvoices,
                 send_paper_invoices: this.state.sendPaperInvoices,
-                show_invoice_line_items: this.state.showInvoiceLineItems
+                show_invoice_line_items: this.state.showInvoiceLineItems,
+                show_pickup_and_delivery_address: this.state.showPickupAndDeliveryAddress
             }
         }
 
@@ -344,6 +347,7 @@ class Account extends Component {
                                 shippingAddressName={this.state.shippingAddressName}
                                 showInvoiceLayoutModal={this.state.showInvoiceLayoutModal}
                                 showInvoiceLineItems={this.state.showInvoiceLineItems}
+                                showPickupAndDeliveryAddress={this.state.showPickupAndDeliveryAddress}
                                 useShippingForBillingAddress={this.state.useShippingForBillingAddress}
 
                                 handleChanges={this.handleChanges}

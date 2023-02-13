@@ -70,7 +70,8 @@ class InvoiceModelFactory{
 			}
 			else if($model->parent->custom_field)
 				$table->headers[$model->parent->custom_field] = 'charge_reference_value';
-			$table->headers['Address'] = 'address';
+			$table->headers['Pickup Address'] = 'pickup_address_name';
+			$table->headers['Delivery Address'] = 'delivery_address_name';
 			// $table->headers['Type'] = 'delivery_type';
 			$table->headers['Price'] = 'amount';
 		}

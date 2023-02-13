@@ -61,56 +61,73 @@ export default function InvoicingTab(props) {
             <Card.Header>
                 <Row>
                     <Col md={2}>
-                        <h4 className='text-muted'>Options</h4>
+                        <h5 className='text-muted'>Options</h5>
                     </Col>
-                    <Col md={4}>
-                        <InputGroup>
-                            <InputGroup.Text>Invoice Interval</InputGroup.Text>
-                            <Select
-                                options={props.invoiceIntervals}
-                                getOptionLabel={type => type.name}
-                                getOptionValue={type => type.value}
-                                onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
-                                value={props.invoiceInterval}
-                                isDisabled={props.readOnly}
-                            />
-                            <InputGroup.Text>
-                                <i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i>
-                            </InputGroup.Text>
-                        </InputGroup>
-                    </Col>
-                    <Col md={2} style={{paddingTop: '20px'}}>
-                        <FormCheck
-                            name='sendPaperInvoices'
-                            label='Send Paper Invoices'
-                            checked={props.sendPaperInvoices}
-                            onChange={props.handleChanges}
-                            disabled={!props.sendEmailInvoices || props.readOnly}
-                        />
-                    </Col>
-                    <Col md={2} style={{paddingTop: '20px'}}>
-                        <FormCheck
-                            name='sendEmailInvoices'
-                            label='Digital Invoice Notifications'
-                            checked={props.sendEmailInvoices}
-                            onChange={props.handleChanges}
-                            disabled={!props.sendPaperInvoices || props.readOnly}
-                        />
-                    </Col>
-                    <Col md={2} style={{paddingTop: '20px'}}>
-                        <FormCheck
-                            name='showInvoiceLineItems'
-                            label='Show Invoice Line Items'
-                            checked={props.showInvoiceLineItems}
-                            onChange={props.handleChanges}
-                            disabled={props.readOnly}
-                        />
+                    <Col md={10}>
+                        <Row>
+                            <Col md={3}>
+                                <InputGroup>
+                                    <InputGroup.Text>Invoice Interval</InputGroup.Text>
+                                    <Select
+                                        options={props.invoiceIntervals}
+                                        getOptionLabel={type => type.name}
+                                        getOptionValue={type => type.value}
+                                        onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
+                                        value={props.invoiceInterval}
+                                        isDisabled={props.readOnly}
+                                    />
+                                    <InputGroup.Text>
+                                        <i className='fas fa-question' title='How often you would like to receive invoices for activity on your account'></i>
+                                    </InputGroup.Text>
+                                </InputGroup>
+                            </Col>
+                            <Col md={3} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    type='switch'
+                                    name='sendPaperInvoices'
+                                    label='Send Paper Invoices'
+                                    checked={props.sendPaperInvoices}
+                                    onChange={props.handleChanges}
+                                    disabled={!props.sendEmailInvoices || props.readOnly}
+                                />
+                            </Col>
+                            <Col md={3} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    type='switch'
+                                    name='sendEmailInvoices'
+                                    label='Digital Invoice Notifications'
+                                    checked={props.sendEmailInvoices}
+                                    onChange={props.handleChanges}
+                                    disabled={!props.sendPaperInvoices || props.readOnly}
+                                />
+                            </Col>
+                            <Col md={3} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    type='switch'
+                                    name='showInvoiceLineItems'
+                                    label='Show Invoice Line Items'
+                                    checked={props.showInvoiceLineItems}
+                                    onChange={props.handleChanges}
+                                    disabled={props.readOnly}
+                                />
+                            </Col>
+                            <Col md={3} style={{paddingTop: '20px'}}>
+                                <FormCheck
+                                    type='switch'
+                                    name='showPickupAndDeliveryAddress'
+                                    label='Show Both Pickup and Delivery Address'
+                                    checked={props.showPickupAndDeliveryAddress}
+                                    onChange={props.handleChanges}
+                                    disabled={props.readOnly}
+                                />
+                            </Col>
+                        </Row>
                     </Col>
                     <Col md={12}><hr/></Col>
                 </Row>
                 <Row>
                     <Col md={2}>
-                        <h4 className='text-muted'>Custom Tracking Field: </h4>
+                        <h5 className='text-muted'>Custom Tracking Field</h5>
                     </Col>
                     <Col md={6}>
                         <InputGroup>
@@ -143,7 +160,7 @@ export default function InvoicingTab(props) {
                 </Row>
                 <Row style={{paddingTop: '20px'}}>
                     <Col md={2}>
-                        <h4 className='text-muted'>Invoice Comment</h4>
+                        <h5 className='text-muted'>Invoice Comment</h5>
                     </Col>
                     <Col md={10}>
                         <FormControl
@@ -161,7 +178,7 @@ export default function InvoicingTab(props) {
             <Card.Body>
                 <Row>
                     <Col md={2}>
-                        <h4 className='text-muted'>Order Bills By</h4>
+                        <h5 className='text-muted'>Order Bills By</h5>
                     </Col>
                     <Col md={5}>
                         {filteredSortOptions.length &&
@@ -184,7 +201,7 @@ export default function InvoicingTab(props) {
             <Card.Footer>
                 <Row>
                     <Col md={2}>
-                        <h4 className='text-muted'>Address Preview <i className='fas fa-question-circle' title={addressFormattingTooltip}></i></h4>
+                        <h5 className='text-muted'>Address Preview <i className='fas fa-question-circle' title={addressFormattingTooltip}></i></h5>
                     </Col>
                     <Col md={props.useShippingForBillingAddress ? 10 : 5}>
                         <strong>Shipping Address Formatted Preview</strong>
