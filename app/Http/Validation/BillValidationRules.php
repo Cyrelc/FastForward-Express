@@ -132,6 +132,7 @@ class BillValidationRules {
 		];
 
 		$messages = [
+			'accept_terms_and_conditions.accepted' => 'Please accept the terms and conditions',
 			'charge_account_id.required' => 'Please select a valid account to charge the bill to',
 			'charge_type.payment_type_id.in' => 'Selected payment method appears to be invalid',
 			'charge_type.payment_type_id.required' => 'Please select a payment method',

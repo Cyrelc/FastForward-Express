@@ -14,6 +14,7 @@ class LineItem extends Model {
     protected $fillable = [
         'amendment_number',
         'charge_id',
+        'chargeback_id',
         'delivery_driver_id',
         'driver_amount',
         'invoice_id',

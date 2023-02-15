@@ -49,6 +49,7 @@ class ManifestRepo {
                 $temp->count_remaining++;
                 $temp->save();
             }
+            $chargebackLineItems = LineItem::where('chargeback_id', $chargeback->chargeback_id)->update(['chargeback_id', null]);
             $chargeback->delete();
         }
         $manifest->delete();
@@ -140,24 +141,21 @@ class ManifestRepo {
             ->where('percentage_complete', 100)
             ->get();
 
-        $chargebackLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+        $chargebackBills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->whereBetween(DB::raw('date(time_pickup_scheduled)'), [$startDate, $endDate])
             ->where('charge_employee_id', $driverId)
+            ->whereRaw('charge_type_id = (select payment_type_id from payment_types where name = "Employee")')
             ->where('price', '!=', 0)
             ->where('percentage_complete', 100)
-            ->where('pickup_manifest_id', null)
-            ->where('delivery_manifest_id', null);
-
-        $chargebackBills = clone $chargebackLineItems;
-        $chargebackBills = $chargebackBills->select(
+            ->where('line_items.chargeback_id', null)
+            ->select(
                 DB::raw('sum(price) as price'),
                 'charges.bill_id as bill_id',
+                'charges.charge_id as charge_id',
                 DB::raw('date(time_pickup_scheduled) as date_pickup_scheduled')
             )->groupBy('charges.bill_id')
             ->get();
-
-        $chargebackLineItems = $chargebackLineItems->get();
 
         foreach($pickupLineItems as $lineItem) {
             $lineItem->pickup_manifest_id = $manifestId;
@@ -185,12 +183,11 @@ class ManifestRepo {
                 'count_remaining' => 1,
                 'start_date' => $chargeback->date_pickup_scheduled
             ];
-            $chargebackRepo->CreateBillChargeback($billChargeback);
-        }
 
-        foreach($chargebackLineItems as $lineItem) {
-            $lineItem->paid = true;
-            $lineItem->save();
+            $newChargeback = $chargebackRepo->CreateBillChargeback($billChargeback);
+
+            $chargebackLineItems = LineItem::where('charge_id', $chargeback->charge_id)
+                ->update(['paid' => true, 'chargeback_id' => $newChargeback->chargeback_id]);
         }
     }
 }

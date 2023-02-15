@@ -84,17 +84,12 @@ class BillRepo {
             $newCharge->updated_at = new \DateTime();
             $newCharge->save();
             foreach($charge->lineItems as $lineItem) {
-                $newLineItem = $lineItem->replicate();
-                $newLineItem->amendment_number = null;
+                $newLineItem = new LineItem();
+                $newLineItem->type = $lineItem->type;
                 $newLineItem->charge_id = $newCharge->charge_id;
-                $newLineItem->created_at = new \DateTime();
-                $newLineItem->delivery_driver_id = null;
-                $newLineItem->delivery_manifest_id = null;
-                $newLineItem->invoice_id = null;
-                $newLineItem->paid = false;
-                $newLineItem->pickup_driver_id = null;
-                $newLineItem->pickup_manifest_id = null;
-                $newLineItem->updated_at = new \DateTime();
+                $newLineItem->driver_amount = $lineItem->driver_amount;
+                $newLineItem->name = $lineItem->name;
+                $newLineItem->price = $lineItem->price;
                 $newLineItem->save();
             }
         }
