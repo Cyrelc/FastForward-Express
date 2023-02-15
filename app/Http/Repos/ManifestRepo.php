@@ -173,6 +173,7 @@ class ManifestRepo {
 
         foreach($chargebackBills as $chargeback) {
             $billChargeback = [
+                'bill_id' => $chargeback->bill_id,
                 'employee_id' => $driverId,
                 'manifest_id' => null,
                 'amount' => $chargeback->price,
