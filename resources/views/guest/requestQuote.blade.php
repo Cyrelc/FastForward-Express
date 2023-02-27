@@ -112,6 +112,7 @@
         $('#open-account-company-name').val('');
         $('#open-account-contact-name').val('');
         $('#open-account-message').val('');
+        $('#deliveries-per-month').val('');
     }
 </script>
 @endsection

@@ -23,11 +23,11 @@ return [
         'secret' => env('MAILGUN_SECRET'),
     ],
 
-    'ses' => [
-        'key' => env('SES_KEY'),
-        'secret' => env('SES_SECRET_KEY'),
-        'region' => env('SES_REGION')
-    ],
+    // 'ses' => [
+    //     'key' => env('SES_KEY'),
+    //     'secret' => env('SES_SECRET_KEY'),
+    //     'region' => env('SES_REGION')
+    // ],
 
     'sparkpost' => [
         'secret' => env('SPARKPOST_SECRET'),

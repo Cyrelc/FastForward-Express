@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => 'donotreply@fastforwardexpress.com',
+        'address' => 'donotreply@fastforwardexpress.ca',
         'name' => 'Fast Forward Express - Do Not Reply'
     ],
 
@@ -84,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('MAIL_USERNAME', 'fastforwardexpressfeedback@gmail.com'),
+    'username' => env('MAIL_USERNAME', 'contactus@fastforwardexpress.ca'),
 
     /*
     |--------------------------------------------------------------------------
@@ -110,17 +110,18 @@ return [
     |
     */
 
-    'reply_to' => ['address' => 'contactus@fastforwardexpress.com', 'name' => 'Contact Us'],
+    'reply_to' => ['address' => 'contactus@fastforwardexpress.ca', 'name' => 'Contact Us'],
 
     'sendmail' => '/usr/sbin/sendmail -bs',
+    'pretend' => false
 
     /**
      *
      * Amazon Workmail SES configuration settings
      */
-    'ses' => [
-        'key' => env('SES_KEY'),
-        'secret' => env('SES_SECRET_KEY'),
-        'region' => env('SES_REGION')
-    ]
+    // 'ses' => [
+    //     'key' => env('SES_KEY'),
+    //     'secret' => env('SES_SECRET_KEY'),
+    //     'region' => env('SES_REGION')
+    // ]
 ];

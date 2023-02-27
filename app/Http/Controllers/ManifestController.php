@@ -110,7 +110,7 @@ class ManifestController extends Controller {
         $manifestIds = explode(',', $manifestIds);
 
         if(count($manifestIds) > 50)
-            abort(413, 'Currently unable to package more than 50 manifests at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
+            abort(413, 'Currently unable to package more than 50 manifests at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
         $files = $this->preparePdfs($req, $manifestIds);
 
