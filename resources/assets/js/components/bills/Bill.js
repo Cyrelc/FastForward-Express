@@ -290,6 +290,9 @@ const Bill = (props) => {
     // If the pickup or delivery driver is changed, offer the user the option to update unmanifested line items
     // This doesn't happen by default, as it would otherwise throw away customized line items
     useEffect(() => {
+        if(!pickupDriver || !deliveryDriver)
+            return
+
         const mismatchedLineItems = charges.filter(charge =>
             charge.lineItems.some(lineItem => {
                 if(lineItem.delivery_manifest_id == null && lineItem.delivery_driver_id != deliveryDriver.employee_id)
@@ -299,6 +302,7 @@ const Bill = (props) => {
                 return false
             }
         ))
+
         if(mismatchedLineItems.length && confirm(unmanifestedDriverMismatchMessage)) {
             charges.forEach((charge, index) => {
                 const updatedLineItems = charge.lineItems.map(lineItem => {
@@ -311,7 +315,7 @@ const Bill = (props) => {
                 chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data: updatedLineItems, index: index}})
             })
         }
-    }, [pickupDriver.employee_id, deliveryDriver.employee_id])
+    }, [pickupDriver, deliveryDriver])
 
     // On load => load the persist fields from local storage and make sure to check them off in the reducer
     useEffect(() => {
