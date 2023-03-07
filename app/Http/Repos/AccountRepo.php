@@ -195,14 +195,42 @@ class AccountRepo {
                 'accounts.name',
                 DB::raw('case when accounts.parent_account_id is not null then concat(parent_account.account_number, " - ", parent_account.name) when accounts.can_be_parent = 1 then concat (accounts.account_number, " - ", accounts.name) else "None" end as parent_account'),
                 'selections.selection_id as invoice_interval_selection_id',
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)) as valid_bill_count'),
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) < cast("' . $startDate . '" as date)) as legacy_bill_count'),
-                DB::raw('(select count(distinct bills.bill_id) from line_items left join charges on charges.charge_id = line_items.charge_id left join bills on bills.bill_id = charges.bill_id where line_items.invoice_id is null and accounts.account_id = charges.charge_account_id and bills.percentage_complete = 100 and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date) and skip_invoicing = true) as skipped_bill_count'),
+                DB::raw(
+                    '(select count(distinct bills.bill_id) from line_items
+                    left join charges on charges.charge_id = line_items.charge_id
+                    left join bills on bills.bill_id = charges.bill_id
+                        where line_items.invoice_id is null
+                        and accounts.account_id = charges.charge_account_id
+                        and bills.percentage_complete = 100
+                        and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date))
+                    as valid_bill_count'
+                ),
+                DB::raw(
+                    '(select count(distinct bills.bill_id) from line_items
+                    left join charges on charges.charge_id = line_items.charge_id
+                    left join bills on bills.bill_id = charges.bill_id
+                        where line_items.invoice_id is null
+                        and accounts.account_id = charges.charge_account_id
+                        and bills.percentage_complete = 100
+                        and date(time_pickup_scheduled) < cast("' . $startDate . '" as date))
+                    as legacy_bill_count'
+                ),
+                DB::raw(
+                    '(select count(distinct bills.bill_id) from line_items
+                    left join charges on charges.charge_id = line_items.charge_id
+                    left join bills on bills.bill_id = charges.bill_id
+                        where line_items.invoice_id is null
+                        and accounts.account_id = charges.charge_account_id
+                        and bills.percentage_complete = 100
+                        and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date)
+                        and skip_invoicing = true)
+                    as skipped_bill_count'
+                ),
                 DB::raw(
                     '(select count(distinct bills.bill_id) from charges
                     left join line_items on line_items.charge_id = charges.charge_id
                     left join bills on bills.bill_id = charges.bill_id
-                        where line_items.invoice_id is null
+                        where (line_items.invoice_id is null or line_items.price = 0)
                         and accounts.account_id = charges.charge_account_id
                         and bills.percentage_complete < 100
                         and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '"as date))

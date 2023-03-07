@@ -132,7 +132,7 @@ export default function EditAccountUser(props) {
                                     readOnly={!permissions.editBasic && (!props.contactId && !props.canCreateAccountUsers)}
                                 />
                             </Tab>
-                            {(permissions.viewPermissions || permissions.editPermissions) &&
+                            {(props.contactId && permissions.viewPermissions || permissions.editPermissions) &&
                                 <Tab eventKey='permissions' title={<h4>Permissions</h4>}>
                                     <UserPermissionTab
                                         belongsTo={belongsTo}
