@@ -15,11 +15,11 @@ function AttributeTable({cell}) {
             </thead>
             <tbody>
                 {Object.keys(data.attributes).map(key => {
-                    let value = data.attributes[key]
-                    let oldValue = data?.old[key] ?? ''
+                    let value = data?.attributes[key]
+                    let oldValue = data?.old ? data.old[key] : ''
 
                     try {
-                        const parsedJSON = JSON.parse(data.attributes[key])
+                        const parsedJSON = JSON.parse(data?.attributes[key])
                         if (parsedJSON)
                             value = parsedJSON
                     } catch (e) {}
