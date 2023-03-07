@@ -49,7 +49,7 @@ function AttributeTable({cell}) {
 
 const activityLogColumns = [
     {title: 'Date Modified', field: 'updated_at', width:150},
-    {title: 'Type', field: 'subject_type', formatter: cell => {return cell.getValue().split('\\')[-1]}, headerFilter: true, width: 150},
+    {title: 'Type', field: 'subject_type', formatter: cell => {return cell.getValue().split('\\').slice(-1)[0]}, headerFilter: true, width: 150},
     {title: 'Subject ID', field: 'subject_id', width: 100},
     {title: 'Action', field: 'description', headerFilter: true, width: 100},
     {title: 'Modified By', field: 'user_name', headerFilter: true, width: 200},
