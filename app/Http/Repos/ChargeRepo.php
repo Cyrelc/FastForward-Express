@@ -59,7 +59,7 @@ class ChargeRepo {
             ],
             $this->employeeId ? [
                 DB::raw('SUM(line_items.driver_amount) as driver_amount'),
-                'charges.charge_employee_id as employee_id',
+                'charges.charge_employee_id',
             ] : []
         ));
 
