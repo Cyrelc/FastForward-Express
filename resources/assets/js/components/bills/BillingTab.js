@@ -99,10 +99,34 @@ export default function BillingTab(props) {
         const distanceRates = []
         if(activeRatesheet.distance_rates) {
             JSON.parse(activeRatesheet.distance_rates).map(rate => {
-                distanceRates.push({name: 'Regular - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.regular_cost, type: 'distanceRate', driver_amount: rate.regular_cost, paid: false})
-                distanceRates.push({name: 'Rush - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.rush_cost, type: 'distanceRate', driver_amount: rate.rush_cost, paid: false})
-                distanceRates.push({name: 'Direct - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_cost, type: 'distanceRate', driver_amount: rate.direct_cost, paid: false})
-                distanceRates.push({name: 'Direct Rush - ' + rate.zones + (rate.zones == 1 ? ' zone' : ' zones'), price: rate.direct_rush_cost, type: 'distanceRate', driver_amount: rate.direct_rush_cost, paid: false})
+                distanceRates.push({
+                    name: `Regular${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
+                    price: rate.regular_cost,
+                    type: 'distanceRate',
+                    driver_amount: rate.regular_cost,
+                    paid: false
+                })
+                distanceRates.push({
+                    name: `Rush${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
+                    price: rate.rush_cost,
+                    type: 'distanceRate',
+                    driver_amount: rate.rush_cost,
+                    paid: false
+                })
+                distanceRates.push({
+                    name: `Direct${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
+                    price: rate.direct_cost,
+                    type: 'distanceRate',
+                    driver_amount: rate.direct_cost,
+                    paid: false
+                })
+                distanceRates.push({
+                    name: `Direct Rush${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
+                    price: rate.direct_rush_cost,
+                    type: 'distanceRate',
+                    driver_amount: rate.direct_rush_cost,
+                    paid: false
+                })
             });
         }
         setRateTable(commonRates.concat(miscRates, timeRates, weightRates, distanceRates))
