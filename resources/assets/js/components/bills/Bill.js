@@ -32,7 +32,7 @@ const Bill = (props) => {
     const {accounts, billId, deliveryType, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
-    const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds} = chargeState
+    const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
     const {match: {params}} = props
@@ -339,6 +339,8 @@ const Bill = (props) => {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: pickupAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
+            if(pickupAccount?.ratesheet_id && pickupAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickupAccount.ratesheet_id)})
         }
     }, [pickupAccount])
 
@@ -348,6 +350,8 @@ const Bill = (props) => {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: deliveryAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
+            if(deliveryAccount?.ratesheet_id && deliveryAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == deliveryAccount.ratesheet_id)})
         }
     }, [deliveryAccount])
 
@@ -355,8 +359,10 @@ const Bill = (props) => {
     useEffect(() => {
         if(permissions.createBasic && billID && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
             const ratesheet = billState.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-            if(ratesheet)
+            if(ratesheet) {
+                console.log('bill dispatch', ratesheet)
                 billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+            }
         }
     }, [chargeAccount])
 

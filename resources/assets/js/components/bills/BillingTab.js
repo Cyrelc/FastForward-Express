@@ -176,7 +176,9 @@ export default function BillingTab(props) {
                                         isDisabled={readOnly}
                                         value={repeatInterval}
                                     />
-                                    <InputGroup.Text><i className='fas fa-question' title={repeatingBillsTitleText}></i></InputGroup.Text>
+                                    <InputGroup.Text>
+                                        <i className='fas fa-question' title={repeatingBillsTitleText}></i>
+                                    </InputGroup.Text>
                                 </InputGroup>
                             </Col>
                             <Col md={3}>
