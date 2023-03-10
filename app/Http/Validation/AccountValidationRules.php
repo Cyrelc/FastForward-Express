@@ -45,13 +45,18 @@ class AccountValidationRules {
 
     public function GetAccountCreditRules($req) {
         $rules = [
-            'bill_id' => 'required|numeric|exists:bills,bill_id',
             'account_id' => 'required|exists:accounts,account_id',
-            'credit_amount' => 'required|numeric'
+            'credit_amount' => 'required|numeric',
+            'track_against_type' => 'required'
         ];
+        if($req->track_against_type == 'bill')
+            $rules = array_merge($rules, ['track_against_id' => 'required|numeric|exists:bills,bill_id']);
+        else if ($req->track_against_type == 'invoice')
+            $rules = array_merge($rules, ['track_against_id' => 'required|numeric|exists:invoices,invoice_id']);
+
         $messages = [
-            'bill_id.required' => 'You must credit against a bill id',
-            'bill_id.exists' => 'Invalid bill id entered',
+            'track_against_id.required' => 'You must credit against a bill or invoice id',
+            'track_against_id.exists' => 'Invalid ID entered',
             'account_id.exists' => 'Invalid account id',
         ];
 

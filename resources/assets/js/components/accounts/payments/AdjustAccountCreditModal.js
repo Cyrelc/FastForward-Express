@@ -2,12 +2,18 @@ import React, {useState} from 'react'
 
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
 import CurrencyInput from 'react-currency-input-field'
+import Select from 'react-select'
+
+const trackAgainstOptions = [
+    {label: 'Bill ID', value: 'bill'},
+    {label: 'Invoice ID', value: 'invoice'}
+]
 
 export default function AdjustAccountCreditModal(props) {
-
     const [creditAmount, setCreditAmount] = useState('')
-    const [billId, setBillId] = useState('')
+    const [trackId, setBillId] = useState('')
     const [comment, setComment] = useState('')
+    const [trackAgainst, setTrackAgainst] = useState(trackAgainstOptions[0])
 
     const storeAccountCredit = () => {
         if(!props.canEditPayments) {
@@ -16,9 +22,10 @@ export default function AdjustAccountCreditModal(props) {
         }
         const data = {
             account_id: props.accountId,
-            bill_id: billId,
             credit_amount: creditAmount,
-            description: comment
+            description: comment,
+            track_against_type: trackAgainst.value,
+            track_against_id: trackId,
         }
         makeAjaxRequest('/accounts/adjustCredit', 'POST', data, response => {
             props.setAccountBalance(response.new_account_balance)
@@ -51,13 +58,17 @@ export default function AdjustAccountCreditModal(props) {
                     </Col>
                     <Col md={6}>
                         <InputGroup>
-                            <InputGroup.Text>Bill ID </InputGroup.Text>
+                            <Select
+                                options={trackAgainstOptions}
+                                value={trackAgainst}
+                                onChange={setTrackAgainst}
+                            />
                             <FormControl
                                 name='creditAgainstBillId'
                                 type='number'
                                 step='1'
-                                value={billId}
-                                onChange={event => setBillId(event.target.value)}
+                                value={trackId}
+                                onChange={event => setTrackId(event.target.value)}
                             />
                         </InputGroup>
                     </Col>

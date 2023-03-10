@@ -14,7 +14,7 @@ class PaymentCollector {
             'comment' => $req->description,
             'date' => date('Y-m-d'),
             'payment_type_id' => $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id,
-            'reference_value' => 'Price adjustment on bill #' . $req->bill_id,
+            'reference_value' => 'Price adjustment on ' . $req->track_against_type . ' #' . $req->track_against_id,
         ];
     }
 
