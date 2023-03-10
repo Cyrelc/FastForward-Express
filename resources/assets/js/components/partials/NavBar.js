@@ -1,5 +1,6 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar'
+import {Card} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {push} from 'connected-react-router'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
@@ -8,10 +9,9 @@ import {Link} from 'react-router-dom'
 const renderMenuItemChildren = (option, text) => {
     return (
         <Fragment>
-            <Highlighter search={text}>{option.name}</Highlighter>
-            <br/>
-            <small>Type: {option.type}</small>
-            <br/>
+            <span>
+                <strong>{option.type}: </strong><Highlighter search={text}>{option.name}</Highlighter>
+            </span>
             {option.type == 'Account' &&
                 <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
             }
@@ -57,7 +57,7 @@ const FFETypeAhead = props => {
                 return <AsyncMenu id='async-search-menu' {...props} maxHeight='90vh'>
                     {results.map((result, index) =>
                         <AsyncMenuItem key={index} option={result} position={index}>
-                            {renderMenuItemChildren(result, search.text)}
+                            {renderMenuItemChildren(result, search.text, index)}
                         </AsyncMenuItem>
                     )}
                 </AsyncMenu>
