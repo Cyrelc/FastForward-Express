@@ -2,18 +2,37 @@ import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
 import {push} from 'connected-react-router'
-import {AsyncTypeahead, Highlighter} from 'react-bootstrap-typeahead'
+import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
 import {Link} from 'react-router-dom'
 
-const objectTypes = [
-    {label: 'All', value: ''},
-    {label: 'Accounts', value: 'accounts'},
-    {label: 'Bills', value: 'bills'},
-    {label: 'Employees', value: 'employees'},
-    {label: 'Invoices', value: 'invoices'},
-    {label: 'Manifests', value: 'manifests'},
-    {label: 'User', value: 'user'}
-]
+const renderMenuItemChildren = (option, text) => {
+    return (
+        <Fragment>
+            <Highlighter search={text}>{option.name}</Highlighter>
+            <br/>
+            <small>Type: {option.type}</small>
+            <br/>
+            {option.type == 'Account' &&
+                <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
+            }
+            {option.type == 'Account User' &&
+                <SmallHighlighter search={text} text={`Email: ${option.email}`}/>
+            }
+            {option.type === 'Bill' &&
+                <SmallHighlighter search={text} text={`Bill# ${option.bill_number}`}/>
+            }
+            {option.type == 'Bill' && option.charge_reference_field_name && option.charge_reference_value &&
+                <SmallHighlighter search={text} text={`${option.charge_reference_field_name}: ${option.charge_reference_value}`}/>
+            }
+            {option.type == 'Bill' && option.delivery_reference_field_name && option.delivery_reference_value &&
+                <SmallHighlighter search={text} text={`${option.delivery_reference_field_name}: ${option.delivery_reference_value}`}/>
+            }
+            {option.type == 'Bill' && option.pickup_reference_field_name && option.pickup_reference_value &&
+                <SmallHighlighter search={text} text={`${option.pickup_reference_field_name}: ${option.pickup_reference_value}`} />
+            }
+        </Fragment>
+    )
+}
 
 const FFETypeAhead = props => {
     const {searchRef, isLoadingSearch, handleSearchSelect, performSearch, searchResults} = props
@@ -23,6 +42,7 @@ const FFETypeAhead = props => {
             ref={searchRef}
             id='react-typeahead'
             align='left'
+            debounce={2000}
             dropup
             filterBy={() => true}
             isLoading={isLoadingSearch}
@@ -33,33 +53,14 @@ const FFETypeAhead = props => {
             options={searchResults}
             placeholder="Type at least three characters to begin searching"
             positionFixed
-            renderMenuItemChildren={(option, {text}) => {
-                return (
-                    <Fragment>
-                        <Highlighter search={text}>{option.name}</Highlighter>
-                        <br/>
-                        <small>Type: {option.type}</small>
-                        <br/>
-                        {option.type == 'Account' &&
-                            <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
-                        }
-                        {option.type == 'Account User' &&
-                            <SmallHighlighter search={text} text={`Email: ${option.email}`}/>
-                        }
-                        {option.type === 'Bill' &&
-                            <SmallHighlighter search={text} text={`Bill# ${option.bill_number}`}/>
-                        }
-                        {option.type == 'Bill' && option.charge_reference_field_name && option.charge_reference_value &&
-                            <SmallHighlighter search={text} text={`${option.charge_reference_field_name}: ${option.charge_reference_value}`}/>
-                        }
-                        {option.type == 'Bill' && option.delivery_reference_field_name && option.delivery_reference_value &&
-                            <SmallHighlighter search={text} text={`${option.delivery_reference_field_name}: ${option.delivery_reference_value}`}/>
-                        }
-                        {option.type == 'Bill' && option.pickup_reference_field_name && option.pickup_reference_value &&
-                            <SmallHighlighter search={text} text={`${option.pickup_reference_field_name}: ${option.pickup_reference_value}`} />
-                        }
-                    </Fragment>
-                )
+            renderMenu={(results, props, search) => {
+                return <AsyncMenu id='async-search-menu' {...props} maxHeight='90vh'>
+                    {results.map((result, index) =>
+                        <AsyncMenuItem key={index} option={result} position={index}>
+                            {renderMenuItemChildren(result, search.text)}
+                        </AsyncMenuItem>
+                    )}
+                </AsyncMenu>
             }}
             selectHint={(shouldSelectHint, event) => {
                 if(event.key == 'Enter')
@@ -170,6 +171,8 @@ function NavBar(props) {
     }
 
     const performSearch = (query) => {
+        if(isLoadingSearch)
+            return
         setIsLoadingSearch(true)
         makeAjaxRequest(`/search?query=${query}`, 'GET', null, response => {
             setSearchResults(response)
