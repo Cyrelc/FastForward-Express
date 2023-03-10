@@ -11,7 +11,7 @@ const trackAgainstOptions = [
 
 export default function AdjustAccountCreditModal(props) {
     const [creditAmount, setCreditAmount] = useState('')
-    const [trackId, setBillId] = useState('')
+    const [trackId, setTrackId] = useState('')
     const [comment, setComment] = useState('')
     const [trackAgainst, setTrackAgainst] = useState(trackAgainstOptions[0])
 
