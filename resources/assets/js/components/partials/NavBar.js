@@ -12,6 +12,7 @@ const renderMenuItemChildren = (option, text) => {
             <span>
                 <strong>{option.type}: </strong><Highlighter search={text}>{option.name}</Highlighter>
             </span>
+            <br/>
             {option.type == 'Account' &&
                 <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
             }
