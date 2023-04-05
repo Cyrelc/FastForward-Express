@@ -15,16 +15,17 @@ const DateBetweenFilter = (props) => {
         }
         if(dates) {
             if(dates[0])
-                setStartDate(DateTime.fromFormat(dates[0], 'yyyy-mm-dd').toJSDate())
+                setStartDate(DateTime.fromFormat(dates[0], 'yyyy-MM-dd').toJSDate())
             if(dates[1])
-                setEndDate(DateTime.fromFormat(dates[1], 'yyyy-mm-dd').toJSDate())
+                setEndDate(DateTime.fromFormat(dates[1], 'yyyy-MM-dd').toJSDate())
         }
     }, [])
 
     useEffect(() => {
-        const formattedStartDate = startDate ? DateTime.fromJSDate(startDate).toFormat('yyyy-mm-dd') : ''
-        const formattedEndDate = endDate ? DateTime.fromJSDate(endDate).toFormat('yyyy-mm-dd') : ''
-        const filterQueryString = `filter[${props.filter.value}]=${formattedStartDate}${endDate ? ',' + formattedEndDate : ''}`
+        const formattedStartDate = startDate ? DateTime.fromJSDate(startDate).toFormat('yyyy-MM-dd') : ''
+        const formattedEndDate = endDate ? DateTime.fromJSDate(endDate).toFormat('yyyy-MM-dd') : ''
+        console.log(formattedStartDate, formattedEndDate)
+        const filterQueryString = `filter[${props.filter.value}]=${formattedStartDate}${endDate ? `,${formattedEndDate}` : ''}`
 
         props.handleFilterQueryStringChange({target: {name: props.filter.value, type: 'string', value: filterQueryString}})
     }, [startDate, endDate])
