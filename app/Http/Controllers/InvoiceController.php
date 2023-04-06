@@ -59,7 +59,7 @@ class InvoiceController extends Controller {
 
     public function finalize(Request $req, $invoiceIds) {
         $invoiceRepo = new Repos\InvoiceRepo();
-        $invoiceIdArray = explode(',', $invoiceIds);
+        $invoiceIdArray = json_decode($invoiceIds);
 
         foreach($invoiceIdArray as $invoiceId)
             if($req->user()->cannot('update', $invoiceRepo->GetById($invoiceId)))
