@@ -1,6 +1,5 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar'
-import {Card} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {push} from 'connected-react-router'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
