@@ -125,7 +125,7 @@
                 @if(isset($table->subtotal))
                     <tfoot style='page-break-inside: avoid'>
                         <tr>
-                            <td class='center' colspan='{{count($table->headers) - 1}}'><h3>Subtotal for {{$table_key}}</h3></td>
+                            <td class='center' colspan='{{count($table->headers) - $showPickupAndDeliveryAddress ? 1 : 2}}'><h3>Subtotal for {{$table_key}}</h3></td>
                             <td>
                                 <table class='subtotal'>
                                     <tr>

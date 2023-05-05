@@ -272,7 +272,7 @@ function Invoice(props) {
                                 )}
                                 {Object.keys(tables).length > 1 &&
                                     <tr>
-                                        <td colSpan={Object.keys(tables[key].headers).length - 2} rowSpan={3} style={{textAlign: 'center', verticalAlign: 'middle'}}>
+                                        <td colSpan={Object.keys(tables[key].headers).length - (showPickupAndDeliveryAddress ? 2 : 3)} rowSpan={3} style={{textAlign: 'center', verticalAlign: 'middle'}}>
                                             <b>Subtotal for {key}</b>
                                         </td>
                                         <td>
