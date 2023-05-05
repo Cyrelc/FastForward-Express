@@ -61,7 +61,7 @@ class GuestController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        Mail::to('dispatch@fastforwardexpress.com')->send(new RequestDelivery($req));
+        Mail::to('dispatch@fastforwardexpress.ca')->send(new RequestDelivery($req));
     }
 }
 
