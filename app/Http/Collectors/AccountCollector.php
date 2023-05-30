@@ -61,13 +61,13 @@ class AccountCollector {
     public function CollectInvoiceSortOrder($req, $accountId) {
         $invoiceSortOrder = [];
 
-        foreach($req->invoice_sort_order as $entry)
+        foreach($req->invoice_sort_order as $key => $entry)
             $invoiceSortOrder[] = [
                 'account_id' => $accountId,
-                'account_invoice_sort_order_id' => $entry['account_invoice_sort_order_id'],
-                'priority' => $entry['priority'],
+                'account_invoice_sort_order_id' => $entry['account_invoice_sort_order_id'] ?? null,
+                'priority' => $entry['priority'] ?? $key,
                 'invoice_sort_option_id' => $entry['invoice_sort_option_id'],
-                'subtotal_by' => $entry['subtotal_by']
+                'subtotal_by' => $entry['subtotal_by'] ?? false
             ];
 
         return $invoiceSortOrder;

@@ -402,7 +402,7 @@ class AccountRepo {
                     ->update($entry);
             } else {
                 $new = new AccountInvoiceSortOrder();
-                $new->create($sortOrder);
+                $new->create($entry);
             }
         }
     }
