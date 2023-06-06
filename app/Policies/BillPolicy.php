@@ -70,6 +70,10 @@ class BillPolicy
         return $user->hasAnyPermission('bills.edit.dispatch.*');
     }
 
+    public function updateDispatchMy(User $user, Bill $bill) {
+        return $user->employee && ($bill->pickup_driver_id == $employee->employee_id || $bill->delivery_driver_id == $employee->employee_id);
+    }
+
     public function updateBilling(User $user, Bill $bill) {
         return $user->hasAnyPermission('bills.edit.billing.*');
     }

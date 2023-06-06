@@ -84,7 +84,14 @@ class Bill extends Model
         'time_call_received',
         'time_dispatched',
         'time_picked_up',
-        'time_delivered'
+        'time_delivered',
+        'time_ten_foured'
+    ];
+
+    public static $driverFields = [
+        'time_delivered',
+        'time_picked_up',
+        'time_ten_foured'
     ];
 
     public static $billingFields = [

@@ -381,7 +381,8 @@ class BillRepo {
                 $query->where('time_picked_up', null)
                     ->orWhere('time_delivered', null)
                     ->orWhere('time_ten_foured', null);
-            })->select(
+            })->where('percentage_complete', '!=', 100)
+            ->select(
                 'bill_id',
                 'delivery_address.lat as delivery_address_lat',
                 'delivery_address.lng as delivery_address_lng',
@@ -669,6 +670,11 @@ class BillRepo {
                 if(($field === 'delivery_driver_id' || $field === 'delivery_driver_commission') && !$this->IsDeliveryDriverEditable($old['bill_id']))
                     continue;
                 $old->$field = $bill[$field];
+            }
+        else if($permissions['editDispatchMy'])
+            foreach(Bill::$driverFields as $field) {
+                if(isset($bill[$field]))
+                    $old->$field = $bill[$field];
             }
 
         if($permissions['editBilling'])
