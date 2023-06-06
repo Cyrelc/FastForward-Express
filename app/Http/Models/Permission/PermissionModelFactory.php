@@ -60,6 +60,7 @@ class PermissionModelFactory {
             $permissions = array_merge($permissions, [
                 'editBasic' => $user->can('updateBasic', $bill),
                 'editDispatch' => $user->can('updateDispatch', $bill),
+                'editDispatchMy' => $user->can('updateDispatchMy', $bill),
                 'editBilling' => $user->can('updateBilling', $bill),
                 'viewBasic' => $user-> can('viewBasic', $bill),
                 'viewDispatch' => $user->can('viewDispatch', $bill),
