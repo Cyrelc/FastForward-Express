@@ -65,7 +65,7 @@ body table {
                     </tr>
                     <tr>
                         <td colspan='3' style='text-align: center'>
-                            <h2>Bill # {{$model->bill->bill_id}}</h2>
+                            <h2>Bill: B{{$model->bill->bill_id}}</h2>
                         </td>
                     </tr>
                     <tr>

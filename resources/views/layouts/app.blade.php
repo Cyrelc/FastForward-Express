@@ -90,7 +90,9 @@
                 </div>
 
                 <div id="feedback-state-error">
-                    <p class="text-warning"><i class="fa fa-exclamation-triangle"></i> Something went wrong in submitting your feedback. Please give us this error message: <blockquote id="err-msg">No error message provided.</blockquote></p>
+                    <p class="text-warning">
+                        <i class="fa fa-exclamation-triangle"></i> Something went wrong in submitting your feedback. Please give us this error message: <blockquote id="err-msg">No error message provided.</blockquote>
+                    </p>
                 </div>
             </div>
         </div><!-- /.modal-content -->
