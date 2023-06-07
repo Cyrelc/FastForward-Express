@@ -14,6 +14,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post(
+Route::middleware(['guest'])->post(
     '/login', 'Auth\LoginController@getSanctumToken'
 );
