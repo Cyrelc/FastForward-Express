@@ -39,7 +39,8 @@ class BillCollector {
 				'time_call_received' => (new \DateTime($req->time_call_received))->format('Y-m-d H:i:s'),
 				'time_delivered' => $req->time_delivered == "" ? null : (new \DateTime($req->time_delivered))->format('Y-m-d H:i:s'),
 				'time_dispatched' => $req->time_dispatched == "" ? null : (new \DateTime($req->time_dispatched))->format('Y-m-d H:i:s'),
-				'time_picked_up' => $req->time_picked_up == "" ? null : (new \DateTime($req->time_picked_up))->format('Y-m-d H:i:s')
+				'time_picked_up' => $req->time_picked_up == "" ? null : (new \DateTime($req->time_picked_up))->format('Y-m-d H:i:s'),
+				'time_ten_foured' => empty($req->time_ten_foured) ? null : (new \DateTime($req->time_ten_foured))->format('Y-m-d H:i:s')
 			]);
 
 		if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editBilling']) && $permissions['editBilling']))
