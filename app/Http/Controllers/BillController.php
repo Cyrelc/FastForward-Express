@@ -236,8 +236,9 @@ class BillController extends Controller {
         }
 
         unlink($inputFile);
-        unlink($headerFile);
         unlink($footerFile);
+        if(file_exists($headerFile))
+            unlink($headerFile);
 
         return response()->file($outputFile);
     }
