@@ -15,4 +15,7 @@ config/database.php
 composer.lock
 package-lock.json
 resources/assets/passwordSeed.txt
+/storage/bills
+/storage/invoices
+/storage/manifests
 

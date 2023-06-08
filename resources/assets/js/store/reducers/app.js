@@ -10,7 +10,6 @@ const initialState = {
     accounts: [],
     drivers: [],
     employees: [],
-    employees: [],
     invoiceIntervals: [],
     parentAccounts: [],
     paymentTypes: [],

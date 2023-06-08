@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class CreditCard extends Model {
     use LogsActivity;
@@ -16,9 +17,12 @@ class CreditCard extends Model {
         'data_key'
     ];
 
-    protected static $logFillable = true;
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
+    public function getActivityLogOptions() : LogOptions {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public function account() {
         return $this->belongsTo(Account::class);

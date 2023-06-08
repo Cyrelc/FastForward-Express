@@ -3,6 +3,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\ActivityLog\LogOptions;
 
 class Contact extends Model
 {
@@ -13,9 +14,12 @@ class Contact extends Model
 
     protected $fillable = ['first_name', 'last_name', 'position', 'enabled'];
 
-    protected static $logFillable = true;
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
+    public function getActivityLogOptions() : LogOptions {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     public function accounts() {
         return $this->belongsToMany(Account::class, 'account_users');

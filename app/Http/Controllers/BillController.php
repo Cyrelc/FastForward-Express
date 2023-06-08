@@ -10,7 +10,6 @@ use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Models\Bill;
 use App\Http\Models\Permission;
-use Nesk\Puphpeteer\Puppeteer;
 
 use DB;
 use Illuminate\Http\Request;
@@ -172,7 +171,6 @@ class BillController extends Controller {
         if($req->user()->cannot('viewBasic', $bill))
             abort(403);
 
-        $puppeteer = new Puppeteer;
         $billModelFactory = new Bill\BillModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();
 
@@ -185,7 +183,9 @@ class BillController extends Controller {
         $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
         mkdir($path, 0777, true);
 
-        $model = $printBillAsInvoice ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions) : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+        $model = $printBillAsInvoice
+            ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions)
+            : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
         if($printBillAsInvoice) {
             $amendmentsOnly = false;
@@ -197,15 +197,20 @@ class BillController extends Controller {
             $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
         }
 
-        file_put_contents($path . $fileName . '.html', $file);
-        $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
-        $page->goto('file://' . $path . $fileName . '.html');
+        $inputFile = $path . $fileName . '.html';
+        $outputFile = $path . $fileName . '.pdf';
+        $headerFile = $path . $fileName . '-header.html';
+        $footerFile = $path . $fileName . '-footer.html';
+        $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
+
+        file_put_contents($inputFile, $file);
+        file_put_contents($footerFile, view($printBillAsInvoice ? 'invoices.invoice_table_footer' : 'bills.bill_footer')->render());
         if($printBillAsInvoice)
-            $page->addStyleTag(['path' => public_path('css/invoice_pdf.css')]);
-        $page->pdf([
+            file_put_contents($headerFile, view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render());
+
+        $options = json_encode([
+            'path' => $outputFile,
             'displayHeaderFooter' => true,
-            'footerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_footer')->render() : view('bills.bill_footer')->render(),
-            'headerTemplate' => $printBillAsInvoice ? view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render() : '',
             'landscape' => !$printBillAsInvoice,
             'margin' => [
                 'top' => $printBillAsInvoice ? 80 : 0,
@@ -213,13 +218,28 @@ class BillController extends Controller {
                 'left' => 30,
                 'right' => 30
             ],
-            'path' => $path . $fileName . '.pdf',
             'printBackground' => true
-        ]);
+        ], JSON_UNESCAPED_SLASHES);
 
-        unlink($path . $fileName . '.html');
+        $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
+        $command .= ' --footer ' . $footerFile;
+        $command .= ' --pdfOptions "' . preg_replace('/\s+/', '', json_encode($options)) . '"';
 
-        return response()->file($path . $fileName . '.pdf');
+        if($printBillAsInvoice) {
+            $command .= ' --header ' . $headerFile;
+            $command .= ' --stylesheet ' . public_path('css/invoice_pdf.css');
+        }
+
+        exec($command, $output, $returnCode);
+        if($returnCode != 0 || !file_exists($outputFile)) {
+            dd($returnCode, $output);
+        }
+
+        unlink($inputFile);
+        unlink($headerFile);
+        unlink($footerFile);
+
+        return response()->file($outputFile);
     }
 
     public function store(Request $req) {

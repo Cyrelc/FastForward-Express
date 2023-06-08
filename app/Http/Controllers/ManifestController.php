@@ -10,7 +10,6 @@ use Response;
 use App\Http\Repos;
 use App\Http\Models\Manifest;
 use Illuminate\Http\Request;
-use Nesk\Puphpeteer\Puppeteer;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
@@ -168,7 +167,6 @@ class ManifestController extends Controller {
 
     private function preparePdfs(Request $req, $manifestIds) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
-        $puppeteer = new Puppeteer;
 
         $withoutBills = isset($req->without_bills);
 
@@ -184,15 +182,19 @@ class ManifestController extends Controller {
 
             $fileName = $model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '-' . $model->manifest->manifest_id;
 
+            $inputFile = $path . $fileName . '.html';
+            $outputFile = $path . $fileName . '.pdf';
+            $headerFile = $path . $fileName . '-header.html';
+            $footerFile = $path . $fileName . '-footer.html';
+            $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
+
             $file = view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render();
-            file_put_contents($path . $fileName . '.html', $file);
-            $page = $puppeteer->launch(['args' => ['--no-sandbox']])->newPage();
-            $page->goto('file://' . $path . $fileName . '.html');
-            $page->addStyleTag(['path' => public_path('css/manifest_pdf.css')]);
-            $page->pdf([
+            file_put_contents($inputFile, $file);
+            file_put_contents($headerFile, view('manifests.manifest_pdf_header', compact('model'))->render());
+            file_put_contents($footerFile, view('manifests.manifest_pdf_footer')->render());
+
+            $options = json_encode([
                 'displayHeaderFooter' => true,
-                'footerTemplate' => view('manifests.manifest_pdf_footer')->render(),
-                'headerTemplate' => view('manifests.manifest_pdf_header', compact('model'))->render(),
                 'margin' => [
                     'top' => 80,
                     'bottom' => 70,
@@ -203,7 +205,19 @@ class ManifestController extends Controller {
                 'printBackground' => true,
             ]);
 
-            unlink($path . $fileName . '.html');
+            $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
+            $command .= ' --header ' . $headerFile;
+            $command .= ' --footer ' . $footerFile;
+            $command .= ' --stylesheet ' . public_path('css/manifest_pdf.css');
+            $command .= ' --pdfOptions "' . json_encode($options) . '"';
+
+            exec($command, $output, $returnCode);
+            if($returnCode != 0 || !file_exists($outputFile))
+                dd($returnCode, $output);
+
+            unlink($inputFile);
+            unlink($headerFile);
+            unlink($footerFile);
 
             $files[$fileName] = $path . $fileName . '.pdf';
         }

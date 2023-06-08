@@ -6,18 +6,15 @@
     "type": "project",
     "require": {
         "php": ">=7.4.0",
-        "laravel/framework": "^8.0",
+        "laravel/framework": "^9.0",
         "doctrine/dbal": "^2.5",
-        "spatie/laravel-activitylog": "^3.1",
+        "spatie/laravel-activitylog": "^4.0",
         "fideloper/proxy": "^4.0",
-        "spatie/laravel-query-builder": "^3.0",
         "laravel/ui": "^3.0",
         "pusher/pusher-php-server": "^7.2",
-        "spatie/laravel-permission": "^4.0",
         "tecnickcom/tcpdf": "^6.4",
         "aws/aws-sdk-php": "^3.198",
         "laravel/sanctum": "^2.15",
-        "nesk/puphpeteer": "^2.0",
         "laravel/tinker": "^2.7",
         "stripe/stripe-php": "^8.12",
         "laravel/cashier": "^13.13",
@@ -25,7 +22,9 @@
         "webklex/laravel-pdfmerger": "^1.3",
         "jwadhams/json-logic-php": "^1.5",
         "madorin/matex": "^1.0",
-        "beyondcode/laravel-websockets": "^1.14"
+        "beyondcode/laravel-websockets": "^1.14",
+        "spatie/laravel-permission": "^5.10",
+        "spatie/laravel-query-builder": "^5.2"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

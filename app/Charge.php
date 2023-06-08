@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\ActivityLog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Charge extends Model {
     use LogsActivity;
@@ -31,7 +32,10 @@ class Charge extends Model {
         return $this->belongsTo(Account::class, 'charge_account_id');
     }
 
-    protected static $logFillable = true;
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
+    public function getActivityLogOptions() : LogOptions {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 }

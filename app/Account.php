@@ -5,6 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Billable;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\ActivityLog\LogOptions;
 
 class Account extends Model
 {
@@ -40,10 +41,6 @@ class Account extends Model
         'show_pickup_and_delivery_address',
         'start_date',
     ];
-
-    protected static $logFillable = true;
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
 
     public function contacts() {
         return $this->belongsToMany('App\Contact', 'account_users');
@@ -92,4 +89,12 @@ class Account extends Model
      * Readonly fields - we must distinguish because some fields must be *visible* to all users, but are not *editable* by those users
      */
     public static $readOnlyFields = ['active', 'account_number', 'parent_account_id', 'created_at', 'updated_at'];
+
+
+    public function getActivityLogOptions() : LogOptions {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 }

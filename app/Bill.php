@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Bill extends Model
 {
@@ -48,11 +49,6 @@ class Bill extends Model
         'time_delivered',
         'use_imperial'
     ];
-
-    protected static $ignoreChangedAttributes = ['percentage_complete'];
-    protected static $logFillable = true;
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
 
     //editable fields
     public static $basicFields = [
@@ -124,5 +120,13 @@ class Bill extends Model
 
     public function deliveryAddress() {
         return $this->hasOne(Address::class, 'address_id', 'delivery_address_id');
+    }
+
+    public function getActivityLogOptions() : LogOptions {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->dontLogIfAttributesChangedOnly(['percentage_complete']);
     }
 }

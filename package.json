@@ -60,6 +60,7 @@
         "laravel-echo": "^1.10.0",
         "lodash": "^4.17.21",
         "luxon": "^2.4.0",
+        "mathjs": "^11.5.1",
         "polylabel": "^1.1.0",
         "pusher-js": "^6.0.3",
         "query-string": "^7.1.2",
@@ -83,6 +84,7 @@
         "redux-thunk": "^2.3.0",
         "save": "^2.4.0",
         "snazzy-info-window": "^1.1.1",
-        "tempusdominus-core": "^5.19.0"
+        "tempusdominus-core": "^5.19.0",
+        "yargs": "^17.7.2"
     }
 }
