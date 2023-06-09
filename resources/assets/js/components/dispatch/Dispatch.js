@@ -133,7 +133,11 @@ export default function Dispatch(props) {
             broadcaster: 'pusher',
             key: 'c6a722255496d5cc54e4',
             cluster: 'us3',
-            forceTLS: true
+            forceTLS: false,
+            wsHost: window.location.hostname,
+            wsPort: 6001,
+            //uncomment/enable when using TLS
+            encrypted: true,
         })
 
         window.echo.private('dispatch')
