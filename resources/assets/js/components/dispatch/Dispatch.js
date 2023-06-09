@@ -134,10 +134,11 @@ export default function Dispatch(props) {
             key: 'c6a722255496d5cc54e4',
             cluster: 'us3',
             forceTLS: false,
-            wsHost: window.location.hostname,
-            wsPort: 6001,
-            //uncomment/enable when using TLS
-            encrypted: true,
+            // enable when using laravel-websockets
+            // wsHost: window.location.hostname,
+            // wsPort: 6001,
+            // //enable when using SSL
+            // encrypted: true,
         })
 
         window.echo.private('dispatch')
