@@ -74,8 +74,12 @@ export default function Phones(props) {
                             <tr key={index}>
                                 <td>
                                     <ButtonGroup size='sm'>
-                                        <Button title='Set as primary' disabled={phone.is_primary || props.readOnly} onClick={() => setPrimaryPhone(index)}><i className={phone.is_primary ? 'fas fa-star' : 'far fa-star'}></i></Button>
-                                        <Button title='Delete' variant='danger' disabled={phone.is_primary || props.readOnly} onClick={() => deletePhone(index)}><i className='fas fa-trash'></i></Button>
+                                        <Button title='Set as primary' disabled={phone.is_primary || props.readOnly} onClick={() => setPrimaryPhone(index)}>
+                                            <i className={phone.is_primary ? 'fas fa-star' : 'far fa-star'}></i>
+                                        </Button>
+                                        <Button title='Delete' variant='danger' disabled={phone.is_primary || props.readOnly} onClick={() => deletePhone(index)}>
+                                            <i className='fas fa-trash'></i>
+                                        </Button>
                                     </ButtonGroup>
                                 </td>
                                 <td>
