@@ -29,7 +29,13 @@ class Accounts extends Component {
             {title: 'Start Date', field: 'start_date', visible: false},
             {title: 'Invoice Interval', field: 'invoice_interval'},
             {title: 'Primary Contact', field: 'primary_contact_name'},
-            {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false},
+            {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false, formatter: (cell) => {
+                const cleaned = ('' + cell.getValue()).replace(/\D/g, '')
+                const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
+                if (match)
+                    return `(${match[1]}) ${match[2]}-${match[3]}`
+                return cell.getValue()
+            }},
             {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
             {title: 'Shipping Address', field: 'shipping_address', visible: false},
             {title: 'Billing Address Name', field: 'billing_address_name'},

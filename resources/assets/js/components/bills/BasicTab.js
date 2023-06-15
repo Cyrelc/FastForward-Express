@@ -291,10 +291,18 @@ export default function BasicTab(props) {
                         <InputGroup>
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
                             <Select
-                                options={deliveryTypes}
-                                getOptionLabel={type => `${type.friendlyName} (Est. ~${type.time} hours)`}
-                                getOptionValue={type => type.id}
-                                value={deliveryTypes.find(dt => dt.id === deliveryType.id)}
+                                options={deliveryTypes.map((type, index) => {
+                                    return {
+                                        label: `${type.friendlyName} (Est. ~ ${type.time} hours)`,
+                                        value: type.id,
+                                        key: index
+                                    }
+                                })}
+                                value={{
+                                    label: `${deliveryType.friendlyName} (Est. ~${deliveryType.time} hours)`,
+                                    value: deliveryType.id,
+                                    key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
+                                }}
                                 onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}
                                 isDisabled={readOnly || isInvoiced}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
