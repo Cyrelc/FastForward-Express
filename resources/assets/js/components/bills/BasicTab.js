@@ -303,7 +303,7 @@ export default function BasicTab(props) {
                                     value: deliveryType.id,
                                     key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
                                 }}
-                                onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: item})}
+                                onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: deliveryTypes[item.key]})}
                                 isDisabled={readOnly || isInvoiced}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
                             />
