@@ -9,16 +9,27 @@ export default function SchedulingTab(props) {
     const addBlockedDate = () => {
         const data = {date: blockedDate.toLocaleString('en-CA'), name: blockedDateName}
         makeAjaxRequest(`/appsettings/scheduling/blockedDates`, 'POST', data, response => {
-            response = JSON.parse(response)
-            props.setBlockedDates(response.blocked_dates)
+            props.setBlockedDates(response.blocked_dates.map(date => {
+                return {
+                    ...date,
+                    date: Date.parse(date.value)
+                }
+            }))
             setBlockedDate(new Date())
             setBlockedDateName('')
         })
     }
 
-    const deleteBlockedDate = (blockedDate) => {
-        const blockedDates = props.blockedDates.filter(date => date.date != blockedDate.date)
-        props.setBlockedDates(blockedDates)
+    const deleteBlockedDate = blockedDate => {
+        if(confirm(`You are about to delete date ${blockedDate.name}. This action can not be undone`)) {
+            makeAjaxRequest(`/appsettings/scheduling/blockedDates/${blockedDate.id}`, 'DELETE', null, response => {
+                response = JSON.parse(response)
+                const blockedDates = response.blocked_dates.map(blocked => {
+                    return {...blocked, date: Date.parse(blocked.value)}
+                })
+                props.setBlockedDates(blockedDates)
+            })
+        }
     }
 
     return (
@@ -75,7 +86,7 @@ export default function SchedulingTab(props) {
                                 {props.blockedDates && props.blockedDates.map(date =>
                                     <tr key={date.date}>
                                         <td>
-                                            <Button variant='danger' size='sm'>
+                                            <Button variant='danger' size='sm' onClick={() => deleteBlockedDate(date)}>
                                                 <i className='fas fa-trash'></i>
                                             </Button>
                                         </td>

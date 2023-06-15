@@ -13,6 +13,19 @@ use App\Http\Models\Chart;
 use App\Http\Repos;
 
 Class AdminController extends Controller {
+    public function DeleteAppSetting(Request $req, $appSettingId) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $appSettingRepo = new Repos\ApplicationSettingsRepo();
+        $appSettingRepo->Delete($appSettingId);
+
+        $adminModelFactory = new Admin\AdminModelFactory();
+        $model = $adminModelFactory->GetAppSettingsModel();
+
+        return json_encode($model);
+    }
+
     public function getAccountsReceivable(Request $req, $startDate, $endDate) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
