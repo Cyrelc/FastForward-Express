@@ -72,7 +72,7 @@ class RatesheetRepo {
     public function GetForBillsPage($accountId = null, $children = false) {
         $fieldArray = array('name', 'ratesheet_id', 'delivery_types');
         if(Auth::user()->can('createFull', Bill::class) || Auth::user()->can('viewBilling', Bill::class))
-            $fieldArray = array_merge($fieldArray, array('zone_rates as distance_rates', 'misc_rates', 'weight_rates', 'time_rates'));
+            $fieldArray = array_merge($fieldArray, array('zone_rates as distance_rates', 'misc_rates', 'weight_rates', 'time_rates', 'use_internal_zones_calc'));
 
         $ratesheets = Ratesheet::select($fieldArray);
 

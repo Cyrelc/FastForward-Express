@@ -86,10 +86,10 @@ export default function BillingTab(props) {
     useEffect(() => {
         if(!activeRatesheet)
             return []
-        const miscRates = activeRatesheet.miscRates
+        const miscRates = activeRatesheet.misc_rates
             ? JSON.parse(activeRatesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price, paid: false}})
             : []
-        const timeRates = activeRatesheet.timeRates
+        const timeRates = activeRatesheet.time_rates
             ? JSON.parse(activeRatesheet.time_rates).map(rate => {return {...rate, type: 'timeRate', driver_amount: rate.price, paid: false}})
             : []
         const weightRates = activeRatesheet.weight_rates
