@@ -50,7 +50,6 @@ class ChargebackController extends Controller {
         $rules = $chargebackRules->GetValidationRules();
         $this->validate($req, $rules['rules'], $rules['messages']);
 
-
         if($req->chargeback_id)
             $chargebackRepo->Update($req);
         else

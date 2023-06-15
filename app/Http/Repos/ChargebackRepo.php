@@ -134,7 +134,7 @@ class ChargebackRepo {
             if(isset($req->$field))
                 $chargeback->$field = $req->$field;
 
-        $chargeback->description = $req->description ? null : $req->description;
+        $chargeback->description = $req->description ?? null;
         $chargeback->gl_code = $req->gl_code === '' ? null : $req->gl_code;
         $chargeback->start_date = new \DateTime($req->start_date);
         $chargeback->continuous = filter_var($req->continuous, FILTER_VALIDATE_BOOLEAN);
