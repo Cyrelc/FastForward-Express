@@ -33,7 +33,13 @@ class Employees extends Component {
             {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/', this.props.redirect), sorter: 'number'},
             {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/app/employees/', this.props.redirect, null, 'employee_id')},
             {title: 'Employee Name', field: 'employee_name'},
-            {title: 'Primary Phone', field: 'primary_phone'},
+            {title: 'Primary Phone', field: 'primary_phone', headerSort: false, formatter: (cell) => {
+                const cleaned = ('' + cell.getValue()).replace(/\D/g, '')
+                const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
+                if (match)
+                    return `(${match[1]}) ${match[2]}-${match[3]}`
+                return cell.getValue()
+            }},
             {title: 'Primary Email', field: 'primary_email'},
         ]
         const adminColumns = this.props.frontEndPermissions.employees.edit ? [
