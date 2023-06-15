@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {push, routerMiddleware} from 'connected-react-router'
+import {push} from 'connected-react-router'
 import {DateTime} from 'luxon'
 
 import ReduxTable from '../partials/ReduxTable'

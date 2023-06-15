@@ -18,6 +18,7 @@ function Invoice(props) {
     const [accountOwing, setAccountOwing] = useState('')
     const [amendments, setAmendments] = useState([])
     const [billCountWithMissedLineItems, setBillCountWithMissedLineItems] = useState(0)
+    const [hideOutstandingInvoices, setHideOutstandingInvoices] = useState(false)
     const [invoice, setInvoice] = useState({})
     const [isFinalized, setIsFinalized] = useState(true)
     const [isLoading, setIsLoading] = useState(true)
@@ -25,6 +26,7 @@ function Invoice(props) {
     const [parent, setParent] = useState({})
     const [permissions, setPermissions] = useState({})
     const [prevInvoiceId, setPrevInvoiceId] = useState(null)
+    const [queryString, setQueryString] = useState('')
     const [showLineItems, setShowLineItems] = useState(true)
     const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
     const [tables, setTables] = useState([])
@@ -36,9 +38,13 @@ function Invoice(props) {
         getInvoice(params?.invoiceId)
     }, [params.invoiceId])
 
+    useEffect(() => {
+        setQueryString(`?show_line_items=${showLineItems}&amendments_only=${amendmentsOnly}&hide_outstanding_invoices=${hideOutstandingInvoices}&showPickupAndDeliveryAddress=${showPickupAndDeliveryAddress}`)
+    }, [showLineItems, showPickupAndDeliveryAddress, hideOutstandingInvoices, amendmentsOnly])
+
     const getInvoice = () => {
         setIsLoading(true)
-        makeAjaxRequest('/invoices/getModel/' + props.match.params.invoiceId, 'GET', null, response => {
+        makeAjaxRequest(`/invoices/getModel/${props.match.params.invoiceId}`, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = `View Invoice ${response.invoice.invoice_id}`
             const thisInvoiceIndex = props.sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)
@@ -125,6 +131,13 @@ function Invoice(props) {
                     checked={showPickupAndDeliveryAddress}
                     onChange={() => setShowPickupAndDeliveryAddress(!showPickupAndDeliveryAddress)}
                 />
+                <FormCheck
+                    type='switch'
+                    name='hideOutstandingInvoices'
+                    label='Hide Outstanding Invoices'
+                    checked={hideOutstandingInvoices}
+                    onChange={() => setHideOutstandingInvoices(!hideOutstandingInvoices)}
+                />
                 {amendments?.length &&
                     <FormCheck
                         type='switch'
@@ -138,7 +151,7 @@ function Invoice(props) {
             <Col md={4} style={{textAlign: 'right'}}>
                 <ButtonGroup>
                     <Button
-                        href={invoice ? `/invoices/print/${invoice.invoice_id}?show_line_items=${showLineItems}&amendments_only=${amendmentsOnly}&show_pickup_and_delivery_address=${showPickupAndDeliveryAddress}` : null}
+                        href={invoice ? `/invoices/print/${invoice.invoice_id}${queryString}` : null}
                         target='_blank'
                         variant='success'
                     ><i className='fas fa-print'> Generate PDF</i></Button>
@@ -347,7 +360,7 @@ function Invoice(props) {
                             </Table>
                         </Col>
                     }
-                    {unpaidInvoices &&
+                    {(unpaidInvoices && !hideOutstandingInvoices) &&
                         <Col md={11}>
                             <b>All Invoices with Balance Owing for Account {parent?.name}</b>
                             <Table striped bordered size='sm'>

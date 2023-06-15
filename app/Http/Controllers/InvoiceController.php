@@ -166,13 +166,14 @@ class InvoiceController extends Controller {
             abort(403);
 
         $amendmentsOnly = $req->amendments_only ?? false;
+        $hideOutstandingInvoices = $req->hideOutstandingInvoices ?? false;
         $showLineItems = $req->show_line_items ?? false;
         $showPickupAndDeliveryAddress = $req->show_pickup_and_delivery_address ?? false;
 
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
-        return view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems'));
+        return view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'hideOutstandingInvoices', 'showPickupAndDeliveryAddress'));
     }
 
     public function regather(Request $req, $invoiceId) {
@@ -230,8 +231,10 @@ class InvoiceController extends Controller {
                 abort(403);
 
             $fileName = preg_replace('/\s+/', '_', $model->parent->name) . '-' . $model->invoice->invoice_id;
+            $fileName = str_replace('&', '', $fileName);
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
+            $hideOutstandingInvoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_outstanding_invoices, FILTER_VALIDATE_BOOLEAN) : true;
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
@@ -241,7 +244,7 @@ class InvoiceController extends Controller {
             $footerFile = $path . $fileName . '-footer.html';
             $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
-            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress'))->render();
+            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render();
 
             file_put_contents($inputFile, $file);
             file_put_contents($headerFile, view('invoices.invoice_table_header', compact('model'))->render());
@@ -263,11 +266,11 @@ class InvoiceController extends Controller {
             $command .= ' --header ' . $headerFile;
             $command .= ' --footer ' . $footerFile;
             $command .= ' --stylesheet ' . public_path('css/invoice_pdf.css');
-            $command .= ' --pdfOptions "' . preg_replace('/\s+/', '', json_encode($options)) . '"';
+            $command .= ' --pdfOptions ' . preg_replace('/\s+/', '', json_encode($options));
 
             exec($command, $output, $returnCode);
             if($returnCode != 0 || !file_exists($outputFile))
-                dd($returnCode, $output);
+                dd($returnCode, $output, $command);
 
             unlink($inputFile);
             unlink($headerFile);

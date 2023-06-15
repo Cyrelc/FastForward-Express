@@ -195,7 +195,7 @@
     </table>
 @endif
 <div>
-    @if(count($model->unpaid_invoices) > 0)
+    @if($hideOutstandingInvoices == false && count($model->unpaid_invoices) > 0)
     <table class='unpaid_invoices'>
         <thead>
             <tr>
