@@ -5,7 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Billable;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\ActivityLog\LogOptions;
+use Spatie\Activitylog\LogOptions;
 
 class Account extends Model
 {

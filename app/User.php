@@ -4,10 +4,11 @@ namespace App;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\ActivityLog\LogOptions;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
+
 
 class User extends Authenticatable
 {
@@ -46,7 +47,7 @@ class User extends Authenticatable
         return $this->hasOne('App\Employee', 'user_id');
     }
 
-    public function getActivityLogOptions() : LogOptions {
+    public function getActivitylogOptions() : LogOptions {
         return LogOptions::defaults()
             ->logFillable()
             ->logOnlyDirty()
