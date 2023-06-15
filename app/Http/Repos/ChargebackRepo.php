@@ -4,12 +4,14 @@ namespace App\Http\Repos;
 use DB;
 use App\Chargeback;
 use App\DriverChargeback;
+use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\AllowedFilter;
+
+use App\Http\Filters\ChargebackFilters\Active;
 
 class ChargebackRepo {
-    public function ListAll() {
-        $chargebacks = Chargeback::where('continuous', 1)
-            ->orWhere('count_remaining', '>', 0)
-            ->leftjoin('employees', 'employees.employee_id', '=', 'chargebacks.employee_id')
+    public function ListAll($req) {
+        $chargebacks = Chargeback::leftjoin('employees', 'employees.employee_id', '=', 'chargebacks.employee_id')
             ->leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
             ->select(
                 'chargeback_id',
@@ -23,6 +25,13 @@ class ChargebackRepo {
                 'gl_code',
                 'amount'
             );
+
+        $filteredChargebacks = QueryBuilder::for($chargebacks)
+            ->allowedFilters([
+                AllowedFilter::custom('active', new Active),
+                AllowedFilter::exact('employee_id', 'chargebacks.employee_id'),
+                // AllowedFilter::custom('manifested', new Manifested)
+            ]);
 
         return $chargebacks->get();
     }

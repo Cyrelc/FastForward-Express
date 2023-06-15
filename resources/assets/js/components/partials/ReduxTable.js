@@ -28,6 +28,8 @@ export default class ReduxTable extends Component {
     // Those filters that are matched, are set to active
     componentDidMount() {
         document.title = this.props.pageTitle + ' - Fast Forward Express'
+        if(this.props.groupBy)
+            this.handleGroupByChange(this.props.groupBy)
         this.refreshTable()
     }
 

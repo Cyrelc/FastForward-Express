@@ -1,11 +1,19 @@
-import React, {useEffect, useState} from 'react'
+import React, {Fragment, useEffect, useState} from 'react'
 import { connect } from 'react-redux'
+import {push} from 'connected-react-router'
 
 import ChargebackModal from './ChargebackModal'
-import Table from '../partials/Table'
+// import Table from '../partials/Table'
+import Table from '../partials/ReduxTable'
+import { SET_BILLS_TABLE_LOADING } from '../../store/actions'
 
-const groupBy = 'employee_id'
-
+const groupBy = {
+    label: 'Employee ID',
+    value: 'employee_id',
+    groupHeader: (value, count, data, group) => {
+        return `${data[0].employee_number} - ${data[0].employee_name} <span style="color: navy">${count}</span>`;
+    }
+}
 const groupByOptions = [
     {
         label: 'Employee ID',
@@ -17,10 +25,15 @@ const groupByOptions = [
 
 const initialSort = [{column: 'chargeback_id', dir: 'desc'}]
 
-const Chargebacks = props => {
+function Chargebacks(props) {
     const [showChargebackModal, setShowChargebackModal] = useState(false)
     const [refreshTable, setRefreshTable] = useState(true)
     const [chargeback, setChargeback] = useState({})
+    const [chargebacks, setChargebacks] = useState([])
+    const [queryString, setQueryString] = useState('')
+    // We don't actually use this sorted list, but it is required for the <Table> component
+    const [sortedList, setSortedList] = useState([])
+    const [tableLoading, setTableLoading] = useState(false)
 
     const cellContextMenu = cell => {
         const stuff = [
@@ -46,9 +59,33 @@ const Chargebacks = props => {
             })
     }
 
-    const toggleRefreshTable = () => {
-        setRefreshTable(!refreshTable)
+    const fetchTableData = () => {
+        setTableLoading(true)
+        makeAjaxRequest(`/chargebacks${queryString}`, 'GET', null, response => {
+            response = JSON.parse(response)
+            setChargebacks(response)
+            setTableLoading(false)
+        }, error => {
+            setTableLoading(false)
+            handleErrorResponse(error)
+        })
     }
+
+    const filters = [
+        {
+            name: 'Active',
+            type: 'BooleanFilter',
+            value: 'active',
+            default: true
+        },
+        {
+            isMulti: true,
+            name: 'Employee',
+            selections: props.employees,
+            type: 'SelectFilter',
+            value: 'employee_id'
+        }
+    ]
 
     const toggleModal = () => {
         setShowChargebackModal(!showChargebackModal)
@@ -75,46 +112,42 @@ const Chargebacks = props => {
     ]
 
     return (
-        <div>
+        <Fragment>
             <Table
-                baseRoute='/chargebacks'
                 columns={columns}
-                createObjectFunction={() => {
-                    setChargeback({})
-                    setShowChargebackModal(true)
-                }}
-                filters={[
-                    {
-                        isMulti: true,
-                        name: 'Employee',
-                        selections: props.employees,
-                        type: 'SelectFilter',
-                        value: 'employee_id'
-                    }
-                ]}
+                dataUrl='/chargebacks'
+                defaultQueryString='?filter[active]=true'
+                fetchTableData={fetchTableData}
+                filters={filters}
+                // TODO: fix initial groupBy
                 groupBy={groupBy}
                 groupByOptions={groupByOptions}
+                indexName='chargeback_id'
                 initalSort={initialSort}
                 pageTitle='Chargebacks'
-                refreshTable={refreshTable}
-                location={props.location}
-                history={props.history}
-                toggleRefreshTable={toggleRefreshTable}
+                reduxQueryString={queryString}
+                redirect={props.redirect}
+                setReduxQueryString={setQueryString}
+                setSortedList={setSortedList}
+                tableData={chargebacks}
+                tableLoading={tableLoading}
             />
             <ChargebackModal
                 chargeback={chargeback}
                 employees={props.employees}
-                toggleRefreshTable={toggleRefreshTable}
+                fetchTableData={fetchTableData}
 
                 show={showChargebackModal}
                 toggleModal={toggleModal}
             />
-        </div>
+        </Fragment>
     )
 }
 
-const matchDispatchToProps = store => {
-    return {}
+const matchDispatchToProps = dispatch => {
+    return {
+        redirect: url=>dispatch(push(url)),
+    }
 }
 
 const mapStateToProps = store => {

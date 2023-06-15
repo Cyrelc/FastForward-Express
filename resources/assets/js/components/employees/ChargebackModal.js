@@ -52,7 +52,7 @@ export default function ChargebackModal(props) {
             name: chargebackName
         }
         makeAjaxRequest('/chargebacks', 'POST', data, response => {
-            props.toggleRefreshTable()
+            props.fetchTableData()
             props.toggleModal()
         })
     }

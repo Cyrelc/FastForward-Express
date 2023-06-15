@@ -30,7 +30,7 @@ class ChargebackController extends Controller {
             abort(403);
 
         $chargebackRepo = new Repos\ChargebackRepo();
-        $chargebacks = $chargebackRepo->ListAll();
+        $chargebacks = $chargebackRepo->ListAll($req);
 
         return json_encode($chargebacks);
     }
