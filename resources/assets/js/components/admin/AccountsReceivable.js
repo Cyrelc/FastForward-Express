@@ -96,7 +96,8 @@ export default function AccountsReceivable(props) {
                             options={{
                                 columnCalcs: 'both',
                                 groupBy: 'type',
-                                printStyled: true
+                                printStyled: true,
+                                printHeader: `<h3>${startDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})} to ${endDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</h3>`
                             }}
                         />
                     </Card.Body>
