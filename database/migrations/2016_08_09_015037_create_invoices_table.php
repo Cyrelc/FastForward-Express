@@ -14,7 +14,7 @@ class CreateInvoicesTable extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->increments('invoice_id');
-            $table->unsignedInteger('account_id');
+            $table->unsignedInteger('account_id')->nullable();
             $table->date('bill_start_date');
             $table->date('bill_end_date');
             $table->float('balance_owing');
@@ -23,10 +23,12 @@ class CreateInvoicesTable extends Migration
             $table->float('discount')->nullable();
             $table->boolean('finalized')->default(0);
             $table->float('min_invoice_amount')->nullable();
+            $table->unsignedInteger('payment_type_id')->nullable();
             $table->float('tax');
             $table->float('total_cost');
 
-			$table->foreign('account_id')->references('account_id')->on('accounts');
+            $table->foreign('account_id')->references('account_id')->on('accounts');
+            $table->foreign('payment_type_id')->references('payment_type_id')->on('payment_types');
         });
     }
 

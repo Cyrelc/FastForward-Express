@@ -41,6 +41,29 @@ class InvoiceController extends Controller {
         return json_encode($invoices);
     }
 
+    public function createFromCharge(Request $req) {
+        if($req->user()->cannot('create', Invoice::class))
+            abort(403);
+
+        $billRepo = new Repos\BillRepo();
+        $chargeRepo = new Repos\ChargeRepo();
+
+        $charge = $chargeRepo->GetById($req->charge_id);
+        $bill = $billRepo->GetById($charge->bill_id);
+
+        if($req->user()->cannot('updateBilling', $bill))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoice = $invoiceRepo->CreateFromCharge($charge->charge_id);
+
+        DB::commit();
+
+        return json_encode($invoice);
+    }
+
     public function delete(Request $req, $invoiceId) {
         DB::beginTransaction();
 

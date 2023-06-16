@@ -109,6 +109,7 @@ Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoi
     Route::get('/print/{invoiceIds}', 'print');
     Route::get('/printPreview/{invoiceId}', 'printPreview');
     Route::post('/', 'store');
+    Route::post('/createFromCharge', 'createFromCharge');
     // Route::get('/invoices/regather/{invoiceId}', 'regather');
 });
 

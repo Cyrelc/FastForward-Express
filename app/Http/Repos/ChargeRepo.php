@@ -69,6 +69,12 @@ class ChargeRepo {
         return $charges->groupBy('charges.charge_id')->get();
     }
 
+    public function GetById($chargeId) {
+        $charge = Charge::where('charge_id', $chargeId);
+
+        return $charge->first();
+    }
+
     public function Insert($charge) {
         $new = new Charge;
 

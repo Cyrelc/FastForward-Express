@@ -183,7 +183,7 @@ class BillRepo {
 	    return $bill->first();
     }
 
-    public function GetByInvoiceId($invoiceId) {
+    public function GetForAccountInvoice($invoiceId) {
         $invoiceRepo = new InvoiceRepo();
         $accountRepo = new AccountRepo();
 
@@ -434,6 +434,35 @@ class BillRepo {
             ]);
 
         return $filteredBills->get();
+    }
+
+    public function GetForPrepaidInvoice($invoiceId) {
+        $bills = LineItem::where('invoice_id', $invoiceId)
+            ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->leftJoin('payment_types', 'payment_types.payment_type_id', 'charges.charge_type_id')
+            ->join('addresses as pickup', 'pickup.address_id', '=', 'bills.pickup_address_id')
+            ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
+            ->join('selections', 'selections.value', '=', 'bills.delivery_type')
+            ->where('amendment_number', null)
+            ->select(
+                'payment_types.payment_type_id as account_id',
+                'payment_types.name as account_name',
+                DB::raw('sum(price) as amount'),
+                'bills.bill_id',
+                'bill_number',
+                'charges.charge_id as charge_id',
+                'charge_account_id',
+                'charge_reference_value',
+                'delivery_account_id',
+                'delivery.name as delivery_address_name',
+                'pickup_account_id',
+                'pickup.name as pickup_address_name',
+                'selections.name as delivery_type',
+                'time_pickup_scheduled'
+            )->groupBy('bills.bill_id');
+
+        return $bills->get();
     }
 
     public function GetInvoiceSubtotalByField($invoiceId, $fieldName, $fieldValue) {

@@ -22,6 +22,7 @@ class Invoice extends Model
         'date',
         'discount',
         'min_invoice_amount',
+        'payment_type_id',
         'tax',
         'total_cost',
     ];

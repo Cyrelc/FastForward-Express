@@ -84,7 +84,7 @@ class InvoiceRepo {
             else
                 $invoices[$effectiveAccountId] = $invoice = $this->GenerateInvoice($effectiveAccountId, $startDate, $endDate);
 
-            $lineItems = $lineItemRepo->InvoiceLineItems($invoice, $accountId);
+            $lineItems = $lineItemRepo->InvoiceForAccount($invoice, $accountId);
         }
 
         foreach($invoices as $key => $value) {
@@ -92,6 +92,26 @@ class InvoiceRepo {
         }
 
         return $invoices;
+    }
+
+    public function CreateFromCharge($chargeId) {
+        $billRepo = new BillRepo();
+        $chargeRepo = new ChargeRepo();
+        $lineItemRepo = new LineItemRepo();
+
+        $charge = $chargeRepo->GetById($chargeId);
+        $bill = $billRepo->GetById($charge->bill_id);
+
+        $startDate = (new \DateTime($bill->time_pickup_scheduled))->format('Y-m-d');
+        $endDate = (new \DateTime($bill->time_delivery_scheduled))->format('Y-m-d');
+
+        $invoice = $this->GenerateInvoice(null, $startDate, $endDate);
+        $invoice->payment_type_id = $charge->charge_type_id;
+        $lineItems = $lineItemRepo->InvoiceForCharge($invoice, $charge->charge_id);
+
+        $invoice = $this->CalculateInvoiceBalances($invoice);
+
+        return $invoice;
     }
 
     public function Delete($invoiceId) {
@@ -130,23 +150,6 @@ class InvoiceRepo {
         return $lineItem;
     }
 
-    public function GenerateInvoice($accountId, $startDate, $endDate) {
-        $invoice = [
-            'account_id' => $accountId,
-            'bill_start_date' => $startDate,
-            'bill_end_date' => $endDate,
-            'date' => date('Y-m-d'),
-            'bill_cost' => 0,
-            'discount' => 0,
-            'tax' => 0,
-            'total_cost' => 0,
-            'balance_owing' => 0
-        ];
-
-        $new = new Invoice();
-        return $new->create($invoice);
-    }
-
     public function GetById($id) {
         $invoice = Invoice::where('invoice_id', '=', $id)->first();
 
@@ -173,15 +176,17 @@ class InvoiceRepo {
     }
 
     public function ListAll($myAccounts) {
-        $invoices = Invoice::leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
-            ->leftJoin('line_items', 'line_items.invoice_id', '=', 'invoices.invoice_id')
+        $invoices = Invoice::leftJoin('line_items', 'line_items.invoice_id', '=', 'invoices.invoice_id')
+            ->leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
             ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
             ->leftjoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->leftjoin('payments', 'payments.invoice_id', '=', 'invoices.invoice_id')
             ->select(
                 'invoices.invoice_id',
                 'accounts.account_id',
-                'accounts.name as account_name',
+                DB::raw('coalesce(accounts.name, payment_types.name) as account_name'),
+                DB::raw('case when accounts.account_id is null then true else false end as is_prepaid'),
                 'account_number',
                 'invoices.date as date_run',
                 'bill_start_date',
@@ -219,8 +224,8 @@ class InvoiceRepo {
         $account = $accountRepo->GetById($invoice->account_id);
         $children = $accountRepo->GetChildAccountList($account->account_id);
         foreach($children as $child)
-            $count += count($lineItemRepo->InvoiceLineItems($invoice, $child->account_id, $invoice->finalized));
-        $count += count($lineItemRepo->InvoiceLineItems($invoice, null, $invoice->finalized));
+            $count += count($lineItemRepo->InvoiceForAccount($invoice, $child->account_id, $invoice->finalized));
+        $count += count($lineItemRepo->InvoiceForAccount($invoice, null, $invoice->finalized));
 
         $this->CalculateInvoiceBalances($invoice);
 
@@ -244,14 +249,14 @@ class InvoiceRepo {
         // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be equal to that, otherwise
         // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation
         $billCost = $effectiveCost = LineItem::where('invoice_id', $invoice->invoice_id)->get()->sum('price');
-        if($account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
+        if($account && $account->min_invoice_amount != null && $account->min_invoice_amount > $billCost)
             $invoice->min_invoice_amount = $effectiveCost = number_format(round($account->min_invoice_amount, 2), 2, '.', '');
         else
             $invoice->min_invoice_amount = null;
 
         $invoice->bill_cost = number_format($billCost, 2, '.', '');
-        $invoice->discount = number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '');
-        if ($account->gst_exempt)
+        $invoice->discount = $account ? number_format(round(($effectiveCost * ($account->discount / 100)), 2), 2, '.', '') : 0;
+        if ($account && $account->gst_exempt)
             $invoice->tax = number_format(0, 2, '.', '');
         else
             $invoice->tax = number_format(round(($effectiveCost - $invoice->discount) * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
@@ -262,4 +267,20 @@ class InvoiceRepo {
         return $invoice;
     }
 
+    private function GenerateInvoice($accountId, $startDate, $endDate) {
+        $invoice = [
+            'account_id' => $accountId,
+            'bill_start_date' => $startDate,
+            'bill_end_date' => $endDate,
+            'date' => date('Y-m-d'),
+            'bill_cost' => 0,
+            'discount' => 0,
+            'tax' => 0,
+            'total_cost' => 0,
+            'balance_owing' => 0
+        ];
+
+        $new = new Invoice();
+        return $new->create($invoice);
+    }
 }

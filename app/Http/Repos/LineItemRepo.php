@@ -105,7 +105,7 @@ class LineItemRepo {
         return ($new->create($lineItem));
     }
 
-    public function InvoiceLineItems($invoice, $accountId = null, $asAmendment = false) {
+    public function InvoiceForAccount($invoice, $accountId = null, $asAmendment = false) {
         $startDate = (new \DateTime($invoice->bill_start_date))->format('Y-m-d');
         $endDate = (new \DateTime($invoice->bill_end_date))->format('Y-m-d');
 
@@ -129,6 +129,22 @@ class LineItemRepo {
         }
 
         return $lineItems;
+    }
+
+    public function InvoiceForCharge($invoice, $chargeId) {
+        $lineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->where('line_items.charge_id', $chargeId)
+            ->where('invoice_id', null)
+            ->where('percentage_complete', 100)
+            ->where('price', '!=', 0)
+            ->get();
+
+        foreach($lineItems as $lineItem) {
+            $lineItem->invoice_id = $invoice->invoice_id;
+            // $lineItem->amendmentNumber = $amendmentNumber;
+            $lineItem->save();
+        }
     }
 
     public function PayOffLineItemsByInvoiceId($invoiceId) {

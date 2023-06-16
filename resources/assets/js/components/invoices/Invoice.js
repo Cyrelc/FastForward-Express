@@ -7,8 +7,8 @@ const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', 
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
 
 function getCorrectAddress(bill) {
-    if(bill.charge_account_id != bill.delivery_account_id)
-        return bill.delivery_address_name ? bill.delivery_address_name : bill.delivery_address_formatted
+    if(!bill?.charge_account_id || bill.charge_account_id != bill.delivery_account_id)
+        return bill.delivery_address_name ?? bill.delivery_address_formatted
     return bill.pickup_address_name ? bill.pickup_address_name : bill.pickup_address_formatted
 }
 
@@ -60,8 +60,8 @@ function Invoice(props) {
             setParent(response.parent)
             setPermissions(response.permissions)
             setPrevInvoiceId(prevInvoiceId)
-            setShowLineItems(response.parent.show_invoice_line_items)
-            setShowPickupAndDeliveryAddress(response.parent.show_pickup_and_delivery_address)
+            setShowLineItems(response.parent?.show_invoice_line_items ?? true)
+            setShowPickupAndDeliveryAddress(response.parent?.show_pickup_and_delivery_address ?? true)
             setTables(response.tables)
             setUnpaidInvoices(response.unpaid_invoices)
 
@@ -131,13 +131,15 @@ function Invoice(props) {
                     checked={showPickupAndDeliveryAddress}
                     onChange={() => setShowPickupAndDeliveryAddress(!showPickupAndDeliveryAddress)}
                 />
-                <FormCheck
-                    type='switch'
-                    name='hideOutstandingInvoices'
-                    label='Hide Outstanding Invoices'
-                    checked={hideOutstandingInvoices}
-                    onChange={() => setHideOutstandingInvoices(!hideOutstandingInvoices)}
-                />
+                {unpaidInvoices &&
+                    <FormCheck
+                        type='switch'
+                        name='hideOutstandingInvoices'
+                        label='Hide Outstanding Invoices'
+                        checked={hideOutstandingInvoices}
+                        onChange={() => setHideOutstandingInvoices(!hideOutstandingInvoices)}
+                    />
+                }
                 {amendments?.length &&
                     <FormCheck
                         type='switch'

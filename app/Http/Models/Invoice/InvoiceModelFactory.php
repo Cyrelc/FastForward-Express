@@ -18,10 +18,11 @@ class InvoiceModelFactory{
 		$lineItemRepo = new Repos\LineItemRepo();
 
 		$model->invoice = $invoiceRepo->GetById($invoiceId);
-		$model->invoice->bill_count = $billRepo->CountByInvoiceId($invoiceId);
-		$model->invoice->bill_count_with_missed_line_items = $lineItemRepo->CountUninvoicedByInvoiceSettings($model->invoice);
+		$model->invoice->bill_count = $billRepo->CountByInvoiceId($model->invoice->invoice_id);
+		if($model->invoice->account_id)
+			$model->invoice->bill_count_with_missed_line_items = $lineItemRepo->CountUninvoicedByInvoiceSettings($model->invoice);
 
-		$amendments = $billRepo->GetAmendmentsByInvoiceId($invoiceId);
+		$amendments = $billRepo->GetAmendmentsByInvoiceId($model->invoice->invoice_id);
 		if(count($amendments)) {
 			$billEndDate = new \DateTime($model->invoice->bill_end_date);
 			$currentDate = new \DateTime('now');
@@ -37,48 +38,70 @@ class InvoiceModelFactory{
 			$model->amendments = $amendments;
 		}
 
-		$model->parent = $accountRepo->GetById($model->invoice->account_id);
+		if(isset($model->invoice->account_id)) {
+			$model->parent = $accountRepo->GetById($model->invoice->account_id);
 
-		$model->parent->shipping_address = $addressRepo->GetById($model->parent->shipping_address_id);
-		if(isset($model->parent->billing_address_id) && $model->parent->billing_address_id != '')
-			$model->parent->billing_address = $addressRepo->GetById($model->parent->billing_address_id);
-		else
-			$model->parent->billing_address = $model->parent->shipping_address;
+			$model->parent->shipping_address = $addressRepo->GetById($model->parent->shipping_address_id);
+			if(isset($model->parent->billing_address_id) && $model->parent->billing_address_id != '')
+				$model->parent->billing_address = $addressRepo->GetById($model->parent->billing_address_id);
+			else
+				$model->parent->billing_address = $model->parent->shipping_address;
 
-		$model->tables = $billRepo->GetByInvoiceId($invoiceId);
-		$subtotalBy = $accountRepo->GetSubtotalByField($model->parent->account_id);
-		if($subtotalBy != false) {
-			foreach($model->tables as $billSubTable) {
-				$subtotalDatabaseFieldName = $subtotalBy->database_field_name;
-				$billSubTable->subtotal = $billRepo->GetInvoiceSubtotalByField($invoiceId, $subtotalDatabaseFieldName, $billSubTable->bills[0]->$subtotalDatabaseFieldName);
-				if ($model->parent->gst_exempt)
-					$billSubTable->tax = number_format(0, 2, '.', '');
-				else
-					$billSubTable->tax = number_format(round($billSubTable->subtotal * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
+			$model->tables = $billRepo->GetForAccountInvoice($model->invoice->invoice_id);
+			$subtotalBy = $accountRepo->GetSubtotalByField($model->parent->account_id);
+			if($subtotalBy != false) {
+				foreach($model->tables as $billSubTable) {
+					$subtotalDatabaseFieldName = $subtotalBy->database_field_name;
+					$billSubTable->subtotal = $billRepo->GetInvoiceSubtotalByField($model->invoice->invoice_id, $subtotalDatabaseFieldName, $billSubTable->bills[0]->$subtotalDatabaseFieldName);
+					if ($model->parent->gst_exempt)
+						$billSubTable->tax = number_format(0, 2, '.', '');
+					else
+						$billSubTable->tax = number_format(round($billSubTable->subtotal * (float)config('ffe_config.gst') / 100, 2), 2, '.', '');
 
-				$billSubTable->total = $billSubTable->subtotal + $billSubTable->tax;
+					$billSubTable->total = $billSubTable->subtotal + $billSubTable->tax;
+				}
 			}
-		}
-		foreach($model->tables as $index => $table) {
-			$table->headers = array('Date' => 'time_pickup_scheduled', 'Bill ID' => 'bill_id', 'Waybill Number' => 'bill_number');
-			foreach($table->bills as $key => $bill)
-				$model->tables[$index]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $invoiceId);
-			if($subtotalBy != NULL && $subtotalBy->database_field_name == 'charge_account_id') {
-				$customField = $accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field;
-				if($customField)
-					$table->headers[$customField] = 'charge_reference_value';
+			foreach($model->tables as $index => $table) {
+				$table->headers = array('Date' => 'time_pickup_scheduled', 'Bill ID' => 'bill_id', 'Waybill Number' => 'bill_number');
+				foreach($table->bills as $key => $bill)
+					$model->tables[$index]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $model->invoice->invoice_id);
+				if($subtotalBy != NULL && $subtotalBy->database_field_name == 'charge_account_id') {
+					$customField = $accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field;
+					if($customField)
+						$table->headers[$customField] = 'charge_reference_value';
+				}
+				else if($model->parent->custom_field)
+					$table->headers[$model->parent->custom_field] = 'charge_reference_value';
+				$table->headers['Pickup Address'] = 'pickup_address_name';
+				$table->headers['Delivery Address'] = 'delivery_address_name';
+				// $table->headers['Type'] = 'delivery_type';
+				$table->headers['Price'] = 'amount';
 			}
-			else if($model->parent->custom_field)
-				$table->headers[$model->parent->custom_field] = 'charge_reference_value';
-			$table->headers['Pickup Address'] = 'pickup_address_name';
-			$table->headers['Delivery Address'] = 'delivery_address_name';
-			// $table->headers['Type'] = 'delivery_type';
-			$table->headers['Price'] = 'amount';
+
+			$model->unpaid_invoices = $invoiceRepo->GetOutstandingByAccountId($model->invoice->account_id);
+
+			$model->account_owing = $invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id);
+		} else {
+			$paymentRepo = new Repos\PaymentRepo();
+
+			$model->parent = new \stdClass;
+			$model->parent->name = $paymentRepo->GetPaymentType($model->invoice->payment_type_id)->name;
+			$model->tables = array();
+			$model->tables[0] = new \stdClass;
+			$model->tables[0]->headers = [
+				'Date' => 'time_pickup_scheduled',
+				'Bill ID' => 'bill_id',
+				'Waybill Number' => 'bill_number',
+				'Pickup Address' => 'pickup_address_name',
+				'Delivery Address' => 'delivery_address_name',
+				'Price' => 'amount'
+			];
+
+			$model->tables[0]->bills = $billRepo->GetForPrepaidInvoice($model->invoice->invoice_id);
+			foreach($model->tables[0]->bills as $key => $bill)
+				$model->tables[0]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $model->invoice->invoice_id);
+			$model->parent->account_number = 'Bill# ' . $model->tables[0]->bills[0]->bill_id;
 		}
-
-		$model->unpaid_invoices = $invoiceRepo->GetOutstandingByAccountId($model->invoice->account_id);
-
-		$model->account_owing = $invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id);
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);
 

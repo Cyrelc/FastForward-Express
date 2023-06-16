@@ -178,24 +178,14 @@ class BillController extends Controller {
 
         $path = $this->storagePath . $this->folderName . '/';
 
-        $printBillAsInvoice = isset($req->asInvoice);
-
         $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
         mkdir($path, 0777, true);
 
-        $model = $printBillAsInvoice
-            ? $billModelFactory->GetPrintAsInvoiceModel($bill->bill_id, $permissions)
-            : $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+        $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
-        if($printBillAsInvoice) {
-            $amendmentsOnly = false;
+        $showCharges = isset($req->showCharges);
 
-            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly'))->render();
-        } else {
-            $showCharges = isset($req->showCharges);
-
-            $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
-        }
+        $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
 
         $inputFile = $path . $fileName . '.html';
         $outputFile = $path . $fileName . '.pdf';
@@ -204,16 +194,14 @@ class BillController extends Controller {
         $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
         file_put_contents($inputFile, $file);
-        file_put_contents($footerFile, view($printBillAsInvoice ? 'invoices.invoice_table_footer' : 'bills.bill_footer')->render());
-        if($printBillAsInvoice)
-            file_put_contents($headerFile, view('invoices.invoice_table_header', compact('model', 'printBillAsInvoice'))->render());
+        file_put_contents($footerFile, view('bills.bill_footer')->render());
 
         $options = json_encode([
             'path' => $outputFile,
             'displayHeaderFooter' => true,
-            'landscape' => !$printBillAsInvoice,
+            'landscape' => true,
             'margin' => [
-                'top' => $printBillAsInvoice ? 80 : 0,
+                'top' => 0,
                 'bottom' => 70,
                 'left' => 30,
                 'right' => 30
@@ -224,11 +212,6 @@ class BillController extends Controller {
         $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
         $command .= ' --footer ' . $footerFile;
         $command .= ' --pdfOptions "' . preg_replace('/\s+/', '', json_encode($options)) . '"';
-
-        if($printBillAsInvoice) {
-            $command .= ' --header ' . $headerFile;
-            $command .= ' --stylesheet ' . public_path('css/invoice_pdf.css');
-        }
 
         exec($command, $output, $returnCode);
         if($returnCode != 0 || !file_exists($outputFile)) {

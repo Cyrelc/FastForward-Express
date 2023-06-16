@@ -184,6 +184,7 @@ export default function Charge(props) {
                 visible: showDetails,
             },
             {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
+            {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('invoices', cell)}
         ]
     }
 
@@ -208,6 +209,28 @@ export default function Charge(props) {
         setLinkLineItemToType(null)
         setShowLinkLineItemModal(false)
         props.chargeDispatch({type: 'CHECK_INVOICES_AND_MANIFESTS'})
+    }
+
+    const invoiceAsOneOff = () => {
+        if(charge.chargeType.is_prepaid == false) {
+            toastr.error('Unable to invoice non-prepaid type as one-off call. Aborting')
+            return
+        }
+
+        if(!charge?.lineItems) {
+            toastr.error('Unable to invoice as a one-off call. Charge has no line items')
+            return
+        }
+
+        if(charge.lineItems.find(lineItem => lineItem.line_item_id == null)) {
+            taostr.warning('Selected charge has unsaved line items. Please save the bill then try again')
+            return
+        }
+
+        makeAjaxRequest('/invoices/createFromCharge', 'POST', {charge_id: charge.charge_id}, response => {
+            response = JSON.parse(response)
+            toastr.success(`Successfully created invoice I${response.invoice_id}`, 'Success')
+        })
     }
 
     const linkTo = (cell, type) => {
@@ -308,6 +331,11 @@ export default function Charge(props) {
                                         </Dropdown.Item>} */}
                                         {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
                                             <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
+                                        }
+                                        {(charge.chargeType.is_prepaid && charge.lineItems?.find(lineItem => lineItem.invoice_id == null)) ?
+                                            <Dropdown.Item onClick={invoiceAsOneOff}>
+                                                <i className='fas fa-file-invoice-dollar fa-lg'></i> Invoice as One-off
+                                            </Dropdown.Item> : null
                                         }
                                     </Dropdown.Menu>
                                 </Dropdown.Toggle>
