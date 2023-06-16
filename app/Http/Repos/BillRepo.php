@@ -374,6 +374,7 @@ class BillRepo {
     public function GetDriverDispatch($employeeId) {
         $bills = Bill::leftJoin('addresses as delivery_address', 'delivery_address.address_id', '=', 'bills.delivery_address_id')
             ->leftJoin('addresses as pickup_address', 'pickup_address.address_id', '=', 'bills.pickup_address_id')
+            ->leftJoin('selections', 'selections.value', '=', 'bills.delivery_type')
             ->where(function ($query) use ($employeeId) {
                 $query->where('pickup_driver_id', $employeeId)
                     ->orWhere('delivery_driver_id', $employeeId);
@@ -388,13 +389,15 @@ class BillRepo {
                 'delivery_address.lng as delivery_address_lng',
                 'delivery_address.name as delivery_address_name',
                 'delivery_address.formatted as delivery_address_formatted',
-                'delivery_type',
+                'delivery_driver_id',
+                'selections.name as delivery_type',
                 'description',
                 'internal_comments',
                 'pickup_address.lat as pickup_address_lat',
                 'pickup_address.lng as pickup_address_lng',
                 'pickup_address.name as pickup_address_name',
                 'pickup_address.formatted as pickup_address_formatted',
+                'pickup_driver_id',
                 'time_delivery_scheduled',
                 'time_delivered',
                 'time_dispatched',
@@ -488,7 +491,7 @@ class BillRepo {
             ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
             ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
             ->select(
-                'bills.payment_type_id',
+                'payment_type_id',
                 'payment_types.name as payment_type_name',
                 DB::raw('sum(case when price is null then 0 else price end) as amount')
             )->groupBy('payment_type_id');
@@ -660,7 +663,11 @@ class BillRepo {
         $old = $this->GetById($bill['bill_id']);
         if($permissions['editBasic'])
             foreach(Bill::$basicFields as $field)
-                if(isset($bill[$field]) || $field == 'pickup_account_id' || $field == 'delivery_account_id')
+                if(
+                    isset($bill[$field]) ||
+                    ($field == 'pickup_account_id' && array_key_exists($field, $bill)) ||
+                    ($field == 'delivery_account_id' && array_key_exists($field, $bill))
+                )
                     $old->$field = $bill[$field];
 
         if($permissions['editDispatch'])
@@ -669,7 +676,8 @@ class BillRepo {
                     continue;
                 if(($field === 'delivery_driver_id' || $field === 'delivery_driver_commission') && !$this->IsDeliveryDriverEditable($old['bill_id']))
                     continue;
-                $old->$field = $bill[$field];
+                if(array_key_exists($field, $bill))
+                    $old->$field = $bill[$field];
             }
         else if($permissions['editDispatchMy'])
             foreach(Bill::$driverFields as $field) {
@@ -679,7 +687,8 @@ class BillRepo {
 
         if($permissions['editBilling'])
             foreach(Bill::$billingFields as $field)
-                $old->$field = $bill[$field];
+                if(array_key_exists($field, $bill))
+                    $old->$field = $bill[$field];
 
         $old->save();
 
