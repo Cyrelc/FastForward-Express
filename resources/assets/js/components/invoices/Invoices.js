@@ -58,9 +58,13 @@ function printInvoices(selectedRows, options) {
         toastr.warning('Please select at least one row to operate on')
         return
     }
+    if(selectedRows.length > 50) {
+        selectedRows = selectedRows.slice(0, 49)
+        toastr.warning('Unable to generate more than 50 Invoices at a time - limiting your request to the first 50 items selected.\nApologies for any inconvenience')
+    }
     const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
-    const printUrl = '/invoices/' + (options.download ? 'download' : 'print') + '/'
 
+    const printUrl = `/invoices/${options.download ? 'download' : 'print'}/`
     window.open(printUrl + (selectedRows.length === 1 ? data[0] : data), "_blank")
 }
 

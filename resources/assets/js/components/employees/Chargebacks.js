@@ -84,7 +84,17 @@ function Chargebacks(props) {
             selections: props.employees,
             type: 'SelectFilter',
             value: 'employee_id'
-        }
+        },
+        {
+            name: 'Manifest Start Date',
+            type: 'DateBetweenFilter',
+            value: 'start_date',
+        },
+        {
+            name: 'Manifest End Date',
+            type: 'DateBetweenFilter',
+            value: 'end_date',
+        },
     ]
 
     const toggleModal = () => {
@@ -108,7 +118,9 @@ function Chargebacks(props) {
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {symbol: '$'}},
         {title: 'GL Code', field: 'gl_code'},
         {title: 'Count Remaining', field: 'count_remaining'},
-        {title: 'Continuous?', field: 'continuous', formatter: 'tickCross'}
+        {title: 'Continuous?', field: 'continuous', formatter: 'tickCross'},
+        {title: 'Manifest ID', field: 'manifest_id'},
+        {title: 'Manifest Dates', field: 'manifest_dates'}
     ]
 
     return (
@@ -119,7 +131,6 @@ function Chargebacks(props) {
                 defaultQueryString='?filter[active]=true'
                 fetchTableData={fetchTableData}
                 filters={filters}
-                // TODO: fix initial groupBy
                 groupBy={groupBy}
                 groupByOptions={groupByOptions}
                 indexName='chargeback_id'

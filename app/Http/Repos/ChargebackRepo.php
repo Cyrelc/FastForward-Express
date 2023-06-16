@@ -7,12 +7,14 @@ use App\DriverChargeback;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
+use App\Http\Filters\DateBetween;
 use App\Http\Filters\ChargebackFilters\Active;
 
 class ChargebackRepo {
     public function ListAll($req) {
         $chargebacks = Chargeback::leftjoin('employees', 'employees.employee_id', '=', 'chargebacks.employee_id')
             ->leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+            ->leftJoin('manifests', 'manifests.manifest_id', '=', 'chargebacks.manifest_id')
             ->select(
                 'chargeback_id',
                 DB::raw('concat(first_name, " ", last_name) as employee_name'),
@@ -23,13 +25,17 @@ class ChargebackRepo {
                 'continuous',
                 'count_remaining',
                 'gl_code',
-                'amount'
+                'amount',
+                'manifests.manifest_id',
+                DB::raw('concat(manifests.start_date, "-", manifests.end_date) as manifest_dates')
             );
 
         $filteredChargebacks = QueryBuilder::for($chargebacks)
             ->allowedFilters([
                 AllowedFilter::custom('active', new Active),
                 AllowedFilter::exact('employee_id', 'chargebacks.employee_id'),
+                AllowedFilter::custom('start_date', new DateBetween, 'manifests.start_date'),
+                AllowedFilter::custom('end_date', new DateBetween),
                 // AllowedFilter::custom('manifested', new Manifested)
             ]);
 
