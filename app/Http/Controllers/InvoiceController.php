@@ -230,8 +230,9 @@ class InvoiceController extends Controller {
             if($req->user()->cannot('view', $model->invoice))
                 abort(403);
 
-            $fileName = preg_replace('/\s+/', '_', $model->parent->name) . '-' . $model->invoice->invoice_id;
-            $fileName = str_replace('&', '', $fileName);
+            $fileName = trim($model->parent->name) . '-' . $model->invoice->invoice_id;
+            $fileName = preg_replace('/\s+/', '_', $fileName);
+            $fileName = preg_replace('/[&.\/\\:*?"<>| ]/', '', $fileName);
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
             $hideOutstandingInvoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_outstanding_invoices, FILTER_VALIDATE_BOOLEAN) : true;

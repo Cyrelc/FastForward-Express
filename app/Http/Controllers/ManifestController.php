@@ -183,8 +183,7 @@ class ManifestController extends Controller {
 
             $fileName = $model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '-' . $model->manifest->manifest_id;
             $fileName = preg_replace('/\s+/', '_', $fileName);
-            $fileName = str_replace('&', '', $fileName);
-            $fileName = str_replace('.', '', $fileName);
+            $fileName = preg_replace('/[&.\/\\:*?"<>| ]/', '', $fileName);
 
             $inputFile = $path . $fileName . '.html';
             $outputFile = $path . $fileName . '.pdf';
