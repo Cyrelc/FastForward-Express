@@ -14,7 +14,7 @@
 </table>
 <table class='addresses'>
     <tr>
-        @foreach(['Billing Address' => 'billing_address', 'Shipping Address' => 'shipping_address'] as $name => $address)
+        @foreach([$model->is_prepaid ? 'Pickup Address' : 'Billing Address' => 'billing_address', $model->is_prepaid ? 'Delivery Address' : 'Shipping Address' => 'shipping_address'] as $name => $address)
             <td class='{{$address == "billing_address" ? 'text-left' : 'text-right' }}'>
                 <strong>{{$name}}:</strong><br/>
                 {{$model->parent->$address->name}}<br/>
@@ -48,7 +48,6 @@
                                 @php
                                     continue
                                 @endphp
-                                {{-- {{continue}} --}}
                             @endif
                         @elseif($key == 'Delivery Address')
                             @if($showPickupAndDeliveryAddress)

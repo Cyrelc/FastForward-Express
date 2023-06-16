@@ -455,11 +455,13 @@ class BillRepo {
                 'charge_account_id',
                 'charge_reference_value',
                 'delivery_account_id',
+                'delivery_address_id',
                 'delivery.name as delivery_address_name',
                 'pickup_account_id',
+                'pickup_address_id',
                 'pickup.name as pickup_address_name',
                 'selections.name as delivery_type',
-                'time_pickup_scheduled'
+                'time_pickup_scheduled',
             )->groupBy('bills.bill_id');
 
         return $bills->get();

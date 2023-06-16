@@ -98,9 +98,16 @@ class InvoiceModelFactory{
 			];
 
 			$model->tables[0]->bills = $billRepo->GetForPrepaidInvoice($model->invoice->invoice_id);
+			$masterBill = $model->tables[0]->bills[0];
 			foreach($model->tables[0]->bills as $key => $bill)
 				$model->tables[0]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $model->invoice->invoice_id);
-			$model->parent->account_number = 'Bill# ' . $model->tables[0]->bills[0]->bill_id;
+			$model->parent->account_number = 'Bill# ' . $masterBill->bill_id;
+			$addressRepo = new Repos\AddressRepo();
+			$model->parent->billing_address = $addressRepo->GetById($masterBill->pickup_address_id);
+			$model->parent->shipping_address = $addressRepo->GetById($masterBill->delivery_address_id);
+			$model->parent->invoice_comment = $masterBill->description;
+			$model->unpaid_invoices = array();
+			$model->is_prepaid = true;
 		}
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);
