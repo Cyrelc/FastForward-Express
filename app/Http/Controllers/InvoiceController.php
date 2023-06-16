@@ -248,7 +248,13 @@ class InvoiceController extends Controller {
 
         foreach($invoiceIds as $invoiceId) {
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
-            $account = $accountRepo->GetById($model->parent->account_id);
+            if(isset($invoice->account_id))
+                $account = $accountRepo->GetById($model->parent->account_id);
+            else {
+                $account = new \stdClass;
+                $account->show_invoice_line_items = true;
+                $account->show_pickup_and_delivery_address = true;
+            }
 
             if($req->user()->cannot('view', $model->invoice))
                 abort(403);

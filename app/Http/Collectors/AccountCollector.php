@@ -48,8 +48,6 @@ class AccountCollector {
             'show_pickup_and_delivery_address' => filter_var($req->show_pickup_and_delivery_address, FILTER_VALIDATE_BOOLEAN)
         ];
 
-        $invoiceSortOrder = [];
-
         return array_merge(
             ['account_id'=>$req->account_id],
             $accountPermissions['editAdvanced'] ? $advancedArray : [],
@@ -67,7 +65,7 @@ class AccountCollector {
                 'account_invoice_sort_order_id' => $entry['account_invoice_sort_order_id'] ?? null,
                 'priority' => $entry['priority'] ?? $key,
                 'invoice_sort_option_id' => $entry['invoice_sort_option_id'],
-                'subtotal_by' => $entry['subtotal_by'] ?? false
+                'subtotal_by' => filter_var($entry['subtotal_by'], FILTER_VALIDATE_BOOLEAN)
             ];
 
         return $invoiceSortOrder;

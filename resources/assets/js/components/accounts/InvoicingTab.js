@@ -25,6 +25,12 @@ export default function InvoicingTab(props) {
                     return {...option, subtotal_by: !option.subtotal_by}
                 return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
             })
+            const newFilteredSortOptions = filteredSortOptions.map(option => {
+                if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
+                    return {...option, subtotal_by: !option.subtotal_by}
+                return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
+            }).sort((a, b) => a.priority > b.priority)
+            setFilteredSortOptions(newFilteredSortOptions)
             props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: invoiceSortOrder}})
         })}
     ]
@@ -42,7 +48,7 @@ export default function InvoicingTab(props) {
         })
         console.log(newFilteredSortOptions)
         setFilteredSortOptions(newFilteredSortOptions)
-    }, [props.invoiceSortOrder, props.canBeParent, props.customTrackingField])
+    }, [props.canBeParent, props.customTrackingField])
 
     const handleInvoiceSortOrderChange = row => {
         const data = row.getTable().getData()
@@ -53,6 +59,13 @@ export default function InvoicingTab(props) {
                 return {...sortItem, priority: index}
             return {...sortItem, priority: null}
         }).sort((a, b) => a.priority - b.priority)
+        setFilteredSortOptions(newInvoiceSortOrder.filter(invoiceSortItem => {
+            if(invoiceSortItem.contingent_field === 'can_be_parent' && !props.canBeParent)
+                return false;
+            if(invoiceSortItem.contingent_field === 'custom_field' && props.customTrackingField == '')
+                return false;
+            return true;
+        }))
         props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: newInvoiceSortOrder}})
     }
 

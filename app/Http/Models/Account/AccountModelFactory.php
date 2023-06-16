@@ -32,6 +32,9 @@ class AccountModelFactory {
         $model->permissions = $permissions;
 
         $model->account->invoice_sort_order = $accountRepo->GetInvoiceSortOrder();
+        foreach($model->account->invoice_sort_order as $key => $sort_option) {
+            $model->account->invoice_sort_order[$key]->subtotal_by = filter_var($sort_option->can_be_subtotaled, FILTER_VALIDATE_BOOLEAN) ? $sort_option->subtotal_by : null;
+        }
 
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
 
@@ -61,6 +64,9 @@ class AccountModelFactory {
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
         $model->shipping_address = $addressRepo->GetById($model->account->shipping_address_id);
         $model->account->invoice_sort_order = $accountRepo->GetInvoiceSortOrder($accountId);
+        foreach($model->account->invoice_sort_order as $key => $sort_option) {
+            $model->account->invoice_sort_order[$key]->subtotal_by = filter_var($sort_option->can_be_subtotaled, FILTER_VALIDATE_BOOLEAN) ? $sort_option->subtotal_by : null;
+        }
 
         if($permissions['viewChildren'])
             $model->child_account_list = $accountRepo->GetChildAccountList($accountId);
