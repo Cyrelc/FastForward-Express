@@ -9,14 +9,14 @@ import PriceAdjustModal from './modals/PriceAdjustModal'
 
 function canLineItemBeDeleted(row) {
     const rowData = row.getData()
-    if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.paid)
+    if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id)
         return true
     return false
 }
 
 function canLineItemBeEdited(row) {
     const rowData = row.getData()
-    if(!rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.paid && !rowData.invoice_is_finalized)
+    if(!rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.invoice_is_finalized)
         return true
     return false
 }
@@ -40,7 +40,7 @@ function deleteLineItem(cell) {
     const row = cell.getRow()
     const rowData = row.getData()
     if(!canLineItemBeDeleted(row)) {
-        console.log('Unable to delete line item\t' + rowData.invoice_id + '\t' + rowData.manifest_id + '\t' + rowData.paid)
+        console.log(`Unable to delete line item\t${rowData.invoice_id}\t${rowData.pickup_manifest_id}\t${rowData.delivery_manifest_id}`)
         return
     }
     if(rowData.line_item_id != null) {
@@ -51,7 +51,7 @@ function deleteLineItem(cell) {
 }
 
 const groupBy = (data, charge) => {
-    const value = charge.chargeType.name === 'Account' ? 'invoice_id' : charge.chargeType.name === 'Employee' ? 'manifest_id' : 'paid'
+    const value = charge.chargeType.name === 'Employee' ? 'manifest_id' : 'invoice_id'
     return value
 }
 
@@ -62,8 +62,6 @@ function groupHeaderFormatter(key, count, data, group) {
         return `${value ? 'Invoice #' : 'Not Yet Invoiced'}${styledCount}`
     else if(key === 'manifest_id')
         return `${value ? 'Manifest #' : 'Not Yet Manifested'}${styledCount}`
-    else if (key === 'paid')
-        return `${value ? 'Paid' : 'Unpaid'}${styledCount}`
     return
 }
 
@@ -125,7 +123,7 @@ export default function Charge(props) {
     function canChargeTableBeDeleted(charge) {
         if(!charge || !!props.readOnly)
             return false
-        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
+        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
     }
 
     const chargeTableColumns = chargeType => {
@@ -148,7 +146,6 @@ export default function Charge(props) {
             ] : chargeType.name === 'Employee' ? [
                 {title: 'Manifest ID', field: 'manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)}
             ] : [],
-            {title: 'Paid?', field: 'paid', formatter: 'tickCross', cellClick: (e, cell) => {cell.setValue(!cell.getValue())}, width: 45, hozAlign: 'center', headerSort: false},
             {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: showDetails, formatter: 'tickCross'},
             {
                 editor:'select',
@@ -190,7 +187,7 @@ export default function Charge(props) {
 
     const deleteChargeTable = charge => {
         if(!canChargeTableBeDeleted(charge)) {
-            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced, manifested, or paid'
+            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced or manifested'
             toastr.error(errorMessage)
             console.log(errorMessage)
             return
@@ -259,12 +256,6 @@ export default function Charge(props) {
         }
     }
 
-    function payOffAllLineItems(charge) {
-        const table = tableRef.current.table
-        const rows = table.getRows()
-        rows.forEach(row => row.update({paid: true}))
-    }
-
     const redirectToCellValue = (path, cell) => {
         const value = cell.getValue()
         if(!value)
@@ -317,9 +308,6 @@ export default function Charge(props) {
                                 </Button>
                                 <Dropdown.Toggle variant='secondary' id={`amendment-dropdown-${charge.charge_id}`}>
                                     <Dropdown.Menu>
-                                        <Dropdown.Item onClick={() => payOffAllLineItems(charge)}>
-                                            <i className='fas fa-tags'></i> Mark as Paid
-                                        </Dropdown.Item>
                                         {/* <Dropdown.Item onClick={() => reassignDriver(charge)}>
                                             <i className='fas fa-exchange-alt'></i> Reassign Driver
                                         </Dropdown.Item> */}

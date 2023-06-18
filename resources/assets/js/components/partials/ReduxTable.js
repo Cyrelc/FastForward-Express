@@ -147,6 +147,10 @@ export default class ReduxTable extends Component {
                                             onChange={filters => this.handleActiveFiltersChange(filters)}
                                             isDisabled={this.props.filters.length === 0}
                                             isMulti
+                                            styles={{menuList: (baseStyles, state) => ({
+                                                ...baseStyles,
+                                                fontSize: 14
+                                            })}}
                                         />
                                         <Button variant='success' onClick={this.refreshTable}>Apply Filters</Button>
                                     </InputGroup>

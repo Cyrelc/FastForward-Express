@@ -19,8 +19,7 @@ class BillController extends Controller {
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/bills/';
-        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
+        $this->storagePath = storage_path() . '/bills/' . (new \DateTime())->format('Y_m_d_H-i-s/');
     }
 
     public function copyBill(Request $req, $billId) {
@@ -176,10 +175,8 @@ class BillController extends Controller {
 
         $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
 
-        $path = $this->storagePath . $this->folderName . '/';
-
         $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
-        mkdir($path, 0777, true);
+        mkdir($this->storagePath, 0777, true);
 
         $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
@@ -187,10 +184,10 @@ class BillController extends Controller {
 
         $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
 
-        $inputFile = $path . $fileName . '.html';
-        $outputFile = $path . $fileName . '.pdf';
-        $headerFile = $path . $fileName . '-header.html';
-        $footerFile = $path . $fileName . '-footer.html';
+        $inputFile = $this->storagePath . $fileName . '.html';
+        $outputFile = $this->storagePath . $fileName . '.pdf';
+        $headerFile = $this->storagePath . $fileName . '-header.html';
+        $footerFile = $this->storagePath . $fileName . '-footer.html';
         $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
         file_put_contents($inputFile, $file);
@@ -223,7 +220,7 @@ class BillController extends Controller {
         if(file_exists($headerFile))
             unlink($headerFile);
 
-        return response()->file($outputFile);
+        return response()->file($outputFile)->deleteFileAfterSend(true);
     }
 
     public function store(Request $req) {

@@ -12,19 +12,18 @@ use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Models\Invoice;
 use App\Http\Services;
+use Illuminate\Support\Facades\Storage;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
 
 class InvoiceController extends Controller {
     private $storagePath;
-    private $folderName;
 
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/invoices/';
-        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
+        $this->storagePath = storage_path() . '/invoices/' . (new \DateTime())->format('Y_m_d_H-i-s/');
     }
 
     public function buildTable(Request $req) {
@@ -92,16 +91,6 @@ class InvoiceController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    public function getAccountsToInvoice(Request $req) {
-        if($req->user()->cannot('create', Invoice::class))
-            abort(403);
-
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
-        $model = $invoiceModelFactory->GetGenerateModel($req);
-
-        return json_encode($model);
-    }
-
     public function getModel(Request $req, $invoiceId = null) {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         if($invoiceId) {
@@ -133,6 +122,16 @@ class InvoiceController extends Controller {
         return json_encode($invoices);
     }
 
+    public function getUninvoiced(Request $req) {
+        if($req->user()->cannot('create', Invoice::class))
+            abort(403);
+
+        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $model = $invoiceModelFactory->GetGenerateModel($req);
+
+        return json_encode($model);
+    }
+
     public function print(Request $req, $invoiceIds) {
         $invoiceIds = explode(',', $invoiceIds);
         if(count($invoiceIds) > 50)
@@ -149,11 +148,11 @@ class InvoiceController extends Controller {
 
         $this->cleanPdfs($files);
 
-        $fileName = $this->storagePath . count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
+        $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
 
-        $pdfMerger->save($fileName, 'inline');
-
-        return response()->file($fileName);
+        return response($pdfMerger->output())
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename=' . $fileName);
     }
 
     public function download(Request $req, $invoiceIds) {
@@ -163,22 +162,19 @@ class InvoiceController extends Controller {
 
         $files = $this->preparePdfs($invoiceIds, $req);
 
-        if(count($files) === 1) {
-            return response()->download($files[array_key_first($files)]);
-        } else {
-            $zip = new ZipArchive();
-            $zipfile = $this->storagePath . $this->folderName . '.zip';
-            $zip->open($zipfile, ZipArchive::CREATE);
+        $zipArchive = new ZipArchive();
+        $tempDir = sys_get_temp_dir();
+        $tempFile = tempnam($tempDir, 'zip');
+        $zipArchive->open($tempFile, ZipArchive::CREATE);
 
-            foreach($files as $name => $file)
-                $zip->addFile($file, $name);
+        foreach($files as $name => $file)
+            $zipArchive->addFile($file, $name);
 
-            $zip->close();
+        $zipArchive->close();
 
-            $this->cleanPdfs($files);
+        $this->cleanPdfs($files);
 
-            return response()->download($zipfile);
-        }
+        return response()->download($tempFile, 'invoices-' . time() . '.zip')->deleteFileAfterSend(true);
     }
 
     public function printPreview(Request $req, $invoiceId) {
@@ -218,8 +214,14 @@ class InvoiceController extends Controller {
 
         DB::beginTransaction();
 
-        $validationRules = ['accounts' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
-        $validationMessages = ['accounts.required' => 'You must select at least one account to invoice'];
+        $validationRules = [
+            'accounts' => 'required_if:prepaid,[]|array|min:1',
+            'prepaid' => 'required_if:accounts,[]|array|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:' . $req->start_date
+        ];
+
+        $validationMessages = ['accounts.required_if' => 'You must select at least one item to invoice'];
         $this->validate($req, $validationRules, $validationMessages);
 
         $invoiceRepo = new Repos\InvoiceRepo();
@@ -227,7 +229,12 @@ class InvoiceController extends Controller {
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-        $invoices = $invoiceRepo->Create($req->accounts, $startDate, $endDate);
+        if($req->accounts)
+            $accountInvoices = $invoiceRepo->CreateForAccounts($req->accounts, $startDate, $endDate);
+
+        if($req->prepaid)
+            foreach($req->prepaid as $chargeId)
+                $invoiceRepo->CreateFromCharge($chargeId);
 
         DB::commit();
     }
@@ -243,7 +250,7 @@ class InvoiceController extends Controller {
         $globalAmendmentsOnly = isset($req->amendments_only) ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
 
         $files = array();
-        $path = $this->storagePath . $this->folderName . '/';
+        $path = $this->storagePath;
         mkdir($path, 0777, true);
 
         foreach($invoiceIds as $invoiceId) {
@@ -268,15 +275,13 @@ class InvoiceController extends Controller {
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
-            $inputFile = $path . $fileName . '.html';
-            $outputFile = $path . $fileName . '.pdf';
-            $headerFile = $path . $fileName . '-header.html';
-            $footerFile = $path . $fileName . '-footer.html';
             $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
-            $file = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render();
-
-            file_put_contents($inputFile, $file);
+            $inputFile = $this->storagePath . $fileName . '.html';
+            $outputFile = $this->storagePath . $fileName . '.pdf';
+            $headerFile = $this->storagePath . $fileName . '-header.html';
+            $footerFile = $this->storagePath . $fileName . '-footer.html';
+            file_put_contents($inputFile, view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render());
             file_put_contents($headerFile, view('invoices.invoice_table_header', compact('model'))->render());
             file_put_contents($footerFile, view('invoices.invoice_table_footer')->render());
 
@@ -313,12 +318,10 @@ class InvoiceController extends Controller {
     }
 
     private function cleanPdfs($files) {
-        $path = $this->storagePath . $this->folderName . '/';
-
         foreach($files as $file)
             unlink($file);
-        rmdir($this->storagePath . $this->folderName);
+        rmdir($this->storagePath);
 
-        return !is_dir($path);
+        return !is_dir($this->storagePath);
     }
 }

@@ -68,7 +68,6 @@ class LineItemRepo {
                 'line_item_id',
                 'line_items.name',
                 'line_items.type',
-                'paid',
                 'pickup_driver_id',
                 'pickup_manifest_id',
                 'price',
@@ -167,7 +166,6 @@ class LineItemRepo {
             'invoice_id',
             'pickup_driver_id',
             'pickup_manifest_id',
-            'paid',
             'type'
         ];
 
@@ -184,7 +182,6 @@ class LineItemRepo {
 
         $old->delivery_driver_id = $lineItem['delivery_driver_id'];
         $old->driver_amount = $lineItem['driver_amount'];
-        $old->paid = $lineItem['paid'];
         $old->pickup_driver_id = $lineItem['pickup_driver_id'];
         $old->price = $lineItem['price'];
         $old->type = $lineItem['type'];

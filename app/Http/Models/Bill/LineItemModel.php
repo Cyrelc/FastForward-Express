@@ -32,7 +32,6 @@ class LineItemModel implements JsonSerializable {
             'type' => $this->type,
             'price' => $this->price,
             'driver_amount' => $this->driverAmount,
-            'paid' => $this->paid
         );
     }
 }

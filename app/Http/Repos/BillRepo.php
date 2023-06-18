@@ -597,12 +597,11 @@ class BillRepo {
                     'charge_account.account_number as charge_account_number',
                     'charges.charge_type_id as charge_type_id',
                     DB::raw('CONCAT_WS(",", pickup_reference_value, delivery_reference_value, charge_reference_value) as custom_field_value'),
-                    DB::raw('MIN(case when invoice_id is not null then 0 when line_items.pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 when paid is true then 0 else 1 end) as deletable'),
+                    DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 else 1 end) as deletable'),
                     'delivery_address.formatted as delivery_address_formatted',
                     'delivery_address.name as delivery_address_name',
                     'deliveryType.name as type',
                     'description',
-                    DB::raw('MIN(case when line_items.paid is null then 0 else paid end) as paid'),
                     'parent_account_id',
                     'percentage_complete',
                     'pickup_address.formatted as pickup_address_formatted',
@@ -649,8 +648,8 @@ class BillRepo {
                 AllowedFilter::exact('delivery_driver_id'),
                 AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
+                AllowedFilter::custom('is_invoiced', new IsNull),
                 AllowedFilter::exact('is_template'),
-                AllowedFilter::exact('paid', 'line_items.paid'),
                 AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
                 AllowedFilter::exact('skip_invoicing'),
                 AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
@@ -804,8 +803,6 @@ class BillRepo {
                             $requiredFields[] = $lineItem->charge_id . '.' . $lineItem->name . '.driver_amount';
                         if($lineItem->price == 0 && $lineItem->driver_amount == 0)
                             $requiredFields[] = 'Both price and driver amount cannot be zero on ' . $lineItem->name;
-                        if($paymentType->is_prepaid && !$lineItem['paid'])
-                            $requiredFields[] = $lineItem->charge_id . '.' . $lineItem->name . '.paid';
                     }
             }
 

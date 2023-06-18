@@ -32,10 +32,10 @@ h2, h4, td, table {
     <table>
         <td class='invoiceInfo'>
             <h4>
-                @if(!isset($printBillAsInvoice))
+                @if(!$model->is_prepaid)
                     Account Number: {{$model->parent->account_number}}<br/>
-                    Invoice ID: {{$model->invoice->invoice_id}}<br/>
                 @endif
+                Invoice ID: {{$model->invoice->invoice_id}}<br/>
                 Date: {{$model->invoice->bill_end_date}}
             </h4>
         </td>

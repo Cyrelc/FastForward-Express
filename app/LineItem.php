@@ -21,7 +21,6 @@ class LineItem extends Model {
         'invoice_id',
         'name',
         'manifest_id',
-        'paid',
         'pickup_driver_id',
         'price',
         'type'

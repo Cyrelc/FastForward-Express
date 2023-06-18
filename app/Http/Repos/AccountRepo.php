@@ -186,11 +186,11 @@ class AccountRepo {
     public function GetWithUninvoicedLineItems($invoiceIntervals, $startDate, $endDate) {
         $accounts = Account::leftJoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
             ->leftJoin('accounts as parent_account', 'parent_account.account_id', '=', 'accounts.parent_account_id')
-            ->whereIn('selections.selection_id', $invoiceIntervals)
+            ->whereIn('accounts.invoice_interval', $invoiceIntervals)
             ->where('accounts.active', true)
             ->select(
-                'accounts.account_id',
-                'accounts.account_number',
+                'accounts.account_id as id',
+                'accounts.account_number as number',
                 'selections.name as invoice_interval',
                 'accounts.name',
                 DB::raw('case when accounts.parent_account_id is not null then concat(parent_account.account_number, " - ", parent_account.name) when accounts.can_be_parent = 1 then concat (accounts.account_number, " - ", accounts.name) else "None" end as parent_account'),
@@ -235,8 +235,10 @@ class AccountRepo {
                         and bills.percentage_complete < 100
                         and date(time_pickup_scheduled) between cast("' . $startDate . '" as date) and cast("' . $endDate . '"as date))
                     as incomplete_bill_count'
-                )
-            )->groupBy('accounts.account_id')
+                ),
+                DB::raw('"account" as type')
+            )
+            ->groupBy('accounts.account_id')
             ->havingRaw('valid_bill_count > 0')
             ->orHavingRaw('legacy_bill_count > 0')
             ->orHavingRaw('skipped_bill_count > 0')

@@ -103,7 +103,7 @@ Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoi
     Route::delete('/{id}', 'delete');
     Route::get('/download/{invoiceIds}', 'download');
     Route::get('/finalize/{invoiceIds}', 'finalize');
-    Route::post('/getAccountsToInvoice', 'getAccountsToInvoice');
+    Route::post('/getUninvoiced', 'getUninvoiced');
     Route::get('/getModel/{invoiceId?}','getModel');
     Route::get('/getOutstanding', 'getOutstandingByAccountId');
     Route::get('/print/{invoiceIds}', 'print');

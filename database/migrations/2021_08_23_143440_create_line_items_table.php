@@ -26,7 +26,6 @@ class CreateLineItemsTable extends Migration
             $table->decimal('driver_amount');
             $table->unsignedInteger('invoice_id')->nullable()->default(null);
             $table->string('name');
-            $table->boolean('paid');
             $table->unsignedInteger('pickup_driver_id')->nullable()->default(null);
             $table->unsignedInteger('pickup_manifest_id')->nullable()->default(null);
             $table->decimal('price');

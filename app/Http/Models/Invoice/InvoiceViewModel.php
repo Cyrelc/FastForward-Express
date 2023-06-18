@@ -11,6 +11,7 @@ class InvoiceViewModel {
     public $tax;
     public $total;
     public $account_owing = 0;
+    public $is_prepaid = false;
 }
 
 ?>

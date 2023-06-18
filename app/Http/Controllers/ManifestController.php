@@ -16,13 +16,11 @@ use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
 class ManifestController extends Controller {
     private $storagePath;
-    private $folderName;
 
     public function __construct() {
         $this->middleware('auth');
 
-        $this->storagePath = storage_path() . '/manifests/';
-        $this->folderName = (new \DateTime())->format('Y_m_d_H-i-s');
+        $this->storagePath = storage_path() . '/manifests/' . (new \DateTime())->format('Y_m_d_H-i-s/');
     }
 
     public function delete(Request $req, $manifestId) {
@@ -46,22 +44,18 @@ class ManifestController extends Controller {
 
         $files = $this->preparePdfs($req, $manifestIds);
 
-        if(count($files) === 1)
-            return \Response::download($files[array_key_first($files)]);
-        else {
-            $zip = new ZipArchive();
-            $zipFile = $this->storagePath . $this->folderName . '.zip';
-            $zip->open($zipFile, ZipArchive::CREATE);
+        $zipArchive = new ZipArchive();
+        $tempFile = tempnam(sys_get_temp_dir(), 'zip');
+        $zipArchive->open($tempFile, ZipArchive::CREATE);
 
-            foreach($files as $name => $file)
-                $zip->addFile($file, $name);
+        foreach($files as $name => $file)
+            $zipArchive->addFile($file, $name);
 
-            $zip->close();
+        $zipArchive->close();
 
-            $this->cleanPdfs($files);
+        $this->cleanPdfs($files);
 
-            return \Response::download($zipFile);
-        }
+        return response()->download($tempFile, 'manifests-' . time() . '.zip')->deleteFileAfterSend(true);
     }
 
     public function getDriversToManifest(Request $req) {
@@ -120,14 +114,14 @@ class ManifestController extends Controller {
 
         $pdfMerger->merge();
 
-        $fileName = $this->storagePath . count($files) > 1 ? 'Manifests.' . time() . '.pdf' : array_key_first($files);
-        $fileName = str_replace('&', '', $fileName);
-
         $this->cleanPdfs($files);
 
-        $pdfMerger->save($fileName, 'inline');
+        $fileName = (count($files) > 1 ? 'Manifests.' . time() : array_key_first($files)) . '.pdf';
+        $fileName = str_replace('&', '', $fileName);
 
-        return response()->file($fileName);
+        return response($pdfMerger->output())
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename=' . $fileName);
     }
 
     public function store(Request $req) {
@@ -157,13 +151,11 @@ class ManifestController extends Controller {
      */
 
     private function cleanPdfs($files) {
-        $path = $this->storagePath . $this->folderName . '/';
-
         foreach($files as $file)
             unlink($file);
-        rmdir($this->storagePath . $this->folderName);
+        rmdir($this->storagePath);
 
-        return !is_dir($path);
+        return !is_dir($this->storagePath);
     }
 
     private function preparePdfs(Request $req, $manifestIds) {
@@ -172,8 +164,7 @@ class ManifestController extends Controller {
         $withoutBills = isset($req->without_bills);
 
         $files = array();
-        $path = $this->storagePath . $this->folderName . '/';
-        mkdir($path, 0777, true);
+        mkdir($this->storagePath, 0777, true);
 
         foreach($manifestIds as $manifestId) {
             $model = $manifestModelFactory->GetById($req->user(), $manifestId);
@@ -185,14 +176,14 @@ class ManifestController extends Controller {
             $fileName = preg_replace('/\s+/', '_', $fileName);
             $fileName = preg_replace('/[&.\/\\:*?"<>| ]/', '', $fileName);
 
-            $inputFile = $path . $fileName . '.html';
-            $outputFile = $path . $fileName . '.pdf';
-            $headerFile = $path . $fileName . '-header.html';
-            $footerFile = $path . $fileName . '-footer.html';
+            $inputFile = $this->storagePath . $fileName . '.html';
+            $outputFile = $this->storagePath . $fileName . '.pdf';
+            $headerFile = $this->storagePath . $fileName . '-header.html';
+            $footerFile = $this->storagePath . $fileName . '-footer.html';
+
             $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
-            $file = view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render();
-            file_put_contents($inputFile, $file);
+            file_put_contents($inputFile, view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render());
             file_put_contents($headerFile, view('manifests.manifest_pdf_header', compact('model'))->render());
             file_put_contents($footerFile, view('manifests.manifest_pdf_footer')->render());
 
@@ -204,7 +195,7 @@ class ManifestController extends Controller {
                     'left' => 30,
                     'right' => 30
                 ],
-                'path' => $path . $fileName . '.pdf',
+                'path' => $this->storagePath . $fileName . '.pdf',
                 'printBackground' => true,
             ]);
 
@@ -222,7 +213,7 @@ class ManifestController extends Controller {
             unlink($headerFile);
             unlink($footerFile);
 
-            $files[$fileName] = $path . $fileName . '.pdf';
+            $files[$fileName] = $this->storagePath . $fileName . '.pdf';
         }
 
         return $files;

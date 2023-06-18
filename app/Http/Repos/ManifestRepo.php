@@ -188,7 +188,7 @@ class ManifestRepo {
             $newChargeback = $chargebackRepo->CreateBillChargeback($billChargeback);
 
             $chargebackLineItems = LineItem::where('charge_id', $chargeback->charge_id)
-                ->update(['paid' => true, 'chargeback_id' => $newChargeback->chargeback_id]);
+                ->update(['chargeback_id' => $newChargeback->chargeback_id]);
         }
     }
 }

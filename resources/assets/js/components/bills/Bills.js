@@ -117,36 +117,35 @@ function Bills(props) {
                 else
                     return 'mediumturquoise'
             }}},
-            {title: 'Paid', field: 'paid', formatter: 'tickCross', hozAlign: 'center', width: 65},
             {title: 'Charges', field: 'charges', visible: false}
     ]
 
     const filters = [
-        ...props.frontEndPermissions.bills.billing ? [
-            {
-                name: 'Skip Invoicing',
-                type: 'BooleanFilter',
-                value: 'skip_invoicing'
-            },
-            {
-                isMulti: true,
-                name: 'Repeat Interval',
-                selections: props.repeatIntervals,
-                type: 'SelectFilter',
-                value: 'repeat_interval'
-            },
-        ] : [],
-        {
-            name: props.customFieldName ?? 'Custom Field',
-            type: 'StringFilter',
-            value: 'custom_field_value'
-        },
         {
             isMulti: true,
             name: 'Account',
             selections: props.accounts,
             type: 'SelectFilter',
             value: 'charge_account_id'
+        },
+        {
+            isMulti: true,
+            name: 'Charge Type',
+            selections: props.chargeTypes,
+            type: 'SelectFilter',
+            value: 'charge_type_id',
+        },
+        {
+            name: props.customFieldName ?? 'Custom Field',
+            type: 'StringFilter',
+            value: 'custom_field_value'
+        },
+        {
+            creatable: true,
+            isMulti: true,
+            name: 'Invoice ID',
+            type: 'SelectFilter',
+            value: 'invoice_id'
         },
         ...props.frontEndPermissions.bills.create ? [
             {
@@ -157,36 +156,31 @@ function Bills(props) {
             }
         ] : [],
         {
+            name: 'Is Invoiced',
+            type: 'BooleanFilter',
+            value: 'is_invoiced',
+            default: false
+        },
+        ...props.frontEndPermissions.bills.billing ? [
+            {
+                isMulti: true,
+                name: 'Repeat Interval',
+                selections: props.repeatIntervals,
+                type: 'SelectFilter',
+                value: 'repeat_interval'
+            },
+            {
+                name: 'Skip Invoicing',
+                type: 'BooleanFilter',
+                value: 'skip_invoicing'
+            },
+        ] : [],
+        {
             isMulti: true,
             name: 'Parent Account',
             selections: props.parentAccounts,
             type: 'SelectFilter',
             value: 'parent_account_id'
-        },
-        {
-            name: 'Price',
-            value: 'price',
-            type: 'NumberBetweenFilter',
-            step: 0.01
-        },
-        {
-            name: 'Paid',
-            type: 'BooleanFilter',
-            value: 'paid'
-        },
-        {
-            creatable: true,
-            isMulti: true,
-            name: 'Invoice ID',
-            type: 'SelectFilter',
-            value: 'invoice_id'
-        },
-        {
-            isMulti: true,
-            name: 'Charge Type',
-            selections: props.chargeTypes,
-            type: 'SelectFilter',
-            value: 'charge_type_id',
         },
         {
             name: 'Percent Complete',
@@ -197,15 +191,30 @@ function Bills(props) {
             max: 100,
             defaultUpperBound: 100,
         },
+        ...props.frontEndPermissions.employees.viewAll ? [
+            {
+                isMulti: true,
+                name: 'Pickup Employee',
+                selections: props.drivers,
+                type: 'SelectFilter',
+                value: 'pickup_driver_id',
+            },
+        ] : [],
         {
-            name: 'Scheduled Pickup',
-            type: 'DateBetweenFilter',
-            value: 'time_pickup_scheduled',
+            name: 'Price',
+            value: 'price',
+            type: 'NumberBetweenFilter',
+            step: 0.01
         },
         {
             name: 'Scheduled Delivery',
             type: 'DateBetweenFilter',
             value: 'time_delivery_scheduled',
+        },
+        {
+            name: 'Scheduled Pickup',
+            type: 'DateBetweenFilter',
+            value: 'time_pickup_scheduled',
         },
         // {
         //     fetchUrl: '/getList/selections/delivery_type',
@@ -228,16 +237,7 @@ function Bills(props) {
             //     isMulti: true
             // },
         ] : [],
-        ...props.frontEndPermissions.employees.viewAll ? [
-            {
-                isMulti: true,
-                name: 'Pickup Employee',
-                selections: props.drivers,
-                type: 'SelectFilter',
-                value: 'pickup_driver_id',
-            },
-        ] : [],
-    ]
+    ].sort((a, b) => a.name < b.name)
 
     const groupBy = ''
 

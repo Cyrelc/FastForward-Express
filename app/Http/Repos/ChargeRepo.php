@@ -75,6 +75,30 @@ class ChargeRepo {
         return $charge->first();
     }
 
+    public function GetWithUninvoicedPrepaid($prepaidTypes, $startDate, $endDate) {
+        $charges = Charge::leftJoin('line_items', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
+            ->whereIn('charge_type_id', $prepaidTypes)
+            ->whereNull('invoice_id')
+            ->select(
+                'bills.bill_id',
+                'charges.charge_id',
+                DB::raw('SUM(line_items.price) as price'),
+                'payment_types.name as parent_account',
+                'bills.bill_id as id',
+                'bills.bill_number as number',
+                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and time_pickup_scheduled between "' . $startDate . '" and "' . $endDate . '" then 1 else 0 end as valid_bill_count'),
+                DB::raw('case when percentage_complete = 100 and skip_invoicing = true then 1 else 0 end as skipped_bill_count'),
+                DB::raw('case when percentage_complete < 100 then 1 else 0 end as incomplete_bill_count'),
+                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and time_pickup_scheduled < "' . $startDate . '" then 1 else 0 end as legacy_bill_count'),
+                DB::raw('"prepaid" as type'),
+                DB::raw('cast(time_pickup_scheduled as date) as time_pickup_scheduled')
+            )->groupBy('charges.charge_id');
+
+        return $charges->get();
+    }
+
     public function Insert($charge) {
         $new = new Charge;
 

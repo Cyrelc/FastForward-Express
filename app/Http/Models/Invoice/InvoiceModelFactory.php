@@ -108,6 +108,7 @@ class InvoiceModelFactory{
 			$model->parent->invoice_comment = $masterBill->description;
 			$model->unpaid_invoices = array();
 			$model->is_prepaid = true;
+			$model->account_owing = $model->invoice->balance_owing;
 		}
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);
@@ -116,11 +117,32 @@ class InvoiceModelFactory{
 	}
 
 	public function GetCreateModel() {
+		$paymentRepo = new Repos\PaymentRepo();
 		$selectionsRepo = new Repos\SelectionsRepo();
 
 		$model = new Invoice\InvoiceFormModel();
+		$model->invoice_intervals = array(new \stdClass, new \stdClass);
+		$model->invoice_intervals[0]->label = 'Invoice Intervals';
+		$model->invoice_intervals[0]->options = array();
+		$model->invoice_intervals[1]->label = 'Prepaid Types';
+		$model->invoice_intervals[1]->options = array();
 
-		$model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
+		foreach($selectionsRepo->GetSelectionsByType('invoice_interval') as $invoiceInterval) {
+			$model->invoice_intervals[0]->options[] = [
+				'label' => $invoiceInterval->name,
+				'value' => $invoiceInterval->value,
+				'type' => 'invoice_interval'
+			];
+		}
+
+		foreach($paymentRepo->GetPrepaidPaymentTypes() as $paymentType) {
+			$model->invoice_intervals[1]->options[] = [
+				'label' => $paymentType->name,
+				'value' => $paymentType->payment_type_id,
+				'type' => 'prepaid_type'
+			];
+		}
+
 		$model->start_date = date('Y-m-d H:i:s', strtotime("first day of last month"));
 		$model->end_date = date('Y-m-d H:i:s', strtotime("last day of last month"));
 
@@ -132,9 +154,14 @@ class InvoiceModelFactory{
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
 		$accountRepo = new Repos\AccountRepo();
+		$chargeRepo = new Repos\ChargeRepo();
 		$model = new GenerateInvoiceViewModel();
 
-		$model->accounts = $accountRepo->GetWithUninvoicedLineItems($req->invoice_intervals, $startDate, $endDate);
+		$model->pending_creation = array();
+		if($req->invoice_intervals)
+			$model->pending_creation = $accountRepo->GetWithUninvoicedLineItems($req->invoice_intervals, $startDate, $endDate)->toArray();
+		if($req->prepaid_types)
+			$model->pending_creation = array_merge($model->pending_creation, $chargeRepo->GetWithUninvoicedPrepaid($req->prepaid_types, $startDate, $endDate)->toArray());
 
 		return $model;
 	}

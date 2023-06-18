@@ -69,7 +69,7 @@ class InvoiceRepo {
         return $balanceOwing;
     }
 
-    public function Create($accountIds, $startDate, $endDate) {
+    public function CreateForAccounts($accountIds, $startDate, $endDate) {
         $accountRepo = new AccountRepo();
         $lineItemRepo = new LineItemRepo();
 
