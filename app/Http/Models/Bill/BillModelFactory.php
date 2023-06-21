@@ -33,6 +33,7 @@ class BillModelFactory{
 		$model->permissions = $permissions;
 
 		$accountRepo = new Repos\AccountRepo();
+		$billRepo = new Repos\BillRepo();
 		$contactRepo = new Repos\ContactRepo();
 		$employeeRepo = new Repos\EmployeeRepo();
 		$interlinerRepo = new Repos\InterlinerRepo();
@@ -57,9 +58,9 @@ class BillModelFactory{
 
 		$model->bill = new \App\Bill();
 		$model->packages = array(['count' => 1, 'weight' => '', 'length' => '', 'width' => '', 'height' => '']);
-		$model->pickupAddress = new \App\Address();
+		$model->pickup_address = new \App\Address();
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
-		$model->deliveryAddress = new \App\Address();
+		$model->delivery_address = new \App\Address();
 
 		$model->charge_selection_submission = null;
 		$model->bill->time_call_received = date("U");
@@ -69,6 +70,43 @@ class BillModelFactory{
 		$model = $this->setBusinessHours($model);
 		//ADMIN status and RATESHEET ID to be dynamically decided
 		$model->ratesheet_id = 1;
+
+		return $model;
+	}
+
+	public function GetCopyModel($req, $permissions) {
+		$model = $this->GetCreateModel($req, $permissions);
+
+		$addressRepo = new Repos\AddressRepo();
+		$billRepo = new Repos\BillRepo();
+		$chargeRepo = new Repos\ChargeRepo();
+		$lineItemRepo = new Repos\LineItemRepo();
+
+		$template = $billRepo->GetById($req->copy_from);
+
+		$model->pickup_address = $addressRepo->GetById($template->pickup_address_id);
+		$model->pickup_address->address_id = null;
+		$model->delivery_address = $addressRepo->GetById($template->delivery_address_id);
+		$model->delivery_address->address_id = null;
+		$model->bill->pickup_account_id = $template->pickup_account_id;
+		$model->bill->delivery_account_id = $template->delivery_account_id;
+		$model->charges = $chargeRepo->GetByBillId($template->bill_id);
+
+		foreach($model->charges as $key => $charge)
+			$model->charges[$key]->lineItems = $lineItemRepo->GetByChargeId($charge->charge_id);
+
+		foreach($model->charges as $chargeKey => $charge) {
+			$model->charges[$chargeKey]->charge_id = null;
+			foreach($model->charges[$chargeKey]->lineItems as $lineItemKey => $lineItem) {
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->line_item_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->invoice_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->pickup_manifest_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->delivery_manifest_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->delivery_driver_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->pickup_driver_id = null;
+				$model->charges[$chargeKey]->lineItems[$lineItemKey]->amendment_number = null;
+			}
+		}
 
 		return $model;
 	}
@@ -92,6 +130,7 @@ class BillModelFactory{
 		$model->bill = $billRepo->GetById($billId, $model->permissions);
 		if($model->bill === null)
 			abort(404, 'Invalid ID: Unable to find the bill requested');
+
 		if($permissions['viewActivityLog']) {
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
 			foreach($model->activity_log as $key => $log) {

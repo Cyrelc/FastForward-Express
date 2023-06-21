@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useReducer, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
+import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
 
@@ -36,9 +37,13 @@ const Bill = (props) => {
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
     const {match: {params}} = props
+    const location = useLocation()
+    const history = useHistory()
+    const queryParams = new URLSearchParams(location.search)
 
     const configureBill = () => {
-        const fetchUrl = `/bills/${params.billId ? params.billId : 'create'}`
+        billDispatch({type: 'SET_IS_LOADING', payload: true})
+        const fetchUrl = `/bills/${params.billId ? params.billId : 'create'}${location.search}`
 
         document.title = params.billId ? `Manage Bill: ${params.billId}` : 'Create Bill - Fast Forward Express'
 
@@ -85,19 +90,23 @@ const Bill = (props) => {
             } else {
                 if(data.permissions.createFull && !data.permissions.packages)
                     packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
+                if(queryParams.get('copy_from')) {
+                    billDispatch({type: 'CONFIGURE_COPY', payload: data})
+                    chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                }
                 billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
             }
+
+            billDispatch({type: 'SET_IS_LOADING', payload: false})
         })
     }
 
     const copyBill = () => {
-        if(!billId)
+        if(!billId) {
+            toastr.error("Can't copy a bill that doesn't exist... how did you even get this menu!?!?")
             return
-        if(confirm(`Are you certain you wish to make a copy of bill ${billId}?\nThe pickup and delivery date will be changed to today, but all other fields including times, will remain the same`)) {
-            makeAjaxRequest(`/bills/copy/${billId}`, 'GET', null, response => {
-                toastr.success(`Successfully copied bill ${billId} to new bill ${response.bill_id}`)
-            })
         }
+        history.push(`/app/bills/create?copy_from=${billId}`)
     }
 
     const generateCharges = useCallback((chargeIndex, overwrite = false) => {
@@ -405,6 +414,10 @@ const Bill = (props) => {
         useImperial,
     ])
 
+    if(billState.isLoading)
+        return (
+            <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+        )
     return (
         <Row className='justify-content-md-center'>
             <Col md={12}>

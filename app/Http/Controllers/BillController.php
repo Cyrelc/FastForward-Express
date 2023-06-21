@@ -105,6 +105,16 @@ class BillController extends Controller {
             $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
 
             $model = $billModelFactory->GetEditModel($req, $billId, $permissions);
+        } else if(isset($req->copy_from)) {
+            $billRepo = new Repos\BillRepo();
+            $templateBill = $billRepo->GetById($req->copy_from);
+            if(!$templateBill)
+                abort(404);
+            if($req->user()->cannot('viewBasic', $templateBill))
+                abort(403);
+
+            $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $templateBill);
+            $model = $billModelFactory->GetCopyModel($req, $permissions);
         } else {
             if($req->user()->cannot('createBasic', Bill::class))
                 abort(403);

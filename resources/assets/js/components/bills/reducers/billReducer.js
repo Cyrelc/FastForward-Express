@@ -60,6 +60,7 @@ export const initialState = {
     description: '',
     incompleteFields: [],
     internalComments: '',
+    isLoading: true,
     isTemplate: false,
     key: 'basic',
     nextBillId: null,
@@ -164,8 +165,45 @@ export default function billReducer(state, action) {
                 employees: payload.employees,
                 key: window.location.hash ? window.location.hash.substr(1) : initialState.key,
                 permissions: payload.permissions,
-                ratesheets: payload.ratesheets
+                ratesheets: payload.ratesheets,
+                activityLog: null
             })
+        case 'CONFIGURE_COPY': {
+            let newState = {
+                pickup: {
+                    account: payload.bill?.pickup_account_id ? state.accounts.find(account => payload.bill.pickup_account_id == account.account_id) : '',
+                    addressFormatted: payload.pickup_address?.formatted ?? state.pickup.addressFormatted,
+                    addressLat: payload.pickup_address?.lat ??  state.pickup.addressLat,
+                    addressLng: payload.pickup_address?.lng ?? state.pickup.addressLng,
+                    addressName: payload.pickup_address?.name ?? state.pickup.addressName ,
+                    addressPlaceId: payload.pickup_address?.place_id ?? state.pickup.addressPlaceId,
+                    addressType: payload.bill?.pickup_account_id ? 'Account' : 'Search',
+                    driver: '',
+                    driverCommission: '',
+                    referenceValue: payload.bill?.pickup_reference_value ?? state.pickup.referenceValue,
+                    timeActual: '',
+                    timeScheduled: new Date(),
+                    zone: null
+                },
+                delivery: {
+                    account: payload.bill?.delivery_account_id,
+                    addressFormatted: payload.delivery_address?.formatted ?? state.delivery.addressFormatted,
+                    addressLat: payload.delivery_address?.lat ??  state.delivery.addressLat,
+                    addressLng: payload.delivery_address?.lng ?? state.delivery.addressLng,
+                    addressName: payload.delivery_address?.name ?? state.delivery.addressName ,
+                    addressPlaceId: payload.delivery_address?.place_id ?? state.delivery.addressPlaceId,
+                    addressType: payload.bill?.delivery_account_id ? 'Account' : 'Search',
+                    driver: '',
+                    driverCommission: '',
+                    referenceValue: payload.bill?.delivery_reference_value ?? state.delivery.referenceValue,
+                    timeActual: '',
+                    timeScheduled: new Date(),
+                    zone: null
+                },
+            }
+
+            return Object.assign({}, state, newState)
+        }
         case 'CONFIGURE_EXISTING': {
             const {
                 accounts,
@@ -308,6 +346,8 @@ export default function billReducer(state, action) {
             return Object.assign({}, state, {internalComments: payload})
         case 'SET_IS_TEMPLATE':
             return Object.assign({}, state, {isTemplate: payload})
+        case 'SET_IS_LOADING':
+            return Object.assign({}, state, {isLoading: payload})
         case 'SET_NEXT_BILL_ID':
             return Object.assign({}, state, {nextBillId: payload})
         case 'SET_PICKUP_ACCOUNT': {

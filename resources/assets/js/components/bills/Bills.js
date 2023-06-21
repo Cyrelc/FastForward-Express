@@ -302,12 +302,7 @@ function Bills(props) {
 
     const copyBill = cell => {
         const billId = cell.getRow().getData().bill_id
-        if(confirm(`Are you certain you wish to make a copy of bill ${billId}?\nThe pickup and delivery date will be changed to today, but all other fields including times, will remain the same`)) {
-            makeAjaxRequest(`/bills/copy/${billId}`, 'GET', null, response => {
-                toastr.success(`Successfully copied bill ${billId} to new bill ${response.bill_id}`)
-                props.fetchTableData()
-            })
-        }
+        props.redirect(`/app/bills/create?copy_from=${billId}`)
     }
 
     const defaultQueryString = () => {
