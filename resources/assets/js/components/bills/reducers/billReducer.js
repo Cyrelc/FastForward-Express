@@ -186,7 +186,7 @@ export default function billReducer(state, action) {
                     zone: null
                 },
                 delivery: {
-                    account: payload.bill?.delivery_account_id,
+                    account: payload.bill?.delivery_account_id ? state.accounts.find(account => payload.bill.delivery_account_id == account.account_id) : '',
                     addressFormatted: payload.delivery_address?.formatted ?? state.delivery.addressFormatted,
                     addressLat: payload.delivery_address?.lat ??  state.delivery.addressLat,
                     addressLng: payload.delivery_address?.lng ?? state.delivery.addressLng,
