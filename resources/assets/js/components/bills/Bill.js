@@ -3,6 +3,7 @@ import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, Nav
 import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
+import {debounce} from 'lodash'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
@@ -109,56 +110,77 @@ const Bill = (props) => {
         history.push(`/app/bills/create?copy_from=${billId}`)
     }
 
-    const generateCharges = useCallback((chargeIndex, overwrite = false) => {
+    const debouncedGenerateCharges = useCallback(
+        debounce((chargeIndex, overwrite = false) => {
+            const charge = charges[chargeIndex]
+
+            const data = {
+                charge_account_id: charge?.account_id,
+                delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng},
+                delivery_type_id: deliveryType.id,
+                package_is_minimum: packageIsMinimum,
+                package_is_pallet: packageIsPallet,
+                packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
+                pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng},
+                // TODO: replace this with ratesheet logic (mine > parents > default)
+                ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
+                time_pickup_scheduled: pickupTimeScheduled,
+                time_delivery_scheduled: deliveryTimeScheduled,
+                use_imperial: useImperial
+            }
+            setAwaitingCharges(true)
+
+            makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
+                response = JSON.parse(response)
+                if(overwrite) {
+                    chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+                } else {
+                    chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+                }
+                setAwaitingCharges(false)
+                toastr.warning(
+                    'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
+                    'Automatic Pricing',
+                    {
+                        positionClass: 'toast-bottom-full-width',
+                        showDuration: 300,
+                        timeOut: 5000,
+                        extendedTImeout: 5000
+                    }
+                )
+            }, error => {setAwaitingCharges(false)})
+        }, 500), [
+            activeRatesheet,
+            chargeAccount,
+            charges,
+            deliveryAddressLat,
+            deliveryAddressLng,
+            deliveryTimeScheduled,
+            deliveryType,
+            packageIsMinimum,
+            packageIsPallet,
+            packages,
+            pickupAddressLat,
+            pickupAddressLng,
+            pickupTimeScheduled,
+            useImperial,
+        ]
+    )
+
+    const debounceSetPickupTimeExpected = useCallback(debounce((value) => {
+        return () => {
+            billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})
+        }
+    }, 500))
+
+    const generateCharges = (chargeIndex, overwrite = false) => {
         if(awaitingCharges)
             return
 
-        const charge = charges[chargeIndex]
-
-        const data = {
-            charge_account_id: charge?.account_id,
-            delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng},
-            delivery_type_id: deliveryType.id,
-            package_is_minimum: packageIsMinimum,
-            package_is_pallet: packageIsPallet,
-            packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
-            pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng},
-            // TODO: replace this with ratesheet logic (mine > parents > default)
-            ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
-            time_pickup_scheduled: pickupTimeScheduled,
-            time_delivery_scheduled: deliveryTimeScheduled,
-            use_imperial: useImperial
-        }
         setAwaitingCharges(true)
 
-        makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
-            response = JSON.parse(response)
-            if(overwrite) {
-                chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-            } else {
-                chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-            }
-            setAwaitingCharges(false)
-            toastr.warning('Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies')
-        },
-        error => {setAwaitingCharges(false)}
-        )
-    }, [
-        activeRatesheet,
-        chargeAccount,
-        charges,
-        deliveryAddressLat,
-        deliveryAddressLng,
-        deliveryTimeScheduled,
-        deliveryType,
-        packageIsMinimum,
-        packageIsPallet,
-        packages,
-        pickupAddressLat,
-        pickupAddressLng,
-        pickupTimeScheduled,
-        useImperial,
-    ])
+        debouncedGenerateCharges(chargeIndex, overwrite)
+    }
 
     const getStoreButton = () => {
         if(billId) {
@@ -415,9 +437,8 @@ const Bill = (props) => {
     ])
 
     if(billState.isLoading)
-        return (
-            <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
-        )
+        return <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+
     return (
         <Row className='justify-content-md-center'>
             <Col md={12}>
@@ -549,6 +570,7 @@ const Bill = (props) => {
                             billState={billState}
                             chargeDispatch={chargeDispatch}
                             chargeState={chargeState}
+                            setPickupTimeExpected={debounceSetPickupTimeExpected}
                             packageDispatch={packageDispatch}
                             packageState={packageState}
                         />

@@ -92,7 +92,7 @@ export default function BasicTab(props) {
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
                 if(!billId && applyRestrictions)
-                    props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                    props.setPickupTimeExpected(new Date())
             })
         }
     }, [pickup.addressLat, pickup.addressLng])
@@ -102,7 +102,7 @@ export default function BasicTab(props) {
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
                 if(!billId && applyRestrictions)
-                    props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                    props.setPickupTimeExpected(new Date())
             })
     }, [delivery.addressLat, delivery.addressLng])
 
@@ -316,7 +316,7 @@ export default function BasicTab(props) {
                                 showTimeSelect
                                 timeIntervals={15}
                                 dateFormat='MMMM d, yyyy h:mm aa'
-                                onChange={value => props.billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})}
+                                onChange={value => props.setPickupTimeExpected(value)}
                                 showMonthDropdown
                                 monthDropdownItemNumber={15}
                                 scrollableMonthDropdown
