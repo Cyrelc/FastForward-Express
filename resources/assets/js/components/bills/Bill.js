@@ -31,7 +31,7 @@ const Bill = (props) => {
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
     const [awaitingCharges, setAwaitingCharges] = useState(false)
 
-    const {accounts, billId, deliveryType, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
+    const {accounts, billId, deliveryType, isLoading, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
@@ -368,6 +368,8 @@ const Bill = (props) => {
 
     // In the event a new pickup or delivery account has been set and there is no charge account, automatically populate the charge account
     useEffect(() => {
+        if(isLoading)
+            return
         if(!billId && !chargeState.charges?.length && pickupAccount?.account_id) {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: pickupAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
@@ -375,10 +377,12 @@ const Bill = (props) => {
             if(pickupAccount?.ratesheet_id && pickupAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
                 billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickupAccount.ratesheet_id)})
         }
-    }, [pickupAccount])
+    }, [pickupAccount, isLoading])
 
     // If the delivery account changes, as a convenience we create a charge assigned to this account
     useEffect(() => {
+        if(isLoading)
+            return
         if(!billId && !chargeState.charges?.length && deliveryAccount?.account_id) {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: deliveryAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
@@ -386,7 +390,7 @@ const Bill = (props) => {
             if(deliveryAccount?.ratesheet_id && deliveryAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
                 billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == deliveryAccount.ratesheet_id)})
         }
-    }, [deliveryAccount])
+    }, [deliveryAccount, isLoading])
 
     // Set the ratesheet (for purposes of delivery type time primarily) - based on the currently selected charge Account on the basic page
     useEffect(() => {
