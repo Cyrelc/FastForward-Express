@@ -255,9 +255,11 @@ const Bill = (props) => {
                     bill_number: billState.billNumber,
                     delivery_driver_commission: billState.delivery.driverCommission,
                     delivery_driver_id: billState.delivery.driver?.employee_id,
+                    delivery_person_name: billState.delivery.personName,
                     internal_comments: billState.internalComments,
                     pickup_driver_id: billState.pickup.driver?.employee_id,
                     pickup_driver_commission: billState.pickup.driverCommission,
+                    pickup_person_name: billState.pickup.personName,
                     time_call_received: billState.timeCallReceived ? billState.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
                     time_dispatched: billState.timeDispatched ? billState.timeDispatched.toLocaleString("en-US") : null,
                 }

@@ -39,6 +39,7 @@ const initialPickupDelivery = {
     addressType: 'Search',
     driver: '',
     driverCommission: '',
+    personName: '',
     referenceValue: '',
     timeActual: '',
     timeScheduled: new Date(),
@@ -228,6 +229,7 @@ export default function billReducer(state, action) {
                     addressName: delivery_address.name,
                     addressPlaceId: delivery_address.place_id,
                     addressType: bill.delivery_account_id ? 'Account' : 'Search',
+                    personName: bill.delivery_person_name,
                     referenceValue: bill.delivery_reference_value,
                     timeActual: Date.parse(bill.time_delivered),
                     timeScheduled: Date.parse(bill.time_delivery_scheduled)
@@ -246,6 +248,7 @@ export default function billReducer(state, action) {
                     addressName: pickup_address.name,
                     addressPlaceId: pickup_address.place_id,
                     addressType: bill.pickup_account_id ? 'Account' : 'Search',
+                    personName: bill.pickup_person_name,
                     referenceValue: bill.pickup_reference_value,
                     timeActual: Date.parse(bill.time_picked_up),
                     timeScheduled: Date.parse(bill.time_pickup_scheduled)

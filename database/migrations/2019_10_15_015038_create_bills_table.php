@@ -21,6 +21,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('delivery_address_id');
             $table->float('delivery_driver_commission')->nullable();
             $table->unsignedInteger('delivery_driver_id')->nullable();
+            $table->string('delivery_person_name')->nullable();
             $table->string('delivery_reference_value')->nullable();
             $table->string('delivery_type')->nullable();
             $table->text('description');
@@ -38,6 +39,7 @@ class CreateBillsTable extends Migration
             $table->unsignedInteger('pickup_address_id');
             $table->float('pickup_driver_commission')->nullable();
             $table->unsignedInteger('pickup_driver_id')->nullable();
+            $table->string('pickup_person_name')->nullable();
             $table->string('pickup_reference_value')->nullable();
             $table->boolean('proof_of_delivery_required')->default(0);
             $table->unsignedInteger('repeat_interval')->nullable()->default(null);
