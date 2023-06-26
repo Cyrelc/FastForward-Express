@@ -42,7 +42,7 @@ class BillModelFactory{
 		$selectionsRepo = new Repos\SelectionsRepo();
 
 		if($permissions['createFull']) {
-			$model->accounts = $accountRepo->ListForBillsPage($req->user());
+			$model->accounts = $accountRepo->ListForBillsPage($req->user(), false, true);
 			$model->employees = $employeeRepo->GetDriverList();
 			$model->interliners = $interlinerRepo->GetInterlinersList();
 			$model->charge_types = $paymentRepo->GetPaymentTypes();
@@ -52,7 +52,7 @@ class BillModelFactory{
 				$employee->contact = $contactRepo->GetById($employee->contact_id);
 		// Possible edge case - if user can create bills for children but not for own account
 		} else if($req->user()->can('bills.create.basic.my')) {
-			$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'));
+			$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'), true);
 			$model->charge_types = [$paymentRepo->GetAccountPaymentType()];
 		}
 

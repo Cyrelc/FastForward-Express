@@ -367,7 +367,7 @@ class AccountRepo {
         return $filteredAccounts->get();
     }
 
-    public function ListForBillsPage($user, $withChildren = false) {
+    public function ListForBillsPage($user, $withChildren = false, $activeOnly = false) {
         $accounts = Account::leftjoin('addresses as shipping_address', 'accounts.shipping_address_id', '=', 'shipping_address.address_id')
             ->leftjoin('addresses as billing_address', 'accounts.billing_address_id', '=', 'billing_address.address_id')
             ->select(
@@ -390,6 +390,9 @@ class AccountRepo {
                 'custom_field',
                 'is_custom_field_mandatory'
             );
+
+        if($activeOnly)
+            $accounts->where('active', 1);
 
         if($user->cannot('createBasicAnyAccount', Bill::class))
             $accounts->whereIn('account_id', $this->GetMyAccountIds($user, $withChildren));
