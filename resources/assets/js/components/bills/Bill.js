@@ -168,10 +168,8 @@ const Bill = (props) => {
     )
 
     const debounceSetPickupTimeExpected = useCallback(debounce((value) => {
-        return () => {
-            billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})
-        }
-    }, 500))
+        billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})
+    }, 300), [])
 
     const generateCharges = (chargeIndex, overwrite = false) => {
         if(awaitingCharges)
