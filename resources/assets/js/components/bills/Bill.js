@@ -324,17 +324,28 @@ const Bill = (props) => {
         if(!pickupDriver || !deliveryDriver)
             return
 
-        const mismatchedLineItems = charges.filter(charge =>
+        let requiresConfirmation = false
+
+        const mismatchedCharges = charges.filter(charge =>
             charge.lineItems.some(lineItem => {
-                if(lineItem.delivery_manifest_id == null && lineItem.delivery_driver_id != deliveryDriver.employee_id)
+                if(lineItem.delivery_manifest_id == null && lineItem.delivery_driver_id != deliveryDriver.employee_id) {
+                    if(lineItem.delivery_driver_id != null)
+                        requiresConfirmation = true
                     return true
-                if(lineItem.pickup_manifest_id == null && lineItem.pickup_driver_id != pickupDriver.employee_id)
+                }
+                if(lineItem.pickup_manifest_id == null && lineItem.pickup_driver_id != pickupDriver.employee_id) {
+                    if(lineItem.pickup_driver_id != null)
+                        requiresConfirmation = true
                     return true
+                }
                 return false
             }
         ))
 
-        if(mismatchedLineItems.length && confirm(unmanifestedDriverMismatchMessage)) {
+        if(mismatchedCharges.length) {
+            if(requiresConfirmation && !confirm(unmanifestedDriverMismatchMessage))
+                return
+
             charges.forEach((charge, index) => {
                 const updatedLineItems = charge.lineItems.map(lineItem => {
                     return {
