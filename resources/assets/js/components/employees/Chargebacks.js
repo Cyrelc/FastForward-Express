@@ -98,6 +98,8 @@ function Chargebacks(props) {
     ]
 
     const toggleModal = () => {
+        if(showChargebackModal)
+            setChargeback({})
         setShowChargebackModal(!showChargebackModal)
     }
 
@@ -127,6 +129,7 @@ function Chargebacks(props) {
         <Fragment>
             <Table
                 columns={columns}
+                createObjectFunction={toggleModal}
                 dataUrl='/chargebacks'
                 defaultQueryString='?filter[active]=true'
                 fetchTableData={fetchTableData}
