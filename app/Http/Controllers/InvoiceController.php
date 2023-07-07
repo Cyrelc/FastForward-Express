@@ -255,12 +255,14 @@ class InvoiceController extends Controller {
 
         foreach($invoiceIds as $invoiceId) {
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
-            if(isset($invoice->account_id))
+            if(isset($invoice->account_id)) {
                 $account = $accountRepo->GetById($model->parent->account_id);
-            else {
+                $account->hide_outstanding_invoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_oustanding_invoices, FILTER_VALIDATE_BOOLEAN) : false;
+            } else {
                 $account = new \stdClass;
                 $account->show_invoice_line_items = true;
                 $account->show_pickup_and_delivery_address = true;
+                $account->hide_outstanding_invoices = true;
             }
 
             if($req->user()->cannot('view', $model->invoice))
@@ -268,10 +270,10 @@ class InvoiceController extends Controller {
 
             $fileName = trim($model->parent->name) . '-' . $model->invoice->invoice_id;
             $fileName = preg_replace('/\s+/', '_', $fileName);
-            $fileName = preg_replace('/[&.\/\\:*?"<>| ]/', '', $fileName);
+            $fileName = preg_replace('/[(&.\/\\:*?"<>| )]/', '', $fileName);
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
-            $hideOutstandingInvoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_outstanding_invoices, FILTER_VALIDATE_BOOLEAN) : true;
+            $hideOutstandingInvoices = $account->hide_outstanding_invoices;
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
