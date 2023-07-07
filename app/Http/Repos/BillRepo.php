@@ -522,10 +522,10 @@ class BillRepo {
             ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
             ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
             ->select(
-                'payments.payment_type_id',
+                'payment_types.payment_type_id',
                 'payment_types.name as payment_type_name',
                 DB::raw('sum(case when price is null then 0 else price end) as amount')
-            )->groupBy('payments.payment_type_id');
+            )->groupBy('payment_types.payment_type_id');
 
         return $bills->get();
     }
