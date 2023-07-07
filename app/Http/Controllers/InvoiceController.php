@@ -257,7 +257,7 @@ class InvoiceController extends Controller {
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
             if(isset($invoice->account_id)) {
                 $account = $accountRepo->GetById($model->parent->account_id);
-                $account->hide_outstanding_invoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_oustanding_invoices, FILTER_VALIDATE_BOOLEAN) : false;
+                $account->hide_outstanding_invoices = isset($req->hide_outstanding_invoices) ? filter_var($req->hide_outstanding_invoices, FILTER_VALIDATE_BOOLEAN) : false;
             } else {
                 $account = new \stdClass;
                 $account->show_invoice_line_items = true;
