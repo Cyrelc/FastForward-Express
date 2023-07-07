@@ -245,6 +245,8 @@ class InvoiceController extends Controller {
      */
     private function preparePdfs($invoiceIds, $req) {
         $accountRepo = new Repos\AccountRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
+
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
 
         $globalAmendmentsOnly = isset($req->amendments_only) ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
@@ -254,6 +256,7 @@ class InvoiceController extends Controller {
         mkdir($path, 0777, true);
 
         foreach($invoiceIds as $invoiceId) {
+            $invoice = $invoiceRepo->GetById($invoiceId);
             $model = $invoiceModelFactory->GetById($req, $invoiceId);
             if(isset($invoice->account_id)) {
                 $account = $accountRepo->GetById($model->parent->account_id);
