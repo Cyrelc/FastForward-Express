@@ -32,14 +32,9 @@ class AddressRepo {
     public function updateMinimal($address) {
         $old = $this->GetById($address['address_id']);
 
-        $old->name = $address['name'];
-        $old->formatted = $address['formatted'];
-        $old->lat = $address['lat'];
-        $old->lng = $address['lng'];
-        $old->place_id = $address['place_id'];
-
-        if (array_key_exists('contact_id', $address))
-            $old->contact_id = $address['contact_id'];
+        foreach((new Address())->getFillable() as $field)
+            if(isset($address[$field]))
+                $old[$field] = $address[$field];
 
         $old->save();
 

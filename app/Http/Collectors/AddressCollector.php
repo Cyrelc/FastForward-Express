@@ -7,6 +7,7 @@ class AddressCollector {
             'address_id'=>$addressId,
             'name'=>$req->input($prefix . '_name'),
             'formatted'=>$req->input($prefix . '_formatted'),
+            'is_mall'=> $req->input($prefix . '_is_mall') == null ? false : filter_var($req->input($prefix . '_is_mall'), FILTER_VALIDATE_BOOLEAN),
             'lat'=>$req->input($prefix . '_lat'),
             'lng'=>$req->input($prefix . '_lng'),
             'place_id'=>$req->input($prefix . '_place_id'),

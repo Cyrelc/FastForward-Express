@@ -14,18 +14,13 @@ class Address extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'name',
-        'street',
-        'street2',
-        'city',
-        'zip_postal',
-        'state_province',
-        'country',
-        'is_primary',
         'contact_id',
+        'formatted',
+        'is_mall',
+        'is_primary',
         'lat',
         'lng',
-        'formatted',
+        'name',
         'place_id'
     ];
 
@@ -34,5 +29,9 @@ class Address extends Model
             ->logFillable()
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function getFillable() {
+        return $this->fillable;
     }
 }

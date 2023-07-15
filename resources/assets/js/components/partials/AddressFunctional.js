@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Card, Col, FormControl, InputGroup, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import {Card, Col, FormCheck, FormControl, InputGroup, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
 import {Autocomplete, GoogleMap, Marker} from '@react-google-maps/api'
 import Select from 'react-select'
 
@@ -16,7 +16,7 @@ export default function Address(props) {
 
     const {accounts, readOnly, showAddressSearch} = props
 
-    const {account, formatted, lat, lng, name, type, referenceValue} = props.data
+    const {account, formatted, isMall, lat, lng, name, type, referenceValue} = props.data
 
     useEffect(() => {
         const newCoordinates = {lat: lat ? lat : 53.544389, lng: lng ? lng : -113.49072669}
@@ -66,6 +66,18 @@ export default function Address(props) {
                             <h4 style={{display: 'inline'}}>{props.header}</h4>
                         </Card.Title>
                     </Col>
+                    {props.useIsMall &&
+                        <Col>
+                            <FormCheck
+                                name='isMall'
+                                label='Location In Mall'
+                                value={isMall}
+                                checked={isMall}
+                                disabled={readOnly}
+                                onChange={event => props.handleChange({target: {name: 'isMall', value: !isMall}})}
+                            />
+                        </Col>
+                    }
                     <Col className='justify-content-end'>
                         <InputGroup style={{paddingTop: 0}}>
                             <InputGroup.Text>Type: </InputGroup.Text>

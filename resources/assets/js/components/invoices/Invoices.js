@@ -154,6 +154,7 @@ class Invoices extends Component {
                         name: 'Finalized',
                         value: 'finalized',
                         type: 'BooleanFilter',
+                        default: false
                     }
                 ] : [],
                 {

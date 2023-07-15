@@ -244,6 +244,7 @@ export default function BasicTab(props) {
                             data={{
                                 account: pickup.account,
                                 formatted: pickup.addressFormatted,
+                                isMall: pickup.isMall,
                                 lat: pickup.addressLat,
                                 lng: pickup.addressLng,
                                 name: pickup.addressName,
@@ -258,6 +259,7 @@ export default function BasicTab(props) {
                             accounts={accounts}
                             readOnly={readOnly}
                             showAddressSearch={true}
+                            useIsMall
                         />
                     </Col>
                     <Col md={5}>
@@ -267,6 +269,7 @@ export default function BasicTab(props) {
                             data={{
                                 account: delivery.account,
                                 formatted: delivery.addressFormatted,
+                                isMall: delivery.isMall,
                                 lat: delivery.addressLat,
                                 lng: delivery.addressLng,
                                 name: delivery.addressName,
@@ -281,6 +284,7 @@ export default function BasicTab(props) {
                             accounts={accounts}
                             readOnly={readOnly}
                             showAddressSearch={true}
+                            useIsMall
                         />
                     </Col>
                 </Row>
