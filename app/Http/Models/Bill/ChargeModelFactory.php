@@ -8,6 +8,10 @@ use App\Http\MapLogic;
 use Illuminate\Support\Facades\Log;
 use JWadhams\JsonLogic;
 
+use MathParser\StdMathParser;
+use Matex\Evaluator;
+use \PhpUnitsOfMeasure\PhysicalQuantity\Mass;
+
 class ChargeModelFactory {
     public function GenerateCharges($req) {
         $ratesheetRepo = new Repos\RatesheetRepo();
@@ -104,6 +108,14 @@ class ChargeModelFactory {
         return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->$deliveryType);
     }
 
+    private function EvaluateFunctionalEquation($conditional, $mockBill) {
+        $evaluator = new Evaluator();
+
+        $evaluator->variables = ['total_weight' => $mockBill->package->total_weight];
+
+        return $evaluator->execute($conditional->equation_string);
+    }
+
     /**
      * Calculates which conditional charges apply by creating an object and comparing against stored json_logic data
      * @param $ratesheet - standard ratesheet object pulled from database
@@ -114,8 +126,8 @@ class ChargeModelFactory {
     private function generateConditionalCharges($ratesheet, $bill, $req, $currentPrice) {
         $conditionalRepo = new Repos\ConditionalRepo();
 
-        $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'amount');
-        $percentConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, 'percent');
+        $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['amount', 'equation']);
+        $percentConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['percent']);
 
         $results = array();
 
@@ -124,18 +136,19 @@ class ChargeModelFactory {
 
             if(JsonLogic::apply($rules, $bill)) {
                 $action = json_decode($conditional->action)->value;
-                $valueType = json_decode($conditional->value_type)->value;
+                $valueType = $conditional->value_type;
+                $value = $valueType == 'equation' ? $this->EvaluateFunctionalEquation($conditional, $bill) : $conditional->$value;
 
                 if($action == 'discount') {
-                    if(($currentPrice - $conditional->value) > 0)
-                        $currentPrice -= $conditional->value;
+                    if(($currentPrice - $value) > 0)
+                        $currentPrice -= $value;
                     else
                         $currentPrice = 0;
                 }
                 else
-                    $currentPrice += $conditional->value;
+                    $currentPrice += $value;
 
-                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $conditional->value);
+                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $value);
             }
         }
 
@@ -146,7 +159,7 @@ class ChargeModelFactory {
                 $action = json_decode($conditional->action)->value;
                 $valueType = json_decode($conditional->value_type)->value;
 
-                $price = number_format(round($conditional->value / 100 * $currentPrice, 2), 2);
+                $price = number_format(round($value / 100 * $currentPrice, 2), 2);
                 if($action == 'discount')
                     $price *= -1;
 
@@ -192,7 +205,7 @@ class ChargeModelFactory {
                 $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $zones, $ratesheet, $deliveryType);
             else {
                 $deliveryTypes = json_decode($ratesheet->delivery_types);
-                $chargeDeliveryTypeIndex = array_search($bill->delivery_type, array_column($deliveryTypes, 'id'));
+                $chargeDeliveryTypeIndex = array_search($bill->delivery_type->value, array_column($deliveryTypes, 'id'));
                 $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
 
                 $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost);
@@ -295,34 +308,24 @@ class ChargeModelFactory {
     private function mockBill($req) {
         $selectionsRepo = new Repos\SelectionsRepo();
 
-        // $deliveryTypes = json_decode($ratesheet->delivery_types);
-        // $chargeDeliveryTypeIndex = array_search($deliveryType, array_column($deliveryTypes, 'id'));
-        // $chargeDeliveryType = $deliveryTypes[$chargeDeliveryTypeIndex];
-
-        /* $bill = [
-            'delivery_address' => [
-                'zone' => [
-                    'type' => $deliveryZone->type
-                ]
-            ],
-            'package' => [
-                'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN)
-            ],
-            'pickup_address' => [
-                'zone' => [
-                    'type' => $pickupZone->type
-                ]
-            ],
-        ]; */
         $bill = (object) [
-            'pickup_address' => (object) [
-                'zone' =>  $this->GetZone($req->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng'])
-            ],
             'delivery_address' => (object) [
                 'zone' => $this->GetZone($req->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng'])
             ],
-            'delivery_type' => $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $req->delivery_type_id)
+            'delivery_type' => $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $req->delivery_type_id),
+            'package' => (object) [
+                'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN),
+                'total_weight' => $req->packages ? array_reduce($req->packages, function($carry, $package) {return $carry + $package['totalWeight'];}, 0) : 0
+            ],
+            'pickup_address' => (object) [
+                'zone' =>  $this->GetZone($req->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng'])
+            ],
         ];
+
+        if($req->use_imperial) {
+            $weight = new Mass($bill->package->total_weight, 'pounds');
+            $bill->package->total_weight = $weight->toUnit('kg');
+        }
 
         return $bill;
     }

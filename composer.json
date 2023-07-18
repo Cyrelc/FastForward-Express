@@ -24,7 +24,8 @@
         "madorin/matex": "^1.0",
         "beyondcode/laravel-websockets": "^1.14",
         "spatie/laravel-permission": "^5.10",
-        "spatie/laravel-query-builder": "^5.2"
+        "spatie/laravel-query-builder": "^5.2",
+        "myfarms/php-units-of-measure": "^2.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",

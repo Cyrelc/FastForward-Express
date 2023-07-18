@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Row, Table} from 'react-bootstrap'
+import {Equation, EquationOptions, defaultErrorHandler} from 'react-equation'
+import {defaultVariables, defaultFunctions} from 'equation-resolver'
 
 import ConditionalModal from './ConditionalModal'
 
@@ -18,9 +20,10 @@ export default function ConditionalsTab(props) {
     const [showConditionalModal, setShowConditionalModal] = useState(false)
 
     const deleteConditional = conditional => {
-        makeAjaxRequest(`/ratesheets/conditional/${conditional.conditional_id}`, 'DELETE', null, response => {
-            reload()
-        })
+        if(confirm(`Are you sure you wish to delete conditional "${conditional.name}"?\n\nThis action can not be undone.`))
+            makeAjaxRequest(`/ratesheets/conditional/${conditional.conditional_id}`, 'DELETE', null, response => {
+                reload()
+            })
     }
 
     const edit = conditional => {
@@ -38,7 +41,7 @@ export default function ConditionalsTab(props) {
         setEditConditional(false)
         makeAjaxRequest(`/ratesheets/conditionals/${props.ratesheetId}`, 'GET', null, response => {
             setConditionals(JSON.parse(response).map(conditional => {
-                return {...conditional, value_type: JSON.parse(conditional.value_type), action: JSON.parse(conditional.action)}
+                return {...conditional, action: JSON.parse(conditional.action)}
             }))
             setIsLoading(false)
         })
@@ -102,12 +105,21 @@ export default function ConditionalsTab(props) {
                                     <td>{conditional.name}</td>
                                     <td>{conditional.human_readable}</td>
                                     <td>{conditional.action['label']}</td>
-                                    <td>{conditional.value_type['label']}</td>
+                                    <td>{conditional.value_type}</td>
                                     <td>
-                                        {conditional.value_type['value'] == 'amount'
-                                            ? conditional.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
-                                            : `${conditional.value}%`
-                                        }
+                                        {conditional.value_type == 'amount' && conditional.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                        {conditional.value_type == 'percent' && `${conditional.value}%`}
+                                        {conditional.value_type == 'equation' &&
+                                            <EquationOptions
+                                                variables={defaultVariables}
+                                                functions={defaultFunctions}
+                                                errorHandler={defaultErrorHandler}
+                                            >
+                                                <Equation
+                                                    value={conditional.equation_string}
+                                                />
+                                            </EquationOptions>
+                                    }
                                     </td>
                                 </tr>
                             )

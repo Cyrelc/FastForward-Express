@@ -12,6 +12,9 @@ class ConditionalValidationRules {
 
         $rules = [
             'action' => 'required',
+            'equation_string' => [
+                Rule::requiredIf($req->value_type == 'equation')
+            ],
             'human_readable' => 'required',
             'json_logic' => 'required',
             'name' => [
@@ -20,6 +23,9 @@ class ConditionalValidationRules {
                     return $query->where('ratesheet_id', $req->ratesheet_id)
                         ->where('name', $req->name);
                 })->ignore($oldConditional),
+            ],
+            'original_equation_string' => [
+                Rule::requiredIf($req->value_type == 'equation')
             ],
             'ratesheet_id' => [
                 Rule::exists(Ratesheet::class, 'ratesheet_id'),

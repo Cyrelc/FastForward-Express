@@ -32,8 +32,8 @@ const Bill = (props) => {
     const [awaitingCharges, setAwaitingCharges] = useState(false)
 
     const {accounts, billId, deliveryType, isLoading, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
-    const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
-    const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
+    const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, isMall: deliveryAddressIsMall, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
+    const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, isMall: pickupAddressIsMall, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
@@ -116,12 +116,12 @@ const Bill = (props) => {
 
             const data = {
                 charge_account_id: charge?.account_id,
-                delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng},
+                delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng, is_mall: deliveryAddressIsMall},
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
                 packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
-                pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng},
+                pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
                 time_pickup_scheduled: pickupTimeScheduled,
@@ -153,6 +153,7 @@ const Bill = (props) => {
             activeRatesheet,
             chargeAccount,
             charges,
+            deliveryAddressIsMall,
             deliveryAddressLat,
             deliveryAddressLng,
             deliveryTimeScheduled,
@@ -160,6 +161,7 @@ const Bill = (props) => {
             packageIsMinimum,
             packageIsPallet,
             packages,
+            pickupAddressIsMall,
             pickupAddressLat,
             pickupAddressLng,
             pickupTimeScheduled,
@@ -431,12 +433,14 @@ const Bill = (props) => {
         billId,
         charges[0]?.chargeType,
         charges[0]?.charge_account_id,
+        deliveryAddressIsMall,
         deliveryAddressLat,
         deliveryAddressLng,
         deliveryType,
         packageIsMinimum,
         packageIsPallet,
         packages,
+        pickupAddressIsMall,
         pickupAddressLat,
         pickupAddressLng,
         useImperial,

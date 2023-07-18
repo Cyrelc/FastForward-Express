@@ -19,11 +19,16 @@ class ConditionalRepo {
         return $conditional->first();
     }
 
-    public function GetByRatesheetId($ratesheetId, $type = null) {
+    /**
+     * @function GetByRatesheetId
+     * @param $ratesheetId - the ID of the relevant ratesheet
+     * @param $types, an array of desired types, defaults to false
+     */
+    public function GetByRatesheetId($ratesheetId, $types = null) {
         $conditionals = Conditional::where('ratesheet_id', $ratesheetId);
 
-        if($type)
-            $conditionals->where('value_type', 'like', "%$type%");
+        if($types)
+            $conditionals->whereIn('value_type', $types);
 
         return $conditionals->get();
     }
@@ -38,9 +43,11 @@ class ConditionalRepo {
         $old = Conditional::where('conditional_id', $conditional['conditional_id'])->first();
 
         $old->action = $conditional['action'];
+        $old->equation_string = $conditional['equation_string'];
         $old->human_readable = $conditional['human_readable'];
         $old->json_logic = $conditional['json_logic'];
         $old->name = $conditional['name'];
+        $old->original_equation_string = $conditional['original_equation_string'];
         $old->value = $conditional['value'];
         $old->value_type = $conditional['value_type'];
 

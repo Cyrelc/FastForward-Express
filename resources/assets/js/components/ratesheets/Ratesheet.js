@@ -5,7 +5,7 @@ import polylabel from 'polylabel'
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
 import BasicRatesTab from './BasicRatesTab'
-import ConditionalsTab from './ConditionalsTab'
+import ConditionalsTab from './Conditionals/ConditionalsTab'
 import ImportRatesModal from './ImportRatesModal'
 import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
@@ -30,7 +30,6 @@ export default class Ratesheet extends Component {
         super()
         this.state = {
             key: 'basic',
-            bypassDedupWarning: false,
             defaultZoneType: 'internal',
             deliveryTypes: [],
             drawingMap: 0,
@@ -184,7 +183,8 @@ export default class Ratesheet extends Component {
     }
 
     deleteZone(id) {
-        if(confirm('Are you sure you wish to delete this map zone?\n This action can not be undone')) {
+        const name = this.state.mapZones.find(zone => zone.id == id).name
+        if(confirm(`Are you sure you wish to delete zone "${name}"?\n This action can not be undone`)) {
             var deleteIndex = null
             this.state.mapZones.map((zone, index) => {
                 if(zone.id === id) {
@@ -254,18 +254,18 @@ export default class Ratesheet extends Component {
         switch(this.state.importType) {
             case 'mapZones':
                 this.state.selectedImports.forEach(importZone => {
-                    console.log('attempting to parse new mapzone')
+                    console.log(`attempting to parse new mapzone: ${importZone.name}`)
                     const polygon = new google.maps.Polygon({
                         paths: importZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
                     })
                     polygon.setMap(this.state.map)
                     const oldZone = this.state.mapZones.find(zone => zone.name === importZone.name)
                     if(oldZone && replace) {
-                        const temp_id = oldZone.zone_id;
-                        this.deleteZone(oldZone.zone_id)
+                        const temp_id = oldZone.zoneId;
+                        this.deleteZone(oldZone.zoneId, oldZone.name)
                         this.createPolygon(polygon, {...importZone, zone_id: temp_id})
                     } else
-                        this.createPolygon(polygon, {...importZone, name: oldZone ? importZone.name + '(copy)' : importZone.name, zone_id: null})
+                        this.createPolygon(polygon, {...importZone, name: oldZone ? importZone.name + '(copy)' : importZone.name, zoneId: null})
                 })
                 break;
             case 'timeRates':
@@ -386,13 +386,6 @@ export default class Ratesheet extends Component {
     }
 
     zoneRemoveDuplicates(id) {
-        if(!this.state.bypassDedupWarning){
-            if(confirm('Checks the selected zone for duplicate points and removes them - warning. If you are Ritchie, talk to Brandon before using'))
-                this.handleChange({target: {name: 'bypassDedupWarning', type: 'boolean', value: true}})
-            else
-                return
-        }
-
         const dedup = this.state.mapZones.map(zone => {
             if(zone.id == id) {
                 let filtered = []
