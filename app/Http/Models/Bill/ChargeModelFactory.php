@@ -137,7 +137,7 @@ class ChargeModelFactory {
             if(JsonLogic::apply($rules, $bill)) {
                 $action = json_decode($conditional->action)->value;
                 $valueType = $conditional->value_type;
-                $value = $valueType == 'equation' ? $this->EvaluateFunctionalEquation($conditional, $bill) : $conditional->$value;
+                $value = $valueType == 'equation' ? $this->EvaluateFunctionalEquation($conditional, $bill) : $conditional->value;
 
                 if($action == 'discount') {
                     if(($currentPrice - $value) > 0)
@@ -310,7 +310,8 @@ class ChargeModelFactory {
 
         $bill = (object) [
             'delivery_address' => (object) [
-                'zone' => $this->GetZone($req->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng'])
+                'is_mall' => filter_var($req->delivery_address['is_mall'], FILTER_VALIDATE_BOOLEAN),
+                'zone' => $this->GetZone($req->ratesheet_id, $req->delivery_address['lat'], $req->delivery_address['lng']),
             ],
             'delivery_type' => $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $req->delivery_type_id),
             'package' => (object) [
@@ -318,6 +319,7 @@ class ChargeModelFactory {
                 'total_weight' => $req->packages ? array_reduce($req->packages, function($carry, $package) {return $carry + $package['totalWeight'];}, 0) : 0
             ],
             'pickup_address' => (object) [
+                'is_mall' => filter_var($req->pickup_address['is_mall'], FILTER_VALIDATE_BOOLEAN),
                 'zone' =>  $this->GetZone($req->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng'])
             ],
         ];

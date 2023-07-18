@@ -52,6 +52,11 @@ const addressSubfields = (prefix) => {
                     }
                 }
             }
+        },
+        is_mall: {
+            label: `${prefix} Is Mall`,
+            type: 'boolean',
+            default: true
         }
     }
 }
