@@ -1,5 +1,5 @@
 import React from 'react'
-import {Button, Card, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
+import {Button, Card, Col, Row} from 'react-bootstrap'
 
 import WeightRate from './WeightRate'
 

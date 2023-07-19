@@ -137,6 +137,7 @@ class Invoices extends Component {
                 {title: 'Account', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), formatter: cell => {return cell.getRow().getData().account_name}},
                 {title: 'First Bill Date', field: 'bill_start_date', visible: false},
                 {title: 'Last Bill Date', field: 'bill_end_date'},
+                {title: 'Payment Types', field: 'payment_type_list', visible: false},
                 {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
                 {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
                 {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
@@ -180,6 +181,13 @@ class Invoices extends Component {
                     type: 'NumberBetweenFilter',
                     step: 0.01,
                 },
+                {
+                    name: 'Payment Type',
+                    value: 'payment_type_id',
+                    type: 'SelectFilter',
+                    isMulti: true,
+                    selections: this.props.paymentTypes
+                }
             ],
             withSelected: [
                 ...this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [],
@@ -235,6 +243,7 @@ const mapStateToProps = store => {
         columns: store.invoices.columns,
         frontEndPermissions: store.user.frontEndPermissions,
         invoiceTable: store.invoices.invoiceTable,
+        paymentTypes: store.app.paymentTypes,
         reduxQueryString: store.invoices.queryString,
     }
 }

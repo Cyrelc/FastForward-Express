@@ -32,6 +32,7 @@ class InvoiceController extends Controller {
             abort(403);
         $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
+
         if($user->can('invoices.view.*.*') || $user->can('invoices.edit.*.*'))
             $invoices = $invoiceRepo->ListAll(null);
         else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children'))

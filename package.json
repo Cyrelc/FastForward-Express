@@ -48,7 +48,7 @@
         "@nivo/line": "^0.80.0",
         "@popperjs/core": "^2.11.6",
         "@react-awesome-query-builder/bootstrap": "^6.2",
-        "@react-google-maps/api": "^2.10.2",
+        "@react-google-maps/api": "^2.19.0",
         "@reduxjs/toolkit": "^1.5.1",
         "@stripe/react-stripe-js": "^1.10.0",
         "@stripe/stripe-js": "^1.34.0",
