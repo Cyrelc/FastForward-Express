@@ -122,10 +122,10 @@ export default function Address(props) {
             <Card.Body>
                 <Row className='justify-content-md-center'>
                     {(showAddressSearch && clearAutoComplete) &&
-                        <LoadScript
-                            googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
-                            libraries={['places', 'drawing', 'geometry']}
-                        >
+                        // <LoadScript
+                        //     googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
+                        //     libraries={['places', 'drawing', 'geometry']}
+                        // >
                             <Col md={12} style={{display: type === 'Search' ? 'block' : 'none'}}>
                                 <InputGroup>
                                     <InputGroup.Text>Search: </InputGroup.Text>
@@ -143,7 +143,7 @@ export default function Address(props) {
                                     </Autocomplete>
                                 </InputGroup>
                             </Col>
-                        </LoadScript>
+                        // </LoadScript>
                     }
                     {type === 'Manual' ?
                         <Col md={12} style={{backgroundColor: 'orange', fontSize: 12}}>
@@ -205,10 +205,11 @@ export default function Address(props) {
                     </Col>
                     <br/>
                     <Col md={12}>
-                        <LoadScript
+                        {/* Disabling until the entire react component can be switched to GoogleMapAPI library as this interferes */}
+                        {/* <LoadScript
                             googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
                             libraries={['places', 'drawing', 'geometry']}
-                        >
+                        > */}
                             <GoogleMap
                                 center={mapCenter}
                                 mapContainerStyle={{height: '250px', marginTop: 20}}
@@ -220,7 +221,7 @@ export default function Address(props) {
                             >
                                 {markerCoords && <Marker position={markerCoords}/>}
                             </GoogleMap>
-                        </LoadScript>
+                        {/* </LoadScript> */}
                     </Col>
                 </Row>
             </Card.Body>
