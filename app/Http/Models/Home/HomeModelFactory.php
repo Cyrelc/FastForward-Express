@@ -41,8 +41,7 @@ class HomeModelFactory {
     }
 
     public function GetAdminDashboardModel() {
-        $comparisonDate = date('Y-m-d');
-        $comparisonDate = strtotime($comparisonDate . ' + 90 days');
+        $comparisonDate = (new \DateTime())->modify('+' . 90 . 'days');
 
         $appsettingsRepo = new Repos\ApplicationSettingsRepo();
         $billRepo = new Repos\BillRepo();
@@ -53,12 +52,12 @@ class HomeModelFactory {
         $model->employee_expiries = [];
         $employeeExpiries = $employeeRepo->GetEmployeesWithExpiries($comparisonDate);
         foreach($employeeExpiries as $employee) {
-            if(strtotime($employee->drivers_license_expiration_date) < $comparisonDate)
-                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'drivers_license_expiration_date', 'date' => $employee->drivers_license_expiration_date]);
-            if(strtotime($employee->license_plate_expiration_date) < $comparisonDate)
-                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'license_plate_expiration_date', 'date' => $employee->license_plate_expiration_date]);
-            if(strtotime($employee->insurance_expiration_date) < $comparisonDate)
-                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'insurance_expiration_date', 'date' => $employee->insurance_expiration_date]);
+            if(new \DateTime($employee->drivers_license_expiration_date) < $comparisonDate)
+                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'Drivers License', 'date' => $employee->drivers_license_expiration_date]);
+            if(new \DateTime($employee->license_plate_expiration_date) < $comparisonDate)
+                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'License Plate', 'date' => $employee->license_plate_expiration_date]);
+            if(new \DateTime($employee->insurance_expiration_date) < $comparisonDate)
+                array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'Insurance', 'date' => $employee->insurance_expiration_date]);
         }
         $model->employee_birthdays = $employeeRepo->GetEmployeeBirthdays();
         $model->ytd_chart = $chartModelFactory->GetAdminDashboardChart();

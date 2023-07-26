@@ -157,9 +157,9 @@ class EmployeeRepo {
         ->where('is_enabled', 1)
         ->where('is_driver', 1)
         ->where(function($query) use ($date) {
-            $query->where('drivers_license_expiration_date', '<', $date)
-            ->orWhere('license_plate_expiration_date', '<', $date)
-            ->orWhere('insurance_expiration_date', '<', $date);
+            $query->whereDate('drivers_license_expiration_date', '<', $date)
+            ->orWhereDate('license_plate_expiration_date', '<', $date)
+            ->orWhereDate('insurance_expiration_date', '<', $date);
         })
         ->select(
             'drivers_license_expiration_date',
