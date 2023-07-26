@@ -63,7 +63,7 @@ export default function Address(props) {
                 <Row>
                     <Col>
                         <Card.Title style={{display: 'inline'}}>
-                            <h4 style={{display: 'inline'}}>{props.header}</h4>
+                            <h5 style={{display: 'inline'}}>{props.header}</h5>
                         </Card.Title>
                     </Col>
                     {props.useIsMall &&

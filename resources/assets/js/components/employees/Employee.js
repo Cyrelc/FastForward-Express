@@ -49,7 +49,7 @@ const Employee = (props) => {
     useEffect(() => {
         toastr.clear()
         configureEmployee()
-    }, [])
+    }, [props.match.params.employeeId])
 
     const setTabKey = tabKey => {
         window.location.hash = tabKey
@@ -298,7 +298,7 @@ const Employee = (props) => {
             <Row className='justify-content-md-center'>
                 <Col align='center'>
                     <ButtonGroup>
-                        <LinkContainer to={`/app/employees/edit/${prevEmployeeId}`}>
+                        <LinkContainer to={`/app/employees/${prevEmployeeId}`}>
                             <Button variant='info' disabled={!prevEmployeeId}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevEmployeeId}
                             </Button>
@@ -306,7 +306,7 @@ const Employee = (props) => {
                         <Button variant='primary' onClick={storeEmployee} disabled={readOnly}>
                             <i className='fas fa-save'></i> Submit
                         </Button>
-                        <LinkContainer to={`/app/employees/edit/${nextEmployeeId}`}>
+                        <LinkContainer to={`/app/employees/${nextEmployeeId}`}>
                             <Button variant='info' disabled={!nextEmployeeId}>
                                 Next - {nextEmployeeId} <i className='fas fa-arrow-circle-right'></i>
                             </Button>

@@ -83,6 +83,9 @@ const Account = props => {
         makeAjaxRequest(fetchUrl, 'GET', null, response => {
             response = JSON.parse(response)
 
+            billingAddress.reset()
+            shippingAddress.reset()
+
             setInvoiceInterval(response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === 'monthly'))
             setInvoiceIntervals(response.invoice_intervals)
             handleInvoiceSortOrderChange(response.account.invoice_sort_order)
@@ -218,6 +221,9 @@ const Account = props => {
             })
         })
     }
+
+    if(isLoading)
+        return <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
 
     return (
         <Row className='justify-content-md-center'>
