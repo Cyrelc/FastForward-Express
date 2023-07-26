@@ -1,157 +1,230 @@
-import React from 'react'
-import {Button, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
+import React, {useEffect, useState} from 'react'
+import {Card, Col, FormCheck, FormControl, InputGroup, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import {Autocomplete, GoogleMap, LoadScript, Marker} from '@react-google-maps/api'
+import Select from 'react-select'
 
-export default class Address extends React.Component {
-    constructor() {
-        super()
-        this.state = {
-            map: '',
-            search: '',
-            marker: '',
-            manual: false,
-            loading: true
-        }
-        this.handleChange = this.handleChange.bind(this)
-        this.handleMapClickEvent = this.handleMapClickEvent.bind(this)
-    }
+const defaultCenter = {lat: 53.544389, lng: -113.49072669}
 
-    componentDidMount() {
-        const map = new google.maps.Map(document.getElementById(this.props.id + '-map'), {disableDefaultUI: true});
-        const marker = new google.maps.Marker({position: map.getCenter()})
+const libraries = ['places']
 
-        const search = new google.maps.places.Autocomplete(document.getElementById(this.props.id + '-search'));
-        search.setFields(['geometry', 'name', 'formatted_address', 'place_id']);
-        search.addListener('place_changed', () => this.updateAddress());
-        map.addListener('click', event => this.handleMapClickEvent(event))
+export default function Address(props) {
+    const [autocomplete, setAutocomplete] = useState(null)
+    const [clearAutoComplete, setClearAutoComplete] = useState(true)
+    const [mapCenter, setMapCenter] = useState(defaultCenter)
+    const [markerCoords, setMarkerCoords] = useState(null)
+    const [zoom, setZoom] = useState(10)
 
-        this.setState({map: map, search: search, marker: marker, loading: false}, () => this.drawMap());
-    }
+    const {accounts, readOnly, showAddressSearch} = props
 
-    componentDidUpdate(prevProps) {
-        if(this.props.address.lat !== prevProps.address.lat || this.props.address.lng != prevProps.address.lng) {
-            if(this.props.address.lat === '' && this.props.address.lng === '')
-                $('#' + this.props.id + '-search').val('')
-            this.drawMap()
-        }
-        if(prevProps.address.type !== this.props.address.type)
-            if(this.props.address.type === 'Address' && this.props.address.formatted !== '') {
-                this.props.handleChanges({target: {name: this.props.id + 'AccountId', value: ''}})
-                this.updateAddress()
-            }
-            else if(this.props.address.type === 'Account') {
-                $('#' + this.props.id + '-search').val('')
-            }
-    }
+    const {account, formatted, isMall, lat, lng, name, type, referenceValue} = props.data
 
-    drawMap() {
-        const zoom = (this.props.address.lat === '' && this.props.address.lng === '') ? 10 : 15
-        const lat = this.props.address.lat === '' ? 53.544389 : this.props.address.lat
-        const lng = this.props.address.lng === '' ? -113.49072669 : this.props.address.lng
-        const position = new google.maps.LatLng(lat, lng);
+    useEffect(() => {
+        const newCoordinates = {lat: lat ? lat : 53.544389, lng: lng ? lng : -113.49072669}
+        setZoom(lat && lng ? 14 : 10)
+        if(type != 'Manual')
+            setMapCenter(lat && lng ? newCoordinates : defaultCenter)
+        setMarkerCoords(lat && lng ? newCoordinates : null)
+    }, [lat, lng])
 
-        this.state.map.setCenter(position);
-        this.state.map.setZoom(zoom);
-        this.state.marker.setPosition(position);
-        this.state.marker.setMap((this.props.address.lat === '' && this.props.address.lng === '') ? null : this.state.map);
-    }
-
-    handleChange(event) {
-        const {name, type, value, checked} = event.target
-        this.setState({[name]: type === 'checkbox' ? checked : value})
-    }
-
-    handleLegacyAddress() {
-        console.log('lat/lng data not found, searching based on formatted address');
-        var request = {query: this.props.address.formatted, fields:['id']}
-        const service = new google.maps.places.PlacesService(document.createElement('div'));
-        service.textSearch(request, (results, status) => {
-            if(status === google.maps.places.PlacesServiceStatus.OK && results.length === 1) {
-                request = {placeId: results[0].place_id, fields: ['name', 'address_components', 'geometry', 'id', 'formatted_address']};
-                service.getDetails(request, (results, status) => {
-                    if(status === google.maps.places.PlacesServiceStatus.OK) {
-                        this.state.search.set('place', results);
-                        $('#' + this.props.id + '-search').val(results.formatted_address);
-                        this.updateAddress(results);
-                    }
-                })
-            }
-        })
-    }
-
-    handleMapClickEvent(event) {
-        if(this.state.manual) {
+    const handleMapClickEvent = event => {
+        if(type === 'Manual') {
             const lat = event.latLng.lat()
             const lng = event.latLng.lng()
-            this.props.handleChanges([
-                {target: {name: this.props.id + 'AddressLat', type: 'text', value: lat}},
-                {target: {name: this.props.id + 'AddressLng', type: 'text', value: lng}},
-                {target: {name: this.props.id + 'AddressPlaceId', type: 'text', value: 'MAN:lat:' + lat + ':lng:' + lng}}
-            ])
+            props.handleChange({target: {name: 'addressLat', type: 'text', value: lat}})
+            props.handleChange({target: {name: 'addressLng', type: 'text', value: lng}})
+            props.handleChange({target: {name: 'placeId', type: 'text', value: `MAN:lat:${lat}:lng:${lng}`}})
         }
         else
             return
     }
 
-    updateAddress() {
-        const place = this.state.search.getPlace();
-        if(place === undefined)
+    const updateAddress = () => {
+        if(!autocomplete)
             return
+        const place = autocomplete.getPlace()
+        const lat = place.geometry.location.lat()
+        const lng = place.geometry.location.lng()
 
-        const events = [
-            {target: {name: this.props.id + 'AddressLat', type: 'text', value: place.geometry.location.lat()}},
-            {target: {name: this.props.id + 'AddressLng', type: 'text', value: place.geometry.location.lng()}},
-            {target: {name: this.props.id + 'AddressPlaceId', type: 'text', value: place.place_id === '' ? null : place.place_id}},
-            {target: {name: this.props.id + 'AddressName', type: 'text', value: place.name}},
-            {target: {name: this.props.id + 'AddressFormatted', type: 'text', value: place.formatted_address}}
-        ];
-        this.props.handleChanges(events);
+        setZoom(14)
+        setMapCenter({lat, lng})
+        setMarkerCoords({lat, lng})
+        props.handleChange({target: {name: 'addressLat', type: 'text', value: lat}})
+        props.handleChange({target: {name: 'addressLng', type: 'text', value: lng}})
+        props.handleChange({target: {name: 'placeId', type: 'text', value: place.place_id === '' ? null : place.place_id}})
+        props.handleChange({target: {name: 'addressName', type: 'text', value: place.name}})
+        props.handleChange({target: {name: 'addressFormatted', type: 'text', value: place.formatted_address}})
+        setClearAutoComplete(false)
+        setClearAutoComplete(true)
     }
 
-    render() {
-        return (
-            <Row className='justify-content-md-center'>
-                {this.props.showAddressSearch && 
-                <Col md={11} style={{display: this.props.address.type === 'Address' ? 'block' : 'none'}}>
-                    <InputGroup>
-                        <InputGroup.Text>Address Search: </InputGroup.Text>
-                        <FormControl 
-                            type='text' 
-                            id={this.props.id + '-search'}
-                            name='formatted'
-                            readOnly={this.props.readOnly}
-                        />
-                        <Button variant={this.state.manual ? 'success' : 'secondary'} onClick={() => this.handleChange({target: {name: 'manual', type: 'checkbox', checked: !this.state.manual}})} disabled={this.props.readOnly}>Manual</Button>
-                        <InputGroup.Text><i className='fas fa-question-circle' title='Having trouble finding an address in search? Enter "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.'></i></InputGroup.Text>
-                    </InputGroup>
-                </Col>
-                }
-                <Col md={11}>
-                    <InputGroup>
-                        <InputGroup.Text>Name: </InputGroup.Text>
-                        <FormControl 
-                            type='text' 
-                            name={this.props.id + 'AddressName'}
-                            value={this.props.address.name}
-                            onChange={event => this.props.handleChanges(event)}
-                            readOnly={this.props.readOnly}
-                        />
-                    </InputGroup>
-                </Col>
-                <Col md={11}>
-                    <InputGroup>
-                        <InputGroup.Text>Address: </InputGroup.Text>
-                        <FormControl
-                            type='text'
-                            name={this.props.id + 'AddressFormatted'}
-                            value={this.props.address.formatted}
-                            onChange={event => this.props.handleChanges(event)}
-                            readOnly={ this.props.readOnly || !this.state.manual }
-                        />
-                    </InputGroup>
-                </Col>
-                <br/>
-                <Col id={this.props.id + '-map'} style={{height: 250, marginTop: 20}} md={11}></Col>
-            </Row>
-        )
-    }
+    return (
+        <Card>
+            <Card.Header>
+                <Row>
+                    <Col>
+                        <Card.Title style={{display: 'inline'}}>
+                            <h4 style={{display: 'inline'}}>{props.header}</h4>
+                        </Card.Title>
+                    </Col>
+                    {props.useIsMall &&
+                        <Col>
+                            <FormCheck
+                                name='isMall'
+                                label='Location In Mall'
+                                value={isMall}
+                                checked={isMall}
+                                disabled={readOnly}
+                                onChange={event => props.handleChange({target: {name: 'isMall', value: !isMall}})}
+                            />
+                        </Col>
+                    }
+                    <Col className='justify-content-end'>
+                        <InputGroup style={{paddingTop: 0}}>
+                            <InputGroup.Text>Type: </InputGroup.Text>
+                            <ToggleButtonGroup
+                                type='radio'
+                                name={`${props.id}AddressType`}
+                                value={type}
+                                onChange={value => props.handleChange({target: {name: 'addressType', value}})}
+                                disabled={readOnly}
+                            >
+                                <ToggleButton
+                                    id={`${props.id}.address.type.search`}
+                                    value='Search'
+                                    key='Search'
+                                    variant='outline-secondary'
+                                    disabled={readOnly}
+                                    size='sm'
+                                >Search</ToggleButton>
+                                {props.accounts?.length &&
+                                    <ToggleButton
+                                        id={`${props.id}.address.type.account`}
+                                        value='Account'
+                                        key='Account'
+                                        variant='outline-secondary'
+                                        disabled={readOnly}
+                                        size='sm'
+                                    >Account</ToggleButton>
+                                }
+                                <ToggleButton
+                                    id={`${props.id}.address.type.manual`}
+                                    value='Manual'
+                                    key='Manual'
+                                    variant='outline-secondary'
+                                    disabled={readOnly}
+                                    size='sm'
+                                >Manual</ToggleButton>
+                            </ToggleButtonGroup>
+                        </InputGroup>
+                    </Col>
+                </Row>
+            </Card.Header>
+            <Card.Body>
+                <Row className='justify-content-md-center'>
+                    {(showAddressSearch && clearAutoComplete) &&
+                        // <LoadScript
+                        //     googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
+                        //     libraries={['places', 'drawing', 'geometry']}
+                        // >
+                            <Col md={12} style={{display: type === 'Search' ? 'block' : 'none'}}>
+                                <InputGroup>
+                                    <InputGroup.Text>Search: </InputGroup.Text>
+                                    <Autocomplete
+                                        bounds={{north: mapCenter.lat + 1, south: mapCenter.lat - 1, east: mapCenter.lng + 1, west: mapCenter.lng - 1}}
+                                        className='form-control autocomplete-wrapper'
+                                        fields={['geometry', 'name', 'formatted_address', 'place_id']}
+                                        location={mapCenter}
+                                        onChange={console.log}
+                                        onLoad={setAutocomplete}
+                                        onPlaceChanged={updateAddress}
+                                        radius={100}
+                                    >
+                                        <FormControl type='text' readOnly={readOnly}/>
+                                    </Autocomplete>
+                                </InputGroup>
+                            </Col>
+                        // </LoadScript>
+                    }
+                    {type === 'Manual' ?
+                        <Col md={12} style={{backgroundColor: 'orange', fontSize: 12}}>
+                            Having trouble finding an address in search? Use "Manual" mode to enter your address by hand, and click on the map to indicate a point for delivery.
+                            <br/>
+                        </Col>
+                        : null
+                    }
+                    {(props.accounts?.length && type === 'Account') &&
+                        <Col md={12}>
+                            <InputGroup>
+                                <InputGroup.Text>Select Account: </InputGroup.Text>
+                                <Select
+                                    options={accounts}
+                                    isSearchable
+                                    value={account}
+                                    onChange={props.handleAccountChange}
+                                    isDisabled={readOnly}
+                                />
+                            </InputGroup>
+                        </Col>
+                    }
+                    {(props.accounts?.length && type === 'Account' && account?.custom_field) &&
+                        <Col md={12}>
+                            <InputGroup>
+                                <InputGroup.Text>{props.data?.account?.custom_field}</InputGroup.Text>
+                                <FormControl
+                                    name={`${props.id}ReferenceValue`}
+                                    value={referenceValue}
+                                    onChange={event => props.handleReferenceValueChange(account, referenceValue, event.target.value)}
+                                    readOnly={readOnly}
+                                />
+                            </InputGroup>
+                        </Col>
+                    }
+                    <Col md={12}>
+                        <InputGroup>
+                            <InputGroup.Text>Name: </InputGroup.Text>
+                            <FormControl
+                                type='text'
+                                name={'addressName'}
+                                value={name}
+                                onChange={props.handleChange}
+                                readOnly={readOnly}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <Col md={12}>
+                        <InputGroup>
+                            <InputGroup.Text>Address: </InputGroup.Text>
+                            <FormControl
+                                type='text'
+                                name={'addressFormatted'}
+                                value={formatted}
+                                onChange={props.handleChange}
+                                readOnly={readOnly || type != 'Manual'}
+                            />
+                        </InputGroup>
+                    </Col>
+                    <br/>
+                    <Col md={12}>
+                        {/* Disabling until the entire react component can be switched to GoogleMapAPI library as this interferes */}
+                        {/* <LoadScript
+                            googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
+                            libraries={['places', 'drawing', 'geometry']}
+                        > */}
+                            <GoogleMap
+                                center={mapCenter}
+                                mapContainerStyle={{height: '250px', marginTop: 20}}
+                                onClick={handleMapClickEvent}
+                                options={{
+                                    disableDefaultUI: true
+                                }}
+                                zoom={zoom}
+                            >
+                                {markerCoords && <Marker position={markerCoords}/>}
+                            </GoogleMap>
+                        {/* </LoadScript> */}
+                    </Col>
+                </Row>
+            </Card.Body>
+        </Card>
+    )
 }

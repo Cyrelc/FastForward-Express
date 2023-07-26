@@ -90,12 +90,14 @@ class UserRepo
             ->select(
                 'account_users.contact_id',
                 'users.user_id',
-                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as name'),
+                DB::raw('coalesce(preferred_name, concat(contacts.first_name, " ", contacts.last_name)) as name'),
                 'email_addresses.email as primary_email',
                 'phone_numbers.phone_number as primary_phone',
                 'contacts.position as position',
                 'account_users.is_primary as is_primary',
                 'users.is_enabled as enabled',
+                'preferred_name',
+                'pronouns',
                 DB::raw('(select count(*) from account_users where account_users.contact_id = contacts.contact_id) as belongs_to_count')
             );
 

@@ -131,8 +131,8 @@ export default function PaymentModal(props) {
 
         makeAjaxRequest('/payments/accountPayment', 'POST', data, response => {
             props.refreshPaymentsTab()
-            props.handleChanges({target: {name: 'accountBalance', value: response.account_balance}})
-            props.handleChanges({target: {name: 'balanceOwing', value: response.balance_owing}})
+            props.setAccountBalance(response.account_balance)
+            props.setBalanceOwing(response.balance_owing)
             setIsLoading(false)
             hideModal()
         })

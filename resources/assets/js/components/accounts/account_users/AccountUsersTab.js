@@ -48,6 +48,15 @@ export default function AccountUsersTab(props) {
         setShowAccountUserModal(true)
     }
 
+    const formatPronouns = userPronouns => {
+        const pronouns = JSON.parse(userPronouns)
+        let formattedPronouns = ' ('
+        pronouns.forEach(pronoun => formattedPronouns += (pronoun.label + ','))
+        formattedPronouns = formattedPronouns.slice(0, -1)
+        formattedPronouns += ')'
+        return formattedPronouns
+    }
+
     const hasAnyPermissions = contact_id => {
         const testPermissions = [
             props.canDeleteAccountUsers,
@@ -182,7 +191,7 @@ export default function AccountUsersTab(props) {
                                         </td>
                                         <td>
                                             {<Badge bg={user.enabled ? 'success' : 'secondary'} style={{marginRight: '7px'}}>{user.enabled ? 'Enabled' : 'Disabled'}</Badge>}
-                                            {user.name}
+                                            {`${user.name}${user.pronouns ? formatPronouns(user.pronouns) : ''}`}
                                             {user.is_primary ? <Badge bg='warning' text='dark' style={{float: 'right'}}><i className='fas fa-star'></i> Primary</Badge> : null}
                                         </td>
                                         <td>{user.primary_email}</td>

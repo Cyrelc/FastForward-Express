@@ -1,333 +1,321 @@
-import React, {Component, Fragment} from 'react'
+import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Button, ButtonGroup, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
+import {debounce} from 'lodash'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
 import BasicTab from './BasicTab'
 import DriverTab from './DriverTab'
 
-const initialState = {
-    activityLog: undefined,
-    birthDate: new Date(),
-    companyName: '',
-    deliveryCommission: '',
-    driver: false,
-    driversLicenseExpirationDate: new Date(),
-    driversLicenseNumber: '',
-    emailAddresses: [{email: '', is_primary: true}],
-    emailAddressesToDelete: [],
-    emergencyContactModalShow: false,
-    emergencyContacts: undefined,
-    employeeAddressFormatted: '',
-    employeeAddressLat: '',
-    employeeAddressLng: '',
-    employeeAddressName: '',
-    employeeAddressPlaceId: '',
-    employeeId: undefined,
-    employeeNumber: '',
-    employeePermissions: [],
-    enabled: true,
-    firstName: '',
-    insuranceExpirationDate: new Date(),
-    insuranceNumber: '',
-    key: 'basic',
-    lastName: '',
-    licensePlateNumber: '',
-    licensePlateExpirationDate: new Date(),
-    permissions: [],
-    phoneNumbers: [{phone: '', extension: '', is_primary: true}],
-    phoneNumbersToDelete: [],
-    pickupCommission: '',
-    position: '',
-    readOnly: false,
-    SIN: '',
-    startDate: new Date(),
-    updatedAt: ''
-}
+import useAddress from '../partials/Hooks/useAddress'
+import useContact from '../partials/Hooks/useContact'
 
-class Employee extends Component {
-    constructor() {
-        super()
-        this.state = {
-            ...initialState
-        }
-        this.configureEmployee = this.configureEmployee.bind(this)
-        this.handleChanges = this.handleChanges.bind(this)
-        this.handlePermissionChange = this.handlePermissionChange.bind(this)
-        this.storeEmployee = this.storeEmployee.bind(this)
+const Employee = (props) => {
+    const [activityLog, setActivityLog] = useState(undefined)
+    const [birthDate, setBirthDate] = useState(new Date())
+    const [companyName, setCompanyName] = useState('')
+    const [deliveryCommission, setDeliveryCommission] = useState('')
+    const [driversLicenseExpirationDate, setDriversLicenseExpirationDate] = useState(new Date())
+    const [driversLicenseNumber, setDriversLicenseNumber] = useState('')
+    const [emergencyContacts, setEmergencyContacts] = useState([])
+    const [employeeId, setEmployeeId] = useState(undefined)
+    const [employeeNumber, setEmployeeNumber] = useState('')
+    const [employeePermissions, setEmployeePermissions] = useState('')
+    const [insuranceExpirationDate, setInsuranceExpirationDate] = useState(new Date())
+    const [insuranceNumber, setInsuranceNumber] = useState('')
+    const [isDriver, setIsDriver] = useState(false)
+    const [isEnabled, setIsEnabled] = useState(true)
+    const [isLoading, setIsLoading] = useState(true)
+    const [key, setKey] = useState('basic')
+    const [licensePlateExpirationDate, setLicensePlateExpirationDate] = useState(new Date())
+    const [licensePlateNumber, setLicensePlateNumber] = useState('')
+    const [nextEmployeeId, setNextEmployeeId] = useState(null)
+    const [permissions, setPermissions] = useState([])
+    const [pickupCommission, setPickupCommission] = useState('')
+    const [prevEmployeeId, setPrevEmployeeId] = useState('')
+    const [readOnly, setReadOnly] = useState(false)
+    const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false)
+    const [SIN, setSIN] = useState('')
+    const [startDate, setStartDate] = useState(new Date())
+    const [updatedAt, setUpdatedAt] = useState('')
+    const [vehicleType, setVehicleType] = useState({})
+    const [vehicleTypes, setVehicleTypes] = useState([])
+
+    const address = useAddress()
+    const contact = useContact()
+
+    useEffect(() => {
+        toastr.clear()
+        configureEmployee()
+    }, [])
+
+    const setTabKey = tabKey => {
+        window.location.hash = tabKey
+        setKey(tabKey)
     }
 
-    componentDidMount() {
-        this.configureEmployee()
-    }
-
-    componentDidUpdate(prevProps) {
-        if(prevProps.location.pathname != this.props.location.pathname)
-            this.configureEmployee()
-    }
-
-    configureEmployee() {
-        const {match: {params}} = this.props
+    const configureEmployee = () => {
+        const {match: {params}} = props
         const fetchUrl = params.employeeId ? `/employees/${params.employeeId}` : '/employees/create'
         params.employeeId ? document.title = `Edit Employee - ${params.employeeId}` : 'Create Employee'
 
         makeAjaxRequest(fetchUrl, 'GET', null, response => {
             response = JSON.parse(response)
-            var setup = {
-                ...initialState,
-                emailTypes: response.contact.email_types,
-                employeePermissions: response.employee_permissions,
-                permissions: response.permissions,
-                phoneTypes: response.contact.phone_types,
-            }
-            this.setState(setup)
+            setEmployeePermissions(response.employee_permissions)
+            setPermissions(response.permissions)
+            setVehicleTypes(response.vehicle_types)
+            setKey(window.location.hash?.substr(1) || 'basic')
+
             if(params.employeeId) {
-                const thisEmployeeIndex = this.props.sortedEmployees.findIndex(employee_id => employee_id === response.employee.employee_id)
-                const prevEmployeeId = thisEmployeeIndex <= 0 ? null : this.props.sortedEmployees[thisEmployeeIndex - 1]
-                const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === this.props.sortedEmployees.length - 1) ? null : this.props.sortedEmployees[thisEmployeeIndex + 1]
-                setup = {...setup,
-                    activityLog: response.activity_log,
-                    birthDate: Date.parse(response.employee.dob),
-                    driver: response.employee.is_driver,
-                    emailAddresses: response.contact.emails,
-                    emergencyContacts: response.emergency_contacts,
-                    employeeAddressLat: response.contact.address.lat,
-                    employeeAddressLng: response.contact.address.lng,
-                    employeeAddressFormatted: response.contact.address.formatted,
-                    employeeAddressName: response.contact.address.name,
-                    employeeAddressPlaceId: response.contact.address.place_id,
-                    employeeId: response.employee.employee_id,
-                    employeeNumber: response.employee.employee_number,
-                    enabled: response.employee.is_enabled,
-                    firstName: response.contact.first_name,
-                    key: this.state.key,
-                    lastName: response.contact.last_name,
-                    nextEmployeeId: nextEmployeeId,
-                    phoneNumbers: response.contact.phone_numbers,
-                    position: response.contact.position,
-                    prevEmployeeId: prevEmployeeId,
-                    SIN: response.employee.sin,
-                    startDate: Date.parse(response.employee.start_date),
-                    updatedAt: response.employee.updated_at,
-                    //driverAttributes
-                    companyName: response.employee.company_name === null ? undefined : response.employee.company_name,
-                    deliveryCommission: response.employee.delivery_commission,
-                    driversLicenseNumber: response.employee.drivers_license_number,
-                    driversLicenseExpirationDate: Date.parse(response.employee.drivers_license_expiration_date),
-                    insuranceNumber: response.employee.insurance_number,
-                    insuranceExpirationDate: Date.parse(response.employee.insurance_expiration_date),
-                    licensePlateNumber: response.employee.license_plate_number,
-                    licensePlateExpirationDate: Date.parse(response.employee.license_plate_expiration_date),
-                    pickupCommission: response.employee.pickup_commission
-                }
+                const thisEmployeeIndex = props.sortedEmployees.findIndex(employee_id => employee_id === response.employee.employee_id)
+                const prevEmployeeId = thisEmployeeIndex <= 0 ? null : props.sortedEmployees[thisEmployeeIndex - 1]
+                const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === props.sortedEmployees.length - 1) ? null : props.sortedEmployees[thisEmployeeIndex + 1]
+
+                address.setup(response.contact.address)
+                contact.setup(response.contact)
+
+                setActivityLog(response.activity_log)
+                setBirthDate(Date.parse(response.employee.dob))
+                setEmergencyContacts(response.emergency_contacts)
+                setEmployeeId(response.employee.employee_id)
+                setEmployeeNumber(response.employee.employee_number)
+                setIsDriver(!!response.employee.is_driver)
+                setIsEnabled(!!response.employee.is_enabled)
+                setNextEmployeeId(nextEmployeeId)
+                setPrevEmployeeId(prevEmployeeId)
+                setSIN(response.employee.sin)
+                setStartDate(Date.parse(response.employee.start_date))
+                setUpdatedAt(response.employee.updated_at)
+                setCompanyName(response.employee.company_name ?? undefined)
+                setDeliveryCommission(response.employee.delivery_commission)
+                setDriversLicenseNumber(response.employee.drivers_license_number)
+                setDriversLicenseExpirationDate(Date.parse(response.employee.drivers_license_expiration_date))
+                setInsuranceNumber(response.employee.insurance_number)
+                setInsuranceExpirationDate(Date.parse(response.employee.insurance_expiration_date))
+                setLicensePlateNumber(response.employee.license_plate_number)
+                setLicensePlateExpirationDate(Date.parse(response.employee.license_plate_expiration_date))
+                setPickupCommission(response.employee.pickup_commission)
+                setVehicleType(response.vehicle_types.find(type => type.selection_id == response.employee.vehicle_type))
+
                 toastr.clear()
-                if(response.employee.is_driver == 1 && response.employee.is_enabled == 1) {
-                    if(setup.driversLicenseExpirationDate < new Date())
-                        toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                    if(setup.licensePlateExpirationDate < new Date())
-                        toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                    if(setup.insuranceExpirationDate < new Date())
-                        toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                    if(setup.emergencyContacts.length < 2)
-                        toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                }
             }
-            this.setState(setup)
-        })
-    }
 
-    handleChanges(events) {
-        if(!Array.isArray(events))
-            events = [events]
-        var temp = {}
-        events.forEach(event => {
-            const {name, value, type, checked} = event.target
-            temp[name] = type === 'checkbox' ? checked : value
-        })
-        this.setState(temp)
-    }
+            setIsLoading(false)
+        }
+    )}
 
-    handlePermissionChange(event) {
-        const {name, value, checked} = event.target
+    const debouncedWarnings = useCallback(
+        debounce(() => {
+            if(isEnabled) {
+                toastr.clear()
+                if(driversLicenseExpirationDate < new Date())
+                    toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(licensePlateExpirationDate < new Date())
+                    toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(insuranceExpirationDate < new Date())
+                    toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                if(emergencyContacts.length < 2)
+                    toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+            }
+        }, 1000), [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, emergencyContacts]
+    )
 
-        const employeePermissions = {...this.state.employeePermissions, [name]: checked}
+    useEffect(() => {
+        if(!isLoading)
+            debouncedWarnings()
+    }, [driversLicenseExpirationDate, emergencyContacts, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, isLoading])
 
-        this.setState({employeePermissions: employeePermissions})
-    }
-
-    render() {
-        return (
-            <Fragment>
-                {(this.state.employeeId && this.state.driver == 1) &&
-                    <Row className='justify-content-md-center'>
-                        <Col md={6}>
-                            <ListGroup className='list-group-horizontal' as='ul'>
-                                {this.state.driversLicenseExpirationDate < new Date() &&
-                                    <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
-                                }
-                                {this.state.licensePlateExpirationDate < new Date() &&
-                                    <ListGroup.Item variant='danger'>License Plate Expired</ListGroup.Item>
-                                }
-                                {this.state.insuranceExpirationDate < new Date() &&
-                                    <ListGroup.Item variant='danger'>Insurance Expired</ListGroup.Item>
-                                }
-                                {this.state.emergencyContacts.length < 2 &&
-                                    <ListGroup.Item variant='danger'>Minimum 2 Emergency Contacts Required</ListGroup.Item>
-                                }
-                            </ListGroup>
-                        </Col>
-                        <Col md={6} style={{textAlign: 'right'}}>
-                            <LinkContainer to={'/app/manifests?filter[driver_id]=' + this.state.employeeId}><Button variant='secondary'>Manifests</Button></LinkContainer>
-                            <LinkContainer to={'/app/bills?filter[pickup_driver_id]=' + this.state.employeeId}><Button variant='secondary'>All Bills</Button></LinkContainer>
-                        </Col>
-                    </Row>
-                }
-                <Row className='justify-content-md-center'>
-                    <Col md={12}>
-                        <Tabs id='employee-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
-                            <Tab eventKey='basic' title={<h4>Basic</h4>}>
-                                <BasicTab
-                                    address={{
-                                        type: 'Address',
-                                        name: this.state.employeeAddressName,
-                                        formatted: this.state.employeeAddressFormatted,
-                                        lat: this.state.employeeAddressLat,
-                                        lng: this.state.employeeAddressLng,
-                                        placeId: this.state.employeeAddressPlaceId
-                                    }}
-                                    emailAddresses={this.state.emailAddresses}
-                                    emergencyContacts={this.state.emergencyContacts}
-                                    employeeId={this.state.employeeId}
-                                    firstName={this.state.firstName}
-                                    lastName={this.state.lastName}
-                                    phoneNumbers={this.state.phoneNumbers}
-                                    phoneTypes={this.state.phoneTypes}
-                                    position={this.state.position}
-                                    readOnly={this.state.readOnly}
-                                    handleChanges={this.handleChanges}
-                                />
-                            </Tab>
-                            {(this.state.permissions.viewAdvanced && this.state.driver == 1) &&
-                                <Tab eventKey='driver' title={<h4>Driver</h4>}>
-                                    <DriverTab
-                                        companyName={this.state.companyName}
-                                        pickupCommission={this.state.pickupCommission}
-                                        deliveryCommission={this.state.deliveryCommission}
-                                        driversLicenseNumber={this.state.driversLicenseNumber}
-                                        driversLicenseExpirationDate={this.state.driversLicenseExpirationDate}
-                                        insuranceNumber={this.state.insuranceNumber}
-                                        insuranceExpirationDate={this.state.insuranceExpirationDate}
-                                        licensePlateNumber={this.state.licensePlateNumber}
-                                        licensePlateExpirationDate={this.state.licensePlateExpirationDate}
-
-                                        handleChanges={this.handleChanges}
-                                        readOnly={!this.state.permissions.editAdvanced}
-                                    />
-                                </Tab>
-                            }
-                            {this.state.permissions.editAdvanced &&
-                                <Tab eventKey='admin' title={<h4>Administration</h4>}>
-                                    <AdministrationTab
-                                        birthDate={this.state.birthDate}
-                                        driver={this.state.driver}
-                                        employeeNumber={this.state.employeeNumber}
-                                        employeePermissions={this.state.employeePermissions}
-                                        enabled={this.state.enabled}
-                                        SIN={this.state.SIN}
-                                        startDate={this.state.startDate}
-
-                                        handleChanges={this.handleChanges}
-                                        handlePermissionChange={this.handlePermissionChange}
-                                    />
-                                </Tab>
-                            }
-                            {(this.state.activityLog && this.state.permissions.viewActivityLog) &&
-                                <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
-                                    <ActivityLogTab
-                                        activityLog={this.state.activityLog}
-                                    />
-                                </Tab>
-                            }
-                        </Tabs>
-                    </Col>
-                </Row>
-                <Row className='justify-content-md-center'>
-                    <Col align='center'>
-                        <ButtonGroup>
-                            <LinkContainer to={'/app/employees/edit/' + this.state.prevEmployeeId}><Button variant='info' disabled={!this.state.prevEmployeeId}><i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevEmployeeId}</Button></LinkContainer>
-                            <Button variant='primary' onClick={this.storeEmployee} disabled={this.state.readOnly}><i className='fas fa-save'></i> Submit</Button>
-                            <LinkContainer to={'/app/employees/edit/' + this.state.nextEmployeeId}><Button variant='info' disabled={!this.state.nextEmployeeId}>Next - {this.state.nextEmployeeId} <i className='fas fa-arrow-circle-right'></i></Button></LinkContainer>
-                        </ButtonGroup>
-                    </Col>
-                </Row>
-            </Fragment>
-        )
-    }
-
-    storeEmployee() {
-        if(this.state.employeeId ? !this.state.permissions.editBasic : !this.state.permissions.create) {
-            toastr.error('Authenticated User does not have permission to ' + this.state.employeeId ? 'update this Employee' : 'create Employee', 'Error');
+    const storeEmployee = () => {
+        console.log("I'm gonna store an employee!")
+        if(employeeId ? !permissions.editBasic : !permissions.create) {
+            toastr.error(`Authenticated User does not have permission to ${employeeId ? 'update this Employee' : 'create Employee'}`, 'Error');
             return;
         }
 
         var data = {
-            address_formatted: this.state.employeeAddressFormatted,
-            address_lat: this.state.employeeAddressLat,
-            address_lng: this.state.employeeAddressLng,
-            address_name: this.state.employeeAddressName,
-            address_place_id: this.state.employeeAddressPlaceId,
-            employee_id: this.state.employeeId,
-            emails: this.state.emailAddresses,
-            emergency_contacts: this.state.emergencyContacts,
-            first_name: this.state.firstName,
-            last_name: this.state.lastName,
-            phone_numbers: this.state.phoneNumbers,
+            address_formatted: address.formatted,
+            address_lat: address.lat,
+            address_lng: address.lng,
+            address_name: address.name,
+            address_place_id: address.placeId,
+            employee_id: employeeId,
+            emails: contact.emailAddresses,
+            emergency_contacts: emergencyContacts,
+            first_name: contact.firstName,
+            last_name: contact.lastName,
+            phone_numbers: contact.phoneNumbers,
+            position: contact.position,
+            preferred_name: contact.preferredName,
+            pronouns: contact.pronouns
         }
 
-        if(this.state.permissions.editAdvanced)
-            data = {...data,
-                birth_date: this.state.birthDate.toLocaleString('en-us'),
-                employee_number: this.state.employeeNumber,
-                is_driver: this.state.driver,
-                is_enabled: this.state.enabled,
-                permissions: this.state.employeePermissions,
-                position: this.state.position,
-                sin: this.state.SIN,
-                start_date: this.state.startDate.toLocaleString('en-us')
+        if(permissions.editAdvanced)
+            data = {
+                ...data,
+                birth_date: birthDate.toLocaleString('en-us'),
+                employee_number: employeeNumber,
+                is_driver: isDriver,
+                is_enabled: isEnabled,
+                permissions: employeePermissions,
+                sin: SIN,
+                start_date: startDate.toLocaleString('en-us')
             }
 
-        if(this.state.permissions.editAdvanced && this.state.driver)
-            data = {...data,
-                company_name: this.state.companyName,
-                delivery_commission: this.state.deliveryCommission,
-                drivers_license_expiration_date: this.state.driversLicenseExpirationDate.toLocaleString('en-us'),
-                drivers_license_number: this.state.driversLicenseNumber,
-                insurance_expiration_date: this.state.insuranceExpirationDate.toLocaleString('en-us'),
-                insurance_number: this.state.insuranceNumber,
-                license_plate_number: this.state.licensePlateNumber,
-                license_plate_expiration_date: this.state.licensePlateExpirationDate.toLocaleString('en-us'),
-                pickup_commission: this.state.pickupCommission,
+        if(permissions.editAdvanced && isDriver)
+            data = {
+                ...data,
+                company_name: companyName,
+                delivery_commission: deliveryCommission,
+                drivers_license_expiration_date: driversLicenseExpirationDate.toLocaleString('en-us'),
+                drivers_license_number: driversLicenseNumber,
+                insurance_expiration_date: insuranceExpirationDate.toLocaleString('en-us'),
+                insurance_number: insuranceNumber,
+                license_plate_number: licensePlateNumber,
+                license_plate_expiration_date: licensePlateExpirationDate.toLocaleString('en-us'),
+                pickup_commission: pickupCommission,
             }
 
-        makeAjaxRequest('/employees', 'POST', data, response => {
+            makeAjaxRequest('/employees', 'POST', data, response => {
             toastr.clear()
-            if(this.state.employeeId) {
-                this.setState({updatedAt: response.updated_at})
-                toastr.success('Employee ' + this.state.employeeId + ' was successfully updated!', 'Success')
+            if(employeeId) {
+                setUpdatedAt(response.updated_at)
+                toastr.success(`Employee ${employeeId} was successfully updated!`, 'Success')
             }
             else {
-                this.setState({readOnly: true})
-                toastr.success('Employee ' + response.employee_id + ' was successfully created', 'Success', {
+                setReadOnly(true)
+                toastr.success(`Employee ${response.employee_id} was successfully created`, 'Success', {
                     'progressBar': true,
                     'positionClass': 'toast-top-full-width',
                     'showDuration': 500,
-                    'onHidden': function(){this.configureEmployee()}
+                    'onHidden': function(){configureEmployee()}
                 })
             }
         })
     }
+
+    return (
+        <Fragment>
+            {(employeeId && isDriver) &&
+                <Row className='justify-content-md-center'>
+                    <Col md={6}>
+                        <ListGroup className='list-group-horizontal' as='ul'>
+                            {driversLicenseExpirationDate < new Date() &&
+                                <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
+                            }
+                            {licensePlateExpirationDate < new Date() &&
+                                <ListGroup.Item variant='danger'>License Plate Expired</ListGroup.Item>
+                            }
+                            {insuranceExpirationDate < new Date() &&
+                                <ListGroup.Item variant='danger'>Insurance Expired</ListGroup.Item>
+                            }
+                            {emergencyContacts.length < 2 &&
+                                <ListGroup.Item variant='danger'>Minimum 2 Emergency Contacts Required</ListGroup.Item>
+                            }
+                        </ListGroup>
+                    </Col>
+                    <Col md={6} style={{textAlign: 'right'}}>
+                        <LinkContainer to={`/app/manifests?filter[driver_id]=${employeeId}`}><Button variant='secondary'>Manifests</Button></LinkContainer>
+                        <LinkContainer to={`/app/bills?filter[pickup_driver_id]=${employeeId}`}><Button variant='secondary'>All Bills</Button></LinkContainer>
+                    </Col>
+                </Row>
+            }
+            <Row className='justify-content-md-center'>
+                <Col md={12}>
+                    <Tabs id='employee-tabs' className='nav-justified' activeKey={key} onSelect={setTabKey}>
+                        <Tab eventKey='basic' title={<h4>Basic</h4>}>
+                            <BasicTab
+                                address={address}
+                                contact={contact}
+                                emergencyContacts={emergencyContacts}
+                                employeeId={employeeId}
+                                readOnly={readOnly}
+                                setEmergencyContacts={setEmergencyContacts}
+                            />
+                        </Tab>
+                        {(permissions.viewAdvanced && isDriver) &&
+                            <Tab eventKey='driver' title={<h4>Driver</h4>}>
+                                <DriverTab
+                                    companyName={companyName}
+                                    deliveryCommission={deliveryCommission}
+                                    driversLicenseExpirationDate={driversLicenseExpirationDate}
+                                    driversLicenseNumber={driversLicenseNumber}
+                                    insuranceExpirationDate={insuranceExpirationDate}
+                                    insuranceNumber={insuranceNumber}
+                                    licensePlateExpirationDate={licensePlateExpirationDate}
+                                    licensePlateNumber={licensePlateNumber}
+                                    pickupCommission={pickupCommission}
+                                    vehicleType={vehicleType}
+                                    vehicleTypes={vehicleTypes}
+
+                                    setCompanyName={setCompanyName}
+                                    setDeliveryCommission={setDeliveryCommission}
+                                    setDriversLicenseExpirationDate={setDriversLicenseExpirationDate}
+                                    setDriversLicenseNumber={setDriversLicenseNumber}
+                                    setInsuranceExpirationDate={setInsuranceExpirationDate}
+                                    setInsuranceNumber={setInsuranceNumber}
+                                    setLicensePlateExpirationDate={setLicensePlateExpirationDate}
+                                    setLicensePlateNumber={setLicensePlateNumber}
+                                    setPickupCommission={setPickupCommission}
+                                    setVehicleType={setVehicleType}
+
+                                    readOnly={!permissions.editAdvanced}
+                                />
+                            </Tab>
+                        }
+                        {permissions.editAdvanced &&
+                            <Tab eventKey='admin' title={<h4>Administration</h4>}>
+                                <AdministrationTab
+                                    birthDate={birthDate}
+                                    employeeNumber={employeeNumber}
+                                    employeePermissions={employeePermissions}
+                                    isDriver={isDriver}
+                                    isEnabled={isEnabled}
+                                    SIN={SIN}
+                                    startDate={startDate}
+
+                                    setBirthDate={setBirthDate}
+                                    setEmployeeNumber={setEmployeeNumber}
+                                    setEmployeePermissions={setEmployeePermissions}
+                                    setIsDriver={setIsDriver}
+                                    setIsEnabled={setIsEnabled}
+                                    setSIN={setSIN}
+                                    setStartDate={setStartDate}
+                                />
+                            </Tab>
+                        }
+                        {(activityLog && permissions.viewActivityLog) &&
+                            <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
+                                <ActivityLogTab
+                                    activityLog={activityLog}
+                                />
+                            </Tab>
+                        }
+                    </Tabs>
+                </Col>
+            </Row>
+            <Row className='justify-content-md-center'>
+                <Col align='center'>
+                    <ButtonGroup>
+                        <LinkContainer to={`/app/employees/edit/${prevEmployeeId}`}>
+                            <Button variant='info' disabled={!prevEmployeeId}>
+                                <i className='fas fa-arrow-circle-left'></i> Back - {prevEmployeeId}
+                            </Button>
+                        </LinkContainer>
+                        <Button variant='primary' onClick={storeEmployee} disabled={readOnly}>
+                            <i className='fas fa-save'></i> Submit
+                        </Button>
+                        <LinkContainer to={`/app/employees/edit/${nextEmployeeId}`}>
+                            <Button variant='info' disabled={!nextEmployeeId}>
+                                Next - {nextEmployeeId} <i className='fas fa-arrow-circle-right'></i>
+                            </Button>
+                        </LinkContainer>
+                    </ButtonGroup>
+                </Col>
+            </Row>
+        </Fragment>
+    )
 }
 
 const mapStateToProps = store => {

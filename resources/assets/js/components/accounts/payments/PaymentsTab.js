@@ -130,7 +130,7 @@ export default function PaymentsTab(props) {
                     canEditPayments={props.canEditPayments}
                     hide={() => setShowAdjustAccountCreditModal(false)}
                     refreshPaymentsTab={refreshModel}
-                    setAccountBalance={(value) => props.handleChanges({target: {name: 'accountBalance', type: 'number', value: value}})}
+                    setAccountBalance={props.setAccountBalance}
                     show={showAdjustAccountCreditModal}
                 />
             }
@@ -146,9 +146,10 @@ export default function PaymentsTab(props) {
                     accountBalance={props.accountBalance}
                     accountId={props.accountId}
                     canEditPayments={props.canEditPayments}
-                    handleChanges={props.handleChanges}
                     hide={() => setShowPaymentModal(false)}
                     refreshPaymentsTab={refreshModel}
+                    setAccountBalance={props.setAccountBalance}
+                    setBalanceOwing={props.setBalanceOwing}
                     show={showPaymentModal}
                 />
             }

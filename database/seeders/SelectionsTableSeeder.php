@@ -77,31 +77,6 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'warn_terminate',
             'type' => 'severity'
         ]);
-
-//Employee types
-        // DB::table('selections')->insert([
-        //     'name' => 'Full-Time Driver',
-        //     'value' => 'ft_driver',
-        //     'type' => 'employee_type'
-        // ]);
-
-        // DB::table('selections')->insert([
-        //     'name' => 'Contractor Driver',
-        //     'value' => 'c_driver',
-        //     'type' => 'employee_type'
-        // ]);
-
-        // DB::table('selections')->insert([
-        //     'name' => 'Office Employee',
-        //     'value' => 'office',
-        //     'type' => 'employee_type'
-        // ]);
-
-        // DB::table('selections')->insert([
-        //     'name' => 'Employee Type 1',
-        //     'value' => 'employee_type_1',
-        //     'type' => 'employee_type'
-        // ]);
 //Phone types
         DB::table('selections')->insert([
             'name' => 'Cell',
@@ -179,6 +154,22 @@ class SelectionsTableSeeder extends Seeder
             'name' => 'Weight Rate',
             'value' => 'weightRate',
             'type' => 'charge_type'
+        ]);
+// Vehicle Types
+        DB::table('selections')->insert([
+            'name' => '1/4 Ton Truck or Van',
+            'value' => 'quarter_ton_truck_or_van',
+            'type' => 'vehicle_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => '1/2 or 3/4 Ton Truck or Van',
+            'value' => 'half_or_three_quarter_ton_truck_or_van',
+            'type' => 'vehicle_type'
+        ]);
+        DB::table('selections')->insert([
+            'name' => 'Truck and 20 foot Trailer',
+            'value' => 'truck_and_20_foot_trailer',
+            'type' => 'vehicle_type'
         ]);
     }
 }

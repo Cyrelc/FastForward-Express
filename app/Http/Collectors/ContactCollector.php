@@ -7,10 +7,12 @@ use \App\Http\Validation\Utils;
 class ContactCollector {
     public function GetContact($req, $contactId = null) {
         return [
+            'contact_id' => $contactId,
             'first_name' => $req->first_name,
             'last_name' => $req->last_name,
             'position' => $req->position,
-            'contact_id' => $contactId
+            'preferred_name' => $req->preferred_name == "" ? null : $req->preferred_name,
+            'pronouns' => $req->pronouns
         ];
     }
 

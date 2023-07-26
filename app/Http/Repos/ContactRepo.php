@@ -43,6 +43,8 @@ class ContactRepo {
         $old->first_name = $contact['first_name'];
         $old->last_name = $contact['last_name'];
         $old->position = $contact['position'];
+        $old->preferred_name = $contact['preferred_name'];
+        $old->pronouns = $contact['pronouns'];
 
         $old->save();
 

@@ -2,21 +2,19 @@ import React, {Fragment, useEffect, useState} from 'react'
 import { Modal, Row, Col, Button, ButtonGroup, Table } from "react-bootstrap"
 
 import Contact from '../partials/Contact'
+import useAddress from '../partials/Hooks/useAddress'
+import useContact from '../partials/Hooks/useContact'
 
 export default function EmergencyContacts (props) {
     const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false)
-    const [contactId, setContactId] = useState(null)
-    const [firstName, setFirstName] = useState('')
-    const [lastName, setLastName] = useState('')
-    const [position, setPosition] = useState('')
-    const [phoneNumbers, setPhoneNumbers] = useState([])
-    const [phoneTypes, setPhoneTypes] = useState([])
-    const [emailAddresses, setEmailAddresses] = useState([])
-    const [addressFormatted, setAddressFormatted] = useState('')
-    const [addressLat, setAddressLat] = useState('')
-    const [addressLng, setAddressLng] = useState('')
-    const [addressName, setAddressName] = useState('')
-    const [addressPlaceId, setAddressPlaceId] = useState('')
+
+    const address = useAddress()
+    const contact = useContact()
+
+    const {
+        emergencyContacts,
+        employeeId,
+    } = props
 
     const addEmergencyContact = () => {
         fetch('/employees/emergencyContacts')
@@ -31,16 +29,16 @@ export default function EmergencyContacts (props) {
     }
 
     const deleteEmergencyContact = contactId => {
-        const emergencyContact = props.emergencyContacts.filter(contact => contact.contact_id === contactId)[0]
-        if(props.emergencyContacts.length <= 1)
+        const emergencyContact = emergencyContacts.filter(contact => contact.contact_id === contactId)[0]
+        if(emergencyContacts.length <= 1)
             return
         if(confirm(`Are you sure you wish to delete contact ${emergencyContact.name}?\nThis action can not be undone`)) {
             const data = {
                 contact_id: contactId,
-                employee_id: this.props.employeeId
+                employee_id: employeeId
             }
             makeAjaxRequest('/employees/emergencyContacts', 'DELETE', data, response => {
-                props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
+                setEmergencyContacts(response.emergencyContacts)
             })
         }
     }
@@ -48,90 +46,42 @@ export default function EmergencyContacts (props) {
     const editEmergencyContact = emergencyContactId => {
         makeAjaxRequest(`/employees/emergencyContacts/${emergencyContactId}`, 'GET', null, response => {
             response = JSON.parse(response)
-            console.log(response.phone_numbers)
-            setContactId(response.contact_id)
-            setPhoneTypes(response.phone_types)
-            setPhoneNumbers(response.phone_numbers)
-            setEmailAddresses(response.emails ?? [])
-            setFirstName(response.first_name)
-            setLastName(response.last_name)
-            setPosition(response.position)
-            setAddressFormatted(response.address.formatted)
-            setAddressLat(response.address.lat)
-            setAddressLng(response.address.lng)
-            setAddressName(response.address.name)
-            setAddressPlaceId(response.address.place_id)
+            contact.setup(response)
+            address.setup(response.address)
             setShowEmergencyContactModal(true)
         });
     }
 
     const hideModal = () => {
+        address.reset()
+        contact.reset()
         setShowEmergencyContactModal(false)
-        setAddressFormatted('')
-        setAddressLat('')
-        setAddressLng('')
-        setAddressName('')
-        setAddressPlaceId('')
-        setFirstName('')
-        setLastName('')
-        setPosition('')
-        setContactId(null)
-        setPhoneNumbers([])
-        setEmailAddresses([])
-    }
-
-
-    const handleChanges = events => {
-        console.log(events)
-        if(!Array.isArray(events))
-            events = [events]
-        events.forEach(event => {
-            const {name, type, value, checked} = event.target
-            if(name == 'firstName')
-                setFirstName(value)
-            if(name == 'lastName')
-                setLastName(value)
-            if(name == 'position')
-                setPosition(value)
-            if(name == 'emailAddresses')
-                setEmailAddresses(value)
-            if(name == 'phoneNumbers')
-                setPhoneNumbers(value)
-            if(name.includes('AddressFormatted'))
-                setAddressFormatted(value)
-            if(name.includes('AddressLat'))
-                setAddressLat(value)
-            if(name.includes('AddressLng'))
-                setAddressLng(value)
-            if(name.includes('AddressName'))
-                setAddressName(value)
-            if(name.includes('AddressPlaceId'))
-                setAddressPlaceId(value)
-        });
     }
 
     const storeEmergencyContact = () => {
         const data = {
-            address_formatted: addressFormatted,
-            address_lat: addressLat,
-            address_lng: addressLng,
-            address_name: addressName,
-            address_place_id: addressPlaceId,
-            contact_id: contactId,
-            emails: emailAddresses,
+            address_formatted: address.formatted,
+            address_lat: address.lat,
+            address_lng: address.lng,
+            address_name: address.name,
+            address_place_id: address.placeId,
+            contact_id: contact.contactId,
+            emails: contact.emailAddresses,
             employee_id: props.employeeId,
-            first_name: firstName,
-            last_name: lastName,
-            phone_numbers: phoneNumbers,
-            position: position
+            first_name: contact.firstName,
+            last_name: contact.lastName,
+            phone_numbers: contact.phoneNumbers,
+            position: contact.position,
+            preferred_name: contact.preferredName,
+            pronouns: contact.pronouns
         }
 
         makeAjaxRequest('/employees/emergencyContacts', 'POST', data, response => {
             toastr.clear()
-            toastr.success(`Contact "${firstName} ${lastName}" successfully ${contactId ? 'updated' : 'created'}`, 'Success')
+            toastr.success(`Contact "${contact.firstName} ${contact.lastName}" successfully ${contact.contactId ? 'updated' : 'created'}`, 'Success')
 
             setShowEmergencyContactModal(false)
-            props.handleChanges({target: {name:'emergencyContacts', type: 'object', value: response.emergency_contacts}})
+            setEmergencyContacts(response.emergency_contacts)
         })
     }
 
@@ -151,14 +101,14 @@ export default function EmergencyContacts (props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {props.emergencyContacts.map((emergencyContact, index) =>
+                            {emergencyContacts.map((emergencyContact, index) =>
                                 <tr key={index}>
                                     <td align='center' width='5%'>
                                         <ButtonGroup size='sm'>
                                             <Button
                                                 title='Delete'
                                                 variant='danger'
-                                                disabled={props.emergencyContacts.length <= 1 || props.readOnly}
+                                                disabled={emergencyContacts.length <= 1 || props.readOnly}
                                                 onClick={() => deleteEmergencyContact(emergencyContact.contact_id)}
                                             ><i className='fas fa-trash'></i></Button>
                                             <Button
@@ -181,26 +131,13 @@ export default function EmergencyContacts (props) {
             </Row>
             <Modal show={showEmergencyContactModal} onHide={hideModal} size='xl'>
                 <Modal.Header closeButton>
-                    <Modal.Title>{contactId ? 'Edit' : 'Create'} Emergency Contact</Modal.Title>
+                    <Modal.Title>{contact.contactId ? 'Edit' : 'Create'} Emergency Contact</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Contact
-                        addressId='emergencyContact'
-                        firstName={firstName}
-                        lastName={lastName}
-                        position={position}
-                        address={{
-                            type: 'Address',
-                            name: addressName,
-                            formatted: addressFormatted,
-                            lat: addressLat,
-                            lng: addressLng,
-                            placeId: addressPlaceId
-                        }}
-                        phoneNumbers={phoneNumbers}
-                        phoneTypes={phoneTypes}
-                        emailAddresses={emailAddresses}
-                        handleChanges={handleChanges}
+                        address={address}
+                        contact={contact}
+                        inModal={true}
                         readOnly={props.readOnly}
                         showAddress={true}
                     />

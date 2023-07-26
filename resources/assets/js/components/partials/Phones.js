@@ -1,14 +1,21 @@
 import React from 'react'
 import {FormControl, ButtonGroup, Button, Table} from 'react-bootstrap'
 import Select from 'react-select'
-import MaskedInput from 'react-maskedinput'
+import MaskedInput from 'react-text-mask'
 
 export default function Phones(props) {
+    const {
+        phoneNumbers,
+        phoneTypes,
+        readOnly,
+        setPhoneNumbers
+    } = props
+
     function addPhone() {
-        const phones = props.phoneNumbers.concat([
-            {phone: '', extension: '', type: '', is_primary: props.phoneNumbers.length === 0}
+        const phones = phoneNumbers.concat([
+            {phone: '', extension: '', type: '', is_primary: phoneNumbers.length === 0}
         ])
-        props.handleChanges({target: {name: 'phoneNumbers', type: 'objects', value: phones}})
+        setPhoneNumbers(phones)
     }
 
     /**
@@ -16,9 +23,9 @@ export default function Phones(props) {
      * Otherwise if it is a new phone number that they have changed their mind about, simply filter it out
      */
     function deletePhone(phoneIndex) {
-        if(props.phoneNumbers.length <= 1)
+        if(phoneNumbers.length <= 1)
             return
-        const phones = props.phoneNumbers.map((phone, index) => {
+        const phones = phoneNumbers.map((phone, index) => {
             // precautionary check to never delete the primary phone number 
             if(!phone.is_primary && index == phoneIndex && phone.phone_number_id)
                 return {...phone, delete: true}
@@ -28,27 +35,27 @@ export default function Phones(props) {
                 return true
             return false
         })
-        props.handleChanges([{target: {name: 'phoneNumbers', type: 'objects', value: phones}}])
+        setPhoneNumbers(phones)
     }
 
     function handlePhoneChange(event) {
         const {name, value} = event.target
         const phoneIndex = event.target.dataset.phoneIndex
-        const phones = props.phoneNumbers.map((phone, index) => {
+        const phones = phoneNumbers.map((phone, index) => {
             if(index == phoneIndex)
                 return {...phone, [name]: value}
             return phone
         })
-        props.handleChanges({target: {name: 'phoneNumbers', type: 'objects', value: phones}})
+        setPhoneNumbers(phones)
     }
 
     function setPrimaryPhone(phoneIndex) {
-        const phones = props.phoneNumbers.map((phone, index) => {
+        const phones = phoneNumbers.map((phone, index) => {
             if(index == phoneIndex)
                 return {...phone, is_primary: 1}
             return {...phone, is_primary: 0}
         })
-        props.handleChanges({target: {name: 'phoneNumbers', type: 'objects', value: phones}})
+        setPhoneNumbers(phones)
     }
 
     return (
@@ -56,7 +63,7 @@ export default function Phones(props) {
             <thead>
                 <tr>
                     <td style={{minWidth: '90px', width: '90px'}}>
-                        {!props.readOnly &&
+                        {!readOnly &&
                             <Button variant='success' onClick={addPhone} size='sm'>
                                 <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-phone'></i></span>
                             </Button>
@@ -68,30 +75,30 @@ export default function Phones(props) {
                 </tr>
             </thead>
             <tbody>
-                {props.phoneNumbers && props.phoneNumbers.map((phone, index) => {
+                {phoneNumbers?.map((phone, index) => {
                     if(!phone.delete)
                         return (
                             <tr key={index}>
                                 <td>
                                     <ButtonGroup size='sm'>
-                                        <Button title='Set as primary' disabled={phone.is_primary || props.readOnly} onClick={() => setPrimaryPhone(index)}>
+                                        <Button title='Set as primary' disabled={phone.is_primary || readOnly} onClick={() => setPrimaryPhone(index)}>
                                             <i className={phone.is_primary ? 'fas fa-star' : 'far fa-star'}></i>
                                         </Button>
-                                        <Button title='Delete' variant='danger' disabled={phone.is_primary || props.readOnly} onClick={() => deletePhone(index)}>
+                                        <Button title='Delete' variant='danger' disabled={phone.is_primary || readOnly} onClick={() => deletePhone(index)}>
                                             <i className='fas fa-trash'></i>
                                         </Button>
                                     </ButtonGroup>
                                 </td>
                                 <td>
-                                    <FormControl
-                                        as={MaskedInput}
+                                    <MaskedInput
+                                        className='form-control'
                                         data-phone-index={index}
+                                        mask={['(', /[1-9]/, /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         name='phone_number'
-                                        placeholder='(XXX) XXX-XXXX'
-                                        value={phone.phone_number}
                                         onChange={handlePhoneChange}
-                                        readOnly={props.readOnly}
-                                        mask="(111) 111-1111"
+                                        placeholder='(XXX) XXX-XXX'
+                                        readOnly={readOnly}
+                                        value={phone.phone_number}
                                     />
                                 </td>
                                 <td>
@@ -101,13 +108,13 @@ export default function Phones(props) {
                                         placeholder='Extension (optional)'
                                         value={phone.extension_number}
                                         onChange={handlePhoneChange}
-                                        readOnly={props.readOnly}
+                                        readOnly={readOnly}
                                     />
                                 </td>
                                 <td>
                                     <Select
-                                        options={props.phoneTypes}
-                                        value={phone.type ? props.phoneTypes.find(type => type.value == phone.type) : undefined}
+                                        options={phoneTypes}
+                                        value={phone.type ? phoneTypes.find(type => type.value == phone.type) : undefined}
                                         onChange={value => handlePhoneChange({target: {name: 'type', type: 'string', value: value.value, dataset: {phoneIndex: index}}})}
                                     />
                                 </td>

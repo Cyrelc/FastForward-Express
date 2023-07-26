@@ -29,12 +29,13 @@ class CreateEmployeeTable extends Migration
             $table->float('pickup_commission')->nullable();
             $table->string('sin');
             $table->date('start_date');
-			$table->unsignedInteger('user_id');
-            
+            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('vehicle_type_id')->nullable();
+
             $table->unique('employee_number');
             $table->foreign('contact_id')->references('contact_id')->on('contacts');
             $table->foreign('user_id')->references('user_id')->on('users');
-            
+            $table->foreign('vehicle_type_id')->references('selection_id')->on('selections');
         });
     }
 

@@ -6,19 +6,16 @@ import ActivityLogTab from '../../partials/ActivityLogTab'
 import Contact from '../../partials/Contact'
 import UserPermissionTab from './UserPermissionTab'
 
+import useContact from '../../partials/Hooks/useContact'
+
 export default function EditAccountUser(props) {
     const [accountUserPermissions, setAccountUserPermissions] = useState([])
     const [activityLog, setActivityLog] = useState('')
     const [belongsTo, setBelongsTo] = useState([])
-    const [emailAddresses, setEmailAddresses] = useState([])
-    const [emailTypes, setEmailTypes] = useState([])
-    const [firstName, setFirstName] = useState([])
     const [key, setKey] = useState('contact')
-    const [lastName, setLastName] = useState('')
     const [permissions, setPermissions] = useState([])
-    const [phoneNumbers, setPhoneNumbers] = useState([])
-    const [phoneTypes, setPhoneTypes] = useState([])
-    const [position, setPosition] = useState([])
+
+    const contact = useContact()
 
     useEffect(() => {
         if(props.contactId) {
@@ -38,37 +35,14 @@ export default function EditAccountUser(props) {
 
     const configureModal = response => {
         setAccountUserPermissions(response.account_user_model_permissions)
-        setEmailAddresses(response.contact.emails)
-        setEmailTypes(response.contact.email_types)
         setPermissions(response.permissions)
-        setPhoneNumbers(response.contact.phone_numbers)
-        setPhoneTypes(response.contact.phone_types)
+
+        contact.setup(response.contact)
         
         if(props.contactId) {
             setActivityLog(response.activity_log)
             setBelongsTo(response.belongs_to)
-            setFirstName(response.contact.first_name)
-            setLastName(response.contact.last_name)
-            setPosition(response.contact.position)
         }
-    }
-
-    const handleChanges = events => {
-        if(!Array.isArray(events))
-            events = [events]
-        events.forEach(event => {
-            const {name, type, value, checked} = event.target
-            if(name == 'firstName')
-                setFirstName(value)
-            if(name == 'lastName')
-                setLastName(value)
-            if(name == 'position')
-                setPosition(value)
-            if(name == 'emailAddresses')
-                setEmailAddresses(value)
-            if(name == 'phoneNumbers')
-                setPhoneNumbers(value)
-        });
     }
 
     const handlePermissionChange = event => {
@@ -82,15 +56,17 @@ export default function EditAccountUser(props) {
         const data = {
             account_id: props.accountId,
             contact_id: props.contactId,
-            emails: emailAddresses,
-            first_name: firstName,
-            last_name: lastName,
+            emails: contact.emailAddresses,
+            first_name: contact.firstName,
+            last_name: contact.lastName,
             permissions: accountUserPermissions,
-            phone_numbers: phoneNumbers,
-            position: position,
+            phone_numbers: contact.phoneNumbers,
+            position: contact.position,
+            preferred_name: contact.preferredName,
+            pronouns: contact.pronouns
         }
 
-        if(props.contactId) {
+        if(contact.contactId) {
             makeAjaxRequest('/users/storeAccountUser', 'POST', data, response => {
                 props.refreshAccountUsers()
             })
@@ -112,7 +88,7 @@ export default function EditAccountUser(props) {
     return (
         <Modal show={props.show} onHide={props.hide} size='xl'>
             <Modal.Header closeButton>
-                <Modal.Title>{props.contactId ? `Edit User ${firstName} ${lastName}` : 'Create User'}</Modal.Title>
+                <Modal.Title>{props.contactId ? `Edit User ${contact.firstName} ${contact.lastName}` : 'Create User'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Row>
@@ -120,15 +96,8 @@ export default function EditAccountUser(props) {
                         <Tabs id='accountUserTabs' className='nav-justified' activeKey={key} onSelect={setKey}>
                             <Tab eventKey='contact' title={<h4>Contact Info</h4>}>
                                 <Contact
-                                    firstName={firstName}
-                                    lastName={lastName}
-                                    position={position}
-                                    phoneNumbers={phoneNumbers}
-                                    emailAddresses={emailAddresses}
-                                    phoneTypes={phoneTypes}
-                                    emailTypes={emailTypes}
-
-                                    handleChanges={handleChanges}
+                                    contact={contact}
+                                    inModal={true}
                                     readOnly={!permissions.editBasic && (!props.contactId && !props.canCreateAccountUsers)}
                                 />
                             </Tab>

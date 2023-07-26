@@ -1,9 +1,23 @@
 import React from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
 
-import Address from '../partials/Address'
+import Address from '../partials/AddressFunctional'
 
 export default function BasicTab(props) {
+    const {
+        accountId,
+        accountName,
+        accountNumber,
+        shippingAddress,
+        billingAddress,
+        useShippingForBillingAddress,
+
+        setAccountName,
+        setUseShippingForBillingAddress,
+
+        readOnly
+    } = props
+
     return (
         <Card>
             <Card.Header>
@@ -16,17 +30,17 @@ export default function BasicTab(props) {
                             <InputGroup.Text>Name</InputGroup.Text>
                             <FormControl
                                 name='accountName'
-                                value={props.accountName}
-                                onChange={props.handleChanges}
-                                readOnly={props.readOnly}
+                                value={accountName}
+                                onChange={event => setAccountName(event.target.value)}
+                                readOnly={readOnly}
                             />
                         </InputGroup>
                     </Col>
                     <Col md={3}>
-                        Account ID: {props.accountId}
+                        <h5>Account ID: {accountId}</h5>
                     </Col>
                     <Col md={3}>
-                        Account Number: {props.accountNumber}
+                        <h5>Account Number: {accountNumber}</h5>
                     </Col>
                 </Row>
             </Card.Header>
@@ -40,11 +54,9 @@ export default function BasicTab(props) {
                             </Card.Header>
                             <Card.Body>
                                 <Address
-                                    id='shipping'
-                                    address={props.shippingAddress}
-                                    handleChanges={props.handleChanges}
+                                    address={shippingAddress}
                                     showAddressSearch={true}
-                                    readOnly={props.readOnly}
+                                    readOnly={readOnly}
                                 />
                             </Card.Body>
                         </Card>
@@ -56,18 +68,16 @@ export default function BasicTab(props) {
                                 <FormCheck
                                     name='useShippingForBillingAddress'
                                     label='Same as shipping address'
-                                    checked={props.useShippingForBillingAddress}
-                                    onChange={props.handleChanges}
-                                    disabled={props.readOnly}
+                                    checked={useShippingForBillingAddress}
+                                    onChange={() => setUseShippingForBillingAddress(!useShippingForBillingAddress)}
+                                    disabled={readOnly}
                                 />
                             </Card.Header>
                             <Card.Body>
                                 <Address
-                                    id='billing'
-                                    address={props.billingAddress}
-                                    handleChanges={props.handleChanges}
+                                    address={billingAddress}
                                     showAddressSearch={true}
-                                    readOnly={ props.readOnly || props.useShippingForBillingAddress }
+                                    readOnly={ readOnly || useShippingForBillingAddress }
                                 />
                             </Card.Body>
                         </Card>

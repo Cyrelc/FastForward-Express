@@ -7,9 +7,16 @@ const emailTypesTitle = 'Email types are used to identify which users would like
 'Are you the point of contact for when we have trouble making a delivery? Set yourself to "Support"'
 
 export default function Emails(props) {
+    const {
+        emailAddresses,
+        emailTypes,
+        readOnly,
+        setEmailAddresses
+    } = props
+
     function addEmail() {
-        const emails = props.emailAddresses.concat([{email: '', is_primary: props.emailAddresses.length === 0, type: ''}])
-        props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
+        const emails = emailAddresses.concat([{email: '', is_primary: props.emailAddresses.length === 0, type: ''}])
+        setEmailAddresses(emails)
     }
 
     /**
@@ -19,7 +26,7 @@ export default function Emails(props) {
     function deleteEmail(emailIndex) {
         if(props.emailAddresses.length <= 1)
             return
-        const emails = props.emailAddresses.map((email, index) => {
+        const emails = emailAddresses.map((email, index) => {
             //precautionary check to never delete the primary email address
             if(!email.is_primary && index == emailIndex && email.email_address_id)
                 return {...email, delete: true}
@@ -29,27 +36,27 @@ export default function Emails(props) {
                 return true
             return false
         })
-        props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
+        setEmailAddresses(emails)
     }
 
     function handleEmailChange(event) {
         const {name, type, value} = event.target
         const emailIndex = event.target.dataset.emailIndex
-        const emails = props.emailAddresses.map((email, index) => {
+        const emails = emailAddresses.map((email, index) => {
             if(index == emailIndex)
                 return {...email, [name]: value}
             return email
         })
-        props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
+        setEmailAddresses(emails)
     }
 
     function setPrimaryEmail(emailIndex) {
-        const emails = props.emailAddresses.map((email, index) => {
+        const emails = emailAddresses.map((email, index) => {
             if(index == emailIndex)
                 return {...email, is_primary: 1}
             return {...email, is_primary: 0}
         })
-        props.handleChanges({target: {name: 'emailAddresses', type: 'objects', value: emails}})
+        setEmailAddresses(emails)
     }
 
     return (
@@ -59,25 +66,40 @@ export default function Emails(props) {
                     <td style={{minWidth: '90px', width: '90px'}}>
                         {!props.readOnly &&
                             <Button variant='success' onClick={addEmail} size='sm'>
-                                <span><i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-at'></i></span>
+                                <span>
+                                    <i className='fas fa-plus' style={{paddingRight: 5}}></i><i className='fas fa-at'></i>
+                                </span>
                             </Button>
                         }
                     </td>
                     <td><label>Email address</label></td>
-                    {props.emailTypes && 
+                    {emailTypes && 
                         <td><label>Type <i className='fas fa-question-circle' title={emailTypesTitle}></i></label></td>
                     }
                 </tr>
             </thead>
             <tbody>
-                {props.emailAddresses && props.emailAddresses.map((email, index) => {
+                {emailAddresses?.map((email, index) => {
                     if(!email.delete)
                         return (
                             <tr key={index}>
                                 <td>
                                     <ButtonGroup size='sm'>
-                                        <Button title='Set as primary' disabled={email.is_primary || props.readOnly} onClick={() => setPrimaryEmail(index)}><i className={email.is_primary ? 'fas fa-star' : 'far fa-star'}></i></Button>
-                                        <Button title='Delete' variant='danger' disabled={email.is_primary || props.readOnly} onClick={() => deleteEmail(index)}><i className='fas fa-trash'></i></Button>
+                                        <Button
+                                            title='Set as primary'
+                                            disabled={email.is_primary || readOnly}
+                                            onClick={() => setPrimaryEmail(index)}
+                                        >
+                                            <i className={email.is_primary ? 'fas fa-star' : 'far fa-star'}></i>
+                                        </Button>
+                                        <Button
+                                            title='Delete'
+                                            variant='danger'
+                                            disabled={email.is_primary || readOnly}
+                                            onClick={() => deleteEmail(index)}
+                                        >
+                                                <i className='fas fa-trash'></i>
+                                        </Button>
                                     </ButtonGroup>
                                 </td>
                                 <td>
@@ -86,14 +108,14 @@ export default function Emails(props) {
                                         name='email'
                                         onChange={handleEmailChange}
                                         placeholder='email@address.domain'
-                                        readOnly={props.readOnly}
+                                        readOnly={readOnly}
                                         value={email.email}
                                     />
                                 </td>
-                                {props.emailTypes &&
+                                {emailTypes &&
                                     <td width='40%'>
                                         <Select
-                                            options={props.emailTypes}
+                                            options={emailTypes}
                                             value={email.type}
                                             onChange={value => handleEmailChange({target: {name: 'type', type: 'string', value: value, dataset: {emailIndex: index}}})}
                                             isMulti

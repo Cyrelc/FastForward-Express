@@ -12,7 +12,7 @@ class Contact extends Model
     public $primaryKey = "contact_id";
     public $timestamps = false;
 
-    protected $fillable = ['first_name', 'last_name', 'position', 'enabled'];
+    protected $fillable = ['first_name', 'last_name', 'position', 'enabled', 'preferred_name', 'pronouns'];
 
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()

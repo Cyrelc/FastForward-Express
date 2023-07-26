@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useRef} from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import Select from 'react-select'
@@ -6,7 +6,15 @@ import Select from 'react-select'
 const addressFormattingTooltip = 'Addresses will begin a new line on commas'
 
 export default function InvoicingTab(props) {
-    const [filteredSortOptions, setFilteredSortOptions] = useState([])
+    const sortOrderTableRef = useRef()
+
+    const {
+        canBeParent,
+        customTrackingField,
+        invoiceSortOrder,
+
+        readOnly
+    } = props
 
     const columns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
@@ -17,56 +25,26 @@ export default function InvoicingTab(props) {
         {title: 'Contingent Field', field: 'contingent_field', headerSort: false, visible: false},
         {title: 'Priority', field: 'priority', headerSort: false, visible: false},
         {title: 'Subtotal By', field: 'subtotal_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, headerHozAlign: 'center', hozAlign: 'center', headerSort: false, cellClick: ((e, cell) => {
-            const data = cell.getRow().getData()
-            if(!data.can_be_subtotaled)
-                return
-            const invoiceSortOrder = props.invoiceSortOrder.map(option => {
-                if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
-                    return {...option, subtotal_by: !option.subtotal_by}
-                return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
-            })
-            const newFilteredSortOptions = filteredSortOptions.map(option => {
-                if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
-                    return {...option, subtotal_by: !option.subtotal_by}
-                return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
-            }).sort((a, b) => a.priority > b.priority)
-            setFilteredSortOptions(newFilteredSortOptions)
-            props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: invoiceSortOrder}})
+            handleSubtotalByChange(cell)
         })}
     ]
 
-    const sortOrderTableRef = useRef();
-
-    useEffect(() => {
-        console.log('reconsidering invoice sort order options')
-        const newFilteredSortOptions = props.invoiceSortOrder.filter(invoiceSortItem => {
-            if(invoiceSortItem.contingent_field === 'can_be_parent' && !props.canBeParent)
-                return false;
-            if(invoiceSortItem.contingent_field === 'custom_field' && props.customTrackingField == '')
-                return false;
-            return true;
-        })
-        console.log(newFilteredSortOptions)
-        setFilteredSortOptions(newFilteredSortOptions)
-    }, [props.canBeParent, props.customTrackingField])
-
     const handleInvoiceSortOrderChange = row => {
         const data = row.getTable().getData()
-        const newInvoiceSortOrder = props.invoiceSortOrder.map(sortItem => {
-            const index = data.findIndex(item => item.database_field_name === sortItem.database_field_name)
-            console.log(sortItem)
-            if(index >= 0)
-                return {...sortItem, priority: index}
-            return {...sortItem, priority: null}
-        }).sort((a, b) => a.priority - b.priority)
-        setFilteredSortOptions(newInvoiceSortOrder.filter(invoiceSortItem => {
-            if(invoiceSortItem.contingent_field === 'can_be_parent' && !props.canBeParent)
-                return false;
-            if(invoiceSortItem.contingent_field === 'custom_field' && props.customTrackingField == '')
-                return false;
-            return true;
-        }))
-        props.handleChanges({target: {name: 'invoiceSortOrder', type: 'array', value: newInvoiceSortOrder}})
+        props.setInvoiceSortOrder(data)
+    }
+
+    const handleSubtotalByChange = cell => {
+        const data = cell.getRow().getData()
+        const tableData = cell.getRow().getTable().getData()
+        if(!data.can_be_subtotaled)
+            return
+        const newInvoiceSortOrder = tableData.map(option => {
+            if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
+                return {...option, subtotal_by: !option.subtotal_by}
+            return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
+        })
+        props.handleInvoiceSortOrderChange(newInvoiceSortOrder)
     }
 
     return (
@@ -85,7 +63,7 @@ export default function InvoicingTab(props) {
                                         options={props.invoiceIntervals}
                                         getOptionLabel={type => type.name}
                                         getOptionValue={type => type.value}
-                                        onChange={value => props.handleChanges({target: {name: 'invoiceInterval', type: 'object', value: value}})}
+                                        onChange={props.setInvoiceInterval}
                                         value={props.invoiceInterval}
                                         isDisabled={props.readOnly}
                                     />
@@ -100,7 +78,7 @@ export default function InvoicingTab(props) {
                                     name='sendPaperInvoices'
                                     label='Send Paper Invoices'
                                     checked={props.sendPaperInvoices}
-                                    onChange={props.handleChanges}
+                                    onChange={() => props.setSendPaperInvoices(!props.sendPaperInvoices)}
                                     disabled={!props.sendEmailInvoices || props.readOnly}
                                 />
                             </Col>
@@ -110,7 +88,7 @@ export default function InvoicingTab(props) {
                                     name='sendEmailInvoices'
                                     label='Digital Invoice Notifications'
                                     checked={props.sendEmailInvoices}
-                                    onChange={props.handleChanges}
+                                    onChange={() => props.setSendEmailInvoices(!props.sendEmailInvoices)}
                                     disabled={!props.sendPaperInvoices || props.readOnly}
                                 />
                             </Col>
@@ -120,7 +98,7 @@ export default function InvoicingTab(props) {
                                     name='showInvoiceLineItems'
                                     label='Show Invoice Line Items'
                                     checked={props.showInvoiceLineItems}
-                                    onChange={props.handleChanges}
+                                    onChange={() => props.setShowInvoiceLineItems(!props.showInvoiceLineItems)}
                                     disabled={props.readOnly}
                                 />
                             </Col>
@@ -130,7 +108,7 @@ export default function InvoicingTab(props) {
                                     name='showPickupAndDeliveryAddress'
                                     label='Show Both Pickup and Delivery Address'
                                     checked={props.showPickupAndDeliveryAddress}
-                                    onChange={props.handleChanges}
+                                    onChange={() => props.setShowPickupAndDeliveryAddress(!props.showPickupAndDeliveryAddress)}
                                     disabled={props.readOnly}
                                 />
                             </Col>
@@ -148,7 +126,7 @@ export default function InvoicingTab(props) {
                             <FormControl
                                 name='customTrackingField'
                                 value={props.customTrackingField}
-                                onChange={props.handleChanges}
+                                onChange={event => props.setCustomTrackingField(event.target.value)}
                                 placeholder='Tracking Field Name (Optional)'
                                 readOnly={props.readOnly}
                             />
@@ -165,7 +143,7 @@ export default function InvoicingTab(props) {
                             name='customFieldMandatory'
                             label='Custom Tracking Field is Mandatory'
                             checked={props.customFieldMandatory}
-                            onChange={props.handleChanges}
+                            onChange={() => props.setCustomFieldMandatory(!props.customFieldMandatory)}
                             disabled={!props.customTrackingField || props.readOnly}
                         />
                     </Col>
@@ -181,7 +159,7 @@ export default function InvoicingTab(props) {
                             as='textarea'
                             rows={3}
                             value={props.invoiceComment}
-                            onChange={props.handleChanges}
+                            onChange={event => props.setInvoiceComment(event.target.value)}
                             placeholder='A comment that will appear on every invoice. For example: "ATTN Ritchie"'
                             readOnly={props.readOnly}
                         />
@@ -193,19 +171,21 @@ export default function InvoicingTab(props) {
                     <Col md={2}>
                         <h5 className='text-muted'>Order Bills By</h5>
                     </Col>
-                    <Col md={5}>
-                        {filteredSortOptions.length &&
+                    <Col md={5} key={props.handleInvoiceSortOrderChange}>
+                        {!props.isLoading && invoiceSortOrder?.length > 0 &&
                             <ReactTabulator
                                 ref={sortOrderTableRef}
                                 columns={columns}
-                                data={filteredSortOptions}
+                                data={[]}
+                                data={invoiceSortOrder}
                                 options={{
                                     height: '150px',
                                     layout: 'fitColumns',
-                                    movableRows: !props.readOnly
+                                    movableRows: !readOnly,
+                                    rowMoved: handleInvoiceSortOrderChange
                                 }}
+                                initialFilter={[{field: 'isValid', type:'=', value: true}]}
                                 initialSort={[{field: 'priority', dir: 'asc'}]}
-                                rowMoved={handleInvoiceSortOrderChange}
                             />
                         }
                     </Col>
@@ -221,7 +201,7 @@ export default function InvoicingTab(props) {
                         <FormControl
                             as='textarea'
                             rows={5}
-                            value={props.shippingAddressName + '\n' + props.shippingAddressFormatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
+                            value={props.shippingAddress.name + '\n' + props.shippingAddress.formatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
                             disabled={true}
                         />
                     </Col>
@@ -231,7 +211,7 @@ export default function InvoicingTab(props) {
                             <FormControl
                                 as='textarea'
                                 rows={5}
-                                value={props.billingAddressName + '\n' + props.billingAddressFormatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
+                                value={props.billingAddress.name + '\n' + props.billingAddress.formatted.replaceAll(', ', '\n').replaceAll(',', '\n')}
                                 disabled={true}
                             />
                         </Col>

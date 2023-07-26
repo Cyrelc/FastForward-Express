@@ -1,7 +1,5 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Row, Table} from 'react-bootstrap'
-import {Equation, EquationOptions, defaultErrorHandler} from 'react-equation'
-import {defaultVariables, defaultFunctions} from 'equation-resolver'
 
 import ConditionalModal from './ConditionalModal'
 
@@ -109,17 +107,7 @@ export default function ConditionalsTab(props) {
                                     <td>
                                         {conditional.value_type == 'amount' && conditional.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
                                         {conditional.value_type == 'percent' && `${conditional.value}%`}
-                                        {conditional.value_type == 'equation' &&
-                                            <EquationOptions
-                                                variables={defaultVariables}
-                                                functions={defaultFunctions}
-                                                errorHandler={defaultErrorHandler}
-                                            >
-                                                <Equation
-                                                    value={conditional.equation_string}
-                                                />
-                                            </EquationOptions>
-                                    }
+                                        {conditional.value_type == 'equation' && `${conditional.value}`}
                                     </td>
                                 </tr>
                             )

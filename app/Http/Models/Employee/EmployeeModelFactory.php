@@ -13,7 +13,7 @@ class EmployeeModelFactory
         $employeeRepo = new Repos\EmployeeRepo();
         $addrRepo = new Repos\AddressRepo();
         $contactRepo = new Repos\ContactRepo();
-        $pnRepo = new Repos\PhoneNumberRepo();
+        $phoneRepo = new Repos\PhoneNumberRepo();
 
         $employees = $employeeRepo->ListAll();
         $employee_view_models = array();
@@ -24,7 +24,7 @@ class EmployeeModelFactory
             $employee_view_model->employee = $employee;
             $employee_view_model->contact = $contactRepo->GetById($employee->contact_id);
             $employee_view_model->address = $addrRepo->GetByContactId($employee->contact_id);
-            $employee_view_model->phoneNumber = $pnRepo->GetContactPrimaryPhone($employee->contact_id);
+            $employee_view_model->phoneNumber = $phoneRepo->GetContactPrimaryPhone($employee->contact_id);
             $employee_view_model->contact->name = $employee_view_model->contact->first_name . ' ' . $employee_view_model->contact->last_name;
 
             array_push($employee_view_models, $employee_view_model);
@@ -39,6 +39,8 @@ class EmployeeModelFactory
     public function GetCreateModel($permissions) {
         $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
         $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+
+        $selectionsRepo = new Repos\SelectionsRepo();
 
         $model = new Employee\EmployeeFormModel();
         
@@ -56,6 +58,7 @@ class EmployeeModelFactory
 
         $model->permissions = $permissions;
         $model->employee_permissions = $permissionModelFactory->GetEmployeeModelPermissions(null);
+        $model->vehicle_types = $selectionsRepo->GetSelectionsByType('vehicle_type');
 
         return $model;
     }
@@ -65,6 +68,7 @@ class EmployeeModelFactory
         $addressRepo = new Repos\AddressRepo();
         $employeeRepo = new Repos\EmployeeRepo();
         $phoneNumberRepo = new Repos\PhoneNumberRepo();
+        $selectionsRepo = new Repos\SelectionsRepo();
         $userRepo = new Repos\UserRepo();
 
         $contactsFactory = new Models\Partials\ContactsModelFactory();
@@ -80,6 +84,7 @@ class EmployeeModelFactory
         $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
         $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
         $model->employee_permissions = $permissionModelFactory->GetEmployeeModelPermissions($model->employee->employee_id);
+        $model->vehicle_types = $selectionsRepo->GetSelectionsByType('vehicle_type');
 
         if($permissions['viewActivityLog']) {
             $model->activity_log = $activityLogRepo->GetEmployeeActivityLog($model->employee->employee_id);

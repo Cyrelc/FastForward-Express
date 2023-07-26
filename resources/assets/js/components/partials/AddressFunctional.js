@@ -14,9 +14,26 @@ export default function Address(props) {
     const [markerCoords, setMarkerCoords] = useState(null)
     const [zoom, setZoom] = useState(10)
 
-    const {accounts, readOnly, showAddressSearch} = props
+    const {accounts, readOnly, showAddressSearch, usePickupDelivery = false} = props
 
-    const {account, formatted, isMall, lat, lng, name, type, referenceValue} = props.data
+    // const {account, referenceValue} = props.data
+    const {
+        // account,
+        formatted,
+        isMall,
+        lat,
+        lng,
+        name,
+        type,
+        setFormatted,
+        setLat,
+        setLng,
+        setIsMall,
+        setName,
+        setPlaceId,
+        setType
+        // referenceValue
+    } = props.address
 
     useEffect(() => {
         const newCoordinates = {lat: lat ? lat : 53.544389, lng: lng ? lng : -113.49072669}
@@ -26,13 +43,18 @@ export default function Address(props) {
         setMarkerCoords(lat && lng ? newCoordinates : null)
     }, [lat, lng])
 
+    const resetAutoComplete = () => {
+        setClearAutoComplete(false)
+        setClearAutoComplete(true)
+    }
+
     const handleMapClickEvent = event => {
         if(type === 'Manual') {
             const lat = event.latLng.lat()
             const lng = event.latLng.lng()
-            props.handleChange({target: {name: 'addressLat', type: 'text', value: lat}})
-            props.handleChange({target: {name: 'addressLng', type: 'text', value: lng}})
-            props.handleChange({target: {name: 'placeId', type: 'text', value: `MAN:lat:${lat}:lng:${lng}`}})
+            setLat(lat)
+            setLng(lng)
+            setPlaceId(`MAN:lat:${lat}:lng:${lng}`)
         }
         else
             return
@@ -48,13 +70,12 @@ export default function Address(props) {
         setZoom(14)
         setMapCenter({lat, lng})
         setMarkerCoords({lat, lng})
-        props.handleChange({target: {name: 'addressLat', type: 'text', value: lat}})
-        props.handleChange({target: {name: 'addressLng', type: 'text', value: lng}})
-        props.handleChange({target: {name: 'placeId', type: 'text', value: place.place_id === '' ? null : place.place_id}})
-        props.handleChange({target: {name: 'addressName', type: 'text', value: place.name}})
-        props.handleChange({target: {name: 'addressFormatted', type: 'text', value: place.formatted_address}})
-        setClearAutoComplete(false)
-        setClearAutoComplete(true)
+        setLat(lat)
+        setLng(lng)
+        setPlaceId(place.place_id ?? null)
+        setName(place.name)
+        setFormatted(place.formatted_address)
+        resetAutoComplete()
     }
 
     return (
@@ -62,8 +83,8 @@ export default function Address(props) {
             <Card.Header>
                 <Row>
                     <Col>
-                        <Card.Title style={{display: 'inline'}}>
-                            <h4 style={{display: 'inline'}}>{props.header}</h4>
+                        <Card.Title>
+                            <h4>{props.header}</h4>
                         </Card.Title>
                     </Col>
                     {props.useIsMall &&
@@ -74,18 +95,18 @@ export default function Address(props) {
                                 value={isMall}
                                 checked={isMall}
                                 disabled={readOnly}
-                                onChange={event => props.handleChange({target: {name: 'isMall', value: !isMall}})}
+                                onChange={event => setIsMall(!isMall)}
                             />
                         </Col>
                     }
-                    <Col className='justify-content-end'>
+                    <Col md='auto' className='ml-auto'>
                         <InputGroup style={{paddingTop: 0}}>
                             <InputGroup.Text>Type: </InputGroup.Text>
                             <ToggleButtonGroup
                                 type='radio'
                                 name={`${props.id}AddressType`}
                                 value={type}
-                                onChange={value => props.handleChange({target: {name: 'addressType', value}})}
+                                onChange={setType}
                                 disabled={readOnly}
                             >
                                 <ToggleButton
@@ -96,7 +117,7 @@ export default function Address(props) {
                                     disabled={readOnly}
                                     size='sm'
                                 >Search</ToggleButton>
-                                {props.accounts?.length &&
+                                {accounts?.length &&
                                     <ToggleButton
                                         id={`${props.id}.address.type.account`}
                                         value='Account'
@@ -152,7 +173,7 @@ export default function Address(props) {
                         </Col>
                         : null
                     }
-                    {(props.accounts?.length && type === 'Account') &&
+                    {(accounts?.length && type === 'Account') &&
                         <Col md={12}>
                             <InputGroup>
                                 <InputGroup.Text>Select Account: </InputGroup.Text>
@@ -166,7 +187,7 @@ export default function Address(props) {
                             </InputGroup>
                         </Col>
                     }
-                    {(props.accounts?.length && type === 'Account' && account?.custom_field) &&
+                    {(accounts?.length && type === 'Account' && account?.custom_field) &&
                         <Col md={12}>
                             <InputGroup>
                                 <InputGroup.Text>{props.data?.account?.custom_field}</InputGroup.Text>
@@ -186,7 +207,7 @@ export default function Address(props) {
                                 type='text'
                                 name={'addressName'}
                                 value={name}
-                                onChange={props.handleChange}
+                                onChange={event => setName(event.target.value)}
                                 readOnly={readOnly}
                             />
                         </InputGroup>
@@ -198,7 +219,7 @@ export default function Address(props) {
                                 type='text'
                                 name={'addressFormatted'}
                                 value={formatted}
-                                onChange={props.handleChange}
+                                onChange={event => setFormatted(event.target.value)}
                                 readOnly={readOnly || type != 'Manual'}
                             />
                         </InputGroup>

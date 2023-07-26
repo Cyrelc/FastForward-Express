@@ -13,9 +13,32 @@ export default function AdministrationTab(props) {
         ' - See basic pertinent information regarding bills assigned to them\n' +
         ' - View bills where they are assigned as either pickup or delivery driver'
 
-    const {employeePermissions, enabled, handlePermissionChange, readOnly} = props
+    const {
+        birthDate,
+        employeeNumber,
+        employeePermissions,
+        isDriver,
+        isEnabled,
+        SIN,
+        startDate,
 
-    const permissionsDisabled = (!enabled || readOnly)
+        setBirthDate,
+        setEmployeeNumber,
+        setEmployeePermissions,
+        setIsDriver,
+        setIsEnabled,
+        setSIN,
+        setStartDate,
+
+        readOnly
+    } = props
+
+    const handlePermissionChange = event => {
+        const {name, value, checked} = event.target
+
+        const newEmployeePermissions = {...employeePermissions, [name]: checked}
+        setEmployeePermissions(newEmployeePermissions)
+    }
 
     const PermissionCheckbox = (props) => {
         return <Form.Check
@@ -23,7 +46,7 @@ export default function AdministrationTab(props) {
             label={props.label ? props.label : null}
             name={props.name}
             onChange={handlePermissionChange}
-            disabled={!enabled || readOnly}
+            disabled={!isEnabled || readOnly}
         ></Form.Check>
     }
 
@@ -36,20 +59,20 @@ export default function AdministrationTab(props) {
                             <InputGroup.Text>Employee Number</InputGroup.Text>
                             <FormControl
                                 name='employeeNumber'
-                                onChange={props.handleChanges}
+                                onChange={setEmployeeNumber}
                                 placeholder='Employee Number'
-                                readOnly={props.readOnly}
-                                value={props.employeeNumber}
+                                readOnly={readOnly}
+                                value={employeeNumber}
                             />
                         </InputGroup>
                     </Col>
                     <Col md={3}>
                         <InputGroup>
                             <Form.Check
-                                checked={props.enabled}
+                                checked={isEnabled}
                                 name='enabled'
-                                value={props.enabled}
-                                onChange={props.handleChanges}
+                                value={isEnabled}
+                                onChange={() => setIsEnabled(!isEnabled)}
                                 label='Enabled'
                             />
                             <InputGroup.Text><i className='fas fa-question-circle' title={enabledTitle}></i></InputGroup.Text>
@@ -57,10 +80,10 @@ export default function AdministrationTab(props) {
                     </Col>
                     <Col md={3}>
                         <Form.Check
-                            checked={props.driver}
+                            checked={isDriver}
                             name='driver'
-                            value={props.driver}
-                            onChange={props.handleChanges}
+                            value={isDriver}
+                            onChange={() => setIsDriver(!isDriver)}
                             label='Driver'
                         />
                     </Col>
@@ -74,9 +97,9 @@ export default function AdministrationTab(props) {
                             <FormControl
                                 name='SIN'
                                 placeholder='Social Insurance Number'
-                                value={props.SIN}
-                                onChange={props.handleChanges}
-                                readOnly={props.readOnly}
+                                value={SIN}
+                                onChange={setSIN}
+                                readOnly={readOnly}
                             />
                         </InputGroup>
                     </Col>
@@ -84,14 +107,14 @@ export default function AdministrationTab(props) {
                         <InputGroup>
                             <InputGroup.Text>Birth Date</InputGroup.Text>
                             <DatePicker 
+                                className='form-control'
                                 dateFormat='MMMM d, yyyy'
-                                onChange={value => props.handleChanges({target: {name: 'birthDate', value: value}})}
+                                monthDropdownItemNumber={15}
+                                onChange={setBirthDate}
+                                scrollableMonthDropdown
+                                selected={birthDate}
                                 showMonthDropdown
                                 showYearDropdown
-                                monthDropdownItemNumber={15}
-                                scrollableMonthDropdown
-                                selected={props.birthDate}
-                                className='form-control'
                                 wrapperClassName='form-control'
                             />
                         </InputGroup>
@@ -100,14 +123,14 @@ export default function AdministrationTab(props) {
                         <InputGroup>
                             <InputGroup.Text>Start Date</InputGroup.Text>
                             <DatePicker 
+                                className='form-control'
                                 dateFormat='MMMM d, yyyy'
-                                onChange={value => props.handleChanges({target: {name: 'startDate', value: value}})}
+                                monthDropdownItemNumber={15}
+                                onChange={setStartDate}
+                                scrollableMonthDropdown
+                                selected={startDate}
                                 showMonthDropdown
                                 showYearDropdown
-                                monthDropdownItemNumber={15}
-                                scrollableMonthDropdown
-                                selected={props.startDate}
-                                className='form-control'
                                 wrapperClassName='form-control'
                             />
                         </InputGroup>

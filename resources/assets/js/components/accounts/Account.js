@@ -1,7 +1,8 @@
-import React, {Component, Fragment} from 'react'
+import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
+import {useParams} from 'react-router-dom'
 
 import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -12,445 +13,427 @@ import ChildAccounts from './ChildAccounts'
 import InvoicingTab from './InvoicingTab'
 import PaymentsTab from './payments/PaymentsTab'
 
-const initialState = {
-    accountId: null,
-    accountBalance: '',
-    accountName: '',
-    accountNumber: '',
-    balanceOwing: '',
-    billingAddressFormatted: '',
-    billingAddressLat: '',
-    billingAddressLng: '',
-    billingAddressName: '',
-    billingAddressPlaceId: '',
-    canBeParent: false,
-    childAccountCount: 0,
-    customFieldMandatory: false,
-    customTrackingField: '',
-    discount: '',
-    invoiceComment: '',
-    invoiceSortOrder: [],
-    isGstExempt: false,
-    key: 'basic',
-    minInvoiceAmount: '',
-    nextAccountIndex: null,
-    parentAccount: '',
-    parentAccounts: [],
-    payments: [],
-    permissions: [],
-    prevAccountIndex: null,
-    ratesheet: '',
-    ratesheets: [],
-    sendBills: true,
-    sendEmailInvoices: true,
-    sendPaperInvoices: false,
-    shippingAddressFormatted: '',
-    shippingAddressLat: '',
-    shippingAddressLng: '',
-    shippingAddressName: '',
-    shippingAddressPlaceId: '',
-    showInvoiceLayoutModal: false,
-    showInvoiceLineItems: false,
-    showPickupAndDeliveryAddress: false,
-    startDate: new Date(),
-    useShippingForBillingAddress: true,
-    users: []
-}
+import useAddress from '../partials/Hooks/useAddress'
 
-class Account extends Component {
-    constructor() {
-        super()
-        this.state = {
-            ...initialState
-        }
-        this.configureAccount = this.configureAccount.bind(this)
-        this.handleChanges = this.handleChanges.bind(this)
-        this.storeAccount = this.storeAccount.bind(this)
-    }
+const Account = props => {
+    const [accountId, setAccountId] = useState('')
+    const [accountBalance, setAccountBalance] = useState('')
+    const [accountName, setAccountName] = useState('')
+    const [accountNumber, setAccountNumber] = useState('')
+    const [accountUsers, setAccountUsers] = useState([])
+    const [activityLog, setActivityLog] = useState([])
+    const [balanceOwing, setBalanceOwing] = useState('')
+    const [canBeParent, setCanBeParent] = useState(false)
+    const [childAccountList, setChildAccountList] = useState([])
+    const [customFieldMandatory, setCustomFieldMandatory] = useState(false)
+    const [customTrackingField, setCustomTrackingField] = useState('')
+    const [discount, setDiscount] = useState('')
+    const [invoiceComment, setInvoiceComment] = useState('')
+    const [invoiceInterval, setInvoiceInterval] = useState({})
+    const [invoiceIntervals, setInvoiceIntervals] = useState([])
+    const [invoiceSeparatelyFromParent, setInvoiceSeparatelyFromParent] = useState(false)
+    const [invoiceSortOrder, setInvoiceSortOrder] = useState([])
+    const [isActive, setIsActive] = useState(true)
+    const [isGstExempt, setIsGstExempt] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [key, setKey] = useState('basic')
+    const [minInvoiceAmount, setMinInvoiceAmount] = useState('')
+    const [nextAccountIndex, setNextAccountIndex] = useState(null)
+    const [parentAccount, setParentAccount] = useState('')
+    const [parentAccounts, setParentAccounts] = useState([])
+    const [payments, setPayments] = useState([])
+    const [permissions, setPermissions] = useState([])
+    const [prevAccountIndex, setPrevAccountIndex] = useState(null)
+    const [ratesheet, setRatesheet] = useState('')
+    const [ratesheets, setRatesheets] = useState([])
+    const [sendBills, setSendBills] = useState(true)
+    const [sendEmailInvoices, setSendEmailInvoices] = useState(true)
+    const [sendPaperInvoices, setSendPaperInvoices] = useState(false)
+    // const [showInvoiceLayoutModal, setShowInvoiceLayoutModal] = useState(false)
+    const [showInvoiceLineItems, setShowInvoiceLineItems] = useState(false)
+    const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
+    const [startDate, setStartDate] = useState(new Date())
+    const [useShippingForBillingAddress, setUseShippingForBillingAddress] = useState(true)
+    const [viewChildren, setViewChildren] = useState(true)
 
-    configureAccount() {
-        const {match: {params}} = this.props
-        var fetchUrl = '/accounts/getModel'
+    const billingAddress = useAddress()
+    const shippingAddress = useAddress()
+    const {accountId: paramAccountId} = useParams()
+
+    useEffect(() => {
+        configureAccount()
+    }, [paramAccountId])
+
+    useEffect(() => {
+        handleInvoiceSortOrderChange(invoiceSortOrder)
+    }, [canBeParent, customTrackingField])
+
+    const configureAccount = () => {
+        const {match: {params}} = props
+        var fetchUrl = `/accounts/getModel`
+
         if(params.accountId) {
             document.title = 'Manage Account ' + params.accountId
             fetchUrl += '/' + params.accountId
         } else
             document.title = 'Create Account - Fast Forward Express'
 
+        setIsLoading(true)
+
         makeAjaxRequest(fetchUrl, 'GET', null, response => {
             response = JSON.parse(response)
-            var setup = {
-                ...initialState,
-                invoiceInterval: response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === 'monthly'),
-                invoiceIntervals: response.invoice_intervals,
-                invoiceSortOrder: response.account.invoice_sort_order,
-                parentAccounts: response.parent_accounts,
-                permissions: response.permissions,
-                ratesheets: response.ratesheets
-            }
-            this.setState(setup)
+
+            setInvoiceInterval(response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === 'monthly'))
+            setInvoiceIntervals(response.invoice_intervals)
+            handleInvoiceSortOrderChange(response.account.invoice_sort_order)
+            setParentAccounts(response.parent_accounts)
+            setPermissions(response.permissions)
+            setRatesheets(response.ratesheets)
+            setKey(window.location.hash?.substr(1) || 'basic')
+
             if(params.accountId) {
-                const thisAccountIndex = this.props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
-                const prevAccountIndex = thisAccountIndex <= 0 ? null : this.props.sortedAccounts[thisAccountIndex - 1]
-                const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === this.props.sortedAccounts.length - 1) ? null : this.props.sortedAccounts[thisAccountIndex + 1]
-                const key = window.location.hash ? window.location.hash.substr(1) : 'basic'
-                setup = {
-                    ...setup,
-                    accountBalance: parseFloat(response.account.account_balance),
-                    accountId: response.account.account_id,
-                    accountName: response.account.name,
-                    accountNumber: response.account.account_number,
-                    active: response.account.active,
-                    activityLog: response.activity_log,
-                    balanceOwing: response.balance_owing,
-                    customFieldMandatory: response.account.is_custom_field_mandatory,
-                    customTrackingField: response.account.custom_field ? response.account.custom_field : '',
-                    discount: response.account.discount ? response.account.discount : '',
-                    invoiceComment: response.account.invoice_comment ? response.account.invoice_comment : '',
-                    invoiceInterval: response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === response.account.invoice_interval),
-                    invoiceSeparatelyFromParent: response.account.invoice_separately_from_parent,
-                    isGstExempt: response.account.gst_exempt,
-                    key: key == 'childAccounts' && !response.account.can_be_parent ? 'basic' : key,
-                    minInvoiceAmount: response.account.min_invoice_amount,
-                    nextAccountIndex: nextAccountIndex,
-                    parentAccount: (response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(parentAccount => parentAccount.value === response.account.parent_account_id) : null,
-                    prevAccountIndex: prevAccountIndex,
-                    sendEmailInvoices: response.account.send_email_invoices,
-                    sendPaperInvoices: response.account.send_paper_invoices,
-                    shippingAddressFormatted: response.shipping_address.formatted,
-                    shippingAddressLat: response.shipping_address.lat,
-                    shippingAddressLng: response.shipping_address.lng,
-                    shippingAddressName: response.shipping_address.name,
-                    shippingAddressPlaceId: response.shipping_address.place_id,
-                    showInvoiceLineItems: response.account.show_invoice_line_items,
-                    showPickupAndDeliveryAddress: response.account.show_pickup_and_delivery_address,
-                    startDate: Date.parse(response.account.start_date),
-                    useShippingForBillingAddress: response.account.billing_address_id === null,
-                }
+                const thisAccountIndex = props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
+                const prevAccountIndex = thisAccountIndex <= 0 ? null : props.sortedAccounts[thisAccountIndex - 1]
+                const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === props.sortedAccounts.length - 1) ? null : props.sortedAccounts[thisAccountIndex + 1]
+
+                setAccountBalance(parseFloat(response.account.account_balance))
+                setAccountId(response.account.account_id)
+                setAccountName(response.account.name)
+                setAccountNumber(response.account.account_number)
+                setIsActive(response.account.active)
+                setActivityLog(response.activity_log)
+                setBalanceOwing(response.balance_owing)
+                setCanBeParent(!!response.account.can_be_parent)
+                setCustomFieldMandatory(response.account.is_custom_field_mandatory)
+                setCustomTrackingField(response.account.custom_field || '')
+                setDiscount(response.account.discount || '')
+                setInvoiceComment(response.account.invoice_comment || '')
+                setInvoiceInterval(response.invoice_intervals.find(interval => interval.value == response.account.invoice_interval))
+                setInvoiceSeparatelyFromParent(response.account.invoice_separately_from_parent)
+                setIsGstExempt(response.account.gst_exempt)
+                setMinInvoiceAmount(response.account.min_invoice_amount)
+                setNextAccountIndex(nextAccountIndex)
+                setParentAccount((response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(account => account.value === response.account.parent_account_id) : null)
+                setPrevAccountIndex(prevAccountIndex)
+                setSendEmailInvoices(response.account.send_email_invoices)
+                setSendPaperInvoices(response.account.send_paper_invoices)
+                shippingAddress.setup(response.shipping_address)
+                setShowInvoiceLineItems(response.account.show_invoice_line_items)
+                setShowPickupAndDeliveryAddress(response.account.show_pickup_and_delivery_address)
+                setStartDate(Date.parse(response.account.start_date))
+                setUseShippingForBillingAddress(response.account.billing_address_id === null)
+
+                if(response.billing_address)
+                    billingAddress.setup(response.billing_address)
             }
 
             if(response.permissions.editAdvanced)
-                setup = {
-                    ...setup,
-                    ratesheet: response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id),
-                }
+                setRatesheet(response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id))
 
-            if(response.permissions.viewChildren)
-                setup = {
-                    ...setup,
-                    canBeParent: response.child_account_list.length > 0 ? true : response.account.can_be_parent,
-                    childAccountList: response.child_account_list,
-                }
-
-            if(params.accountId && response.billing_address != null)
-                setup = {
-                    ...setup,
-                    billingAddressFormatted: response.billing_address.formatted,
-                    billingAddressLat: response.billing_address.lat,
-                    billingAddressLng: response.billing_address.lng,
-                    billingAddressName: response.billing_address.name,
-                    billingAddressPlaceId: response.billing_address.place_id
-                }
-            this.setState(setup)
+            if(response.permissions.viewChildren) {
+                setCanBeParent(response.child_account_list.length > 0 ? true : response.account.can_be_parent)
+                setChildAccountList(response.child_account_list)
+            }
+            console.log('initialSet')
+            setIsLoading(false)
         })
     }
 
-    componentDidMount() {
-        this.configureAccount()
-    }
-
-    componentDidUpdate(prevProps) {
-        const {match: {params}} = this.props
-        if(prevProps.match.params.accountId != params.accountId)
-            this.configureAccount()
-    }
-
-    handleChanges(events) {
-        if(!Array.isArray(events))
-            events = [events]
-        var temp = {}
-        events.forEach(event => {
-            const {name, type, value, checked} = event.target
-            if(name === 'key')
-                window.location.hash = value
-            temp[name] = type === 'checkbox' ? checked : value
+    const handleInvoiceSortOrderChange = useCallback(newInvoiceSortOrder => {
+        const temp = newInvoiceSortOrder.map((option, index) => {
+            if(option.contingent_field === 'can_be_parent') {
+                return {...option, isValid: canBeParent, priority: index}
+            }
+            if(option.contingent_field === 'custom_field') {
+                return {...option, isValid: !!customTrackingField, priority: index}
+            }
+            return {...option, isValid: true, priority: index}
         })
-        this.setState(temp)
-    }
+        setInvoiceSortOrder(temp)
+    }, [canBeParent, customTrackingField])
 
-    storeAccount() {
+    const storeAccount = () => {
         toastr.clear()
-        if(this.state.accountId ? !(this.state.permissions.editBasic || this.state.permissions.editInvoicing || this.state.permissions.editAdvanced) : !this.state.permissions.create) {
+        if(accountId ? !(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced) : !permissions.create) {
             toastr.error('User does not have permissions to update this account')
             return
         }
 
         var data = {
-            account_id: this.state.accountId
+            account_id: accountId
         }
-        if(this.state.accountId ? this.state.permissions.editBasic : this.state.permissions.create)
+        if(accountId ? permissions.editBasic : permissions.create)
             data = {
                 ...data,
-                account_name: this.state.accountName,
-                billing_address_formatted: this.state.billingAddressFormatted,
-                billing_address_lat: this.state.billingAddressLat,
-                billing_address_lng: this.state.billingAddressLng,
-                billing_address_name: this.state.billingAddressName,
-                billing_address_place_id: this.state.billingAddressPlaceId,
-                shipping_address_formatted: this.state.shippingAddressFormatted,
-                shipping_address_lat: this.state.shippingAddressLat,
-                shipping_address_lng: this.state.shippingAddressLng,
-                shipping_address_name: this.state.shippingAddressName,
-                shipping_address_place_id: this.state.shippingAddressPlaceId,
-                use_shipping_for_billing_address: this.state.useShippingForBillingAddress,
+                account_name: accountName,
+                billing_address_formatted: billingAddress.formatted,
+                billing_address_lat: billingAddress.lat,
+                billing_address_lng: billingAddress.lng,
+                billing_address_name: billingAddress.name,
+                billing_address_place_id: billingAddress.placeId,
+                shipping_address_formatted: shippingAddress.formatted,
+                shipping_address_lat: shippingAddress.lat,
+                shipping_address_lng: shippingAddress.lng,
+                shipping_address_name: shippingAddress.name,
+                shipping_address_place_id: shippingAddress.placeId,
+                use_shipping_for_billing_address: useShippingForBillingAddress,
             }
 
-        if(this.state.accountId ? this.state.permissions.editInvoicing : this.state.permissions.create) {
+        if(accountId ? permissions.editInvoicing : permissions.create) {
             data = {
                 ...data,
-                custom_field: this.state.customTrackingField,
-                invoice_comment: this.state.invoiceComment,
-                invoice_interval: this.state.invoiceInterval.value,
-                invoice_sort_order: this.state.invoiceSortOrder,
-                is_custom_field_mandatory: this.state.customFieldMandatory,
-                send_bills: this.state.sendBills,
-                send_email_invoices: this.state.sendEmailInvoices,
-                send_paper_invoices: this.state.sendPaperInvoices,
-                show_invoice_line_items: this.state.showInvoiceLineItems,
-                show_pickup_and_delivery_address: this.state.showPickupAndDeliveryAddress
+                custom_field: customTrackingField,
+                invoice_comment: invoiceComment,
+                invoice_interval: invoiceInterval.value,
+                invoice_sort_order: invoiceSortOrder,
+                is_custom_field_mandatory: customFieldMandatory,
+                send_bills: sendBills,
+                send_email_invoices: sendEmailInvoices,
+                send_paper_invoices: sendPaperInvoices,
+                show_invoice_line_items: showInvoiceLineItems,
+                show_pickup_and_delivery_address: showPickupAndDeliveryAddress
             }
         }
 
-        if(this.state.accountId ? this.state.permissions.editAdvanced : this.state.permissions.create)
+        if(accountId ? permissions.editAdvanced : permissions.create)
             data = {
                 ...data,
-                account_number: this.state.accountNumber,
-                can_be_parent: this.state.canBeParent,
-                discount: this.state.discount,
-                is_gst_exempt: this.state.isGstExempt,
-                min_invoice_amount: this.state.minInvoiceAmount,
-                parent_account_id: this.state.parentAccount ? this.state.parentAccount.value : null,
-                ratesheet_id: this.state.ratesheet ? this.state.ratesheet.value : null,
-                start_date: this.state.startDate.toLocaleString(),
+                account_number: accountNumber,
+                can_be_parent: canBeParent,
+                discount: discount,
+                is_gst_exempt: isGstExempt,
+                min_invoice_amount: minInvoiceAmount,
+                parent_account_id: parentAccount ? parentAccount.value : null,
+                ratesheet_id: ratesheet ? ratesheet.value : null,
+                start_date: startDate.toLocaleString(),
             }
 
         makeAjaxRequest('/accounts', 'POST', data, response => {
             toastr.clear()
-            toastr.success(`Account ${response.account_id} successfully ${this.state.accountId  ? 'updated' : 'created'}`, 'Success', {
+            toastr.success(`Account ${response.account_id} successfully ${accountId  ? 'updated' : 'created'}`, 'Success', {
                 'onHidden': () => {
-                    if(!this.state.accountId)
-                        this.props.history.push(`/app/accounts/${response.account_id}`)
+                    if(!accountId)
+                        props.history.push(`/app/accounts/${response.account_id}`)
                 }
             })
         })
     }
 
-    render() {
-        return (
-            <Row className='justify-content-md-center'>
-                <Col md={12}>
-                    <Navbar expand='md' variant='dark' bg='dark'>
-                        <Container>
+    return (
+        <Row className='justify-content-md-center'>
+            <Col md={12}>
+                <Navbar expand='md' variant='dark' bg='dark'>
+                    <Container>
+                        <Nav>
+                            <Navbar.Brand style={{paddingLeft: '15px'}} align='start'>
+                                {accountId ?
+                                    <Fragment>
+                                        {parentAccount?.value &&
+                                            <h4>
+                                                Parent: <LinkContainer to={`/app/accounts/${parentAccount.value}`}><a>{parentAccount.label}</a></LinkContainer>
+                                            </h4>
+                                        }
+                                        <h4>{`Manage Account: A${accountId} - ${accountName}`}</h4>
+                                    </Fragment>
+                                    : <h4>Create Account</h4>
+                                }
+                            </Navbar.Brand>
+                        </Nav>
+                        {accountId &&
                             <Nav>
-                                <Navbar.Brand style={{paddingLeft: '15px'}} align='start'>
-                                    {this.state.accountId ?
-                                        <Fragment>
-                                            {this.state.parentAccount?.value &&
-                                                <h4>
-                                                    Parent: <LinkContainer to={`/app/accounts/${this.state.parentAccount.value}`}><a>{this.state.parentAccount.label}</a></LinkContainer>
-                                                </h4>
-                                            }
-                                            <h4>{`Manage Account: A${this.state.accountId} - ${this.state.accountName}`}</h4>
-                                        </Fragment>
-                                        : <h4>Create Account</h4>
-                                    }
-                                </Navbar.Brand>
+                                {permissions.editAdvanced ? 
+                                    <Button variant={isActive ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
+                                        if(confirm(`Are you sure you wish to ${isActive ? 'DEACTIVATE' : 'ACTIVATE'} account ${accountName}?`)) {
+                                            makeAjaxRequest(`/accounts/toggleActive/${accountId}`, 'GET', null, response => {
+                                                setIsActive(!isActive)
+                                            })
+                                        }
+                                    }}>{isActive ? 'Active' : 'Inactive'}</Button>
+                                    : <Badge variant={isActive ? 'success' : 'danger'}>{isActive ? 'Active' : 'Inactive'}</Badge>
+                                }
+                                {permissions.viewPayments && accountBalance &&
+                                    <Badge
+                                        bg={accountBalance >= 0 ? 'success' : 'danger'}
+                                        style={{marginRight: '15px'}}
+                                    >
+                                        <h6>
+                                            Account Credit: {accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                        </h6>
+                                    </Badge>
+                                }
+                                {permissions.viewPayments && balanceOwing != undefined &&
+                                    <Badge bg={balanceOwing > 0 ? 'danger' : 'success'}>
+                                        <h6>
+                                            Balance Owing: {balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
+                                        </h6>
+                                    </Badge>
+                                }
                             </Nav>
-                            {this.state.accountId &&
-                                <Nav>
-                                    {this.state.permissions.editAdvanced ? 
-                                        <Button variant={this.state.active ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
-                                            if(confirm(`Are you sure you wish to ${this.state.active ? 'DEACTIVATE' : 'ACTIVATE'} account ${this.state.accountName}?`)) {
-                                                makeAjaxRequest(`/accounts/toggleActive/${this.state.accountId}`, 'GET', null, response => {
-                                                    this.setState({active: !this.state.active})
-                                                })
-                                            }
-                                        }}>{this.state.active ? 'Active' : 'Inactive'}</Button>
-                                        : <Badge variant={this.state.active ? 'success' : 'danger'}>{this.state.active ? 'Active' : 'Inactive'}</Badge>
-                                    }
-                                    {this.state.permissions.viewPayments && this.state.accountBalance &&
-                                        <Badge
-                                            bg={this.state.accountBalance >= 0 ? 'success' : 'danger'}
-                                            style={{marginRight: '15px'}}
-                                        >
-                                            <h6>
-                                                Account Credit: {this.state.accountBalance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                            </h6>
-                                        </Badge>
-                                    }
-                                    {this.state.permissions.viewPayments && this.state.balanceOwing != undefined &&
-                                        <Badge bg={this.state.balanceOwing > 0 ? 'danger' : 'success'}>
-                                            <h6>
-                                                Balance Owing: {this.state.balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                            </h6>
-                                        </Badge>
-                                    }
-                                </Nav>
-                            }
-                        </Container>
-                    </Navbar>
-                </Col>
-                <Col md={12}>
-                    <Tabs id='accountTabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChanges({target: {name: 'key', type: 'string', value: key}})}>
-                        <Tab eventKey='basic' title={<h4>Basic Info</h4>}>
-                            <BasicTab
-                                accountId={this.state.accountId}
-                                accountName={this.state.accountName}
-                                accountNumber={this.state.accountNumber}
-                                billingAddress={{
-                                    type: 'Address',
-                                    name: this.state.billingAddressName,
-                                    formatted: this.state.billingAddressFormatted,
-                                    lat: this.state.billingAddressLat,
-                                    lng: this.state.billingAddressLng,
-                                    placeId: this.state.billingAddressPlaceId
-                                }}
-                                shippingAddress={{
-                                    type: 'Address',
-                                    name: this.state.shippingAddressName,
-                                    formatted: this.state.shippingAddressFormatted,
-                                    lat: this.state.shippingAddressLat,
-                                    lng: this.state.shippingAddressLng,
-                                    placeId: this.state.shippingAddressPlaceId
-                                }}
-                                showInvoiceLayoutModal={this.state.showInvoiceLayoutModal}
-                                useShippingForBillingAddress={this.state.useShippingForBillingAddress}
+                        }
+                    </Container>
+                </Navbar>
+            </Col>
+            <Col md={12}>
+                <Tabs id='accountTabs' className='nav-justified' activeKey={key} onSelect={key => {window.location.hash = key; setKey(key)}}>
+                    <Tab eventKey='basic' title={<h4>Basic Info</h4>}>
+                        <BasicTab
+                            accountId={accountId}
+                            accountName={accountName}
+                            accountNumber={accountNumber}
+                            billingAddress={billingAddress}
+                            shippingAddress={shippingAddress}
+                            useShippingForBillingAddress={useShippingForBillingAddress}
 
-                                readOnly={this.state.accountId ? !this.state.permissions.editBasic : false}
-                                handleChanges={this.handleChanges}
+                            setAccountName={setAccountName}
+                            setAccountNumber={setAccountNumber}
+                            setUseShippingForBillingAddress={setUseShippingForBillingAddress}
+
+                            readOnly={accountId ? !permissions.editBasic : false}
+                        />
+                    </Tab>
+                    <Tab eventKey='invoicing' title={<h4>Invoice Settings</h4>}>
+                        <InvoicingTab
+                            billingAddress={billingAddress}
+                            canBeParent={canBeParent}
+                            customFieldMandatory={customFieldMandatory}
+                            customTrackingField={customTrackingField}
+                            invoiceComment={invoiceComment}
+                            invoiceInterval={invoiceInterval}
+                            invoiceSeparatelyFromParent={invoiceSeparatelyFromParent}
+                            invoiceSortOrder={invoiceSortOrder}
+                            isLoading={isLoading}
+                            sendEmailInvoices={sendEmailInvoices}
+                            sendPaperInvoices={sendPaperInvoices}
+                            shippingAddress={shippingAddress}
+                            showInvoiceLineItems={showInvoiceLineItems}
+                            showPickupAndDeliveryAddress={showPickupAndDeliveryAddress}
+                            useShippingForBillingAddress={useShippingForBillingAddress}
+
+                            handleInvoiceSortOrderChange={handleInvoiceSortOrderChange}
+
+                            setCanBeParent={setCanBeParent}
+                            setCustomFieldMandatory={setCustomFieldMandatory}
+                            setCustomTrackingField={setCustomTrackingField}
+                            setInvoiceComment={setInvoiceComment}
+                            setInvoiceInterval={setInvoiceInterval}
+                            setInvoiceSeparatelyFromParent={setInvoiceSeparatelyFromParent}
+                            setInvoiceSortOrder={setInvoiceSortOrder}
+                            setSendEmailInvoices={setSendEmailInvoices}
+                            setSendPaperInvoices={setSendPaperInvoices}
+                            setShowInvoiceLineItems={setShowInvoiceLineItems}
+                            setShowPickupAndDeliveryAddress={setShowPickupAndDeliveryAddress}
+
+                            invoiceIntervals={invoiceIntervals}
+                            readOnly={!accountId && permissions.create ? false : !permissions.editInvoicing}
+                        />
+                    </Tab>
+                    {(permissions.editAdvanced || !accountId && permissions.create ) &&
+                        <Tab eventKey='advanced' title={<h4>Advanced</h4>}>
+                            <AdvancedTab
+                                accountNumber={accountNumber}
+                                canBeParent={canBeParent}
+                                childAccountList={childAccountList}
+                                discount={discount}
+                                isGstExempt={isGstExempt}
+                                minInvoiceAmount={minInvoiceAmount}
+                                parentAccount={parentAccount}
+                                ratesheet={ratesheet}
+                                sendBills={sendBills}
+                                startDate={startDate}
+
+                                parentAccounts={parentAccounts}
+                                ratesheets={ratesheets}
+
+                                setAccountNumber={setAccountNumber}
+                                setCanBeParent={setCanBeParent}
+                                // setChildAccountList={setChildAccountList}
+                                setDiscount={setDiscount}
+                                setIsGstExempt={setIsGstExempt}
+                                setMinInvoiceAmount={setMinInvoiceAmount}
+                                setParentAccount={setParentAccount}
+                                setRatesheet={setRatesheet}
+                                setSendBills={setSendBills}
+                                setStartDate={setStartDate}
                             />
                         </Tab>
-                        <Tab eventKey='invoicing' title={<h4>Invoice Settings</h4>}>
-                            <InvoicingTab
-                                billingAddressFormatted={this.state.billingAddressFormatted}
-                                billingAddressName={this.state.billingAddressName}
-                                canBeParent={this.state.canBeParent}
-                                customFieldMandatory={this.state.customFieldMandatory}
-                                customTrackingField={this.state.customTrackingField}
-                                invoiceComment={this.state.invoiceComment}
-                                invoiceInterval={this.state.invoiceInterval}
-                                invoiceSeparatelyFromParent={this.state.invoiceSeparatelyFromParent}
-                                invoiceSortOrder={this.state.invoiceSortOrder}
-                                sendEmailInvoices={this.state.sendEmailInvoices}
-                                sendPaperInvoices={this.state.sendPaperInvoices}
-                                shippingAddressFormatted={this.state.shippingAddressFormatted}
-                                shippingAddressName={this.state.shippingAddressName}
-                                showInvoiceLayoutModal={this.state.showInvoiceLayoutModal}
-                                showInvoiceLineItems={this.state.showInvoiceLineItems}
-                                showPickupAndDeliveryAddress={this.state.showPickupAndDeliveryAddress}
-                                useShippingForBillingAddress={this.state.useShippingForBillingAddress}
+                    }
+                    {accountId &&
+                        <Tab eventKey='users' title={<h4>Users</h4>}>
+                            <AccountUsersTab
+                                accountId={props.match.params.accountId}
+                                authenticatedUserContact={props.authenticatedUserContact}
+                                canBeParent={canBeParent}
 
-                                handleChanges={this.handleChanges}
-                                invoiceIntervals={this.state.invoiceIntervals}
-                                readOnly={!this.state.accountId && this.state.permissions.create ? false : !this.state.permissions.editInvoicing}
+                                canCreateAccountUsers={permissions.createAccountUsers}
+                                canDeleteAccountUsers={permissions.deleteAccountUsers}
+                                canEditAccountUsers={permissions.editAccountUsersBasic}
+                                canEditAccountUserPermissions={permissions.editAccountUserPermissions}
+                                canImpersonateAccountUsers={permissions.impersonateAccountUsers}
+                                canViewAccountUserActivityLogs={permissions.viewAccountUserActivityLogs}
                             />
                         </Tab>
-                        {(this.state.permissions.editAdvanced || !this.state.accountId && this.state.permissions.create ) &&
-                            <Tab eventKey='advanced' title={<h4>Advanced</h4>}>
-                                <AdvancedTab
-                                    accountNumber={this.state.accountNumber}
-                                    canBeParent={this.state.canBeParent}
-                                    childAccountList={this.state.childAccountList}
-                                    discount={this.state.discount}
-                                    isGstExempt={this.state.isGstExempt}
-                                    minInvoiceAmount={this.state.minInvoiceAmount}
-                                    parentAccount={this.state.parentAccount}
-                                    ratesheet={this.state.ratesheet}
-                                    sendBills={this.state.sendBills}
-                                    startDate={this.state.startDate}
+                    }
+                    {accountId && permissions.viewPayments &&
+                        <Tab eventKey='payments' title={<h4>Payments</h4>}>
+                            <PaymentsTab
+                                accountBalance={accountBalance}
+                                accountId={props.match.params.accountId}
 
-                                    parentAccounts={this.state.parentAccounts}
-                                    ratesheets={this.state.ratesheets}
-                                    handleChanges={this.handleChanges}
-                                />
-                            </Tab>
-                        }
-                        {this.state.accountId &&
-                            <Tab eventKey='users' title={<h4>Users</h4>}>
-                                <AccountUsersTab
-                                    accountId={this.props.match.params.accountId}
-                                    authenticatedUserContact={this.props.authenticatedUserContact}
-                                    canBeParent={this.state.canBeParent}
+                                setAccountBalance={setAccountBalance}
+                                setBalanceOwing={setBalanceOwing}
 
-                                    canCreateAccountUsers={this.state.permissions.createAccountUsers}
-                                    canDeleteAccountUsers={this.state.permissions.deleteAccountUsers}
-                                    canEditAccountUsers={this.state.permissions.editAccountUsersBasic}
-                                    canEditAccountUserPermissions={this.state.permissions.editAccountUserPermissions}
-                                    canImpersonateAccountUsers={this.state.permissions.impersonateAccountUsers}
-                                    canViewAccountUserActivityLogs={this.state.permissions.viewAccountUserActivityLogs}
-                                />
-                            </Tab>
-                        }
-                        {this.state.accountId && this.state.permissions.viewPayments &&
-                            <Tab eventKey='payments' title={<h4>Payments</h4>}>
-                                <PaymentsTab
-                                    accountBalance={this.state.accountBalance}
-                                    accountId={this.props.match.params.accountId}
-
-                                    handleChanges={this.handleChanges}
-                                    createPayments={this.state.permissions.createPayments}
-                                    canEditPaymentMethods={this.state.permissions.editPaymentMethods}
-                                    canEditPayments={this.state.permissions.editPayments}
-                                    canUndoPayments={this.state.permissions.undoPayments}
-                                    viewInvoices={this.state.permissions.viewInvoices}
-                                />
-                            </Tab>
-                        }
-                        {this.state.childAccountList && this.state.childAccountList.length > 0 && this.state.permissions.viewChildren &&
-                            <Tab eventKey='childAccounts' title={<h4>Child Accounts</h4>}>
-                                <ChildAccounts
-                                    childAccountList={this.state.childAccountList}
-                                />
-                            </Tab>
-                        }
-                        {this.state.permissions.viewPayments &&
-                            <Tab eventKey='analytics' title={<h4>Analytics</h4>}>
-                                <Charts accountId={this.state.accountId} />
-                            </Tab>
-                        }
-                        {this.state.activityLog && this.state.permissions.viewActivityLog &&
-                            <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
-                                <ActivityLogTab
-                                    activityLog={this.state.activityLog}
-                                />
-                            </Tab>
-                        }
-                    </Tabs>
-                </Col>
-                <Col md={4} style={{textAlign: 'center'}}>
-                    <ButtonGroup>
-                        {(this.state.accountId && this.state.viewChildren != false) &&
-                            <LinkContainer to={`/app/accounts/${this.state.prevAccountIndex}${window.location.hash}`}>
-                                <Button variant='info' disabled={!this.state.prevAccountIndex}>
-                                    <i className='fas fa-arrow-circle-left'></i> Back - {this.state.prevAccountIndex}
-                                </Button>
-                            </LinkContainer>
-                        }
-                        {(this.state.permissions.editBasic || this.state.permissions.editInvoicing || this.state.permissions.editAdvanced || (this.state.accountId === null && this.state.permissions.create)) &&
-                            <Button variant='primary' onClick={this.storeAccount}>Submit</Button>
-                        }
-                        {this.state.accountId && this.state.viewChildren != false &&
-                            <LinkContainer to={`/app/accounts/${this.state.nextAccountIndex}${window.location.hash}`}>
-                                <Button variant='info' disabled={!this.state.nextAccountIndex}>
-                                    Next - {this.state.nextAccountIndex} <i className='fas fa-arrow-circle-right'></i>
-                                </Button>
-                            </LinkContainer>
-                        }
-                    </ButtonGroup>
-                </Col>
-            </Row>
-        )
-    }
+                                createPayments={permissions.createPayments}
+                                canEditPaymentMethods={permissions.editPaymentMethods}
+                                canEditPayments={permissions.editPayments}
+                                canUndoPayments={permissions.undoPayments}
+                                viewInvoices={permissions.viewInvoices}
+                            />
+                        </Tab>
+                    }
+                    {childAccountList?.length > 0 && permissions.viewChildren &&
+                        <Tab eventKey='childAccounts' title={<h4>Child Accounts</h4>}>
+                            <ChildAccounts
+                                childAccountList={childAccountList}
+                            />
+                        </Tab>
+                    }
+                    {permissions.viewPayments &&
+                        <Tab eventKey='analytics' title={<h4>Analytics</h4>}>
+                            <Charts accountId={accountId} />
+                        </Tab>
+                    }
+                    {activityLog && permissions.viewActivityLog &&
+                        <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
+                            <ActivityLogTab
+                                activityLog={activityLog}
+                            />
+                        </Tab>
+                    }
+                </Tabs>
+            </Col>
+            <Col md={4} style={{textAlign: 'center'}}>
+                <ButtonGroup>
+                    {(accountId && viewChildren != false) &&
+                        <LinkContainer to={`/app/accounts/${prevAccountIndex}${window.location.hash}`}>
+                            <Button variant='info' disabled={!prevAccountIndex}>
+                                <i className='fas fa-arrow-circle-left'></i> Back - {prevAccountIndex}
+                            </Button>
+                        </LinkContainer>
+                    }
+                    {(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced || (accountId === null && permissions.create)) &&
+                        <Button variant='primary' onClick={storeAccount}>Submit</Button>
+                    }
+                    {accountId && viewChildren != false &&
+                        <LinkContainer to={`/app/accounts/${nextAccountIndex}${window.location.hash}`}>
+                            <Button variant='info' disabled={!nextAccountIndex}>
+                                Next - {nextAccountIndex} <i className='fas fa-arrow-circle-right'></i>
+                            </Button>
+                        </LinkContainer>
+                    }
+                </ButtonGroup>
+            </Col>
+        </Row>
+    )
 }
 
 const mapStateToProps = store => {

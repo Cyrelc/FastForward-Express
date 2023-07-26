@@ -9,18 +9,11 @@ export default function BasicTab(props) {
         <Card border='dark'>
             <Card.Header>
                 <Contact
-                    key={props.contact_id}
-                    addressId={'employee'}
-                    firstName={props.firstName}
-                    lastName={props.lastName}
-                    position={props.position}
+                    key={props.contact.contactId}
+                    contact={props.contact}
                     address={props.address}
-                    phoneNumbers={props.phoneNumbers}
-                    phoneNumbersToDelete={props.phoneNumbersToDelete}
-                    phoneTypes={props.phoneTypes}
-                    emailAddresses={props.emailAddresses}
                     emailAddressesToDelete={props.emailAddressesToDelete}
-                    handleChanges={props.handleChanges}
+                    handleContactChange={props.handleContactChange}
                     readOnly={props.readOnly}
                     showAddress
                 />
@@ -30,7 +23,7 @@ export default function BasicTab(props) {
                     <EmergencyContacts
                         emergencyContacts={props.emergencyContacts}
                         employeeId={props.employeeId}
-                        handleChanges={props.handleChanges}
+                        setEmergencyContacts={props.setEmergencyContacts}
                     />
                 </Card.Body>
             }

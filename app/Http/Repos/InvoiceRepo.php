@@ -200,28 +200,6 @@ class InvoiceRepo {
                 DB::raw('count(distinct payments.payment_id) as payment_count'),
                 DB::raw('GROUP_CONCAT(DISTINCT payment_types.name SEPARATOR \', \') as payment_type_list')
             )->groupBy('invoices.invoice_id');
-        // $invoices = Invoice::leftJoin('line_items', 'line_items.invoice_id', '=', 'invoices.invoice_id')
-        //     ->leftJoin('accounts', 'accounts.account_id', '=', 'invoices.account_id')
-        //     ->leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
-        //     ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
-        //     ->leftjoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
-        //     ->leftjoin('payments', 'payments.invoice_id', '=', 'invoices.invoice_id')
-        //     ->select(
-        //         'invoices.invoice_id',
-        //         'accounts.account_id',
-        //         DB::raw('coalesce(accounts.name, charge_types.name) as account_name'),
-        //         DB::raw('case when accounts.account_id is null then true else false end as is_prepaid'),
-        //         'account_number',
-        //         'invoices.date as date_run',
-        //         'bill_start_date',
-        //         'bill_end_date',
-        //         'balance_owing',
-        //         'bill_cost',
-        //         'total_cost',
-        //         'finalized',
-        //         DB::raw('count(distinct bills.bill_id) as bill_count'),
-        //         DB::raw('count(distinct payments.payment_id) as payment_count'),
-        //     );
 
         if($myAccounts)
             $invoices->whereIn('invoices.account_id', $myAccounts);

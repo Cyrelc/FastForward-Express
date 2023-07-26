@@ -5,7 +5,7 @@ import {DateTime} from 'luxon'
 import {ReactTabulator} from 'react-tabulator'
 import DatePicker from 'react-datepicker'
 
-import Address from '../partials/AddressFunctional'
+import Address from '../partials/Address'
 
 const filterDates = date => {
     const dateTime = DateTime.fromJSDate(date)
