@@ -3,8 +3,6 @@
 import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, InputGroup, FormControl, Modal, Row} from 'react-bootstrap'
 import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
-// import {EquationEvaluate, EquationOptions, defaultErrorHandler} from 'react-equation'
-// import {defaultVariables, defaultFunctions} from 'equation-resolver'
 import {BootstrapConfig} from '@react-awesome-query-builder/bootstrap'
 import Select from 'react-select'
 import {debounce} from 'lodash'
@@ -23,7 +21,6 @@ const renderBuilder = (props) => (
 )
 
 const addressSubfields = (prefix) => {
-    // console.log(prefix)
     return {
         zone: {
             type: '!struct',
