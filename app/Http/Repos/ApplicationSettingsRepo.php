@@ -17,10 +17,12 @@ class ApplicationSettingsRepo {
     }
 
     public function GetUpcomingHolidays($days = 60) {
-        $targetDate = (new \DateTime())->modify('+' . $days . 'days');
+        $startDate = new \DateTime();
+        $endDate = (new \DateTime())->modify('+' . $days . 'days');
 
         $holidays = ApplicationSetting::where('type', 'blocked_date')
-            ->whereDate('value', '<=', $targetDate)
+            ->whereDate('value', '>=', $startDate)
+            ->whereDate('value', '<=', $endDate)
             ->select(
                 'name',
                 'value',
