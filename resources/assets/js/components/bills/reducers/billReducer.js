@@ -175,6 +175,7 @@ export default function billReducer(state, action) {
                 pickup: {
                     account: payload.bill?.pickup_account_id ? state.accounts.find(account => payload.bill.pickup_account_id == account.account_id) : '',
                     addressFormatted: payload.pickup_address?.formatted ?? state.pickup.addressFormatted,
+                    addressIsMall: payload.pickup_address?.is_mall ?? state.pickup.addressIsMall,
                     addressLat: payload.pickup_address?.lat ??  state.pickup.addressLat,
                     addressLng: payload.pickup_address?.lng ?? state.pickup.addressLng,
                     addressName: payload.pickup_address?.name ?? state.pickup.addressName ,
@@ -190,6 +191,7 @@ export default function billReducer(state, action) {
                 delivery: {
                     account: payload.bill?.delivery_account_id ? state.accounts.find(account => payload.bill.delivery_account_id == account.account_id) : '',
                     addressFormatted: payload.delivery_address?.formatted ?? state.delivery.addressFormatted,
+                    addressIsMall: payload.delivery_address?.is_mall ?? state.delivery.addressIsMall,
                     addressLat: payload.delivery_address?.lat ??  state.delivery.addressLat,
                     addressLng: payload.delivery_address?.lng ?? state.delivery.addressLng,
                     addressName: payload.delivery_address?.name ?? state.delivery.addressName ,
