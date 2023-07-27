@@ -204,6 +204,7 @@ export default function billReducer(state, action) {
                     timeScheduled: new Date(),
                     zone: null
                 },
+                readOnly: payload.permissions.create
             }
 
             return Object.assign({}, state, newState)
