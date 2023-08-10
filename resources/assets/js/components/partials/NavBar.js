@@ -216,6 +216,9 @@ function NavBar(props) {
                                 {props.frontEndPermissions.bills.create &&
                                     <MenuItem component={<Link to='/app/bills/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
                                 }
+                                {props.frontEndPermissions.appSettings.edit && props.frontEndPermissions.bills.create &&
+                                    <MenuItem component={<Link to='/app/bills/create/bulk' />} icon={<i className='fas fa-mail-bulk'></i>}>Create Bills in Bulk</MenuItem>
+                                }
                                 {props.frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/app/bills/trend' />} icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
                                 }
@@ -277,6 +280,7 @@ function NavBar(props) {
                                 <MenuItem component={<Link to='/app/appSettings#interliners' />} icon={<i className='fas fa-shipping-fast'></i>}>Interliners</MenuItem>
                                 <MenuItem component={<Link to='/app/appSettings#ratesheets' />} icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
                                 <MenuItem component={<Link to='/app/appSettings#scheduling' />} icon={<i className='fas fa-calendar-alt'></i>}>Scheduling</MenuItem>
+                                <MenuItem component={<Link to='/app/appSettings#selections' />} icon={<i className='fas fa-list-ul'></i>}>Selections</MenuItem>
                             </SubMenu>
                         }
                     </Menu>

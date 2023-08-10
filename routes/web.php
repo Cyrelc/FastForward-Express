@@ -53,6 +53,8 @@ Route::middleware(['auth'])->controller(AdminController::class)->prefix('appsett
     Route::post('/accounting', 'AdminController@StoreAccountingSettings');
     Route::post('/scheduling/blockedDates', 'AdminController@StoreBlockedDate');
     Route::delete('/scheduling/blockedDates/{blockedDateId}', 'AdminController@DeleteAppSetting');
+    Route::get('/selections', 'AdminController@getSelections');
+    Route::post('/selections', 'AdminController@StoreSelection');
 });
 
 Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')->group(function() {

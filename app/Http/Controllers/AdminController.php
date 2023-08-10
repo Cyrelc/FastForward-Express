@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Models\Admin;
 use App\Http\Models\Chart;
 use App\Http\Repos;
+use App\Http\Collectors\SelectionCollector;
 
 Class AdminController extends Controller {
     public function DeleteAppSetting(Request $req, $appSettingId) {
@@ -55,24 +56,14 @@ Class AdminController extends Controller {
         return json_encode($model);
     }
 
-    public function StoreBlockedDate(Request $req) {
+    public function getSelections(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
-        $appSettingRepo = new Repos\ApplicationSettingsRepo();
-        $appSettingCollector = new \App\Http\Collectors\ApplicationSettingCollector();
+        $selectionsRepo = new Repos\SelectionsRepo();
 
-        $blockedDate = $appSettingCollector->CollectBlockedDate($req);
-        DB::beginTransaction();
-
-        $appSettingRepo->Insert($blockedDate);
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'blocked_dates' => $appSettingRepo->GetByType('blocked_date')
-        ]);
+        $selections = $selectionsRepo->List();
+        return json_encode($selections);
     }
 
     public function StoreAccountingSettings(Request $req) {
@@ -103,6 +94,47 @@ Class AdminController extends Controller {
         return response()->json([
             'success' => true,
         ]);
+    }
+
+    public function StoreBlockedDate(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $appSettingRepo = new Repos\ApplicationSettingsRepo();
+        $appSettingCollector = new \App\Http\Collectors\ApplicationSettingCollector();
+
+        $blockedDate = $appSettingCollector->CollectBlockedDate($req);
+        DB::beginTransaction();
+
+        $appSettingRepo->Insert($blockedDate);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'blocked_dates' => $appSettingRepo->GetByType('blocked_date')
+        ]);
+    }
+
+    public function StoreSelection(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $selectionsValidationRules = new \App\Http\Validation\SelectionValidationRules();
+        $validation = $selectionsValidationRules->GetValidationRules();
+
+        $this->validate($req, $validation['rules'], $validation['messages']);
+
+        DB::beginTransaction();
+        $selectionsCollector = new SelectionCollector();
+        $selection = $selectionsCollector->Collect($req);
+
+        $selectionsRepo = new Repos\SelectionsRepo();
+        $selectionsRepo->Insert($selection);
+        DB::commit();
+
+        $selections = $selectionsRepo->List();
+        return json_encode($selections);
     }
 }
 

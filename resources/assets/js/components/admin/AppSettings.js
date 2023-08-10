@@ -7,6 +7,7 @@ import InterlinersTab from './InterlinersTab'
 import RatesheetsTab from './RatesheetsTab'
 // import MiscTab from './MiscTab'
 import SchedulingTab from './SchedulingTab'
+import SelectionsTab from './SelectionsTab'
 
 export default function AppSettings(props) {
     const [activeKey, setActiveKey] = useState('accounting')
@@ -71,6 +72,9 @@ export default function AppSettings(props) {
                                 <Accordion.Item eventKey='scheduling' onClick={() => handleTabChange('scheduling')}>
                                     <Accordion.Header>Scheduling</Accordion.Header>
                                 </Accordion.Item>
+                                <Accordion.Item eventKey='selections' onClick={() => handleTabChange('selections')}>
+                                    <Accordion.Header>Selections</Accordion.Header>
+                                </Accordion.Item>
                                 {/* <Accordion.Item eventKey='company'>
                                     <Accordion.Header>Company Info</Accordion.Header>
                                 </Accordion.Item> */}
@@ -120,6 +124,11 @@ export default function AppSettings(props) {
                                         blockedDates={blockedDates}
                                         setBlockedDates={setBlockedDates}
                                     />
+                                </Tab.Pane>
+                            </Tab.Content>
+                            <Tab.Content>
+                                <Tab.Pane eventKey='selections'>
+                                    <SelectionsTab/>
                                 </Tab.Pane>
                             </Tab.Content>
                             {/* <Tab.Content>

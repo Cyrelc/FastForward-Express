@@ -26,6 +26,18 @@ class SelectionsRepo {
 
 		return $selections->get();
 	}
+
+	public function Insert($selection) {
+		$new = new Selection;
+
+		return $new->create($selection);
+	}
+
+	public function List() {
+		$selections = Selection::all();
+
+		return $selections;
+	}
 }
 
 ?>
