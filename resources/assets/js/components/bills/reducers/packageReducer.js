@@ -22,7 +22,7 @@ export default function packageReducer(state, action) {
             return Object.assign({}, state, {
                 packageIsMinimum: payload.bill.is_min_weight_size,
                 packageIsPallet: payload.bill.is_pallet,
-                packages: payload.bill.packages,
+                packages: payload.bill.packages ?? initialState.packages,
                 proofOfDeliveryRequired: payload.bill.proof_of_delivery_required,
                 useImperial: payload.bill.use_imperial
             })
