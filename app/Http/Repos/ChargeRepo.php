@@ -88,10 +88,10 @@ class ChargeRepo {
                 'payment_types.name as parent_account',
                 'bills.bill_id as id',
                 'bills.bill_number as number',
-                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and time_pickup_scheduled between "' . $startDate . '" and "' . $endDate . '" then 1 else 0 end as valid_bill_count'),
+                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and cast(time_pickup_scheduled as date) between cast("' . $startDate . '" as date) and cast("' . $endDate . '" as date) then 1 else 0 end as valid_bill_count'),
                 DB::raw('case when percentage_complete = 100 and skip_invoicing = true then 1 else 0 end as skipped_bill_count'),
                 DB::raw('case when percentage_complete < 100 then 1 else 0 end as incomplete_bill_count'),
-                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and time_pickup_scheduled < "' . $startDate . '" then 1 else 0 end as legacy_bill_count'),
+                DB::raw('case when percentage_complete = 100 and skip_invoicing = false and cast(time_pickup_scheduled as date) < cast("' . $startDate . '" as date) then 1 else 0 end as legacy_bill_count'),
                 DB::raw('"prepaid" as type'),
                 DB::raw('cast(time_pickup_scheduled as date) as time_pickup_scheduled')
             )->groupBy('charges.charge_id');
