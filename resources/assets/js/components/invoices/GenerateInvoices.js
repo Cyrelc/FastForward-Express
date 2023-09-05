@@ -126,7 +126,7 @@ export default function GenerateInvoices(props) {
             formatterParams: {url: cell => {
                 const {id, type} = cell.getRow().getData()
                 if(type == 'account')
-                    return `/app/bills?filter[charge_account_id]=${id}&filter[time_pickup_scheduled]=,${startDate.toISOString().split('T')[0]}&filter[invoiced]=`
+                    return `/app/bills?filter[charge_account_id]=${id}&filter[time_pickup_scheduled]=,${startDate.toISOString().split('T')[0]}&filter[is_invoiced]=false`
                 return `/app/bills/${id}`
             }},
             sorter: 'number'
