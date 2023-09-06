@@ -28,6 +28,8 @@ class WebhookController extends Controller {
                 activity('stripe_webhook')->log('payment_intent = ' . $paymentIntent);
                 activity('stripe_webhook')->log('payment_intent_id = ' . $paymentIntent->id);
                 $payment = $paymentRepo->GetPaymentByPaymentIntentId($paymentIntent->id);
+                if(!$payment || $payment->account_id)
+                    break;
                 $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentIntent->amount / 100);
             default:
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
