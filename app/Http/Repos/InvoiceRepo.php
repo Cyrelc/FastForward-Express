@@ -212,8 +212,8 @@ class InvoiceRepo {
                 AllowedFilter::custom('bill_end_date', new DateBetween),
                 AllowedFilter::custom('date_run', new DateBetween, 'invoices.date'),
                 AllowedFilter::exact('invoice_id'),
-                AllowedFilter::exact('finalized'),
-                AllowedFilter::exact('payment_type_id', 'payments.payment_type_id')
+                AllowedFilter::exact('finalized', 'invoices.finalized'),
+                AllowedFilter::exact('payment_type_id', 'charge_types.payment_type_id')
             ]);
 
         return $filteredInvoices->get();

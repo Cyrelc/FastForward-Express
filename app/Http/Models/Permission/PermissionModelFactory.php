@@ -253,13 +253,14 @@ class PermissionModelFactory {
         return $model;
     }
 
-    public function getInvoicePermissions($user, $invoice) {
+    public function GetInvoicePermissions($user, $invoice) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($invoice->account_id);
 
         return [
             'amend' => $user->can('update', $invoice),
             'edit' => $user->can('update', $invoice),
+            'processPayments' => $user->can('create', Payment::class),
             'viewBills' => $user->can('viewBills', $account)
         ];
     }

@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+// use Sanctum\BillController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['guest'])->post(
     '/login', 'Auth\LoginController@getSanctumToken'
 );
+
+// Route::middleware(['auth:sanctum'])->controller(BillController::class)->group(function() {
+//     Route::get('/getBillsByDriver', 'getBillsByDriver');
+//     Route::post('/bills/setTime', 'setTime');
+// });
+
+
+Route::controller(WebhookController::class)->prefix('webhooks')->group(function() {
+    Route::post('/stripe/handlePaymentIntentUpdate', 'HandlePaymentIntentUpdate');
+});
+

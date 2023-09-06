@@ -4,6 +4,23 @@ namespace App\Http\Validation;
 use App\Http\Repos;
 
 class PaymentValidationRules {
+    public function GetPaymentIntentRules($req) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoice = $invoiceRepo->GetById($req->invoice_id);
+
+        $rules = [
+            'invoice_id' => 'required|exists:invoices,invoice_id',
+            'amount' => 'required|numeric|gt:0|lte:' . $invoice->balance_owing,
+        ];
+
+        $messages = [];
+
+        return [
+            'rules' => $rules,
+            'messages' => $messages
+        ];
+    }
+
     public function GetPaymentOnAccountRules($req) {
         $paymentRepo = new Repos\PaymentRepo();
         $accountRepo = new Repos\AccountRepo();

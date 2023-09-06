@@ -19,15 +19,11 @@ Route::group(['middleware' => ['auth']],
         Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
+        // Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
 
         Route::get('/bills/chart', 'AdminController@getChart');
 
         Route::get('/app/{route}', 'HomeController@index');
-
-        Route::post('/payments/accountPayment', 'PaymentController@ProcessAccountPayment');
-        Route::get('/payments/accountPayment/{accountId}', 'PaymentController@GetReceivePaymentModel');
-        Route::get('/payments/{accountId}', 'PaymentController@GetModelByAccountId');
-        Route::delete('/payments/undo', 'PaymentController@UndoPayment');
 
         Route::get('/logout', 'Auth\LoginController@logout');
 
@@ -125,11 +121,19 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
     Route::get('/', 'index');
 });
 
+Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
+    Route::post('/accountPayment', 'ProcessAccountPayment');
+    Route::get('/accountPayment/{accountId}', 'GetReceivePaymentModel');
+    Route::get('/{accountId}', 'GetModelByAccountId');
+    Route::delete('/undo', 'UndoPayment');
+});
+
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('paymentMethods')->group(function() {
     Route::delete('/{accountId}', 'DeletePaymentMethod');
     Route::get('/{accountId}', 'GetAccountPaymentMethods');
     Route::get('/{accountId}/create', 'GetSetupIntent');
     Route::post('/{accountId}/setDefault', 'SetDefaultPaymentMethod');
+    Route::post('/getPaymentIntent', 'GetPaymentIntent');
 });
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {

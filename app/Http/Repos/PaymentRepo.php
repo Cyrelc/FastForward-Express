@@ -52,6 +52,23 @@ class PaymentRepo {
         return $paymentType->first();
     }
 
+    public function GetIncompletePaymentIntents($invoiceId) {
+        $stripePaymentTypeId = $this->GetPaymentTypeByName('Stripe (Pending)');
+
+        $payment = Payment::where('invoice_id', $invoiceId)
+            ->whereNotNull('payment_intent_id')
+            ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
+            ->whereNull('reference_value');
+
+        return $payment->get();
+    }
+
+    public function GetPaymentByPaymentIntentId($paymentIntentId) {
+        $payment = Payment::where('payment_intent_id', $paymentIntentId);
+
+        return $payment->first();
+    }
+
     public function GetPaymentType($paymentTypeId) {
         $payment_type = PaymentType::where('payment_type_id', $paymentTypeId);
 
@@ -110,6 +127,16 @@ class PaymentRepo {
             $old->$field = $payment[$field];
 
         $old->save();
+        return $old;
+    }
+
+    public function UpdatePaymentIntentStatus($paymentIntentId, $status) {
+        $old = Payment::where('payment_intent_id', $paymentIntentId)->first();
+
+        $old->payment_intent_status = $status;
+
+        $old->save();
+
         return $old;
     }
 }

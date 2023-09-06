@@ -1,0 +1,94 @@
+import React, {Fragment, useEffect, useState} from 'react'
+import {Button, Modal} from 'react-bootstrap'
+import {CardElement, Elements, PaymentElement, PaymentMethodMessagingElement, useElements, useStripe} from '@stripe/react-stripe-js'
+import {loadStripe} from '@stripe/stripe-js'
+
+const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
+
+const StripeForm = (props) => {
+    const elements = useElements()
+    const stripe = useStripe()
+
+    const submitPayment = async (event) => {
+        if(!stripe || !elements) {
+            console.error('Stripe or elements failed to load', stripe, elements)
+            return
+        }
+
+        const result = await stripe.confirmPayment({
+            elements,
+            redirect: 'if_required'
+        })
+
+        if(result.error) {
+            console.error('Failed to submit stripe payment', result.error)
+            toastr.error(result.error, 'Error')
+        } else {
+            props.hide()
+        }
+    }
+
+    return (
+        <Fragment>
+            {stripe ?
+                <div style={{textAlign: 'center'}}>
+                    <PaymentElement />
+                    <Button style={{marginTop: '15px'}} onClick={submitPayment}>Process Payment for ${props.paymentAmount}</Button>
+                </div>
+                : <h4>
+                    Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i>
+                </h4>
+            }
+        </Fragment>
+    )
+}
+
+export default function StripePaymentModal(props) {
+    const [clientSecret, setClientSecret]  = useState(null)
+
+    useEffect(() => {
+        if(!props.show)
+            return
+
+        const data = {
+            amount: props.paymentAmount,
+            invoice_id: props.invoiceId,
+        }
+
+        makeAjaxRequest('/paymentMethods/getPaymentIntent', 'POST', data, response => {
+            response = JSON.parse(response)
+            setClientSecret(response.client_secret)
+        })
+    }, [props.show])
+
+    const options = {
+        appearance: {
+            theme: 'flat'
+        },
+        clientSecret: clientSecret,
+    }
+
+    return (
+        <Modal show={props.show} onHide={props.hide} size='lg'>
+            <Modal.Header closeButton>
+                <Modal.Title>Process <i className='fab fa-stripe fa-lg fa-border'></i> Payment</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                {clientSecret ?
+                    <Elements stripe={stripePromise} options={options}>
+                        <StripeForm
+                            clientSecret={clientSecret}
+                            hide={props.hide}
+                            paymentAmount={props.paymentAmount}
+                        />
+                    </Elements>
+                    : <h4>
+                        Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i>
+                    </h4>
+                }
+            </Modal.Body>
+        </Modal>
+    )
+}
+
+

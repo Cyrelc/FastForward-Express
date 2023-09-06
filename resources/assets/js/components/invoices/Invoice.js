@@ -1,7 +1,10 @@
 import React, {Fragment, useEffect, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, FormCheck, Row, Table} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, FormCheck, InputGroup, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
+import CurrencyInput from 'react-currency-input-field'
+
+import StripePaymentModal from './StripePaymentModal'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
@@ -22,13 +25,17 @@ function Invoice(props) {
     const [invoice, setInvoice] = useState({})
     const [isFinalized, setIsFinalized] = useState(true)
     const [isLoading, setIsLoading] = useState(true)
+    const [isPrepaid, setIsPrepaid] = useState(false)
     const [nextInvoiceId, setNextInvoiceId] = useState(null)
     const [parent, setParent] = useState({})
+    const [paymentAmount, setPaymentAmount] = useState(null)
     const [permissions, setPermissions] = useState({})
     const [prevInvoiceId, setPrevInvoiceId] = useState(null)
     const [queryString, setQueryString] = useState('')
     const [showLineItems, setShowLineItems] = useState(true)
     const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
+    const [showPaymentAmountModal, setShowPaymentAmountModal] = useState(false)
+    const [showStripePaymentModal, setShowStripePaymentModal] = useState(false)
     const [tables, setTables] = useState([])
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
 
@@ -56,8 +63,10 @@ function Invoice(props) {
             setBillCountWithMissedLineItems(response.bill_count_with_missed_line_items)
             setInvoice(response.invoice)
             setIsFinalized(response.invoice.finalized)
+            setIsPrepaid(response.is_prepaid)
             setNextInvoiceId(nextInvoiceId)
             setParent(response.parent)
+            setPaymentAmount(response.account_owing)
             setPermissions(response.permissions)
             setPrevInvoiceId(prevInvoiceId)
             setShowLineItems(response.parent?.show_invoice_line_items ?? true)
@@ -67,6 +76,13 @@ function Invoice(props) {
 
             setIsLoading(false)
         })
+    }
+
+    const handlePaymentAmountChange = value => {
+        if(value > accountOwing || value <= 0)
+            setPaymentAmount(accountOwing)
+        else
+            setPaymentAmount(value)
     }
 
     const regather = () => {
@@ -80,9 +96,13 @@ function Invoice(props) {
     }
 
     const toggleFinalized = () => {
-        makeAjaxRequest(`/invoices/finalize/[${params.invoiceId}]`, 'GET', null, response =>
+        makeAjaxRequest(`/invoices/finalize/${params.invoiceId}`, 'GET', null, response =>
             setIsFinalized(!isFinalized)
         )
+    }
+
+    const toggleStripeModal = () => {
+        setShowStripePaymentModal(!showStripePaymentModal)
     }
 
     if(isLoading) {
@@ -150,7 +170,7 @@ function Invoice(props) {
                     />
                 }
             </Col>
-            <Col md={4} style={{textAlign: 'right'}}>
+            <Col md={4}>
                 <ButtonGroup>
                     <Button
                         href={invoice ? `/invoices/print/${invoice.invoice_id}${queryString}` : null}
@@ -172,6 +192,23 @@ function Invoice(props) {
                         </Button>
                     }
                 </ButtonGroup>
+                {(permissions.processPayments && isPrepaid && accountOwing > 0) &&
+                    <InputGroup>
+                        <CurrencyInput
+                            decimalsLimit={2}
+                            decimalScale={2}
+                            min={0.01}
+                            name='paymentAmount'
+                            onValueChange={handlePaymentAmountChange}
+                            prefix='$'
+                            step={0.01}
+                            value={paymentAmount}
+                        />
+                        <Button
+                            onClick={toggleStripeModal}
+                        >Process <i className='fab fa-stripe fa-lg fa-border'></i> Payment</Button>
+                    </InputGroup>
+                }
             </Col>
             <Col md={11}>
                 <hr/>
@@ -427,6 +464,14 @@ function Invoice(props) {
                         </tbody>
                     </Table>
                 </div>
+            </Col>
+            <Col>
+                <StripePaymentModal
+                    paymentAmount={paymentAmount}
+                    hide={toggleStripeModal}
+                    invoiceId={invoice.invoice_id}
+                    show={showStripePaymentModal}
+                />
             </Col>
         </Row>
     )

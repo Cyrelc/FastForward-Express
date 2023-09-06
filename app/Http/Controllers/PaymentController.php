@@ -58,6 +58,46 @@ class PaymentController extends Controller {
         return json_encode($paymentModel);
     }
 
+    public function GetPaymentIntent(Request $req) {
+        if($req->user()->cannot('create', Payment::class))
+            abort(403);
+
+        $paymentCollector = new Collectors\PaymentCollector();
+        $paymentValidation = new \App\Http\Validation\PaymentValidationRules();
+
+        $temp = $paymentValidation->GetPaymentIntentRules($req);
+        $this->validate($req, $temp['rules'], $temp['messages']);
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $paymentRepo = new Repos\PaymentRepo();
+
+        $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
+        $incompletePaymentIntents =  $paymentRepo->GetIncompletePaymentIntents($outstandingInvoice->invoice_id);
+
+        $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+
+        // If there is an existing PaymentIntent that has not resolved, use that first do not create multiple database entries
+        if($incompletePaymentIntents != null) {
+            $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['payment_intent_id']);
+            return json_encode([
+                'client_secret' => $paymentIntent->client_secret
+            ]);
+        }
+
+        $paymentIntent = $stripe->paymentIntents->create([
+            'amount' => (float)$req->amount * 100,
+            'currency' => env('CASHIER_CURRENCY'),
+            'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
+        ]);
+        DB::beginTransaction();
+        $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent));
+        DB::commit();
+
+        return json_encode(
+            ['client_secret' => $paymentIntent->client_secret]
+        );
+    }
+
     public function GetReceivePaymentModel(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);

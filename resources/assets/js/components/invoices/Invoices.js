@@ -16,7 +16,7 @@ function cellContextMenu(cell, canEdit = false) {
         return undefined
     var menuItems = [
         {label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)},
-        {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => toggleInvoiceFinalized([cell.getRow()]), disabled: (data.payment_count !== 0)},
+        {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => finalizeInvoices([cell.getRow()]), disabled: (data.payment_count !== 0)},
         {label: 'Print', action: () => printInvoices([cell.getRow()], {download: false}), disabled: data.finalized === 0}
     ]
 
@@ -48,7 +48,7 @@ function toggleInvoiceFinalized(selectedRows = null) {
         return
     }
     const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
-    makeFetchRequest('/invoices/finalize/' + data, response => {
+    makeFetchRequest(`/invoices/finalize/${data}`, response => {
         selectedRows.map(row => row.update({'finalized': row.getData().finalized === 1 ? 0 : 1}))
     })
 }
@@ -184,6 +184,13 @@ class Invoices extends Component {
                 {
                     name: 'Payment Type',
                     value: 'payment_type_id',
+                    type: 'SelectFilter',
+                    isMulti: true,
+                    selections: this.props.paymentTypes
+                },
+                {
+                    name: 'Charge Type',
+                    value: 'charge_type_id',
                     type: 'SelectFilter',
                     isMulti: true,
                     selections: this.props.paymentTypes
