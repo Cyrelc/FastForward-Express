@@ -82,9 +82,9 @@ class PaymentRepo {
     }
 
     public function GetPaymentTypes() {
-        $payment_types = PaymentType::where('name', '!=', 'Stripe (Pending)')->All();
+        $payment_types = PaymentType::where('name', '!=', 'Stripe (Pending)');
 
-        return $payment_types;
+        return $payment_types->get();
     }
 
     public function GetPaymentTypesList() {
