@@ -82,6 +82,8 @@ class InvoiceController extends Controller {
     public function finalize(Request $req, $invoiceIds) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoiceIdArray = json_decode($invoiceIds);
+        if(!is_array($invoiceIdArray))
+            $invoiceIdArray = array($invoiceIdArray);
 
         foreach($invoiceIdArray as $invoiceId)
             if($req->user()->cannot('update', $invoiceRepo->GetById($invoiceId)))
@@ -274,7 +276,7 @@ class InvoiceController extends Controller {
 
             $fileName = trim($model->parent->name) . '-' . $model->invoice->invoice_id;
             $fileName = preg_replace('/\s+/', '_', $fileName);
-            $fileName = preg_replace('/[(&.\/\\:*?"<>| )]/', '', $fileName);
+            $fileName = preg_replace('/[(&.\/\\:*?"<>|, )]/', '', $fileName);
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
             $hideOutstandingInvoices = $account->hide_outstanding_invoices;
