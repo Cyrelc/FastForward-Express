@@ -49,7 +49,7 @@ class ManifestRepo {
                 $temp->count_remaining++;
                 $temp->save();
             }
-            $chargebackLineItems = LineItem::where('chargeback_id', $chargeback->chargeback_id)->update(['chargeback_id', null]);
+            $chargebackLineItems = LineItem::where('chargeback_id', $chargeback->chargeback_id)->update(['chargeback_id' => null]);
             $chargeback->delete();
         }
         $manifest->delete();
