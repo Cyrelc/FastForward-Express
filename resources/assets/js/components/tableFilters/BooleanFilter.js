@@ -1,54 +1,46 @@
-import React, {Component} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Col, InputGroup, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import {useLocation} from 'react-router-dom'
 
+export default function BooleanFilter(props) {
+    const [boolState, setBoolState] = useState(false)
 
-export default class BooleanFilter extends Component {
-    constructor() {
-        super()
-        this.state = {
-            boolState: false,
-            dbField: ''
-        }
-        this.handleChange = this.handleChange.bind(this)
+    const filterString = `filter[${props.filter.value}]`
+    const location = useLocation()
+    const queryParams = new URLSearchParams(location.search)
+
+    useEffect(() => {
+        if(queryParams.has(filterString))
+            setFilterValue(queryParams.get(filterString) == true)
+        else if (props.filter.default)
+            setFilterValue(props.filter.default == true)
+    }, [])
+
+    const setFilterValue = (newBoolState) => {
+        setBoolState(newBoolState)
+        props.handleFilterQueryStringChange({target: {name: props.filter.value, type: 'boolean', value: `${filterString}=${newBoolState}`}})
     }
 
-    componentDidMount() {
-        if(window.location.search.includes('filter[' + this.props.filter.value + ']=')) {
-            const filterValue = window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0]
-            this.handleChange(filterValue === 'true')
-        } else if (this.props.filter.default) {
-            this.setState({boolState: this.props.filter.default})
-            this.handleChange(this.props.filter.default)
-        }
-    }
-
-    handleChange(event) {
-        this.setState({boolState: event})
-        this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'boolean', value: 'filter[' + this.props.filter.value + ']=' + event}})
-    }
-
-    render() {
-        return(
-            <Col md={3}>
-                <InputGroup>
-                    <InputGroup.Text>{this.props.filter.name}</InputGroup.Text>
-                    <ToggleButtonGroup name='boolState' type='radio' onChange={this.handleChange} value={this.state.boolState}>
-                        <ToggleButton
-                            checked={!this.state.boolState}
-                            id={this.props.filter.value + '.false'}
-                            variant='secondary'
-                            value={false}
-                        >False</ToggleButton>
-                        <ToggleButton
-                            checked={this.state.boolState}
-                            id={this.props.filter.value + '.true'}
-                            variant='secondary'
-                            value={true}
-                        >True</ToggleButton>
-                    </ToggleButtonGroup>
-                </InputGroup>
-            </Col>
-        )
-    }
+    return(
+        <Col md={3}>
+            <InputGroup>
+                <InputGroup.Text>{props.filter.name}</InputGroup.Text>
+                <ToggleButtonGroup name='boolState' type='radio' onChange={setFilterValue} value={boolState}>
+                    <ToggleButton
+                        checked={!boolState}
+                        id={props.filter.value + '.false'}
+                        variant='secondary'
+                        value={false}
+                    >False</ToggleButton>
+                    <ToggleButton
+                        checked={boolState}
+                        id={props.filter.value + '.true'}
+                        variant='secondary'
+                        value={true}
+                    >True</ToggleButton>
+                </ToggleButtonGroup>
+            </InputGroup>
+        </Col>
+    )
 }
 

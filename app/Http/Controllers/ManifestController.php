@@ -124,6 +124,24 @@ class ManifestController extends Controller {
             ->header('Content-Disposition', 'inline; filename=' . $fileName);
     }
 
+    public function Regather(Request $req, $manifestId) {
+        if($req->user()->cannot('create', Manifest::class))
+            abort(403);
+
+        $manifestRepo = new Repos\ManifestRepo();
+
+        DB::beginTransaction();
+
+        $manifestRepo->Regather($manifestId);
+
+        DB::commit();
+
+        $manifestModelFactory = new Manifest\ManifestModelFactory();
+        $model = $manifestModelFactory->GetById($req->user(), $manifestId);
+
+        return json_encode($model);
+    }
+
     public function store(Request $req) {
         if($req->user()->cannot('create', Manifest::class))
             abort(403);

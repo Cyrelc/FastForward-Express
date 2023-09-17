@@ -120,7 +120,21 @@ class ManifestRepo {
         return $filteredManifests->get();
     }
 
-    public function ManifestLineItems($manifestId, $driverId, $startDate, $endDate) {
+    public function Regather($manifestId) {
+        $manifest = $this->GetById($manifestId);
+        $this->ManifestLineItems(
+            $manifest->manifest_id,
+            $manifest->employee_id,
+            $manifest->start_date,
+            $manifest->end_date
+        );
+    }
+
+    /**
+     * Private functions
+     */
+
+    private function ManifestLineItems($manifestId, $driverId, $startDate, $endDate) {
         $chargebackRepo = new ChargebackRepo();
 
         $pickupLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
@@ -130,7 +144,7 @@ class ManifestRepo {
             ->where(DB::raw('coalesce(line_items.pickup_driver_id, bills.pickup_driver_id)'), $driverId)
             ->where('pickup_manifest_id', null)
             ->where('percentage_complete', 100)
-            ->get();
+            ->update(['pickup_manifest_id' => $manifestId, 'line_items.pickup_driver_id' => $driverId]);
 
         $deliveryLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
@@ -139,7 +153,7 @@ class ManifestRepo {
             ->where(DB::raw('coalesce(line_items.delivery_driver_id, bills.delivery_driver_id)'), $driverId)
             ->where('delivery_manifest_id', null)
             ->where('percentage_complete', 100)
-            ->get();
+            ->update(['delivery_manifest_id' => $manifestId, 'line_items.delivery_driver_id' => $driverId]);
 
         $chargebackBills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
@@ -156,20 +170,6 @@ class ManifestRepo {
                 DB::raw('date(time_pickup_scheduled) as date_pickup_scheduled')
             )->groupBy('charges.bill_id')
             ->get();
-
-        foreach($pickupLineItems as $lineItem) {
-            $lineItem->pickup_manifest_id = $manifestId;
-            if($lineItem->pickup_driver_id == null)
-                $lineItem->pickup_driver_id = $driverId;
-            $lineItem->save();
-        }
-
-        foreach($deliveryLineItems as $lineItem) {
-            $lineItem->delivery_manifest_id = $manifestId;
-            if($lineItem->delivery_driver_id == null)
-                $lineItem->delivery_driver_id = $driverId;
-            $lineItem->save();
-        }
 
         foreach($chargebackBills as $chargeback) {
             $billChargeback = [

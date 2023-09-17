@@ -150,10 +150,10 @@ class InvoiceRepo {
         return $lineItem;
     }
 
-    public function GetById($id) {
-        $invoice = Invoice::where('invoice_id', '=', $id)->first();
+    public function GetById($invoiceId) {
+        $invoice = Invoice::where('invoice_id', $invoiceId);
 
-        return $invoice;
+        return $invoice->first();
     }
 
     public function GetOutstandingByAccountId($account_id) {
@@ -213,7 +213,8 @@ class InvoiceRepo {
                 AllowedFilter::custom('date_run', new DateBetween, 'invoices.date'),
                 AllowedFilter::exact('invoice_id'),
                 AllowedFilter::exact('finalized', 'invoices.finalized'),
-                AllowedFilter::exact('payment_type_id', 'charge_types.payment_type_id')
+                AllowedFilter::exact('payment_type_id', 'payments.payment_type_id'),
+                AllowedFilter::exact('charge_type_id', 'charge_types.payment_type_id')
             ]);
 
         return $filteredInvoices->get();

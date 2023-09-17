@@ -9,6 +9,7 @@ function Manifest(props) {
     const [data, setData] = useState({})
     const [nextManifestId, setNextManifestId] = useState(null)
     const [prevManifestId, setPrevManifestId] = useState(null)
+    const [isLoading, setIsLoading] = useState(true)
 
     const {manifestId} = props.match.params
     const {sortedManifests} = props
@@ -19,6 +20,7 @@ function Manifest(props) {
     }, [manifestId])
 
     const getManifest = () => {
+        setIsLoading(true)
         makeAjaxRequest(`/manifests/${manifestId}`, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = 'View Manifest - ' + response.manifest.manifest_id
@@ -28,8 +30,24 @@ function Manifest(props) {
             setData(response)
             setNextManifestId(nextManifestId)
             setPrevManifestId(prevManifestId)
-        })
+            setIsLoading(false)
+        }, error => setIsLoading(false))
     }
+
+    const regather = () => {
+        setIsLoading(true)
+        makeAjaxRequest(`/manifests/regather/${manifestId}`, 'GET', null, response => {
+            setData(JSON.parse(response))
+            setIsLoading(false)
+        }, error => setIsLoading(false))
+    }
+
+    if(isLoading)
+        return (
+            <Row className='justify-content-md-center'>
+                <Col md={3}><h4><i className='fas fa-cog fa-spin'></i>  Loading...</h4></Col>
+            </Row>
+        )
 
     return (
         <Row className='justify-content-md-center' style={{paddingTop: '20px'}}>
@@ -58,6 +76,9 @@ function Manifest(props) {
                     <Button variant='success' href={`/manifests/print/${manifest?.manifest_id}?without_bills`}>
                         <i className='fas fa-print'></i> Print Without Bills
                     </Button>
+                    {props.frontEndPermissions.manifests.create &&
+                        <Button variant='warning' onClick={regather}><i className='fas fa-sync'></i> Regather</Button>
+                    }
                 </ButtonGroup>
             </Col>
             <Col md={11}>
@@ -67,10 +88,16 @@ function Manifest(props) {
                 <table style={{width: '100%'}}>
                     <tbody>
                         <tr>
-                            <th style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{`Driver Gross\n$${data?.driver_total}`}</th>
-                            <th style={{...headerTDStyle, backgroundColor: 'orange'}}>{`Chargebacks\n$${data?.chargeback_total}`}</th>
-                            <th style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>{`Driver Income\n$${data?.driver_income}`}</th>
-                            <th style={{width: '40%', textAlign: 'center'}}>
+                            <th style={{...headerTDStyle, backgroundColor: '#ADD8E6'}} key='driver-gross'>
+                                {`Driver Gross\n$${data?.driver_total}`}
+                            </th>
+                            <th style={{...headerTDStyle, backgroundColor: 'orange'}} key='chargeback-total'>
+                                {`Chargebacks\n$${data?.chargeback_total}`}
+                            </th>
+                            <th style={{...headerTDStyle, backgroundColor: '#ADD8E6'}} key='driver-income'>
+                                {`Driver Income\n$${data?.driver_income}`}
+                            </th>
+                            <th style={{width: '40%', textAlign: 'center'}} key='employee'>
                                 <LinkContainer to={'/app/employees/' + employee?.employee_id}>
                                     <h3>
                                         <a href=''>
@@ -99,6 +126,7 @@ function Manifest(props) {
                                             background: warning.type === 'error' ? 'tomato' : 'gold'
                                         }}
                                         width={(1 / warnings.length * 100) + '%'}
+                                        key={warning.friendlyString}
                                     >{warning.friendlyString}</th>
                                 )}
                             </tr>
@@ -186,6 +214,7 @@ function Manifest(props) {
 
 const mapStateToProps = store => {
     return {
+        frontEndPermissions: store.user.frontEndPermissions,
         sortedManifests: store.manifests.sortedList
     }
 }

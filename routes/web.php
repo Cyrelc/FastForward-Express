@@ -119,6 +119,7 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
     Route::get('/download/{manifestIds}', 'download');
     Route::get('/print/{manifestIds}', 'print');
     Route::get('/', 'index');
+    Route::get('/regather/{invoiceId}', 'Regather');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
