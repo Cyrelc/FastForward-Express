@@ -25,7 +25,7 @@ class WebhookController extends Controller {
                 $payment = $paymentRepo->GetPaymentByPaymentIntentId($paymentIntent->id);
                 if(!$payment || $payment->account_id)
                     break;
-                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentIntent->amount / 100);
+                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentIntent->amount / 100);
             default:
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
         }
