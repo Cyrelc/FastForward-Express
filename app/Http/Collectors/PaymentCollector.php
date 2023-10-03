@@ -18,6 +18,20 @@ class PaymentCollector {
         ];
     }
 
+    public function CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent) {
+        $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN);
+        return [
+            'account_id' => $req->account_id,
+            'amount' => $outstandingInvoice['payment_amount'],
+            'comment' => $req->comment,
+            'date' => date('Y-m-d'),
+            'invoice_id' => $outstandingInvoice['invoice_id'],
+            'payment_intent_id' => $isStripePaymentMethod ? $paymentIntent->id : null,
+            'payment_type_id' => $req->payment_type_id,
+            'reference_value' => $req->reference_value
+        ];
+    }
+
     public function CollectAccountPayment($req, $account_adjustment, $comment = null) {
         return [
             'account_id' => $req->account_id,
@@ -30,16 +44,17 @@ class PaymentCollector {
     }
 
     public function CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent) {
-        $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN);
+        $paymentRepo = new Repos\PaymentRepo();
+        $stripePaymentType = $paymentRepo->GetPaymentTypeByName("Stripe (Pending)");
         return [
-            'account_id' => $req->account_id,
-            'amount' => $outstandingInvoice['payment_amount'],
-            'comment' => $req->comment,
-            'date' => date('Y-m-d'),
-            'invoice_id' => $outstandingInvoice['invoice_id'],
-            'payment_intent_id' => $isStripePaymentMethod ? $paymentIntent->id : null,
-            'payment_type_id' => $req->payment_type_id,
-            'reference_value' => $req->reference_value
+            'account_id' => null,
+            'amount' => $req->amount,
+            'comment' => '',
+            'date' => gmdate("Y-m-d\TH:i:s\Z", $paymentIntent->created),
+            'invoice_id' => $req->invoice_id,
+            'payment_intent_id' => $paymentIntent->id,
+            'payment_type_id' => $stripePaymentType->payment_type_id,
+            'reference_value' => null
         ];
     }
 

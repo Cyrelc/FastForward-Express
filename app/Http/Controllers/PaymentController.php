@@ -90,7 +90,7 @@ class PaymentController extends Controller {
             'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
         ]);
         DB::beginTransaction();
-        $paymentRepo->insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent));
+        $paymentRepo->Insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent));
         DB::commit();
 
         return json_encode(
