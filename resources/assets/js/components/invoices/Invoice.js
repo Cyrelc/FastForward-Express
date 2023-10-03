@@ -34,7 +34,6 @@ function Invoice(props) {
     const [queryString, setQueryString] = useState('')
     const [showLineItems, setShowLineItems] = useState(true)
     const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
-    const [showPaymentAmountModal, setShowPaymentAmountModal] = useState(false)
     const [showStripePaymentModal, setShowStripePaymentModal] = useState(false)
     const [tables, setTables] = useState([])
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
@@ -231,7 +230,7 @@ function Invoice(props) {
                                 {`Invoice Total\n${parseFloat(invoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
                             </td>
                             <td style={{...headerTDStyle, backgroundColor: 'orange'}}>
-                                {`Account Balance\n${parseFloat(accountOwing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
+                                {`${isPrepaid ? 'Invoice' : 'Account'} Balance\n${parseFloat(accountOwing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
                             </td>
                         </tr>
                     </tbody>
@@ -399,7 +398,7 @@ function Invoice(props) {
                             </Table>
                         </Col>
                     }
-                    {(unpaidInvoices && !hideOutstandingInvoices) &&
+                    {(unpaidInvoices && unpaidInvoices.length && !hideOutstandingInvoices) &&
                         <Col md={11}>
                             <b>All Invoices with Balance Owing for Account {parent?.name}</b>
                             <Table striped bordered size='sm'>
