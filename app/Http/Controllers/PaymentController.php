@@ -72,12 +72,12 @@ class PaymentController extends Controller {
         $paymentRepo = new Repos\PaymentRepo();
 
         $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
-        $incompletePaymentIntents =  $paymentRepo->GetIncompletePaymentIntents($outstandingInvoice->invoice_id);
+        $incompletePaymentIntents = $paymentRepo->GetIncompletePaymentIntents($outstandingInvoice->invoice_id);
 
         $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
 
         // If there is an existing PaymentIntent that has not resolved, use that first do not create multiple database entries
-        if($incompletePaymentIntents != null) {
+        if(!$incompletePaymentIntents->isEmpty()) {
             $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['payment_intent_id']);
             return json_encode([
                 'client_secret' => $paymentIntent->client_secret
