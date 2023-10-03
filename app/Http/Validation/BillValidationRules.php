@@ -6,6 +6,16 @@ use App\Rules\AlphaNumDashUnderscoreSpace;
 use Illuminate\Validation\Rule;
 
 class BillValidationRules {
+	// public function GetMobileValidationRules($req, $oldBill, $permissions) {
+	// 	$rules = [
+	// 		'time_ten_foured' => 'date',
+	// 		'time_delivered' => 'date',
+	// 		'time_picked_up' => 'date',
+	// 	];
+
+	// 	return ['rules' => $rules, 'messages' => []];
+	// }
+
 	public function GetValidationRules($req, $oldBill, $permissions) {
 		$accountRepo = new Repos\AccountRepo();
 		$partialsRules = new PartialsValidationRules();
@@ -77,13 +87,13 @@ class BillValidationRules {
 			$messages = array_merge($messages, $basic['messages']);
 		}
 
-		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['updateDispatch'] : $permissions['createFull']) {
+		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? ($permissions['editDispatch'] || $permissions['editDispatchMy']) : $permissions['createFull']) {
 			$dispatch = $this->getDispatchValidationRules($req);
 			$rules = array_merge($rules, $dispatch['rules']);
 			$messages = array_merge($messages, $dispatch['messages']);
 		}
 
-		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['updateBilling'] : $permissions['createFull']) {
+		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['editBilling'] : $permissions['createFull']) {
 			$billing = $this->getBillingValidationRules($req);
 			$rules = array_merge($rules, $billing['rules']);
 			$messages = array_merge($messages, $billing['messages']);
@@ -119,16 +129,19 @@ class BillValidationRules {
 			$minDateTime = new \DateTime('today');
 
 		$minDateTime->setTime((int)$businessHoursOpen[0], (int)$businessHoursOpen[1]);
-		$minDateTime = $minDateTime->format('Y-m-d-H-i-s');
+		$currentDateTime = new \DateTime();
+		if($currentDateTime > $minDateTime)
+			$minDateTime = $currentDateTime;
+		$minDateTime = $minDateTime->format('Y-m-d H:i:s');
 
 		$rules = [
 			'accept_terms_and_conditions' => 'required|accepted',
 			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
 			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
-			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
-			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account|required', 'integer', Rule::in($validAccountIds)],
-			'time_delivery_expected' => ['required|data|after:time_pickup_expected'],
-			'time_pickup_expected' => ['required|date|after:' . $minDateTime],
+			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
+			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
+			'time_delivery_scheduled' => ['required', 'date', 'after:time_pickup_scheduled'],
+			'time_pickup_scheduled' => ['required', 'date', 'after:' . $minDateTime],
 		];
 
 		$messages = [
@@ -138,6 +151,7 @@ class BillValidationRules {
 			'charge_type.payment_type_id.required' => 'Please select a payment method',
 			'delivery_account_id.required' => 'Delivery Account is required when address input type is Account',
 			'pickup_account_id.required' => 'Pickup Account is required when address input type is Account',
+			'time_pickup_scheduled.after' => 'Pickup time cannot be in the past'
 		];
 
 		if($chargeAccount && $chargeAccount->is_custom_field_mandatory) {
@@ -177,6 +191,7 @@ class BillValidationRules {
 			'time_dispatched' => 'date',
 			'time_picked_up' => 'date',
 			'time_delivered' => 'date',
+			'time_ten_foured' => 'date'
 		];
 
 		$messages = [
