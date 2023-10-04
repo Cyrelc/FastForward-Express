@@ -28,6 +28,12 @@ class WebhookController extends Controller {
                 $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentIntent->amount / 100);
             default:
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
+                $paymentTypeId = $paymentRepo->GetPaymentTypeByName($paymentIntent->payment_method_details->card->brand);
+                $paymentRepo->Update($payment->payment_id, [
+                    'amount' => $payment->amount,
+                    'payment_type_id' => $paymentTypeId ?? $payment->payment_type_id,
+                    'reference_value' => $paymentIntent->payment_method_details->card->last4,
+                ]);
         }
 
         return response()->json(['success' => true]);

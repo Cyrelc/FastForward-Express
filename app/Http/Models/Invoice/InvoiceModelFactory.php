@@ -11,11 +11,13 @@ class InvoiceModelFactory{
 		$model = new InvoiceViewModel();
 
 		$permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+
 		$accountRepo = new Repos\AccountRepo();
 		$addressRepo = new Repos\AddressRepo();
 		$billRepo = new Repos\BillRepo();
 		$invoiceRepo = new Repos\InvoiceRepo();
 		$lineItemRepo = new Repos\LineItemRepo();
+		$paymentRepo = new Repos\PaymentRepo();
 
 		$model->invoice = $invoiceRepo->GetById($invoiceId);
 		$model->invoice->bill_count = $billRepo->CountByInvoiceId($model->invoice->invoice_id);
@@ -81,9 +83,10 @@ class InvoiceModelFactory{
 			$model->unpaid_invoices = $invoiceRepo->GetOutstandingByAccountId($model->invoice->account_id);
 
 			$model->account_owing = $invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id);
-		} else {
-			$paymentRepo = new Repos\PaymentRepo();
 
+			if($req->user()->can('viewPayments', $model->parent))
+				$model->payments = $paymentRepo->GetByInvoiceId($model->invoice->invoice_id);
+		} else {
 			$model->parent = new \stdClass;
 			$model->parent->name = $paymentRepo->GetPaymentType($model->invoice->payment_type_id)->name;
 			$model->tables = array();
@@ -102,13 +105,16 @@ class InvoiceModelFactory{
 			foreach($model->tables[0]->bills as $key => $bill)
 				$model->tables[0]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $model->invoice->invoice_id);
 			$model->parent->account_number = 'Bill# ' . $masterBill->bill_id;
-			$addressRepo = new Repos\AddressRepo();
+
 			$model->parent->billing_address = $addressRepo->GetById($masterBill->pickup_address_id);
 			$model->parent->shipping_address = $addressRepo->GetById($masterBill->delivery_address_id);
 			$model->parent->invoice_comment = $masterBill->description;
 			$model->unpaid_invoices = array();
 			$model->is_prepaid = true;
 			$model->account_owing = $model->invoice->balance_owing;
+
+			if($req->user()->can('payments.view.*.*'))
+				$model->payments = $paymentRepo->GetByInvoiceId($model->invoice->invoice_id);
 		}
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);

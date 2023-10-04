@@ -13,6 +13,22 @@ class PaymentRepo {
         return $payment;
     }
 
+    public function GetByInvoiceId($invoiceId) {
+        $payments = Payment::where('invoice_id', $invoiceId)
+            ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'payments.payment_type_id')
+            ->select(
+                'payments.payment_id',
+                'amount',
+                'date',
+                'payment_types.name',
+                'payment_intent_status',
+                'reference_value',
+                DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
+            );
+
+        return $payments->get();
+    }
+
     public function GetPaymentsByAccountId($accountId) {
         $payments = Payment::where('payments.account_id', $accountId)
             ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
