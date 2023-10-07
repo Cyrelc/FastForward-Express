@@ -11,11 +11,13 @@ import NavBar from './NavBar'
 
 import Account from '../accounts/Account'
 import Accounts from '../accounts/Accounts'
+import AccountsPayable from '../admin/AccountsPayable'
 import AccountsReceivable from '../admin/AccountsReceivable'
 import AdminDashboard from '../dashboards/AdminDashboard'
 import AppSettings from '../admin/AppSettings'
 import Bill from '../bills/Bill'
 import Bills from '../bills/Bills'
+import CreateBulk from '../bills/CreateBulk'
 import ChangePasswordModal from './ChangePasswordModal'
 import Charts from '../bills/Charts'
 import Chargebacks from '../employees/Chargebacks'
@@ -106,6 +108,9 @@ class App extends Component {
                                         <Route path='/app/accounts/:accountId' exact component={Account}></Route>
                                     }
                                     {this.props.frontEndPermissions.appSettings.edit &&
+                                        <Route path='/app/accountsPayable' exact component={AccountsPayable}></Route>
+                                    }
+                                    {this.props.frontEndPermissions.appSettings.edit &&
                                         <Route path='/app/accountsReceivable' exact component={AccountsReceivable}></Route>
                                     }
                                     {this.props.frontEndPermissions.appSettings.edit &&
@@ -120,6 +125,9 @@ class App extends Component {
                                     {this.props.frontEndPermissions.bills.create &&
                                         <Route path='/app/bills/create' exact component={Bill}></Route>
                                     }
+                                    {/* {this.props.frontEndPermissions.bills.create && this.props.frontEndPermissions.appSettings.edit &&
+                                        <Route path='/app/bills/create/bulk' exact component={CreateBulk}></Route>
+                                    } */}
                                     {this.props.frontEndPermissions.bills.viewAny &&
                                         <Route path='/app/bills/:billId' component={Bill}></Route>
                                     }

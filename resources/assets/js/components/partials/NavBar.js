@@ -250,6 +250,9 @@ function NavBar(props) {
                                 {props.frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/app/accountsReceivable' />} icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
                                 }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <MenuItem component={<Link to='/app/accountsPayable' />} icon={<i className='fas fa-funnel-dollar'></i>}>Accounts Payable</MenuItem>
+                                }
                             </SubMenu>
                         }
                         {hasAnyPermission(props.frontEndPermissions.employees) &&

@@ -19,7 +19,7 @@ Route::group(['middleware' => ['auth']],
         Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
-        // Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
+        Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
 
         Route::get('/bills/chart', 'AdminController@getChart');
 

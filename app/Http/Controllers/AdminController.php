@@ -27,6 +27,19 @@ Class AdminController extends Controller {
         return json_encode($model);
     }
 
+    public function getAccountsPayable(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $startDate = new \DateTime($req->start_date);
+        $endDate = new \DateTime($req->end_date);
+
+        $adminModelFactory = new Admin\AdminModelFactory();
+        $model = $adminModelFactory->GetAccountsPayableModel($startDate, $endDate);
+
+        return json_encode($model);
+    }
+
     public function getAccountsReceivable(Request $req, $startDate, $endDate) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);

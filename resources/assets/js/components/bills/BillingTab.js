@@ -255,7 +255,7 @@ export default function BillingTab(props) {
                                 getOptionValue={type => type.payment_type_id}
                                 value={chargeType}
                                 onChange={chargeType => props.chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeType})}
-                                isDisabled={readOnly || isInvoiced}
+                                isDisabled={readOnly}
                             />
                         </InputGroup>
                     </Col>
@@ -270,7 +270,7 @@ export default function BillingTab(props) {
                                     isSearchable
                                     onChange={account => props.chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: account})}
                                     value={chargeAccount}
-                                    isDisabled={readOnly || isInvoiced}
+                                    isDisabled={readOnly}
                                 />
                             </InputGroup>
                         </Col>

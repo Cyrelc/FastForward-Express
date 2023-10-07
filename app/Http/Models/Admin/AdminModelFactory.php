@@ -23,6 +23,15 @@ class AdminModelFactory{
         return $model;
     }
 
+    public function GetAccountsPayableModel($startDate, $endDate) {
+        $billRepo = new Repos\BillRepo();
+
+        $model = new \stdClass();
+        $model->accounts_payable = $billRepo->GetAccountsPayable($startDate, $endDate);
+
+        return $model;
+    }
+
     public function GetAccountsReceivableModel($startDate, $endDate) {
         $billRepo = new Repos\BillRepo();
         $accountRepo = new Repos\AccountRepo();

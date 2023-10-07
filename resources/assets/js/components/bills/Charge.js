@@ -33,6 +33,8 @@ function chargeTypeFormatter(type) {
             return <i className='fas fa-credit-card'></i>
         case 'Cash':
             return <i className='fas fa-money-bill-wave'></i>
+        case 'Accounts Payable':
+            return <i className='fas fa-funnel-dollar'></i>
     }
 }
 
@@ -51,18 +53,24 @@ function deleteLineItem(cell) {
 }
 
 const groupBy = (data, charge) => {
-    const value = charge.chargeType.name === 'Employee' ? 'manifest_id' : 'invoice_id'
-    return value
+    const value = charge.chargeType.name
+    switch(value) {
+        case 'Employee':
+        case 'Accounts Payable':
+            return 'manifest_id'
+        default:
+            return 'invoice_id'
+    }
 }
 
 function groupHeaderFormatter(key, count, data, group) {
     const styledCount = '<span style="color:blue">(' + count + ')</span>'
     const value = data[0][key]
     if(key === 'invoice_id')
-        return `${value ? 'Invoice #' : 'Not Yet Invoiced'}${styledCount}`
+        return `${value ? `Invoice #${value}` : 'Not Yet Invoiced'}${styledCount}`
     else if(key === 'manifest_id')
-        return `${value ? 'Manifest #' : 'Not Yet Manifested'}${styledCount}`
-    return
+        return `${value ? `Manifest #${value}` : 'Not Yet Manifested'}${styledCount}`
+    return false
 }
 
 export default function Charge(props) {
@@ -281,7 +289,7 @@ export default function Charge(props) {
             md={(chargeCount > 1 && !showDetails) ? 6 : 12}
         >
             <Card border='dark'>
-                <Card.Header>
+                <Card.Header style={{backgroundColor: charge.name == 'Accounts Payable' ? 'darksalmon' : null}}>
                     <Row>
                         <Col md={8}>
                             <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>

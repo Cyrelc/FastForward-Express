@@ -7,6 +7,7 @@ use App\Http\Filters\BillFilters\CustomFieldValue;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
+use App\Http\Filters\BillFilters\Invoiced;
 use App\Http\Filters\IsNull;
 
 use App\Account;
@@ -136,6 +137,27 @@ class BillRepo {
         $addressRepo->Delete($bill->delivery_address_id);
 
         return;
+    }
+
+    public function GetAccountsPayable($startDate, $endDate) {
+        $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
+            ->leftjoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
+            ->where('payment_types.is_account_payable', 1)
+            ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
+            ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
+            ->where(function ($query) {
+                $query->where('pickup_manifest_id', '!=', null)
+                    ->orWhere('delivery_manifest_id', '!=', null);
+            })->select(
+                'payment_types.payment_type_id',
+                'payment_types.name as payment_type_name',
+                DB::raw('sum(case when price is null then 0 else price end) as amount'),
+                'bills.bill_id',
+                'time_pickup_scheduled'
+            )->groupBy('charges.charge_id');
+
+        return $bills->get();
     }
 
     public function GetAmendmentsByInvoiceId($invoiceId) {
@@ -445,6 +467,7 @@ class BillRepo {
             ->join('addresses as delivery', 'delivery.address_id', '=', 'bills.delivery_address_id')
             ->join('selections', 'selections.value', '=', 'bills.delivery_type')
             ->where('amendment_number', null)
+            ->where('payment_types.is_account_payable', 0)
             ->select(
                 'payment_types.payment_type_id as account_id',
                 'payment_types.name as account_name',
@@ -521,6 +544,7 @@ class BillRepo {
             ->where('payment_types.is_prepaid', 1)
             ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
             ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
+            ->where('payment_types.is_account_payable', 0)
             ->select(
                 'payment_types.payment_type_id',
                 'payment_types.name as payment_type_name',
@@ -598,6 +622,7 @@ class BillRepo {
                     'charges.charge_type_id as charge_type_id',
                     DB::raw('CONCAT_WS(",", pickup_reference_value, delivery_reference_value, charge_reference_value) as custom_field_value'),
                     DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 else 1 end) as deletable'),
+                    DB::raw('case when invoice_id is null then 0 else 1 end as is_invoiced'),
                     'delivery_address.formatted as delivery_address_formatted',
                     'delivery_address.name as delivery_address_name',
                     'deliveryType.name as type',
@@ -648,7 +673,7 @@ class BillRepo {
                 AllowedFilter::exact('delivery_driver_id'),
                 AllowedFilter::exact('interliner_id', 'bills.interliner_id'),
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
-                AllowedFilter::custom('is_invoiced', new IsNull),
+                AllowedFilter::custom('is_invoiced', new Invoiced),
                 AllowedFilter::exact('is_template'),
                 AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
                 AllowedFilter::exact('skip_invoicing'),
