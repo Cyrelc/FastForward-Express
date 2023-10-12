@@ -4,13 +4,17 @@ import {ReactTabulator, reactFormatter} from 'react-tabulator'
 
 function AttributeTable({cell}) {
     const data = cell.getValue()
+    const activityLogType = cell.getRow().getData().description
+    console.log(activityLogType)
     return (
-        <Table striped size='sm' width='100%' responsive>
+        <Table striped bordered size='sm' width='100%' responsive>
             <thead>
                 <tr>
                     <th style={{textAlign: 'center'}}>Attribute</th>
                     <th style={{textAlign: 'center'}}>New Value</th>
-                    <th style={{textAlign: 'center'}}>Old Value</th>
+                    {activityLogType != 'created' && 
+                        <th style={{textAlign: 'center'}}>Old Value</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -36,9 +40,11 @@ function AttributeTable({cell}) {
                             <td>
                                 <pre>{JSON.stringify(value, null, '\t')}</pre>
                             </td>
-                            <td>
-                                <pre>{JSON.stringify(oldValue, null, '\t')}</pre>
-                            </td>
+                            {activityLogType != 'created' &&
+                                <td>
+                                    <pre>{JSON.stringify(oldValue, null, '\t')}</pre>
+                                </td>
+                            }
                         </tr>
                     )
                 })}
