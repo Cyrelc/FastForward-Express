@@ -5,7 +5,7 @@ import {ReactTabulator, reactFormatter} from 'react-tabulator'
 function AttributeTable({cell}) {
     const data = cell.getValue()
     const activityLogType = cell.getRow().getData().description
-    console.log(activityLogType)
+
     return (
         <Table striped bordered size='sm' width='100%' responsive>
             <thead>
