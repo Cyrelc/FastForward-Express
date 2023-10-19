@@ -99,6 +99,7 @@ export default function PaymentModal(props) {
 
     const hideModal = () => {
         setPaymentAmount('')
+        setComment('')
         setIsLoading(false)
         props.hide()
     }
