@@ -5,6 +5,7 @@ namespace App\Http\Collectors;
 use App\Http\Repos;
 
 class PaymentCollector {
+    // Similar to CollectAccountPayment, but automatically applies the account payment type, and a comment that this is a price adjustment on a bill
     public function CollectAccountCredit($req) {
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -18,7 +19,8 @@ class PaymentCollector {
         ];
     }
 
-    public function CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent) {
+    // The default collection used for account Invoice payments - with or without a paymentIntent (Stripe transaction)
+    public function CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent = null) {
         $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN);
         return [
             'account_id' => $req->account_id,
@@ -26,16 +28,17 @@ class PaymentCollector {
             'comment' => $req->comment,
             'date' => date('Y-m-d'),
             'invoice_id' => $outstandingInvoice['invoice_id'],
-            'payment_intent_id' => $isStripePaymentMethod ? $paymentIntent->id : null,
+            'payment_intent_id' => ($isStripePaymentMethod && $paymentIntent) ? $paymentIntent->id : null,
             'payment_type_id' => $req->payment_type_id,
             'reference_value' => $req->reference_value
         ];
     }
 
-    public function CollectAccountPayment($req, $account_adjustment, $comment = null) {
+    // Similar to CollectAccountCredit, but allows for setting the amount and comment from outside of the request
+    public function CollectAccountPayment($req, $accountAdjustment, $comment = null) {
         return [
             'account_id' => $req->account_id,
-            'amount' => $account_adjustment,
+            'amount' => $accountAdjustment,
             'comment' => $comment ? $comment : $req->comment,
             'date' => date('Y-m-d'),
             'payment_type_id' => $req->payment_type_id,
@@ -43,6 +46,8 @@ class PaymentCollector {
         ];
     }
 
+    // Collection used for direct-to-invoice payments where there is no account involved.
+    // Used exclusively for prepaid payment types, such as Visa or Mastercard, as these require a paymentIntent
     public function CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent) {
         $paymentRepo = new Repos\PaymentRepo();
         $stripePaymentType = $paymentRepo->GetPaymentTypeByName("Stripe (Pending)");
