@@ -92,7 +92,7 @@ class PaymentRepo {
     }
 
     public function GetPaymentTypeByName($paymentTypeName) {
-        $payment_type = PaymentType::where('name', $paymentTypeName);
+        $payment_type = PaymentType::where('name', 'like', $paymentTypeName);
 
         return $payment_type->first();
     }
@@ -135,8 +135,8 @@ class PaymentRepo {
         return $old;
     }
 
-    public function Update($payment_id, $payment) {
-        $old = Payment::where('payment_id', $payment_id)->first();
+    public function Update($paymentId, $payment) {
+        $old = Payment::where('payment_id', $paymentId)->first();
         $fields = array('amount', 'payment_type_id', 'reference_value');
 
         foreach($fields as $field)

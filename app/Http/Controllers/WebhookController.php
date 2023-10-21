@@ -19,7 +19,10 @@ class WebhookController extends Controller {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
+        DB::beginTransaction();
+
         $paymentIntent = $event->data->object;
+        $card = $paymentIntent->charges->data[0]->payment_method_details->card;
         switch($event->type) {
             case 'payment_intent.succeeded':
                 $payment = $paymentRepo->GetPaymentByPaymentIntentId($paymentIntent->id);
@@ -28,13 +31,15 @@ class WebhookController extends Controller {
                 $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentIntent->amount / 100);
             default:
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
-                $paymentTypeId = $paymentRepo->GetPaymentTypeByName($paymentIntent->payment_method_details->card->brand);
+                $paymentTypeId = $paymentRepo->GetPaymentTypeByName($card->brand)->payment_type_id;
                 $paymentRepo->Update($payment->payment_id, [
                     'amount' => $payment->amount,
                     'payment_type_id' => $paymentTypeId ?? $payment->payment_type_id,
-                    'reference_value' => $paymentIntent->payment_method_details->card->last4,
+                    'reference_value' => $card->last4 ?? null,
                 ]);
         }
+
+        DB::commit();
 
         return response()->json(['success' => true]);
     }
