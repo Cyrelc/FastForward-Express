@@ -25,7 +25,9 @@
         "beyondcode/laravel-websockets": "^1.14",
         "spatie/laravel-permission": "^5.10",
         "spatie/laravel-query-builder": "^5.2",
-        "myfarms/php-units-of-measure": "^2.0"
+        "myfarms/php-units-of-measure": "^2.0",
+        "symfony/postmark-mailer": "^6.3",
+        "symfony/http-client": "^6.3"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
