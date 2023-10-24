@@ -30,7 +30,8 @@ class PaymentCollector {
             'invoice_id' => $outstandingInvoice['invoice_id'],
             'payment_intent_id' => ($isStripePaymentMethod && $paymentIntent) ? $paymentIntent->id : null,
             'payment_type_id' => $req->payment_type_id,
-            'reference_value' => $req->reference_value
+            'reference_value' => $req->reference_value,
+            'payment_intent_status' => $paymentIntent ? 'payment_intent.pending' : null
         ];
     }
 
@@ -62,24 +63,5 @@ class PaymentCollector {
             'reference_value' => null
         ];
     }
-
-    // public function CollectBillPayment($req) {
-    //     $amount = 0;
-    //     if(isset($req->amount)) {
-    //         $amount = $req->amount;
-    //     } else if(isset($req->interliner_cost_to_customer)) {
-    //         $amount = $req->interliner_cost_to_customer;
-    //     }
-
-    //     return [
-    //         'account_id' => null,
-    //         'amount' => $amount,
-    //         'comment' => null,
-    //         'date' => date('Y-m-d'),
-    //         'invoice_id' => null,
-    //         'payment_type_id' => $req->payment_type['payment_type_id'],
-    //         'reference_value' => $req->charge_reference_value,
-    //     ];
-    // }
 }
 ?>

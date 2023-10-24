@@ -23,20 +23,23 @@ class WebhookController extends Controller {
 
         $paymentIntent = $event->data->object;
         $card = $paymentIntent->charges->data[0]->payment_method_details->card;
-        switch($event->type) {
-            case 'payment_intent.succeeded':
-                $payment = $paymentRepo->GetPaymentByPaymentIntentId($paymentIntent->id);
-                if(!$payment || $payment->account_id)
-                    break;
-                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentIntent->amount / 100);
-            default:
-                $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
-                $paymentTypeId = $paymentRepo->GetPaymentTypeByName($card->brand)->payment_type_id;
+
+        $stripePendingPaymentType = $paymentRepo->GetPaymentTypeByName("Stripe (Pending)");
+        $newPaymentType = $paymentRepo->GetPaymentTypeByName($card->brand);
+        $payments = $paymentRepo->GetPaymentsByPaymentIntentId($paymentIntent->id);
+
+        $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
+
+        foreach($payments as $payment) {
+            if($payment->payment_type_id == $stripePendingPaymentType->payment_type_id && $newPaymentType) {
                 $paymentRepo->Update($payment->payment_id, [
                     'amount' => $payment->amount,
-                    'payment_type_id' => $paymentTypeId ?? $payment->payment_type_id,
+                    'payment_type_id' => $newPaymentType->payment_type_id,
                     'reference_value' => $card->last4 ?? null,
                 ]);
+            }
+            if($event->type == 'payment_intent.succeeded')
+                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$payment->amount);
         }
 
         DB::commit();

@@ -79,10 +79,10 @@ class PaymentRepo {
         return $payment->get();
     }
 
-    public function GetPaymentByPaymentIntentId($paymentIntentId) {
+    public function GetPaymentsByPaymentIntentId($paymentIntentId) {
         $payment = Payment::where('payment_intent_id', $paymentIntentId);
 
-        return $payment->first();
+        return $payment->get();
     }
 
     public function GetPaymentType($paymentTypeId) {
@@ -147,11 +147,8 @@ class PaymentRepo {
     }
 
     public function UpdatePaymentIntentStatus($paymentIntentId, $status) {
-        $old = Payment::where('payment_intent_id', $paymentIntentId)->first();
-
-        $old->payment_intent_status = $status;
-
-        $old->save();
+        $old = Payment::where('payment_intent_id', $paymentIntentId)
+            ->update(['payment_intent_status', $status]);
 
         return $old;
     }
