@@ -176,6 +176,8 @@ class PaymentController extends Controller {
                 $payment = $paymentCollector->CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent);
 
                 $paymentRepo->insert($payment);
+                if(!filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN))
+                    $invoiceRepo->AdjustBalanceOwing($outstandingInvoice['invoice_id'], -$outstandingInvoice['payment_amount']);
                 if($req->payment_type_id != $accountPaymentTypeId)
                     $accountAdjustment -= $outstandingInvoice['payment_amount'];
             }
