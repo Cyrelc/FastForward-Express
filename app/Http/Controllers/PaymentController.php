@@ -153,7 +153,9 @@ class PaymentController extends Controller {
         else
             $accountAdjustment = (float)$req->payment_amount;
 
-        if(filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN)) {
+        $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN) ?? false;
+
+        if($isStripePaymentMethod) {
             $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
             $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
         }
@@ -162,7 +164,7 @@ class PaymentController extends Controller {
             if($outstandingInvoice['payment_amount'] && $outstandingInvoice['payment_amount'] > 0 && $invoiceRepo->GetById($outstandingInvoice['invoice_id'])->balance_owing > 0) {
                 $paymentIntent = null;
 
-                if(filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN)) {
+                if($isStripePaymentMethod) {
                     $paymentIntent = $stripe->paymentIntents->create([
                         'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
                         'confirm' => true,
@@ -176,7 +178,7 @@ class PaymentController extends Controller {
                 $payment = $paymentCollector->CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent);
 
                 $paymentRepo->insert($payment);
-                if(!filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN))
+                if(!$isStripePaymentMethod)
                     $invoiceRepo->AdjustBalanceOwing($outstandingInvoice['invoice_id'], -$outstandingInvoice['payment_amount']);
                 if($req->payment_type_id != $accountPaymentTypeId)
                     $accountAdjustment -= $outstandingInvoice['payment_amount'];
