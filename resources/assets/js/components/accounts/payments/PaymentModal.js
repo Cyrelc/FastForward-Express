@@ -136,7 +136,7 @@ export default function PaymentModal(props) {
             props.setBalanceOwing(response.balance_owing)
             setIsLoading(false)
             hideModal()
-        })
+        }, () => hideModal())
     }
 
     const togglePayOffInvoice = invoiceId => {
