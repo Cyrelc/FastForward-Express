@@ -127,7 +127,7 @@ export default function PaymentModal(props) {
             payment_method_id: selectedPaymentMethod.payment_method_id,
             payment_method_on_file: selectedPaymentMethod.payment_method_on_file ? true : false,
             reference_value: selectedPaymentMethod.payment_method_on_file ? selectedPaymentMethod.name : paymentReferenceValue,
-            comment: comment
+            comment: comment ?? null
         }
 
         makeAjaxRequest('/payments/accountPayment', 'POST', data, response => {
