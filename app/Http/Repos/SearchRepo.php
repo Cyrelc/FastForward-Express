@@ -38,7 +38,7 @@ class SearchRepo {
 
                 $query->where('account_id', $searchTerm)
                 ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
-                ->orWhereRaw('MATCH(name) against ("' . $words. '" in boolean mode)');
+                ->orWhereRaw('MATCH(name) against (? in boolean mode)', [$words]);
             })->select(
                 'account_number',
                 DB::raw('CONCAT("/app/accounts/", account_id) as link'),

@@ -74,7 +74,7 @@ class PaymentController extends Controller {
         $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
         $incompletePaymentIntents = $paymentRepo->GetIncompletePaymentIntents($outstandingInvoice->invoice_id);
 
-        $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
 
         // If there is an existing PaymentIntent that has not resolved, use that first do not create multiple database entries
         if(!$incompletePaymentIntents->isEmpty()) {
@@ -156,7 +156,7 @@ class PaymentController extends Controller {
         $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN) ?? false;
 
         if($isStripePaymentMethod) {
-            $stripe = new Stripe\StripeClient(env('STRIPE_SECRET'));
+            $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
             $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
         }
 
