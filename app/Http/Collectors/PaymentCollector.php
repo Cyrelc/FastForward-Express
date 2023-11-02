@@ -25,7 +25,7 @@ class PaymentCollector {
         return [
             'account_id' => $req->account_id,
             'amount' => $outstandingInvoice['payment_amount'],
-            'comment' => $req->comment ?? null,
+            'comment' => $req->comment == "" ? null : $req->comment,
             'date' => date('Y-m-d'),
             'invoice_id' => $outstandingInvoice['invoice_id'],
             'payment_intent_id' => ($isStripePaymentMethod && $paymentIntent) ? $paymentIntent->id : null,
