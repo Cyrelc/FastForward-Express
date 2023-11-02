@@ -165,14 +165,22 @@ class PaymentController extends Controller {
                 $paymentIntent = null;
 
                 if($isStripePaymentMethod) {
-                    $paymentIntent = $stripe->paymentIntents->create([
-                        'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
-                        'confirm' => true,
-                        'currency' => env('CASHIER_CURRENCY'),
-                        'customer' => $account->stripe_id,
-                        'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
-                        'payment_method' => $paymentMethod->id,
-                    ]);
+                    try {
+                        $paymentIntent = $stripe->paymentIntents->create([
+                            'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
+                            'confirm' => true,
+                            'currency' => env('CASHIER_CURRENCY'),
+                            'customer' => $account->stripe_id,
+                            'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
+                            'payment_method' => $paymentMethod->id,
+                        ]);
+                    } catch (Stripe\Exception\CardException $e) {
+                        $error = $e->getJsonBody()['error'];
+
+                        return response()->json(['error' => $error['message'], 400]);
+                    } catch (Stripe\Exception\ApiErrorException $e) {
+                        return response()->json(['error' => 'An error occurred while processing your card. Please try again', 500]);
+                    }
                 }
 
                 $payment = $paymentCollector->CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent);
