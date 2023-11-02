@@ -178,8 +178,6 @@ class PaymentController extends Controller {
                         $error = $e->getJsonBody()['error'];
 
                         abort(400, $error['message']);
-                    } catch (Stripe\Exception\ApiErrorException $e) {
-                        return response()->json(['error' => 'An error occurred while processing your card. Please try again', 500]);
                     }
                 }
 
