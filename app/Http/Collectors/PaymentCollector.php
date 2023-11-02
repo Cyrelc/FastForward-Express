@@ -25,7 +25,7 @@ class PaymentCollector {
         return [
             'account_id' => $req->account_id,
             'amount' => $outstandingInvoice['payment_amount'],
-            'comment' => $req->comment,
+            'comment' => $req->comment ?? null,
             'date' => date('Y-m-d'),
             'invoice_id' => $outstandingInvoice['invoice_id'],
             'payment_intent_id' => ($isStripePaymentMethod && $paymentIntent) ? $paymentIntent->id : null,
@@ -40,7 +40,7 @@ class PaymentCollector {
         return [
             'account_id' => $req->account_id,
             'amount' => $accountAdjustment,
-            'comment' => $comment ? $comment : $req->comment,
+            'comment' => $comment ?? $req->comment ?? null,
             'date' => date('Y-m-d'),
             'payment_type_id' => $req->payment_type_id,
             'reference_value' => $req->reference_value,
@@ -55,7 +55,7 @@ class PaymentCollector {
         return [
             'account_id' => null,
             'amount' => $req->amount,
-            'comment' => '',
+            'comment' => null,
             'date' => gmdate("Y-m-d\TH:i:s\Z", $paymentIntent->created),
             'invoice_id' => $req->invoice_id,
             'payment_intent_id' => $paymentIntent->id,
