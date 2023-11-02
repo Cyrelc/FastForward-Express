@@ -148,7 +148,7 @@ class PaymentRepo {
 
     public function UpdatePaymentIntentStatus($paymentIntentId, $status) {
         $old = Payment::where('payment_intent_id', $paymentIntentId)
-            ->update(['payment_intent_status', $status]);
+            ->update(['payment_intent_status' => $status]);
 
         return $old;
     }
