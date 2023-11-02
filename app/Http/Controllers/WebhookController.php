@@ -22,10 +22,14 @@ class WebhookController extends Controller {
         DB::beginTransaction();
 
         $paymentIntent = $event->data->object;
-        $card = $paymentIntent->charges->data[0]->payment_method_details->card;
+        try {
+            $card = $paymentIntent->charges->data[0]->payment_method_details->card;
+        } catch (\Throwable $e) {
+            $card = null;
+        }
 
         $stripePendingPaymentType = $paymentRepo->GetPaymentTypeByName("Stripe (Pending)");
-        $newPaymentType = $paymentRepo->GetPaymentTypeByName($card->brand);
+        $newPaymentType = $card ? $paymentRepo->GetPaymentTypeByName($card->brand) : $stripePendingPaymentType;
         $payments = $paymentRepo->GetPaymentsByPaymentIntentId($paymentIntent->id);
 
         $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
@@ -35,7 +39,7 @@ class WebhookController extends Controller {
                 $paymentRepo->Update($payment->payment_id, [
                     'amount' => $payment->amount,
                     'payment_type_id' => $newPaymentType->payment_type_id,
-                    'reference_value' => $card->last4 ?? null,
+                    'reference_value' => $card ? $card->last4 : null,
                 ]);
             }
             if($event->type == 'payment_intent.succeeded')
