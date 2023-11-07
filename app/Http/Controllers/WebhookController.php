@@ -11,6 +11,7 @@ use App\Jobs\ReceiveStripeWebhook;
 
 class WebhookController extends Controller {
     private $ORDERED_PAYMENT_INTENT_STATUSES = [
+        NULL,
         'payment_intent.pending', //custom status used when created, when there is no status from Stripe yet. As such receives lowest priority
         'payment_intent.created',
         'payment_intent.requires_payment_method',
@@ -36,6 +37,7 @@ class WebhookController extends Controller {
     }
 
     public function ProcessPaymentIntentUpdate($event) {
+        activity('jobs')->log('Processing payment intent update for ' . $event->data->object->id);
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -70,6 +72,9 @@ class WebhookController extends Controller {
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$payment->amount);
                 if($event->type == 'payment_intent.cancelled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
+            } else {
+                activity('[WebhookController]')
+                    ->log('[WebhookController.ProcessPaymentIntentUpdate] skipped. Previous payment intent status: ' . $payment->payment_intent_status . '. New payment intent status: ' . $event->type);
             }
         }
 
