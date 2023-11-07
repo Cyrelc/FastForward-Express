@@ -169,7 +169,7 @@ class PaymentController extends Controller {
                         $paymentIntent = $stripe->paymentIntents->create([
                             'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
                             'confirm' => true,
-                            'currency' => config('sevices.stripe.currency'),
+                            'currency' => config('services.stripe.currency'),
                             'customer' => $account->stripe_id,
                             'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
                             'payment_method' => $paymentMethod->id,
