@@ -37,6 +37,7 @@ return [
         'model' => App\User::class,
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
-        'currency' => env('CASHIER_CURRENCY', 'cad')
+        'currency' => env('CASHIER_CURRENCY', 'cad'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET')
     ],
 ];

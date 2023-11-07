@@ -25,7 +25,7 @@ class WebhookController extends Controller {
 
     public function ReceivePaymentIntentUpdate(Request $req) {
         try {
-            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), env('STRIPE_WEBHOOK_SECRET'));
+            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.webhook_secret'));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Webhook signature verification failed'], 403);
         }
@@ -79,8 +79,6 @@ class WebhookController extends Controller {
         }
 
         DB::commit();
-
-        return response()->json(['success' => true]);
     }
 }
 
