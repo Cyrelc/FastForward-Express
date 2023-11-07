@@ -86,7 +86,7 @@ class PaymentController extends Controller {
 
         $paymentIntent = $stripe->paymentIntents->create([
             'amount' => (float)$req->amount * 100,
-            'currency' => env('CASHIER_CURRENCY'),
+            'currency' => config('services.stripe.currency'),
             'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
         ]);
         DB::beginTransaction();
@@ -169,7 +169,7 @@ class PaymentController extends Controller {
                         $paymentIntent = $stripe->paymentIntents->create([
                             'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
                             'confirm' => true,
-                            'currency' => env('CASHIER_CURRENCY'),
+                            'currency' => config('sevices.stripe.currency'),
                             'customer' => $account->stripe_id,
                             'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
                             'payment_method' => $paymentMethod->id,
