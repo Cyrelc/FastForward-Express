@@ -10,10 +10,14 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 use App\Http\Repos;
+use Illuminate\Support\Facades\DB;
 
 class ReceiveStripeWebhook implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $tries = 5;
+    public $backoff = 10;
 
     protected $event;
     private $ORDERED_PAYMENT_INTENT_STATUSES = [
@@ -23,7 +27,7 @@ class ReceiveStripeWebhook implements ShouldQueue
         'payment_intent.requires_payment_method',
         'payment_intent.requires_confirmation',
         'payment_intent.processing',
-        'payment_intent.succeded',
+        'payment_intent.succeeded',
         'payment_intent.requires_capture',
         'payment_intent.requires_action',
         'payment_intent.canceled',
@@ -67,8 +71,8 @@ class ReceiveStripeWebhook implements ShouldQueue
 
         foreach($payments as $payment) {
             activity('jobs')->log('Payment: ' . $payment->payment_id . '. Payment Intent: ' . $payment->payment_intent_id);
-            activity('jobs')->log('Previous status: ' . $payment->payment_intent_status . '. New status: ' . $event->status); 
-            activity('jobs')->log('Previous status: ' . array_search($payment->payment_intent_status, $this->ORDERED_PAYMENT_INTENT_STATUSES) . '. New status: ' . array_search($event->status, $this->ORDERED_PAYMENT_INTENT_STATUSES));
+            activity('jobs')->log('Previous status: ' . $payment->payment_intent_status . '. New status: ' . $event->type); 
+            activity('jobs')->log('Previous status: ' . array_search($payment->payment_intent_status, $this->ORDERED_PAYMENT_INTENT_STATUSES) . '. New status: ' . array_search($event->type, $this->ORDERED_PAYMENT_INTENT_STATUSES));
             // only if we are 'upgrading' the status
             // this means we don't process 'created' before 'success' but also means we never accidentally process the same payment twice. 
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
