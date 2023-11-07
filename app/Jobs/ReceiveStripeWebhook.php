@@ -9,7 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-use App\Htpp\Controllers\WebhookController;
+use App\Http\Controllers\WebhookController;
 
 class ReceiveStripeWebhook implements ShouldQueue
 {
