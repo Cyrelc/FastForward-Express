@@ -23,6 +23,7 @@ class ReceiveStripeWebhook implements ShouldQueue
      */
     public function __construct($event)
     {
+        activity('jobs')->log('Creating pending job for Stripe transaction ' . $event->data->object->id);
         $this->event = $event;
     }
 
@@ -33,6 +34,7 @@ class ReceiveStripeWebhook implements ShouldQueue
      */
     public function handle()
     {
+        activity('jobs')->log('Processing pending job for Stripe transaction ' . $event->data->object->id);
         $controller = new WebhookController;
         $controller->ProcessPaymentIntentUpdate($this->event);
     }
