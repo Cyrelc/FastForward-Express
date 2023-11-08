@@ -60,13 +60,14 @@ class ReceiveStripeWebhook implements ShouldQueue
         $paymentIntent = $this->event->data->object;
         try {
             $card = $paymentIntent->charges->data[0]->payment_method_details->card;
+            $paymentType = $paymentRepo->GetPaymentTypeByName($card->brand);
+            activity('jobs')->log('Card type: ' . $card);
         } catch (\Throwable $e) {
             $card = null;
+            $paymentType = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+            activity('jobs')->log('Card type: ' . $card);
         }
-        activity('jobs')->log('Card type: ' . $card);
 
-        $stripePendingPaymentType = $paymentRepo->GetPaymentTypeByName("Stripe (Pending)");
-        $newPaymentType = $card ? $paymentRepo->GetPaymentTypeByName($card->brand) : $stripePendingPaymentType;
         $payments = $paymentRepo->GetPaymentsByPaymentIntentId($paymentIntent->id);
 
         foreach($payments as $payment) {
@@ -92,7 +93,7 @@ class ReceiveStripeWebhook implements ShouldQueue
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
             } else {
                 activity('jobs')
-                    ->log('[WebhookController.ProcessPaymentIntentUpdate] skipped. Previous payment intent status: ' . $payment->payment_intent_status . '. New payment intent status: ' . $event->type);
+                    ->log('[ReceiveStripeWebhook.handle] skipped. Previous payment intent status: ' . $payment->payment_intent_status . '. New payment intent status: ' . $event->type);
             }
         }
 
