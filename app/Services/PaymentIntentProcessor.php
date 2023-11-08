@@ -52,13 +52,12 @@ class PaymentIntentProcessor {
             if(array_search($payment->payment_intent_status, $this->ORDERED_PAYMENT_INTENT_STATUSES) < array_search($event->type, $this->ORDERED_PAYMENT_INTENT_STATUSES)) {
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
 
-                if($payment->payment_type_id == $stripePendingPaymentType->payment_type_id && $newPaymentType) {
-                    $paymentRepo->Update($payment->payment_id, [
-                        'amount' => $payment->amount,
-                        'payment_type_id' => $newPaymentType->payment_type_id,
-                        'reference_value' => $card ? $card->last4 : null,
-                    ]);
-                }
+                $paymentRepo->Update($payment->payment_id, [
+                    'amount' => $payment->amount,
+                    'payment_type_id' => $paymentType->payment_type_id,
+                    'reference_value' => $card ? $card->last4 : null,
+                ]);
+
                 if($event->type == 'payment_intent.succeeded')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$payment->amount);
                 if($event->type == 'payment_intent.cancelled')
