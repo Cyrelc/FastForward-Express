@@ -10,7 +10,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
 use App\Services\PaymentIntentProcessor;
-use App\Http\Repos;
 
 class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
 {
@@ -20,18 +19,6 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
     public $uniqueFor = 600;
 
     protected $event;
-    private $ORDERED_PAYMENT_INTENT_STATUSES = [
-        NULL,
-        'payment_intent.pending', //custom status used when created, when there is no status from Stripe yet. As such receives lowest priority
-        'payment_intent.created',
-        'payment_intent.requires_payment_method',
-        'payment_intent.requires_confirmation',
-        'payment_intent.processing',
-        'payment_intent.succeeded',
-        'payment_intent.requires_capture',
-        'payment_intent.requires_action',
-        'payment_intent.canceled',
-    ];
 
     /**
      * Create a new job instance.
