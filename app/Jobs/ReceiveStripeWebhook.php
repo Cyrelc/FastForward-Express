@@ -16,7 +16,7 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $tries = 5;
+    // public $tries = 5;
     public $uniqueFor = 600;
 
     protected $event;
@@ -55,7 +55,7 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
         $processor->ProcessPaymentIntent($this->event);
     }
 
-    public function backoff() {
-        return [2, 10, 20];
-    }
+    // public function backoff() {
+    //     return [2, 10, 20];
+    // }
 }
