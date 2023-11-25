@@ -148,7 +148,7 @@ const PaymentModal = props => {
                                     </Col>
                                 </Fragment>
                             }
-                            {cardsOnFile.length > 0 &&
+                            {cardsOnFile?.length > 0 &&
                                 <Fragment>
                                     <Col md={3}><h4>Cards on File</h4></Col>
                                     {cardsOnFile.map(card =>
