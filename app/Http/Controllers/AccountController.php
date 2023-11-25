@@ -70,6 +70,18 @@ class AccountController extends Controller {
         ]);
     }
 
+    public function GetBillingModel(Request $req, $accountId) {
+        $accountRepo = new Repos\AccountRepo();
+        $account = $accountRepo->GetById($accountId);
+        if($req->user()->cannot('viewPayments', $account))
+            abort(403);
+
+        $accountModelFactory = new Account\AccountModelFactory();
+        $billingModel = $accountModelFactory->GetBillingModel($accountId);
+
+        return json_encode($billingModel);
+    }
+
     public function getChart(Request $req) {
         $accountRepo = new Repos\AccountRepo();
         $chartModelFactory = new Chart\ChartModelFactory();

@@ -46,18 +46,6 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function GetModelByAccountId(Request $req, $accountId) {
-        $accountRepo = new Repos\AccountRepo();
-        $account = $accountRepo->GetById($accountId);
-        if($req->user()->cannot('viewPayments', $account))
-            abort(403);
-
-        $paymentModelFactory = new Models\Payment\PaymentModelFactory();
-        $paymentModel = $paymentModelFactory->GetModelByAccountId($accountId);
-
-        return json_encode($paymentModel);
-    }
-
     public function GetPaymentIntent(Request $req) {
         if($req->user()->cannot('create', Payment::class))
             abort(403);
@@ -76,21 +64,29 @@ class PaymentController extends Controller {
 
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
 
-        // If there is an existing PaymentIntent that has not resolved, use that first do not create multiple database entries
+        $paymentAmount = (float)$req->amount * 100;
+        // If there is an existing PaymentIntent that has not resolved, use that first so as to not create multiple database entries
         if(!$incompletePaymentIntents->isEmpty()) {
             $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['payment_intent_id']);
+            if($paymentAmount != $paymentIntent->amount) {
+                $stripe->paymentIntents->update($paymentIntent->id, ['amount' => $paymentAmount]);
+                $paymentRepo->Update($incompletePaymentIntents[0]->payment_id, [
+                    'amount' => $req->amount
+                ]);
+            }
+
             return json_encode([
                 'client_secret' => $paymentIntent->client_secret
             ]);
         }
 
         $paymentIntent = $stripe->paymentIntents->create([
-            'amount' => (float)$req->amount * 100,
+            'amount' => $paymentAmount,
             'currency' => config('services.stripe.currency'),
             'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
         ]);
         DB::beginTransaction();
-        $paymentRepo->Insert($paymentCollector->CollectInvoicePayment($req, $outstandingInvoice, $paymentIntent));
+        $paymentRepo->Insert($paymentCollector->CollectStripePaymentIntent($req, $outstandingInvoice, $paymentIntent));
         DB::commit();
 
         return json_encode(
@@ -98,16 +94,16 @@ class PaymentController extends Controller {
         );
     }
 
-    public function GetReceivePaymentModel(Request $req, $accountId) {
-        $accountRepo = new Repos\AccountRepo();
-        $account = $accountRepo->GetById($accountId);
+    public function GetReceivePaymentModel(Request $req, $invoiceId) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoice = $invoiceRepo->GetById($invoiceId);
 
         if($req->user()->cannot('create', Payment::class))
             abort(403);
 
         $paymentModelFactory = new Models\Payment\PaymentModelFactory();
 
-        return json_encode($paymentModelFactory->GetReceivePaymentModel($account));
+        return json_encode($paymentModelFactory->GetReceivePaymentModel($invoice));
     }
 
     public function GetSetupIntent(Request $req, $accountId) {
@@ -126,87 +122,107 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function ProcessAccountPayment(Request $req) {
+    public function ProcessPayment(Request $req, $invoiceId) {
         if($req->user()->cannot('create', Payment::class))
             abort(403);
 
-        DB::beginTransaction();
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $invoice = $invoiceRepo->GetById($invoiceId);
+        if(!$invoice)
+            abort(404, 'Invoice not found');
 
-        $accountRepo = new Repos\AccountRepo();
+        $paymentRepo = new Repos\PaymentRepo();
+        $paymentMethod = $paymentRepo->GetPaymentType($req->payment_method['payment_type_id']);
+
+        switch($paymentMethod->type) {
+            case 'account':
+                return $this->ProcessPaymentFromAccount($req, $invoice);
+            case 'card_on_file':
+                return $this->ProcessCardOnFilePayment($req, $invoice);
+            case 'prepaid':
+                return $this->ProcessPrepaidPayment($req, $invoice);
+            case 'employee':
+            case 'stripe_pending':
+                break;
+        }
+    }
+
+    private function ProcessPaymentFromAccount(Request $req, $invoice) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
         $paymentCollector = new Collectors\PaymentCollector();
         $paymentValidation = new \App\Http\Validation\PaymentValidationRules();
 
-        $accountPaymentTypeId = $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id;
-
-        $temp = $paymentValidation->GetPaymentOnAccountRules($req);
-        $orderIdentifier = '';
-
+        $temp = $paymentValidation->GetAccountCreditPaymentRules($req, $invoice);
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        $account = $accountRepo->GetById($req->account_id);
+        $payment = $paymentCollector->CollectPaymentFromAccount($req, $invoice);
 
-        if($req->payment_type_id == $accountPaymentTypeId)
-            $accountAdjustment = -(float)$req->payment_amount;
-        else
-            $accountAdjustment = (float)$req->payment_amount;
+        DB::beginTransaction();
 
-        $isStripePaymentMethod = filter_var($req->payment_method_on_file, FILTER_VALIDATE_BOOLEAN) ?? false;
-
-        if($isStripePaymentMethod) {
-            $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-            $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
-        }
-
-        foreach($req->outstanding_invoices as $outstandingInvoice) {
-            if($outstandingInvoice['payment_amount'] && $outstandingInvoice['payment_amount'] > 0 && $invoiceRepo->GetById($outstandingInvoice['invoice_id'])->balance_owing > 0) {
-                $paymentIntent = null;
-
-                if($isStripePaymentMethod) {
-                    try {
-                        $paymentIntent = $stripe->paymentIntents->create([
-                            'amount' => (float)$outstandingInvoice['payment_amount'] * 100,
-                            'confirm' => true,
-                            'currency' => config('services.stripe.currency'),
-                            'customer' => $account->stripe_id,
-                            'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
-                            'payment_method' => $paymentMethod->id,
-                        ]);
-                    } catch (Stripe\Exception\CardException $e) {
-                        $error = $e->getJsonBody()['error'];
-
-                        abort(400, $error['message']);
-                    }
-                }
-
-                $payment = $paymentCollector->CollectAccountInvoicePayment($req, $outstandingInvoice, $paymentIntent);
-
-                $paymentRepo->insert($payment);
-                if(!$isStripePaymentMethod)
-                    $invoiceRepo->AdjustBalanceOwing($outstandingInvoice['invoice_id'], -$outstandingInvoice['payment_amount']);
-                if($req->payment_type_id != $accountPaymentTypeId)
-                    $accountAdjustment -= $outstandingInvoice['payment_amount'];
-            }
-        }
-
-        if(number_format((float)$accountAdjustment, 2) != 0) {
-            $accountRepo->AdjustBalance($req->account_id, $accountAdjustment);
-            $comment = floatval($accountAdjustment > 0) ? 'Account credit applied' : 'Payment made from account balance';
-            $paymentRepo->insert($paymentCollector->CollectAccountPayment($req, $accountAdjustment, $comment));
-        }
+        $payment = $paymentRepo->insert($payment);
+        $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$payment->amount);
 
         DB::commit();
 
-        $newAccountBalance = $accountRepo->GetById($account->account_id)->account_balance;
-        $newBalanceOwing = $invoiceRepo->CalculateAccountBalanceOwing($account->account_id);
+        return response()->json(['success' => true]);
+    }
 
-        return response()->json([
-            'account_balance' => $newAccountBalance,
-            'balance_owing' => $newBalanceOwing,
-            'success' => true
-        ]);
+    private function ProcessCardOnFilePayment(Request $req, $invoice) {
+        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
+        $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
+
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $paymentRepo = new Repos\PaymentRepo();
+
+        $paymentAmount = (float)$req->amount * 100;
+
+        try {
+            $paymentIntent = $stripe->paymentIntents->create([
+                'amount' => $paymentAmount,
+                'confirm' => true,
+                'currency' => config('services.stripe.currency'),
+                'customer' => $account->stripe_id,
+                'description' => 'Payment on FastForward Invoice #' . $invoice->invoice_id,
+                'payment_method' => $paymentMethod->id,
+            ]);
+        } catch (Stripe\Exception\CardException $e) {
+            $error = $e->getJsonBody()['error'];
+
+            abort(400, $error['message']);
+        }
+
+        $payment = $paymentCollector->CollectCardOnFilePayment($req, $invoice, $paymentIntent);
+
+        DB::beginTransaction();
+        $paymentRepo->insert($payment);
+        $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$paymentAmount);
+        DB::commit();
+
+        return response()->json(['success' => true]);
+    }
+
+    private function ProcessPrepaidPayment(Request $req, $invoice) {
+        $invoiceRepo = new Repos\InvoiceRepo();
+        $paymentRepo = new Repos\PaymentRepo();
+
+        $paymentCollector = new Collectors\PaymentCollector;
+        $paymentValidation = new \App\Http\Validation\PaymentValidationRules();
+
+        $temp = $paymentValidation->GetPrepaidRules($req, $invoice);
+        $this->validate($req, $temp['rules'], $temp['messages']);
+
+        $payment = $paymentCollector->CollectPrepaid($req, $invoice);
+
+        DB::beginTransaction();
+
+        $payment = $paymentRepo->insert($payment);
+        $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$payment->amount);
+
+        DB::commit();
+
+        return response()->json(['success' => true]);
     }
 
     public function SetDefaultPaymentMethod(Request $req, $accountId) {
@@ -226,19 +242,21 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function UndoPayment(Request $req) {
+    public function UndoPayment(Request $req, $paymentId) {
         if($req->user()->cannot('undo', Payment::class))
             abort(403);
 
         $paymentRepo = new Repos\PaymentRepo();
-        $payment = $paymentRepo->GetById($req->payment_id);
+        $payment = $paymentRepo->GetById($paymentId);
+        $accountPaymentTypeId = $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id;
 
         if($payment->invoice_id) {
             $invoiceRepo = new Repos\InvoiceRepo();
             $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
-        } else {
+        }
+        if($payment->payment_type_id == $accountPaymentTypeId) {
             $accountRepo = new Repos\AccountRepo();
-            $accountRepo->AdjustBalance($payment->account_id, -($payment->amount));
+            $accountRepo->AdjustBalance($payment->account_id, $payment->amount);
         }
         $payment->delete();
     }

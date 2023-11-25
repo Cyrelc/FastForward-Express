@@ -1,6 +1,6 @@
 import React, {Fragment, useEffect, useState} from 'react'
 import {Button, Modal} from 'react-bootstrap'
-import {CardElement, Elements, PaymentElement, PaymentMethodMessagingElement, useElements, useStripe} from '@stripe/react-stripe-js'
+import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
 
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
@@ -33,7 +33,7 @@ const StripeForm = (props) => {
             {stripe ?
                 <div style={{textAlign: 'center'}}>
                     <PaymentElement />
-                    <Button style={{marginTop: '15px'}} onClick={submitPayment}>Process Payment for ${props.paymentAmount}</Button>
+                    <Button style={{marginTop: '15px'}} onClick={submitPayment}>Process Payment for {props.paymentAmount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}</Button>
                 </div>
                 : <h4>
                     Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i>
@@ -43,13 +43,11 @@ const StripeForm = (props) => {
     )
 }
 
-export default function StripePaymentModal(props) {
+export default function StripePaymentBody(props) {
     const [clientSecret, setClientSecret]  = useState(null)
 
     useEffect(() => {
-        if(!props.show)
-            return
-
+        console.log('called StripePaymentBody')
         const data = {
             amount: props.paymentAmount,
             invoice_id: props.invoiceId,
@@ -59,7 +57,7 @@ export default function StripePaymentModal(props) {
             response = JSON.parse(response)
             setClientSecret(response.client_secret)
         })
-    }, [props.show])
+    }, [])
 
     const options = {
         appearance: {
@@ -69,26 +67,19 @@ export default function StripePaymentModal(props) {
     }
 
     return (
-        <Modal show={props.show} onHide={props.hide} size='lg'>
-            <Modal.Header closeButton>
-                <Modal.Title>Process <i className='fab fa-stripe fa-lg fa-border'></i> Payment</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                {clientSecret ?
-                    <Elements stripe={stripePromise} options={options}>
-                        <StripeForm
-                            clientSecret={clientSecret}
-                            hide={props.hide}
-                            paymentAmount={props.paymentAmount}
-                        />
-                    </Elements>
-                    : <h4>
-                        Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i>
-                    </h4>
-                }
-            </Modal.Body>
-        </Modal>
+        <Modal.Body>
+            {clientSecret ?
+                <Elements stripe={stripePromise} options={options}>
+                    <StripeForm
+                        clientSecret={clientSecret}
+                        hide={props.hide}
+                        paymentAmount={props.paymentAmount}
+                    />
+                </Elements>
+                : <h4>
+                    Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i>
+                </h4>
+            }
+        </Modal.Body>
     )
 }
-
-

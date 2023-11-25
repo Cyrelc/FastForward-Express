@@ -19,6 +19,7 @@ class CreatePaymentTypesTable extends Migration
             $table->unsignedInteger('default_ratesheet_id');
             $table->string('name');
             $table->string('required_field')->nullable()->default(null);
+            $table->string('type');
 
             $table->foreign('default_ratesheet_id')->references('ratesheet_id')->on('ratesheets');
         });

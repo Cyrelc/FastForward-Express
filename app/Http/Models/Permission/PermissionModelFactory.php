@@ -261,6 +261,7 @@ class PermissionModelFactory {
             'amend' => $user->can('update', $invoice),
             'edit' => $user->can('update', $invoice),
             'processPayments' => $user->can('create', Payment::class),
+            'undoPayments' => $user->can('undo', Payment::class),
             'viewBills' => $user->can('viewBills', $account)
         ];
     }

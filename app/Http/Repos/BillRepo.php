@@ -541,7 +541,7 @@ class BillRepo {
         $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->leftjoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
-            ->where('payment_types.is_prepaid', 1)
+            ->where('payment_types.type', 'prepaid')
             ->where('time_pickup_scheduled', '>=', $startDate->format('Y-m-01'))
             ->where('time_pickup_scheduled', '<=', $endDate->format('Y-m-t'))
             ->where('payment_types.is_account_payable', 0)

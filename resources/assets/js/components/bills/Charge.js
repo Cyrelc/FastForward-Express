@@ -217,7 +217,7 @@ export default function Charge(props) {
     }
 
     const invoiceAsOneOff = () => {
-        if(charge.chargeType.is_prepaid == false) {
+        if(charge.chargeType.type != 'prepaid') {
             toastr.error('Unable to invoice non-prepaid type as one-off call. Aborting')
             return
         }
@@ -328,7 +328,7 @@ export default function Charge(props) {
                                         {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
                                             <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
                                         }
-                                        {(charge.chargeType.is_prepaid && charge.lineItems?.find(lineItem => lineItem.invoice_id == null)) ?
+                                        {(charge.chargeType.type == 'prepaid' && charge.lineItems?.find(lineItem => lineItem.invoice_id == null)) ?
                                             <Dropdown.Item onClick={invoiceAsOneOff}>
                                                 <i className='fas fa-file-invoice-dollar fa-lg'></i> Invoice as One-off
                                             </Dropdown.Item> : null

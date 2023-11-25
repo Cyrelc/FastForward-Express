@@ -4,7 +4,7 @@ namespace App\Http\Models\Invoice;
 
 use App\Http\Repos;
 use App\Http\Models\Invoice;
-use App\Http\Models\Bill;
+use App\Http\Models\Payment\PaymentModelFactory;
 
 class InvoiceModelFactory{
 	public function GetById($req, $invoiceId) {
@@ -40,6 +40,7 @@ class InvoiceModelFactory{
 			$model->amendments = $amendments;
 		}
 
+		//If the invoice belongs to an account
 		if(isset($model->invoice->account_id)) {
 			$model->parent = $accountRepo->GetById($model->invoice->account_id);
 
@@ -86,6 +87,12 @@ class InvoiceModelFactory{
 
 			if($req->user()->can('viewPayments', $model->parent))
 				$model->payments = $paymentRepo->GetByInvoiceId($model->invoice->invoice_id);
+
+			if($req->user()->can('processPayments', $model->parent)) {
+				$paymentModelFactory = new PaymentModelFactory();
+				$model->cards_on_file = $paymentModelFactory->GetAccountStripePaymentMethods($model->parent);
+			}
+		// Otherwise the model belongs to a prepaid, one off invoice
 		} else {
 			$model->parent = new \stdClass;
 			$model->parent->name = $paymentRepo->GetPaymentType($model->invoice->payment_type_id)->name;

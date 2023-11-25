@@ -22,6 +22,7 @@ class Payment extends Model
         'date',
         'invoice_id',
         'payment_intent_id',
+        'payment_intent_status',
         'payment_type_id',
         'reference_value',
     ];

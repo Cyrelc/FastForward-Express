@@ -17,11 +17,13 @@ class PaymentRepo {
         $payments = Payment::where('invoice_id', $invoiceId)
             ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'payments.payment_type_id')
             ->select(
-                'payments.payment_id',
                 'amount',
+                'comment',
                 'date',
-                'payment_types.name',
+                'invoice_id',
                 'payment_intent_status',
+                'payment_types.name as payment_type',
+                'payments.payment_id',
                 'reference_value',
                 DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
             );
@@ -34,16 +36,17 @@ class PaymentRepo {
             ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
             ->leftJoin('invoices', 'payments.invoice_id', 'invoices.invoice_id')
             ->select(
-                'payment_id',
-                'payments.invoice_id',
-                'invoices.bill_end_date as invoice_date',
-                'payments.date',
                 'amount',
-                'payments.payment_type_id',
+                'comment',
+                'invoices.bill_end_date as invoice_date',
+                'payment_id',
                 'payment_types.name as payment_type',
-                DB::raw('case when payment_intent_id is null then false else true end as has_stripe_transaction'),
+                'payment_intent_status',
+                'payments.invoice_id',
+                'payments.date',
+                'payments.payment_type_id',
+                DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
                 'reference_value',
-                DB::raw('coalesce(comment, payment_intent_status) as comment'),
             );
 
         return $payments->get();
@@ -109,15 +112,8 @@ class PaymentRepo {
         return $paymentTypes->get();
     }
 
-    public function GetPaymentTypesForAccounts() {
-        $paymentTypes = PaymentType::where('is_prepaid', true)
-            ->orWhere('name', 'Account');
-
-        return $paymentTypes->get();
-    }
-
     public function GetPrepaidPaymentTypes() {
-        $paymentTypes = PaymentType::where('is_prepaid', true);
+        $paymentTypes = PaymentType::where('type', 'prepaid');
 
         return $paymentTypes->get();
     }
@@ -137,10 +133,11 @@ class PaymentRepo {
 
     public function Update($paymentId, $payment) {
         $old = Payment::where('payment_id', $paymentId)->first();
-        $fields = array('amount', 'payment_type_id', 'reference_value');
+        $fields = array('amount', 'payment_type_id', 'reference_value', 'payment_intent_status');
 
         foreach($fields as $field)
-            $old->$field = $payment[$field];
+            if(isset($payment[$field]))
+                $old->$field = $payment[$field];
 
         $old->save();
         return $old;

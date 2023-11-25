@@ -6,35 +6,31 @@ use App\Http\Models;
 use App\Http\Models\Payment;
 
 class PaymentModelFactory {
-    public function GetModelByAccountId($accountId) {
-        $paymentRepo = new Repos\PaymentRepo();
-        $invoiceRepo = new Repos\InvoiceRepo();
-
-        $model = new \stdClass();
-        $model->payments = $paymentRepo->GetPaymentsByAccountId($accountId);
-        $model->outstanding_invoice_count = count($invoiceRepo->GetOutstandingByAccountId($accountId));
-
-        return $model;
-    }
-
     public function GetAccountStripePaymentMethods($account) {
         return $this->GetStripePaymentMethods($account);
     }
 
-    public function GetReceivePaymentModel($account) {
-        $invoiceRepo = new Repos\InvoiceRepo();
+    public function GetReceivePaymentModel($invoice) {
+        $accountRepo = new Repos\AccountRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
         $model = new \stdClass();
+        $model->payment_methods = Array();
 
-        $paymentMethods = $paymentRepo->GetPaymentTypesForAccounts();
+        // TODO: Prepaid types should only show up if user is administrator (system user, not account user)
+        // and has permission to pay off invoices without a transaction
+        if($invoice->account_id) {
+            $account = $accountRepo->GetById($invoice->account_id);
 
-        $model->payment_methods = $this->GetStripePaymentMethods($account);
-
-        foreach($paymentMethods as $paymentType)
-            $model->payment_methods[] = $paymentType;
-
-        $model->outstanding_invoices = $invoiceRepo->GetOutstandingByAccountId($account->account_id);
+            $model->payment_methods['prepaid'] = $paymentRepo->GetPrepaidPaymentTypes()->toArray();
+            $model->payment_methods['cards_on_file'] = $this->GetStripePaymentMethods($account);
+            $model->payment_methods['account'] = $paymentRepo->GetPaymentTypeByName('Account')->toArray();
+            $model->payment_methods['account']['account_balance'] = $account->account_balance;
+            $model->payment_methods['stripe_pending'] = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+        } else {
+            $model->payment_methods['prepaid'] = $paymentRepo->GetPrepaidPaymentTypes();
+            $model->payment_methods['stripe_pending'] = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+        }
 
         return $model;
     }
@@ -58,12 +54,12 @@ class PaymentModelFactory {
                 'expiry_date' => $expiryDate->format(\DateTime::ATOM),
                 'is_default' => $defaultPaymentMethod ? $paymentMethod->id == $defaultPaymentMethod->id : false,
                 'is_expired' => new \DateTime() > $expiryDate,
-                'is_prepaid' => true,
                 'last_four' => $paymentMethod->card->last4,
                 'name' => '**** **** **** ' . $paymentMethod->card->last4,
                 'payment_method_id' => $paymentMethod->id,
                 'payment_method_on_file' => true,
                 'required_field' => null,
+                'type' => 'card_on_file'
             ];
         }
 

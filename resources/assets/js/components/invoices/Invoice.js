@@ -1,10 +1,10 @@
 import React, {Fragment, useEffect, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, Container, FormCheck, InputGroup, Row, Table} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Container, FormCheck, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
-import CurrencyInput from 'react-currency-input-field'
 
-import StripePaymentModal from './StripePaymentModal'
+import PaymentModal from '../partials/Payments/PaymentModal'
+import PaymentTable from '../partials/Payments/PaymentTable'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
@@ -15,25 +15,9 @@ function getCorrectAddress(bill) {
     return bill.pickup_address_name ? bill.pickup_address_name : bill.pickup_address_formatted
 }
 
-const formatPaymentIntentStatus = (status) => {
-    if(!status)
-        return
-    status = status.split('.')[1]
-    status = status.split('_').map(word => word.charAt(0).toUpperCase() + word.substring(1)).join(' ')
-    switch(status) {
-        case 'Succeeded':
-            return <Badge bg='success'>{status}</Badge>
-        case 'Processing':
-            return <Badge bg='primary'>{status}</Badge>
-        default:
-            return <Badge bg='danger'>{status}</Badge>
-    }
-}
-
 function Invoice(props) {
     const [amendmentsOnly, setAmendmentsOnly] = useState(false)
     const [accountId, setAccountId] = useState('')
-    const [accountOwing, setAccountOwing] = useState('')
     const [amendments, setAmendments] = useState([])
     const [billCountWithMissedLineItems, setBillCountWithMissedLineItems] = useState(0)
     const [hideOutstandingInvoices, setHideOutstandingInvoices] = useState(false)
@@ -50,7 +34,7 @@ function Invoice(props) {
     const [queryString, setQueryString] = useState('')
     const [showLineItems, setShowLineItems] = useState(true)
     const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
-    const [showStripePaymentModal, setShowStripePaymentModal] = useState(false)
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [tables, setTables] = useState([])
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
 
@@ -73,7 +57,6 @@ function Invoice(props) {
             const prevInvoiceId = thisInvoiceIndex <= 0 ? null : props.sortedInvoices[thisInvoiceIndex - 1]
             const nextInvoiceId = (thisInvoiceIndex < 0 || thisInvoiceIndex === props.sortedInvoices.length - 1) ? null : props.sortedInvoices[thisInvoiceIndex + 1]
             setAccountId(response.invoice.account_id)
-            setAccountOwing(response.account_owing)
             setAmendments(response.amendments)
             setBillCountWithMissedLineItems(response.bill_count_with_missed_line_items)
             setInvoice(response.invoice)
@@ -94,13 +77,6 @@ function Invoice(props) {
         })
     }
 
-    const handlePaymentAmountChange = value => {
-        if(value > accountOwing || value <= 0)
-            setPaymentAmount(accountOwing)
-        else
-            setPaymentAmount(value)
-    }
-
     const regather = () => {
         makeAjaxRequest(`/invoices/regather/${invoice.invoice_id}`, 'GET', null, response => {
             response = JSON.parse(response)
@@ -115,10 +91,6 @@ function Invoice(props) {
         makeAjaxRequest(`/invoices/finalize/${params.invoiceId}`, 'GET', null, response =>
             setIsFinalized(!isFinalized)
         )
-    }
-
-    const toggleStripeModal = () => {
-        setShowStripePaymentModal(!showStripePaymentModal)
     }
 
     if(isLoading) {
@@ -136,7 +108,21 @@ function Invoice(props) {
                     <Col md={2}>
                         <h3>Invoice {invoice?.invoice_id}</h3>
                         <h5>
-                            <Badge pill variant={isFinalized ? 'success' : 'danger'}>{isFinalized ? 'Finalized' : 'Not Finalized'}</Badge>
+                            <ButtonGroup size='sm' className='rounded-pill'>
+                                <Button
+                                    disabled={true}
+                                    variant={isFinalized ? 'success' : 'danger'}
+                                >{isFinalized ? 'Finalized' : 'Not Finalized'}</Button>
+                                {(invoice && permissions.edit) &&
+                                    <Button
+                                        variant={isFinalized ? 'danger' : 'success'}
+                                        size='sm'
+                                        onClick={toggleFinalized}
+                                    >
+                                        <i className={isFinalized ? 'fas fa-unlock' : 'fas fa-lock'}></i>
+                                    </Button>
+                                }
+                            </ButtonGroup>
                             {amendments && <Badge variant='warning'>Amended</Badge>}
                         </h5>
                     </Col>
@@ -189,44 +175,23 @@ function Invoice(props) {
                         }
                     </Col>
                     <Col md={4}>
-                        <ButtonGroup>
+                        <ButtonGroup size='sm'>
                             <Button
+                                variant='secondary'
                                 href={invoice ? `/invoices/print/${invoice.invoice_id}${queryString}` : null}
                                 target='_blank'
-                                variant='success'
-                            ><i className='fas fa-print'> Generate PDF</i></Button>
-                            {(invoice && permissions.edit) &&
-                                isFinalized ? 
-                                    <Button variant='danger' onClick={toggleFinalized}>
-                                        <i className='fas fa-unlock'></i> Unfinalize
-                                    </Button> :
-                                    <Button variant='success' onClick={toggleFinalized}>
-                                        <i className='fas fa-lock'></i> Finalize
-                                    </Button>
-                            }
+                            ><i className='fas fa-print'></i> Generate PDF</Button>
                             {(invoice && permissions.edit) &&
                                 <Button variant='warning' onClick={regather} disabled={billCountWithMissedLineItems == 0}>
                                     <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{invoice.bill_count_with_missed_line_items}</Badge>
                                 </Button>
                             }
+                            {(permissions.processPayments && invoice.balance_owing > 0) &&
+                                <Button variant='success' disabled={invoice.balance_owing == 0} onClick={() => setShowPaymentModal(!showPaymentModal)}>
+                                    <i className='fas fa-hand-holding-usd'></i> Process Payment
+                                </Button>
+                            }
                         </ButtonGroup>
-                        {(permissions.processPayments && isPrepaid && accountOwing > 0) &&
-                            <InputGroup>
-                                <CurrencyInput
-                                    decimalsLimit={2}
-                                    decimalScale={2}
-                                    min={0.01}
-                                    name='paymentAmount'
-                                    onValueChange={handlePaymentAmountChange}
-                                    prefix='$'
-                                    step={0.01}
-                                    value={paymentAmount}
-                                />
-                                <Button
-                                    onClick={toggleStripeModal}
-                                >Process <i className='fab fa-stripe fa-lg fa-border'></i> Payment</Button>
-                            </InputGroup>
-                        }
                     </Col>
                 </Row>
             </Container>
@@ -253,7 +218,7 @@ function Invoice(props) {
                                         {`Invoice Total\n${parseFloat(invoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
                                     </td>
                                     <td style={{...headerTDStyle, backgroundColor: 'orange'}}>
-                                        {`${isPrepaid ? 'Invoice' : 'Account'} Balance\n${parseFloat(accountOwing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
+                                        {`Invoice Balance\n${parseFloat(invoice.balance_owing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}`}
                                     </td>
                                 </tr>
                             </tbody>
@@ -428,40 +393,16 @@ function Invoice(props) {
                             </Col>
                         }
                         {(payments && payments.length > 0) &&
-                            <Col md={12}>
-                                <Table striped bordered size='sm'>
-                                    <thead>
-                                        <tr>
-                                            <th colSpan={props.frontEndPermissions.invoices.edit ? 6 : 5} style={{textAlign: 'center'}}>Payments</th>
-                                        </tr>
-                                    </thead>
-                                    <thead>
-                                        <tr>
-                                            {props.frontEndPermissions.invoices.edit && <th>Payment ID</th>}
-                                            <th>Date Processed</th>
-                                            <th>Type</th>
-                                            <th>Amount</th>
-                                            <th>Reference Value</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {payments.map(payment =>
-                                            <tr key={payment.payment_id}>
-                                                {props.frontEndPermissions.invoices.edit && <td>{payment.payment_id}</td>}
-                                                <td>{payment.date}</td>
-                                                <td>
-                                                    {payment.is_stripe_transaction ? <i className='fab fa-stripe fa-lg fa-border' style={{float: 'right'}}></i> : ''}
-                                                    {payment.name}
-                                                </td>
-                                                <td>{parseFloat(payment.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}</td>
-                                                <td>{payment.reference_value}</td>
-                                                <td>{formatPaymentIntentStatus(payment.payment_intent_status)}</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </Table>
-                            </Col>
+                            <Fragment>
+                                <h4>Payments</h4>
+                                <PaymentTable
+                                    canUndoPayments={permissions.undoPayments}
+                                    payments={payments}
+                                    refresh={getInvoice}
+                                    viewInvoices={true}
+                                />
+                                <hr/>
+                            </Fragment>
                         }
                         {(unpaidInvoices && unpaidInvoices.length > 0 && !hideOutstandingInvoices) &&
                             <Col md={12}>
@@ -532,11 +473,12 @@ function Invoice(props) {
                     </Col>
                 </Row>
             </Container>
-            <StripePaymentModal
-                paymentAmount={paymentAmount}
-                hide={toggleStripeModal}
+            <PaymentModal
+                hide={() => setShowPaymentModal(false)}
+                invoiceBalanceOwing={invoice.balance_owing}
                 invoiceId={invoice.invoice_id}
-                show={showStripePaymentModal}
+                refresh={getInvoice}
+                show={showPaymentModal}
             />
         </Fragment>
     )

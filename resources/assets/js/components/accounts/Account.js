@@ -11,7 +11,7 @@ import BasicTab from './BasicTab'
 import Charts from './Charts'
 import ChildAccounts from './ChildAccounts'
 import InvoicingTab from './InvoicingTab'
-import PaymentsTab from './payments/PaymentsTab'
+import BillingTab from './billing/BillingTab'
 
 import useAddress from '../partials/Hooks/useAddress'
 
@@ -20,7 +20,6 @@ const Account = props => {
     const [accountBalance, setAccountBalance] = useState('')
     const [accountName, setAccountName] = useState('')
     const [accountNumber, setAccountNumber] = useState('')
-    const [accountUsers, setAccountUsers] = useState([])
     const [activityLog, setActivityLog] = useState([])
     const [balanceOwing, setBalanceOwing] = useState('')
     const [canBeParent, setCanBeParent] = useState(false)
@@ -41,7 +40,6 @@ const Account = props => {
     const [nextAccountIndex, setNextAccountIndex] = useState(null)
     const [parentAccount, setParentAccount] = useState('')
     const [parentAccounts, setParentAccounts] = useState([])
-    const [payments, setPayments] = useState([])
     const [permissions, setPermissions] = useState([])
     const [prevAccountIndex, setPrevAccountIndex] = useState(null)
     const [ratesheet, setRatesheet] = useState('')
@@ -380,8 +378,8 @@ const Account = props => {
                         </Tab>
                     }
                     {accountId && permissions.viewPayments &&
-                        <Tab eventKey='payments' title={<h4>Payments</h4>}>
-                            <PaymentsTab
+                        <Tab eventKey='billing' title={<h4>Billing</h4>}>
+                            <BillingTab
                                 accountBalance={accountBalance}
                                 accountId={props.match.params.accountId}
 
@@ -392,7 +390,7 @@ const Account = props => {
                                 canEditPaymentMethods={permissions.editPaymentMethods}
                                 canEditPayments={permissions.editPayments}
                                 canUndoPayments={permissions.undoPayments}
-                                viewInvoices={permissions.viewInvoices}
+                                canViewInvoices={permissions.viewInvoices}
                             />
                         </Tab>
                     }

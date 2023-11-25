@@ -163,7 +163,7 @@ class InvoiceRepo {
                 'balance_owing',
                 'bill_end_date',
                 'invoice_id',
-                'total_cost'
+                'total_cost',
             );
 
         return $invoices->get();

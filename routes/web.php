@@ -40,6 +40,7 @@ Route::middleware(['auth'])->controller(AccountController::class)->prefix('accou
     Route::get('/getShippingAddress', 'getShippingAddress');
     Route::post('/adjustCredit', 'adjustAccountCredit');
     Route::get('/getModel/{accountId?}', 'getModel');
+    Route::get('/billing/{accountId}', 'GetBillingModel');
     Route::post('/', 'store');
     Route::get('/', 'index');
 });
@@ -123,10 +124,9 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
-    Route::post('/accountPayment', 'ProcessAccountPayment');
-    Route::get('/accountPayment/{accountId}', 'GetReceivePaymentModel');
-    Route::get('/{accountId}', 'GetModelByAccountId');
-    Route::delete('/undo', 'UndoPayment');
+    Route::post('/{invoiceId}', 'ProcessPayment');
+    Route::get('/{invoiceId}', 'GetReceivePaymentModel');
+    Route::delete('/{paymentId}', 'UndoPayment');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('paymentMethods')->group(function() {
@@ -136,6 +136,11 @@ Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payme
     Route::post('/{accountId}/setDefault', 'SetDefaultPaymentMethod');
     Route::post('/getPaymentIntent', 'GetPaymentIntent');
 });
+
+// Route::middleware(['auth'])->controller(QueryController::class)->group(function() {
+//     Route::post('/query', 'StoreQuery');
+//     Route::delete('/query/{queryId}', 'DeleteQuery');
+// });
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
     Route::get('/create', 'GetModel');

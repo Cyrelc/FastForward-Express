@@ -9,6 +9,17 @@ use App\Http\Models\Permission;
 use App\Http\Models\User;
 
 class AccountModelFactory {
+    public function GetBillingModel($accountId) {
+        $paymentRepo = new Repos\PaymentRepo();
+        $invoiceRepo = new Repos\InvoiceRepo();
+
+        $model = new \stdClass();
+        $model->payments = $paymentRepo->GetPaymentsByAccountId($accountId);
+        $model->outstanding_invoices = $invoiceRepo->GetOutstandingByAccountId($accountId);
+
+        return $model;
+    }
+
     public function GetCreateModel($permissions) {
         $model = new AccountFormModel();
         $accountRepo = new Repos\AccountRepo();
