@@ -18,7 +18,7 @@ export default function BillingTab(props) {
     const [showPaymentModal, setShowPaymentModal] = useState(false)
 
     const invoiceColumns = [
-        {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
+        {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number'},
         {title: 'Last Bill Date', field: 'bill_end_date'},
         {title: 'Balance Owing', field: 'balance_owing', formatter: 'money',formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}},
         {formatter: cell => {
@@ -70,8 +70,8 @@ export default function BillingTab(props) {
                 }
                 <Card.Body>
                     <Row>
-                        <Col md={2}>
-                            <h4>Outstanding Invoices</h4>
+                        <Col>
+                            <h5>Outstanding Invoices</h5>
                         </Col>
                         <Col md={10}>
                             {isLoading ? <LoadingSpinner /> :
@@ -82,7 +82,7 @@ export default function BillingTab(props) {
                                     options={{
                                         layout: 'fitColumns',
                                         pagination: 'local',
-                                        paginationSize: 10
+                                        paginationSize: 10,
                                     }}
                                     printAsHtml={true}
                                     printStyled={true}
@@ -94,8 +94,8 @@ export default function BillingTab(props) {
                 </Card.Body>
                 <Card.Body>
                     <Row>
-                        <Col md={2}>
-                            <h4>Payments</h4>
+                        <Col>
+                            <h5>Payments</h5>
                         </Col>
                         <Col md={10}>
                             {isLoading ? <LoadingSpinner /> :

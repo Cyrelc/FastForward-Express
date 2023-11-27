@@ -22,14 +22,17 @@ class PaymentModelFactory {
         if($invoice->account_id) {
             $account = $accountRepo->GetById($invoice->account_id);
 
-            $model->payment_methods['prepaid'] = $paymentRepo->GetPrepaidPaymentTypes()->toArray();
-            $model->payment_methods['cards_on_file'] = $this->GetStripePaymentMethods($account);
-            $model->payment_methods['account'] = $paymentRepo->GetPaymentTypeByName('Account')->toArray();
-            $model->payment_methods['account']['account_balance'] = $account->account_balance;
-            $model->payment_methods['stripe_pending'] = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+            $model->payment_methods[] = ['label' => 'Card On File', 'options' => $this->GetStripePaymentMethods($account)];
+            if($account->account_balance > 0) {
+                $accountPaymentMethod = $paymentRepo->GetPaymentTypeByName('Account');
+                $accountPaymentMethod->account_balance = $account->account_balance;
+                $model->payment_methods[] = ['label' => 'Account', 'options' => [$accountPaymentMethod]];
+            }
+            $model->payment_methods[] = ['label' => 'Card Not On File', 'options' => [$paymentRepo->GetPaymentTypeByName('Stripe (Pending)')]];
+            $model->payment_methods[] = ['label' => 'Prepaid', 'options' => $paymentRepo->GetPrepaidPaymentTypes()];
         } else {
-            $model->payment_methods['prepaid'] = $paymentRepo->GetPrepaidPaymentTypes();
-            $model->payment_methods['stripe_pending'] = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+            $model->payment_methods[] = ['label' => 'Card Not On File', 'options' => [$paymentRepo->GetPaymentTypeByName('Stripe (Pending)')]];
+            $model->payment_methods[] = ['label' => 'Prepaid', 'options' => $paymentRepo->GetPrepaidPaymentTypes()];
         }
 
         return $model;

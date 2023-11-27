@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 
 import PaymentModal from '../partials/Payments/PaymentModal'
 import PaymentTable from '../partials/Payments/PaymentTable'
+import LoadingSpinner from '../partials/LoadingSpinner'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
@@ -93,13 +94,8 @@ function Invoice(props) {
         )
     }
 
-    if(isLoading) {
-        return <Row className='justify-content-md-center' style={{paddingTop: '20px'}}>
-            <Col md={11}>
-                <h1>Loading, please wait... <i className='fas fa-spinner fa-spin'></i></h1>
-            </Col>
-        </Row>
-    }
+    if(isLoading)
+        return <LoadingSpinner />
 
     return (
         <Fragment>
@@ -186,7 +182,7 @@ function Invoice(props) {
                                     <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{invoice.bill_count_with_missed_line_items}</Badge>
                                 </Button>
                             }
-                            {(permissions.processPayments && invoice.balance_owing > 0) &&
+                            {(permissions.processPayments && isFinalized && invoice.balance_owing > 0) &&
                                 <Button variant='success' disabled={invoice.balance_owing == 0} onClick={() => setShowPaymentModal(!showPaymentModal)}>
                                     <i className='fas fa-hand-holding-usd'></i> Process Payment
                                 </Button>

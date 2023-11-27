@@ -1,29 +1,24 @@
 import React, {Fragment, useState} from 'react'
 import {Button, ButtonGroup, Col, FormControl, Modal, Row} from 'react-bootstrap'
 
-export default function CardOnFileBody(props) {
+export default function AccountCreditBody(props) {
     const [comment, setComment] = useState('')
 
     const storePayment = () => {
+        const accountBalance = parseFloat(props.paymentMethod.account_balance)
+
+        const localPaymentAmount = accountBalance > props.paymentAmount ? props.paymentAmount : accountBalance
+
         const data = {
-            amount: props.paymentAmount,
-            comment: comment ?? null,
-            invoice_id: props.invoiceId,
+            amount: localPaymentAmount,
             payment_method: props.paymentMethod,
-            reference_value: props.paymentMethod.name
         }
 
-        makeAjaxRequest('/payments/accountPayment', 'POST', data, response => {
-            props.refreshPaymentsTab()
-            props.setAccountBalance(response.account_balance)
-            props.setBalanceOwing(response.balance_owing)
-            setIsLoading(false)
-            hideModal()
-        }, () => hideModal())
-
-        makeAjaxRequest('/payments', 'POST', data, response => {
-            props.hideModal()
-        })
+        if(confirm(`Are you sure you would like to pay ${localPaymentAmount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})} towards invoice ${props.invoiceId}?`)) {
+            makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
+                props.hideModal()
+            })
+        }
     }
 
     return (
@@ -53,5 +48,4 @@ export default function CardOnFileBody(props) {
         </Fragment>
     )
 }
-
 

@@ -5,6 +5,9 @@ import ReactDOM from 'react-dom'
 
 export default function PaymentTable(props) {
     const formatPaymentIntentStatus = cell => {
+        if(!cell.getValue())
+            return ''
+
         const element = document.createElement('div')
 
         const data = cell.getRow().getData();
@@ -44,7 +47,11 @@ export default function PaymentTable(props) {
     const columns = [
         ...props.canUndoPayments ? [
             {
-                formatter: cell => {if(!cell.getRow().getData().is_stripe_transaction) return "<button class='btn btn-sm btn-warning'><i class='fas fa-undo'></i></button>"},
+                formatter: cell => {
+                    if(!cell.getRow().getData().is_stripe_transaction)
+                        return "<button class='btn btn-sm btn-warning'><i class='fas fa-undo'></i></button>"
+                    return ''
+                },
                 titleFormatter: () => "<i class='fas fa-undo'></i>",
                 width: 50,
                 hozAlign: 'center',
@@ -67,7 +74,7 @@ export default function PaymentTable(props) {
             return cell.getValue()
         }},
         {title: 'Reference Number', field: 'reference_value', headerFilter: true},
-        {title: 'Comment', field: 'comment'},
+        {title: 'Comment', field: 'comment', formatter: 'textarea'},
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
         {title: 'Payment Status', field: 'payment_intent_status', formatter: formatPaymentIntentStatus},
     ]

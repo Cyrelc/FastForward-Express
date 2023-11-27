@@ -1,7 +1,9 @@
 import React, {Fragment, useEffect, useState} from 'react'
-import {Button, ButtonGroup, Container, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
+import {Button, ButtonGroup, Container, Col, InputGroup, Modal, Row} from 'react-bootstrap'
 import CurrencyInput from 'react-currency-input-field'
+import Select from 'react-select'
 
+import AccountCreditBody from './AccountCreditBody'
 import PrepaidBody from './PrepaidBody'
 import StripePaymentBody from './StripePaymentBody'
 
@@ -15,14 +17,11 @@ import StripePaymentBody from './StripePaymentBody'
 */
 
 const PaymentModal = props => {
-    const [accountPaymentMethod, setAccountPaymentMethod] = useState(0)
-    const [cardsOnFile, setCardsOnFile] = useState([])
     const [clientSecret, setClientSecret]  = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [paymentAmount, setPaymentAmount] = useState(props.invoiceBalanceOwing)
     const [paymentMethod, setPaymentMethod] = useState('')
-    const [prepaidPaymentMethods, setPrepaidPaymentMethods] = useState([])
-    const [stripePendingPaymentMethod, setStripePendingPaymentMethod] = useState([])
+    const [paymentMethods, setPaymentMethods] = useState([])
 
     useEffect(() => {
         setPaymentAmount(props.invoiceBalanceOwing)
@@ -56,10 +55,7 @@ const PaymentModal = props => {
             makeAjaxRequest(`/payments/${props.invoiceId}`, 'GET', null, response => {
                 response = JSON.parse(response)
 
-                setCardsOnFile(response.payment_methods.cards_on_file)
-                setPrepaidPaymentMethods(response.payment_methods.prepaid)
-                setAccountPaymentMethod(response.payment_methods.account)
-                setStripePendingPaymentMethod(response.payment_methods.stripe_pending)
+                setPaymentMethods(response.payment_methods)
 
                 setIsLoading(false)
             })
@@ -103,95 +99,14 @@ const PaymentModal = props => {
                 paymentAmount={paymentAmount}
                 invoiceId={props.invoiceId}
             />
-        return <PaymentMethodSelectBody />
-    }
-
-    const payFromAccount = () => {
-        const accountBalance = parseFloat(accountPaymentMethod.account_balance)
-
-        const localPaymentAmount = accountBalance > paymentAmount ? paymentAmount : accountBalance
-
-        const data = {
-            amount: localPaymentAmount,
-            payment_method: accountPaymentMethod,
-        }
-
-        if(confirm(`Are you sure you would like to pay ${localPaymentAmount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})} towards invoice ${props.invoiceId}?`)) {
-            makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
-                props.refresh()
-                hideModal()
-            })
-        }
-    }
-
-    const PaymentMethodSelectBody = () => {
-        return (
-            <Fragment>
-                <Modal.Body>
-                    <Container>
-                        <Row className='justify-content-md-center'>
-                            {(accountPaymentMethod?.account_balance > 0) &&
-                                <Fragment>
-                                    <Col md={3}>
-                                        <h4>Account Credit</h4>
-                                    </Col>
-                                    <Col>
-                                        <Button
-                                            variant='primary'
-                                            onClick={payFromAccount}
-                                        >
-                                            Account (${accountPaymentMethod.account_balance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})})
-                                        </Button>
-                                    </Col>
-                                    <Col md={12}>
-                                        <hr/>
-                                    </Col>
-                                </Fragment>
-                            }
-                            {cardsOnFile?.length > 0 &&
-                                <Fragment>
-                                    <Col md={3}><h4>Cards on File</h4></Col>
-                                    {cardsOnFile.map(card =>
-                                        <Col key={card.name}>
-                                            <Button variant='primary' onClick={() => setPaymentMethod(card)}>{card.name}</Button>
-                                        </Col>
-                                    )}
-                                    <Col md={12}>
-                                        <hr/>
-                                    </Col>
-                                </Fragment>
-                            }
-                            <Col md={3}><h4>One Time Charge</h4></Col>
-                            <Col>
-                                <Button variant='primary' onClick={() => setPaymentMethod(stripePendingPaymentMethod)}>
-                                    <i className='fab fa-stripe fa-lg fa-border'></i> Process one-time Credit Card transaction
-                                </Button>
-                            </Col>
-                            {prepaidPaymentMethods.length > 0 &&
-                                <Fragment>
-                                    <Col md={12}>
-                                        <hr/>
-                                    </Col>
-                                    <Col md={3}><h4>Prepaid Methods</h4></Col>
-                                    {prepaidPaymentMethods.map(paymentMethod =>
-                                        <Col key={paymentMethod.name}>
-                                            <Button variant='primary' onClick={() => setPaymentMethod(paymentMethod)}>
-                                                {paymentMethod.name}
-                                            </Button>
-                                        </Col>
-                                    )}
-                                </Fragment>
-                            }
-                        </Row>
-                    </Container>
-                </Modal.Body>
-                <Modal.Footer className='justify-content-md-center'>
-                    <ButtonGroup>
-                        <Button variant='light' onClick={hideModal}>Cancel</Button>
-                    </ButtonGroup>
-                </Modal.Footer>
-            </Fragment>
-        )
+        else if(paymentMethod.type == 'account')
+            return <AccountCreditBody
+                hideModal={hideModal}
+                invoiceId={props.invoiceId}
+                paymentAmount={paymentAmount}
+                paymentMethod={paymentMethod}
+            />
+        return null
     }
 
     if(isLoading)
@@ -204,10 +119,27 @@ const PaymentModal = props => {
     return (
         <Modal show={props.show} onHide={hideModal} size='xl'>
             <Modal.Header closeButton>
+                <Modal.Title>Payment On Invoice #{props.invoiceId}</Modal.Title>
+            </Modal.Header>
+            <Modal.Header>
                 <Container>
                     <Row>
                         <Col>
-                            <Modal.Title>Payment On Invoice #{props.invoiceId}</Modal.Title>
+                            <InputGroup>
+                                <InputGroup.Text>Payment Method</InputGroup.Text>
+                                <Select
+                                    className='form-control'
+                                    getOptionLabel={paymentMethod => {
+                                        if(paymentMethod.name == 'Account')
+                                            return `${paymentMethod.name} ($${paymentMethod.account_balance.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})})`
+                                        return paymentMethod.name
+                                    }}
+                                    getOptionValue={paymentMethod => paymentMethod.payment_type_id}
+                                    onChange={setPaymentMethod}
+                                    options={paymentMethods}
+                                    value={paymentMethod}
+                                />
+                            </InputGroup>
                         </Col>
                         <Col>
                             <Modal.Title>

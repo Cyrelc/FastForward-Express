@@ -25,17 +25,8 @@ export default function PrepaidBody(props) {
         <Fragment>
             <Modal.Body>
                 <Row>
-                    <Col md={6}>
-                        <InputGroup>
-                            <InputGroup.Text>Prepaid Method:</InputGroup.Text>
-                            <FormControl
-                                value={props.paymentMethod.name}
-                                disabled
-                            />
-                        </InputGroup>
-                    </Col>
                     {props.paymentMethod?.required_field &&
-                        <Col md={6}>
+                        <Col md={12}>
                             <InputGroup>
                                 <InputGroup.Text>{props.paymentMethod.required_field}</InputGroup.Text>
                                 <FormControl
