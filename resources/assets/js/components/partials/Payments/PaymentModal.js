@@ -60,8 +60,7 @@ const PaymentModal = props => {
                 setIsLoading(false)
             })
         } else {
-            setCardsOnFile([])
-            setPrepaidPaymentMethods([])
+            setPaymentMethods([])
             setIsLoading(false)
         }
     }, [props.show])
@@ -72,9 +71,7 @@ const PaymentModal = props => {
     }, [paymentAmount])
     
     const hideModal = () => {
-        setPaymentMethod('')
-        setPrepaidPaymentMethods([])
-        setCardsOnFile([])
+        setPaymentMethods([])
         props.refresh()
         props.hide()
     }
