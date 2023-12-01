@@ -13,16 +13,8 @@ export default function CardOnFileBody(props) {
         }
 
         makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
-            props.refreshPaymentsTab()
-            props.setAccountBalance(response.account_balance)
-            props.setBalanceOwing(response.balance_owing)
-            setIsLoading(false)
-            hideModal()
-        }, () => hideModal())
-
-        makeAjaxRequest('/payments', 'POST', data, response => {
             props.hideModal()
-        })
+        }, () => props.hideModal())
     }
 
     return (
