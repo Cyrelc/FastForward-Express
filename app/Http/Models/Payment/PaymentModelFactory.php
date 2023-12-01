@@ -39,6 +39,8 @@ class PaymentModelFactory {
     }
 
     private function GetStripePaymentMethods($account) {
+        $paymentRepo = new Repos\PaymentRepo();
+
         if(!$account->hasDefaultPaymentMethod() && $account->hasPaymentMethod()) {
             $paymentMethods = $account->paymentMethods();
             $account->updateDefaultPaymentMethod($paymentMethods[0]->id);
