@@ -50,12 +50,13 @@ class PaymentModelFactory {
         $paymentMethods = $account->paymentMethods();
 
         $result = array();
-        $paymentType = $paymentRepo->GetPaymentTypeByName($card->brand);
-        if(!$paymentType)
-            $paymentType = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
 
         foreach($paymentMethods as $paymentMethod) {
             $expiryDate = \DateTime::createFromFormat('Y/m', $paymentMethod->card->exp_year . '/' . $paymentMethod->card->exp_month);
+
+            $paymentType = $paymentRepo->GetPaymentTypeByName($paymentMethod->card->brand);
+            if(!$paymentType)
+                $paymentType = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
 
             $result[] = [
                 'brand' => $paymentMethod->card->brand,
