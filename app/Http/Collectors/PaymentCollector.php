@@ -42,16 +42,16 @@ class PaymentCollector {
     }
 
     // // The default collection used for account Invoice payments - with or without a paymentIntent (Stripe transaction)
-    public function CollectCardOnFile($req, $outstandingInvoice, $paymentIntent) {
+    public function CollectCardOnFile($req, $invoice, $paymentIntent) {
         return [
             'account_id' => $req->account_id,
-            'amount' => $outstandingInvoice['payment_amount'],
+            'amount' => $req->amount,
             'comment' => $req->comment == "" ? null : $req->comment,
             'date' => date('Y-m-d'),
-            'invoice_id' => $outstandingInvoice['invoice_id'],
+            'invoice_id' => $invoice->invoice_id,
             'payment_intent_id' => $paymentIntent->id,
             'payment_type_id' => $req->payment_method['payment_type_id'],
-            'reference_value' => $req->reference_value,
+            'reference_value' => $req->payment_method['name'],
             'payment_intent_status' => 'payment_intent.pending'
         ];
     }

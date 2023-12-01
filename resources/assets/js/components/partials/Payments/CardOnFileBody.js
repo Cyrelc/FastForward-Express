@@ -8,12 +8,11 @@ export default function CardOnFileBody(props) {
         const data = {
             amount: props.paymentAmount,
             comment: comment ?? null,
-            invoice_id: props.invoiceId,
             payment_method: props.paymentMethod,
             reference_value: props.paymentMethod.name
         }
 
-        makeAjaxRequest('/payments/accountPayment', 'POST', data, response => {
+        makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
             props.refreshPaymentsTab()
             props.setAccountBalance(response.account_balance)
             props.setBalanceOwing(response.balance_owing)
