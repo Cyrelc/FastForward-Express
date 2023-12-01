@@ -4,6 +4,7 @@ import CurrencyInput from 'react-currency-input-field'
 import Select from 'react-select'
 
 import AccountCreditBody from './AccountCreditBody'
+import CardOnFileBody from './CardOnFileBody'
 import PrepaidBody from './PrepaidBody'
 import StripePaymentBody from './StripePaymentBody'
 
