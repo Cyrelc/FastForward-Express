@@ -24,7 +24,8 @@ const StripeForm = (props) => {
             console.error('Failed to submit stripe payment', result.error)
             toastr.error(result.error, 'Error')
         } else {
-            props.hide()
+            props.hideModal()
+            toastr.success('Payment successful!')
         }
     }
 

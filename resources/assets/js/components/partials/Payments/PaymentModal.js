@@ -94,8 +94,9 @@ const PaymentModal = props => {
             />
         else if(paymentMethod.type == 'stripe_pending')
             return <StripePaymentBody
-                paymentAmount={paymentAmount}
+                hideModal={hideModal}
                 invoiceId={props.invoiceId}
+                paymentAmount={paymentAmount}
             />
         else if(paymentMethod.type == 'account')
             return <AccountCreditBody
