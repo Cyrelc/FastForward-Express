@@ -37,7 +37,8 @@ class PaymentCollector {
             'comment' => $req->comment ?? null,
             'date' => date('Y-m-d'),
             'invoice_id' => $invoice->invoice_id,
-            'payment_type_id' => $req->payment_method['payment_type_id']
+            'payment_type_id' => $req->payment_method['payment_type_id'],
+            'reference_value' => $req->reference_value ?? null
         ];
     }
 
