@@ -63,18 +63,6 @@ class UserRepo
         return $accountUser->first();
     }
 
-    // public function GetAccountUserIds ($account_id) {
-    //     $query = \App\AccountUser::where('account_id', $account_id)
-    //         ->leftJoin('email_addresses', 'email_addresses.contact_id', '=', 'account_users.contact_id')
-    //         ->leftJoin('phone_numbers', 'phone_numbers.contact_id', '=', 'account_users.contact_id');
-    //     $accountUsers['contact_ids'] = $query->pluck('account_users.contact_id');
-    //     $accountUsers['user_ids'] = $query->pluck('user_id');
-    //     $accountUsers['email_ids'] = $query->pluck('email_address_id');
-    //     $accountUsers['phone_ids'] = $query->pluck('phone_number_id');
-
-    //     return $accountUsers;
-    // }
-
     public function GetAccountUsers($accountId) {
         $accountUsers = AccountUser::where('account_id', $accountId)
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
@@ -100,6 +88,15 @@ class UserRepo
                 'pronouns',
                 DB::raw('(select count(*) from account_users where account_users.contact_id = contacts.contact_id) as belongs_to_count')
             );
+
+        return $accountUsers->get();
+    }
+
+    public function GetAccountUsersWithEmailRole($accountId, $role) {
+        $accountUsers = AccountUser::where('account_id', $accountId)
+            ->leftJoin('contacts', 'contacts.contact_id', 'account_users.contact_id')
+            ->leftJoin('email_addresses', 'email_addresses.contact_id', 'contacts.contact_id')
+            ->where('email_addresses.type', 'like', '%' . $role . '%');
 
         return $accountUsers->get();
     }

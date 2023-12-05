@@ -220,6 +220,13 @@ class InvoiceRepo {
         return $filteredInvoices->get();
     }
 
+    public function MarkNotificationSent($invoiceId) {
+        $invoice->where('invoice_id', $invoiceId)
+            ->update(['notification_sent' => true]);
+
+        return;
+    }
+
     public function RegatherInvoice($invoice) {
         $accountRepo = new AccountRepo();
         $lineItemRepo = new LineItemRepo();
@@ -241,6 +248,7 @@ class InvoiceRepo {
         $invoice->finalized = !filter_var($invoice->finalized, FILTER_VALIDATE_BOOLEAN);
 
         $invoice->save();
+        return $invoice;
     }
 
     /**

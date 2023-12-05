@@ -23,6 +23,7 @@ class CreateInvoicesTable extends Migration
             $table->float('discount')->nullable();
             $table->boolean('finalized')->default(0);
             $table->float('min_invoice_amount')->nullable();
+            $table->boolean('notification_sent')->default(0);
             $table->unsignedInteger('payment_type_id')->nullable();
             $table->float('tax');
             $table->float('total_cost');

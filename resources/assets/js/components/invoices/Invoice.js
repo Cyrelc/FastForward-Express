@@ -89,9 +89,10 @@ function Invoice(props) {
     }
 
     const toggleFinalized = () => {
-        makeAjaxRequest(`/invoices/finalize/${params.invoiceId}`, 'GET', null, response =>
-            setIsFinalized(!isFinalized)
-        )
+        makeAjaxRequest(`/invoices/finalize/${params.invoiceId}`, 'GET', null, response => {
+            const finalized = response.invoices[params.invoiceId]['finalized']
+            setIsFinalized(finalized)
+        })
     }
 
     if(isLoading)

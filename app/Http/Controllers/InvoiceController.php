@@ -15,7 +15,7 @@ use App\Http\Services;
 use Illuminate\Support\Facades\Storage;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
-
+use App\Jobs\SendInvoiceFinalizedEmail;
 
 class InvoiceController extends Controller {
     private $storagePath;
@@ -81,17 +81,29 @@ class InvoiceController extends Controller {
 
     public function finalize(Request $req, $invoiceIds) {
         $invoiceRepo = new Repos\InvoiceRepo();
+        $userRepo = new Repos\UserRepo();
+
         $invoiceIdArray = json_decode($invoiceIds);
         if(!is_array($invoiceIdArray))
             $invoiceIdArray = array($invoiceIdArray);
 
+        $invoices = [];
+
         foreach($invoiceIdArray as $invoiceId)
             if($req->user()->cannot('update', $invoiceRepo->GetById($invoiceId)))
                 abort(403);
-            else
-                $invoiceRepo->ToggleFinalized($invoiceId);
+            else {
+                $invoice = $invoiceRepo->ToggleFinalized($invoiceId);
+                $invoices[$invoice->invoice_id] = ['finalized' => $invoice->finalized];
+                if($invoice->finalized && $invoice->account_id) {
+                    $billingUsers = $userRepo->GetAccountUsersWithEmailRole($invoice->account_id, 'Billing');
+                    if($billingUsers && count($billingUsers) > 0) {
+                        SendInvoiceFinalizedEmail::dispatch($billingUsers, $invoice)->delay(now()->addHours(2));
+                    }
+                }
+            }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'invoices' => $invoices]);
     }
 
     public function getModel(Request $req, $invoiceId = null) {
