@@ -57,7 +57,7 @@ class PaymentModelFactory {
             $payments[$key]['can_be_reverted'] = false;
             if(filter_var($payment->is_stripe_transaction, FILTER_VALIDATE_BOOLEAN) == false)
                 $payments[$key]['can_be_reverted'] = true;
-            else if($payment->payment_intent_status == 'payment_intent.requires_payment_method')
+            else if($payment->payment_intent_status == 'requires_payment_method')
                 $payments[$key]['can_be_reverted'] = true;
         }
 
