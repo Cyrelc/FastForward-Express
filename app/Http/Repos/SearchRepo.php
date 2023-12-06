@@ -30,17 +30,15 @@ class SearchRepo {
         $myAccounts = $this->user->accountUsers ? $accountRepo->GetMyAccountIds($this->user, $this->user->can('accounts.view.basic.children')) : null;
 
         $accounts = Account::where(function($query) use ($searchTerm) {
-                $words = preg_split('/\s+/', $searchTerm);
+                $words = preg_split('/[\s+\-<>()~*"@]+/', $searchTerm, -1, PREG_SPLIT_NO_EMPTY);
                 $words = array_filter($words, function($word) {
-                    return strlen($word) > 2 && strpbrk($word, '+-<>()~*\"@') === false;
+                    return strlen($word) > 2;
                 });
-                if(!empty($words)) {
-                    $booleanSearchTerm = '+' . implode('* +', $words) . '*';
-                    $query->orWhereRaw('MATCH(name) against (? in boolean mode)', [$booleanSearchTerm]);
-                }
+                $words = '+' . implode('* +', $words) . '*';
 
                 $query->where('account_id', $searchTerm)
-                ->orWhere('account_number', 'like', '%' . $searchTerm . '%');
+                ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
+                ->orWhereRaw('MATCH(name) against (? in boolean mode)', [$words]);
             })->select(
                 'account_number',
                 DB::raw('CONCAT("/app/accounts/", account_id) as link'),
