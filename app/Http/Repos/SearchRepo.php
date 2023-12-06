@@ -34,11 +34,14 @@ class SearchRepo {
                 $words = array_filter($words, function($word) {
                     return strlen($word) > 2;
                 });
-                $words = '+' . implode('* +', $words) . '*';
+                $words = array_map(function($word) {
+                    return '+' . addcslashes($word, '+-<>()~*\"@') . '*';
+                });
+                $booleanSearchTerm = implode(' ', $words);
 
                 $query->where('account_id', $searchTerm)
                 ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
-                ->orWhereRaw('MATCH(name) against (? in boolean mode)', [$words]);
+                ->orWhereRaw('MATCH(name) against (? in boolean mode)', [$booleanSearchTerm]);
             })->select(
                 'account_number',
                 DB::raw('CONCAT("/app/accounts/", account_id) as link'),
