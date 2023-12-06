@@ -32,16 +32,15 @@ class SearchRepo {
         $accounts = Account::where(function($query) use ($searchTerm) {
                 $words = preg_split('/\s+/', $searchTerm);
                 $words = array_filter($words, function($word) {
-                    return strlen($word) > 2;
+                    return strlen($word) > 2 && strpbrk($word, '+-<>()~*\"@') === false;
                 });
-                $words = array_map(function($word) {
-                    return '+' . addcslashes($word, '+-<>()~*\"@') . '*';
-                }, $words);
-                $booleanSearchTerm = implode(' ', $words);
+                if(!empty($words)) {
+                    $booleanSearchTerm = '+' . implode('* +', $words) . '*';
+                    $query->orWhereRaw('MATCH(name) against (? in boolean mode)', [$booleanSearchTerm]);
+                }
 
                 $query->where('account_id', $searchTerm)
-                ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
-                ->orWhereRaw('MATCH(name) against (? in boolean mode)', [$booleanSearchTerm]);
+                ->orWhere('account_number', 'like', '%' . $searchTerm . '%');
             })->select(
                 'account_number',
                 DB::raw('CONCAT("/app/accounts/", account_id) as link'),
