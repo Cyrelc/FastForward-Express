@@ -36,7 +36,7 @@ class SearchRepo {
                 });
                 $words = array_map(function($word) {
                     return '+' . addcslashes($word, '+-<>()~*\"@') . '*';
-                });
+                }, $words);
                 $booleanSearchTerm = implode(' ', $words);
 
                 $query->where('account_id', $searchTerm)
