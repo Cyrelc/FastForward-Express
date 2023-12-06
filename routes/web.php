@@ -126,7 +126,7 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
     Route::post('/{invoiceId}', 'ProcessPayment');
     Route::get('/{invoiceId}', 'GetReceivePaymentModel');
-    Route::delete('/{paymentId}', 'UndoPayment');
+    Route::delete('/{paymentId}', 'RevertPayment');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('paymentMethods')->group(function() {

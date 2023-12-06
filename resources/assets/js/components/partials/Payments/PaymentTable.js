@@ -27,16 +27,12 @@ export default function PaymentTable(props) {
         return element
     }
 
-    const undoPayment = cell => {
-        if(!props.canUndoPayments) {
+    const revertPayment = cell => {
+        if(!props.canRevertPayments) {
             console.log("Does not have permission to undo payments")
             return
         }
         const rowData = cell.getRow().getData()
-        if(rowData.has_stripe_transaction) {
-            console.log('Unable to undo payment, as it is a stripe transaction')
-            return
-        }
 
         if(confirm(`Are you certain you would like to undo the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
             makeAjaxRequest(`/payments/${rowData.payment_id}`, 'DELETE', null, response => {
@@ -45,10 +41,10 @@ export default function PaymentTable(props) {
     }
 
     const columns = [
-        ...props.canUndoPayments ? [
+        ...props.canRevertPayments ? [
             {
                 formatter: cell => {
-                    if(!cell.getRow().getData().is_stripe_transaction)
+                    if(cell.getRow().getData().can_be_reverted)
                         return "<button class='btn btn-sm btn-warning'><i class='fas fa-undo'></i></button>"
                     return ''
                 },
@@ -58,7 +54,7 @@ export default function PaymentTable(props) {
                 headerHozAlign: 'center',
                 headerSort: false,
                 print: false,
-                cellClick: (e, cell) => undoPayment(cell)
+                cellClick: (e, cell) => revertPayment(cell)
             }
         ] : [],
         {title: 'Payment ID', field: 'payment_id', visible: false},

@@ -389,7 +389,7 @@ const Account = props => {
                                 createPayments={permissions.createPayments}
                                 canEditPaymentMethods={permissions.editPaymentMethods}
                                 canEditPayments={permissions.editPayments}
-                                canUndoPayments={permissions.undoPayments}
+                                canRevertPayments={permissions.revertPayments}
                                 canViewInvoices={permissions.viewInvoices}
                             />
                         </Tab>

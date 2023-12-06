@@ -242,7 +242,7 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function UndoPayment(Request $req, $paymentId) {
+    public function RevertPayment(Request $req, $paymentId) {
         if($req->user()->cannot('undo', Payment::class))
             abort(403);
 
@@ -250,7 +250,9 @@ class PaymentController extends Controller {
         $payment = $paymentRepo->GetById($paymentId);
         $accountPaymentTypeId = $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id;
 
-        if($payment->invoice_id) {
+        DB::beginTransaction();
+
+        if($payment->invoice_id && !$payment->isStripeTransaction()) {
             $invoiceRepo = new Repos\InvoiceRepo();
             $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
         }
@@ -258,7 +260,10 @@ class PaymentController extends Controller {
             $accountRepo = new Repos\AccountRepo();
             $accountRepo->AdjustBalance($payment->account_id, $payment->amount);
         }
+
         $payment->delete();
+
+        DB::commit();
     }
 }
 ?>

@@ -10,6 +10,20 @@ class PaymentModelFactory {
         return $this->GetStripePaymentMethods($account);
     }
 
+    public function GetAccountPayments($accountId) {
+        $paymentRepo = new Repos\PaymentRepo();
+        $payments = $paymentRepo->GetPaymentsByAccountId($accountId);
+
+        return $this->FindRevertablePayments($payments);
+    }
+
+    public function GetInvoicePayments($invoiceId) {
+        $paymentRepo = new Repos\PaymentRepo();
+        $payments = $paymentRepo->GetByInvoiceId($invoiceId);
+
+        return $this->FindRevertablePayments($payments);
+    }
+
     public function GetReceivePaymentModel($invoice) {
         $accountRepo = new Repos\AccountRepo();
         $paymentRepo = new Repos\PaymentRepo();
@@ -36,6 +50,18 @@ class PaymentModelFactory {
         }
 
         return $model;
+    }
+
+    private function FindRevertablePayments($payments) {
+        foreach($payments as $key => $payment) {
+            $payments[$key]['can_be_reverted'] = false;
+            if(filter_var($payment->is_stripe_transaction, FILTER_VALIDATE_BOOLEAN) == false)
+                $payments[$key]['can_be_reverted'] = true;
+            else if($payment->payment_intent_status == 'payment_intent.requires_payment_method')
+                $payments[$key]['can_be_reverted'] = true;
+        }
+
+        return $payments;
     }
 
     private function GetStripePaymentMethods($account) {

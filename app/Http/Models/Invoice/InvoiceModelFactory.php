@@ -10,6 +10,7 @@ class InvoiceModelFactory{
 	public function GetById($req, $invoiceId) {
 		$model = new InvoiceViewModel();
 
+		$paymentModelFactory = new PaymentModelFactory();
 		$permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
 
 		$accountRepo = new Repos\AccountRepo();
@@ -17,7 +18,6 @@ class InvoiceModelFactory{
 		$billRepo = new Repos\BillRepo();
 		$invoiceRepo = new Repos\InvoiceRepo();
 		$lineItemRepo = new Repos\LineItemRepo();
-		$paymentRepo = new Repos\PaymentRepo();
 
 		$model->invoice = $invoiceRepo->GetById($invoiceId);
 		$model->invoice->bill_count = $billRepo->CountByInvoiceId($model->invoice->invoice_id);
@@ -86,7 +86,7 @@ class InvoiceModelFactory{
 			$model->account_owing = $invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id);
 
 			if($req->user()->can('viewPayments', $model->parent))
-				$model->payments = $paymentRepo->GetByInvoiceId($model->invoice->invoice_id);
+				$model->payments = $paymentModelFactory->GetInvoicePayments($model->invoice->invoice_id);
 
 			if($req->user()->can('processPayments', $model->parent)) {
 				$paymentModelFactory = new PaymentModelFactory();
@@ -94,6 +94,8 @@ class InvoiceModelFactory{
 			}
 		// Otherwise the model belongs to a prepaid, one off invoice
 		} else {
+			$paymentRepo = new Repos\PaymentRepo();
+
 			$model->parent = new \stdClass;
 			$model->parent->name = $paymentRepo->GetPaymentType($model->invoice->payment_type_id)->name;
 			$model->tables = array();
@@ -121,7 +123,7 @@ class InvoiceModelFactory{
 			$model->account_owing = $model->invoice->balance_owing;
 
 			if($req->user()->can('payments.view.*.*'))
-				$model->payments = $paymentRepo->GetByInvoiceId($model->invoice->invoice_id);
+				$model->payments = $paymentModelFactory->GetInvoicePayments($model->invoice->invoice_id);
 		}
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);

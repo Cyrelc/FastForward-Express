@@ -100,7 +100,7 @@ export default function BillingTab(props) {
                         <Col md={10}>
                             {isLoading ? <LoadingSpinner /> :
                                 <PaymentTable
-                                    canUndoPayments={props.canUndoPayments}
+                                    canRevertPayments={props.canRevertPayments}
                                     canViewInvoices={props.canViewInvoices}
                                     payments={payments}
                                     refresh={refreshModel}

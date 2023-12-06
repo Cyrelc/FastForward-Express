@@ -136,7 +136,7 @@ class UserCollector {
             /* Payments */
             'payments.create.*.*' => 'createPayments',
             'payments.edit.*' => 'editPayments',
-            'payments.delete.*.*' => 'undoPayments',
+            'payments.delete.*.*' => 'revertPayments',
             'payments.view.*.*' => 'viewPayments',
             /* Ratesheets */
             'ratesheets.create.*.*' => 'editAppSettings',

@@ -393,7 +393,7 @@ function Invoice(props) {
                             <Fragment>
                                 <h4>Payments</h4>
                                 <PaymentTable
-                                    canUndoPayments={permissions.undoPayments}
+                                    canRevertPayments={permissions.revertPayments}
                                     payments={payments}
                                     refresh={getInvoice}
                                     viewInvoices={true}

@@ -35,7 +35,7 @@ class PermissionModelFactory {
                 'editInvoicing' => $user->can('updateInvoicing', $account),
                 'editPaymentMethods' => $user->can('updatePaymentMethods', $account),
                 'editPayments' => $user->can('updatePayments', $account),
-                'undoPayments' => $user->can('undo', Payment::class),
+                'revertPayments' => $user->can('undo', Payment::class),
 
                 'impersonateAccountUsers' => $user->can('impersonateAccountUsers', $account),
     
@@ -205,7 +205,7 @@ class PermissionModelFactory {
             'createPayments' => $user ? $user->can('payments.create.*.*') : false,
             'viewPayments' => $user ? $user->can('payments.view.*.*') : false,
             'editPayments' => $user ? $user->can('payments.edit.*') : false,
-            'undoPayments' => $user ? $user->can('payments.delete.*.*') : false
+            'revertPayments' => $user ? $user->can('payments.delete.*.*') : false
         ];
     }
 
@@ -261,7 +261,7 @@ class PermissionModelFactory {
             'amend' => $user->can('update', $invoice),
             'edit' => $user->can('update', $invoice),
             'processPayments' => $user->can('create', Payment::class),
-            'undoPayments' => $user->can('undo', Payment::class),
+            'revertPayments' => $user->can('undo', Payment::class),
             'viewBills' => $user->can('viewBills', $account)
         ];
     }

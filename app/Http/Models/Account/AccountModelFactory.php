@@ -10,11 +10,12 @@ use App\Http\Models\User;
 
 class AccountModelFactory {
     public function GetBillingModel($accountId) {
-        $paymentRepo = new Repos\PaymentRepo();
+        $paymentModelFactory = new Models\Payment\PaymentModelFactory();
+
         $invoiceRepo = new Repos\InvoiceRepo();
 
         $model = new \stdClass();
-        $model->payments = $paymentRepo->GetPaymentsByAccountId($accountId);
+        $model->payments = $paymentModelFactory->GetAccountPayments($accountId);
         $model->outstanding_invoices = $invoiceRepo->GetOutstandingByAccountId($accountId);
 
         return $model;
