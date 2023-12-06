@@ -33,7 +33,7 @@
             </div>
             <div class='col-md-6' style='padding: 60px'>
                 <h2 style='color: grey; background: linear-gradient(to right, white, grey, white) center bottom no-repeat; background-size: 30% 2px'>Hot shot service</h2>
-                <h4>We can provide long-distance services as well. If you need something delivered elsewhere in Alberta, Canada, or even North America give us a call.</h4>
+                <h4>We can provide long-distance services as well. If you need something delivered elsewhere in Alberta or Canada give us a call!</h4>
             </div>
         </div>
     </div>
