@@ -80,6 +80,7 @@ class InvoiceController extends Controller {
     }
 
     public function finalize(Request $req, $invoiceIds) {
+        $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
         $userRepo = new Repos\UserRepo();
 
@@ -96,8 +97,9 @@ class InvoiceController extends Controller {
                 $invoice = $invoiceRepo->ToggleFinalized($invoiceId);
                 $invoices[$invoice->invoice_id] = ['finalized' => $invoice->finalized];
                 if($invoice->finalized && $invoice->account_id) {
+                    $account = $accountRepo->GetById($invoice->account_id);
                     $billingUsers = $userRepo->GetAccountUsersWithEmailRole($invoice->account_id, 'Billing');
-                    if($billingUsers && count($billingUsers) > 0) {
+                    if($account->send_email_invoices && $billingUsers && count($billingUsers) > 0) {
                         SendInvoiceFinalizedEmail::dispatch($billingUsers, $invoice)->delay(now()->addHours(2));
                     }
                 }
