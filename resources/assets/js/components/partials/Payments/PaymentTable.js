@@ -33,6 +33,10 @@ export default function PaymentTable(props) {
             return
         }
         const rowData = cell.getRow().getData()
+        if(!rowData.can_be_reverted) {
+            console.log("This payment may not be reverted at this time.")
+            return
+        }
 
         if(confirm(`Are you certain you would like to undo the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
             makeAjaxRequest(`/payments/${rowData.payment_id}`, 'DELETE', null, response => {

@@ -27,6 +27,10 @@ class Payment extends Model
         'reference_value',
     ];
 
+    public function IsStripeTransaction() {
+        return $this->payment_intent_id != null;
+    }
+
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()
             ->logFillable()
