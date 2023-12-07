@@ -8,4 +8,5 @@ class EmployeeViewModel
     public $contact;
     public $address;
     public $phoneNumber;
+    public $warnings;
 }

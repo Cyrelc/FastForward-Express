@@ -18,12 +18,6 @@ class EmployeeRepo {
         return $new->create($emergencyContact);
     }
 
-    // public function GetCommissionByAccount($accountId) {
-    //     $commission = EmployeeCommission::where('account_id', '=', $accountId)->first();
-
-    //     return $commission;
-    // }
-
     public function GetActiveDriversWithContact() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
@@ -40,19 +34,21 @@ class EmployeeRepo {
         return $employees->get();
     }
 
-    public function GetById($employeeId, $permissions) {
+    public function GetById($employeeId) {
         $employee = Employee::where('employee_id', '=', $employeeId)
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id');
 
-        if($permissions)
-            $employee->select(
-                array_merge(
-                    Employee::$readOnlyFields,
-                    $permissions['viewAdvanced'] ? Employee::$advancedFields : [],
-                    $permissions['viewAdvanced'] ? Employee::$driverFields : [],
-                    ['users.is_enabled as is_enabled']
-                )
-            );
+        // TODO: this will not age well, the call to Auth::user() will have to include the option to check sanctum where required
+        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+        $permissions = $permissionModelFactory->GetEmployeePermissions(Auth::user(), Employee::where('employee_id', $employeeId)->first());
+        $employee->select(
+            array_merge(
+                Employee::$readOnlyFields,
+                $permissions['viewAdvanced'] ? Employee::$advancedFields : [],
+                $permissions['viewAdvanced'] ? Employee::$driverFields : [],
+                ['users.is_enabled as is_enabled']
+            )
+        );
 
         return $employee->first();
     }

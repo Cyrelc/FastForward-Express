@@ -2,28 +2,40 @@ import React, {Fragment, useEffect, useState} from 'react'
 import { Modal, Row, Col, Button, ButtonGroup, Table } from "react-bootstrap"
 
 import Contact from '../partials/Contact'
+import LoadingSpinner from '../partials/LoadingSpinner'
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
 
 export default function EmergencyContacts (props) {
+    const [emergencyContacts, setEmergencyContacts] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
     const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false)
 
     const address = useAddress()
     const contact = useContact()
 
     const {
-        emergencyContacts,
         employeeId,
     } = props
+
+    useEffect(() => {
+        makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'GET', null, response => {
+            // response = JSON.parse(response)
+            setEmergencyContacts(response.emergency_contacts)
+            setIsLoading(false)
+        }, () => setIsLoading(false))
+    }, [])
+
+    useEffect(() => {
+        if(emergencyContacts.length < 2 && !isLoading)
+            toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+    }, [emergencyContacts, isLoading])
 
     const addEmergencyContact = () => {
         fetch('/employees/emergencyContacts')
         .then(response => {return response.json()})
         .then(data => {
-            setContactId('')
-            setEmailAddresses(data.emails)
-            setPhoneTypes(data.phoneTypes)
-            setPhoneNumbers(data.phone_numbers)
+            contact.setup(data)
             setShowEmergencyContactModal(true)
         })
     }
@@ -33,13 +45,11 @@ export default function EmergencyContacts (props) {
         if(emergencyContacts.length <= 1)
             return
         if(confirm(`Are you sure you wish to delete contact ${emergencyContact.name}?\nThis action can not be undone`)) {
-            const data = {
-                contact_id: contactId,
-                employee_id: employeeId
-            }
-            makeAjaxRequest('/employees/emergencyContacts', 'DELETE', data, response => {
+            setIsLoading(true)
+            makeAjaxRequest(`/employees/${employeeId}/emergencyContacts/${emergencyContact.contact_id}`, 'DELETE', null, response => {
                 setEmergencyContacts(response.emergencyContacts)
-            })
+                setIsLoading(false)
+            }, () => setIsLoading(false))
         }
     }
 
@@ -67,7 +77,6 @@ export default function EmergencyContacts (props) {
             address_place_id: address.placeId,
             contact_id: contact.contactId,
             emails: contact.emailAddresses,
-            employee_id: props.employeeId,
             first_name: contact.firstName,
             last_name: contact.lastName,
             phone_numbers: contact.phoneNumbers,
@@ -76,7 +85,7 @@ export default function EmergencyContacts (props) {
             pronouns: contact.pronouns
         }
 
-        makeAjaxRequest('/employees/emergencyContacts', 'POST', data, response => {
+        makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'POST', data, response => {
             toastr.clear()
             toastr.success(`Contact "${contact.firstName} ${contact.lastName}" successfully ${contact.contactId ? 'updated' : 'created'}`, 'Success')
 
@@ -84,6 +93,9 @@ export default function EmergencyContacts (props) {
             setEmergencyContacts(response.emergency_contacts)
         })
     }
+
+    if(isLoading)
+        return <LoadingSpinner />
 
     return (
         <Fragment>

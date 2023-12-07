@@ -3,11 +3,13 @@ import {Button, ButtonGroup, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstr
 import { LinkContainer } from 'react-router-bootstrap'
 import { connect } from 'react-redux'
 import {debounce} from 'lodash'
+import {DateTime} from 'luxon'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
 import BasicTab from './BasicTab'
 import DriverTab from './DriverTab'
+import LoadingSpinner from '../partials/LoadingSpinner'
 
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
@@ -19,7 +21,6 @@ const Employee = (props) => {
     const [deliveryCommission, setDeliveryCommission] = useState('')
     const [driversLicenseExpirationDate, setDriversLicenseExpirationDate] = useState(new Date())
     const [driversLicenseNumber, setDriversLicenseNumber] = useState('')
-    const [emergencyContacts, setEmergencyContacts] = useState([])
     const [employeeId, setEmployeeId] = useState(undefined)
     const [employeeNumber, setEmployeeNumber] = useState('')
     const [employeePermissions, setEmployeePermissions] = useState('')
@@ -36,15 +37,17 @@ const Employee = (props) => {
     const [pickupCommission, setPickupCommission] = useState('')
     const [prevEmployeeId, setPrevEmployeeId] = useState('')
     const [readOnly, setReadOnly] = useState(false)
-    const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false)
     const [SIN, setSIN] = useState('')
     const [startDate, setStartDate] = useState(new Date())
     const [updatedAt, setUpdatedAt] = useState('')
     const [vehicleType, setVehicleType] = useState({})
     const [vehicleTypes, setVehicleTypes] = useState([])
+    const [warnings, setWarnings] = useState([])
 
     const address = useAddress()
     const contact = useContact()
+    const now = DateTime.now().toJSDate()
+    const threeMonthsFromNow = DateTime.now().plus({month: 3}).toJSDate()
 
     useEffect(() => {
         toastr.clear()
@@ -73,12 +76,11 @@ const Employee = (props) => {
                 const prevEmployeeId = thisEmployeeIndex <= 0 ? null : props.sortedEmployees[thisEmployeeIndex - 1]
                 const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === props.sortedEmployees.length - 1) ? null : props.sortedEmployees[thisEmployeeIndex + 1]
 
-                address.setup(response.contact.address)
+                address.setup(response.address)
                 contact.setup(response.contact)
 
                 setActivityLog(response.activity_log)
                 setBirthDate(Date.parse(response.employee.dob))
-                setEmergencyContacts(response.emergency_contacts)
                 setEmployeeId(response.employee.employee_id)
                 setEmployeeNumber(response.employee.employee_number)
                 setIsDriver(!!response.employee.is_driver)
@@ -108,27 +110,32 @@ const Employee = (props) => {
 
     const debouncedWarnings = useCallback(
         debounce(() => {
-            if(isEnabled) {
+            if(isEnabled && employeeId) {
                 toastr.clear()
-                if(driversLicenseExpirationDate < new Date())
+                if(driversLicenseExpirationDate < now)
                     toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(licensePlateExpirationDate < new Date())
+                else if(driversLicenseExpirationDate < threeMonthsFromNow)
+                    toastr.warn('Drivers License will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+
+                if(licensePlateExpirationDate < now)
                     toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(insuranceExpirationDate < new Date())
+                else if(licensePlateExpirationDate < threeMonthsFromNow)
+                    toastr.warn('License Plate will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+
+                if(insuranceExpirationDate < now)
                     toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
-                if(emergencyContacts.length < 2)
-                    toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                else if(insuranceExpirationDate < threeMonthsFromNow)
+                    toastr.warn('Insurance will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
             }
-        }, 1000), [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, emergencyContacts]
+        }, 1000), [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled]
     )
 
     useEffect(() => {
         if(!isLoading)
             debouncedWarnings()
-    }, [driversLicenseExpirationDate, emergencyContacts, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, isLoading])
+    }, [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, isLoading])
 
     const storeEmployee = () => {
-        console.log("I'm gonna store an employee!")
         if(employeeId ? !permissions.editBasic : !permissions.create) {
             toastr.error(`Authenticated User does not have permission to ${employeeId ? 'update this Employee' : 'create Employee'}`, 'Error');
             return;
@@ -142,7 +149,6 @@ const Employee = (props) => {
             address_place_id: address.placeId,
             employee_id: employeeId,
             emails: contact.emailAddresses,
-            emergency_contacts: emergencyContacts,
             first_name: contact.firstName,
             last_name: contact.lastName,
             phone_numbers: contact.phoneNumbers,
@@ -195,27 +201,36 @@ const Employee = (props) => {
         })
     }
 
+    if(isLoading)
+        return <LoadingSpinner />
+
     return (
         <Fragment>
             {(employeeId && isDriver) &&
                 <Row className='justify-content-md-center'>
-                    <Col md={6}>
+                    <Col>
                         <ListGroup className='list-group-horizontal' as='ul'>
-                            {driversLicenseExpirationDate < new Date() &&
+                            {driversLicenseExpirationDate < now &&
                                 <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
                             }
-                            {licensePlateExpirationDate < new Date() &&
+                            {(driversLicenseExpirationDate < threeMonthsFromNow && driversLicenseExpirationDate > now) &&
+                                <ListGroup.Item variant='warning'>Drivers License Expires Soon</ListGroup.Item>
+                            }
+                            {licensePlateExpirationDate < now &&
                                 <ListGroup.Item variant='danger'>License Plate Expired</ListGroup.Item>
                             }
-                            {insuranceExpirationDate < new Date() &&
+                            {(licensePlateExpirationDate < threeMonthsFromNow && licensePlateExpirationDate > now) &&
+                                <ListGroup.Item variant='warning'>License Plate Expires Soon</ListGroup.Item>
+                            }
+                            {insuranceExpirationDate < now &&
                                 <ListGroup.Item variant='danger'>Insurance Expired</ListGroup.Item>
                             }
-                            {emergencyContacts.length < 2 &&
-                                <ListGroup.Item variant='danger'>Minimum 2 Emergency Contacts Required</ListGroup.Item>
+                            {(insuranceExpirationDate < threeMonthsFromNow && insuranceExpirationDate > now) &&
+                                <ListGroup.Item variant='warning'>Insurance Expires Soon</ListGroup.Item>
                             }
                         </ListGroup>
                     </Col>
-                    <Col md={6} style={{textAlign: 'right'}}>
+                    <Col style={{textAlign: 'right'}}>
                         <LinkContainer to={`/app/manifests?filter[driver_id]=${employeeId}`}><Button variant='secondary'>Manifests</Button></LinkContainer>
                         <LinkContainer to={`/app/bills?filter[pickup_driver_id]=${employeeId}`}><Button variant='secondary'>All Bills</Button></LinkContainer>
                     </Col>
@@ -228,10 +243,8 @@ const Employee = (props) => {
                             <BasicTab
                                 address={address}
                                 contact={contact}
-                                emergencyContacts={emergencyContacts}
                                 employeeId={employeeId}
                                 readOnly={readOnly}
-                                setEmergencyContacts={setEmergencyContacts}
                             />
                         </Tab>
                         {(permissions.viewAdvanced && isDriver) &&

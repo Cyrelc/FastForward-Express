@@ -13,7 +13,8 @@ function Manifest(props) {
 
     const {manifestId} = props.match.params
     const {sortedManifests} = props
-    const {bills, chargebacks, employee, manifest, overview, warnings} = data
+    const {bills, chargebacks, manifest, overview} = data
+    const {contact, employee, warnings} = data?.employee || {}
 
     useEffect(() => {
         getManifest(manifestId)

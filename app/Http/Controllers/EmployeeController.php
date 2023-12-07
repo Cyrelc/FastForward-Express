@@ -17,16 +17,16 @@ class EmployeeController extends Controller {
         $this->middleware('auth');
     }
 
-    public function deleteEmergencyContact(Request $req) {
+    public function DeleteEmergencyContact(Request $req, $employeeId, $contactId) {
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($req->employee_id);
+        $employee = $employeeRepo->GetById($employeeId);
         if($req->user()->cannot('updateBasic', $employee))
             abort(403);
 
         DB::beginTransaction();
 
         $contactRepo = new Repos\ContactRepo();
-        $contactRepo->DeleteEmployeeEmergencyContact($req->employee_id, $req->contact_id);
+        $contactRepo->DeleteEmployeeEmergencyContact($employeeId, $contactId);
 
         DB::commit();
         return response()->json([
@@ -35,7 +35,7 @@ class EmployeeController extends Controller {
         ]);
     }
 
-    public function getEmergencyContactModel(Request $req, $contactId = null) {
+    public function GetEmergencyContact(Request $req, $contactId = null) {
         $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
 
         if($contactId) {
@@ -50,6 +50,21 @@ class EmployeeController extends Controller {
             $model = $contactModelFactory->GetCreateModel();
 
         return json_encode($model);
+    }
+
+    public function GetEmergencyContacts(Request $req, $employeeId) {
+        $employeeRepo = new Repos\EmployeeRepo();
+        $employee = $employeeRepo->GetById($employeeId);
+
+        if($req->user()->cannot('viewBasic', $employee))
+            abort(403);
+
+        $emergencyContacts = $employeeRepo->GetEmergencyContacts($employeeId);
+
+        return response()->json([
+            'success' => true,
+            'emergency_contacts' => $emergencyContacts
+        ]);
     }
 
     public function getModel(Request $req, $employeeId = null) {
@@ -176,11 +191,11 @@ class EmployeeController extends Controller {
         ]);
     }
 
-    public function storeEmergencyContact(Request $req) {
+    public function StoreEmergencyContact(Request $req, $employeeId) {
         DB::beginTransaction();
 
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($req->employee_id, null);
+        $employee = $employeeRepo->GetById($employeeId, null);
         if($req->user()->cannot('updateBasic', $employee))
             abort(403);
 
@@ -202,7 +217,7 @@ class EmployeeController extends Controller {
         else {
             $contactId = $contactRepo->Insert($contact)->contact_id;
             $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
-            $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $contactId);
+            $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $employeeId, $contactId);
             $employeeRepo = new Repos\EmployeeRepo();
             $employeeRepo->AddEmergencyContact($employeeEmergencyContact);
         }

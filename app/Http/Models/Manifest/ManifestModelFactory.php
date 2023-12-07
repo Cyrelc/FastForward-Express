@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Models\Manifest;
 
+use App\Http\Models;
 use App\Http\Repos;
 
 class ManifestModelFactory{
@@ -24,12 +25,12 @@ class ManifestModelFactory{
         $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
         $contactRepo = new Repos\ContactRepo();
-        $employeeRepo = new Repos\EmployeeRepo();
         $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
         $phoneRepo = new Repos\PhoneNumberRepo();
 
-        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+        $employeeModelFactory = new Models\Employee\EmployeeModelFactory();
+        $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
         $model = new ManifestViewModel();
 
@@ -37,10 +38,7 @@ class ManifestModelFactory{
         $model->bill_count = $billRepo->CountByManifestId($manifestId);
 
         //Handle Employee Information
-        $model->employee = $employeeRepo->GetById($model->manifest->employee_id, $permissionModelFactory->GetEmployeePermissions($user, $employeeRepo->GetById($model->manifest->employee_id, null)));
-        $model->employee->contact = $contactRepo->GetById($model->employee->contact_id);
-        $model->employee->contact->primary_phone = $phoneRepo->GetContactPrimaryPhone($model->employee->contact_id)->phone_number;
-        $model->employee->address = $addressRepo->GetByContactId($model->employee->contact_id);
+        $model->employee = $employeeModelFactory->GetViewModel($model->manifest->employee_id);
 
         $model->bills = $billRepo->GetByManifestId($manifestId);
         $model->overview = $billRepo->GetManifestOverviewById($manifestId);
@@ -54,17 +52,6 @@ class ManifestModelFactory{
         $model->chargeback_total = number_format($chargebackTotal, 2);
 
         $model->driver_income = number_format($driverTotal - $chargebackTotal, 2);
-
-        // handle checking whether anything has expired, or is soon to expire
-        $expirations = ['drivers_license_expiration_date' => 'Drivers License', 'license_plate_expiration_date' => 'License Plate', 'insurance_expiration_date' => 'Vehicle Insurance'];
-        $model->warnings = [];
-        $currentDate = new \DateTime();
-        $datePlusNinetyDays = date('Y-m-d', strtotime($currentDate->format('Y-m-d') . ' + 90 days'));
-        foreach($expirations as $dbName => $friendlyString)
-            if(new \DateTime($model->employee->$dbName) < $currentDate)
-                array_push($model->warnings, ['friendlyString' => $friendlyString . ' has expired', 'type' => 'error']);
-            else if(new \DateTime($model->employee->$dbName) < $datePlusNinetyDays)
-                array_push($model->warnings, ['friendlyString' => $friendlyString . ' will expire soon', 'type' => 'warning']);
 
         return $model;
     }

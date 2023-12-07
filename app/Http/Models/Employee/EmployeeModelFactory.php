@@ -8,29 +8,16 @@ use App\Http\Models\Employee;
 class EmployeeModelFactory
 {
     public function ListAll() {
-        $model = new Employee\EmployeesModel();
-
         $employeeRepo = new Repos\EmployeeRepo();
-        $addrRepo = new Repos\AddressRepo();
-        $contactRepo = new Repos\ContactRepo();
-        $phoneRepo = new Repos\PhoneNumberRepo();
+
+        $model = new Employee\EmployeesModel();
+        $model->employees = [];
 
         $employees = $employeeRepo->ListAll();
-        $employee_view_models = array();
 
-        foreach ($employees as $employee) {
-            $employee_view_model = new Employee\EmployeeViewModel();
+        foreach ($employees as $employee)
+            array_push($model->employees, $this->GetViewModel($employee->employee_id));
 
-            $employee_view_model->employee = $employee;
-            $employee_view_model->contact = $contactRepo->GetById($employee->contact_id);
-            $employee_view_model->address = $addrRepo->GetByContactId($employee->contact_id);
-            $employee_view_model->phoneNumber = $phoneRepo->GetContactPrimaryPhone($employee->contact_id);
-            $employee_view_model->contact->name = $employee_view_model->contact->first_name . ' ' . $employee_view_model->contact->last_name;
-
-            array_push($employee_view_models, $employee_view_model);
-        }
-
-        $model->employees = $employee_view_models;
         $model->success = true;
 
         return $model;
@@ -42,7 +29,7 @@ class EmployeeModelFactory
 
         $selectionsRepo = new Repos\SelectionsRepo();
 
-        $model = new Employee\EmployeeFormModel();
+        $model = new Employee\EmployeeViewModel();
         
         $model->employee = new \App\Employee();
         $model->contact = $contactModelFactory->GetCreateModel();
@@ -54,8 +41,6 @@ class EmployeeModelFactory
         $model->employee->license_plate_expiration = date('U');
         $model->employee->insurance_expiration = date('U');
 
-        $model->emergency_contacts = [];
-
         $model->permissions = $permissions;
         $model->employee_permissions = $permissionModelFactory->GetEmployeeModelPermissions(null);
         $model->vehicle_types = $selectionsRepo->GetSelectionsByType('vehicle_type');
@@ -65,24 +50,17 @@ class EmployeeModelFactory
 
     public function GetEditModel($employeeId, $permissions) {
         $activityLogRepo = new Repos\ActivityLogRepo();
-        $addressRepo = new Repos\AddressRepo();
         $employeeRepo = new Repos\EmployeeRepo();
-        $phoneNumberRepo = new Repos\PhoneNumberRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
         $userRepo = new Repos\UserRepo();
 
         $contactsFactory = new Models\Partials\ContactsModelFactory();
-        $contactFactory = new Models\Partials\ContactModelFactory();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
         $user = $userRepo->GetUserByEmployeeId($employeeId);
 
-        $model = new EmployeeFormModel();
+        $model = $this->GetViewModel($employeeId);
         $model->permissions = $permissions;
-        $model->employee = $employeeRepo->GetById($employeeId, $permissions);
-        $model->emergency_contacts = $employeeRepo->GetEmergencyContacts($employeeId);
-        $model->contact = $contactFactory->GetEditModel($model->employee->contact_id, true);
-        $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
         $model->employee_permissions = $permissionModelFactory->GetEmployeeModelPermissions($model->employee->employee_id);
         $model->vehicle_types = $selectionsRepo->GetSelectionsByType('vehicle_type');
 
@@ -91,6 +69,34 @@ class EmployeeModelFactory
             foreach($model->activity_log as $key => $log)
                 $model->activity_log[$key]->properties = json_decode($log->properties);
         }
+
+        return $model;
+    }
+
+    public function GetViewModel($employeeId) {
+        $contactModelFactory = new Models\Partials\ContactModelFactory();
+
+        $addressRepo = new Repos\AddressRepo();
+        $employeeRepo = new Repos\EmployeeRepo();
+        $phoneRepo = new Repos\PhoneNumberRepo();
+
+        $model = new EmployeeViewModel();
+
+        $model->employee = $employeeRepo->GetById($employeeId);
+        $model->contact = $contactModelFactory->GetEditModel($model->employee->contact_id, true);
+        $model->phone_number = $phoneRepo->GetContactPrimaryPhone($model->contact->contact_id)->phone_number;
+        $model->address = $addressRepo->GetByContactId($model->contact->contact_id);
+
+        // handle checking whether anything has expired, or is soon to expire
+        $expirations = ['drivers_license_expiration_date' => 'Drivers License', 'license_plate_expiration_date' => 'License Plate', 'insurance_expiration_date' => 'Vehicle Insurance'];
+        $model->warnings = [];
+        $currentDate = new \DateTime();
+        $datePlusNinetyDays = (new \DateTime())->modify('+90 days');
+        foreach($expirations as $dbName => $friendlyString)
+            if(new \DateTime($model->employee->$dbName) < $currentDate)
+                array_push($model->warnings, ['friendlyString' => $friendlyString . ' has expired', 'type' => 'error']);
+            else if(new \DateTime($model->employee->$dbName) < $datePlusNinetyDays)
+                array_push($model->warnings, ['friendlyString' => $friendlyString . ' will expire soon', 'type' => 'warning']);
 
         return $model;
     }

@@ -19,12 +19,12 @@
         </td>
     </tr>
 </table>
-@if($model->warnings != [])
+@if($model->employee->warnings != [])
 <div style='text-align: center'>
     <table style='width: 100%'>
         <thead>
             <tr>
-                @foreach($model->warnings as $warning)
+                @foreach($model->employee->warnings as $warning)
                     @if($warning['type'] === 'error')
                         <th style='background: tomato; border: 2px solid black;'>{{$warning['friendlyString']}}</td>
                     @else

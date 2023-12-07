@@ -34,13 +34,13 @@ class EmployeeCollector {
         return $employee;
     }
 
-    public function CollectEmergencyContact($req, $contact_id, $is_primary = false) {
+    public function CollectEmergencyContact($req, $employeeId, $contactId, $isPrimary = false) {
         $employeeRepo = new \App\Http\Repos\EmployeeRepo();
-        $emergencyContacts = $employeeRepo->GetEmergencyContacts($req->employee_id);
+        $emergencyContacts = $employeeRepo->GetEmergencyContacts($employeeId);
         return [
-            'employee_id' => $req->employee_id,
-            'contact_id' => $contact_id,
-            'is_primary' => $emergencyContacts ? $is_primary : true
+            'employee_id' => $employeeId,
+            'contact_id' => $contactId,
+            'is_primary' => $emergencyContacts ? $isPrimary : true
         ];
     }
 }
