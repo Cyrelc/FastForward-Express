@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\DB;
 class PaymentIntentProcessor {
     private $ORDERED_PAYMENT_INTENT_STATUSES = [
         NULL,
-        'payment_intent.pending', //custom status used when created, when there is no status from Stripe yet. As such receives lowest priority
-        'payment_intent.created',
-        'payment_intent.requires_payment_method',
-        'payment_intent.requires_confirmation',
-        'payment_intent.processing',
-        'payment_intent.succeeded',
-        'payment_intent.requires_capture',
-        'payment_intent.requires_action',
-        'payment_intent.canceled',
+        'pending', //custom status used when created, when there is no status from Stripe yet. As such receives lowest priority
+        'created',
+        'requires_payment_method',
+        'requires_confirmation',
+        'processing',
+        'succeeded',
+        'requires_capture',
+        'requires_action',
+        'canceled',
     ];
 
     public function ProcessPaymentIntent($event) {
@@ -42,8 +42,12 @@ class PaymentIntentProcessor {
             // only if we are 'upgrading' the status
             // this means we don't process 'created' before 'success' but also means we never accidentally process the same payment twice. 
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
-            if(array_search($payment->payment_intent_status, $this->ORDERED_PAYMENT_INTENT_STATUSES) < array_search($event->type, $this->ORDERED_PAYMENT_INTENT_STATUSES)) {
-                $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $event->type);
+            $oldStatus = explode('.', $payment->payment_intent_status)[-1];
+            $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
+            $newStatus = explode('.', $event->type)[-1];
+            $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
+            if($oldStatusIndex && $newStatusIndex && $oldStatusIndex < $newStatusIndex) {
+                $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $newStatus);
 
                 $paymentRepo->Update($payment->payment_id, [
                     'amount' => $payment->amount,
@@ -51,9 +55,9 @@ class PaymentIntentProcessor {
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
                 ]);
 
-                if($event->type == 'payment_intent.succeeded')
+                if($newStatus == 'succeeded')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$payment->amount);
-                if($event->type == 'payment_intent.cancelled')
+                if($newStatus == 'cancelled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
             } else {
                 activity('jobs')
