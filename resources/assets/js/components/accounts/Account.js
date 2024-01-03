@@ -424,7 +424,7 @@ const Account = props => {
                             </Button>
                         </LinkContainer>
                     }
-                    {(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced || (accountId === null && permissions.create)) &&
+                    {(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced || (!accountId && permissions.create)) &&
                         <Button variant='primary' onClick={storeAccount}>Submit</Button>
                     }
                     {accountId && viewChildren != false &&

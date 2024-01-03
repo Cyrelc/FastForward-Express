@@ -45,7 +45,7 @@ class AccountModelFactory {
 
         $model->account->invoice_sort_order = $accountRepo->GetInvoiceSortOrder();
         foreach($model->account->invoice_sort_order as $key => $sort_option) {
-            $model->account->invoice_sort_order[$key]->subtotal_by = filter_var($sort_option->can_be_subtotaled, FILTER_VALIDATE_BOOLEAN) ? $sort_option->subtotal_by : null;
+            $model->account->invoice_sort_order[$key]->subtotal_by = filter_var($sort_option->can_be_subtotaled, FILTER_VALIDATE_BOOLEAN) ? false : null;
         }
 
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
