@@ -75,6 +75,14 @@ class ChargeRepo {
         return $charge->first();
     }
 
+    public function GetByInvoiceId($invoiceId) {
+        $charges = Charge::leftJoin('line_items', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->where('line_items.invoice_id', $invoiceId)
+            ->groupBy('charges.charge_id');
+
+        return $charges->get();
+    }
+
     public function GetWithUninvoicedPrepaid($prepaidTypes, $startDate, $endDate) {
         $charges = Charge::leftJoin('line_items', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')

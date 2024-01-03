@@ -229,14 +229,21 @@ class InvoiceRepo {
 
     public function RegatherInvoice($invoice) {
         $accountRepo = new AccountRepo();
+        $chargeRepo = new Repos\ChargeRepo();
         $lineItemRepo = new LineItemRepo();
 
         $count = 0;
-        $account = $accountRepo->GetById($invoice->account_id);
-        $children = $accountRepo->GetChildAccountList($account->account_id);
-        foreach($children as $child)
-            $count += count($lineItemRepo->InvoiceForAccount($invoice, $child->account_id, $invoice->finalized));
-        $count += count($lineItemRepo->InvoiceForAccount($invoice, null, $invoice->finalized));
+        if($invoice->account_id) {
+            $account = $accountRepo->GetById($invoice->account_id);
+            $children = $accountRepo->GetChildAccountList($account->account_id);
+            foreach($children as $child)
+                $count += count($lineItemRepo->InvoiceForAccount($invoice, $child->account_id, $invoice->finalized));
+            $count += count($lineItemRepo->InvoiceForAccount($invoice, null, $invoice->finalized));
+        } else {
+            $charges = $chargeRepo->GetByInvoiceId($invoice->invoice_id);
+            foreach($charges as $charge)
+                $count += count($lineItemRepo->InvoiceForCharge($invoice, $charge->charge_id));
+        }
 
         $this->CalculateInvoiceBalances($invoice);
 
@@ -256,7 +263,9 @@ class InvoiceRepo {
      */
 
     private function CalculateInvoiceBalances($invoice) {
-        $account = Account::where('account_id', $invoice->account_id)->first();
+        $accountRepo = new Repos\AccountRepo();
+
+        $account = $invoice->account_id ? $accountRepo->GetById($invoice->account_id) : null;
         $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
         // Note: effective cost here is used as a catch all - when minimum invoice amount is being used, it will be equal to that, otherwise
         // it will be equal to $billCost. This prevents having to check which to use for every subsequent calculation

@@ -144,6 +144,8 @@ class LineItemRepo {
             // $lineItem->amendmentNumber = $amendmentNumber;
             $lineItem->save();
         }
+
+        return $lineItems;
     }
 
     public function PayOffLineItemsByInvoiceId($invoiceId) {
