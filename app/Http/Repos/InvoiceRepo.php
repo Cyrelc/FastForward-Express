@@ -229,7 +229,7 @@ class InvoiceRepo {
 
     public function RegatherInvoice($invoice) {
         $accountRepo = new AccountRepo();
-        $chargeRepo = new Repos\ChargeRepo();
+        $chargeRepo = new ChargeRepo();
         $lineItemRepo = new LineItemRepo();
 
         $count = 0;
@@ -263,7 +263,7 @@ class InvoiceRepo {
      */
 
     private function CalculateInvoiceBalances($invoice) {
-        $accountRepo = new Repos\AccountRepo();
+        $accountRepo = new AccountRepo();
 
         $account = $invoice->account_id ? $accountRepo->GetById($invoice->account_id) : null;
         $paymentTotal = Payment::where('invoice_id', $invoice->invoice_id)->sum('amount');
