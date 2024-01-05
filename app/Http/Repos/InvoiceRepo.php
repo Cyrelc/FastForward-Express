@@ -198,7 +198,8 @@ class InvoiceRepo {
                 'finalized',
                 DB::raw('count(distinct bills.bill_id) as bill_count'),
                 DB::raw('count(distinct payments.payment_id) as payment_count'),
-                DB::raw('GROUP_CONCAT(DISTINCT payment_types.name SEPARATOR \', \') as payment_type_list')
+                DB::raw('GROUP_CONCAT(DISTINCT payment_types.name SEPARATOR \', \') as payment_type_list'),
+                'send_paper_invoices'
             )->groupBy('invoices.invoice_id');
 
         if($myAccounts)
@@ -214,7 +215,8 @@ class InvoiceRepo {
                 AllowedFilter::exact('invoice_id'),
                 AllowedFilter::exact('finalized', 'invoices.finalized'),
                 AllowedFilter::exact('payment_type_id', 'payments.payment_type_id'),
-                AllowedFilter::exact('charge_type_id', 'charge_types.payment_type_id')
+                AllowedFilter::exact('charge_type_id', 'charge_types.payment_type_id'),
+                AllowedFilter::exact('send_paper_invoices', 'accounts.send_paper_invoices')
             ]);
 
         return $filteredInvoices->get();

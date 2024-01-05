@@ -128,7 +128,7 @@ class Invoices extends Component {
                     cellClick:(e, cell) => printInvoices([cell.getRow()], {download: false})
                 }],
                 ...this.props.frontEndPermissions.invoices.edit ? [
-                    {title: 'Date Run', field: 'date_run', visible: false},
+                    {title: 'Date Run', field: 'date_run', visible: false}
                 ] : [],
                 {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
                 {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', this.props.redirect), sorter: 'number'},
@@ -142,6 +142,9 @@ class Invoices extends Component {
                 {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
                 {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
                 {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
+                ...this.props.frontEndPermissions.invoices.edit ? [
+                    {title: 'Send Paper Invoices', field: 'send_paper_invoices', formatter: 'tickCross', visible: false}
+                ] : [],
                 {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
             ],
             filters: [
@@ -156,6 +159,12 @@ class Invoices extends Component {
                         value: 'finalized',
                         type: 'BooleanFilter',
                         default: false
+                    },
+                    {
+                        name: 'Send Paper Invoices',
+                        value: 'send_paper_invoices',
+                        type: 'BooleanFilter',
+                        default: true
                     }
                 ] : [],
                 {
