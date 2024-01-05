@@ -349,7 +349,7 @@ export default function BillingTab(props) {
                                 key={index}
                                 lineItemTypeFormatter={lineItemTypeFormatter}
                                 pickup={props.billState.pickup}
-                                readOnly={readOnly || isPickupManifested || isDeliveryManifested || isInvoiced}
+                                readOnly={readOnly}
                             />
                         )}
                     </Row>

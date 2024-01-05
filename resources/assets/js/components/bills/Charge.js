@@ -103,7 +103,7 @@ export default function Charge(props) {
             ... canLineItemBeDeleted(cell.getRow()) ? [
                 {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
             ] : [],
-            ... data.invoice_id ? [
+            ... data.invoice_is_finalized ? [] : data.invoice_id ? [
                 {label: `<i class="fas fa-unlink"></i> Remove Invoice Link (ID: ${data.invoice_id})`, action: () => removeLink(cell, 'Invoice'), disabled: data.finalized},
             ] : [
                 {label: '<i class="fas fa-link"></i> Link To Invoice', action: (e, cell) => linkTo(cell, 'Invoice')}
