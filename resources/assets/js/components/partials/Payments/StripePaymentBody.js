@@ -15,17 +15,17 @@ const StripeForm = (props) => {
             return
         }
 
-        const result = await stripe.confirmPayment({
-            elements,
-            redirect: 'if_required'
-        })
+        try {
+            const result = await stripe.confirmPayment({
+                elements, redirect: 'if_required',
+            })
 
-        if(result.error) {
-            console.error('Failed to submit stripe payment', result.error)
-            toastr.error(result.error, 'Error')
-        } else {
+            console.log('result.status', result.status)
+            toastr.success('Payment successful!', result.status)
             props.hideModal()
-            toastr.success('Payment successful!')
+        } catch (error) {
+            console.error('Failed to submit stripe payment', error)
+            toastr.error(error.message, 'Error')
         }
     }
 
