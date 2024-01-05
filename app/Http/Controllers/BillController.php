@@ -131,6 +131,7 @@ class BillController extends Controller {
             abort(403);
 
         $billModelFactory = new Bill\BillModelFactory();
+
         $bills = $billModelFactory->BuildTable($req);
 
         $customFieldNames = [];
@@ -157,8 +158,12 @@ class BillController extends Controller {
 
         if($req->link_type === 'Invoice') {
             $invoiceRepo = new Repos\InvoiceRepo();
-            if($req->action == 'remove_link')
+            if($req->action == 'remove_link') {
+                $invoice = $invoiceRepo->GetById($lineItem->invoice_id);
+                if($invoice->finalized)
+                    abort(422, 'Unable to detach line item from finalized invoice');
                 $lineItem = $invoiceRepo->DetachLineItem($lineItem->line_item_id);
+            }
             else
                 $lineItem = $invoiceRepo->AttachLineItem($lineItem->line_item_id, $req->link_to_target_id);
         } else if ($req->link_type === 'Pickup Manifest' || $req->link_type === 'Delivery Manifest') {
