@@ -73,7 +73,7 @@ export default function StripePaymentBody(props) {
                 <Elements stripe={stripePromise} options={options}>
                     <StripeForm
                         clientSecret={clientSecret}
-                        hide={props.hide}
+                        hideModal={props.hideModal}
                         paymentAmount={props.paymentAmount}
                     />
                 </Elements>
