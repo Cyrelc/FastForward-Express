@@ -79,7 +79,32 @@ export default function GenerateInvoices(props) {
     }
 
     const columns = [
-        {title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+        {
+            title: 'Selected',
+            field: 'isSelected',
+            formatter: 'tickCross',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            headerSort: false,
+            print: false,
+            width: 100,
+            headerClick: (event, col) => {
+                const table = col.getTable()
+                if(table.getSelectedData().length > 0) {
+                    const rows = table.getSelectedRows()
+                    rows.forEach(row => {
+                        row.deselect()
+                    })
+                } else {
+                    const rows = table.getRows()
+                    rows.forEach(row => {
+                        if(table.options.selectableCheck(row)) {
+                            row.select()
+                        }
+                    })
+                }
+            }
+        },
         {title: 'Valid', formatter: isValidForInvoicing},
         {title: 'ID', field: 'id', sorter: 'number'},
         {title: 'Number', field: 'number'},
@@ -225,14 +250,20 @@ export default function GenerateInvoices(props) {
                     options={{
                         groupBy: 'parent_account',
                         layout: 'fitColumns',
-                        maxHeight: '65vh'
-                    }}
-                    rowSelected={row => {row.update({isSelected: true})}}
-                    rowDeselected={row => {row.update({isSelected: false})}}
-                    selectable={true}
-                    selectableCheck={row => {
-                        const selectable = row.getData().valid_bill_count > 0
-                        return selectable
+                        maxHeight: '65vh',
+                        rowDeselected: row => {
+                            console.log('rowDeselected')
+                            row.update({isSelected: false})
+                        },
+                        rowSelected: row => {
+                            console.log('rowSelected')
+                            row.update({isSelected: true})
+                        },
+                        selectable: true,
+                        selectableCheck: row => {
+                            const selectable = row.getData().valid_bill_count > 0
+                            return selectable
+                        }
                     }}
                 />
             </Card.Footer>
