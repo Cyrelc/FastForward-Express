@@ -21,6 +21,7 @@ class Invoice extends Model
         'bill_end_date',
         'date',
         'discount',
+        'finalized',
         'min_invoice_amount',
         'payment_type_id',
         'tax',
