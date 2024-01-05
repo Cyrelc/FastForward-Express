@@ -55,8 +55,9 @@ export default function BasicTab(props) {
                             <Card.Body>
                                 <Address
                                     address={shippingAddress}
-                                    showAddressSearch={true}
+                                    id='shipping'
                                     readOnly={readOnly}
+                                    showAddressSearch={true}
                                 />
                             </Card.Body>
                         </Card>
@@ -76,8 +77,9 @@ export default function BasicTab(props) {
                             <Card.Body>
                                 <Address
                                     address={billingAddress}
-                                    showAddressSearch={true}
+                                    id='billing'
                                     readOnly={ readOnly || useShippingForBillingAddress }
+                                    showAddressSearch={true}
                                 />
                             </Card.Body>
                         </Card>

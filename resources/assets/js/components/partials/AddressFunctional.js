@@ -216,6 +216,7 @@ export default function Address(props) {
                         <InputGroup>
                             <InputGroup.Text>Address: </InputGroup.Text>
                             <FormControl
+                                disabled={readOnly || type != 'Manual'}
                                 type='text'
                                 name={'addressFormatted'}
                                 value={formatted}

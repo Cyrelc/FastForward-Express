@@ -52,7 +52,6 @@ const Account = props => {
     const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
     const [startDate, setStartDate] = useState(new Date())
     const [useShippingForBillingAddress, setUseShippingForBillingAddress] = useState(true)
-    const [viewChildren, setViewChildren] = useState(true)
 
     const billingAddress = useAddress()
     const shippingAddress = useAddress()
@@ -417,7 +416,7 @@ const Account = props => {
             </Col>
             <Col md={4} style={{textAlign: 'center'}}>
                 <ButtonGroup>
-                    {(accountId && viewChildren != false) &&
+                    {(accountId && permissions.viewChildren != false) &&
                         <LinkContainer to={`/app/accounts/${prevAccountIndex}${window.location.hash}`}>
                             <Button variant='info' disabled={!prevAccountIndex}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevAccountIndex}
@@ -427,7 +426,7 @@ const Account = props => {
                     {(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced || (!accountId && permissions.create)) &&
                         <Button variant='primary' onClick={storeAccount}>Submit</Button>
                     }
-                    {accountId && viewChildren != false &&
+                    {accountId && permissions.viewChildren != false &&
                         <LinkContainer to={`/app/accounts/${nextAccountIndex}${window.location.hash}`}>
                             <Button variant='info' disabled={!nextAccountIndex}>
                                 Next - {nextAccountIndex} <i className='fas fa-arrow-circle-right'></i>
