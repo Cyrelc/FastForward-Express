@@ -257,58 +257,75 @@ function Invoice(props) {
                                                     switch(headerValue) {
                                                         case 'delivery_address_name':
                                                             if(showPickupAndDeliveryAddress)
-                                                                return <td>{bill.delivery_address_name}</td>
-                                                            return <td>{getCorrectAddress(bill)}</td>
+                                                                return <td key={`${bill.bill_id}.delivery_address_name`}>{bill.delivery_address_name}</td>
+                                                            return <td key={`${bill.bill_id}.address`}>{getCorrectAddress(bill)}</td>
                                                         case 'pickup_address_name':
                                                             if(showPickupAndDeliveryAddress)
-                                                                return <td>{bill.pickup_address_name}</td>
+                                                                return <td key={`${bill.bill_id}.pickup_address_name`}>{bill.pickup_address_name}</td>
                                                             return
                                                         case 'amount':
                                                             if(showLineItems) {
                                                                 return (
-                                                                    <td width='15%' style={{textAlign: 'right'}}>
+                                                                    <td key={`${bill.bill_id}.line_items`} width='15%' style={{textAlign: 'right'}}>
                                                                         <table style={{border: 'none', width: '100%'}}>
                                                                             <tbody>
                                                                                 {bill.line_items.map(line_item =>
                                                                                     <tr key={line_item.line_item_id}>
-                                                                                        <td style={{textAlign: 'left'}}>{line_item.name}</td>
-                                                                                        <td>{parseFloat(line_item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                                                                        <td
+                                                                                            key={`${bill.bill_id}.line_items.${line_item.line_item_id}.name`}
+                                                                                            style={{textAlign: 'left'}}
+                                                                                            >{line_item.name}</td>
+                                                                                        <td
+                                                                                            key={`${bill.bill_id}.line_items.${line_item.line_item_id}.amount`}
+                                                                                        >{parseFloat(line_item.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                                                                     </tr>
                                                                                 )}
                                                                             </tbody>
                                                                             <tfoot>
                                                                                 <tr>
-                                                                                    <td style={{textAlign: 'left'}}><b>Total: </b></td>
-                                                                                    <td><b>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b></td>
+                                                                                    <td key={`${bill.bill_id}.line_items.total_header`} style={{textAlign: 'left'}}>
+                                                                                        <b>Total: </b>
+                                                                                    </td>
+                                                                                    <td key={`${bill.bill_id}.line_items.total`}>
+                                                                                        <b>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b>
+                                                                                    </td>
                                                                                 </tr>
                                                                             </tfoot>
                                                                         </table>
                                                                     </td>
                                                                 )
                                                             } else
-                                                                return <td width='10%' style={{textAlign: 'right'}}>{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                                                                return <td
+                                                                    key={`${bill.bill_id}.amount`}
+                                                                    style={{textAlign: 'right'}}
+                                                                    width='10%'
+                                                                >{parseFloat(bill.amount).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                                         case 'bill_id':
                                                             if(permissions.viewBills)
                                                                 return (
-                                                                    <td width='8%'>
+                                                                    <td  key={`${bill.bill_id}.bill_id`} width='8%'>
                                                                         <LinkContainer to={`/app/bills/${bill.bill_id}`}>
                                                                             <a>{bill.bill_id}</a>
                                                                         </LinkContainer>
                                                                     </td>
                                                                 )
                                                             else
-                                                                return <td width='8%'>{bill.bill_id}</td>
+                                                                return <td key={`${bill.bill_id}.bill_id`} width='8%'>{bill.bill_id}</td>
                                                         case 'time_pickup_scheduled':
-                                                            return <td width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
+                                                            return <td key={`${bill.bill_id}.time_pickup_scheduled`} width='9%'>{bill.time_pickup_scheduled.substring(0, 16)}</td>
                                                         default:
-                                                            return <td width='10%'>{bill[headerValue]}</td>
+                                                            return <td key={`${bill.bill_id}.${bill[headerValue]}`} width='10%'>{bill[headerValue]}</td>
                                                     }
                                                 })}
                                             </tr>
                                         )}
                                         {Object.keys(tables).length > 1 &&
                                             <tr>
-                                                <td colSpan={Object.keys(tables[key].headers).length - (showPickupAndDeliveryAddress ? 2 : 3)} rowSpan={3} style={{textAlign: 'center', verticalAlign: 'middle'}}>
+                                                <td
+                                                    colSpan={Object.keys(tables[key].headers).length - (showPickupAndDeliveryAddress ? 2 : 3)}
+                                                    rowSpan={3}
+                                                    style={{textAlign: 'center', verticalAlign: 'middle'}}
+                                                >
                                                     <b>Subtotal for {key}</b>
                                                 </td>
                                                 <td>
@@ -420,10 +437,14 @@ function Invoice(props) {
                                     <tbody>
                                         {unpaidInvoices.map(unpaidInvoice =>
                                             <tr>
-                                                <td>{unpaidInvoice.invoice_id}</td>
-                                                <td>{unpaidInvoice.bill_end_date}</td>
-                                                <td>{parseFloat(unpaidInvoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}</td>
-                                                <td>{parseFloat(unpaidInvoice.balance_owing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}</td>
+                                                <td key={`${unpaidInvoice.invoice_id}.invoice_id`}>{unpaidInvoice.invoice_id}</td>
+                                                <td key={`${unpaidInvoice.invoice_id}.bill_end_date`}>{unpaidInvoice.bill_end_date}</td>
+                                                <td key={`${unpaidInvoice.invoice_id}.total_cost`}>
+                                                    {parseFloat(unpaidInvoice.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}
+                                                </td>
+                                                <td key={`${unpaidInvoice.invoice_id}.balance_owing`}>
+                                                    {parseFloat(unpaidInvoice.balance_owing).toLocaleString('en-US', {style: 'currency', currency: 'USD', symbol: '$'})}
+                                                </td>
                                             </tr>
                                         )}
                                     </tbody>
@@ -436,32 +457,36 @@ function Invoice(props) {
                             <tbody>
                                 {(invoice?.min_invoice_amount) &&
                                     <tr style={{border: 'tomato solid'}}>
-                                        <td colSpan={2} style={{backgroundColor: 'tomato', textAlign: 'center'}}>
+                                        <td
+                                            colSpan={2}
+                                            key={`minimum_billing_header`}
+                                            style={{backgroundColor: 'tomato', textAlign: 'center'}}
+                                        >
                                             <b>Minimum Billing Applied</b>
                                         </td>
                                     </tr>
                                 }
                                 <tr>
-                                    <td style={{...invoiceTotalsStyle}}>
+                                    <td key={`bill_subtotal_header`} style={{...invoiceTotalsStyle}}>
                                         <b>Bill Subtotal: </b>
                                     </td>
-                                    <td style={{...invoiceTotalsStyle, textAlign: 'right'}}>
+                                    <td key={`bill_subtotal_value`} style={{...invoiceTotalsStyle, textAlign: 'right'}}>
                                         <b>{parseFloat(invoice?.bill_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{...invoiceTotalsStyle}}>
+                                    <td key={`tax_header`} style={{...invoiceTotalsStyle}}>
                                         <b>Tax: </b>
                                     </td>
-                                    <td style={{...invoiceTotalsStyle, textAlign: 'right'}}>
+                                    <td key={`tax_value`} style={{...invoiceTotalsStyle, textAlign: 'right'}}>
                                         <b>{parseFloat(invoice?.tax).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{...invoiceTotalsStyle}}>
+                                    <td key={`invoice_total_header`} style={{...invoiceTotalsStyle}}>
                                         <b>Invoice Total:</b>
                                     </td>
-                                    <td style={{...invoiceTotalsStyle, textAlign: 'right'}}>
+                                    <td key={`invoice_total_value`} style={{...invoiceTotalsStyle, textAlign: 'right'}}>
                                         <b>{parseFloat(invoice?.total_cost).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</b>
                                     </td>
                                 </tr>
