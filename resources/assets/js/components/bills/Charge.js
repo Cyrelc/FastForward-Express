@@ -137,8 +137,8 @@ export default function Charge(props) {
     const chargeTableColumns = chargeType => {
         return [
             {
-                clickMenu: cell => actionCellContextMenu(cell),
-                formatter: cell => actionCellContextMenuFormatter(cell),
+                clickMenu: (event, cell) => actionCellContextMenu(cell),
+                formatter: (event, cell) => actionCellContextMenuFormatter(cell),
                 headerSort: false,
                 hozAlign: 'center',
                 print: false,
@@ -250,15 +250,20 @@ export default function Charge(props) {
 
     const moneyColumnStandardParams = {
         editor:'number',
+        editorParams: {
+            onWheel: (e) => e.target.blur(),
+            selectContents: true,
+            step: 0.01,
+            verticalNavigation: 'table',
+        },
         formatter: 'money',
         formatterParams: {thousand: ',', symbol: '$', selectContents: true},
-        editorParams: {step: 0.01, verticalNavigation: 'table', onWheel: (e) => e.target.blur()},
         hozAlign: 'right',
+        sorter: 'number',
         topCalc: 'sum',
         topCalcParams: {precision: 2},
         topCalcFormatter: 'money',
         topCalcFormatterParams: {thousand: ',', symbol: '$'},
-        sorter: 'number',
         editable: cell => {
             return props.readOnly ? false : canLineItemBeEdited(cell.getRow())
         }

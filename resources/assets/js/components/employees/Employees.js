@@ -43,7 +43,14 @@ class Employees extends Component {
             {title: 'Primary Email', field: 'primary_email'},
         ]
         const adminColumns = this.props.frontEndPermissions.employees.edit ? [
-            {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign:'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+            {
+                formatter: cell => this.cellContextMenuFormatter(cell),
+                width: 50,
+                hozAlign:'center',
+                clickMenu: (event, cell) => this.cellContextMenu(cell),
+                headerSort: false,
+                print: false
+            },
         ] : []
         this.state = {
             columns: [

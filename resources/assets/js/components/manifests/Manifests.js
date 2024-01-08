@@ -53,7 +53,14 @@ class Manifests extends Component {
         super(props)
         this.state = {
             columns: [
-                {formatter: cell => this.cellContextMenuFormatter(cell), width: 50, hozAlign: 'center', clickMenu: cell => this.cellContextMenu(cell), headerSort: false, print: false},
+                {
+                    formatter: cell => this.cellContextMenuFormatter(cell),
+                    width: 50,
+                    hozAlign: 'center',
+                    clickMenu: (event, cell) => this.cellContextMenu(cell),
+                    headerSort: false,
+                    print: false
+                },
                 {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
                 {title: 'Manifest ID', field: 'manifest_id', ...configureFakeLink('/app/manifests/', this.props.redirect), sorter: 'number'},
                 {title: 'Employee', field: 'employee_id', ...configureFakeLink('/app/employees/', this.props.redirect, 'employee_name')},

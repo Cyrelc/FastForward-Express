@@ -17,6 +17,7 @@ class CreateConditionalsTable extends Migration
             $table->increments('conditional_id');
             $table->timestamps();
             $table->text('action');
+            $table->text('equation_string')->nullable();
             $table->text('human_readable');
             $table->text('json_logic');
             $table->text('name');

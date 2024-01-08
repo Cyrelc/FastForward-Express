@@ -118,7 +118,14 @@ class Invoices extends Component {
         this.state = {
             columns: [
                 ...this.props.frontEndPermissions.invoices.edit ? [
-                    {formatter: cell => cellContextMenuFormatter(cell), width:50, hozAlign:'center', clickMenu: cell => cellContextMenu(cell), headerSort: false, print: false}
+                    {
+                        formatter: cell => cellContextMenuFormatter(cell),
+                        width:50,
+                        hozAlign:'center',
+                        clickMenu: (event, cell) => cellContextMenu(cell),
+                        headerSort: false,
+                        print: false
+                    }
                 ] : [
                     {formatter: cell => {
                         return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"

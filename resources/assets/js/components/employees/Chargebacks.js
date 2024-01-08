@@ -105,7 +105,7 @@ function Chargebacks(props) {
 
     const columns = [
         {
-            clickMenu: cell => cellContextMenu(cell),
+            clickMenu: (event, cell) => cellContextMenu(cell),
             formatter: cell => {return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'},
             headerSort: false,
             hozAlign: 'center',
