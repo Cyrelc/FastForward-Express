@@ -305,6 +305,14 @@ class ChargeModelFactory {
         return $results;
     }
 
+    private function GetSecondsSinceMidnight($dateTime) {
+        $dateTime = new \DateTime($dateTime);
+        $midnight = (clone($dateTime))->setTime(0, 0);
+
+        $interval = $midnight->diff($dateTime);
+        return $interval->h * 3600 + $interval->i * 60 + $interval->s;
+    }
+
     private function mockBill($req) {
         $selectionsRepo = new Repos\SelectionsRepo();
 
@@ -322,6 +330,14 @@ class ChargeModelFactory {
                 'is_mall' => filter_var($req->pickup_address['is_mall'], FILTER_VALIDATE_BOOLEAN),
                 'zone' =>  $this->GetZone($req->ratesheet_id, $req->pickup_address['lat'], $req->pickup_address['lng'])
             ],
+            'time_delivery_scheduled' =>  (object) [
+                'day_of_the_week' => (new \DateTime($req->time_delivery_scheduled))->format('w'),
+                'time' => $this->GetSecondsSinceMidnight($req->time_delivery_scheduled)
+            ],
+            'time_pickup_scheduled' => (object) [
+                'day_of_the_week' => (new \DateTime($req->time_pickup_scheduled))->format('w'),
+                'time' => $this->GetSecondsSinceMidnight($req->time_pickup_scheduled)
+            ]
         ];
 
         if($req->use_imperial) {

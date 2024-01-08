@@ -9,7 +9,7 @@ class ConditionalCollector {
             'conditional_id' => $conditionalId,
             'equation_string' => $req->value_type == 'equation' ? $req->equation_string : null,
             'human_readable' => $req->human_readable,
-            'json_logic' => json_encode($req->json_logic),
+            'json_logic' => $req->json_logic,
             'name' => $req->name,
             'ratesheet_id' => $req->ratesheet_id,
             'value' => $req->value_type == 'equation' ? null : $req->value,

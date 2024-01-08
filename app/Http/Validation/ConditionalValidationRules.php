@@ -16,7 +16,7 @@ class ConditionalValidationRules {
                 Rule::requiredIf($req->value_type == 'equation')
             ],
             'human_readable' => 'required',
-            'json_logic' => 'required',
+            'json_logic' => 'required|json',
             'name' => [
                 'required',
                 Rule::unique('conditionals')->where(function($query) use ($req) {

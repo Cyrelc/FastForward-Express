@@ -1,5 +1,3 @@
-
-
 import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, InputGroup, FormControl, Modal, Row} from 'react-bootstrap'
 import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
@@ -58,6 +56,30 @@ const addressSubfields = (prefix) => {
     }
 }
 
+const timeSubfields = (prefix) => {
+    return {
+        day_of_the_week: {
+            label: `${prefix} Day of the Week`,
+            type: 'select',
+            fieldSettings: {
+                listValues: [
+                    {value: 0, title: 'Sunday'},
+                    {value: 1, title: 'Monday'},
+                    {value: 2, title: 'Tuesday'},
+                    {value: 3, title: 'Wednesday'},
+                    {value: 4, title: 'Thursday'},
+                    {value: 5, title: 'Friday'},
+                    {value: 6, title: 'Saturday'},
+                ]
+            }
+        },
+        time: {
+            label: `${prefix} Time (Scheduled)`,
+            type: 'time'
+        }
+    }
+}
+
 const availableTestVariables = [
     {
         dbName: 'total_weight',
@@ -105,6 +127,16 @@ const config = {
             label: 'Pickup Address',
             subfields: addressSubfields('Pickup Address')
         },
+        time_delivery_scheduled: {
+            type: '!struct',
+            label: 'Delivery Time',
+            subfields: timeSubfields('Delivery')
+        },
+        time_pickup_scheduled: {
+            type: '!struct',
+            label: 'Pickup Time',
+            subfields: timeSubfields('Pickup')
+        }
     }
 }
 
@@ -249,8 +281,8 @@ const ConditionalModal = props => {
         setQueryTree(tree)
 
         setName(props.conditional?.name)
-        setResultAction(props.conditional?.action ?? {value: 'Charge', label: 'charge'})
-        setValueType(props.conditional?.value_type ? valueTypes.find(valueType => props.conditional.value_type == valueType.value) : {value: 'Amount', label: 'Amount'})
+        setResultAction(props.conditional?.action ?? {value: 'charge', label: 'Charge'})
+        setValueType(props.conditional?.value_type ? valueTypes.find(valueType => props.conditional.value_type == valueType.value) : {value: 'amount', label: 'Amount'})
         setResultValue(props.conditional?.value ?? 0)
         setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.original_equation_string : '')
         setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.equation_string : '')
@@ -282,7 +314,7 @@ const ConditionalModal = props => {
                 action: resultAction,
                 equation_string: serverEquationString,
                 ratesheet_id: ratesheetId,
-                json_logic: jsonLogic['logic'],
+                json_logic: JSON.stringify(jsonLogic['logic']),
                 human_readable: humanReadable,
                 name,
                 original_equation_string: equationString,
