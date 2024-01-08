@@ -223,8 +223,8 @@ class InvoiceRepo {
     }
 
     public function MarkNotificationSent($invoiceId) {
-        $invoice->where('invoice_id', $invoiceId)
-            ->update(['notification_sent' => true]);
+        Invoice::where('invoice_id', $invoiceId)
+            ->update(['notification_sent' => now()]);
 
         return;
     }

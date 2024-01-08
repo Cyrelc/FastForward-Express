@@ -23,6 +23,7 @@ class Invoice extends Model
         'discount',
         'finalized',
         'min_invoice_amount',
+        'notification_sent',
         'payment_type_id',
         'tax',
         'total_cost',
