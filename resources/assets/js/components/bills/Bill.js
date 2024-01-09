@@ -124,8 +124,8 @@ const Bill = (props) => {
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
-                time_pickup_scheduled: pickupTimeScheduled,
-                time_delivery_scheduled: deliveryTimeScheduled,
+                time_pickup_scheduled: pickupTimeScheduled.toLocaleString('en-US'),
+                time_delivery_scheduled: deliveryTimeScheduled.toLocaleString('en-US'),
                 use_imperial: useImperial
             }
             setAwaitingCharges(true)

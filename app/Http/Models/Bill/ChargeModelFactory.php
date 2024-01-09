@@ -228,8 +228,8 @@ class ChargeModelFactory {
 
     private function generateTimeCharges($ratesheet, $timePickupScheduled, $timeDeliveryScheduled) {
         $results = array();
-        $timePickupScheduled = \DateTime::createFromFormat('D M d Y H:i:s e+', $timePickupScheduled);
-        $timeDeliveryScheduled = \DateTime::createFromFormat('D M d Y H:i:s e+', $timeDeliveryScheduled);
+        $timePickupScheduled = new \DateTime($timePickupScheduled);
+        $timeDeliveryScheduled = new \DateTime($timeDeliveryScheduled);
         foreach(json_decode($ratesheet->time_rates) as $timeRate)
             foreach($timeRate->brackets as $bracket) {
                 $startTime = date_timestamp_get(\DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->startTime));
