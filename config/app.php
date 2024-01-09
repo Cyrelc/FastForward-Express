@@ -2,6 +2,7 @@
 
 return [
 
+    'chrome_path' => env('CHROME_PATH', null),
     /*
     |--------------------------------------------------------------------------
     | Application Environment
