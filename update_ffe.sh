@@ -4,7 +4,7 @@
 git pull origin master
 
 # Install/update PHP dependencies
-composer install
+composer update
 
 # Install/update Node.js dependencies
 npm install

@@ -13,7 +13,7 @@ use App\Http\Repos;
 use App\Http\Models\Invoice;
 use App\Http\Services;
 use Illuminate\Support\Facades\Storage;
-// use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\Browsershot\Browsershot;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
@@ -159,7 +159,7 @@ class InvoiceController extends Controller {
         $files = $this->preparePdfs($invoiceIds, $req);
 
         $pdfMerger = PDFMerger::init();
-// dd($files);
+
         foreach($files as $file)
             $pdfMerger->addPDF($file);
 
@@ -301,18 +301,22 @@ class InvoiceController extends Controller {
 
             $header = view('invoices.invoice_table_header', compact('model'))->render();
             $footer = view('invoices.invoice_table_footer')->render();
-            $body = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render();
             $outputFilePath = $this->storagePath . $fileName . '.pdf';
 
-            Browsershot::html($body)
-                ->format('Letter')
-                ->showBackground(true)
-                ->margins(20, 10, 20, 10)
-                ->showBrowserHeaderAndFooter()
-                ->headerHtml($header)
-                ->footerHtml($footer)
-                // ->addStyleTag(public_path('css/invoice_pdf.css'))
-                ->savePdf($outputFilePath);
+            Pdf::view('invoices.invoice_table', [
+                'model' => $model,
+                'amendmentsOnly' => $amendmentsOnly,
+                'showLineItems' => $showLineItems,
+                'showPickupAndDeliveryAddress' => $showPickupAndDeliveryAddress,
+                'hideOutstandingInvoices' => $hideOutstandingInvoices
+            ])->withBrowsershot(function (Browsershot $browsershot) use ($header, $footer) {
+                $browsershot->format('Letter')
+                    ->showBackground(true)
+                    ->margins(20, 10, 20, 10)
+                    ->showBrowserHeaderAndFooter()
+                    ->headerHtml($header)
+                    ->footerHtml($footer);
+            })->save($outputFilePath);
 
             $files[$fileName . '.pdf'] = $outputFilePath;
         }

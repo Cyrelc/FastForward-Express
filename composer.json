@@ -31,7 +31,7 @@
         "ext-gd": "^8.2",
         "ext-simplexml": "^8.2",
         "ext-curl": "^8.2",
-        "spatie/browsershot": "^4.0"
+        "spatie/laravel-pdf": "^1.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
