@@ -102,7 +102,7 @@ function Manifest(props) {
                                 <LinkContainer to={'/app/employees/' + employee?.employee_id}>
                                     <h3>
                                         <a href=''>
-                                            {`${employee?.employee_number} - ${employee?.company_name ? employee?.company_name : `${employee?.contact.first_name} ${employee?.contact.last_name}`}`}
+                                            {`${employee?.employee_number} - ${employee?.company_name ? employee?.company_name : `${contact.first_name} ${contact.last_name}`}`}
                                         </a>
                                     </h3>
                                 </LinkContainer>

@@ -2,10 +2,10 @@
 .header {
     width: 100%;
     position: relative;
-    top: -10px;
+    top: -18px;
 }
 .header table {
-    font-size: 10px;
+    font-size: 14px;
     margin: 0 auto;
     border-bottom: 1px solid black;
     width: 90%;

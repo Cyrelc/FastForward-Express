@@ -10,6 +10,8 @@ use Response;
 use App\Http\Repos;
 use App\Http\Models\Manifest;
 use Illuminate\Http\Request;
+use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\Browsershot\Browsershot;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
@@ -193,45 +195,30 @@ class ManifestController extends Controller {
             $fileName = $model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '-' . $model->manifest->manifest_id;
             $fileName = preg_replace('/\s+/', '_', $fileName);
             $fileName = preg_replace('/[&.\/\\:*?"<>| ]/', '', $fileName);
-
-            $inputFile = $this->storagePath . $fileName . '.html';
             $outputFile = $this->storagePath . $fileName . '.pdf';
-            $headerFile = $this->storagePath . $fileName . '-header.html';
-            $footerFile = $this->storagePath . $fileName . '-footer.html';
 
-            $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
+            $header = view('manifests.manifest_pdf_header', compact('model'))->render();
+            $footer = view('manifests.manifest_pdf_footer')->render();
 
-            file_put_contents($inputFile, view('manifests.manifest_pdf', compact('model', 'withoutBills'))->render());
-            file_put_contents($headerFile, view('manifests.manifest_pdf_header', compact('model'))->render());
-            file_put_contents($footerFile, view('manifests.manifest_pdf_footer')->render());
+            Pdf::view('manifests.manifest_pdf', [
+                'model' => $model,
+                'withoutBills' => $withoutBills
+            ])->withBrowsershot(function(Browsershot $browsershot) use ($header, $footer) {
+                $browsershot->format('Letter')
+                    ->showBackground(true)
+                    ->margins(25, 10, 20, 10)
+                    ->showBrowserHeaderAndFooter()
+                    ->headerHtml($header)
+                    ->footerHtml($footer);
 
-            $options = json_encode([
-                'displayHeaderFooter' => true,
-                'margin' => [
-                    'top' => 80,
-                    'bottom' => 70,
-                    'left' => 30,
-                    'right' => 30
-                ],
-                'path' => $this->storagePath . $fileName . '.pdf',
-                'printBackground' => true,
-            ]);
+                if(config('app.chrome_path') != null) {
+                    $browsershot->setChromePath(config('app.chrome_path'));
+                }
 
-            $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
-            $command .= ' --header ' . $headerFile;
-            $command .= ' --footer ' . $footerFile;
-            $command .= ' --stylesheet ' . public_path('css/manifest_pdf.css');
-            $command .= ' --pdfOptions "' . json_encode($options) . '"';
+                return $browsershot;
+            })->save($outputFile);
 
-            exec($command, $output, $returnCode);
-            if($returnCode != 0 || !file_exists($outputFile))
-                dd($returnCode, $output);
-
-            unlink($inputFile);
-            unlink($headerFile);
-            unlink($footerFile);
-
-            $files[$fileName] = $this->storagePath . $fileName . '.pdf';
+            $files[$fileName] = $outputFile;
         }
 
         return $files;

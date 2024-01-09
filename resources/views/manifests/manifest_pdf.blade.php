@@ -1,4 +1,4 @@
-<hr/>
+<link rel="stylesheet" type="text/css" href={{public_path("css/manifest_pdf.css")}}>
 <table style='overflow: visible'>
     <tbody>
         <tr>
