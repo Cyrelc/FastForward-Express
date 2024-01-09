@@ -4,7 +4,7 @@
     font-size: 8px;
 }
 .footer table {
-    font-size: 10px;
+    font-size: 12px;
     width: 90%;
     margin: 0 auto;
 }
@@ -14,7 +14,7 @@
     <table>
         <tr>
             <td style='width: 30%'>
-                <a href='www.fastforwardexpress.ca'>contactus@fastforwardexpress.com</a><br/>
+                <a href='www.fastforwardexpress.ca'>contactus@fastforwardexpress.ca</a><br/>
                 (780) 458-1074<br/>
                 GST# 133746107
             </td>

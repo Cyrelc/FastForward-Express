@@ -10,6 +10,8 @@ use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Models\Bill;
 use App\Http\Models\Permission;
+use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\Browsershot\Browsershot;
 
 use DB;
 use Illuminate\Http\Request;
@@ -197,43 +199,29 @@ class BillController extends Controller {
 
         $showCharges = isset($req->showCharges);
 
-        $file = view('bills.bill_print_view', compact('model', 'showCharges'))->render();
-
-        $inputFile = $this->storagePath . $fileName . '.html';
         $outputFile = $this->storagePath . $fileName . '.pdf';
         $headerFile = $this->storagePath . $fileName . '-header.html';
         $footerFile = $this->storagePath . $fileName . '-footer.html';
-        $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
 
-        file_put_contents($inputFile, $file);
         file_put_contents($footerFile, view('bills.bill_footer')->render());
 
-        $options = json_encode([
-            'path' => $outputFile,
-            'displayHeaderFooter' => true,
-            'landscape' => true,
-            'margin' => [
-                'top' => 0,
-                'bottom' => 70,
-                'left' => 30,
-                'right' => 30
-            ],
-            'printBackground' => true
-        ], JSON_UNESCAPED_SLASHES);
+        $footer = view('bills.bill_footer')->render();
+        $outputFile = $this->storagePath . $fileName . '.pdf';
 
-        $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
-        $command .= ' --footer ' . $footerFile;
-        $command .= ' --pdfOptions "' . preg_replace('/\s+/', '', json_encode($options)) . '"';
+        Pdf::view('bills.bill_print_view', compact('model', 'showCharges'))
+            ->withBrowsershot(function (Browsershot $browsershot) use ($footer) {
+                $browsershot->format('Letter')
+                    ->showBackground(true)
+                    ->landscape(true)
+                    ->margins(8, 10, 15, 10)
+                    ->showBrowserHeaderAndFooter()
+                    ->footerHtml($footer);
 
-        exec($command, $output, $returnCode);
-        if($returnCode != 0 || !file_exists($outputFile)) {
-            dd($returnCode, $output);
-        }
+                if(config('app.chrome_path') != null)
+                    $browsershot->setChromePath(config('app.chrome_path'));
 
-        unlink($inputFile);
-        unlink($footerFile);
-        if(file_exists($headerFile))
-            unlink($headerFile);
+                return $browsershot;
+            })->save($outputFile);
 
         return response()->file($outputFile)->deleteFileAfterSend(true);
     }
