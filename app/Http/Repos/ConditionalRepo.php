@@ -47,7 +47,7 @@ class ConditionalRepo {
         $old->human_readable = $conditional['human_readable'];
         $old->json_logic = $conditional['json_logic'];
         $old->name = $conditional['name'];
-        $old->original_equation_string = $conditional['original_equation_string'];
+        $old->original_equation_string = $conditional['original_equation_string'] ?? null;
         $old->value = $conditional['value'];
         $old->value_type = $conditional['value_type'];
 

@@ -5,16 +5,14 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=8.1.0",
-        "laravel/framework": "^9.0",
-        "doctrine/dbal": "^2.5",
+        "php": ">=8.2.0",
+        "doctrine/dbal": "^3.0",
         "spatie/laravel-activitylog": "^4.0",
-        "fideloper/proxy": "^4.0",
-        "laravel/ui": "^3.0",
+        "laravel/ui": "^4.0",
         "pusher/pusher-php-server": "^7.2",
         "tecnickcom/tcpdf": "^6.4",
         "aws/aws-sdk-php": "^3.198",
-        "laravel/sanctum": "^2.15",
+        "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.7",
         "stripe/stripe-php": "^8.12",
         "laravel/cashier": "^13.13",
@@ -27,13 +25,20 @@
         "spatie/laravel-query-builder": "^5.2",
         "myfarms/php-units-of-measure": "^2.0",
         "symfony/postmark-mailer": "^6.3",
-        "symfony/http-client": "^6.3"
+        "symfony/http-client": "^6.3",
+        "laravel/framework": "^10.0",
+        "nunomaduro/collision": "^7.0",
+        "ext-gd": "^8.2",
+        "ext-simplexml": "^8.2",
+        "ext-curl": "^8.2",
+        "spatie/browsershot": "^4.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
         "symfony/css-selector": "5.0.*",
         "symfony/dom-crawler": "5.0.*",
-        "filp/whoops": "~2.0"
+        "filp/whoops": "~2.0",
+        "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "classmap": [
@@ -71,6 +76,11 @@
         ]
     },
     "config": {
-        "preferred-install": "dist"
-    }
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

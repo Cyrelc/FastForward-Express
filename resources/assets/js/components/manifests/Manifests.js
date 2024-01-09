@@ -117,7 +117,7 @@ class Manifests extends Component {
 
     deleteManifest(cell) {
         const manifestId = cell.getRow().getData().manifest_id 
-        if(confirm('Are you sure you want to delete manifest ' + manifestId + '?\nThis action can not be undone')) {
+        if(confirm(`Are you sure you want to delete manifest ${manifestId}?\nThis action can not be undone`)) {
             makeAjaxRequest(`/manifests/${manifestId}`, 'DELETE', null, response => {
                 this.props.fetchTableData()
             })

@@ -376,10 +376,10 @@ const ConditionalModal = props => {
                         </Card.Header>
                         <Card.Body>
                             <Row>
-                                <Col md={2}>
+                                <Col md={12}>
                                     <h4 className='text-muted'>If</h4>
                                 </Col>
-                                <Col md={10}>
+                                <Col md={12}>
                                     <Query
                                         {...config}
                                         value={queryTree}

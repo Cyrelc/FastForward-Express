@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href={{public_path("css/invoice_pdf.css")}}>
 <table style='width: 100%'>
     <td style='width: 40%; text-align: center'>
         <h3>{{$model->parent->account_number}} - {{$model->parent->name}}</h3>

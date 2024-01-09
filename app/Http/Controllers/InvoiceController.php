@@ -13,6 +13,8 @@ use App\Http\Repos;
 use App\Http\Models\Invoice;
 use App\Http\Services;
 use Illuminate\Support\Facades\Storage;
+// use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\Browsershot\Browsershot;
 
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 use App\Jobs\SendInvoiceFinalizedEmail;
@@ -157,7 +159,7 @@ class InvoiceController extends Controller {
         $files = $this->preparePdfs($invoiceIds, $req);
 
         $pdfMerger = PDFMerger::init();
-
+// dd($files);
         foreach($files as $file)
             $pdfMerger->addPDF($file);
 
@@ -297,43 +299,22 @@ class InvoiceController extends Controller {
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
-            $puppeteerScript = resource_path('assets/js/puppeteer/phpPuppeteer.js');
+            $header = view('invoices.invoice_table_header', compact('model'))->render();
+            $footer = view('invoices.invoice_table_footer')->render();
+            $body = view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render();
+            $outputFilePath = $this->storagePath . $fileName . '.pdf';
 
-            $inputFile = $this->storagePath . $fileName . '.html';
-            $outputFile = $this->storagePath . $fileName . '.pdf';
-            $headerFile = $this->storagePath . $fileName . '-header.html';
-            $footerFile = $this->storagePath . $fileName . '-footer.html';
-            file_put_contents($inputFile, view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'showPickupAndDeliveryAddress', 'hideOutstandingInvoices'))->render());
-            file_put_contents($headerFile, view('invoices.invoice_table_header', compact('model'))->render());
-            file_put_contents($footerFile, view('invoices.invoice_table_footer')->render());
+            Browsershot::html($body)
+                ->format('Letter')
+                ->showBackground(true)
+                ->margins(20, 10, 20, 10)
+                ->showBrowserHeaderAndFooter()
+                ->headerHtml($header)
+                ->footerHtml($footer)
+                // ->addStyleTag(public_path('css/invoice_pdf.css'))
+                ->savePdf($outputFilePath);
 
-            $options = json_encode([
-                'displayHeaderFooter' => true,
-                'margin' => [
-                    'top' => 80,
-                    'bottom' => 70,
-                    'left' => 30,
-                    'right' => 30
-                ],
-                'path' => $outputFile,
-                'printBackground' => true,
-            ], JSON_UNESCAPED_SLASHES);
-
-            $command = 'node ' . $puppeteerScript . ' --file file:' . $inputFile;
-            $command .= ' --header ' . $headerFile;
-            $command .= ' --footer ' . $footerFile;
-            $command .= ' --stylesheet ' . public_path('css/invoice_pdf.css');
-            $command .= ' --pdfOptions ' . preg_replace('/\s+/', '', json_encode($options));
-
-            exec($command, $output, $returnCode);
-            if($returnCode != 0 || !file_exists($outputFile))
-                dd($returnCode, $output, $command);
-
-            unlink($inputFile);
-            unlink($headerFile);
-            unlink($footerFile);
-
-            $files[$fileName . '.pdf'] = $outputFile;
+            $files[$fileName . '.pdf'] = $outputFilePath;
         }
 
         return $files;
