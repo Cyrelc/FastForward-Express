@@ -101,7 +101,7 @@ export default function Charge(props) {
         const data = cell.getRow().getData()
         var menuItems = readOnly ? [] : data.line_item_id ? [
             ... canLineItemBeDeleted(cell.getRow()) ? [
-                {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
+                {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (cell) => deleteLineItem(cell)}
             ] : [],
             ... data.invoice_is_finalized ? [] : data.invoice_id ? [
                 {label: `<i class="fas fa-unlink"></i> Remove Invoice Link (ID: ${data.invoice_id})`, action: () => removeLink(cell, 'Invoice'), disabled: data.finalized},
@@ -119,7 +119,7 @@ export default function Charge(props) {
                 {label: '<i class="fas fa-link"></i> Link To Delivery Manifest', action: (e, cell) => linkTo(cell, 'Delivery Manifest')}
             ]
         ] : [
-            {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
+            {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (cell) => deleteLineItem(cell)}
         ]
         return menuItems
     }
@@ -137,8 +137,8 @@ export default function Charge(props) {
     const chargeTableColumns = chargeType => {
         return [
             {
-                clickMenu: (event, cell) => actionCellContextMenu(cell),
-                formatter: (event, cell) => actionCellContextMenuFormatter(cell),
+                clickMenu: (cell) => actionCellContextMenu(cell),
+                formatter: (cell) => actionCellContextMenuFormatter(cell),
                 headerSort: false,
                 hozAlign: 'center',
                 print: false,

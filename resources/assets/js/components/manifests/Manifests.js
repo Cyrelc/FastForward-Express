@@ -57,7 +57,7 @@ class Manifests extends Component {
                     formatter: cell => this.cellContextMenuFormatter(cell),
                     width: 50,
                     hozAlign: 'center',
-                    clickMenu: (event, cell) => this.cellContextMenu(cell),
+                    clickMenu: (cell) => this.cellContextMenu(cell),
                     headerSort: false,
                     print: false
                 },

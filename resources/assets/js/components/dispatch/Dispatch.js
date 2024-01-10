@@ -193,16 +193,16 @@ export default function Dispatch(props) {
 
     const billColumns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
-        {title: 'Bill ID', field: 'bill_id', cellDblClick: (event, cell) => window.open(`/app/bills/${cell.getValue()}`)},
+        {title: 'Bill ID', field: 'bill_id', cellDblClick: (cell) => window.open(`/app/bills/${cell.getValue()}`)},
         {
-            cellClick: (event, cell) => setTimeModalView(cell),
+            cellClick: (cell) => setTimeModalView(cell),
             field: 'time_pickup_scheduled',
             formatter: reactFormatter(<DurationFormatter/>),
             title: 'Pickup',
             hozAlign: 'right'
         },
         {
-            cellClick: (event, cell) => setTimeModalView(cell),
+            cellClick: (cell) => setTimeModalView(cell),
             title: 'Delivery',
             field: 'time_delivery_scheduled',
             formatter: reactFormatter(<DurationFormatter/>),
@@ -214,8 +214,8 @@ export default function Dispatch(props) {
             headerSort: false,
             formatter: (cell) => {return cell.getRow().getData().view ? '<i class="fas fa-eye"></i>' : '<i class="far fa-eye-slash"></i>'},
             width: 60,
-            cellClick: (event, cell) => toggleBillView(cell),
-            headerClick: (event, column) => toggleTableBillView(column.getTable().element.getAttribute('data-employeeid'))
+            cellClick: (cell) => toggleBillView(cell),
+            headerClick: (column) => toggleTableBillView(column.getTable().element.getAttribute('data-employeeid'))
             // headerClick: (event, column) => {this.handleChange({target: {name: 'viewDriver', type: 'checkbox', value: column.getTable().element.getAttribute('data-employeeid')}})},
         },
         {title: 'Picked Up', field: 'time_picked_up', visible: false},

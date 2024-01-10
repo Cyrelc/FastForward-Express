@@ -122,7 +122,7 @@ class Invoices extends Component {
                         formatter: cell => cellContextMenuFormatter(cell),
                         width:50,
                         hozAlign:'center',
-                        clickMenu: (event, cell) => cellContextMenu(cell),
+                        clickMenu: (cell) => cellContextMenu(cell),
                         headerSort: false,
                         print: false
                     }
