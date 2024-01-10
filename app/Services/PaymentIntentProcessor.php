@@ -42,9 +42,11 @@ class PaymentIntentProcessor {
             // only if we are 'upgrading' the status
             // this means we don't process 'created' before 'success' but also means we never accidentally process the same payment twice. 
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
-            $oldStatus = explode('.', $payment->payment_intent_status)[-1];
+            $oldStatus = explode('.', $payment->payment_intent_status);
+            $oldStatus = end($oldStatus);
             $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
-            $newStatus = explode('.', $event->type)[-1];
+            $newStatus = explode('.', $event->type);
+            $newStatus = end($newStatus);
             $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
             if($oldStatusIndex && $newStatusIndex && $oldStatusIndex < $newStatusIndex) {
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $newStatus);
