@@ -4,7 +4,7 @@ import {useHistory} from 'react-router-dom'
 import {ReactTabulator} from 'react-tabulator'
 
 import LinkLineItemModal from './modals/LinkLineItemModal'
-import PriceAdjustModal from './modals/PriceAdjustModal'
+// import PriceAdjustModal from './modals/PriceAdjustModal'
 // import ReassignChargesModal from './ReassignChargesModal'
 
 function canLineItemBeDeleted(row) {
@@ -137,7 +137,7 @@ export default function Charge(props) {
     const chargeTableColumns = chargeType => {
         return [
             {
-                clickMenu: (cell) => actionCellContextMenu(cell),
+                clickMenu: (event, cell) => actionCellContextMenu(cell),
                 formatter: (cell) => actionCellContextMenuFormatter(cell),
                 headerSort: false,
                 hozAlign: 'center',
@@ -150,9 +150,9 @@ export default function Charge(props) {
             {title: 'Price', field: 'price', ...moneyColumnStandardParams},
             {title: 'Driver Amount', field: 'driver_amount', ...moneyColumnStandardParams},
             ... chargeType.name === 'Account' ? [
-                {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => {redirectToCellValue('invoices', cell)}}
+                {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (event, cell) => redirectToCellValue('invoices', cell)}
             ] : chargeType.name === 'Employee' ? [
-                {title: 'Manifest ID', field: 'manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)}
+                {title: 'Manifest ID', field: 'manifest_id', visible: showDetails, cellClick: (event, cell) => redirectToCellValue('manifests', cell)}
             ] : [],
             {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: showDetails, formatter: 'tickCross'},
             {
@@ -363,8 +363,7 @@ export default function Charge(props) {
                         ref={tableRef}
                         columns={chargeTableColumns(charge.chargeType)}
                         data={charge.lineItems}
-                        id='lineItemDestination'
-                        options={{
+                        events={{
                             cellEdited: cell => {
                                 const field = cell.getField()
                                 const row = cell.getRow()
@@ -373,13 +372,6 @@ export default function Charge(props) {
                                     row.update({driver_amount: cell.getValue()})
                                 props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
                             },
-                            groupBy: data => groupBy(data, charge),
-                            groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
-                            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                            layout: 'fitColumns',
-                            movableRows: true,
-                            movableRowsConnectedTables: ['#lineItemSource'],
-                            movableRowsReceiver: 'add',
                             rowAdded: row => {
                                 row.getTable().setGroupBy(data => groupBy(data, charge))
                                 const data = row.getTable().getData()
@@ -392,7 +384,17 @@ export default function Charge(props) {
                                 props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
                             }
                         }}
-                    />
+                        id='lineItemDestination'
+                        options={{
+                            groupBy: data => groupBy(data, charge),
+                            groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
+                            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+                            layout: 'fitColumns',
+                            movableRows: true,
+                            movableRowsConnectedTables: ['#lineItemSource'],
+                            movableRowsReceiver: 'add',
+                        }}
+                />
                 </Card.Body>
                 {showLinkLineItemModal &&
                     <LinkLineItemModal
@@ -402,7 +404,7 @@ export default function Charge(props) {
                         show={showLinkLineItemModal}
                     />
                 }
-                {showPriceAdjustModal &&
+                {/* {showPriceAdjustModal &&
                     <PriceAdjustModal
                         charge={charge}
                         delivery={props.delivery}
@@ -411,7 +413,7 @@ export default function Charge(props) {
                         show={showPriceAdjustModal}
                         tableRef={tableRef}
                     />
-                }
+                } */}
             </Card>
         </Col>
     )

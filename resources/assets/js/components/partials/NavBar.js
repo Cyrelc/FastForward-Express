@@ -216,9 +216,9 @@ function NavBar(props) {
                                 {props.frontEndPermissions.bills.create &&
                                     <MenuItem component={<Link to='/app/bills/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
                                 }
-                                {props.frontEndPermissions.appSettings.edit && props.frontEndPermissions.bills.create &&
+                                {/* {props.frontEndPermissions.appSettings.edit && props.frontEndPermissions.bills.create &&
                                     <MenuItem component={<Link to='/app/bills/create/bulk' />} icon={<i className='fas fa-mail-bulk'></i>}>Create Bills in Bulk</MenuItem>
-                                }
+                                } */}
                                 {props.frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/app/bills/trend' />} icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
                                 }
