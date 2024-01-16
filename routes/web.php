@@ -76,7 +76,7 @@ Route::middleware(['auth'])->controller(ChargebackController::class)->prefix('ch
 
 Route::middleware(['auth'])->controller(DispatchController::class)->prefix('dispatch')->group(function() {
     Route::post('/assignBillToDriver', 'AssignBillToDriver');
-    Route::get('/getDrivers', 'GetDrivers');
+    Route::get('/', 'GetModel');
     Route::get('/getBills', 'GetBills');
     Route::post('/setBillPickupOrDeliveryTime', 'SetBillPickupOrDeliveryTime');
 });
