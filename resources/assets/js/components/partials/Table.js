@@ -166,7 +166,7 @@ export default function Table(props) {
             history.push({search: query})
         }
 
-        makeAjaxRequest(`${props.baseRoute}?${query}`, 'GET', null, response => {
+        makeAjaxRequest(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`, 'GET', null, response => {
             if(props.transformResponse)
                 response = props.transformResponse(response)
             setTableData(response.data)
