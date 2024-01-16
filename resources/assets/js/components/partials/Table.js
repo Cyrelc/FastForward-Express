@@ -34,7 +34,7 @@ export default function Table(props) {
 
     // Initial setup, set document title, get initial searchQuery
     useEffect(() => {
-        document.title = `${props.tableName} - Fast Forward Express`
+        document.title = `${props.pageTitle} - Fast Forward Express`
     }, [])
 
     useEffect(() => {
