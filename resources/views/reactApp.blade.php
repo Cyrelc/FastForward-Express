@@ -27,7 +27,12 @@
     </head>
 
     <body style='min-height: 100%'>
-        @yield('body')
+        <div class='row' style='width: 99.1vw'>
+            <div id='reactApp' class="col-lg-12">
+                <div id='reactDiv'>
+                </div>
+            </div>
+        </div>
     </body>
 
     <footer>
@@ -41,5 +46,6 @@
             });
         });
         </script>
+        <script type='text/javascript' src='{{mix("compiled_js/app.js")}}'></script>
     </footer>
 </html>
