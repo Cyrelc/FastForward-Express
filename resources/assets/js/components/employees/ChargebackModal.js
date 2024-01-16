@@ -52,7 +52,7 @@ export default function ChargebackModal(props) {
             name: chargebackName
         }
         makeAjaxRequest('/chargebacks', 'POST', data, response => {
-            props.fetchTableData()
+            props.setTriggerReload(true)
             props.toggleModal()
         })
     }
@@ -148,13 +148,19 @@ export default function ChargebackModal(props) {
                         />
                     </Col>
                     <Col md={12}>
-                        <InputGroup>
+                        <InputGroup style={{display: 'flex', width: '100%'}}>
                             <InputGroup.Text>{chargebackId ? 'Employee' : 'Employees'}</InputGroup.Text>
                             <Select
                                 options={props.employees}
                                 value={selectedEmployees}
                                 isMulti={!chargebackId}
                                 onChange={value => setSelectedEmployees(value)}
+                                styles={{
+                                    container: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        flexGrow: 1
+                                    })
+                                }}
                             />
                         </InputGroup>
                     </Col>

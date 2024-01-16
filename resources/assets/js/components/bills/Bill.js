@@ -74,12 +74,16 @@ const Bill = (props) => {
                 billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                const currentBillIndex = props.sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
-                if(currentBillIndex != -1) {
-                    const prevBillId = currentBillIndex == 0 ? null : props.sortedBills[currentBillIndex - 1]
-                    const nextBillId = currentBillIndex <= props.sortedBills.length ? props.sortedBills[currentBillIndex + 1] : null
-                    billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
-                    billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                let sortedBills = localStorage.getItem('bills.sortedList')
+                if(sortedBills) {
+                    sortedBills = sortedBills.split(',').map(index => parseInt(index))
+                    const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
+                    if(currentBillIndex != -1) {
+                        const prevBillId = currentBillIndex == 0 ? null : sortedBills[currentBillIndex - 1]
+                        const nextBillId = currentBillIndex <= sortedBills.length ? sortedBills[currentBillIndex + 1] : null
+                        billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
+                        billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                    }
                 }
 
                 if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
@@ -684,7 +688,6 @@ const mapStateToProps = store => {
         drivers: store.app.drivers,
         employees: store.app.employees,
         frontEndPermissions: store.user.frontEndPermissions,
-        sortedBills: store.bills.sortedList,
         userSettings: store.user.userSettings
     }
 }

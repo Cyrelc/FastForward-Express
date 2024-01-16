@@ -12,7 +12,6 @@ function Manifest(props) {
     const [isLoading, setIsLoading] = useState(true)
 
     const {manifestId} = props.match.params
-    const {sortedManifests} = props
     const {bills, chargebacks, manifest, overview} = data
     const {contact, employee, warnings} = data?.employee || {}
 
@@ -24,15 +23,18 @@ function Manifest(props) {
         setIsLoading(true)
         makeAjaxRequest(`/manifests/${manifestId}`, 'GET', null, response => {
             response = JSON.parse(response)
-            document.title = 'View Manifest - ' + response.manifest.manifest_id
-            const thisManifestIndex = sortedManifests.findIndex(manifest_id => response.manifest.manifest_id === manifest_id)
-            const prevManifestId = thisManifestIndex <= 0 ? null : sortedManifests[thisManifestIndex - 1]
-            const nextManifestId = (thisManifestIndex < 0 || thisManifestIndex === sortedManifests.length - 1) ? null : sortedManifests[thisManifestIndex + 1]
+            document.title = `View Manifest - ${response.manifest.manifest_id}`
+            let sortedManifests = localStorage.getItem('manifests.sortedList')
+            if(sortedManifests) {
+                sortedManifests = sortedManifests.split(',').map(index => parseInt(index))
+                const thisManifestIndex = sortedManifests.findIndex(manifest_id => response.manifest.manifest_id === manifest_id)
+                setPrevManifestId(thisManifestIndex <= 0 ? null : sortedManifests[thisManifestIndex - 1])
+                setNextManifestId((thisManifestIndex < 0 || thisManifestIndex === sortedManifests.length - 1) ? null : sortedManifests[thisManifestIndex + 1])
+            }
+
             setData(response)
-            setNextManifestId(nextManifestId)
-            setPrevManifestId(prevManifestId)
             setIsLoading(false)
-        }, error => setIsLoading(false))
+        }, () => setIsLoading(false))
     }
 
     const regather = () => {

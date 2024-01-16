@@ -10,9 +10,9 @@ use App\Http\Repos;
 use App\Http\Models\Account;
 use App\Http\Models\Chart;
 use App\Http\Models\Permission;
+use App\Http\Validation;
+use App\Http\Validation\Utils;
 
-use \App\Http\Validation;
-use \App\Http\Validation\Utils;
 use Illuminate\Support\Facades\Auth;
 
 use App\AccountInvoiceSortOrder;
@@ -145,12 +145,20 @@ class AccountController extends Controller {
             abort(403);
 
         $accountRepo = new Repos\AccountRepo();
+        $queryRepo = new Repos\QueryRepo();
+
         if(count($user->accountUsers) > 0)
             $model = $accountRepo->ListAll($user, $user->can('viewChildAccounts', $accountRepo->GetById($user->accountUsers[0]->account_id)));
         else if($user->employee || $user->hasRole('superAdmin'))
             $model = $accountRepo->ListAll(null);
 
-        return json_encode($model);
+        $queries = $queryRepo->GetByTable('accounts');
+
+        return response()->json([
+            'success' => true,
+            'data' => $model,
+            'queries' => $queries
+        ]);
     }
 
     public function store(Request $req) {

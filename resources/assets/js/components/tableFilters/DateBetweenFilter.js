@@ -2,32 +2,31 @@ import React, {useEffect, useState} from 'react'
 import {Col, InputGroup} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 import {DateTime} from 'luxon'
+import {useLocation} from 'react-router-dom'
 
 const DateBetweenFilter = (props) => {
     const [endDate, setEndDate] = useState(null)
     const [startDate, setStartDate] = useState(null)
 
+    const location = useLocation()
+
     useEffect(() => {
         var dates = null
-        if(window.location.search.includes(`filter[${props.filter.value}]=`)) {
-            const filterValue = window.location.search.split(`[${props.filter.value}]=`)[1].split('&')[0]
-            dates = filterValue.split(',')
+        if(props.filter.value) {
+            dates = props.filter.value.split(',')
         }
         if(dates) {
-            if(dates[0])
-                setStartDate(DateTime.fromFormat(dates[0], 'yyyy-MM-dd').toJSDate())
-            if(dates[1])
-                setEndDate(DateTime.fromFormat(dates[1], 'yyyy-MM-dd').toJSDate())
+            setStartDate(dates[0] ? DateTime.fromFormat(dates[0], 'yyyy-MM-dd').toJSDate() : null)
+            setEndDate(dates[1] ? DateTime.fromFormat(dates[1], 'yyyy-MM-dd').toJSDate() : null)
         }
-    }, [])
+    }, [props.filter.value])
 
     useEffect(() => {
         const formattedStartDate = startDate ? DateTime.fromJSDate(startDate).toFormat('yyyy-MM-dd') : ''
         const formattedEndDate = endDate ? DateTime.fromJSDate(endDate).toFormat('yyyy-MM-dd') : ''
-        console.log(formattedStartDate, formattedEndDate)
-        const filterQueryString = `filter[${props.filter.value}]=${formattedStartDate}${endDate ? `,${formattedEndDate}` : ''}`
+        const value = `${formattedStartDate}${endDate ? `,${formattedEndDate}` : ''}`
 
-        props.handleFilterQueryStringChange({target: {name: props.filter.value, type: 'string', value: filterQueryString}})
+        props.handleFilterValueChange({...props.filter, value: value})
     }, [startDate, endDate])
 
     return(

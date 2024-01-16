@@ -1,24 +1,18 @@
 import React, {useEffect, useState} from 'react'
 import {Col, InputGroup, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
-import {useLocation} from 'react-router-dom'
 
 export default function BooleanFilter(props) {
     const [boolState, setBoolState] = useState(false)
 
-    const filterString = `filter[${props.filter.value}]`
-    const location = useLocation()
-    const queryParams = new URLSearchParams(location.search)
-
     useEffect(() => {
-        if(queryParams.has(filterString))
-            setFilterValue(queryParams.get(filterString) == true)
+        if(props.filter.value != undefined)
+            setBoolState(props.filter.value == true || props.filter.value == 'true')
         else if (props.filter.default)
-            setFilterValue(props.filter.default == true)
-    }, [])
+            setBoolState(props.filter.default)
+    }, [props.filter.value])
 
     const setFilterValue = (newBoolState) => {
-        setBoolState(newBoolState)
-        props.handleFilterQueryStringChange({target: {name: props.filter.value, type: 'boolean', value: `${filterString}=${newBoolState}`}})
+        props.handleFilterValueChange({...props.filter, value: newBoolState.toString()})
     }
 
     return(
@@ -28,13 +22,13 @@ export default function BooleanFilter(props) {
                 <ToggleButtonGroup name='boolState' type='radio' onChange={setFilterValue} value={boolState}>
                     <ToggleButton
                         checked={!boolState}
-                        id={props.filter.value + '.false'}
+                        id={props.filter.db_field + '.false'}
                         variant='secondary'
                         value={false}
                     >False</ToggleButton>
                     <ToggleButton
                         checked={boolState}
-                        id={props.filter.value + '.true'}
+                        id={props.filter.db_field + '.true'}
                         variant='secondary'
                         value={true}
                     >True</ToggleButton>

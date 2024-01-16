@@ -98,7 +98,14 @@ class ManifestController extends Controller {
         else
             abort(403);
 
-        return json_encode($model);
+        $queryRepo = new Repos\QueryRepo();
+        $queries = $queryRepo->GetByTable('manifests');
+
+        return response()->json([
+            'succcess' => true,
+            'data' => $model,
+            'queries' => $queries
+        ]);
     }
 
     public function print(Request $req, $manifestIds) {
@@ -148,13 +155,14 @@ class ManifestController extends Controller {
         if($req->user()->cannot('create', Manifest::class))
             abort(403);
 
-        DB::beginTransaction();
         $validationRules = ['employees' => 'required|array|min:1', 'start_date' => 'required|date', 'end_date' => 'required|date|after:' . $req->start_date];
         $validationMessages = ['employees.required' => 'You must select at least one driver to manifest'];
 
         $this->validate($req, $validationRules, $validationMessages);
 
         $manifestRepo = new Repos\ManifestRepo();
+
+        DB::beginTransaction();
 
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');

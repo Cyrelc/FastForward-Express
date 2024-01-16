@@ -3,9 +3,7 @@ import { connect } from 'react-redux'
 import {push} from 'connected-react-router'
 
 import ChargebackModal from './ChargebackModal'
-// import Table from '../partials/Table'
-import Table from '../partials/ReduxTable'
-import { SET_BILLS_TABLE_LOADING } from '../../store/actions'
+import Table from '../partials/Table'
 
 const groupBy = {
     label: 'Employee ID',
@@ -26,56 +24,36 @@ const groupByOptions = [
 const initialSort = [{column: 'chargeback_id', dir: 'desc'}]
 
 function Chargebacks(props) {
-    const [showChargebackModal, setShowChargebackModal] = useState(false)
-    const [refreshTable, setRefreshTable] = useState(true)
     const [chargeback, setChargeback] = useState({})
-    const [chargebacks, setChargebacks] = useState([])
-    const [queryString, setQueryString] = useState('')
-    // We don't actually use this sorted list, but it is required for the <Table> component
-    const [sortedList, setSortedList] = useState([])
-    const [tableLoading, setTableLoading] = useState(false)
+    const [showChargebackModal, setShowChargebackModal] = useState(false)
+    const [triggerReload, setTriggerReload] = useState(false)
 
-    const cellContextMenu = cell => {
-        const stuff = [
-            {label: '<i class="fas fa-edit"></i> Edit Chargeback', action: () => {
-                setChargeback(cell.getData())
-                setShowChargebackModal(true)
-            }},
-            {label: '<i class="fas fa-copy"></i> Copy Chargeback', action: () => {
-                // TODO: remove chargeback_id from cell data for copy action
-                setChargeback({...cell.getData(), chargeback_id: null})
-                setShowChargebackModal(true)
-            }},
-            {label: '<i class="fas fa-trash"></i> Delete Chargeback', action: () => deleteChargeback(cell)},
-        ]
-        return stuff;
-    }
+    const cellContextMenu = [
+        {label: '<i class="fas fa-edit"></i> Edit Chargeback', action: (event, cell) => {
+            setChargeback(cell.getData())
+            setShowChargebackModal(true)
+        }},
+        {label: '<i class="fas fa-copy"></i> Copy Chargeback', action: (event, cell) => {
+            // TODO: remove chargeback_id from cell data for copy action
+            setChargeback({...cell.getData(), chargeback_id: null})
+            setShowChargebackModal(true)
+        }},
+        {label: '<i class="fas fa-trash"></i> Delete Chargeback', action: (event, cell) => deleteChargeback(cell)},
+    ]
 
-    const deleteChargeback = cell => {
+    const deleteChargeback = (event, cell) => {
         const data = cell.getData()
         if(confirm(`Are you sure you wish to delete chargeback ${data.chargeback_id}?\nThis action can not be undone`))
             makeAjaxRequest(`/chargebacks/${cell.getData().chargeback_id}`, 'DELETE', null, response => {
-                setRefreshTable(true)
+                cell.getRow().delete()
             })
-    }
-
-    const fetchTableData = () => {
-        setTableLoading(true)
-        makeAjaxRequest(`/chargebacks${queryString}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setChargebacks(response)
-            setTableLoading(false)
-        }, error => {
-            setTableLoading(false)
-            handleErrorResponse(error)
-        })
     }
 
     const filters = [
         {
             name: 'Active',
             type: 'BooleanFilter',
-            value: 'active',
+            db_field: 'active',
             default: true
         },
         {
@@ -83,17 +61,17 @@ function Chargebacks(props) {
             name: 'Employee',
             selections: props.employees,
             type: 'SelectFilter',
-            value: 'employee_id'
+            db_field: 'employee_id'
         },
         {
             name: 'Manifest Start Date',
             type: 'DateBetweenFilter',
-            value: 'start_date',
+            db_field: 'start_date',
         },
         {
             name: 'Manifest End Date',
             type: 'DateBetweenFilter',
-            value: 'end_date',
+            db_field: 'end_date',
         },
     ]
 
@@ -105,7 +83,7 @@ function Chargebacks(props) {
 
     const columns = [
         {
-            clickMenu: (cell) => cellContextMenu(cell),
+            clickMenu: cellContextMenu,
             formatter: cell => {return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'},
             headerSort: false,
             hozAlign: 'center',
@@ -128,29 +106,25 @@ function Chargebacks(props) {
     return (
         <Fragment>
             <Table
+                baseRoute='/chargebacks'
                 columns={columns}
                 createObjectFunction={toggleModal}
-                dataUrl='/chargebacks'
                 defaultQueryString='?filter[active]=true'
-                fetchTableData={fetchTableData}
                 filters={filters}
                 groupBy={groupBy}
                 groupByOptions={groupByOptions}
                 indexName='chargeback_id'
                 initalSort={initialSort}
                 pageTitle='Chargebacks'
-                reduxQueryString={queryString}
-                redirect={props.redirect}
-                setReduxQueryString={setQueryString}
-                setSortedList={setSortedList}
-                tableData={chargebacks}
-                tableLoading={tableLoading}
+                setTriggerReload={setTriggerReload}
+                tableName='chargebacks'
+                triggerReload={triggerReload}
             />
             <ChargebackModal
                 chargeback={chargeback}
                 employees={props.employees}
-                fetchTableData={fetchTableData}
 
+                setTriggerReload={setTriggerReload}
                 show={showChargebackModal}
                 toggleModal={toggleModal}
             />

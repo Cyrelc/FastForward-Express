@@ -1,12 +1,9 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { connect } from 'react-redux'
-import { push } from 'connected-react-router'
-import ReduxTable from '../partials/ReduxTable'
+import Table from '../partials/Table'
+import {useHistory} from 'react-router-dom'
 
-import { fetchAccounts } from '../../store/reducers/accounts'
-import * as actionTypes from '../../store/actions'
-
-const defaultQueryString = '?filter[active]=true'
+const defaultFilterQuery = '?filter[active]=true'
 /**
  * Table constants including definitions
  */
@@ -17,109 +14,89 @@ const groupByOptions = [
 
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
-class Accounts extends Component {
-    constructor(props) {
-        super(props)
+function Accounts(props) {
+    const history = useHistory()
 
-        const basicColumns = [
-            {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), sorter: 'number'},
-            {title: 'Account Number', field: 'account_number'},
-            {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/app/accounts/', this.props.redirect, null, 'parent_id')},
-            {title: 'Account Name', field: 'name', ...configureFakeLink('/app/accounts/', this.props.redirect, null, 'account_id')},
-            {title: 'Start Date', field: 'start_date', visible: false},
-            {title: 'Invoice Interval', field: 'invoice_interval'},
-            {title: 'Primary Contact', field: 'primary_contact_name'},
-            {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false, formatter: (cell) => {
-                const cleaned = ('' + cell.getValue()).replace(/\D/g, '')
-                const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
-                if (match)
-                    return `(${match[1]}) ${match[2]}-${match[3]}`
-                return cell.getValue()
-            }},
-            {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
-            {title: 'Shipping Address', field: 'shipping_address', visible: false},
-            {title: 'Billing Address Name', field: 'billing_address_name'},
-            {title: 'Billing Address', field: 'billing_address', visible: false}
-        ]
+    const basicColumns = [
+        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', history.push), sorter: 'number'},
+        {title: 'Account Number', field: 'account_number'},
+        {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/app/accounts/', history.push, null, 'parent_id')},
+        {title: 'Account Name', field: 'name', ...configureFakeLink('/app/accounts/', history.push, null, 'account_id')},
+        {title: 'Start Date', field: 'start_date', visible: false},
+        {title: 'Invoice Interval', field: 'invoice_interval'},
+        {title: 'Primary Contact', field: 'primary_contact_name'},
+        {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false, formatter: (cell) => {
+            const cleaned = ('' + cell.getValue()).replace(/\D/g, '')
+            const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
+            if (match)
+                return `(${match[1]}) ${match[2]}-${match[3]}`
+            return cell.getValue()
+        }},
+        {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
+        {title: 'Shipping Address', field: 'shipping_address', visible: false},
+        {title: 'Billing Address Name', field: 'billing_address_name'},
+        {title: 'Billing Address', field: 'billing_address', visible: false}
+    ]
 
-        const adminColumns = this.props.frontEndPermissions.accounts.toggleEnabled ? [
-            {formatter: (cell) => {
-                if(!this.props.frontEndPermissions.accounts.toggleEnabled)
-                    return
+    const adminColumns = props.frontEndPermissions.accounts.toggleEnabled ? [
+        {formatter: (cell) => {
+            if(!props.frontEndPermissions.accounts.toggleEnabled)
+                return
 
-                if(cell.getValue() == 1)
-                    return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
-                else
-                    return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
-            }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => this.toggleAccountActive(cell), headerSort: false, print: false},
-            {title: 'Created On', field: 'created_at', visible: false}
-        ] : [];
+            if(cell.getValue() == 1)
+                return "<button class='btn btn-sm btn-danger' title='Deactivate'><i class='far fa-times-circle'></i></button>"
+            else
+                return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
+        }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => toggleAccountActive(cell), headerSort: false, print: false},
+        {title: 'Created On', field: 'created_at', visible: false}
+    ] : [];
 
-        this.state = {
-            columns: Array.prototype.concat(adminColumns, basicColumns),
-            filters: [
-                {name: 'Account', value: 'account_id', selections: this.props.accounts, type: 'SelectFilter', isMulti: true},
-                {name: 'Active', value: 'active', type: 'BooleanFilter'},
-                {name: 'Has Parent', value: 'has_parent', type: 'BooleanFilter'},
-                {isMulti: true, name: 'Invoice Interval', selections: this.props.invoice_intervals, type: 'SelectFilter', value: 'invoice_interval'},
-                {isMulti: true, name: 'Parent Account', selections: this.props.parent_accounts, type: 'SelectFilter', value: 'parent_id'}
-            ]
-        }
-        this.toggleAccountActive = this.toggleAccountActive.bind(this)
-    }
+    const columns = Array.prototype.concat(adminColumns, basicColumns)
+    const filters = [
+        {name: 'Account', db_field: 'account_id', selections: props.accounts, type: 'SelectFilter', isMulti: true},
+        {name: 'Active', db_field: 'active', type: 'BooleanFilter'},
+        {name: 'Has Parent', db_field: 'has_parent', type: 'BooleanFilter'},
+        {isMulti: true, name: 'Invoice Interval', selections: props.invoice_intervals, type: 'SelectFilter', db_field: 'invoice_interval'},
+        {isMulti: true, name: 'Parent Account', selections: props.parent_accounts, type: 'SelectFilter', db_field: 'parent_id'}
+    ]
 
-    toggleAccountActive(cell) {
-        if(!this.props.frontEndPermissions.accounts.toggleEnabled)
+    const toggleAccountActive = cell => {
+        if(!props.frontEndPermissions.accounts.toggleEnabled)
             return
 
         const active = cell.getRow().getData().active
-        if(confirm('Are you sure you wish to ' + (active ? 'DEACTIVATE' : 'ACTIVATE') + ' account ' + cell.getRow().getData().name + '?')) {
-            makeAjaxRequest('/accounts/toggleActive/' + cell.getRow().getData().account_id, 'GET', null, response => {
+        if(confirm(`Are you sure you wish to ${active ? 'DEACTIVATE' : 'ACTIVATE'} account ${cell.getRow().getData().name}?`)) {
+            makeAjaxRequest(`/accounts/toggleActive/${cell.getRow().getData().account_id}`, 'GET', null, response => {
                 fetchAccounts()
             })
         }
     }
 
-    render() {
-        return <ReduxTable
-            columns={this.props.columns.length ? this.props.columns : this.state.columns}
-            defaultQueryString={defaultQueryString}
-            fetchTableData={this.props.fetchTableData}
-            filters={this.state.filters}
-            groupByOptions={groupByOptions}
-            indexName='account_id'
-            initialSort={initialSort}
-            pageTitle='Accounts'
-            reduxQueryString={this.props.reduxQueryString}
-            redirect={this.props.redirect}
-            selectable={false}
-            setReduxQueryString={this.props.setQueryString}
-            setSortedList={this.props.setSortedList}
-            tableData={this.props.accountsTable}
-            toggleColumnVisibility={this.props.toggleColumnVisibility}
-        />
-    }
+    return <Table
+        baseRoute='/accounts'
+        columns={columns}
+        defaultFilterQuery={defaultFilterQuery}
+        filters={filters}
+        groupByOptions={groupByOptions}
+        indexName='account_id'
+        initialSort={initialSort}
+        pageTitle='Accounts'
+        selectable={false}
+        tableName='accounts'
+    />
 }
 
 const matchDispatchToprops = dispatch => {
     return {
-        fetchTableData: () => dispatch(fetchAccounts),
-        redirect: url => dispatch(push(url)),
-        setQueryString: queryString => dispatch({type: actionTypes.SET_ACCOUNTS_QUERY_STRING, payload: queryString}),
-        setSortedList: sortedList => dispatch({type: actionTypes.SET_ACCOUNTS_SORTED_LIST, payload: sortedList}),
-        toggleColumnVisibility: (columns, toggleColumn) => dispatch({type: actionTypes.TOGGLE_ACCOUNTS_COLUMN_VISIBILITY, payload: {columns: columns, toggleColumn: toggleColumn}}),
     }
 }
 
 const mapStateToprops = store => {
     return {
         accounts: store.app.accounts,
-        accountsTable: store.accounts.accountsTable,
-        columns: store.accounts.columns,
         frontEndPermissions: store.user.frontEndPermissions,
         invoice_intervals: store.app.invoiceIntervals,
         parent_accounts: store.app.parentAccounts,
-        reduxQueryString: store.accounts.queryString,
     }
 }
 

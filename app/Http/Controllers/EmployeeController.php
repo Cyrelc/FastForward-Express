@@ -103,9 +103,15 @@ class EmployeeController extends Controller {
             abort(403);
 
         $employeeRepo = new Repos\EmployeeRepo();
+        $queryRepo = new Repos\QueryRepo();
         $employees = $employeeRepo->ListAll($req);
+        $queries = $queryRepo->GetByTable('employees');
 
-        return json_encode($employees);
+        return response()->json([
+            'success' => true,
+            'data' => $employees,
+            'queries' => $queries
+        ]);
     }
 
     public function store(Request $req) {

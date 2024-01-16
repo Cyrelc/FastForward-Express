@@ -51,24 +51,27 @@ function Invoice(props) {
 
     const getInvoice = () => {
         setIsLoading(true)
-        makeAjaxRequest(`/invoices/getModel/${props.match.params.invoiceId}`, 'GET', null, response => {
+        makeAjaxRequest(`/invoices/getModel/${params.invoiceId}`, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = `View Invoice ${response.invoice.invoice_id}`
-            const thisInvoiceIndex = props.sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)
-            const prevInvoiceId = thisInvoiceIndex <= 0 ? null : props.sortedInvoices[thisInvoiceIndex - 1]
-            const nextInvoiceId = (thisInvoiceIndex < 0 || thisInvoiceIndex === props.sortedInvoices.length - 1) ? null : props.sortedInvoices[thisInvoiceIndex + 1]
+            let sortedInvoices = localStorage.getItem('manifests.sortedList')
+            if(sortedInvoices) {
+                sortedInvoices = sortedInvoices.split(',').map(index => parseInt(index))
+                const thisInvoiceIndex = sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)
+                setPrevInvoiceId(thisInvoiceIndex <= 0 ? null : sortedInvoices[thisInvoiceIndex - 1])
+                setNextInvoiceId((thisInvoiceIndex < 0 || thisInvoiceIndex === sortedInvoices.length - 1) ? null : sortedInvoices[thisInvoiceIndex + 1])
+            }
+
             setAccountId(response.invoice.account_id)
             setAmendments(response.amendments)
             setBillCountWithMissedLineItems(response.bill_count_with_missed_line_items)
             setInvoice(response.invoice)
             setIsFinalized(response.invoice.finalized)
             setIsPrepaid(response.is_prepaid)
-            setNextInvoiceId(nextInvoiceId)
             setParent(response.parent)
             setPaymentAmount(response.account_owing)
             setPayments(response.payments)
             setPermissions(response.permissions)
-            setPrevInvoiceId(prevInvoiceId)
             setShowLineItems(response.parent?.show_invoice_line_items ?? true)
             setShowPickupAndDeliveryAddress(response.parent?.show_pickup_and_delivery_address ?? true)
             setTables(response.tables)

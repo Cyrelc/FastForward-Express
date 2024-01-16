@@ -92,9 +92,13 @@ const Account = props => {
             setKey(window.location.hash?.substr(1) || 'basic')
 
             if(params.accountId) {
-                const thisAccountIndex = props.sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
-                const prevAccountIndex = thisAccountIndex <= 0 ? null : props.sortedAccounts[thisAccountIndex - 1]
-                const nextAccountIndex = (thisAccountIndex < 0 || thisAccountIndex === props.sortedAccounts.length - 1) ? null : props.sortedAccounts[thisAccountIndex + 1]
+                let sortedAccounts = localStorage.getItem('accounts.sortedList')
+                if(sortedAccounts) {
+                    sortedAccounts = sortedAccounts.split(',').map(index => parseInt(index))
+                    const thisAccountIndex = sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
+                    setPrevAccountIndex(thisAccountIndex <= 0 ? null : sortedAccounts[thisAccountIndex - 1])
+                    setNextAccountIndex((thisAccountIndex < 0 || thisAccountIndex === sortedAccounts.length - 1) ? null : sortedAccounts[thisAccountIndex + 1])
+                }
 
                 setAccountBalance(parseFloat(response.account.account_balance))
                 setAccountId(response.account.account_id)
@@ -112,9 +116,7 @@ const Account = props => {
                 setInvoiceSeparatelyFromParent(response.account.invoice_separately_from_parent)
                 setIsGstExempt(response.account.gst_exempt)
                 setMinInvoiceAmount(response.account.min_invoice_amount)
-                setNextAccountIndex(nextAccountIndex)
                 setParentAccount((response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(account => account.value === response.account.parent_account_id) : null)
-                setPrevAccountIndex(prevAccountIndex)
                 setSendEmailInvoices(response.account.send_email_invoices)
                 setSendPaperInvoices(response.account.send_paper_invoices)
                 shippingAddress.setup(response.shipping_address)
@@ -442,7 +444,6 @@ const Account = props => {
 const mapStateToProps = store => {
     return {
         authenticatedUserContact: store.user.authenticatedUserContact,
-        sortedAccounts: store.accounts.sortedList
     }
 }
 

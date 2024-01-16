@@ -8,14 +8,14 @@ import SelectFilter from '../tableFilters/SelectFilter'
 import StringFilter from '../tableFilters/StringFilter'
 
 export default function TableFilters(props) {
-    function handleFilterQueryStringChange(event) {
-        const {name, value} = event.target
+    function handleFilterValueChange(updatedFilter) {
+        const {db_field, value} = updatedFilter
         const filters = props.filters.map(filter => {
-            if(filter.value === name)
-                return {...filter, queryString: value}
+            if(filter.db_field === db_field)
+                return {...filter, value: value}
             return filter
         })
-        props.handleChange({target: {name: 'filters', type: 'array', value: filters}})
+        props.setFilters(filters)
     }
 
     return (
@@ -25,35 +25,36 @@ export default function TableFilters(props) {
                     switch(filter.type) {
                         case 'BooleanFilter':
                             return <BooleanFilter
-                                key={filter.value}
+                                key={filter.db_field}
                                 filter={filter}
-                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                                handleFilterValueChange={handleFilterValueChange}
                             />
                         case 'DateBetweenFilter':
                             return <DateBetweenFilter
-                                key={filter.value}
+                                key={filter.db_field}
                                 filter={filter}
-                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                                handleFilterValueChange={handleFilterValueChange}
                             />
                         case 'NumberBetweenFilter':
                             return <NumberBetweenFilter
-                                key={filter.value}
+                                key={filter.db_field}
                                 filter={filter}
-                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                                handleFilterValueChange={handleFilterValueChange}
                             />
                         case 'SelectFilter':
                             return <SelectFilter
-                                key={filter.value}
+                                key={filter.db_field}
                                 filter={filter}
-                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                                handleFilterValueChange={handleFilterValueChange}
                             />
                         case 'StringFilter':
                             return <StringFilter
-                                key={filter.value}
+                                key={filter.db_field}
                                 filter={filter}
-                                handleFilterQueryStringChange={handleFilterQueryStringChange}
+                                handleFilterValueChange={handleFilterValueChange}
                             />
                         default:
+                            return <div></div>
                             break
                     }
                 }

@@ -34,13 +34,20 @@ class InvoiceController extends Controller {
             abort(403);
         $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
+        $queryRepo = new Repos\QueryRepo();
 
         if($user->can('invoices.view.*.*') || $user->can('invoices.edit.*.*'))
             $invoices = $invoiceRepo->ListAll(null);
         else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children'))
             $invoices = $invoiceRepo->ListAll($accountRepo->GetMyAccountIds($user, $user->can('invoices.view.children')));
 
-        return json_encode($invoices);
+        $queries = $queryRepo->GetByTable('invoices');
+
+        return response()->json([
+            'success'=> true,
+            'data'=> $invoices,
+            'queries' => $queries
+        ]);
     }
 
     public function createFromCharge(Request $req) {

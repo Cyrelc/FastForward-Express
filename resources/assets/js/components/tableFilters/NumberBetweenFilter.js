@@ -1,75 +1,49 @@
-import React, {Component} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Col, InputGroup, FormControl} from 'react-bootstrap'
 
-export default class NumberBetween extends Component {
-    constructor() {
-        super()
-        this.state = {
-            lowerBound: '',
-            upperBound: ''
-        }
-        this.handleChange = this.handleChange.bind(this)
-    }
+export default function NumberBetween(props) {
+    const [lowerBound, setLowerBound] = useState('')
+    const [upperBound, setUpperBound] = useState('')
 
-    componentDidMount() {
-        if(window.location.search.includes('filter[' + this.props.filter.value + ']=')) {
-            const filterValue = window.location.search.split('[' + this.props.filter.value + ']=')[1].split('&')[0]
-            const bounds = filterValue.split(',')
-            const lowerBound = bounds[0] ? bounds[0] : ''
-            const upperBound = bounds[1] ? bounds[1] : ''
-            const filterQueryString = 'filter[' + this.props.filter.value + ']=' + lowerBound + ',' + upperBound
-            this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
-            this.setState({lowerBound: lowerBound, upperBound: upperBound})
-        } else if (this.props.filter.defaultLowerBound || this.props.filter.defaultUpperBound) {
-            const lowerBound = this.props.filter.defaultLowerBound ? this.props.filter.defaultLowerBound : ''
-            const upperBound = this.props.filter.defaultUpperBound ? this.props.filter.defaultUpperBound : ''
-            const filterQueryString = 'filter[' + this.props.filter.value + ']=' + lowerBound + ',' + upperBound
-            this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
-            this.setState({lowerBound: lowerBound, upperBound: upperBound})
-        }
-    }
+    useEffect(() => {
+        const bounds = props.filter.value?.split(',')
+        setLowerBound(bounds[0] || props.filter.defaultLowerBound || '')
+        setUpperBound(bounds[1] || props.filter.defaultUpperBound || '')
+    }, [props.filter.value])
 
-    handleChange(event) {
-        const {name, value, type} = event.target
-        var filterQueryString = null
-        if(name == 'lowerBound')
-            filterQueryString = 'filter[' + this.props.filter.value + ']=' + value + ',' + this.state.upperBound
-        else
-            filterQueryString = 'filter[' + this.props.filter.value + ']=' + this.state.lowerBound + ',' + value
-        this.props.handleFilterQueryStringChange({target: {name: this.props.filter.value, type: 'string', value: filterQueryString}})
-        this.setState({[name]: value})
-    }
+    useEffect(() => {
+        const value = (lowerBound || upperBound) ? `${lowerBound},${upperBound}` : ''
+        props.handleFilterValueChange({...props.filter, value: value})
+    }, [lowerBound, upperBound])
 
-    render() {
-        return(
-            <Col md={4}>
-                <InputGroup>
-                    <InputGroup.Text>{this.props.filter.name} Between: </InputGroup.Text>
-                    <FormControl
-                        type='number'
-                        step={this.props.filter.step}
-                        value={this.state.lowerBound}
-                        name='lowerBound'
-                        onChange={this.handleChange}
-                        placeholder='More than'
-                        min={this.props.filter.min ? this.props.filter.min : null}
-                        max={this.props.filter.max ? this.props.filter.max : null}
-                    />
-                    <InputGroup.Text> and </InputGroup.Text>
-                    <FormControl
-                        type='number'
-                        step={this.props.filter.step}
-                        value={this.state.upperBound}
-                        name='upperBound'
-                        onChange={this.handleChange}
-                        placeholder='Less than'
-                        min={this.props.filter.min ? this.props.filter.min : null}
-                        max={this.props.filter.max ? this.props.filter.max : null}
-                    />
-                </InputGroup>
-            </Col>
-        )
-    }
+    return(
+        <Col md={6}>
+            <InputGroup>
+                <InputGroup.Text>{props.filter.name} Between: </InputGroup.Text>
+                <FormControl
+                    type='number'
+                    step={props.filter.step}
+                    value={lowerBound}
+                    name='lowerBound'
+                    onChange={event => setLowerBound(event.target.value)}
+                    placeholder='More than'
+                    min={props.filter.min ? props.filter.min : null}
+                    max={props.filter.max ? props.filter.max : null}
+                />
+                <InputGroup.Text> and </InputGroup.Text>
+                <FormControl
+                    type='number'
+                    step={props.filter.step}
+                    value={upperBound}
+                    name='upperBound'
+                    onChange={event => setUpperBound(event.target.value)}
+                    placeholder='Less than'
+                    min={props.filter.min ? props.filter.min : null}
+                    max={props.filter.max ? props.filter.max : null}
+                />
+            </InputGroup>
+        </Col>
+    )
 }
 
 

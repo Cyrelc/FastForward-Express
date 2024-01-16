@@ -1,10 +1,8 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { connect } from 'react-redux'
-import { push } from 'connected-react-router'
+import {useHistory} from 'react-router-dom'
 
-import ReduxTable from '../partials/ReduxTable'
-import { fetchInvoices } from '../../store/reducers/invoices'
-import * as actionTypes from '../../store/actions'
+import Table from '../partials/Table'
 
 /**
  * Table functions
@@ -32,7 +30,7 @@ function deleteInvoice(cell) {
     const data = cell.getData()
     if(data.payment_count == 0 && confirm(`Are you sure you wish to delete invoice ${data.invoice_id}?\nThis action can not be undone`)) {
         makeAjaxRequest(`/invoices/${data.invoice_id}`, 'DELETE', null, response => {
-            location.reload()
+            cell.getRow().delete()
         })
     }
 }
@@ -87,175 +85,161 @@ const initialSort = [{column:'bill_end_date', dir: 'desc'}, {column:'account_num
 
 const adminWithSelected = [
     {
+        icon: 'fas fa-check',
         label: 'Finalize',
         onClick: finalizeInvoices
     },
     {
+        icon: 'fas fa-undo',
         label: 'Undo Finalize',
         onClick: undoFinalizeInvoices
     }
 ]
-const withSelected = [
-    {
-        label: 'Download',
-        onClick: printInvoices,
-        options: {
-            download: true
-        }
-    },
-    {
-        label: 'Print',
-        onClick: printInvoices,
-        options: {
-            download: false
-        }
-    }
-]
 
-class Invoices extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            columns: [
-                ...this.props.frontEndPermissions.invoices.edit ? [
-                    {
-                        formatter: cell => cellContextMenuFormatter(cell),
-                        width:50,
-                        hozAlign:'center',
-                        clickMenu: (cell) => cellContextMenu(cell),
-                        headerSort: false,
-                        print: false
-                    }
-                ] : [
-                    {formatter: cell => {
-                        return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"
-                    },
-                    width: 50,
-                    hozAlign:'center',
-                    cellClick:(e, cell) => printInvoices([cell.getRow()], {download: false})
-                }],
-                ...this.props.frontEndPermissions.invoices.edit ? [
-                    {title: 'Date Run', field: 'date_run', visible: false}
-                ] : [],
-                {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-                {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', this.props.redirect), sorter: 'number'},
-                {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), sorter: 'number'},
-                {title: 'Account Number', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), visible: false, formatter: cell => {return cell.getRow().getData().account_number}},
-                {title: 'Account', field: 'account_id', ...configureFakeLink('/app/accounts/', this.props.redirect), formatter: cell => {return cell.getRow().getData().account_name}},
-                {title: 'First Bill Date', field: 'bill_start_date', visible: false},
-                {title: 'Last Bill Date', field: 'bill_end_date'},
-                {title: 'Payment Types', field: 'payment_type_list', visible: false},
-                {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
-                {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
-                {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
-                {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
-                ...this.props.frontEndPermissions.invoices.edit ? [
-                    {title: 'Send Paper Invoices', field: 'send_paper_invoices', formatter: 'tickCross', visible: false}
-                ] : [],
-                {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
-            ],
-            filters: [
-                ...this.props.frontEndPermissions.invoices.edit ? [
-                    {
-                        name: 'Date Run',
-                        value: 'date_run',
-                        type: 'DateBetweenFilter',
-                    },
-                    {
-                        name: 'Finalized',
-                        value: 'finalized',
-                        type: 'BooleanFilter',
-                        default: false
-                    },
-                    {
-                        name: 'Send Paper Invoices',
-                        value: 'send_paper_invoices',
-                        type: 'BooleanFilter',
-                        default: true
-                    }
-                ] : [],
-                {
-                    name: 'Last Bill Date',
-                    value: 'bill_end_date',
-                    type: 'DateBetweenFilter',
-                },
-                {
-                    name: 'First Bill Date',
-                    value: 'bill_start_date',
-                    type: 'DateBetweenFilter'
-                },
-                {
-                    selections: this.props.accounts,
-                    name: 'Account',
-                    value: 'account_id',
-                    type: 'SelectFilter',
-                    isMulti: true
-                },
-                {
-                    name: 'Balance Owing',
-                    value: 'balance_owing',
-                    type: 'NumberBetweenFilter',
-                    step: 0.01,
-                },
-                {
-                    name: 'Payment Type',
-                    value: 'payment_type_id',
-                    type: 'SelectFilter',
-                    isMulti: true,
-                    selections: this.props.paymentTypes
-                },
-                {
-                    name: 'Charge Type',
-                    value: 'charge_type_id',
-                    type: 'SelectFilter',
-                    isMulti: true,
-                    selections: this.props.paymentTypes
-                }
-            ],
-            withSelected: [
-                ...this.props.frontEndPermissions.invoices.edit ? adminWithSelected : [],
-                ...withSelected
-            ]
-        }
-        this.defaultQueryString = this.defaultQueryString.bind(this)
-    }
+function Invoices(props) {
+    const history = useHistory()
 
-    defaultQueryString() {
-        if(this.props.authenticatedEmployee)
+    const columns = [
+        ...props.frontEndPermissions.invoices.edit ? [
+            {
+                formatter: cell => cellContextMenuFormatter(cell),
+                width:50,
+                hozAlign:'center',
+                clickMenu: (cell) => cellContextMenu(cell),
+                headerSort: false,
+                print: false
+            }
+        ] : [
+            {formatter: cell => {
+                return "<button class='btn btn-sm btn-success' title='Print'><i class='fas fa-print'></i></button>"
+            },
+            width: 50,
+            hozAlign:'center',
+            cellClick:(e, cell) => printInvoices([cell.getRow()], {download: false})
+        }],
+        ...props.frontEndPermissions.invoices.edit ? [
+            {title: 'Date Run', field: 'date_run', visible: false}
+        ] : [],
+        {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+        {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', history.push), sorter: 'number'},
+        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', history.push), sorter: 'number'},
+        {title: 'Account Number', field: 'account_id', ...configureFakeLink('/app/accounts/', history.push), visible: false, formatter: cell => {return cell.getRow().getData().account_number}},
+        {title: 'Account', field: 'account_id', ...configureFakeLink('/app/accounts/', history.push), formatter: cell => {return cell.getRow().getData().account_name}},
+        {title: 'First Bill Date', field: 'bill_start_date', visible: false},
+        {title: 'Last Bill Date', field: 'bill_end_date'},
+        {title: 'Payment Types', field: 'payment_type_list', visible: false},
+        {title: 'Balance Owing', field: 'balance_owing', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision:2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}, sorter:'number'},
+        {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
+        {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
+        {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
+        ...props.frontEndPermissions.invoices.edit ? [
+            {title: 'Send Paper Invoices', field: 'send_paper_invoices', formatter: 'tickCross', visible: false}
+        ] : [],
+        {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
+    ]
+
+    const filters= [
+        ...props.frontEndPermissions.invoices.edit ? [
+            {
+                name: 'Date Run',
+                db_field: 'date_run',
+                type: 'DateBetweenFilter',
+            },
+            {
+                name: 'Finalized',
+                db_field: 'finalized',
+                type: 'BooleanFilter',
+                default: false
+            },
+            {
+                name: 'Send Paper Invoices',
+                db_field: 'send_paper_invoices',
+                type: 'BooleanFilter',
+                default: true
+            }
+        ] : [],
+        {
+            name: 'Last Bill Date',
+            db_field: 'bill_end_date',
+            type: 'DateBetweenFilter',
+        },
+        {
+            name: 'First Bill Date',
+            db_field: 'bill_start_date',
+            type: 'DateBetweenFilter'
+        },
+        {
+            selections: props.accounts,
+            name: 'Account',
+            db_field: 'account_id',
+            type: 'SelectFilter',
+            isMulti: true
+        },
+        {
+            name: 'Balance Owing',
+            db_field: 'balance_owing',
+            type: 'NumberBetweenFilter',
+            step: 0.01,
+        },
+        {
+            name: 'Payment Type',
+            db_field: 'payment_type_id',
+            type: 'SelectFilter',
+            isMulti: true,
+            selections: props.paymentTypes
+        },
+        {
+            name: 'Charge Type',
+            db_field: 'charge_type_id',
+            type: 'SelectFilter',
+            isMulti: true,
+            selections: props.paymentTypes
+        }
+    ]
+    const withSelected = [
+        ...props.frontEndPermissions.invoices.edit ? adminWithSelected : [],
+        {
+            icon: 'fas fa-save',
+            label: 'Download',
+            onClick: printInvoices,
+            options: {
+                download: true
+            }
+        },
+        {
+            icon: 'fas fa-print',
+            label: 'Print',
+            onClick: printInvoices,
+            options: {
+                download: false
+            }
+        }
+    ]
+
+    const defaultFilterQuery = () => {
+        if(props.authenticatedEmployee)
             return '?filter[finalized]=false'
         else
             return ''
     }
 
-    render() {
-        return <ReduxTable
-            columns={this.props.columns.length ? this.props.columns : this.state.columns}
-            defaultQueryString={this.defaultQueryString()}
-            fetchTableData={this.props.fetchTableData}
-            filters={this.state.filters}
-            groupByOptions={groupByOptions}
-            indexName='invoice_id'
-            initialSort={initialSort}
-            pageTitle='Invoices'
-            reduxQueryString={this.props.reduxQueryString}
-            redirect={this.props.redirect}
-            selectable='highlight'
-            setReduxQueryString={this.props.setQueryString}
-            setSortedList={this.props.setSortedList}
-            tableData={this.props.invoiceTable}
-            toggleColumnVisibility={this.props.toggleColumnVisibility}
-            withSelected={withSelected}
-        />
-    }
+    return <Table
+        baseRoute='/invoices'
+        columns={columns}
+        defaultFilterQuery={defaultFilterQuery()}
+        filters={filters}
+        groupByOptions={groupByOptions}
+        indexName='invoice_id'
+        initialSort={initialSort}
+        pageTitle='Invoices'
+        selectable='highlight'
+        tableName='invoices'
+        withSelected={withSelected}
+    />
 }
 
 const matchDispatchToProps = dispatch => {
     return {
-        fetchTableData: () => dispatch(fetchInvoices),
-        redirect: url => dispatch(push(url)),
-        setQueryString: queryString => dispatch({type: actionTypes.SET_INVOICES_QUERY_STRING, payload: queryString}),
-        setSortedList: sortedList => dispatch({type: actionTypes.SET_INVOICES_SORTED_LIST, payload: sortedList}),
-        toggleColumnVisibility: (columns, toggleColumn) => dispatch({type: actionTypes.TOGGLE_INVOICES_COLUMN_VISIBILITY, payload: {columns: columns, toggleColumn: toggleColumn}}),
     }
 }
 
@@ -263,11 +247,8 @@ const mapStateToProps = store => {
     return {
         accounts: store.app.accounts,
         authenticatedEmployee: store.user.authenticatedEmployee,
-        columns: store.invoices.columns,
         frontEndPermissions: store.user.frontEndPermissions,
-        invoiceTable: store.invoices.invoiceTable,
         paymentTypes: store.app.paymentTypes,
-        reduxQueryString: store.invoices.queryString,
     }
 }
 

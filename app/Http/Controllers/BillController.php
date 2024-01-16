@@ -143,10 +143,14 @@ class BillController extends Controller {
                 $customFieldNames[] = $accountRepo->GetById($accountUser->account_id)->custom_field;
         }
 
+        $queryRepo = new Repos\QueryRepo();
+        $queries = $queryRepo->GetByTable('bills');
+
         return response()->json([
             'success' => true,
-            'bills' => $bills,
-            'custom_field_name' => sizeof($customFieldNames) > 0 ? implode(',', array_unique($customFieldNames)) : null,
+            'custom_field_name' => sizeof($customFieldNames) > 0 ? implode(',', array_unique($customFieldNames)) : 'Custom Tracking Field',
+            'data' => $bills,
+            'queries' => $queries
         ]);
     }
 

@@ -610,6 +610,7 @@ class BillRepo {
             ->leftJoin('selections as deliveryType', 'deliveryType.value', '=', 'bills.delivery_type')
             ->leftJoin('selections as repeatInterval', 'repeatInterval.selection_id', '=', 'bills.repeat_interval')
             ->leftJoin('accounts as charge_account', 'charges.charge_account_id', '=', 'charge_account.account_id')
+            ->leftJoin('payment_types as charge_types', 'charge_types.payment_type_id', '=', 'charges.charge_type_id')
             ->select(
                 array_merge([
                     DB::raw('sum(price) as price'),
@@ -619,6 +620,7 @@ class BillRepo {
                     'charge_account.name as charge_account_name',
                     'charge_account.account_number as charge_account_number',
                     'charges.charge_type_id as charge_type_id',
+                    DB::raw('CONCAT_WS(",", charge_types.name) as charge_type_name'),
                     DB::raw('CONCAT_WS(",", pickup_reference_value, delivery_reference_value, charge_reference_value) as custom_field_value'),
                     DB::raw('MIN(case when invoice_id is not null then 0 when pickup_manifest_id is not null then 0 when delivery_manifest_id is not null then 0 else 1 end) as deletable'),
                     DB::raw('case when invoice_id is null then 0 else 1 end as is_invoiced'),

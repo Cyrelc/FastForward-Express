@@ -30,9 +30,16 @@ class ChargebackController extends Controller {
             abort(403);
 
         $chargebackRepo = new Repos\ChargebackRepo();
-        $chargebacks = $chargebackRepo->ListAll($req);
+        $queryRepo = new Repos\QueryRepo();
 
-        return json_encode($chargebacks);
+        $chargebacks = $chargebackRepo->ListAll($req);
+        $queries = $queryRepo->GetByTable('chargebacks');
+
+        return response()->json([
+            'success' => true,
+            'data' => $chargebacks,
+            'queries' => $queries
+        ]);
     }
 
     public function store(Request $req) {

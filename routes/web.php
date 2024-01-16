@@ -138,10 +138,10 @@ Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payme
     Route::post('/getPaymentIntent', 'GetPaymentIntent');
 });
 
-// Route::middleware(['auth'])->controller(QueryController::class)->group(function() {
-//     Route::post('/query', 'StoreQuery');
-//     Route::delete('/query/{queryId}', 'DeleteQuery');
-// });
+Route::middleware(['auth'])->controller(QueryController::class)->prefix('queries')->group(function() {
+    Route::post('/', 'StoreQuery');
+    Route::delete('/{queryId}', 'DeleteQuery');
+});
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
     Route::get('/create', 'GetModel');
