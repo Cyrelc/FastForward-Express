@@ -28,6 +28,8 @@ function Employees(props) {
     const [changePasswordModalUserId, setChangePasswordModalUserId] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
 
+    const history = useHistory()
+
     const columns = [
         ...props.frontEndPermissions.employees.edit ? [
             {
