@@ -12,7 +12,7 @@ class ContactCollector {
             'last_name' => $req->last_name,
             'position' => $req->position,
             'preferred_name' => $req->preferred_name == "" ? null : $req->preferred_name,
-            'pronouns' => $req->pronouns
+            'pronouns' => json_encode($req->pronouns)
         ];
     }
 
