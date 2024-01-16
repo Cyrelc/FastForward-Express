@@ -35,7 +35,7 @@ class BillRepo {
         $bill->delivery_driver_id = $employee ? $employee->employee_id : null;
         $bill->pickup_driver_commission = $employee ? $employee->pickup_commission / 100 : null;
         $bill->delivery_driver_commission = $employee ? $employee->delivery_commission / 100 : null;
-        $bill->time_dispatched = $employee ? new \DateTime() : null;
+        $bill->time_dispatched = $bill->time_dispatched ?? new \DateTime();
 
         $bill->save();
 

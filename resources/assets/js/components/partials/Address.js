@@ -79,43 +79,40 @@ export default function Address(props) {
                         </Col>
                     }
                     <Col className='justify-content-end'>
-                        <InputGroup style={{paddingTop: 0}}>
-                            <InputGroup.Text>Type: </InputGroup.Text>
-                            <ToggleButtonGroup
-                                type='radio'
-                                name={`${props.id}AddressType`}
-                                value={type}
-                                onChange={value => props.handleChange({target: {name: 'addressType', value}})}
+                        <ToggleButtonGroup
+                            type='radio'
+                            name={`${props.id}AddressType`}
+                            value={type}
+                            onChange={value => props.handleChange({target: {name: 'addressType', value}})}
+                            disabled={readOnly}
+                        >
+                            <ToggleButton
+                                id={`${props.id}.address.type.search`}
+                                value='Search'
+                                key='Search'
+                                variant='outline-secondary'
                                 disabled={readOnly}
-                            >
+                                size='sm'
+                            >Search</ToggleButton>
+                            {props.accounts?.length &&
                                 <ToggleButton
-                                    id={`${props.id}.address.type.search`}
-                                    value='Search'
-                                    key='Search'
+                                    id={`${props.id}.address.type.account`}
+                                    value='Account'
+                                    key='Account'
                                     variant='outline-secondary'
                                     disabled={readOnly}
                                     size='sm'
-                                >Search</ToggleButton>
-                                {props.accounts?.length &&
-                                    <ToggleButton
-                                        id={`${props.id}.address.type.account`}
-                                        value='Account'
-                                        key='Account'
-                                        variant='outline-secondary'
-                                        disabled={readOnly}
-                                        size='sm'
-                                    >Account</ToggleButton>
-                                }
-                                <ToggleButton
-                                    id={`${props.id}.address.type.manual`}
-                                    value='Manual'
-                                    key='Manual'
-                                    variant='outline-secondary'
-                                    disabled={readOnly}
-                                    size='sm'
-                                >Manual</ToggleButton>
-                            </ToggleButtonGroup>
-                        </InputGroup>
+                                >Account</ToggleButton>
+                            }
+                            <ToggleButton
+                                id={`${props.id}.address.type.manual`}
+                                value='Manual'
+                                key='Manual'
+                                variant='outline-secondary'
+                                disabled={readOnly}
+                                size='sm'
+                            >Manual</ToggleButton>
+                        </ToggleButtonGroup>
                     </Col>
                 </Row>
             </Card.Header>
@@ -154,7 +151,7 @@ export default function Address(props) {
                     }
                     {(props.accounts?.length && type === 'Account') &&
                         <Col md={12}>
-                            <InputGroup>
+                            <InputGroup style={{width: '100%'}}>
                                 <InputGroup.Text>Select Account: </InputGroup.Text>
                                 <Select
                                     options={accounts}
@@ -162,6 +159,7 @@ export default function Address(props) {
                                     value={account}
                                     onChange={props.handleAccountChange}
                                     isDisabled={readOnly}
+                                    style={{flex: 1}}
                                 />
                             </InputGroup>
                         </Col>

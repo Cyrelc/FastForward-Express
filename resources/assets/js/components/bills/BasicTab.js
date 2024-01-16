@@ -390,7 +390,7 @@ export default function BasicTab(props) {
                                     {chargeType?.name === 'Account' &&
                                         <Fragment>
                                             <Col md={4}>
-                                                <InputGroup>
+                                                <InputGroup style={{width: '100%'}}>
                                                     <InputGroup.Text>Account: </InputGroup.Text>
                                                     <Select
                                                         options={accounts}
@@ -400,6 +400,7 @@ export default function BasicTab(props) {
                                                         isDisabled={readOnly || accounts.length === 1}
                                                         menuPortalTarget={document.body}
                                                         menuPosition='fixed'
+                                                        style={{flex: 1}}
                                                     />
                                                 </InputGroup>
                                             </Col>

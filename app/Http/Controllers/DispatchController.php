@@ -33,7 +33,6 @@ class DispatchController extends Controller {
             'success' => true
         ]);
     }
-
     public function GetBills(Request $req) {
         if($req->user()->cannot('viewDispatch', Bill::Class))
             abort(403);
@@ -44,14 +43,19 @@ class DispatchController extends Controller {
         return json_encode($bills);
     }
 
-    public function GetDrivers(Request $req) {
-        if($req->user()->cannot('viewAll', Employee::class))
+    public function GetModel(Request $req) {
+        if($req->user()->cannot('viewAll', Employee::class) || $req->user()->cannot('viewDispatch', Dispatch::class))
             abort(403);
 
         $employeeRepo = new Repos\EmployeeRepo();
         $employees = $employeeRepo->GetActiveDriversWithContact();
 
-        return json_encode($employees);
+        return response()->json([
+            'success' => true,
+            'drivers' => $employees,
+            'pusher_key' => env('PUSHER_APP_KEY'),
+            'pusher_cluster' => env('PUSHER_APP_CLUSTER')
+        ]);
     }
 
     public function SetBillPickupOrDeliveryTime(Request $req) {

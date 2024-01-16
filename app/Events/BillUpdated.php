@@ -26,7 +26,7 @@ class BillUpdated implements ShouldBroadcast
      */
     public function __construct($bill)
     {
-        activity('system_debug')->log('Bill updated: ' . serialize($bill));
+        activity('system_debug')->log('Bill updated: ' . $bill->bill_id);
         $this->bill_id = $bill->bill_id;
         $this->time_pickup_scheduled = $bill->time_pickup_scheduled;
         $this->time_delivery_scheduled = $bill->time_delivery_scheduled;
