@@ -6,7 +6,7 @@ export default function NumberBetween(props) {
     const [upperBound, setUpperBound] = useState('')
 
     useEffect(() => {
-        const bounds = props.filter.value?.split(',')
+        const bounds = props.filter.value?.split(',') ?? []
         setLowerBound(bounds[0] || props.filter.defaultLowerBound || '')
         setUpperBound(bounds[1] || props.filter.defaultUpperBound || '')
     }, [props.filter.value])
