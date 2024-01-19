@@ -51,7 +51,6 @@ export default function Table(props) {
                 ...filter,
                 active: value != undefined,
                 value: value,
-                // value: value === false ? 'false' : value ?? null
             }
         })
         setFilters(initialFilters)
@@ -154,6 +153,7 @@ export default function Table(props) {
 
     const fetchTableData = (query = null) => {
         setIsLoading(true)
+        toastr.clear()
         if(query == null) {
             const activeFilters = {}
             filters.forEach(filter => {
@@ -228,7 +228,11 @@ export default function Table(props) {
     }
 
     const writeQueryToClipboard = async (queryString) => {
-        await navigator.clipboard.writeText(location.pathname + queryString)
+        try {
+            await navigator.clipboard.writeText(location.pathname + queryString)
+        } catch (error) {
+            console.error('Unable to write to clipboard', error.message)
+        }
         toastr.success('Query copied to clipboard!')
     }
 
@@ -286,12 +290,21 @@ export default function Table(props) {
                                             <Dropdown.Item>
                                                 <h6><i className='fas fa-caret-left'></i> Columns</h6>
                                                 <Dropdown.Submenu>
-                                                    {columns.filter(column => column.field != undefined).map(column =>
-                                                        <Dropdown.Item
-                                                            key={column.field}
-                                                            style={{color: column.visible === false  ? 'red' : 'black'}}
-                                                            onClick={() => toggleColumnVisibility(column)}
-                                                        >{column.title}</Dropdown.Item>
+                                                    {columns.filter(column => {
+                                                        return column.field != undefined
+                                                        }).sort((a, b) => {
+                                                            console.log(a.title, b.title)
+                                                            if(a.title > b.title)
+                                                                return 1
+                                                            else if(b.title > a.title)
+                                                                return -1
+                                                            return 0
+                                                        }).map(column =>
+                                                            <Dropdown.Item
+                                                                key={column.field}
+                                                                style={{color: column.visible === false  ? 'red' : 'black'}}
+                                                                onClick={() => toggleColumnVisibility(column)}
+                                                            >{column.title}</Dropdown.Item>
                                                     )}
                                                 </Dropdown.Submenu>
                                             </Dropdown.Item>
