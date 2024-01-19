@@ -12,7 +12,7 @@ export default function SelectFilter(props) {
 
     useEffect(() => {
         setSelections(props.filter.selections)
-        const value = props.filter.value ?? ''
+        const value = props.filter.value || ''
         const values = value.split(',').map(value => value)
         const selectedValues = props.filter.selections.filter(selection => values.some(selectedValue => selectedValue == selection.value))
         setSelected(selectedValues)
@@ -20,7 +20,7 @@ export default function SelectFilter(props) {
 
     const handleFilterChange = selected => {
         const value = selected.map(option => option.value)
-        props.handleFilterValueChange({...props.filter, value: value})
+        props.handleFilterValueChange({...props.filter, value: value.toString()})
     }
 
     return(
