@@ -59,7 +59,7 @@ export default function AdministrationTab(props) {
                             <InputGroup.Text>Employee Number</InputGroup.Text>
                             <FormControl
                                 name='employeeNumber'
-                                onChange={setEmployeeNumber}
+                                onChange={event => setEmployeeNumber(event.target.value)}
                                 placeholder='Employee Number'
                                 readOnly={readOnly}
                                 value={employeeNumber}
@@ -98,7 +98,7 @@ export default function AdministrationTab(props) {
                                 name='SIN'
                                 placeholder='Social Insurance Number'
                                 value={SIN}
-                                onChange={setSIN}
+                                onChange={event => setSIN(event.target.value)}
                                 readOnly={readOnly}
                             />
                         </InputGroup>

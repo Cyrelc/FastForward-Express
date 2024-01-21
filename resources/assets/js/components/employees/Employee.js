@@ -77,7 +77,6 @@ const Employee = (props) => {
                 const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === props.sortedEmployees.length - 1) ? null : props.sortedEmployees[thisEmployeeIndex + 1]
 
                 address.setup(response.address)
-                contact.setup(response.contact)
 
                 setActivityLog(response.activity_log)
                 setBirthDate(Date.parse(response.employee.dob))
@@ -103,6 +102,8 @@ const Employee = (props) => {
 
                 toastr.clear()
             }
+
+            contact.setup(response.contact)
 
             setIsLoading(false)
         }

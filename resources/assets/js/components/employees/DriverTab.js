@@ -42,7 +42,7 @@ export default function DriverTab(props) {
                                 name='companyName'
                                 placeholder='Company Name (opt)'
                                 value={companyName}
-                                onChange={setCompanyName}
+                                onChange={event => setCompanyName(event.target.value)}
                                 readOnly={readOnly}
                             />
                         </InputGroup>
@@ -56,7 +56,7 @@ export default function DriverTab(props) {
                                 max={100}
                                 name='pickupCommission'
                                 value={pickupCommission}
-                                onChange={setPickupCommission}
+                                onChange={event => setPickupCommission(event.target.value)}
                                 readOnly={readOnly}
                             />
                         </InputGroup>
@@ -70,7 +70,7 @@ export default function DriverTab(props) {
                                 max={100}
                                 name='deliveryCommission'
                                 value={deliveryCommission}
-                                onChange={setDeliveryCommission}
+                                onChange={event => setDeliveryCommission(event.target.value)}
                                 readOnly={readOnly}
                             />
                         </InputGroup>
@@ -94,7 +94,7 @@ export default function DriverTab(props) {
                                                 name='driversLicenseNumber'
                                                 placeholder='Drivers License Number'
                                                 value={driversLicenseNumber}
-                                                onChange={setDriversLicenseNumber}
+                                                onChange={event => setDriversLicenseNumber(event.target.value)}
                                                 readOnly={readOnly}
                                             />
                                         </InputGroup>
@@ -129,7 +129,7 @@ export default function DriverTab(props) {
                                                 name='licensePlateNumber'
                                                 placeholder='License Plate Number'
                                                 value={licensePlateNumber}
-                                                onChange={setLicensePlateNumber}
+                                                onChange={event => setLicensePlateNumber(event.target.value)}
                                                 readOnly={readOnly}
                                             />
                                         </InputGroup>
@@ -164,7 +164,7 @@ export default function DriverTab(props) {
                                                 name='insuranceNumber'
                                                 placeholder='Insurance Number'
                                                 value={insuranceNumber}
-                                                onChange={setInsuranceNumber}
+                                                onChange={event => setInsuranceNumber(event.target.value)}
                                                 readOnly={readOnly}
                                             />
                                         </InputGroup>
