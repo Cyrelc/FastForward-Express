@@ -1,7 +1,24 @@
 #!/bin/bash
 
-echo "Please enter admin password for maintenance tasks:"
-read -s admin_password
+#Function to request and validate admin password
+request_password() {
+    while true; do
+        echo "Please enter admin password for maintenance tasks:"
+        read -s admin_password
+
+        # Check if the password is correct by running a harmless command
+        echo $admin_password | sudo -S true 2>/dev/null
+        if [ $? -eq 0 ]; then
+            break
+        else
+            echo "Incorrect password, please try again."
+        fi
+    done
+}
+
+#Request and validate password
+request_password
+
 # Pull the latest changes from the master branch
 git pull origin master
 
