@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useRef, useState} from 'react'
+import React, {Fragment, useEffect, useState} from 'react'
 import {Button, Card, Col, Row} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 
@@ -80,7 +80,7 @@ export default function BillingTab(props) {
                                     columns={invoiceColumns}
                                     maxHeight='75vh'
                                     options={{
-                                        layout: 'fitColumns',
+                                    layout: 'fitColumns',
                                         pagination: 'local',
                                         paginationSize: 10,
                                     }}

@@ -102,7 +102,7 @@ function NavBar(props) {
     const [searchResults, setSearchResults] = useState([])
     const searchRef = useRef(null)
 
-    const {collapsed, collapseSidebar, toggleSidebar} = useProSidebar();
+    const {collapsed, collapseSidebar} = useProSidebar();
 
     const menuItemStyles = {
         root: {
@@ -137,10 +137,6 @@ function NavBar(props) {
 
     useEffect(() => {
         collapseSidebar(!!localStorage.getItem('isNavBarCollapsed'))
-    }, [])
-
-    useEffect(() => {
-        toggleSidebar(false)
     }, [])
 
     const getUserIcon = () => {
@@ -183,8 +179,8 @@ function NavBar(props) {
     }
 
     const toggleCollapsed = () => {
-        localStorage.setItem('isNavBarCollapsed', !isCollapsed)
-        setIsCollapsed(!isCollapsed)
+        localStorage.setItem('isNavBarCollapsed', !collapsed)
+        collapseSidebar(!collapsed)
     }
 
     const unimpersonate = () => {
@@ -205,7 +201,7 @@ function NavBar(props) {
                     color: '#808080'
                 }}
             >
-                <SidebarHeader collapsed={collapsed} collapseSidebar={collapseSidebar} menuItemStyles={menuItemStyles}/>
+                <SidebarHeader collapsed={collapsed} collapseSidebar={toggleCollapsed} menuItemStyles={menuItemStyles}/>
                 <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                     <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
                         {hasAnyPermission(props.frontEndPermissions.bills) &&
