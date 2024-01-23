@@ -52,7 +52,7 @@ export const initialState = {
     accounts: [],
     addressTypes: ['Search', 'Account', 'Manual'],
     applyRestrictions: true,
-    billId: null,
+    billId: '',
     billNumber: '',
     businessHoursMin: DateTime.now(),
     businessHoursMax: DateTime.now(),

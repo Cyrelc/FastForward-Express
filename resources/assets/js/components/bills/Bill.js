@@ -231,7 +231,7 @@ const Bill = (props) => {
                     description: billState.description,
                     is_min_weight_size: packageState.packageIsMinimum ? true : false,
                     is_pallet: packageState.packageIsPallet,
-                    packages: packageState.packageIsMinimum ? [] : packageState.tableRef.current.table.getData(),
+                    packages: packageState.packageIsMinimum ? [] : packageState.packages,
                     pickup_account_id: billState.pickup.account?.account_id,
                     pickup_address_formatted: billState.pickup.addressFormatted,
                     pickup_address_is_mall: billState.pickup.isMall,

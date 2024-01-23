@@ -1,8 +1,8 @@
-import React, {Fragment, useEffect} from 'react'
-import {Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Tooltip, Form} from 'react-bootstrap'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
+import {Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Tooltip} from 'react-bootstrap'
 import Select from 'react-select'
 import {DateTime} from 'luxon'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import DatePicker from 'react-datepicker'
 
 import Address from '../partials/Address'
@@ -18,6 +18,9 @@ const filterDates = date => {
 }
 
 export default function BasicTab(props) {
+    const tableRef = useRef(null)
+    const [table, setTable] = useState(null)
+
     const {
         accounts,
         addressTypes,
@@ -88,6 +91,43 @@ export default function BasicTab(props) {
     }
 
     useEffect(() => {
+        if(tableRef.current && !table && !packageIsMinimum) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: packageColumns,
+                data: packages,
+                layout: 'fitColumns'
+                // rowAdded: row => {
+                //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+                // },
+                // rowDeleted: row => {
+                //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+                // }
+            })
+
+            newTabulator.on('cellEdited', (cell) => {
+                const fieldName = cell.getField()
+                const row = cell.getRow()
+                const rowData = row.getData()
+                if(fieldName === 'count' || 'weight') {
+                    const totalWeight = parseInt(rowData.count) * parseFloat(rowData.weight)
+                    row.update({'totalWeight': isNaN(totalWeight) ? null : totalWeight})
+                }
+                if(fieldName === 'count' || 'height' || 'width' || 'length') {
+                    const totalVolume = parseInt(rowData.count) * parseFloat(rowData.length) * parseInt(rowData.height) * parseInt(rowData.width)
+                    row.update({'totalVolume': isNaN(totalVolume) ? null : totalVolume})
+                }
+                props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
+            })
+            newTabulator.on('rowAdded', row => props.packageDispatch({type: 'UPDATE_PACAKGES', payload: row.getTable().getData()}))
+            newTabulator.on('rowDeleted', row => props.packageDispatch({type: 'UPDATE_PACAKGES', payload: row.getTable().getData()}))
+
+            setTable(newTabulator)
+        } else {
+            setTable(null)
+        }
+    }, [tableRef, packageIsMinimum])
+
+    useEffect(() => {
         if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
@@ -146,7 +186,8 @@ export default function BasicTab(props) {
     ]
 
     useEffect(() => {
-        props.packageState.tableRef.current?.table?.setColumns(packageColumns)
+        if(table)
+            table.setColumns(packageColumns)
     }, [useImperial])
 
     return (
@@ -204,33 +245,7 @@ export default function BasicTab(props) {
                             }
                             {!packageIsMinimum &&
                                 <Col md={12}>
-                                    <ReactTabulator
-                                        ref={props.packageState.tableRef}
-                                        columns={packageColumns}
-                                        data={packages}
-                                        options={{
-                                            cellEdited: cell => {
-                                                const fieldName = cell.getField()
-                                                const row = cell.getRow()
-                                                const rowData = row.getData()
-                                                if(fieldName === 'count' || 'weight') {
-                                                    const totalWeight = parseInt(rowData.count) * parseFloat(rowData.weight)
-                                                    row.update({'totalWeight': isNaN(totalWeight) ? null : totalWeight})
-                                                }
-                                                if(fieldName === 'count' || 'height' || 'width' || 'length') {
-                                                    const totalVolume = parseInt(rowData.count) * parseFloat(rowData.length) * parseInt(rowData.height) * parseInt(rowData.width)
-                                                    row.update({'totalVolume': isNaN(totalVolume) ? null : totalVolume})
-                                                }
-                                                // props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            },
-                                            // rowAdded: row => {
-                                            //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            // },
-                                            // rowDeleted: row => {
-                                            //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                                            // }
-                                        }}
-                                    />
+                                    <div ref={tableRef}></div>
                                 </Col>
                             }
                         </Row>
