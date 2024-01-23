@@ -87,7 +87,7 @@ export default function BillTable(props) {
         const hours = timeRemaining.hours.toFixed(0)
         const minutes = timeRemaining.minutes.toFixed(0)
 
-        return `${days > 0 ? days + 'd,' : ''} ${hours > 0 ? hours +'h,' : ''} ${minutes}m`
+        return `${minutes < 0 ? '-' : ''}${Math.abs(days) > 0 ? Math.abs(days) + 'd,' : ''} ${Math.abs(hours) > 0 ? Math.abs(hours) + 'h,' : ''} ${Math.abs(minutes)}m`
     }
     
     return (
