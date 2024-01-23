@@ -136,7 +136,6 @@ const Account = props => {
                 setCanBeParent(response.child_account_list.length > 0 ? true : response.account.can_be_parent)
                 setChildAccountList(response.child_account_list)
             }
-            console.log('initialSet')
             setIsLoading(false)
         })
     }
