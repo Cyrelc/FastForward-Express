@@ -2,7 +2,7 @@ import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
 import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
-import {useParams} from 'react-router-dom'
+import {useHistory, useParams} from 'react-router-dom'
 
 import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -56,6 +56,7 @@ const Account = props => {
     const billingAddress = useAddress()
     const shippingAddress = useAddress()
     const {accountId: paramAccountId} = useParams()
+    const history = useHistory()
 
     useEffect(() => {
         configureAccount()
@@ -266,11 +267,17 @@ const Account = props => {
                                     </Badge>
                                 }
                                 {permissions.viewPayments && balanceOwing != undefined &&
-                                    <Badge bg={balanceOwing > 0 ? 'danger' : 'success'}>
+                                    <Badge bg={balanceOwing > 0 ? 'danger' : 'success'} style={{marginRight: '15px'}}>
                                         <h6>
                                             Balance Owing: {balanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
                                         </h6>
                                     </Badge>
+                                }
+                                {permissions.viewBills &&
+                                    <Nav.Link onClick={() => history.push(`/app/bills?filter[charge_account_id]=${accountId}`)} variant='secondary' >Bills</Nav.Link>
+                                }
+                                {permissions.viewInvoices &&
+                                    <Nav.Link onClick={() => history.push(`/app/invoices?filter[account_id]=${accountId}`)} variant='secondary' >Invoices</Nav.Link>
                                 }
                             </Nav>
                         }
