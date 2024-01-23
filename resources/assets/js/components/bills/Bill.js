@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useReducer, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, ProgressBar, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
 import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
 import {connect} from 'react-redux'
@@ -464,18 +464,18 @@ const Bill = (props) => {
                         <ListGroup.Item variant='warning'></ListGroup.Item>
                     } */}
                     {billId &&
-                        <Badge bg='success' style={{margin: '0px 5px'}}>
-                            <h5>{billState.percentComplete}% Complete
-                                {billState.incompleteFields?.length ?
-                                    <OverlayTrigger
-                                        placement={"right"}
-                                        overlay={<Tooltip><ul>{billState.incompleteFields.map(field => <li key={field}>{field}</li>)}</ul></Tooltip>}
-                                    >
-                                        <i className='fas fa-question-circle' style={{paddingLeft: '10px'}}/>
-                                    </OverlayTrigger> : null
-                                }
-                            </h5>
-                        </Badge>
+                        <OverlayTrigger
+                            placement={"right"}
+                            overlay={<Tooltip><ul>{billState.incompleteFields.map(field => <li key={field}>{field}</li>)}</ul></Tooltip>}
+                        >
+                            <ProgressBar
+                                now={billState.percentComplete}
+                                label={`${billState.percentComplete}%`}
+                                style={{width: '200px'}}
+                                variant={billState.percentComplete <= 33 ? 'danger' : billState.percentComplete <= 66 ? 'warning' : billState.percentComplete <= 99 ? 'primary' : 'success'}
+                            >
+                            </ProgressBar>
+                        </OverlayTrigger>
                     }
                     {invoiceIds?.length &&
                         <Badge bg='info' text='dark' style={{margin: '0px 5px'}}>
