@@ -30,15 +30,28 @@ function Employees(props) {
 
     const history = useHistory()
 
+    const cellContextMenu = (cell) => {
+        const data = cell.getData()
+        if(!data.employee_id)
+            return undefined
+        var menuItems = [
+            {label: data.active ? 'Disable' : 'Enable', action: () => toggleEmployeeActive(cell)},
+            {label: 'Change Password', action: () => toggleChangePasswordModal(cell), disabled: !data.active},
+            ...props.frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => impersonateEmployee(cell)}] : []
+        ]
+
+        return menuItems
+    }
+
     const columns = [
         ...props.frontEndPermissions.employees.edit ? [
             {
-                formatter: cell => cellContextMenuFormatter(cell),
-                width: 50,
+                clickMenu: (event, cell) => cellContextMenu(cell),
+                formatter: () => {return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'},
                 hozAlign:'center',
-                clickMenu: (cell) => cellContextMenu(cell),
                 headerSort: false,
-                print: false
+                print: false,
+                width: 50,
             },
         ] : [],
         {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/', history.push), sorter: 'number'},
@@ -53,24 +66,6 @@ function Employees(props) {
         }},
         {title: 'Primary Email', field: 'primary_email'},
     ]
-
-    const cellContextMenu = (cell, canEdit = false) => {
-        const data = cell.getData()
-        if(!data.employee_id)
-            return undefined
-        var menuItems = [
-            {label: data.active ? 'Disable' : 'Enable', action: () => toggleEmployeeActive(cell)},
-            {label: 'Change Password', action: () => toggleChangePasswordModal(cell), disabled: !data.active},
-            ...props.frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => impersonateEmployee(cell)}] : []
-        ]
-
-        return menuItems
-    }
-
-    const cellContextMenuFormatter = cell => {
-        if(cell.getData().employee_id)
-            return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'
-    }
 
     const impersonateEmployee = cell => {
         const employee_id = cell.getRow().getData().employee_id

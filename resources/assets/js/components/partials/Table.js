@@ -293,7 +293,6 @@ export default function Table(props) {
                                                     {columns.filter(column => {
                                                         return column.field != undefined
                                                         }).sort((a, b) => {
-                                                            console.log(a.title, b.title)
                                                             if(a.title > b.title)
                                                                 return 1
                                                             else if(b.title > a.title)
