@@ -107,9 +107,7 @@ export default function Dispatch(props) {
         const interval = setInterval(() => {
             if(!rowInTransit)
                 setBills(bills => bills.map(bill => {
-                    const isPastPickupTime = DateTime.fromSQL(bill.time_pickup_scheduled).diffNow('seconds') < 0
-                    const isPastDeliveryTime = DateTime.fromSQL(bill.time_delivery_scheduled).diffNow('seconds') < 0
-                    return {...bill, currentTime: Date.now(), view: (isPastPickupTime || isPastDeliveryTime || view)}
+                    return {...bill, currentTime: Date.now()}
                 }))
         }, 60000)
     }, [])
@@ -189,9 +187,7 @@ export default function Dispatch(props) {
     const toggleBillView = cell => {
         const data = cell.getRow().getData()
         setBills(billRef.current.map(bill => {
-            const isPastPickupTime = DateTime.fromSQL(data.time_pickup_scheduled).diffNow('seconds') < 0
-            const isPastDeliveryTime = DateTime.fromSQL(data.time_delivery_scheduled).diffNow('seconds') < 0
-            if(bill.bill_id === data.bill_id && !isPastPickupTime && !isPastDeliveryTime)
+            if(bill.bill_id === data.bill_id)
                 return {...bill, view: !bill.view}
             return bill
         }))
@@ -207,9 +203,7 @@ export default function Dispatch(props) {
             return driver
         }))
         const hiddenBills = billRef.current.map(bill => {
-            const isPastPickupTime = DateTime.fromSQL(bill.time_pickup_scheduled).diffNow('seconds') < 0
-            const isPastDeliveryTime = DateTime.fromSQL(bill.time_delivery_scheduled).diffNow('seconds') < 0
-            if((bill.pickup_driver_id == employeeId || bill.delivery_driver_id == employeeId) && !isPastPickupTime && !isPastDeliveryTime) {
+            if(bill.pickup_driver_id == employeeId || bill.delivery_driver_id == employeeId) {
                 return {...bill, view}
             }
             return bill
