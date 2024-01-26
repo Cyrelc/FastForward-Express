@@ -54,6 +54,7 @@ export default function Dispatch(props) {
     const handleBillEventRef = useRef()
     const billRef = useRef(null)
     const driverRef = useRef(null)
+    const setTimeButtonRef = useRef(null)
     billRef.current = bills
     driverRef.current = drivers
 
@@ -160,17 +161,19 @@ export default function Dispatch(props) {
         setTimeModalField(cell.getField() === 'time_pickup_scheduled' ? 'pickup' : 'delivery')
         setTimeModalBillId(cell.getRow().getData().bill_id)
         setShowTimeModal(true)
+        setTimeButtonRef.current.focus()
     }
 
     const submitActualTime = () => {
-        const data = {bill_id: timeModalBillId, type: timeModalField, time: timeModalActualTime.toLocaleString('en-US')}
+        const actualTime = DateTime.fromJSDate(timeModalActualTime).toSQL()
+        const data = {bill_id: timeModalBillId, type: timeModalField, time: actualTime}
         makeAjaxRequest('/dispatch/setBillPickupOrDeliveryTime', 'POST', data, response => {
             toastr.clear()
             const refreshedBills = bills.map(bill => {
                 if(bill.bill_id === timeModalBillId) {
                     if(timeModalField === 'pickup')
-                        return {...bill, time_picked_up: timeModalActualTime.toISOString().slice(0, 19).replace('T', ' ')}
-                    return {...bill, time_delivered: timeModalActualTime.toISOString().slice(0, 19).replace('T', ' ')}
+                        return {...bill, time_picked_up: actualTime}
+                    return {...bill, time_delivered: actualTime}
                 }
                 return bill
             })
@@ -286,7 +289,7 @@ export default function Dispatch(props) {
                             onChange={value => setTimeModalActualTime(value)}
                             wrapperClassName='form-control'
                         />
-                        <Button onClick={submitActualTime}>Set</Button>
+                        <Button onClick={submitActualTime} ref={setTimeButtonRef}>Set</Button>
                     </InputGroup>
                 </Modal.Body>
             </Modal>
