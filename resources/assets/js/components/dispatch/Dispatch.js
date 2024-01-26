@@ -106,7 +106,9 @@ export default function Dispatch(props) {
         const interval = setInterval(() => {
             if(!rowInTransit)
                 setBills(bills => bills.map(bill => {
-                    return {...bill, currentTime: Date.now()}
+                    const isPastPickupTime = DateTime.fromSQL(bill.time_pickup_scheduled).diffNow('seconds') < 0
+                    const isPastDeliveryTime = DateTime.fromSQL(bill.time_delivery_scheduled).diffNow('seconds') < 0
+                    return {...bill, currentTime: Date.now(), view: (isPastPickupTime || isPastDeliveryTime || view)}
                 }))
         }, 60000)
     }, [])
