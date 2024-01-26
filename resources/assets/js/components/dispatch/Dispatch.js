@@ -53,7 +53,9 @@ export default function Dispatch(props) {
 
     const handleBillEventRef = useRef()
     const billRef = useRef(null)
+    const driverRef = useRef(null)
     billRef.current = bills
+    driverRef.current = drivers
 
     handleBillEventRef.current = billEvent => {
         const currentDate = DateTime.fromJSDate(billDate)
@@ -192,7 +194,7 @@ export default function Dispatch(props) {
 
     const toggleTableBillView = employeeId => {
         let view = false
-        setDrivers(drivers.map(driver => {
+        setDrivers(driverRef.current.map(driver => {
             if(driver.employee_id == employeeId) {
                 view = !driver.view
                 return {...driver, view}
