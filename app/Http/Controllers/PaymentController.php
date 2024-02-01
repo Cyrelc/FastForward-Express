@@ -203,7 +203,7 @@ class PaymentController extends Controller {
 
         DB::beginTransaction();
         $paymentRepo->insert($payment);
-        $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$paymentAmount);
+        $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$paymentAmount / 100);
         DB::commit();
 
         return response()->json(['success' => true]);
