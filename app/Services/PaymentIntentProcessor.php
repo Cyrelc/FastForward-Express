@@ -58,7 +58,7 @@ class PaymentIntentProcessor {
                 ]);
 
                 if($newStatus == 'succeeded')
-                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$payment->amount / 100);
+                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -($payment->amount / 100));
                 if($newStatus == 'canceled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount / 100);
             } else {
