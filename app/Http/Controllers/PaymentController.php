@@ -134,7 +134,7 @@ class PaymentController extends Controller {
         $paymentRepo = new Repos\PaymentRepo();
         $paymentMethod = $paymentRepo->GetPaymentType($req->payment_method['payment_type_id']);
 
-        switch($paymentMethod->type) {
+        switch($req->payment_method['type'] ?? $paymentMethod->type) {
             case 'account':
                 return $this->ProcessPaymentFromAccount($req, $invoice);
             case 'card_on_file':
@@ -170,10 +170,15 @@ class PaymentController extends Controller {
     }
 
     private function ProcessCardOnFilePayment(Request $req, $invoice) {
-        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-        $paymentMethod = $account->findPaymentMethod($req->payment_method_id);
-
+        $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
+
+        $paymentCollector = new Collectors\PaymentCollector();
+
+        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
+        $account = $accountRepo->GetById($invoice->account_id);
+        $stripePaymentMethod = $account->findPaymentMethod($req->payment_method['payment_method_id']);
+
         $paymentRepo = new Repos\PaymentRepo();
 
         $paymentAmount = (float)$req->amount * 100;
@@ -181,11 +186,12 @@ class PaymentController extends Controller {
         try {
             $paymentIntent = $stripe->paymentIntents->create([
                 'amount' => $paymentAmount,
+                'automatic_payment_methods' => ['allow_redirects' => 'never', 'enabled' => true],
                 'confirm' => true,
                 'currency' => config('services.stripe.currency'),
                 'customer' => $account->stripe_id,
                 'description' => 'Payment on FastForward Invoice #' . $invoice->invoice_id,
-                'payment_method' => $paymentMethod->id,
+                'payment_method' => $stripePaymentMethod->id,
             ]);
         } catch (Stripe\Exception\CardException $e) {
             $error = $e->getJsonBody()['error'];
@@ -193,7 +199,7 @@ class PaymentController extends Controller {
             abort(400, $error['message']);
         }
 
-        $payment = $paymentCollector->CollectCardOnFilePayment($req, $invoice, $paymentIntent);
+        $payment = $paymentCollector->CollectCardOnFile($req, $invoice, $paymentIntent);
 
         DB::beginTransaction();
         $paymentRepo->insert($payment);
