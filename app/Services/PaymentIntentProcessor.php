@@ -47,7 +47,7 @@ class PaymentIntentProcessor {
             $newState = str_replace('payment_intent.', '', $event->type);
             $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
-            if($oldStatusIndex && $newStatusIndex && $oldStatusIndex < $newStatusIndex) {
+            if($oldStatusIndex != false && $newStatusIndex != false && $oldStatusIndex < $newStatusIndex) {
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $newStatus);
 
                 $paymentRepo->Update($payment->payment_id, [
