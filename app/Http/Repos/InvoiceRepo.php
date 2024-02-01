@@ -19,7 +19,10 @@ class InvoiceRepo {
         $invoice = Invoice::where('invoice_id', $invoiceId)
             ->first();
 
-        $invoice->balance_owing += floatval($amount);
+        if(gettype($amount) == 'string')
+            $amount = floatval($amount);
+
+        $invoice->balance_owing += $amount;
 
         if($invoice->balance_owing == 0) {
             $lineItemRepo = new LineItemRepo();
