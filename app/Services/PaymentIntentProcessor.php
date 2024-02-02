@@ -44,7 +44,7 @@ class PaymentIntentProcessor {
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
             $oldStatus = str_replace('payment_intent.', '', $payment->payment_intent_status);
             $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
-            $newState = str_replace('payment_intent.', '', $event->type);
+            $newStatus = str_replace('payment_intent.', '', $event->type);
             $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
             if($oldStatusIndex != false && $newStatusIndex != false && $oldStatusIndex < $newStatusIndex) {
