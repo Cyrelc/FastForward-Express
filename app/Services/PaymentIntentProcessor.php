@@ -56,10 +56,11 @@ class PaymentIntentProcessor {
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
                 ]);
 
+                $paymentAmount = bcdiv($payment->amount_received, 100, 2);
                 if($newStatus == 'succeeded')
-                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -(Decimal($payment->amount_received) / Decimal(100)));
+                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
                 if($newStatus == 'canceled')
-                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, Decimal($payment->amount_received) / Decimal(100));
+                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
             } else {
                 activity('jobs')
                     ->log('[ReceiveStripeWebhook.handle] skipped. Previous payment intent status: ' . $payment->payment_intent_status . '. New payment intent status: ' . $event->type);
