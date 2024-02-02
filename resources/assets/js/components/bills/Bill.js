@@ -466,7 +466,7 @@ const Bill = (props) => {
                     {billId &&
                         <OverlayTrigger
                             placement={"right"}
-                            overlay={<Tooltip><ul>{billState.incompleteFields.map(field => <li key={field}>{field}</li>)}</ul></Tooltip>}
+                            overlay={<Tooltip><ul>{billState.incompleteFields?.map(field => <li key={field}>{field}</li>)}</ul></Tooltip>}
                         >
                             <ProgressBar
                                 now={billState.percentComplete}
