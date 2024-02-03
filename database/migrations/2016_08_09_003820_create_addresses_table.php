@@ -16,9 +16,10 @@ class CreateAddressesTable extends Migration
             $table->increments('address_id');
             $table->string('name')->nullable();
             $table->string('formatted');
-            $table->float('lat')->nullable();
-            $table->float('lng')->nullable();
+            $table->decimal('lat', 10, 6);
+            $table->decimal('lng', 10, 6);
             $table->string('place_id')->nullable()->default(null);
+            $table->boolean('is_mall')->nullable()->default(false);
             $table->boolean('is_primary')->default(true);
             $table->unsignedInteger('contact_id')->nullable();
 

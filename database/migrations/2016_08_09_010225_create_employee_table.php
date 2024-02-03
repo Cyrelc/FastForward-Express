@@ -13,7 +13,9 @@ class CreateEmployeeTable extends Migration
     public function up()
     {
         Schema::create('employees', function (Blueprint $table) {
+            $table->timestamps();
             $table->increments('employee_id');
+
             $table->boolean('active')->default(true);
             $table->string('company_name')->nullable();
             $table->unsignedInteger('contact_id');
@@ -24,6 +26,7 @@ class CreateEmployeeTable extends Migration
             $table->string('employee_number')->nullable();
             $table->datetime('insurance_expiration_date')->nullable();
             $table->string('insurance_number')->nullable();
+            $table->boolean('is_driver')->default(false);
             $table->datetime('license_plate_expiration_date')->nullable();
             $table->string('license_plate_number')->nullable();
             $table->float('pickup_commission')->nullable();
