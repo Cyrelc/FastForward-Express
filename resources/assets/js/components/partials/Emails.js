@@ -73,7 +73,7 @@ export default function Emails(props) {
                         }
                     </td>
                     <td><label>Email address</label></td>
-                    {emailTypes && 
+                    {emailTypes?.length > 0 && 
                         <td><label>Type <i className='fas fa-question-circle' title={emailTypesTitle}></i></label></td>
                     }
                 </tr>
@@ -112,7 +112,7 @@ export default function Emails(props) {
                                         value={email.email}
                                     />
                                 </td>
-                                {emailTypes &&
+                                {emailTypes?.length > 0 &&
                                     <td width='40%'>
                                         <Select
                                             options={emailTypes}
