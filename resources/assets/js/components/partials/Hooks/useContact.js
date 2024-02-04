@@ -12,6 +12,19 @@ export default function useContact() {
     const [phoneTypes, setPhoneTypes] = useState([])
     const [phoneNumbers, setPhoneNumbers] = useState([])
 
+    const collect = () => {
+        return {
+            'contact_id': contactId ?? null,
+            'first_name': firstName,
+            'last_name': lastName,
+            'email_addresses': emailAddresses,
+            'phone_numbers': phoneNumbers,
+            'position': position,
+            'preferred_name': preferredName,
+            'pronouns': pronouns,
+        }
+    }
+
     const reset = () => {
         setContactId('')
         setEmailAddresses([])
@@ -39,6 +52,7 @@ export default function useContact() {
     }
 
     return {
+        collect,
         contactId,
         emailAddresses,
         emailTypes,

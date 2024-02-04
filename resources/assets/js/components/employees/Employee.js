@@ -143,19 +143,13 @@ const Employee = (props) => {
         }
 
         var data = {
+            ...contact.collect(),
             address_formatted: address.formatted,
             address_lat: address.lat,
             address_lng: address.lng,
             address_name: address.name,
             address_place_id: address.placeId,
             employee_id: employeeId,
-            emails: contact.emailAddresses,
-            first_name: contact.firstName,
-            last_name: contact.lastName,
-            phone_numbers: contact.phoneNumbers,
-            position: contact.position,
-            preferred_name: contact.preferredName,
-            pronouns: contact.pronouns
         }
 
         if(permissions.editAdvanced)

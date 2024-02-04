@@ -70,19 +70,12 @@ export default function EmergencyContacts (props) {
 
     const storeEmergencyContact = () => {
         const data = {
+            ...contact.collect(),
             address_formatted: address.formatted,
             address_lat: address.lat,
             address_lng: address.lng,
             address_name: address.name,
             address_place_id: address.placeId,
-            contact_id: contact.contactId,
-            emails: contact.emailAddresses,
-            first_name: contact.firstName,
-            last_name: contact.lastName,
-            phone_numbers: contact.phoneNumbers,
-            position: contact.position,
-            preferred_name: contact.preferredName,
-            pronouns: contact.pronouns
         }
 
         makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'POST', data, response => {
