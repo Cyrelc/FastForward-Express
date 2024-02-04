@@ -6,8 +6,6 @@ import Select from 'react-select'
 const addressFormattingTooltip = 'Addresses will begin a new line on commas'
 
 export default function InvoicingTab(props) {
-    const sortOrderTableRef = useRef()
-
     const {
         canBeParent,
         customTrackingField,
@@ -174,9 +172,7 @@ export default function InvoicingTab(props) {
                     <Col md={5} key={props.handleInvoiceSortOrderChange}>
                         {!props.isLoading && invoiceSortOrder?.length > 0 &&
                             <ReactTabulator
-                                ref={sortOrderTableRef}
                                 columns={columns}
-                                data={[]}
                                 data={invoiceSortOrder}
                                 options={{
                                     height: '150px',
