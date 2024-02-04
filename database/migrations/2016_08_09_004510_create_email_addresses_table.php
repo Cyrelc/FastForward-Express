@@ -17,7 +17,7 @@ class CreateEmailAddressesTable extends Migration
             $table->unsignedInteger('contact_id');
             $table->string('email');
             $table->boolean('is_primary')->default(true);
-            $table->string('type')->nullable();
+            $table->json('type')->nullable();
 
             $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });

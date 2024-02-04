@@ -19,7 +19,7 @@ class CreatePhoneNumbersTable extends Migration
             $table->string('extension_number')->nullable();
             $table->boolean('is_primary')->default(true);
             $table->string('phone_number');
-            $table->string('type');
+            $table->string('type')->nullable();
             
             $table->foreign('contact_id')->references('contact_id')->on('contacts');
         });
