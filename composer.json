@@ -31,14 +31,15 @@
         "ext-gd": "^8.2",
         "ext-simplexml": "^8.2",
         "ext-curl": "^8.2",
-        "spatie/laravel-pdf": "^1.0"
+        "spatie/laravel-pdf": "^1.0",
+        "fakerphp/faker": "*"
     },
     "require-dev": {
-        "mockery/mockery": "0.9.*",
+        "mockery/mockery": "^1.4.4",
         "symfony/css-selector": "5.0.*",
         "symfony/dom-crawler": "5.0.*",
         "filp/whoops": "~2.0",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.1"
     },
     "autoload": {
         "classmap": [
@@ -66,8 +67,7 @@
         ],
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
-            "php artisan optimize",
-            "npm install"
+            "php artisan optimize"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
