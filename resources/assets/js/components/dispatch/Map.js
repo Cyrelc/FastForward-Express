@@ -18,7 +18,7 @@ export default function Map(props) {
                     zoom={12}
                 >
                 {bills.filter(bill => bill.view).map(bill =>
-                    <Fragment>
+                    <Fragment key={bill.bill_id}>
                         <OverlayView
                             key={`${bill.bill_id}-pickup`}
                             mapPaneName='markerLayer'
