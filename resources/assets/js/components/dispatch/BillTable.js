@@ -55,7 +55,6 @@ export default function BillTable(props) {
                 layout: 'fitColumns',
                 movableRows: true,
                 movableRowsConnectedTables: ['#unassigned-bills-table', '#driver-table'],
-                // rowFormatter: rowFormatter
             })
 
             newTabulator.on('movableRowsReceived', (fromRow, toRow, fromTable) => props.assignBill(fromRow.getData().bill_id, driver?.employee_id ?? null))
