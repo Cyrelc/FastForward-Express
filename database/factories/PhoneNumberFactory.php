@@ -1,25 +1,32 @@
 <?php
 
-$factory->define(App\PhoneNumber::class, function (Faker\Generator $faker) {
-    $r = $faker->randomDigit;
-    $t = '';
+namespace Database\Factories;
 
-    if ($r < 4)
-        $t = "Home";
-    else if ($r < 7)
-        $t = "Cell";
-    else
-        $t = "Fax";
+use App\Models\PhoneNumber;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
-    $pn = '7804' . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit . $faker->randomDigit;
-
-    $returnVal = [
-        'type' => $t,
-        'phone_number' => $pn,
-    ];
-
-    if (rand(0,1) == 1) {
-        $returnVal["extension_number"] = $faker->randomDigit . $faker->randomDigit . $faker->randomDigit;
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AppModelsPhoneNumber>
+ */
+class PhoneNumberFactory extends Factory
+{
+    protected $model = PhoneNumber::class;
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        $phoneNumber = explode('x', $this->faker->phoneNumber);
+        return [
+            'contact_id' => function() {
+                return Contact::factory()->create()->contact_id;
+            },
+            'phone_number' => $phoneNumber[0],
+            'extension_number' => $phoneNumber[1] ?? null,
+            'is_primary' => false,
+            'type' => $this->faker->randomElement($array = array('cell', 'fax', 'home', 'work')),
+        ];
     }
-    return $returnVal;
-});
+}
