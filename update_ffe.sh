@@ -38,9 +38,9 @@ php artisan view:clear
 php artisan queue:restart
 
 # Supervisor tasks reset with admin privileges
-echo $admin_password | sudo -S supervisorctl reread
-echo $admin_password | sudo -S supervisorctl update
-echo $admin_password | sudo -S supervisorctl restart all
+# echo $admin_password | sudo -S supervisorctl reread
+# echo $admin_password | sudo -S supervisorctl update
+# echo $admin_password | sudo -S supervisorctl restart all
 
 # Restart apache service to grab new config settings
 echo $admin_password | sudo -S service apache2 restart
