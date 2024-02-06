@@ -22,7 +22,7 @@ function cellContextMenu(cell, canEdit = false) {
 }
 
 function cellContextMenuFormatter(cell) {
-    if(cell.getData().invoice_id)
+    if(cell.getRow().getData().invoice_id)
         return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
 }
 
@@ -105,7 +105,7 @@ function Invoices(props) {
                 formatter: cell => cellContextMenuFormatter(cell),
                 width:50,
                 hozAlign:'center',
-                clickMenu: (cell) => cellContextMenu(cell),
+                clickMenu: (event, cell) => cellContextMenu(cell),
                 headerSort: false,
                 print: false
             }
