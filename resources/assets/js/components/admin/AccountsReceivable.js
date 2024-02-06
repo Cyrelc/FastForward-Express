@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react'
-import {Button, Card, Col, InputGroup, Row, Table} from 'react-bootstrap'
+import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
 const moneyColumnStandardParams = {
     formatter: 'money',
@@ -26,6 +26,9 @@ export default function AccountsReceivable(props) {
     const [accountsReceivable, setAccountsReceivable] = useState([])
     const [startDate, setStartDate] = useState(new Date())
     const [endDate, setEndDate] = useState(new Date())
+    const [table, setTable] = useState(null)
+
+    const tabulatorRef = useRef(null)
 
     useEffect(() => {
         getAccountsReceivable()
@@ -35,14 +38,33 @@ export default function AccountsReceivable(props) {
         getAccountsReceivable()
     }, [startDate, endDate])
 
+    useEffect(() => {
+        if(tabulatorRef.current && !table) {
+            const newTabulator = new Tabulator(tabulatorRef.current, {
+                columns: columns,
+                data: accountsReceivable,
+                columnCalcs: 'both',
+                groupBy: 'type',
+                layout: 'fitColumns',
+                printStyled: true,
+                printHeader: `<h3>${startDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})} to ${endDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</h3>`
+            })
+
+            setTable(newTabulator)
+        }
+    }, [tabulatorRef.current])
+
+    useEffect(() => {
+        if(table)
+            table.setData(accountsReceivable)
+    }, [accountsReceivable])
+
     const getAccountsReceivable = () => {
         makeAjaxRequest(`/admin/getAccountsReceivable/${startDate.toISOString()}/${endDate.toISOString()}`, 'GET', null, response => {
             response = JSON.parse(response)
             setAccountsReceivable(response.accounts_receivable)
         })
     }
-
-    const tableRef = useRef(null)
 
     return (
         <Row className='justify-content-md-center'>
@@ -81,7 +103,7 @@ export default function AccountsReceivable(props) {
                             </Col>
                             {accountsReceivable?.length ?
                                 <Col md={2}>
-                                    <Button variant='success' onClick={() => tableRef.current.table.print()}>
+                                    <Button variant='success' onClick={() => table.print()}>
                                         <i className='fas fa-print'></i> Print
                                     </Button>
                                 </Col> : null
@@ -89,17 +111,7 @@ export default function AccountsReceivable(props) {
                         </Row>
                     </Card.Header>
                     <Card.Body>
-                        <ReactTabulator
-                            ref={tableRef}
-                            columns={columns}
-                            data={accountsReceivable}
-                            options={{
-                                columnCalcs: 'both',
-                                groupBy: 'type',
-                                printStyled: true,
-                                printHeader: `<h3>${startDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})} to ${endDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</h3>`
-                            }}
-                        />
+                        <div ref={tabulatorRef}></div>
                     </Card.Body>
                 </Card>
             </Col>
