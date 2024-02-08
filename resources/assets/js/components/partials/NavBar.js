@@ -337,8 +337,7 @@ function NavBar(props) {
     )
 }
 
-const matchDispatchToProps = dispatch => {
-}
+const matchDispatchToProps = dispatch => {return {}}
 
 const mapStateToProps = store => {
     return {
