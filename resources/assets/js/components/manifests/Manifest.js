@@ -59,12 +59,12 @@ function Manifest(props) {
             </Col>
             <Col md={2}>
                 <ButtonGroup>
-                    <LinkContainer to={`/app/manifests/${prevManifestId}`}>
+                    <LinkContainer to={`/manifests/${prevManifestId}`}>
                         <Button variant='info' disabled={!prevManifestId}>
                             <i className='fas fa-arrow-circle-left'></i> Back - {prevManifestId}
                         </Button>
                     </LinkContainer>
-                    <LinkContainer to={`/app/manifests/${nextManifestId}`}>
+                    <LinkContainer to={`/manifests/${nextManifestId}`}>
                         <Button variant='info' disabled={!nextManifestId}>
                             Next - {nextManifestId} <i className='fas fa-arrow-circle-right'></i>
                         </Button>
@@ -101,7 +101,7 @@ function Manifest(props) {
                                 {`Driver Income\n$${data?.driver_income}`}
                             </th>
                             <th style={{width: '40%', textAlign: 'center'}} key='employee'>
-                                <LinkContainer to={'/app/employees/' + employee?.employee_id}>
+                                <LinkContainer to={'/employees/' + employee?.employee_id}>
                                     <h3>
                                         <a href=''>
                                             {`${employee?.employee_number} - ${employee?.company_name ? employee?.company_name : `${contact.first_name} ${contact.last_name}`}`}
@@ -200,7 +200,7 @@ function Manifest(props) {
                     <tbody>
                         {bills?.map(bill =>
                             <tr key={bill.bill_id}>
-                                <LinkContainer to={`/app/bills/${bill.bill_id}`}><td><a href=''>{bill.bill_id}</a></td></LinkContainer>
+                                <LinkContainer to={`/bills/${bill.bill_id}`}><td><a href=''>{bill.bill_id}</a></td></LinkContainer>
                                 <td>{bill.time_pickup_scheduled}</td>
                                 <td>{bill.delivery_type}</td>
                                 <td>{bill.type}</td>

@@ -18,7 +18,7 @@ export default function BillingTab(props) {
     const [showPaymentModal, setShowPaymentModal] = useState(false)
 
     const invoiceColumns = [
-        {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number'},
+        {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/invoices/'}, sorter: 'number'},
         {title: 'Last Bill Date', field: 'bill_end_date'},
         {title: 'Balance Owing', field: 'balance_owing', formatter: 'money',formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}},
         {formatter: cell => {

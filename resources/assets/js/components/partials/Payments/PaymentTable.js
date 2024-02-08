@@ -63,7 +63,7 @@ export default function PaymentTable(props) {
         ] : [],
         {title: 'Payment ID', field: 'payment_id', visible: false},
         ...props.showAccountFields ? [
-            {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number', headerFilter: true},
+            {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/invoices/'}, sorter: 'number', headerFilter: true},
             {title: 'Invoice Date', field: 'invoice_date'},
         ] : [],
         {title: 'Payment Received On', field: 'date'},

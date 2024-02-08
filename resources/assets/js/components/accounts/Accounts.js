@@ -18,10 +18,10 @@ function Accounts(props) {
     const history = useHistory()
 
     const basicColumns = [
-        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/app/accounts/', history.push), sorter: 'number'},
+        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number'},
         {title: 'Account Number', field: 'account_number'},
-        {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/app/accounts/', history.push, null, 'parent_id')},
-        {title: 'Account Name', field: 'name', ...configureFakeLink('/app/accounts/', history.push, null, 'account_id')},
+        {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/accounts/', history.push, null, 'parent_id')},
+        {title: 'Account Name', field: 'name', ...configureFakeLink('/accounts/', history.push, null, 'account_id')},
         {title: 'Start Date', field: 'start_date', visible: false},
         {title: 'Invoice Interval', field: 'invoice_interval'},
         {title: 'Primary Contact', field: 'primary_contact_name'},

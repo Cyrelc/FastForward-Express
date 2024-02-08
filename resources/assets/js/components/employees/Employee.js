@@ -226,8 +226,8 @@ const Employee = (props) => {
                         </ListGroup>
                     </Col>
                     <Col style={{textAlign: 'right'}}>
-                        <LinkContainer to={`/app/manifests?filter[driver_id]=${employeeId}`}><Button variant='secondary'>Manifests</Button></LinkContainer>
-                        <LinkContainer to={`/app/bills?filter[pickup_driver_id]=${employeeId}`}><Button variant='secondary'>All Bills</Button></LinkContainer>
+                        <LinkContainer to={`/manifests?filter[driver_id]=${employeeId}`}><Button variant='secondary'>Manifests</Button></LinkContainer>
+                        <LinkContainer to={`/bills?filter[pickup_driver_id]=${employeeId}`}><Button variant='secondary'>All Bills</Button></LinkContainer>
                     </Col>
                 </Row>
             }
@@ -306,7 +306,7 @@ const Employee = (props) => {
             <Row className='justify-content-md-center'>
                 <Col align='center'>
                     <ButtonGroup>
-                        <LinkContainer to={`/app/employees/${prevEmployeeId}`}>
+                        <LinkContainer to={`/employees/${prevEmployeeId}`}>
                             <Button variant='info' disabled={!prevEmployeeId}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevEmployeeId}
                             </Button>
@@ -314,7 +314,7 @@ const Employee = (props) => {
                         <Button variant='primary' onClick={storeEmployee} disabled={readOnly}>
                             <i className='fas fa-save'></i> Submit
                         </Button>
-                        <LinkContainer to={`/app/employees/${nextEmployeeId}`}>
+                        <LinkContainer to={`/employees/${nextEmployeeId}`}>
                             <Button variant='info' disabled={!nextEmployeeId}>
                                 Next - {nextEmployeeId} <i className='fas fa-arrow-circle-right'></i>
                             </Button>

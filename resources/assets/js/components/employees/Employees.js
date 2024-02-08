@@ -54,8 +54,8 @@ function Employees(props) {
                 width: 50,
             },
         ] : [],
-        {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/app/employees/', history.push), sorter: 'number'},
-        {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/app/employees/', history.push, null, 'employee_id')},
+        {title: 'Employee ID', field: 'employee_id', ...configureFakeLink('/employees/', history.push), sorter: 'number'},
+        {title: 'Employee Number', field: 'employee_number', ...configureFakeLink('/employees/', history.push, null, 'employee_id')},
         {title: 'Employee Name', field: 'employee_name'},
         {title: 'Primary Phone', field: 'primary_phone', headerSort: false, formatter: (cell) => {
             const cleaned = ('' + cell.getValue()).replace(/\D/g, '')

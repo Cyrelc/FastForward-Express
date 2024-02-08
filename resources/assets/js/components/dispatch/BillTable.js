@@ -12,7 +12,7 @@ export default function BillTable(props) {
 
     const columns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
-        {title: 'Bill ID', field: 'bill_id', cellDblClick: (event, cell) => window.open(`/app/bills/${cell.getValue()}`)},
+        {title: 'Bill ID', field: 'bill_id', cellDblClick: (event, cell) => window.open(`/bills/${cell.getValue()}`)},
         {
             cellClick: (event, cell) => props.setTimeModalView(cell),
             field: 'time_pickup_scheduled',

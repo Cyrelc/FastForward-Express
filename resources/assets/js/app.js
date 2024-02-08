@@ -13,7 +13,7 @@ import App from './components/partials/App'
  * building robust, powerful web applications using React + Laravel.
  */
 require('datejs')
-const history = createBrowserHistory()
+const history = createBrowserHistory({ basename: '/app'})
 const store = configureStore(history)
 /**
  * Next, we will create a fresh React component instance and attach it to

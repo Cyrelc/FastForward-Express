@@ -5,12 +5,18 @@ import { LinkContainer } from 'react-router-bootstrap'
 export default function RatesheetsTab(props) {
     return (
         <Card border='dark'>
-            <Card.Header><h4 className='text-muted'>Ratesheets</h4></Card.Header>
+            <Card.Header>
+                <h4 className='text-muted'>Ratesheets</h4>
+            </Card.Header>
             <Card.Body>
                 <Table>
                     <thead>
                         <tr>
-                            <th><LinkContainer to='/app/ratesheets/create'><Button variant='success'><i className='fas fa-plus'></i> Create Ratesheet</Button></LinkContainer></th>
+                            <th>
+                                <LinkContainer to='/ratesheets/create'>
+                                    <Button variant='success'><i className='fas fa-plus'></i> Create Ratesheet</Button>
+                                </LinkContainer>
+                            </th>
                             <th>Ratesheet ID</th>
                             <th>Ratesheet Name</th>
                         </tr>
@@ -18,7 +24,11 @@ export default function RatesheetsTab(props) {
                     <tbody>
                         {props.ratesheets.map(ratesheet =>
                             <tr key={ratesheet.ratesheet_id}>
-                                <td><LinkContainer to={'/app/ratesheets/' + ratesheet.ratesheet_id}><Button variant='warning'><i className='fas fa-edit'></i></Button></LinkContainer></td>
+                                <td>
+                                    <LinkContainer to={`/ratesheets/${ratesheet.ratesheet_id}`}>
+                                        <Button variant='warning'><i className='fas fa-edit'></i></Button>
+                                    </LinkContainer>
+                                </td>
                                 <td>{ratesheet.ratesheet_id}</td>
                                 <td>{ratesheet.name}</td>
                             </tr>

@@ -128,12 +128,12 @@ function Invoice(props) {
                     </Col>
                     <Col md={2}>
                         <ButtonGroup>
-                            <LinkContainer to={`/app/invoices/${prevInvoiceId}`}>
+                            <LinkContainer to={`/invoices/${prevInvoiceId}`}>
                                 <Button variant='info' disabled={!prevInvoiceId} size='sm'>
                                     <i className='fas fa-arrow-circle-left'></i> Back - {prevInvoiceId}
                                 </Button>
                             </LinkContainer>
-                            <LinkContainer to={`/app/invoices/${nextInvoiceId}`}>
+                            <LinkContainer to={`/invoices/${nextInvoiceId}`}>
                                 <Button variant='info' disabled={!nextInvoiceId} size='sm'>
                                     Next - {nextInvoiceId} <i className='fas fa-arrow-circle-right'></i>
                                 </Button>
@@ -206,7 +206,7 @@ function Invoice(props) {
                                 <tr>
                                     <td style={{width: '40%'}}>
                                         <h3>
-                                            <LinkContainer to={`/app/accounts/${accountId}`}>
+                                            <LinkContainer to={`/accounts/${accountId}`}>
                                                 <a>{`${parent?.account_number} - ${parent?.name}`}</a>
                                             </LinkContainer>
                                         </h3>
@@ -307,7 +307,7 @@ function Invoice(props) {
                                                             if(permissions.viewBills)
                                                                 return (
                                                                     <td  key={`${bill.bill_id}.bill_id`} width='8%'>
-                                                                        <LinkContainer to={`/app/bills/${bill.bill_id}`}>
+                                                                        <LinkContainer to={`/bills/${bill.bill_id}`}>
                                                                             <a>{bill.bill_id}</a>
                                                                         </LinkContainer>
                                                                     </td>
@@ -386,7 +386,7 @@ function Invoice(props) {
                                         {amendments.map(amendment =>
                                             <tr>
                                                 <td width='10%'>
-                                                    <LinkContainer to={`/app/bills/${amendment.bill_id}`}>
+                                                    <LinkContainer to={`/bills/${amendment.bill_id}`}>
                                                         <a>{amendment.bill_id}</a>
                                                     </LinkContainer>
                                                 </td>

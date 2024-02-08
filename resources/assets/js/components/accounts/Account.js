@@ -215,7 +215,7 @@ const Account = props => {
             toastr.success(`Account ${response.account_id} successfully ${accountId  ? 'updated' : 'created'}`, 'Success', {
                 'onHidden': () => {
                     if(!accountId)
-                        props.history.push(`/app/accounts/${response.account_id}`)
+                        props.history.push(`/accounts/${response.account_id}`)
                 }
             })
         })
@@ -235,7 +235,7 @@ const Account = props => {
                                     <Fragment>
                                         {parentAccount?.value &&
                                             <h4>
-                                                Parent: <LinkContainer to={`/app/accounts/${parentAccount.value}`}><a>{parentAccount.label}</a></LinkContainer>
+                                                Parent: <LinkContainer to={`/accounts/${parentAccount.value}`}><a>{parentAccount.label}</a></LinkContainer>
                                             </h4>
                                         }
                                         <h4>{`Manage Account: A${accountId} - ${accountName}`}</h4>
@@ -274,10 +274,10 @@ const Account = props => {
                                     </Badge>
                                 }
                                 {permissions.viewBills &&
-                                    <Nav.Link onClick={() => history.push(`/app/bills?filter[charge_account_id]=${accountId}`)} variant='secondary' >Bills</Nav.Link>
+                                    <Nav.Link onClick={() => history.push(`/bills?filter[charge_account_id]=${accountId}`)} variant='secondary' >Bills</Nav.Link>
                                 }
                                 {permissions.viewInvoices &&
-                                    <Nav.Link onClick={() => history.push(`/app/invoices?filter[account_id]=${accountId}`)} variant='secondary' >Invoices</Nav.Link>
+                                    <Nav.Link onClick={() => history.push(`/invoices?filter[account_id]=${accountId}`)} variant='secondary' >Invoices</Nav.Link>
                                 }
                             </Nav>
                         }
@@ -425,7 +425,7 @@ const Account = props => {
             <Col md={4} style={{textAlign: 'center'}}>
                 <ButtonGroup>
                     {(accountId && permissions.viewChildren != false) &&
-                        <LinkContainer to={`/app/accounts/${prevAccountIndex}${window.location.hash}`}>
+                        <LinkContainer to={`/accounts/${prevAccountIndex}${window.location.hash}`}>
                             <Button variant='info' disabled={!prevAccountIndex}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevAccountIndex}
                             </Button>
@@ -435,7 +435,7 @@ const Account = props => {
                         <Button variant='primary' onClick={storeAccount}>Submit</Button>
                     }
                     {accountId && permissions.viewChildren != false &&
-                        <LinkContainer to={`/app/accounts/${nextAccountIndex}${window.location.hash}`}>
+                        <LinkContainer to={`/accounts/${nextAccountIndex}${window.location.hash}`}>
                             <Button variant='info' disabled={!nextAccountIndex}>
                                 Next - {nextAccountIndex} <i className='fas fa-arrow-circle-right'></i>
                             </Button>

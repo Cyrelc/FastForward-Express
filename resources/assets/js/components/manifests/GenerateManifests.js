@@ -52,7 +52,7 @@ export default function GenerateManifests(props) {
             toastr.success('Successfully generated manifests', 'Success', {
                 'progressBar': true,
                 'showDuration': 500,
-                'onHidden': () => history.push('/app/manifests'),
+                'onHidden': () => history.push('/manifests'),
                 'positionClass': 'toast-top-center'
             })
         }, error => {

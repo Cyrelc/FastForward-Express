@@ -116,7 +116,16 @@ export default function UserPermissionTab(props) {
             </Col>
             <Col md={6}>
                 <Card>
-                    <Card.Header><Card.Title>Accounts</Card.Title> <ul><li>My Account<ul><li>Child Account (If present)</li></ul></li></ul></Card.Header>
+                    <Card.Header>
+                        <Card.Title>Accounts</Card.Title>
+                        <ul>
+                            <li key='myAccountExample'>My Account
+                                <ul>
+                                    <li key='childAccountExample'>Child Account (If present)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </Card.Header>
                     <Card.Body>
                         <ul>
                             {props.belongsTo.map(account =>
@@ -124,7 +133,7 @@ export default function UserPermissionTab(props) {
                                     {account.account.account_number + ' - ' + account.account.name}
                                     <ul>
                                         {account.children.map(child =>
-                                            <li>{child.account_number + ' - ' + child.name}</li>
+                                            <li key={child.account_id}>{child.account_number + ' - ' + child.name}</li>
                                         )}
                                     </ul>
                                 </li>

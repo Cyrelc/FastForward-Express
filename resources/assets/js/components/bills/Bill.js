@@ -111,7 +111,7 @@ const Bill = (props) => {
             toastr.error("Can't copy a bill that doesn't exist... how did you even get this menu!?!?")
             return
         }
-        history.push(`/app/bills/create?copy_from=${billId}`)
+        history.push(`/bills/create?copy_from=${billId}`)
     }
 
     const debouncedGenerateCharges = useCallback(
@@ -482,7 +482,7 @@ const Bill = (props) => {
                             <h5>Invoices: {invoiceIds.map((invoiceId, index, arr) => {
                                 if(props.frontEndPermissions.invoices.viewAny)
                                     return (
-                                        <LinkContainer to={`/app/invoices/${invoiceId}`} style={{marginRight: '7px'}} key={invoiceId}>
+                                        <LinkContainer to={`/invoices/${invoiceId}`} style={{marginRight: '7px'}} key={invoiceId}>
                                             <a>{invoiceId}</a>
                                         </LinkContainer>
                                     )
@@ -495,7 +495,7 @@ const Bill = (props) => {
                             <h5>Manifests: {manifestIds.map((manifestId, index, arr) => {
                                 if(props.frontEndPermissions.invoices.viewAny)
                                     return (
-                                        <LinkContainer to={`/app/manifests/${manifestId}`} style={{marginRight: '7px'}} key={manifestId}>
+                                        <LinkContainer to={`/manifests/${manifestId}`} style={{marginRight: '7px'}} key={manifestId}>
                                             <a>{manifestId}</a>
                                         </LinkContainer>
                                     )
@@ -639,7 +639,7 @@ const Bill = (props) => {
             <Col md={12} className='text-center'>
                 <ButtonGroup>
                     {billId &&
-                        <LinkContainer to={`/app/bills/${prevBillId}#${window.location.hash?.substr(1)}`}>
+                        <LinkContainer to={`/bills/${prevBillId}#${window.location.hash?.substr(1)}`}>
                             <Button variant='secondary' disabled={!prevBillId}>
                                 <i className='fas fa-arrow-circle-left'></i> Back - {prevBillId}
                             </Button>
@@ -647,7 +647,7 @@ const Bill = (props) => {
                     }
                     {getStoreButton()}
                     {billId &&
-                        <LinkContainer to={`/app/bills/${nextBillId}#${window.location.hash?.substr(1)}`}>
+                        <LinkContainer to={`/bills/${nextBillId}#${window.location.hash?.substr(1)}`}>
                             <Button variant='secondary' disabled={!nextBillId}>
                                 Next - {nextBillId} <i className='fas fa-arrow-circle-right'></i>
                             </Button>

@@ -44,7 +44,7 @@ export default function AdminDashboard(props) {
     ]
 
     const employeeExpiryColumns = [
-        {title: 'Employee', field: 'employee_id', formatter: 'link', formatterParams: {labelField: 'employee_name', urlPrefix: '/app/employees/edit/'}},
+        {title: 'Employee', field: 'employee_id', formatter: 'link', formatterParams: {labelField: 'employee_name', urlPrefix: '/employees/edit/'}},
         {title: 'Date', field: 'date', formatter: cell => {
             const date = Date.parse(cell.getValue())
             const today = new Date()
@@ -91,7 +91,7 @@ export default function AdminDashboard(props) {
                                         }}
                                     />
                                     <hr/>
-                                    <LinkContainer to='/app/appSettings#scheduling'>
+                                    <LinkContainer to='/appSettings#scheduling'>
                                         <a><h4>Upcoming Holidays</h4></a>
                                     </LinkContainer>
                                     <ReactTabulator

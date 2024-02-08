@@ -273,7 +273,7 @@ export default function Charge(props) {
         const value = cell.getValue()
         if(!value)
             return
-        history.push(`/app/${path}/${value}`)
+        history.push(`/${path}/${value}`)
     }
 
     function removeLink(cell, type) {

@@ -88,21 +88,21 @@ function Bills(props) {
                 headerSort: false,
                 print: false
             },
-            {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/app/bills/', history.push), sorter:'number'},
+            {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/bills/', history.push), sorter:'number'},
             {title: 'Waybill #', field: 'bill_number'},
             {title: customFieldName, field: 'custom_field_value'},
             {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
             {title: 'Delivery Address Name', field: 'delivery_address_name', visible: false},
             ... (props.frontEndPermissions.bills.dispatch || props.authenticatedEmployee) ? [
-                {title: 'Delivery Driver', field: 'delivery_employee_name', ...configureFakeLink('/app/employees/', history.push, null, 'delivery_driver_id'), visible: false},
-                {title: 'Pickup Driver', field: 'pickup_employee_name', ...configureFakeLink('/app/employees/', history.push, null, 'pickup_driver_id')},
+                {title: 'Delivery Driver', field: 'delivery_employee_name', ...configureFakeLink('/employees/', history.push, null, 'delivery_driver_id'), visible: false},
+                {title: 'Pickup Driver', field: 'pickup_employee_name', ...configureFakeLink('/employees/', history.push, null, 'pickup_driver_id')},
             ] : [],
             ... props.frontEndPermissions.bills.billing ? [
                 {title: 'Interliner', field: 'interliner_name', visible: false},
                 {title: 'Payment Type', field: 'payment_type', visible: false},
                 {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false}
             ] : [],
-            {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/app/invoices/', history.push), visible: false},
+            {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/invoices/', history.push), visible: false},
             {title: 'Charge Type', field: 'charge_type_name', visible: false},
             {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
             {title: 'Pickup Address Name', field: 'pickup_address_name', visible: false},
@@ -312,7 +312,7 @@ function Bills(props) {
 
     const copyBill = cell => {
         const billId = cell.getRow().getData().bill_id
-        history.push(`/app/bills/create?copy_from=${billId}`)
+        history.push(`/bills/create?copy_from=${billId}`)
     }
 
     const defaultFilterQuery = () => {
