@@ -8,25 +8,25 @@ const renderMenuItemChildren = (option, text) => {
     return (
         <Fragment>
             <span>
-                <strong>{option.type}: </strong><Highlighter search={text}>{option.name}</Highlighter>
+                <strong>{option.result_type}: </strong><Highlighter search={text}>{option.name}</Highlighter>
             </span>
             <br/>
-            {option.type == 'Account' &&
+            {option.result_type == 'Account' &&
                 <SmallHighlighter search={text} text={`Account #: ${option.account_number}`}/>
             }
-            {option.type == 'Account User' &&
+            {option.result_type == 'Account User' &&
                 <SmallHighlighter search={text} text={`Email: ${option.email}`}/>
             }
-            {option.type === 'Bill' &&
+            {option.result_type === 'Bill' &&
                 <SmallHighlighter search={text} text={`Bill# ${option.bill_number}`}/>
             }
-            {option.type == 'Bill' && option.charge_reference_field_name && option.charge_reference_value &&
+            {option.result_type == 'Bill' && option.charge_reference_field_name && option.charge_reference_value &&
                 <SmallHighlighter search={text} text={`${option.charge_reference_field_name}: ${option.charge_reference_value}`}/>
             }
-            {option.type == 'Bill' && option.delivery_reference_field_name && option.delivery_reference_value &&
+            {option.result_type == 'Bill' && option.delivery_reference_field_name && option.delivery_reference_value &&
                 <SmallHighlighter search={text} text={`${option.delivery_reference_field_name}: ${option.delivery_reference_value}`}/>
             }
-            {option.type == 'Bill' && option.pickup_reference_field_name && option.pickup_reference_value &&
+            {option.result_type == 'Bill' && option.pickup_reference_field_name && option.pickup_reference_value &&
                 <SmallHighlighter search={text} text={`${option.pickup_reference_field_name}: ${option.pickup_reference_value}`} />
             }
         </Fragment>

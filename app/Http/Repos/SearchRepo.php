@@ -44,7 +44,7 @@ class SearchRepo {
                 DB::raw('CONCAT("/accounts/", account_id) as link'),
                 'name',
                 'account_id as object_id',
-                DB::raw('"Account" as type')
+                DB::raw('"Account" as result_type')
             );
 
         if($myAccounts)
@@ -73,7 +73,7 @@ class SearchRepo {
                 DB::raw('CONCAT("/accounts/", account_id, "#users") as link'),
                 DB::raw('CONCAT(TRIM(first_name), " ", TRIM(last_name)) as name'),
                 'account_id as object_id',
-                DB::raw('"Account User" as type'),
+                DB::raw('"Account User" as result_type'),
             );
 
         if($myAccounts)
@@ -110,7 +110,7 @@ class SearchRepo {
                 'bills.bill_id as object_id',
                 'pickup_reference_value',
                 'pickup_account.custom_field as pickup_reference_field_name',
-                DB::raw('"Bill" as type'),
+                DB::raw('"Bill" as result_type'),
             );
 
         if($myAccounts)
@@ -136,7 +136,7 @@ class SearchRepo {
                 DB::raw('CONCAT("/employees/", employee_id) as link'),
                 DB::raw('CONCAT(first_name, " ", last_name) as name'),
                 'employee_id as object_id',
-                DB::raw('"Employee" as type'),
+                DB::raw('"Employee" as result_type'),
             );
 
         return $employees->get()->toArray();
@@ -162,7 +162,7 @@ class SearchRepo {
                 'account_id',
                 'invoice_id as object_id',
                 DB::raw('concat("/invoices/", invoice_id) as link'),
-                DB::raw('"Invoice" as type'),
+                DB::raw('"Invoice" as result_type'),
                 DB::raw('cast(invoice_id as char(255)) as name')
             );
 
@@ -178,7 +178,7 @@ class SearchRepo {
                 'employee_id',
                 DB::raw('concat("/manifests/", manifest_id) as link'),
                 'manifest_id as object_id',
-                DB::raw('"Manifest" as type'),
+                DB::raw('"Manifest" as result_type'),
                 DB::raw('cast(manifest_id as char(255)) as name')
             );
 
