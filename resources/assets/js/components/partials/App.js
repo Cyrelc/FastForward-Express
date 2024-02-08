@@ -46,10 +46,8 @@ function App(props) {
     }, [])
 
     useEffect(() => {
-        console.log(props.homePage, props.frontEndPermissions)
         if(loading && props.homePage) {
             setLoading(false)
-            props.history.push(props.homePage)
         }
     }, [props.homePage])
 
