@@ -3,14 +3,14 @@ import {useState} from 'react'
 export default function useContact() {
     const [contactId, setContactId] = useState('')
     const [emailTypes, setEmailTypes] = useState([])
-    const [emailAddresses, setEmailAddresses] = useState([])
+    const [emailAddresses, setEmailAddresses] = useState([{'email': '', 'type': '', 'email_address_id': null, 'is_primary': true}])
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [preferredName, setPreferredName] = useState('')
     const [position, setPosition] = useState('')
     const [pronouns, setPronouns] = useState([])
     const [phoneTypes, setPhoneTypes] = useState([])
-    const [phoneNumbers, setPhoneNumbers] = useState([])
+    const [phoneNumbers, setPhoneNumbers] = useState([{'phone': '', 'extension': '', 'type':'', 'phone_number_id': '', 'is_primary': true}])
 
     const collect = () => {
         return {
@@ -40,11 +40,11 @@ export default function useContact() {
 
     const setup = contact => {
         setContactId(contact.contact_id)
-        setEmailAddresses(contact.emails)
+        setEmailAddresses(contact.emails ?? emailAddresses)
         setEmailTypes(contact.email_types)
         setFirstName(contact.first_name)
         setLastName(contact.last_name)
-        setPhoneNumbers(contact.phone_numbers)
+        setPhoneNumbers(contact.phone_numbers ?? phoneNumbers)
         setPhoneTypes(contact.phone_types)
         setPosition(contact.position)
         setPreferredName(contact.preferred_name || '')
