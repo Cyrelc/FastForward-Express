@@ -7,6 +7,7 @@ import {ConnectedRouter, push} from 'connected-react-router'
 import {Col, Row} from 'react-bootstrap'
 import {ProSidebarProvider} from 'react-pro-sidebar'
 
+import LoadingSpinner from '../partials/LoadingSpinner'
 import NavBar from './NavBar'
 import {APIProvider} from '../../contexts/APIContext'
 
@@ -37,15 +38,27 @@ import UserSettings from '../users/UserSettings'
 
 function App(props) {
     const [showChangePasswordModal, setShowPasswordChangeModal] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         props.fetchAppConfiguration()
         props.fetchUserConfiguration()
     }, [])
 
+    useEffect(() => {
+        console.log(props.homePage, props.frontEndPermissions)
+        if(loading && props.homePage) {
+            setLoading(false)
+            props.history.push(props.homePage)
+        }
+    }, [props.homePage])
+
     const toggleChangePasswordModal = () => {
         setShowPasswordChangeModal(!showPasswordChangeModal)
     }
+
+    if(loading)
+        return <LoadingSpinner />
 
     return (
         <ConnectedRouter history={props.history}>
@@ -60,18 +73,9 @@ function App(props) {
                             <Row className='justify-content-md-center' style={{paddingLeft: '40px'}}>
                                 <Col md={12}>
                                 <Switch>
-                                    <Route exact path='/' render={props => {
-                                        if(props.authenticatedEmployee && props.authenticatedEmployee.employee_id)
-                                            return props.frontEndPermissions.appSettings.edit
-                                                ? <Redirect to='/adminDashboard' />
-                                                : <Redirect to={`/employees/${props.authenticatedEmployee.employee_id}`} />
-                                        else if(props.frontEndPermissions.appSettings.edit)
-                                            return <Redirect to='/adminDashboard' />
-                                        else if(props.authenticatedAccountUsers && props.authenticatedAccountUsers.length == 1)
-                                            return <Redirect to={`/accounts/${props.authenticatedAccountUsers[0].account_id}`}></Redirect>
-                                        else if(props.authenticatedAccountUsers && props.accounts.length > 1)
-                                            return <Redirect to='/accounts'></Redirect>
-                                    }}></Route>
+                                    <Route exact path='/'>
+                                        <Redirect to={props.homePage} />
+                                    </Route>
                                     <Route exact path='/error404' component={PageNotFound}></Route>
                                     <Route path='/search' exact component={Search}></Route>
                                     <Route path='/user_settings' exact component={UserSettings}></Route>
@@ -181,6 +185,7 @@ const mapStateToProps = store => {
         contact: store.user.authenticatedUserContact,
         employees: store.app.employees,
         frontEndPermissions: store.user.frontEndPermissions,
+        homePage: store.user.homePage,
         isImpersonating: store.user.isImpersonating
     }
 }

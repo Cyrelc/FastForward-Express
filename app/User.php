@@ -2,18 +2,20 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
 
-class User extends Authenticatable
-{
-    use HasApiTokens, HasRoles, LogsActivity, Notifiable, SoftDeletes;
+class User extends Authenticatable {
+    use CausesActivity, HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable, SoftDeletes;
 
     public $primaryKey="user_id";
 
@@ -40,12 +42,14 @@ class User extends Authenticatable
     public function displayName() {
         if($this->employee) {
             $contact = $this->employee->contact;
+            if($contact->preferred_name)
+                return $contact->preferred_name;
             return $contact->first_name . ' ' . $contact->last_name;
         }
     }
 
-    public function employee() {
-        return $this->hasOne('App\Employee', 'user_id');
+    public function employee() : HasOne {
+        return $this->hasOne(Employee::class, 'user_id', 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {

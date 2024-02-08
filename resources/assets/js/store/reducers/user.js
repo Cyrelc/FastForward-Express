@@ -28,9 +28,21 @@ const initialState = {
     userSettings: {}
 }
 
+const getHomePageRoute = payload => {
+    if(payload.frontEndPermissions.appSettings.edit)
+        return '/adminDashboard'
+    else if(payload.authenticatedEmployee)
+        return `/employees/${action.payload.authenticatedEmployee.employee_id}`
+    else if(payload?.authenticatedAccountUsers?.length > 1)
+        return `/accounts`
+    else
+        return `/accounts/${action.payload.authenticatedAccountUsers[0].account_id}`
+}
+
 const reducer = (state = initialState, action) => {
     switch(action.type) {
         case actionTypes.USER_CONFIGURATION_LOADED:
+            const homePage = getHomePageRoute(action.payload)
             return {
                 ...state,
                 authenticatedAccountUsers: action.payload.authenticatedAccountUsers,
@@ -39,6 +51,7 @@ const reducer = (state = initialState, action) => {
                 authenticatedUserId: action.payload.authenticatedUserId,
                 frontEndPermissions: action.payload.frontEndPermissions,
                 isImpersonating: action.payload.is_impersonating,
+                homePage: homePage,
                 userSettings: action.payload.user_settings
             }
     }
