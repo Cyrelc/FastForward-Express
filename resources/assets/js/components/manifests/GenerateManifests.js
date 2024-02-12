@@ -1,8 +1,21 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
-import { ReactTabulator } from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
+import {toast} from 'react-toastify'
+
+import {useAPI} from '../../contexts/APIContext'
+
+const columns = [
+    {title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
+    {title: 'Employee ID', field: 'employee_id'},
+    {title: 'Employee Number', field: 'employee_number'},
+    {title: 'Employee', field: 'label'},
+    {title: 'Valid Bills', field: 'valid_bill_count'},
+    {title: 'Legacy Bills', field: 'legacy_bill_count'},
+    {title: 'Incomplete Bills', field: 'incomplete_bill_count'}
+]
 
 export default function GenerateManifests(props) {
     const [employees, setEmployees] = useState([])
@@ -11,8 +24,48 @@ export default function GenerateManifests(props) {
     const [isLoading, setIsLoading] = useState(true)
     const [isStoring, setIsStoring] = useState(false)
 
+    const api = useAPI();
     const history = useHistory()
     const tableRef = useRef()
+
+    useEffect(() => {
+        if(tableRef.current) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: columns,
+                data: employees,
+                layout: 'fitColumns',
+                maxHeight: '80vh',
+                placeholder: 'No employees fit the selected criteria for generating a manifest',
+                selectable: true,
+                selectableCheck: row => {
+                const selectable = row.getData().valid_bill_count > 0
+                    return selectable
+                }
+            })
+
+            newTabulator.on('rowDeselected', row => {
+                row.update({isSelected: false})
+            })
+
+            newTabulator.on('rowSelected', row => {
+                row.update({isSelected: true})
+            })
+        }
+    })
+
+    useEffect(() => {
+        if(tableRef.current) {
+            tableRef.current.setData(employees).then(() => {
+                tableRef.current.getRows().map(row => {
+                    const data = row.getData()
+                    if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.legacy_bill_count === 0) {
+                        row.select()
+                        row.update({isSelected: true})
+                    }
+                })
+            })
+        }
+    }, [employees])
 
     useEffect(() => {
         refreshEmployees()
@@ -20,15 +73,16 @@ export default function GenerateManifests(props) {
 
     const refreshEmployees = () => {
         setIsLoading(true)
-        const data = {
-            start_date: startDate.toLocaleString('en-US'),
-            end_date: endDate.toLocaleString('en-US')
-        }
+        const queryString = new URLSearchParams({
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString()
+        }).toString()
 
-        makeAjaxRequest('/manifests/getDriversToManifest', 'GET', data, result => {
-            setEmployees(JSON.parse(result))
-            setIsLoading(false)
-        })
+        api.get(`/manifests/getDriversToManifest?${queryString}`)
+            .then(result => {
+                setEmployees(result)
+                setIsLoading(false)
+            })
     }
 
     const store = () => {
@@ -37,38 +91,26 @@ export default function GenerateManifests(props) {
         else
             setIsStoring(true)
 
-        if(tableRef.current === undefined || tableRef.current.table.getSelectedData().length === 0) {
-            toastr.error('Please select at least one driver to manifest')
+        if(tableRef.current === undefined || tableRef.current.getSelectedData().length === 0) {
+            toast.error('Please select at least one driver to manifest')
             return
         }
 
         const data = {
-            employees: tableRef.current.table.getSelectedData().map(employee => {return employee.employee_id}),
+            employees: tableRef.current.getSelectedData().map(employee => {return employee.employee_id}),
             start_date: startDate.toLocaleString('en-US'),
             end_date: endDate.toLocaleString('en-US')
         }
-        makeAjaxRequest('/manifests/store', 'POST', data, response => {
-            toastr.clear()
-            toastr.success('Successfully generated manifests', 'Success', {
-                'progressBar': true,
-                'showDuration': 500,
-                'onHidden': () => history.push('/manifests'),
-                'positionClass': 'toast-top-center'
+        api.post('/manifests/store', data)
+            .then(response => {
+                toast.success('Successfully generated manifests', {
+                    position: 'top-center',
+                    onClose: () => history.push('/manifests'),
+                })
+            }).catch(error => {
+                setIsLoading(false)
             })
-        }, error => {
-            setIsLoading(false)
-        })
     }
-
-    const columns = [
-        {Title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-        {title: 'Employee ID', field: 'employee_id'},
-        {title: 'Employee Number', field: 'employee_number'},
-        {title: 'Employee', field: 'label'},
-        {title: 'Valid Bills', field: 'valid_bill_count'},
-        {title: 'Legacy Bills', field: 'legacy_bill_count'},
-        {title: 'Incomplete Bills', field: 'incomplete_bill_count'}
-    ]
 
     return (
         <Card>
@@ -115,31 +157,7 @@ export default function GenerateManifests(props) {
                     <Row className='justify-content-md-center'>
                         <Col md={3}><h4><i className='fas fa-cog fa-spin'></i>  Loading...</h4></Col>
                     </Row> :
-                    <ReactTabulator
-                        ref={tableRef}
-                        columns={columns}
-                        data={employees}
-                        dataLoaded={() => {
-                            const table = tableRef.current.table
-                            table.rowManager.rows.map(row => {
-                                const data = row.getData()
-                                if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.legacy_bill_count === 0)
-                                    table.selectRow(row)
-                            })
-                        }}
-                        options={{
-                            layout: 'fitColumns',
-                            maxHeight: '80vh'
-                        }}
-                        placeholder='No employees fit the selected criteria for generating a manifest'
-                        rowSelected={row => {row.update({isSelected: true})}}
-                        rowDeselected={row => {row.update({isSelected: false})}}
-                        selectable={true}
-                        selectableCheck={row => {
-                            const selectable = row.getData().valid_bill_count > 0
-                            return selectable
-                        }}
-                    />
+                    <div ref={tableRef}></div>
                 }
             </Card.Footer>
         </Card>
