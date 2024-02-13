@@ -36,20 +36,20 @@ class User extends Authenticatable {
     ];
 
     public function accountUsers() {
-        return $this->hasMany('App\AccountUser', 'user_id');
+        return $this->hasMany(AccountUser::class, 'user_id');
     }
 
     public function displayName() {
         if($this->employee) {
-            $contact = $this->employee->contact;
-            if($contact->preferred_name)
-                return $contact->preferred_name;
-            return $contact->first_name . ' ' . $contact->last_name;
-        }
+            return $this->employee->contact->displayName();
+        } else if ($this->accountUsers) {
+            return $this->accountUsers[0]->contact->displayName();
+        } else
+            return $this->email;
     }
 
     public function employee() : HasOne {
-        return $this->hasOne(Employee::class, 'user_id', 'user_id');
+        return $this->hasOne(Employee::class, 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {
