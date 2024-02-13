@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Models\Contact;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Billable;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -43,7 +44,7 @@ class Account extends Model
     ];
 
     public function contacts() {
-        return $this->belongsToMany('App\Contact', 'account_users');
+        return $this->belongsToMany(Contact::class, 'account_users');
     }
 
     public function ratesheet() {
