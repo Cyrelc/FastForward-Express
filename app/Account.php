@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Models\Address;
 use App\Models\Contact;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Cashier\Billable;
@@ -43,16 +44,24 @@ class Account extends Model
         'start_date',
     ];
 
+    public function billing_address() {
+        return $this->hasOne(Address::class, 'address_id', 'billing_address_id');
+    }
+
     public function contacts() {
         return $this->belongsToMany(Contact::class, 'account_users');
+    }
+
+    public function parent() {
+        return $this->belongsTo(Account::class, 'parent_account_id');
     }
 
     public function ratesheet() {
         return $this->belongsTo('App\Ratesheet');
     }
 
-    public function parentAccount() {
-        return $this->belongsTo(Account::class, 'parent_account_id');
+    public function shipping_address() {
+        return $this->hasOne(Address::class, 'address_id', 'shipping_address_id');
     }
 
     //editable fields
