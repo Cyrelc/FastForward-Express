@@ -10,6 +10,18 @@ export default function useAddress() {
     const [placeId, setPlaceId] = useState('')
     const [type, setType] = useState('Search')
 
+    const collect = () => {
+        return {
+            'address_id': addressId,
+            'formatted':  formatted,
+            'is_mall': isMall,
+            'lat': lat,
+            'lng': lng,
+            'name': name,
+            'place_id': placeId
+        }
+    }
+
     const setFromAccount = account => {
         setFormatted(account.shipping_address ? account.shipping_address_formatted : account.billing_address_formatted)
         setLat(account.shipping_address ? account.shipping_address_lat : account.billing_address_lat)

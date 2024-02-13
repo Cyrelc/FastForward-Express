@@ -98,7 +98,7 @@ export default function Phones(props) {
                                         onChange={handlePhoneChange}
                                         placeholder='(XXX) XXX-XXX'
                                         readOnly={readOnly}
-                                        value={phone.phone_number}
+                                        value={phone.phone_number ?? ''}
                                     />
                                 </td>
                                 <td>
@@ -106,7 +106,7 @@ export default function Phones(props) {
                                         data-phone-index={index}
                                         name='extension_number'
                                         placeholder='Extension (optional)'
-                                        value={phone.extension_number}
+                                        value={phone.extension_number ?? ''}
                                         onChange={handlePhoneChange}
                                         readOnly={readOnly}
                                     />
@@ -114,7 +114,7 @@ export default function Phones(props) {
                                 <td>
                                     <Select
                                         options={phoneTypes}
-                                        value={phone.type ? phoneTypes.find(type => type.value == phone.type) : undefined}
+                                        value={phone.type ? phoneTypes.find(type => type.value == phone.type) : []}
                                         onChange={value => handlePhoneChange({target: {name: 'type', type: 'string', value: value.value, dataset: {phoneIndex: index}}})}
                                     />
                                 </td>

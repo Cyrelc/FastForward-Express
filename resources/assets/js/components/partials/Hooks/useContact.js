@@ -40,7 +40,7 @@ export default function useContact() {
 
     const setup = contact => {
         setContactId(contact.contact_id)
-        setEmailAddresses(contact.emails ?? emailAddresses)
+        setEmailAddresses(contact.emails ?? contact.email_addresses ?? emailAddresses)
         setEmailTypes(contact.email_types)
         setFirstName(contact.first_name)
         setLastName(contact.last_name)
