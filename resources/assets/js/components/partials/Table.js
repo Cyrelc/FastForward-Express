@@ -386,13 +386,13 @@ export default function Table(props) {
                                                                             size='sm'
                                                                             style={{flex: 1}}
                                                                         >{query.name}</Button>
-                                                                        <Button
+                                                                        {/* <Button
                                                                             key={query.id + '.share'}
                                                                             onClick={() => writeQueryToClipboard(query.query_string)}
                                                                             size='sm'
                                                                             style={{flex: 0}}
                                                                             variant='success'
-                                                                        ><i className='fas fa-share'></i></Button>
+                                                                        ><i className='fas fa-share'></i></Button> */}
                                                                     </ButtonGroup>
                                                                 )}
                                                             </ButtonGroup>
