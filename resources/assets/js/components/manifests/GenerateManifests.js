@@ -4,6 +4,7 @@ import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
+import {DateTime} from 'luxon'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -19,8 +20,8 @@ const columns = [
 
 export default function GenerateManifests(props) {
     const [employees, setEmployees] = useState([])
-    const [startDate, setStartDate] = useState(new Date((new Date()).getFullYear(), (new Date()).getMonth() - 1, 1))
-    const [endDate, setEndDate] = useState(new Date((new Date()).moveToFirstDayOfMonth().setHours(-1)))
+    const [startDate, setStartDate] = useState(DateTime.now().minus({months: 1}).startOf('month').toJSDate())
+    const [endDate, setEndDate] = useState(DateTime.now().minus({months: 1}).endOf('month').toJSDate())
     const [isLoading, setIsLoading] = useState(true)
     const [isStoring, setIsStoring] = useState(false)
 
@@ -74,8 +75,8 @@ export default function GenerateManifests(props) {
     const refreshEmployees = () => {
         setIsLoading(true)
         const queryString = new URLSearchParams({
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString()
+            start_date: startDate.toLocaleDateString(),
+            end_date: endDate.toLocaleDateString()
         }).toString()
 
         api.get(`/manifests/getDriversToManifest?${queryString}`)
@@ -98,8 +99,8 @@ export default function GenerateManifests(props) {
 
         const data = {
             employees: tableRef.current.getSelectedData().map(employee => {return employee.employee_id}),
-            start_date: startDate.toLocaleString('en-US'),
-            end_date: endDate.toLocaleString('en-US')
+            start_date: startDate.toLocaleDateString(),
+            end_date: endDate.toLocaleDateString()
         }
         api.post('/manifests/store', data)
             .then(response => {
