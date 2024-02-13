@@ -35,9 +35,7 @@ export default function Table(props) {
     // Initial setup, set document title, get initial searchQuery
     useEffect(() => {
         document.title = `${props.pageTitle} - Fast Forward Express`
-    }, [])
 
-    useEffect(() => {
         const initialQuery = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
         fetchTableData(initialQuery)
         if(location.search != initialQuery) {
@@ -54,7 +52,7 @@ export default function Table(props) {
             }
         })
         setFilters(initialFilters)
-    }, [location.search])
+    }, [])
 
     // Initialize datatable
     useEffect(() => {
