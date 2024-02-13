@@ -14,9 +14,9 @@ class PaymentIntentProcessor {
         'requires_payment_method',
         'requires_confirmation',
         'processing',
-        'succeeded',
         'requires_capture',
         'requires_action',
+        'succeeded',
         'canceled',
     ];
 
@@ -50,20 +50,23 @@ class PaymentIntentProcessor {
             if($oldStatusIndex != false && $newStatusIndex != false && $oldStatusIndex < $newStatusIndex) {
                 $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $newStatus);
 
+                $paymentAmount = bcdiv($paymentIntent->amount_received, 100, 2);
+
                 $paymentRepo->Update($payment->payment_id, [
-                    'amount' => $payment->amount_received,
+                    'amount' => $paymentAmount,
                     'payment_type_id' => $paymentType->payment_type_id,
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
                 ]);
 
-                $paymentAmount = bcdiv($payment->amount_received, 100, 2);
                 if($newStatus == 'succeeded')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
                 if($newStatus == 'canceled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
             } else {
                 activity('jobs')
-                    ->log('[ReceiveStripeWebhook.handle] skipped. Previous payment intent status: ' . $payment->payment_intent_status . '. New payment intent status: ' . $event->type);
+                    ->performedOn($payment)
+                    ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $event->type])
+                    ->log('[ReceiveStripeWebhook.handle] skipped.');
             }
         }
 
