@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Models\Contact;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -17,6 +18,10 @@ class AccountUser extends Model
 
     public function account() {
         return $this->hasOne('App\Account', 'account_id');
+    }
+
+    public function contact() {
+        return $this->hasOne(Contact::class, 'contact_id');
     }
 
     public function getActivityLogOptions() : LogOptions {
