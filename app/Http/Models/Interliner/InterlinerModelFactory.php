@@ -28,7 +28,7 @@ class InterlinerModelFactory{
 	public function GetCreateModel($req) {
 		$model = new InterlinerFormModel();
 		$model->interliner = new \App\Interliner();
-		$model->interliner->address = new \App\Address();
+		$model->interliner->address = new \App\Models\Address();
 
 		return $model;
 	}
