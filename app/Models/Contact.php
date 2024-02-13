@@ -29,6 +29,10 @@ class Contact extends Model {
         return $this->hasOne(Address::class, 'contact_id');
     }
 
+    public function displayName() {
+        return $this->preferred_name ?? $this->first_name . ' ' . $this->last_name;
+    }
+
     public function employees() {
         return $this->belongsToMany(\App\Employee::class, 'employee_emergency_contacts');
     }
@@ -37,8 +41,19 @@ class Contact extends Model {
         return $this->hasMany(EmailAddress::class, 'contact_id');
     }
 
-    public function displayName() {
-        return $this->preferred_name ?? $this->first_name . ' ' . $this->last_name;
+    public function email_roles() {
+        $roles = array();
+        foreach($this->email_addresses as $email) {
+            if(!$email->type)
+                continue;
+            $emailRoles = json_decode($email->type);
+            foreach($emailRoles as $role) {
+                if(!in_array($role->label, $roles))
+                    $roles[] = $role->label;
+            }
+        }
+
+        return $roles;
     }
 
     public function phone_numbers() {
