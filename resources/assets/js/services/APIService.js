@@ -20,7 +20,7 @@ export default class ApiService {
         this.history = history
     }
 
-    async get(endpoint, errorCallback = null) {
+    async get(endpoint) {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'GET',
@@ -30,14 +30,14 @@ export default class ApiService {
                 }
             })
 
-            return await this._handleResponse(response, errorCallback)
+            return await this._handleResponse(response)
         } catch (error) {
             console.error('GET Request Error:', error)
             throw error
         }
     }
 
-    async post(endpoint, data, errorCallback = null) {
+    async post(endpoint, data) {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'POST',
@@ -48,14 +48,14 @@ export default class ApiService {
                 },
                 body: JSON.stringify(data)
             })
-            return await this._handleResponse(response, errorCallback)
+            return await this._handleResponse(response)
         } catch (error) {
             console.error('POST Request Error:', error)
             throw error
         }
     }
 
-    async put(endpoint, data, errorCallback = null) {
+    async put(endpoint, data) {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'PUT',
@@ -66,14 +66,14 @@ export default class ApiService {
                 },
                 body: JSON.stringify(data)
             })
-            return await this._handleResponse(response, errorCallback)
+            return await this._handleResponse(response)
         } catch (error) {
             console.error('PUT Request Error:', error)
             throw error
         }
     }
 
-    async _handleResponse(response, errorCallback = null) {
+    async _handleResponse(response) {
         if(!response.ok) {
             const errorData = await response.json()
 
