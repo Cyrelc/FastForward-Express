@@ -87,13 +87,13 @@ class BillValidationRules {
 			$messages = array_merge($messages, $basic['messages']);
 		}
 
-		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? ($permissions['editDispatch'] || $permissions['editDispatchMy']) : $permissions['createFull']) {
+		if($req->bill_id != null ? ($permissions['editDispatch'] || $permissions['editDispatchMy']) : $permissions['createFull']) {
 			$dispatch = $this->getDispatchValidationRules($req);
 			$rules = array_merge($rules, $dispatch['rules']);
 			$messages = array_merge($messages, $dispatch['messages']);
 		}
 
-		if(filter_var($req->bill_id, FILTER_VALIDATE_BOOLEAN) ? $permissions['editBilling'] : $permissions['createFull']) {
+		if($req->bill_id != null ? $permissions['editBilling'] : $permissions['createFull']) {
 			$billing = $this->getBillingValidationRules($req);
 			$rules = array_merge($rules, $billing['rules']);
 			$messages = array_merge($messages, $billing['messages']);
@@ -105,7 +105,6 @@ class BillValidationRules {
 	/**
 	 * Private functions
 	 */
-
 	private function getBasicValidationRulesAccountUser($req) {
 		$accountRepo = new Repos\AccountRepo();
 		$paymentRepo = new Repos\PaymentRepo();
@@ -188,10 +187,10 @@ class BillValidationRules {
 
 	private function getDispatchValidationRules($req) {
 		$rules = [
-			'time_dispatched' => 'date',
-			'time_picked_up' => 'date',
-			'time_delivered' => 'date',
-			'time_ten_foured' => 'date'
+			'time_dispatched' => 'nullable|date',
+			'time_picked_up' => 'nullable|date',
+			'time_delivered' => 'nullable|date',
+			'time_ten_foured' => 'nullable|date'
 		];
 
 		$messages = [
@@ -206,7 +205,7 @@ class BillValidationRules {
 		$paymentRepo = new Repos\PaymentRepo();
 
 		$rules = [
-			'bill_number' => 'sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
+			'bill_number' => 'nullable|sometimes|unique:bills,bill_number,' . $req->bill_id . ',bill_id',
 			'skip_invoicing' => 'required',
 		];
 
