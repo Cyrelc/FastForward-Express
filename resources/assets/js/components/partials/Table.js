@@ -372,7 +372,7 @@ export default function Table(props) {
                                                             <hr />
                                                             <ButtonGroup vertical style={{width: '100%'}}>
                                                                 {queries.map(query =>
-                                                                    <ButtonGroup>
+                                                                    <ButtonGroup key={query.id + '.buttonGroup'}>
                                                                         <Button
                                                                             key={query.id + '.delete'}
                                                                             onClick={() => deleteQuery(query)}

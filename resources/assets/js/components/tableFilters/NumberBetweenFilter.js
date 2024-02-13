@@ -4,6 +4,7 @@ import {Col, InputGroup, FormControl} from 'react-bootstrap'
 export default function NumberBetween(props) {
     const [lowerBound, setLowerBound] = useState('')
     const [upperBound, setUpperBound] = useState('')
+    const [filter, setFilter] = useState('')
 
     useEffect(() => {
         const bounds = props.filter.value?.split(',') ?? []
@@ -13,7 +14,10 @@ export default function NumberBetween(props) {
 
     useEffect(() => {
         const value = (lowerBound || upperBound) ? `${lowerBound},${upperBound}` : ''
-        props.handleFilterValueChange({...props.filter, value: value})
+        if(value != filter) {
+            setFilter(value)
+            props.handleFilterValueChange({...props.filter, value: value})
+        }
     }, [lowerBound, upperBound])
 
     return(
