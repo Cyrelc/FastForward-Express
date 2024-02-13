@@ -6,6 +6,7 @@ import {fetchUserConfiguration} from '../../store/reducers/user'
 import {ConnectedRouter, push} from 'connected-react-router'
 import {Col, Row} from 'react-bootstrap'
 import {ProSidebarProvider} from 'react-pro-sidebar'
+import {ToastContainer} from 'react-toastify'
 
 import LoadingSpinner from '../partials/LoadingSpinner'
 import NavBar from './NavBar'
@@ -60,6 +61,7 @@ function App(props) {
 
     return (
         <ConnectedRouter history={props.history}>
+            <ToastContainer />
             <APIProvider history={props.history}>
                 <ProSidebarProvider>
                     <div style={{display: 'flex', height: '100vh', maxHeight: '100vh', direction: 'ltr'}}>
