@@ -32,11 +32,11 @@ const getHomePageRoute = payload => {
     if(payload.frontEndPermissions.appSettings.edit)
         return '/adminDashboard'
     else if(payload.authenticatedEmployee)
-        return `/employees/${action.payload.authenticatedEmployee.employee_id}`
+        return `/employees/${payload.authenticatedEmployee.employee_id}`
     else if(payload?.authenticatedAccountUsers?.length > 1)
         return `/accounts`
     else
-        return `/accounts/${action.payload.authenticatedAccountUsers[0].account_id}`
+        return `/accounts/${payload.authenticatedAccountUsers[0].account_id}`
 }
 
 const reducer = (state = initialState, action) => {
