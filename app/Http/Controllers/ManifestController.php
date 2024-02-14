@@ -171,7 +171,9 @@ class ManifestController extends Controller {
 
         DB::commit();
 
-        return;
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     /**

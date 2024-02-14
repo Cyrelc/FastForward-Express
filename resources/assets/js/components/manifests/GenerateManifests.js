@@ -24,13 +24,14 @@ export default function GenerateManifests(props) {
     const [endDate, setEndDate] = useState(DateTime.now().minus({months: 1}).endOf('month').toJSDate())
     const [isLoading, setIsLoading] = useState(true)
     const [isStoring, setIsStoring] = useState(false)
+    const [table, setTable] = useState(null)
 
     const api = useAPI();
     const history = useHistory()
     const tableRef = useRef()
 
     useEffect(() => {
-        if(tableRef.current) {
+        if(tableRef.current && !table) {
             const newTabulator = new Tabulator(tableRef.current, {
                 columns: columns,
                 data: employees,
@@ -51,13 +52,15 @@ export default function GenerateManifests(props) {
             newTabulator.on('rowSelected', row => {
                 row.update({isSelected: true})
             })
+
+            setTable(newTabulator)
         }
     })
 
     useEffect(() => {
-        if(tableRef.current) {
-            tableRef.current.setData(employees).then(() => {
-                tableRef.current.getRows().map(row => {
+        if(table) {
+            table.setData(employees).then(() => {
+                table.getRows().map(row => {
                     const data = row.getData()
                     if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.legacy_bill_count === 0) {
                         row.select()
@@ -92,13 +95,13 @@ export default function GenerateManifests(props) {
         else
             setIsStoring(true)
 
-        if(tableRef.current === undefined || tableRef.current.getSelectedData().length === 0) {
+            if(!table || table.getSelectedData().length === 0) {
             toast.error('Please select at least one driver to manifest')
             return
         }
 
         const data = {
-            employees: tableRef.current.getSelectedData().map(employee => {return employee.employee_id}),
+            employees: table.getSelectedData().map(employee => {return employee.employee_id}),
             start_date: startDate.toLocaleDateString(),
             end_date: endDate.toLocaleDateString()
         }
@@ -154,12 +157,7 @@ export default function GenerateManifests(props) {
                 </Row>
             </Card.Body>
             <Card.Footer>
-                {isLoading ? 
-                    <Row className='justify-content-md-center'>
-                        <Col md={3}><h4><i className='fas fa-cog fa-spin'></i>  Loading...</h4></Col>
-                    </Row> :
-                    <div ref={tableRef}></div>
-                }
+                <div ref={tableRef}></div>
             </Card.Footer>
         </Card>
     )
