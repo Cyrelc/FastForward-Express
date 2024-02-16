@@ -35,7 +35,7 @@ class InterlinerController extends Controller {
         $interlinerCollector = new \App\Http\Collectors\InterlinerCollector();
         $addrRepo = new Repos\AddressRepo();
 
-        $address = $addrCollector->CollectMinimal($req, 'address');
+        $address = $addrCollector->collectWithPrefix($req, 'address');
         if ($req->address_id)
             $addressId = $addrRepo->Update($address)->address_id;
         else

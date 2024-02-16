@@ -2,7 +2,19 @@
 namespace App\Http\Collectors;
 
 class AddressCollector {
-    public function CollectMinimal($req, $prefix, $addressId = null, $isPrimary = false) {
+    public function collect($addressData, $isPrimary = null) {
+        return [
+            'name'=> $addressData['name'],
+            'formatted'=> $addressData['formatted'],
+            'is_mall'=> array_key_exists('is_mall', $addressData) ? $addressData['is_mall'] : null,
+            'lat'=> $addressData['lat'],
+            'lng'=> $addressData['lng'],
+            'place_id'=> $addressData['place_id'],
+            'is_primary'=> $isPrimary
+        ];
+    }
+
+    public function collectWithPrefix($req, $prefix, $addressId = null, $isPrimary = false) {
         return [
             'address_id'=>$addressId,
             'name'=>$req->input($prefix . '_name'),
@@ -15,7 +27,7 @@ class AddressCollector {
         ];
     }
 
-    public function ToArray($object, $is_primary) {
+    public function toArray($object, $is_primary) {
         return [
             'address_id' => $object->address_id,
             'name' => $object->name,

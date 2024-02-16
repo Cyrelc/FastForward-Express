@@ -261,8 +261,8 @@ class BillController extends Controller {
         $billCollector = new Collectors\BillCollector();
         $packageCollector = new Collectors\PackageCollector();
 
-        $pickupAddress = $addrCollector->CollectMinimal($req, 'pickup_address', $oldBill ? $oldBill->pickup_address_id : null);
-        $deliveryAddress = $addrCollector->CollectMinimal($req, 'delivery_address', $oldBill ? $oldBill->delivery_address_id : null);
+        $pickupAddress = $addrCollector->collectWithPrefix($req, 'pickup_address', $oldBill ? $oldBill->pickup_address_id : null);
+        $deliveryAddress = $addrCollector->collectWithPrefix($req, 'delivery_address', $oldBill ? $oldBill->delivery_address_id : null);
 
         DB::beginTransaction();
 

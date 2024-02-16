@@ -205,7 +205,7 @@ class AccountController extends Controller {
 
             //BEGIN shipping address
             $addrCollector = new \App\Http\Collectors\AddressCollector();
-            $shipping = $addrCollector->CollectMinimal($req, 'shipping_address', $oldAccount ? $oldAccount->shipping_address_id : null);
+            $shipping = $addrCollector->collectWithPrefix($req, 'shipping_address', $oldAccount ? $oldAccount->shipping_address_id : null);
             $shippingId = $shipping["address_id"];
 
             if ($shippingId)
@@ -215,7 +215,7 @@ class AccountController extends Controller {
             //END shipping address
             //BEGIN billing address
             if ($useSeparateBillingAddress) {
-                $billing = $addrCollector->CollectMinimal($req, 'billing_address', $oldAccount ? $oldAccount->billing_address_id : null);
+                $billing = $addrCollector->collectWithPrefix($req, 'billing_address', $oldAccount ? $oldAccount->billing_address_id : null);
 
                 if ($billing['address_id'])
                     $billingId = $addressRepo->UpdateMinimal($billing)->address_id;
