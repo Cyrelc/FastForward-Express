@@ -1,25 +1,43 @@
 <?php
 
-class TestCase extends Illuminate\Foundation\Testing\TestCase
-{
+namespace Tests;
+
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+
+abstract class TestCase extends BaseTestCase {
+    use CreatesApplication;
     /**
      * The base URL to use while testing the application.
      *
      * @var string
      */
-    protected $baseUrl = 'http://localhost';
+    protected $baseUrl = 'http://localhost/';
 
-    /**
-     * Creates the application.
-     *
-     * @return \Illuminate\Foundation\Application
-     */
-    public function createApplication()
-    {
-        $app = require __DIR__.'/../bootstrap/app.php';
+    protected $seed = true;
 
-        $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+    protected function assertDoesNotHaveAttributes($array, $forbiddenAttributes) {
+        $objectAttributes = array_keys((array) $array);
+        // Check for forbidden attributes
+        foreach ($forbiddenAttributes as $attribute) {
+            $this->assertNotContains($attribute, $objectAttributes, "Forbidden attribute {$attribute} was found in the object.");
+        }
+    }
 
-        return $app;
+    protected function assertHasAttributes($array, $expectedAttributes) {
+        $objectAttributes = array_keys((array) $array);
+
+        // Check for expected attributes
+        foreach ($expectedAttributes as $attribute) {
+            $this->assertContains($attribute, $objectAttributes, "Attribute {$attribute} is missing from the object.");
+        }
+    }
+
+    protected function assertHasOnlyAttributes($array, $expectedAttributes) {
+        $objectAttributes = array_keys((array) $array);
+
+        // Ensure no additional attributes are present
+        $additionalAttributes = array_diff($objectAttributes, $expectedAttributes);
+        $this->assertEmpty($additionalAttributes, "Additional attributes found in the object: " . implode(', ', $additionalAttributes));
     }
 }
