@@ -56,7 +56,20 @@ function AttributeTable({cell}) {
 const activityLogColumns = [
     {title: 'Date Modified', field: 'updated_at', width:150},
     // subject type is stored as the absolute location of the class in PHP, so generally App\ClassName - additionally another \ is added when storing in the database to escape the backslash in the path name
-    {title: 'Type', field: 'subject_type', formatter: cell => {return cell.getValue().split('\\').slice(-1)[0]}, headerFilter: true, width: 150},
+    {
+        title: 'Type',
+        field: 'subject_type',
+        formatter: cell => {
+            let value = cell.getValue().split('\\').slice(-1)[0]
+
+            value = value.split('').map((char, index) => {
+                return (char === char.toUpperCase() && index !== 0) ? ' ' + char : char
+            }).join('')
+            return value
+        },
+        headerFilter: true,
+        width: 150
+    },
     {title: 'Subject ID', field: 'subject_id', width: 100},
     {title: 'Action', field: 'description', headerFilter: true, width: 100},
     {title: 'Modified By', field: 'user_name', headerFilter: true, width: 200},
