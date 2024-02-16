@@ -24,12 +24,12 @@ class EmailAddressFactory extends Factory
             },
             'email' => $this->faker->unique()->safeEmail,
             'is_primary' => false,
-            'type' => json_encode($this->faker->randomElement($array = array(
+            'type' => $this->faker->randomElement($array = array(
                 ["label" => "Support","value" => "30"],
                 ["label" => "Personal","value" => "90"],
                 ["label" => "Business","value" => "31"],
                 ["label" => "Accounting","value" => "32"]
-            )))
+            ))
         ];
     }
 }

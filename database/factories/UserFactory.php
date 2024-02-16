@@ -10,18 +10,17 @@ use Illuminate\Support\Str;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\User>
  */
-class UserFactory extends Factory
-{
+class UserFactory extends Factory {
+
     protected $model = User::class;
     /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
-    {
+    public function definition(): array {
         return [
-            'username' => $this->faker->userName,
+            'username' => $this->faker->unique()->safeEmail,
             'email' => $this->faker->unique()->safeEmail,
             'password' => bcrypt('password'),
             'is_enabled' => true,

@@ -23,7 +23,7 @@ class PhoneNumberFactory extends Factory
             'contact_id' => function() {
                 return Contact::factory()->create()->contact_id;
             },
-            'phone_number' => $phoneNumber[0],
+            'phone_number' => $this->faker->regexify('\([2-9]{3}\) [2-9]{3}-[2-9]{4}'),
             'extension_number' => $phoneNumber[1] ?? null,
             'is_primary' => false,
             'type' => $this->faker->randomElement($array = array('cell', 'fax', 'home', 'work')),
