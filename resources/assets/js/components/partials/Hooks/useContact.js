@@ -10,7 +10,7 @@ export default function useContact() {
     const [position, setPosition] = useState('')
     const [pronouns, setPronouns] = useState([])
     const [phoneTypes, setPhoneTypes] = useState([])
-    const [phoneNumbers, setPhoneNumbers] = useState([{'phone': '', 'extension': '', 'type':'', 'phone_number_id': '', 'is_primary': true}])
+    const [phoneNumbers, setPhoneNumbers] = useState([{'phone': '', 'extension': '', 'type':'', 'phone_number_id': null, 'is_primary': true}])
 
     const collect = () => {
         return {

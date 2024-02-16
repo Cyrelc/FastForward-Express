@@ -61,6 +61,7 @@ export default function useAddress() {
         placeId,
         type,
 
+        collect,
         reset,
         setFormatted,
         setFromAccount,
