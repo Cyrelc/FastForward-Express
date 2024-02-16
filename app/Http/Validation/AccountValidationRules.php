@@ -5,7 +5,7 @@ class AccountValidationRules {
     public function GetValidationRules($req, $accountPermissionsObject) {
         $advancedRules = [
             'account_number' => 'required|unique:accounts,account_number,' . $req->account_id . ',account_id',
-            'parent_account_id' => 'exists:accounts,account_id',
+            'parent_account_id' => 'nullable|exists:accounts,account_id',
             'discount' => 'nullable|numeric|between:0,100',
             'min_invoice_amount' => 'nullable|numeric',
             'start_date' => 'required|date',
