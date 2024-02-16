@@ -23,10 +23,10 @@ class PartialsValidationRules {
         $rules = [
             'first_name' => 'required',
             'last_name' => 'required',
-            'emails' => 'required',
+            'email_addresses' => 'required',
             'phone_numbers' => 'required',
-            'emails.*.email' => 'required|email',
-            'emails.*.is_primary' => 'required',
+            'email_addresses.*.email' => 'required|email',
+            'email_addresses.*.is_primary' => 'required',
             'phone_numbers.*.phone_number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
             'phone_numbers.*.is_primary' => 'required',
             'phone_numbers.*.type' => 'required'
@@ -38,15 +38,15 @@ class PartialsValidationRules {
         ];
         if($userId) {
             $userRepo = new \App\Http\Repos\UserRepo();
-            foreach($req->emails as $key => $email) {
-                $existingUser = $userRepo->GetUserByPrimaryEmail($email['email']);
+            foreach($req->email_addresses as $key => $email) {
+                $existingUser = $userRepo->getByPrimaryEmail($email['email']);
                 if($existingUser) {
                     $accountsList = [];
                     foreach($existingUser->accountUsers as $accountUser) {
                         $accountsList[] = $accountUser->account_id;
                     }
-                    $rules = array_merge($rules, ['emails.' . $key . '.email' => 'unique:users,email,' . $userId . ',user_id']);
-                    $messages = array_merge($messages, ['emails.' . $key . '.email.unique' => 'Requested email address is being used for login on account ' . implode(',', $accountsList) . '. Please select another.']);
+                    $rules = array_merge($rules, ['email_addresses.' . $key . '.email' => 'unique:users,email,' . $userId . ',user_id']);
+                    $messages = array_merge($messages, ['email_addresses.' . $key . '.email.unique' => 'Requested email address is being used for login on account ' . implode(',', $accountsList) . '. Please select another.']);
                 }
             }
         }
