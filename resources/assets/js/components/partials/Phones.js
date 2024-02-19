@@ -13,7 +13,7 @@ export default function Phones(props) {
 
     function addPhone() {
         const phones = phoneNumbers.concat([
-            {phone: '', extension: '', type: '', is_primary: phoneNumbers.length === 0}
+            {phone_number_id: null, phone: '', extension: '', type: '', is_primary: phoneNumbers.length === 0}
         ])
         setPhoneNumbers(phones)
     }

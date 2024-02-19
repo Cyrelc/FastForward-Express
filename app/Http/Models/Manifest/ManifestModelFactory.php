@@ -24,10 +24,8 @@ class ManifestModelFactory{
         $addressRepo = new Repos\AddressRepo();
         $billRepo = new Repos\BillRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
-        $contactRepo = new Repos\ContactRepo();
         $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
-        $phoneRepo = new Repos\PhoneNumberRepo();
 
         $employeeModelFactory = new Models\Employee\EmployeeModelFactory();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
@@ -62,7 +60,7 @@ class ManifestModelFactory{
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');
 
-        $driversWithBills = $employeeRepo->GetEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate);
+        $driversWithBills = $employeeRepo->getEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate);
 
         return $driversWithBills;
     }

@@ -5,16 +5,16 @@ namespace App\Http\Models\Chargeback;
 use App\Http\Repos;
 use App\Http\Models;
 use App\Http\Models\Chargeback;
+use App\Models\Contact;
 
 class ChargebackModelFactory {
     public function GetCreateModel() {
         $model = new ChargebackFormModel();
         $employeeRepo = new Repos\EmployeeRepo();
-        $contactRepo = new Repos\ContactRepo();
 
-        $model->employees = $employeeRepo->ListAllActive();
+        $model->employees = $employeeRepo->listAll(true);
         foreach($model->employees as $employee) {
-            $employee->contact = $contactRepo->GetById($employee->contact_id);
+            $employee->contact = Contact::find($employee->contact_id);
         }
 
         $model->date = date("U");
@@ -25,10 +25,9 @@ class ChargebackModelFactory {
     public function GetEditModel() {
         $model = new ChargebackEditFormModel();
         $employeeRepo = new Repos\EmployeeRepo();
-        $contactRepo = new Repos\ContactRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
 
-        $employees =  $employeeRepo->ListAllActive();
+        $employees = $employeeRepo->listAll(true);
         foreach($employees as $employee) {
             $chargebacks = $chargebackRepo->GetActiveByEmployeeId($employee->employee_id);
             if(count($chargebacks) > 0)
@@ -36,7 +35,7 @@ class ChargebackModelFactory {
         }
 
         foreach($model->employees as $employee) {
-            $employee->contact = $contactRepo->GetById($employee->contact_id);
+            $employee->contact = Contact::find($employee->contact_id);
             $employee->chargebacks = $chargebackRepo->GetActiveByEmployeeId($employee->employee_id);
         }
 

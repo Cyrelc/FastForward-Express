@@ -40,4 +40,8 @@ abstract class TestCase extends BaseTestCase {
         $additionalAttributes = array_diff($objectAttributes, $expectedAttributes);
         $this->assertEmpty($additionalAttributes, "Additional attributes found in the object: " . implode(', ', $additionalAttributes));
     }
+
+    protected function assertEmailAddressExists($emailAddress) {
+        $this->assertDatabaseHas('email_addresses', array_merge($emailAddress->toArray(), ['type' => $this->castAsJson($emailAddress->type)]));
+    }
 }

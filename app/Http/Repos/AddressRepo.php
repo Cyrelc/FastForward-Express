@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Address;
+use App\Models\Address;
 
 class AddressRepo {
     public function ListByContactId($id) {

@@ -41,9 +41,9 @@ class User extends Authenticatable {
 
     public function displayName() {
         if($this->employee) {
-            return $this->employee->contact->displayName();
+            return $this->employee->contact->display_name();
         } else if ($this->accountUsers) {
-            return $this->accountUsers[0]->contact->displayName();
+            return $this->accountUsers[0]->contact->display_name();
         } else
             return $this->email;
     }

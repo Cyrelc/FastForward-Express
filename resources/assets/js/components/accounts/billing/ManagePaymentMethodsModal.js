@@ -22,7 +22,7 @@ export default function ManagePaymentMethodsModal(props) {
     }, [props.show])
 
     useEffect(() => {
-        if(!clientSecret)
+        if(!clientSecret && showCreatePaymentMethod)
             makeAjaxRequest(`/paymentMethods/${props.accountId}/create`, 'GET', null, response => {
                 setClientSecret(response.client_secret)
             })

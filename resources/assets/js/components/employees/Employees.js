@@ -5,15 +5,15 @@ import {useHistory} from 'react-router-dom'
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 import Table from '../partials/Table'
 
-const defaultFilterQuery = '?filter[active]=true'
+const defaultFilterQuery = '?filter[is_enabled]=true'
 
 /**
  * Table constants
  */
 const filters = [
     {
-        name: 'Active',
-        db_field: 'active',
+        name: 'Enabled',
+        db_field: 'is_enabled',
         type: 'BooleanFilter'
     }
 ]
@@ -35,8 +35,8 @@ function Employees(props) {
         if(!data.employee_id)
             return undefined
         var menuItems = [
-            {label: data.active ? 'Disable' : 'Enable', action: () => toggleEmployeeActive(cell)},
-            {label: 'Change Password', action: () => toggleChangePasswordModal(cell), disabled: !data.active},
+            {label: data.is_enabled ? 'Disable' : 'Enable', action: () => toggleEmployeeEnabled(cell)},
+            {label: 'Change Password', action: () => toggleChangePasswordModal(cell), disabled: !data.is_enabled},
             ...props.frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => impersonateEmployee(cell)}] : []
         ]
 
@@ -74,12 +74,12 @@ function Employees(props) {
         })
     }
 
-    const toggleEmployeeActive = cell => {
-        const {active, employee_id, employee_name, employee_number} = cell.getRow().getData()
-        if(confirm(`Are you sure you wish to ${active ? 'DEACTIVATE' : 'ACTIVATE'} employee ${employee_number} - ${employee_name}`)) {
-            const url = '/employees/toggleActive/' + employee_id
+    const toggleEmployeeEnabled = cell => {
+        const {is_enabled, employee_id, employee_name, employee_number} = cell.getRow().getData()
+        if(confirm(`Are you sure you wish to ${is_enabled ? 'DEACTIVATE' : 'ACTIVATE'} employee ${employee_number} - ${employee_name}`)) {
+            const url = '/employees/toggleEnabled/' + employee_id
             makeAjaxRequest(url, 'GET', null, response => {
-                cell.getRow().update({'active': !active})
+                cell.getRow().update({'is_enabled': !is_enabled})
             })
         }
     }

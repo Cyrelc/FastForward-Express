@@ -11,12 +11,16 @@ class EmailAddress extends Model
 {
     use HasFactory, LogsActivity;
 
-    public $primaryKey = "email_address_id";
+    public $primaryKey = 'email_address_id';
     public $timestamps = false;
 
     protected $fillable = ['email', 'is_primary', 'contact_id', 'type'];
 
     protected $casts = ['type' => 'array'];
+
+    public function typeSelections() {
+        return \App\Selection::where('type', 'contact_type')->select('name as label', 'selection_id as value')->get();
+    }
 
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()

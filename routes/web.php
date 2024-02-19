@@ -11,29 +11,6 @@
 |
 */
 
-// Authenticated views
-Route::group(['middleware' => ['auth']],
-    function() {
-        Route::get('/', 'HomeController@index');
-        Route::get('/getDashboard', 'HomeController@getDashboard');
-        Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
-
-        Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
-        Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
-
-        Route::get('/bills/chart', 'AdminController@getChart');
-
-        Route::get('/app/{route}', 'HomeController@index');
-
-        Route::get('/logout', 'Auth\LoginController@logout');
-
-        Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
-        //API
-        // Route::resource('/customers', 'AccountController',
-        //     ['only' => ['index', 'create', 'edit', 'store']]);
-    }
-);
-
 Route::middleware(['auth'])->controller(AccountController::class)->prefix('accounts')->group(function() {
     Route::get('/chart', 'getChart');
     Route::get('/toggleActive/{accountId}', 'toggleActive');
@@ -43,6 +20,17 @@ Route::middleware(['auth'])->controller(AccountController::class)->prefix('accou
     Route::get('/billing/{accountId}', 'GetBillingModel');
     Route::post('/', 'store');
     Route::get('/', 'index');
+});
+
+Route::middleware(['auth'])->controller(UserController::class)->prefix('accountUsers')->group(function() {
+    Route::get('/account/{accountId}', 'getAccountUsers');
+    Route::post('/', 'storeAccountUser');
+    // potential problem here
+    Route::get('/{accountId}/{contactId?}', 'getAccountUserModel');
+    Route::delete('/{accountId}/{contactId}', 'deleteAccountUser');
+    Route::post('/checkIfExists', 'checkIfAccountUserExists');
+    Route::get('/link/{accountId}/{contactId}', 'LinkAccountUser');
+    Route::get('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
 });
 
 Route::middleware(['auth'])->controller(AdminController::class)->prefix('appsettings')->group(function() {
@@ -82,13 +70,14 @@ Route::middleware(['auth'])->controller(DispatchController::class)->prefix('disp
 });
 
 Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('employees')->group(function() {
-    Route::get('/{employeeId}/emergencyContacts', 'GetEmergencyContacts');
-    Route::get('/emergencyContacts/{id?}', 'GetEmergencyContact');
-    Route::post('/{employeeId}/emergencyContacts', 'StoreEmergencyContact');
-    Route::delete('/{employeeId}/emergencyContacts/{contactId}', 'DeleteEmergencyContact');
+    Route::get('/{employeeId}/emergencyContacts', 'getEmergencyContacts');
+    Route::get('/emergencyContacts/{id?}', 'getEmergencyContact');
+    Route::post('/{employeeId}/emergencyContacts', 'storeEmergencyContact');
+    Route::delete('/{employeeId}/emergencyContacts/{contactId}', 'deleteEmergencyContact');
     Route::get('/create', 'getModel');
     Route::get('/', 'index');
-    Route::post('/', 'store');
+    Route::post('/', 'create');
+    Route::put('/{employeeId}', 'update');
     Route::get('/{id}', 'getModel');
     Route::get('/toggleActive/{id}', 'toggleActive');
 });
@@ -160,30 +149,42 @@ Route::middleware(['auth'])->controller(SearchController::class)->group(function
 });
 
 Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {
-    Route::post('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
-    Route::post('/changePassword/{id}', 'changePassword');
-    Route::get('/generatePassword', 'generatePassword');
-    Route::get('/getAccountUsers/{id}', 'getAccountUsers');
-    Route::post('/storeAccountUser', 'storeAccountUser');
-    Route::get('/editAccountUser/{id}', 'editAccountUser');
-    Route::get('/createAccountUser/{accountId}', 'createAccountUser');
-    Route::get('/deleteAccountUser/{contactId}/{accountId}', 'deleteAccountUser');
-    Route::get('/getAccountUserModel/{accountId}/{contactId?}', 'getAccountUserModel');
-    Route::post('/checkIfAccountUserExists', 'checkIfAccountUserExists');
-    Route::get('/linkAccountUser/{contactId}/{accountId}', 'LinkAccountUser');
-    Route::post('/impersonate', 'impersonate');
-    Route::get('/unimpersonate', 'unimpersonate');
-    Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
-    Route::post('/settings', 'storeSettings');
+    Route::post('/changePassword/{id}', 'ChangePassword');
+    Route::get('/generatePassword', 'GeneratePassword');
+    Route::post('/impersonate', 'Impersonate');
+    Route::get('/unimpersonate', 'Unimpersonate');
+    Route::get('/sendPasswordReset/{userId}', 'SendPasswordResetEmail');
+    Route::post('/settings', 'StoreSettings');
     Route::get('/getConfiguration', 'GetUserConfiguration');
 });
 
-//Authenticated SPA
+// Authenticated SPA
 Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
     Route::get('/{any_path?}', 'HomeController@index');
     Route::get('/{object}/{action}', 'HomeController@index');
     Route::get('/{object}/{action}/{object_id?}', 'HomeController@index');
 });
+
+// Authenticated views
+Route::group(['middleware' => ['auth']],
+    function() {
+        Route::get('/', 'HomeController@index');
+        Route::get('/getDashboard', 'HomeController@getDashboard');
+        Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
+
+        Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
+        Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
+
+        Route::get('/bills/chart', 'AdminController@getChart');
+
+        Route::get('/logout', 'Auth\LoginController@logout');
+
+        // Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
+        //API
+        // Route::resource('/customers', 'AccountController',
+        //     ['only' => ['index', 'create', 'edit', 'store']]);
+    }
+);
 
 //Guest views web
 Route::middleware(['guest'])->controller(GuestController::class)->group(function() {

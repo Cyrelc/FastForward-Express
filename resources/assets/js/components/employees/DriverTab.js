@@ -192,7 +192,6 @@ export default function DriverTab(props) {
                                     <InputGroup.Text>Vehicle Type:</InputGroup.Text>
                                     <Select
                                         options={vehicleTypes}
-                                        getOptionLabel={option => option.name}
                                         value={vehicleType}
                                         onChange={setVehicleType}
                                         isDisabled={readOnly}

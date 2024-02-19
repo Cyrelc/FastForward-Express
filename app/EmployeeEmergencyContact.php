@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Employee;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -21,7 +22,7 @@ class EmployeeEmergencyContact extends Model
     }
 
     public function employee() {
-        return $this->hasOne('employees', 'employee_id');
+        return $this->hasOne(Employee::class, 'employee_id');
     }
 
     public function getActivityLogOptions() : LogOptions {

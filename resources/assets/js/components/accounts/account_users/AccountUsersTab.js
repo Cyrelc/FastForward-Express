@@ -34,7 +34,7 @@ export default function AccountUsersTab(props) {
         // TODO - this account user length check is incorrect
         if(confirm(`Are you sure you wish to ${accountUser.belongs_to_count > 1 ? 'delete' : 'unlink'} account user ${accountUser.name}?\nThis action can not be undone\n\n` + 
             'WARNING - If this user belongs to more than one account, they will need to be deleted on each account separately')) {
-            makeAjaxRequest(`/users/deleteAccountUser/${contactId}/${props.accountId}`, 'GET', null, response => {
+            makeAjaxRequest(`/accountUsers/${contactId}/${props.accountId}`, 'DELETE', null, response => {
                 refreshAccountUsers()
             })
         }
@@ -86,7 +86,7 @@ export default function AccountUsersTab(props) {
 
     const refreshAccountUsers = () => {
         setIsTableLoading(true)
-        makeAjaxRequest(`/users/getAccountUsers/${props.accountId}`, 'GET', null, response => {
+        makeAjaxRequest(`/accountUsers/account/${props.accountId}`, 'GET', null, response => {
             response = JSON.parse(response)
             setAccountUsers(response)
             setShowAccountUserModal(false)
@@ -95,7 +95,7 @@ export default function AccountUsersTab(props) {
     }
 
     const setPrimary = contactId => {
-        makeAjaxRequest(`/users/setPrimary/${props.accountId}/${contactId}`, 'POST', null, response => {
+        makeAjaxRequest(`/accountUsers/setPrimary/${props.accountId}/${contactId}`, 'POST', null, response => {
             refreshAccountUsers()
         })
     }

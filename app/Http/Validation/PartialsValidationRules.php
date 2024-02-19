@@ -37,9 +37,8 @@ class PartialsValidationRules {
             'phone_numbers.*.type' => 'Phone number type is a required field'
         ];
         if($userId) {
-            $userRepo = new \App\Http\Repos\UserRepo();
             foreach($req->email_addresses as $key => $email) {
-                $existingUser = $userRepo->getByPrimaryEmail($email['email']);
+                $existingUser = \App\User::where(['email' => $email['email']])->first();
                 if($existingUser) {
                     $accountsList = [];
                     foreach($existingUser->accountUsers as $accountUser) {

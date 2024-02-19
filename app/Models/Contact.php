@@ -46,10 +46,9 @@ class Contact extends Model {
         foreach($this->email_addresses as $email) {
             if(!$email->type)
                 continue;
-            $emailRoles = json_decode($email->type);
-            foreach($emailRoles as $role) {
-                if(!in_array($role->label, $roles))
-                    $roles[] = $role->label;
+            foreach($email->type as $role) {
+                if(!in_array($role['label'], $roles))
+                    $roles[] = $role['label'];
             }
         }
 
@@ -62,5 +61,9 @@ class Contact extends Model {
 
     public function primary_email() {
         return $this->hasOne(EmailAddress::class, 'contact_id')->where('is_primary', true);
+    }
+
+    public function primary_phone() {
+        return $this->hasOne(PhoneNumber::class, 'contact_id')->where('is_primary', true);
     }
 }

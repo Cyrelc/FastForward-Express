@@ -32,8 +32,8 @@ class AccountModelFactory {
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
         $model->contact = $contactModelFactory->GetCreateModel();
         $model->account = new \App\Account();
-        $model->delivery_address = new \App\Address();
-        $model->billing_address = new \App\Address();
+        $model->delivery_address = new \App\Models\Address();
+        $model->billing_address = new \App\Models\Address();
         $model->account->start_date = date("U");
         $model->commissions = [];
         $model->give_commission_1 = false;
@@ -57,14 +57,12 @@ class AccountModelFactory {
         $model = new AccountFormModel();
 
         //Model factories
-        $contactsModelFactory = new Models\Partials\ContactsModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();
         $userModelFactory = new User\UserModelFactory();
 
         //Repos
         $accountRepo = new Repos\AccountRepo();
         $activityLogRepo = new Repos\ActivityLogRepo();
-        $addressRepo = new Repos\AddressRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
@@ -72,9 +70,9 @@ class AccountModelFactory {
         $model->permissions = $permissions;
         $model->account = $accountRepo->GetByIdWithPermissions($accountId, $permissions);
 
-        $model->billing_address = $addressRepo->GetById($model->account->billing_address_id);
+        $model->billing_address = $model->account->billing_address;
         $model->invoice_intervals = $selectionsRepo->GetSelectionsByType('invoice_interval');
-        $model->shipping_address = $addressRepo->GetById($model->account->shipping_address_id);
+        $model->shipping_address = $model->account->shipping_address;
         $model->account->invoice_sort_order = $accountRepo->GetInvoiceSortOrder($accountId);
         foreach($model->account->invoice_sort_order as $key => $sort_option) {
             $model->account->invoice_sort_order[$key]->subtotal_by = filter_var($sort_option->can_be_subtotaled, FILTER_VALIDATE_BOOLEAN) ? $sort_option->subtotal_by : null;

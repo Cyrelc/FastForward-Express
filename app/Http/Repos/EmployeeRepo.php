@@ -12,13 +12,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Support\Facades\Auth;
 
 class EmployeeRepo {
-    public function AddEmergencyContact($emergencyContact) {
-        $new = new EmployeeEmergencyContact;
-
-        return $new->create($emergencyContact);
-    }
-
-    public function GetActiveDriversWithContact() {
+    public function getActiveDriversWithContact() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->select(
@@ -27,40 +21,22 @@ class EmployeeRepo {
                 'employee_number',
                 'first_name',
                 'is_enabled',
-                'last_name'
+                'last_name',
+                'preferred_name'
             )->where('is_driver', true)
             ->where('is_enabled', true);
 
         return $employees->get();
     }
 
-    public function GetById($employeeId) {
-        $employee = Employee::where('employee_id', '=', $employeeId)
-            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id');
-
-        // TODO: this will not age well, the call to Auth::user() will have to include the option to check sanctum where required
-        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
-        $permissions = $permissionModelFactory->GetEmployeePermissions(Auth::user(), Employee::where('employee_id', $employeeId)->first());
-        $employee->select(
-            array_merge(
-                Employee::$readOnlyFields,
-                $permissions['viewAdvanced'] ? Employee::$advancedFields : [],
-                $permissions['viewAdvanced'] ? Employee::$driverFields : [],
-                ['users.is_enabled as is_enabled']
-            )
-        );
-
-        return $employee->first();
-    }
-
-    public function GetDriverList($activeOnly = true) {
+    public function getDriverList($activeOnly = true) {
         $drivers = Employee::where('is_driver', 1)
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
             ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
             ->when($activeOnly, function($query) {
                 return $query->where('users.is_enabled', 1);
             })->select(
-                DB::raw('concat(employee_number, " - ", first_name, " ", last_name) as label'),
+                DB::raw('concat(employee_number, " - ", coalesce(preferred_name, concat(first_name, " ", last_name))) as label'),
                 'employee_id as value',
                 'pickup_commission',
                 'delivery_commission',
@@ -71,104 +47,41 @@ class EmployeeRepo {
         return $drivers->get();
     }
 
-    public function GetEmergencyContactByContactId($contactId) {
-        $emergencyContact = EmployeeEmergencyContact::where('contact_id', $contactId);
-
-        return $emergencyContact->first();
-    }
-
-    public function GetEmergencyContacts($employeeId) {
-        $emergency_contacts = EmployeeEmergencyContact::where('employee_id', '=', $employeeId)
-            ->leftJoin('contacts', 'employee_emergency_contacts.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('phone_numbers', function($join) {
-                $join->on('phone_numbers.contact_id', '=', 'employee_emergency_contacts.contact_id');
-                $join->on('phone_numbers.is_primary', '=', DB::raw(true));
-            })
-            ->leftJoin('email_addresses', function($join) {
-                $join->on('email_addresses.contact_id', '=', 'employee_emergency_contacts.contact_id');
-                $join->on('email_addresses.is_primary', '=', DB::raw(true));
-            })
-            ->select(
-                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as name'),
-                'email_addresses.email as primary_email',
-                'phone_numbers.phone_number as primary_phone',
-                'contacts.position',
-                'employee_emergency_contacts.is_primary',
-                'employee_emergency_contacts.contact_id'
-            );
-
-        return $emergency_contacts->get();
-    }
-
-    public function GetEmployeeBirthdays() {
+    public function getEmployeeBirthdays() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
         ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
         ->where('is_enabled', true)
         ->whereMonth('dob', date('m'))
         ->select(
-            DB::raw('concat(first_name, " ", last_name) as employee_name'),
+            DB::raw('coalesce(preferred_name, concat(first_name, " ", last_name)) as employee_name'),
             DB::raw("date_format(dob, '%M %D') as birthday")
         );
 
         return $employees->get();
     }
 
-    public function GetEmployeeIdByEmployeeNumber($employeeNumber) {
-        $employee = Employee::where('employee_number', $employeeNumber)->first();
-
-        return $employee->employee_id;
-    }
-
-    public function GetEmployeeRelevantIds($employee_id) {
-        $relevantIds['contact_ids'] = EmployeeEmergencyContact::where('employee_id', $employee_id)
-            ->pluck('contact_id')
-            ->toArray();
-        array_push($relevantIds['contact_ids'], $this->GetById($employee_id, null)->contact_id);
-        $relevantIds['email_ids'] = \App\EmailAddress::whereIn('contact_id', $relevantIds['contact_ids'])
-            ->pluck('email_address_id')->toArray();
-        $relevantIds['phone_ids'] = \App\PhoneNumber::whereIn('contact_id', $relevantIds['contact_ids'])
-            ->pluck('phone_number_id')->toArray();
-        $relevantIds['address_ids'] = \App\Address::whereIn('contact_id', $relevantIds['contact_ids'])
-            ->pluck('address_id')->toArray();
-
-        return $relevantIds;
-    }
-
-    public function GetEmployeesList($employeeId = null) {
-        $employees = Employee::leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+    public function getEmployeesWithExpiries($date) {
+        $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
+            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+            ->where('is_enabled', 1)
+            ->where('is_driver', 1)
+            ->where(function($query) use ($date) {
+                $query->whereDate('drivers_license_expiration_date', '<', $date)
+                ->orWhereDate('license_plate_expiration_date', '<', $date)
+                ->orWhereDate('insurance_expiration_date', '<', $date);
+            })
             ->select(
-                DB::raw('concat(employee_number, " - ", first_name, " ", last_name) as label'),
-                'employee_id as value'
+                'drivers_license_expiration_date',
+                'license_plate_expiration_date',
+                'insurance_expiration_date',
+                DB::raw('coalesce(preferred_name, concat (first_name, " ", last_name)) as employee_name'),
+                'employee_id'
             );
 
-        if($employeeId)
-            $employees->where('employee_id', $employeeId);
-
         return $employees->get();
     }
 
-    public function GetEmployeesWithExpiries($date) {
-        $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-        ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
-        ->where('is_enabled', 1)
-        ->where('is_driver', 1)
-        ->where(function($query) use ($date) {
-            $query->whereDate('drivers_license_expiration_date', '<', $date)
-            ->orWhereDate('license_plate_expiration_date', '<', $date)
-            ->orWhereDate('insurance_expiration_date', '<', $date);
-        })
-        ->select(
-            'drivers_license_expiration_date',
-            'license_plate_expiration_date',
-            'insurance_expiration_date',
-            DB::raw('concat (first_name, " ", last_name) as employee_name'),
-            'employee_id'
-        );
-
-        return $employees->get();
-    }
-
-    public function GetEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate) {
+    public function getEmployeesWithUnmanifestedBillsBetweenDates($startDate, $endDate) {
         $employees = Employee::leftJoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
             ->select(
                 'employees.employee_id',
@@ -223,80 +136,5 @@ class EmployeeRepo {
             ->orHavingRaw('incomplete_bill_count > 0');
 
         return $employees->get();
-    }
-
-    public function Insert($employee) {
-        $new = new Employee;
-        $new->created_at = date('Y-m-d H:i:s');
-        $new->updated_at = date('Y-m-d H:i:s');
-
-        return $new->create($employee);
-    }
-
-    public function ListAll($req) {
-        $employees = Employee::leftjoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
-            ->leftjoin('phone_numbers', function($leftJoin) {
-                $leftJoin->on('phone_numbers.contact_id', '=', 'contacts.contact_id');
-                $leftJoin->where('phone_numbers.is_primary', '=', true);
-            })
-            ->leftjoin('email_addresses', function($leftJoin) {
-                $leftJoin->on('email_addresses.contact_id', '=', 'contacts.contact_id');
-                $leftJoin->where('email_addresses.is_primary', '=', true);
-            })->select(
-                'email_addresses.email as primary_email',
-                'employees.employee_id',
-                'employee_number',
-                DB::raw('concat(contacts.first_name, " ", contacts.last_name) as employee_name'),
-                'phone_number as primary_phone',
-                'company_name',
-                'employees.user_id',
-                'users.is_enabled as active'
-            );
-
-            $filteredEmployees = QueryBuilder::for($employees)
-                ->allowedFilters([
-                    AllowedFilter::exact('active', 'users.is_enabled')
-                ]);
-
-        return $filteredEmployees->get();
-    }
-
-    public function ListAllActive() {
-        $activeEmployees = Employee::leftJoin('users', 'users.user_id', '=', 'employees.user_id')
-            ->leftJoin('users'. 'users.user_id', '=', 'employees.user_id')
-            ->where('is_enabled', true);
-
-        return $activeEmployees->get();
-    }
-
-    public function ToggleActive($employeeId) {
-        $employee = Employee::where('employee_id', $employeeId)->first();
-
-        $user = User::where('user_id', $employee->user_id)->first();
-        $user->is_enabled = !($user->is_enabled);
-
-        $user->save();
-    }
-
-    public function Update($employee, $permissions) {
-        $old = $this->GetById($employee['employee_id'], $permissions);
-
-        if($permissions['editBasic'])
-            foreach(Employee::$basicFields as $field)
-                $old[$field] = $employee[$field];
-
-        if($permissions['editAdvanced'])
-            foreach(Employee::$advancedFields as $field)
-                $old->$field = $employee[$field];
-
-        if($permissions['editAdvanced'] && $employee['is_driver'])
-            foreach(Employee::$driverFields as $field)
-                $old->$field = $employee[$field];
-
-        $old->updated_at = date('Y-m-d H:i:s');
-
-        $old->save();
-        return $old;
     }
 }

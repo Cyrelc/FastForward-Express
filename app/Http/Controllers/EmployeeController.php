@@ -2,46 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use DB;
 
 use App\Http\Repos;
 use App\Http\Collectors;
-use App\Http\Validation;
-use App\Http\Models\Employee;
+use App\Employee;
+use App\EmployeeEmergencyContact;
+use App\Http\Requests\StoreEmployeeRequest;
+use App\Http\Resources\EmergencyContactListResource;
+use App\Http\Resources\CreateEmployeeResource;
+use App\Http\Resources\EmployeeResource;
+use App\Http\Resources\EmployeeListResource;
+use App\Services\EmployeeService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-use Validator;
+use DB;
+// use Validator;
 
 class EmployeeController extends Controller {
-    public function __construct() {
+    private $employeeService;
+
+    public function __construct(EmployeeService $employeeService) {
         $this->middleware('auth');
+        $this->employeeService = $employeeService;
     }
 
-    public function DeleteEmergencyContact(Request $req, $employeeId, $contactId) {
+    public function create(StoreEmployeeRequest $req) {
+        if(Auth::user()->cannot('create', Employee::class))
+            abort(403);
+
+        $employee = $this->employeeService->create($req->validated());
+
+        return $employee;
+    }
+
+    public function deleteEmergencyContact(Request $req, $employeeId, $contactId) {
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($employeeId);
+        $employee = $employeeRepo->getById($employeeId);
         if($req->user()->cannot('updateBasic', $employee))
             abort(403);
 
         DB::beginTransaction();
 
-        $contactRepo = new Repos\ContactRepo();
-        $contactRepo->DeleteEmployeeEmergencyContact($employeeId, $contactId);
+        $emloyee->emergency_contacts()->where(['contact_id', $contactId])->delete();
+        $this->contactService->delete($contactid);
 
         DB::commit();
         return response()->json([
             'success' => true,
-            'emergency_contacts' => $employeeRepo->GetEmergencyContacts($employee->employee_id)
+            'emergency_contacts' => $employeeRepo->getEmergencyContacts($employee->employee_id)
         ]);
     }
 
-    public function GetEmergencyContact(Request $req, $contactId = null) {
-        $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
-
+    public function getEmergencyContact(Request $req, $contactId = null) {
         if($contactId) {
+            $employee = EmployeeEmergencyContact::firstOrFail('contact_id', $contactId)->employee;
+            dd($employee);
             $employeeRepo = new Repos\EmployeeRepo();
-            $emergencyContact = $employeeRepo->GetEmergencyContactByContactId($contactId);
-            $employee = $employeeRepo->GetById($emergencyContact->employee_id, null);
+            $emergencyContact = $employeeRepo->getEmergencyContactByContactId($contactId);
+            $employee = Employee::find($emergencyContact->employee_id);
             if(!$employee || $req->user()->cannot('updateBasic', $employee))
                 abort(403);
 
@@ -52,59 +71,52 @@ class EmployeeController extends Controller {
         return json_encode($model);
     }
 
-    public function GetEmergencyContacts(Request $req, $employeeId) {
-        $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($employeeId);
+
+    public function getEmergencyContacts(Request $req, $employeeId) {
+        $employee = Employee::find($employeeId);
 
         if($req->user()->cannot('viewBasic', $employee))
             abort(403);
 
-        $emergencyContacts = $employeeRepo->GetEmergencyContacts($employeeId);
+        $emergencyContacts = $employee->emergency_contacts;
 
         return response()->json([
             'success' => true,
-            'emergency_contacts' => $emergencyContacts
+            'emergency_contacts' => EmergencyContactListResource::collection($emergencyContacts)
         ]);
     }
 
     public function getModel(Request $req, $employeeId = null) {
-        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
-
-        $employeeModelFactory = new Employee\EmployeeModelFactory();
         if($employeeId) {
-            $employeeId = strtoupper($employeeId);
             if($employeeId[0] === 'N') {
-                $employeeRepo = new Repos\EmployeeRepo();
-                $employeeId = substr($employeeId, 1);
-                $employeeId = $employeeRepo->GetEmployeeIdByEmployeeNumber($employeeId);
-            }
+                $employeeNumber = substr($employeeId, 1);
+                $employee = Employee::where('employee_number', $employeeNumber)->firstOrFail();
+            } else
+                $employee = Employee::findOrFail($employeeId);
 
-            $employeeRepo = new Repos\EmployeeRepo();
-            $employee = $employeeRepo->GetById($employeeId, null);
-            if($req->user()->cannot('viewBasic', $employee))
+            if(Auth::user()->cannot('viewBasic', $employee))
                 abort(403);
 
-            $permissions = $permissionModelFactory->GetEmployeePermissions($req->user(), $employee);
+            $activityLogRepo = new Repos\ActivityLogRepo();
 
-            $model = $employeeModelFactory->GetEditModel($employeeId, $permissions);
+            $employee->activity_log = $activityLogRepo->GetEmployeeActivityLog($employee->employee_id);
+            $model = new EmployeeResource($employee);
         } else {
-            if($req->user()->cannot('create', Employee::class))
+            if(Auth::user()->cannot('create', Employee::class))
                 abort(403);
-
-            $permissions = $permissionModelFactory->GetEmployeePermissions($req->user());
-            $model = $employeeModelFactory->GetCreateModel($permissions);
+            $model = new CreateEmployeeResource(new Employee());
         }
 
-        return json_encode($model);
+        return response()->json($model);
     }
 
     public function index(Request $req) {
-        if($req->user()->cannot('viewAll', Employee::class))
+        if(Auth::user()->cannot('viewAll', Employee::class))
             abort(403);
 
-        $employeeRepo = new Repos\EmployeeRepo();
+        $employees = $this->employeeService->list();
+
         $queryRepo = new Repos\QueryRepo();
-        $employees = $employeeRepo->ListAll($req);
         $queries = $queryRepo->GetByTable('employees');
 
         return response()->json([
@@ -114,82 +126,12 @@ class EmployeeController extends Controller {
         ]);
     }
 
-    public function store(Request $req) {
-        DB::beginTransaction();
-
-        $employeeValidator = new Validation\EmployeeValidationRules();
-        $partialsValidator = new Validation\PartialsValidationRules();
-
-        $contactRepo = new Repos\ContactRepo();
-        $employeeRepo = new Repos\EmployeeRepo();
-        $userRepo = new Repos\UserRepo();
-
-        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
-
-        $employeeId = $req->input('employee_id');
-        $oldEmployee = $employeeRepo->GetById($employeeId, null);
-        if($oldEmployee ? $req->user()->cannot('updateBasic', $oldEmployee) : $req->user()->cannot('create', Employee::class))
+    public function update(StoreEmployeeRequest $req, $employeeId) {
+        if(Auth::user()->cannot('updateBasic', Employee::findOrFail($employeeId)))
             abort(403);
 
-        $permissions = $permissionModelFactory->GetEmployeePermissions($req->user(), $oldEmployee ? $oldEmployee : null);
+        $employee = $this->employeeService->update($req->validated());
 
-        $userId = $oldEmployee? $oldEmployee->user_id : null;
-        $contactId = $oldEmployee ? $oldEmployee->contact_id : null;
-
-        $employeeRules = $employeeValidator->GetValidationRules($req, $permissions, $oldEmployee);
-        $contactRules = $partialsValidator->GetContactValidationRules($req, $userId, $contactId);
-
-        $validationRules = [];
-        $validationMessages = [];
-
-        $validationRules = array_merge($validationRules, $contactRules['rules']);
-        $validationMessages = array_merge($validationMessages, $contactRules['messages']);
-        $validationRules = array_merge($validationRules, $employeeRules['rules']);
-        $validationMessages = array_merge($validationMessages, $employeeRules['messages']);
-
-        $this->validate($req, $validationRules, $validationMessages);
-
-        $contactCollector = new Collectors\ContactCollector();
-        $employeeCollector = new Collectors\EmployeeCollector();
-
-        $contact = $contactCollector->GetContact($req, $contactId);
-
-        $userCollector = new Collectors\UserCollector();
-        $user = $userCollector->CollectUserForEmployee($req);
-
-        //Begin User
-        if($oldEmployee) {
-            $user = $userRepo->Update($user, $permissions['editAdvanced']);
-            $contactId = $contactRepo->Update($contact)->contact_id;
-        } else {
-            $user = $userRepo->Insert($user);
-            $contactId = $contactRepo->Insert($contact)->contact_id;
-        }
-
-        $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
-        $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
-        $contactCollector->ProcessAddressForContact($req, $contactId);
-
-        $employee = $employeeCollector->Collect($req, $contactId, $user->user_id, $permissions);
-        if ($oldEmployee) {
-            $employee = $employeeRepo->Update($employee, $permissions);
-        } else {
-            $employee = $employeeRepo->Insert($employee);
-        }
-        //End User
-        /**
-         * Begin permissions
-         */
-        if($req->user()->can('updatePermissions', $oldEmployee)) {
-            $permissions = $userCollector->CollectEmployeePermissions($req);
-            $permissionRepo = new Repos\PermissionRepo();
-            $permissionRepo->assignUserPermissions($user, $permissions);
-        }
-        /**
-         * End Permissions
-         */
-
-        DB::commit();
         return response()->json([
             'success' => true,
             'employee_id' => $employee->employee_id,
@@ -197,11 +139,11 @@ class EmployeeController extends Controller {
         ]);
     }
 
-    public function StoreEmergencyContact(Request $req, $employeeId) {
+    public function storeEmergencyContact(Request $req, $employeeId) {
         DB::beginTransaction();
 
         $employeeRepo = new Repos\EmployeeRepo();
-        $employee = $employeeRepo->GetById($employeeId, null);
+        $employee = $employeeRepo->getById($employeeId, null);
         if($req->user()->cannot('updateBasic', $employee))
             abort(403);
 
@@ -215,17 +157,16 @@ class EmployeeController extends Controller {
 
         //Begin Contact
         $contactId = $req->contact_id;
-        $contactRepo = new Repos\ContactRepo();
         $contact = $contactCollector->GetContact($req, $contactId);
 
         if($contactId)
-            $contactRepo->Update($contact);
+            $this->contactService->update($contact);
         else {
-            $contactId = $contactRepo->Insert($contact)->contact_id;
+            $contactId = $this->contactService->insert($contact)->contact_id;
             $employeeCollector = new \App\Http\Collectors\EmployeeCollector();
             $employeeEmergencyContact = $employeeCollector->CollectEmergencyContact($req, $employeeId, $contactId);
             $employeeRepo = new Repos\EmployeeRepo();
-            $employeeRepo->AddEmergencyContact($employeeEmergencyContact);
+            $employeeRepo->addEmergencyContact($employeeEmergencyContact);
         }
         //End Contact
         $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
@@ -235,7 +176,7 @@ class EmployeeController extends Controller {
         DB::commit();
         return response()->json([
             'success' => true,
-            'emergency_contacts' => $employeeRepo->GetEmergencyContacts($employee->employee_id)
+            'emergency_contacts' => $employeeRepo->getEmergencyContacts($employee->employee_id)
         ]);
     }
 
@@ -247,7 +188,7 @@ class EmployeeController extends Controller {
 
         DB::beginTransaction();
 
-        $employeeRepo->ToggleActive($employeeId);
+        $employeeRepo->toggleActive($employeeId);
 
         DB::commit();
         return response()->json([

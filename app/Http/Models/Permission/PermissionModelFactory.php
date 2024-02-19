@@ -131,25 +131,6 @@ class PermissionModelFactory {
         ];
     }
 
-    public function GetEmployeePermissions($user, $employee = null) {
-        $permissions = [
-            'create' => $user->can('create', Employee::class),
-            'editAdvanced' => $user->can('employees.edit.*.*'),
-            'viewAdvanced' => $user->can('employees.view.*.*')
-        ];
-
-        if($employee)
-            $permissions = array_merge($permissions, [
-                'viewBasic' => $user->can('view', $employee),
-                'viewAdvanced' => $user->can('viewAdvanced', $employee),
-                'editBasic' => $user->can('updateBasic', $employee),
-                'editAdvanced' => $user->can('updateAdvanced', $employee),
-                'viewActivityLog' => $user->can('viewActivityLog', $employee)
-            ]);
-
-        return $permissions;
-    }
-
     public function GetEmployeeModelPermissions($employeeId) {
         if($employeeId) {
             $userRepo = new Repos\UserRepo();

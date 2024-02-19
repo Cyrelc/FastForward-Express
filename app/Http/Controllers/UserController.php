@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Contact;
 use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Validation;
 use App\Http\Models\User;
+use App\Services\ContactService;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,8 +45,7 @@ class UserController extends Controller {
             $user = $userRepo->GetUserByPrimaryEmail($email['email']);
             if($user && $user->accountUsers) {
                 $accountRepo = new Repos\AccountRepo();
-                $contactRepo = new Repos\ContactRepo();
-                $contact = $contactRepo->GetById($user->accountUsers[0]->contact_id);
+                $contact = $user->accountUsers[0]->contact;
                 $accounts = array();
                 foreach($user->accountUsers as $accountUser) {
                     $account = $accountRepo->GetById($accountUser->account_id);
@@ -54,11 +55,12 @@ class UserController extends Controller {
                         'value' => $account->account_id,
                     ]);
                 }
+
                 return response()->json([
                     'success' => true,
                     'email_in_use' => true,
                     'contact_id' => $contact ? $contact->contact_id : null,
-                    'name' => $contact ? $contact->first_name . ' ' . $contact->last_name : null,
+                    'name' => $contact ? $contact->displayName() : null,
                     'accounts' => $accounts
                 ]);
             }
@@ -119,11 +121,10 @@ class UserController extends Controller {
     }
 
     public function getAuthenticatedUser(Request $req) {
-        $contactRepo = new Repos\ContactRepo();
         if($req->user()->employee)
-            return $contactRepo->GetById($req->user()->employee->contact_id);
+            return $req->user()->employee->contact;
         elseif($req->user()->accountUser)
-            return $contactRepo->GetById($req->user()->accountUser->contact_id);
+            return $req->user()->accountUser->contact;
     }
 
     public function GetUserConfiguration(Request $req) {
@@ -157,9 +158,9 @@ class UserController extends Controller {
     }
 
     public function LinkAccountUser(Request $req, $contactId, $accountId) {
-        $contactRepo = new Repos\ContactRepo();
         $userRepo = new Repos\UserRepo();
-        $targetUser = $userRepo->GetUserByPrimaryEmail($contactRepo->GetById($contactId)->primary_email->email);
+        $contact = Contact::findOrFail($contactId);
+        $targetUser = $userRepo->GetUserByPrimaryEmail($contact->primary_email->email);
         if($req->user()->cannot('linkUser', $targetUser))
             abort(403);
         else if($userRepo->GetAccountUser($contactId, $accountId) != null)
@@ -227,28 +228,24 @@ class UserController extends Controller {
 
         DB::beginTransaction();
 
-        $contactCollector = new Collectors\ContactCollector();
         $userCollector = new Collectors\UserCollector();
 
         //Begin Contact
         $contactId = $req->contact_id;
-        $contactRepo = new Repos\ContactRepo();
+        $contactService = new ContactService();
+
         $userRepo = new Repos\UserRepo();
-        $contact = $contactCollector->GetContact($req, $contactId);
+
         if($contactId == null) {
             $isEdit = false;
-            $contactId = $contactRepo->Insert($contact)->contact_id;
+            $contactId = $contactService->create($req)->contact_id;
         } else {
-            $contactRepo->Update($contact);
+            $contactService->update($req);
             $isEdit = true;
         }
-        //End Contact
-        $contactCollector->ProcessPhoneNumbersForContact($req, $contactId);
-        $contactCollector->ProcessEmailAddressesForContact($req, $contactId);
-        //Begin User
-        $emailRepo = new Repos\EmailAddressRepo();
 
-        $primaryEmailAddress = $emailRepo->GetPrimaryByContactId($contactId)->email;
+        //Begin User
+        $primaryEmailAddress = Contact::find($contactId)->primary_email;
 
         $user = $userCollector->CollectAccountUser($req, $contactId, $primaryEmailAddress, $userId);
 

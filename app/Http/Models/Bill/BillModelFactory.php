@@ -5,6 +5,7 @@ namespace App\Http\Models\Bill;
 use App\Http\Models;
 use App\Http\Repos;
 use App\Http\Models\Bill;
+use App\Models\Contact;
 
 class BillModelFactory{
 	public function BuildTable($req) {
@@ -34,7 +35,6 @@ class BillModelFactory{
 
 		$accountRepo = new Repos\AccountRepo();
 		$billRepo = new Repos\BillRepo();
-		$contactRepo = new Repos\ContactRepo();
 		$employeeRepo = new Repos\EmployeeRepo();
 		$interlinerRepo = new Repos\InterlinerRepo();
 		$paymentRepo = new Repos\PaymentRepo();
@@ -43,13 +43,13 @@ class BillModelFactory{
 
 		if($permissions['createFull']) {
 			$model->accounts = $accountRepo->ListForBillsPage($req->user(), false, true);
-			$model->employees = $employeeRepo->GetDriverList();
+			$model->employees = $employeeRepo->getDriverList();
 			$model->interliners = $interlinerRepo->GetInterlinersList();
 			$model->charge_types = $paymentRepo->GetPaymentTypes();
 			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
 
 			foreach ($model->employees as $employee)
-				$employee->contact = $contactRepo->GetById($employee->contact_id);
+				$employee->contact = Contact::find($employee->contact_id);
 		// Possible edge case - if user can create bills for children but not for own account
 		} else if($req->user()->can('bills.create.basic.my')) {
 			$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'), true);
@@ -58,9 +58,9 @@ class BillModelFactory{
 
 		$model->bill = new \App\Bill();
 		$model->packages = array(['count' => 1, 'weight' => '', 'length' => '', 'width' => '', 'height' => '']);
-		$model->pickup_address = new \App\Address();
+		$model->pickup_address = new \App\Models\Address();
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
-		$model->delivery_address = new \App\Address();
+		$model->delivery_address = new \App\Models\Address();
 
 		$model->charge_selection_submission = null;
 		$model->bill->time_call_received = date("U");
@@ -159,14 +159,14 @@ class BillModelFactory{
 		$model->charge_types = $paymentRepo->GetPaymentTypes();
 		$model = $this->setBusinessHours($model);
 
-		$model->pickup_address = $addressRepo->GetById($model->bill->pickup_address_id);
-		$model->delivery_address = $addressRepo->GetById($model->bill->delivery_address_id);
+		$model->pickup_address = $model->bill->pickupAddress;
+		$model->delivery_address = $model->bill->deliveryAddress;
 
 		$model->bill->packages = json_decode($model->bill->packages);
 		if($model->bill->pickup_driver_id)
-			$model->bill->pickup_driver_number = $employeeRepo->GetById($model->bill->pickup_driver_id, null)->employee_number;
+			$model->bill->pickup_driver_number = $model->bill->pickup_employee->employee_number;
 		if($model->bill->delivery_driver_id)
-			$model->bill->delivery_driver_number = $employeeRepo->GetById($model->bill->delivery_driver_id, null)->employee_number;
+			$model->bill->delivery_driver_number = $model->bill->delivery_employee->employee_number;
 		$model->delivery_types = $selectionsRepo->GetSelectionsByType('delivery_type');
 
 		$model->ratesheet_id = 1;

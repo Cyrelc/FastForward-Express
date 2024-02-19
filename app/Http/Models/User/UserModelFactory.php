@@ -3,6 +3,7 @@
 namespace App\Http\Models\User;
 
 use App\Http\Repos;
+use App\Http\Repos\UserRepo;
 use App\Http\Models;
 use App\Http\Models\User;
 
@@ -10,16 +11,15 @@ class UserModelFactory {
     public function getAccountUser($req, $contactId, $accountId) {
         $model = new AccountUserFormModel();
 
-        $contactModelFactory = new Models\Partials\ContactModelFactory();
+        $contactService = new \App\Services\ContactService();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
         $accountRepo = new Repos\AccountRepo();
         $activityLogRepo = new Repos\ActivityLogRepo();
-        $userRepo = new Repos\UserRepo();
 
-        $model->account_user = $userRepo->GetAccountUser($contactId, $accountId);
+        $model->account_user = AccountUser::where(['contact_id' => $contactId, 'account_id' => $accountId])->firstOrFail();
         $model->permissions = $permissionModelFactory->GetAccountUserPermissions($req->user(), $model->account_user);
-        $model->contact = $contactModelFactory->GetEditModel($contactId, false);
+        $model->contact = $contactService->getFull($contactId, false);
 
         if($model->permissions['viewPermissions'])
             $model->account_user_model_permissions = $permissionModelFactory->GetAccountUserModelPermissions($model->account_user);
@@ -36,12 +36,11 @@ class UserModelFactory {
     }
 
     public function getAccountUsers($accountId) {
-        $userRepo = new Repos\UserRepo();
-        $contactModelFactory = new Models\Partials\ContactModelFactory();
+        $userRepo = new Repo\UserRepo();
 
         $accountUsers = $userRepo->GetAccountUsers($accountId);
         foreach($accountUsers as $key => $accountUser) {
-            $accountUsers[$key]['roles'] = $contactModelFactory->GetRolesFromEmails($accountUser->contact_id);
+            $accountUsers[$key]['roles'] = $accountUser->contact->email_roles();
         }
 
         return $accountUsers;
@@ -50,10 +49,10 @@ class UserModelFactory {
     public function getAccountUserCreateModel($req, $account) {
         $model = new AccountUserFormModel();
 
-        $contactModelFactory = new Models\Partials\ContactModelFactory();
+        $contactService = new \App\Services\ContactService();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
-        $model->contact = $contactModelFactory->GetCreateModel();
+        $model->contact = $contactService->getCreate();
         $model->permissions = $permissionModelFactory->GetAccountUserPermissions($req->user(), null, $account);
         if($req->user()->can('updateAccountUserPermissions', $account))
             $model->account_user_model_permissions = $permissionModelFactory->GetAccountUserModelPermissions(null);
@@ -62,10 +61,8 @@ class UserModelFactory {
     }
 
     public function getUserConfiguration($req) {
-        $contactRepo = new Repos\ContactRepo();
-        $userRepo = new Repos\UserRepo();
-
         $model = new UserConfigurationModel();
+        $userRepo = new Repos\UserRepo();
 
         $permissionModelFactory = new Models\Permission\PermissionModelFactory;
 
@@ -76,9 +73,9 @@ class UserModelFactory {
         $model->is_impersonating = $req->session()->has('original_user_id');
         $model->user_settings = $userRepo->GetSettings($req->user()->user_id);
         if($model->authenticatedEmployee)
-            $model->contact = $contactRepo->GetById($req->user()->employee->contact->contact_id);
+            $model->contact = $req->user()->employee->contact;
         else if (count($model->authenticatedAccountUsers) > 0)
-            $model->contact = $contactRepo->GetById($model->authenticatedAccountUsers[0]->contact_id);
+            $model->contact = $model->authenticatedAccountUsers[0]->contact;
         else if ($req->user()->hasRole('superAdmin'))
             $model->contact = ['first_name' => $req->user()->email];
 

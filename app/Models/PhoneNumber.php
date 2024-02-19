@@ -16,6 +16,10 @@ class PhoneNumber extends Model
 
     protected $fillable = ['phone_number', 'extension_number', 'is_primary', 'type', 'contact_id'];
 
+    public function typeSelections() {
+        return \App\Selection::where('type', 'phone_type')->select('name as label', 'selection_id as value')->get();
+    }
+
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()
             ->logFillable()

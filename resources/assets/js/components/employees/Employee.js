@@ -1,9 +1,9 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react'
-import {Button, ButtonGroup, Col, ListGroup, Tab, Tabs, Row} from 'react-bootstrap'
-import { LinkContainer } from 'react-router-bootstrap'
-import { connect } from 'react-redux'
+import {Button, ButtonGroup, Col, ListGroup, Nav, Navbar, Tab, Tabs, Row} from 'react-bootstrap'
 import {debounce} from 'lodash'
 import {DateTime} from 'luxon'
+import {toast} from 'react-toastify'
+import {useHistory} from 'react-router-dom'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
@@ -11,10 +11,11 @@ import BasicTab from './BasicTab'
 import DriverTab from './DriverTab'
 import LoadingSpinner from '../partials/LoadingSpinner'
 
+import {useAPI} from '../../contexts/APIContext'
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
 
-const Employee = (props) => {
+export default function Employee(props) {
     const [activityLog, setActivityLog] = useState(undefined)
     const [birthDate, setBirthDate] = useState(new Date())
     const [companyName, setCompanyName] = useState('')
@@ -42,15 +43,16 @@ const Employee = (props) => {
     const [updatedAt, setUpdatedAt] = useState('')
     const [vehicleType, setVehicleType] = useState({})
     const [vehicleTypes, setVehicleTypes] = useState([])
-    const [warnings, setWarnings] = useState([])
 
     const address = useAddress()
     const contact = useContact()
+    const api = useAPI()
+    const history = useHistory()
     const now = DateTime.now().toJSDate()
     const threeMonthsFromNow = DateTime.now().plus({month: 3}).toJSDate()
 
     useEffect(() => {
-        toastr.clear()
+        // toastr.clear()
         configureEmployee()
     }, [props.match.params.employeeId])
 
@@ -59,74 +61,79 @@ const Employee = (props) => {
         setKey(tabKey)
     }
 
-    const configureEmployee = () => {
+    // TODO - does not clear the form if directing from employee to create
+    const configureEmployee = async () => {
+        setIsLoading(true)
         const {match: {params}} = props
         const fetchUrl = params.employeeId ? `/employees/${params.employeeId}` : '/employees/create'
-        params.employeeId ? document.title = `Edit Employee - ${params.employeeId}` : 'Create Employee'
+        document.title = params.employeeId ? `Edit Employee - ${params.employeeId}` : 'Create Employee'
 
-        makeAjaxRequest(fetchUrl, 'GET', null, response => {
-            response = JSON.parse(response)
-            setEmployeePermissions(response.employee_permissions)
-            setPermissions(response.permissions)
-            setVehicleTypes(response.vehicle_types)
-            setKey(window.location.hash?.substr(1) || 'basic')
+        const response = await api.get(fetchUrl)
 
-            if(params.employeeId) {
-                const thisEmployeeIndex = props.sortedEmployees.findIndex(employee_id => employee_id === response.employee.employee_id)
-                const prevEmployeeId = thisEmployeeIndex <= 0 ? null : props.sortedEmployees[thisEmployeeIndex - 1]
-                const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === props.sortedEmployees.length - 1) ? null : props.sortedEmployees[thisEmployeeIndex + 1]
+        setEmployeePermissions(response.employee_permissions)
+        setPermissions(response.permissions)
+        setVehicleTypes(response.vehicle_types)
+        setKey(window.location.hash?.substr(1) || 'basic')
 
-                address.setup(response.address)
+        if(params.employeeId) {
+            let sortedEmployees = localStorage.getItem('employees.sortedList')
+            sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
+            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === response.employee_id)
+            const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
+            const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
 
-                setActivityLog(response.activity_log)
-                setBirthDate(Date.parse(response.employee.dob))
-                setEmployeeId(response.employee.employee_id)
-                setEmployeeNumber(response.employee.employee_number)
-                setIsDriver(!!response.employee.is_driver)
-                setIsEnabled(!!response.employee.is_enabled)
-                setNextEmployeeId(nextEmployeeId)
-                setPrevEmployeeId(prevEmployeeId)
-                setSIN(response.employee.sin)
-                setStartDate(Date.parse(response.employee.start_date))
-                setUpdatedAt(response.employee.updated_at)
-                setCompanyName(response.employee.company_name ?? undefined)
-                setDeliveryCommission(response.employee.delivery_commission)
-                setDriversLicenseNumber(response.employee.drivers_license_number)
-                setDriversLicenseExpirationDate(Date.parse(response.employee.drivers_license_expiration_date))
-                setInsuranceNumber(response.employee.insurance_number)
-                setInsuranceExpirationDate(Date.parse(response.employee.insurance_expiration_date))
-                setLicensePlateNumber(response.employee.license_plate_number)
-                setLicensePlateExpirationDate(Date.parse(response.employee.license_plate_expiration_date))
-                setPickupCommission(response.employee.pickup_commission)
-                setVehicleType(response.vehicle_types.find(type => type.selection_id == response.employee.vehicle_type))
+            address.setup(response.contact.address)
 
-                toastr.clear()
-            }
+            setActivityLog(response.activity_log.map(log => {
+                return {...log, properties: JSON.parse(log.properties)}
+            }))
+            setBirthDate(Date.parse(response.dob))
+            setEmployeeId(response.employee_id)
+            setEmployeeNumber(response.employee_number)
+            setIsDriver(!!response.is_driver)
+            setIsEnabled(!!response.is_enabled)
+            setNextEmployeeId(nextEmployeeId)
+            setPrevEmployeeId(prevEmployeeId)
+            setSIN(response.sin)
+            setStartDate(Date.parse(response.start_date))
+            setUpdatedAt(response.updated_at)
+            setCompanyName(response.company_name ?? '')
+            setDeliveryCommission(response.delivery_commission)
+            setDriversLicenseNumber(response.drivers_license_number)
+            setDriversLicenseExpirationDate(Date.parse(response.drivers_license_expiration_date))
+            setInsuranceNumber(response.insurance_number)
+            setInsuranceExpirationDate(Date.parse(response.insurance_expiration_date))
+            setLicensePlateNumber(response.license_plate_number)
+            setLicensePlateExpirationDate(Date.parse(response.license_plate_expiration_date))
+            setPickupCommission(response.pickup_commission)
+            setVehicleType(response.vehicle_types.find(type => type.selection_id == response.vehicle_type))
 
-            contact.setup(response.contact)
-
-            setIsLoading(false)
+            // toastr.clear()
         }
-    )}
+
+        contact.setup(response.contact)
+
+        setIsLoading(false)
+    }
 
     const debouncedWarnings = useCallback(
         debounce(() => {
             if(isEnabled && employeeId) {
-                toastr.clear()
+                // toastr.clear()
                 if(driversLicenseExpirationDate < now)
-                    toastr.error('Drivers License has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.error('Drivers License has passed expiration date', {toastId: `${employeeId}-dln-expiry`})
                 else if(driversLicenseExpirationDate < threeMonthsFromNow)
-                    toastr.warn('Drivers License will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.warn('Drivers License will expire soon', {toastId: `${employeeId}-dln-expiry`})
 
                 if(licensePlateExpirationDate < now)
-                    toastr.error('License Plate has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.error('License Plate has passed expiration date', {toastId: `${employeeId}-license-plate-expiry`})
                 else if(licensePlateExpirationDate < threeMonthsFromNow)
-                    toastr.warn('License Plate will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.warn('License Plate will expire soon', {toastId: `${employeeId}-license-plate-expiry`})
 
                 if(insuranceExpirationDate < now)
-                    toastr.error('Insurance has passed expiration date', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.error('Insurance has passed expiration date', {toastId: `${employeeId}-insurance-expiry`})
                 else if(insuranceExpirationDate < threeMonthsFromNow)
-                    toastr.warn('Insurance will soon expire', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+                    toast.warn('Insurance will expire soon', {toastId: `${employeeId}-insurance-expiry`})
             }
         }, 1000), [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled]
     )
@@ -136,32 +143,32 @@ const Employee = (props) => {
             debouncedWarnings()
     }, [driversLicenseExpirationDate, licensePlateExpirationDate, insuranceExpirationDate, isEnabled, isLoading])
 
-    const storeEmployee = () => {
+    const storeEmployee = async () => {
         if(employeeId ? !permissions.editBasic : !permissions.create) {
-            toastr.error(`Authenticated User does not have permission to ${employeeId ? 'update this Employee' : 'create Employee'}`, 'Error');
+            toast.error(`Authenticated User does not have permission to ${employeeId ? 'update this Employee' : 'create Employee'}`, {autoClose: false});
             return;
         }
 
+        setReadOnly(true)
+
         var data = {
-            ...contact.collect(),
-            address_formatted: address.formatted,
-            address_lat: address.lat,
-            address_lng: address.lng,
-            address_name: address.name,
-            address_place_id: address.placeId,
+            contact: {
+                address: address.collect(),
+                ...contact.collect(),
+            },
             employee_id: employeeId,
         }
 
         if(permissions.editAdvanced)
             data = {
                 ...data,
-                birth_date: birthDate.toLocaleString('en-us'),
+                birth_date: birthDate.toISOString(),
                 employee_number: employeeNumber,
                 is_driver: isDriver,
                 is_enabled: isEnabled,
                 permissions: employeePermissions,
                 sin: SIN,
-                start_date: startDate.toLocaleString('en-us')
+                start_date: startDate.toISOString()
             }
 
         if(permissions.editAdvanced && isDriver)
@@ -169,31 +176,35 @@ const Employee = (props) => {
                 ...data,
                 company_name: companyName,
                 delivery_commission: deliveryCommission,
-                drivers_license_expiration_date: driversLicenseExpirationDate.toLocaleString('en-us'),
+                drivers_license_expiration_date: driversLicenseExpirationDate.toISOString(),
                 drivers_license_number: driversLicenseNumber,
-                insurance_expiration_date: insuranceExpirationDate.toLocaleString('en-us'),
+                insurance_expiration_date: insuranceExpirationDate.toISOString(),
                 insurance_number: insuranceNumber,
                 license_plate_number: licensePlateNumber,
-                license_plate_expiration_date: licensePlateExpirationDate.toLocaleString('en-us'),
+                license_plate_expiration_date: licensePlateExpirationDate.toISOString(),
                 pickup_commission: pickupCommission,
+                vehicle_type: vehicleType
             }
 
-            makeAjaxRequest('/employees', 'POST', data, response => {
-            toastr.clear()
+        try {
+            const response = await (employeeId ? api.put(`/employees/${employeeId}`, data) : api.post('/employees', data))
+
+            // toastr.clear()
             if(employeeId) {
                 setUpdatedAt(response.updated_at)
-                toastr.success(`Employee ${employeeId} was successfully updated!`, 'Success')
-            }
-            else {
+                toast.success(`Employee ${employeeId} was successfully updated!`)
+            } else {
                 setReadOnly(true)
-                toastr.success(`Employee ${response.employee_id} was successfully created`, 'Success', {
-                    'progressBar': true,
-                    'positionClass': 'toast-top-full-width',
-                    'showDuration': 500,
-                    'onHidden': function(){configureEmployee()}
+                toast.success(`Employee ${response.employee_id} was successfully created`, {
+                    position: 'top-center',
+                    onClose: () => configureEmployee(),
                 })
             }
-        })
+            setReadOnly(false)
+        } catch (error) {
+            console.log('Employee caught error', error)
+            setReadOnly(false)
+        }
     }
 
     if(isLoading)
@@ -201,9 +212,10 @@ const Employee = (props) => {
 
     return (
         <Fragment>
-            {(employeeId && isDriver) &&
-                <Row className='justify-content-md-center'>
-                    <Col>
+            <Navbar expand='md' variant='dark' bg='dark' className='justify-content-between'>
+                <Navbar.Brand style={{paddingLeft: '15px'}}>{employeeId ? `Edit Employee ${employeeId}` : 'Create Employee'}</Navbar.Brand>
+                {(employeeId && isDriver) &&
+                    <Fragment>
                         <ListGroup className='list-group-horizontal' as='ul'>
                             {driversLicenseExpirationDate < now &&
                                 <ListGroup.Item variant='danger'>Drivers License Expired</ListGroup.Item>
@@ -224,13 +236,13 @@ const Employee = (props) => {
                                 <ListGroup.Item variant='warning'>Insurance Expires Soon</ListGroup.Item>
                             }
                         </ListGroup>
-                    </Col>
-                    <Col style={{textAlign: 'right'}}>
-                        <LinkContainer to={`/manifests?filter[driver_id]=${employeeId}`}><Button variant='secondary'>Manifests</Button></LinkContainer>
-                        <LinkContainer to={`/bills?filter[pickup_driver_id]=${employeeId}`}><Button variant='secondary'>All Bills</Button></LinkContainer>
-                    </Col>
-                </Row>
-            }
+                        <Nav>
+                            <Nav.Link onClick={() => history.push(`/bills?filter[pickup_driver_id]=${employeeId}`)} variant='secondary' >Bills</Nav.Link>
+                            <Nav.Link onClick={() => history.push(`/manifests?filter[driver_id]=${employeeId}`)} variant='secondary' >Manifests</Nav.Link>
+                        </Nav>
+                    </Fragment>
+                }
+            </Navbar>
             <Row className='justify-content-md-center'>
                 <Col md={12}>
                     <Tabs id='employee-tabs' className='nav-justified' activeKey={key} onSelect={setTabKey}>
@@ -306,30 +318,18 @@ const Employee = (props) => {
             <Row className='justify-content-md-center'>
                 <Col align='center'>
                     <ButtonGroup>
-                        <LinkContainer to={`/employees/${prevEmployeeId}`}>
-                            <Button variant='info' disabled={!prevEmployeeId}>
-                                <i className='fas fa-arrow-circle-left'></i> Back - {prevEmployeeId}
-                            </Button>
-                        </LinkContainer>
+                        <Button variant='info' disabled={!prevEmployeeId} onClick={() => {setIsLoading(true); history.push(`/employees/${prevEmployeeId}`)}}>
+                            <i className='fas fa-arrow-circle-left'></i> Back - {prevEmployeeId}
+                        </Button>
                         <Button variant='primary' onClick={storeEmployee} disabled={readOnly}>
                             <i className='fas fa-save'></i> Submit
                         </Button>
-                        <LinkContainer to={`/employees/${nextEmployeeId}`}>
-                            <Button variant='info' disabled={!nextEmployeeId}>
-                                Next - {nextEmployeeId} <i className='fas fa-arrow-circle-right'></i>
-                            </Button>
-                        </LinkContainer>
+                        <Button variant='info' disabled={!nextEmployeeId} onClick={() => {setIsLoading(true); history.push(`/employees/${nextEmployeeId}`)}}>
+                            Next - {nextEmployeeId} <i className='fas fa-arrow-circle-right'></i>
+                        </Button>
                     </ButtonGroup>
                 </Col>
             </Row>
         </Fragment>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        sortedEmployees: store.employees.sortedList
-    }
-}
-
-export default connect(mapStateToProps)(Employee)

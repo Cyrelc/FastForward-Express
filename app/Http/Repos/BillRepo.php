@@ -778,7 +778,6 @@ class BillRepo {
 
         $accountRepo = new AccountRepo();
         $chargeRepo = new ChargeRepo();
-        $contactRepo = new ContactRepo();
         $lineItemRepo = new LineItemRepo();
         $paymentRepo = new PaymentRepo();
 

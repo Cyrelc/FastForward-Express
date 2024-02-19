@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Models\Home;
 
+use App\Employee;
 use App\Http\Repos;
 use App\Http\Models;
 use Illuminate\Support\Facades\Auth;
+use DB;
 
 class HomeModelFactory {
     public function GetAppConfiguration($req) {
@@ -25,10 +27,14 @@ class HomeModelFactory {
                 $model->parent_accounts = $accountRepo->GetParentAccountsList();
             }
             if($req->user()->can('viewAll', Employee::class) || $req->user()->can('bills.view.dispatch.*')) {
-                $model->employees = $employeeRepo->GetEmployeesList($req->user()->can('viewAll', Employee::class) ? null : $req->user()->employee->employee_id);
+                $model->employees = Employee::leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+                ->select(
+                    DB::raw('concat(employee_number, " - ", coalesce(preferred_name , concat(first_name, " ", last_name))) as label'),
+                    'employee_id as value'
+                )->get();
             }
             if($req->user()->can('bills.edit.dispatch.*')) {
-                $model->drivers = $employeeRepo->GetDriverList();
+                $model->drivers = $employeeRepo->getDriverList();
             }
             if($req->user()->can('bills.edit.billing.*')) {
                 $model->repeat_intervals = $selectionsRepo->GetSelectionsListByType('repeat_interval');
@@ -41,7 +47,7 @@ class HomeModelFactory {
     }
 
     public function GetAdminDashboardModel() {
-        $comparisonDate = (new \DateTime())->modify('+' . 90 . 'days');
+        $comparisonDate = (new \DateTime())->modify('+90 days');
 
         $appsettingsRepo = new Repos\ApplicationSettingsRepo();
         $billRepo = new Repos\BillRepo();
@@ -50,7 +56,7 @@ class HomeModelFactory {
 
         $model = new \stdClass();
         $model->employee_expiries = [];
-        $employeeExpiries = $employeeRepo->GetEmployeesWithExpiries($comparisonDate);
+        $employeeExpiries = $employeeRepo->getEmployeesWithExpiries($comparisonDate);
         foreach($employeeExpiries as $employee) {
             if(new \DateTime($employee->drivers_license_expiration_date) < $comparisonDate)
                 array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'Drivers License', 'date' => $employee->drivers_license_expiration_date]);
@@ -59,7 +65,7 @@ class HomeModelFactory {
             if(new \DateTime($employee->insurance_expiration_date) < $comparisonDate)
                 array_push($model->employee_expiries, ['employee_name' => $employee->employee_name, 'employee_id' => $employee->employee_id, 'type' => 'Insurance', 'date' => $employee->insurance_expiration_date]);
         }
-        $model->employee_birthdays = $employeeRepo->GetEmployeeBirthdays();
+        $model->employee_birthdays = $employeeRepo->getEmployeeBirthdays();
         $model->ytd_chart = $chartModelFactory->GetAdminDashboardChart();
         $model->calendar_heat_chart = $chartModelFactory->GetCalendarHeatChart();
         $model->upcoming_holidays = $appsettingsRepo->GetUpcomingHolidays();

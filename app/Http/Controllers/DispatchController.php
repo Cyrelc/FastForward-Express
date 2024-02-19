@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Bill;
+use App\Employee;
 use App\Events\BillUpdated;
 use Illuminate\Http\Request;
 use DB;
@@ -11,7 +13,7 @@ use App\Http\Repos;
 class DispatchController extends Controller {
     public function AssignBillToDriver(Request $req) {
         $billRepo = new Repos\BillRepo();
-        $bill = $billRepo->GetById($req->bill_id);
+        $bill = Bill::find($req->bill_id);
         if($req->user()->cannot('updateDispatch', $bill))
             abort(403);
 
@@ -19,7 +21,7 @@ class DispatchController extends Controller {
 
         if(isset($req->employee_id)) {
             $employeeRepo = new Repos\EmployeeRepo();
-            $employee = $employeeRepo->GetById($req->employee_id, null);
+            $employee = Employee::find($req->employee_id);
 
             $bill = $billRepo->AssignToDriver($req->bill_id, $employee);
         } else
@@ -48,7 +50,7 @@ class DispatchController extends Controller {
             abort(403);
 
         $employeeRepo = new Repos\EmployeeRepo();
-        $employees = $employeeRepo->GetActiveDriversWithContact();
+        $employees = $employeeRepo->getActiveDriversWithContact();
 
         return response()->json([
             'success' => true,

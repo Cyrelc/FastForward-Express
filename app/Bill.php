@@ -122,8 +122,16 @@ class Bill extends Model
         return $this->hasOne(Address::class, 'address_id', 'pickup_address_id');
     }
 
+    public function pickup_employee() {
+        return $this->hasOne(Employee::class, 'employee_id', 'pickup_driver_id');
+    }
+
     public function deliveryAddress() {
         return $this->hasOne(Address::class, 'address_id', 'delivery_address_id');
+    }
+
+    public function delivery_employee() {
+        return $this->hasOne(Employee::class, 'employee_id', 'delivery_driver_id');
     }
 
     public function getActivityLogOptions() : LogOptions {
