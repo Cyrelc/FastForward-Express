@@ -22,7 +22,8 @@ function printManifests(selectedRows, options = null) {
 const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Driver', value: 'employee_id', groupHeader: (value, count, data, group) => {return (value + ' - ' + data[0].employee_name)}},
-    {label: 'Bill End Date', value: 'end_date'}
+    {label: 'Bill End Date', value: 'end_date'},
+    {label: 'Year', value: 'year'}
 ]
 
 const withSelected = [

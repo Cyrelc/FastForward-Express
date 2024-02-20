@@ -102,6 +102,7 @@ class ManifestRepo {
                     where pickup_manifest_id = manifests.manifest_id or
                     delivery_manifest_id = manifests.manifest_id)
                 as bill_count'),
+                DB::raw('date_format(date_run, "%Y") as year'),
                 'date_run',
                 'manifests.start_date',
                 'end_date'
