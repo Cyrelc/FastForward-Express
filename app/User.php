@@ -36,7 +36,7 @@ class User extends Authenticatable {
     ];
 
     public function accountUsers() {
-        return $this->hasMany(AccountUser::class, 'user_id');
+        return $this->hasMany(\App\Models\AccountUser::class, 'user_id');
     }
 
     public function displayName() {
@@ -49,7 +49,7 @@ class User extends Authenticatable {
     }
 
     public function employee() : HasOne {
-        return $this->hasOne(Employee::class, 'user_id');
+        return $this->hasOne(\App\Models\Employee::class, 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {
