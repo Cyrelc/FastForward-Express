@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\ApplicationSetting;
+use App\Models\ApplicationSetting;
 
 class ApplicationSettingsRepo {
     public function Delete($appSettingId) {
