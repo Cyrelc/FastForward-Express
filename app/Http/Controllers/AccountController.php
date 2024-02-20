@@ -16,7 +16,7 @@ use App\Http\Validation\Utils;
 
 use Illuminate\Support\Facades\Auth;
 
-use App\AccountInvoiceSortOrder;
+use App\Models\AccountInvoiceSortOrder;
 
 class AccountController extends Controller {
     public function __construct() {

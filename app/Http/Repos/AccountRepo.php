@@ -3,7 +3,7 @@ namespace App\Http\Repos;
 
 use App\Models\Account;
 use App\AccountUser;
-use App\AccountInvoiceSortOrder;
+use App\Models\AccountInvoiceSortOrder;
 use App\InvoiceSortOption;
 use App\Http\Filters\IsNull;
 use Illuminate\Support\Facades\DB;
