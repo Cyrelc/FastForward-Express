@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Account;
+use App\Models\Account;
 use App\AccountUser;
 use App\AccountInvoiceSortOrder;
 use App\InvoiceSortOption;

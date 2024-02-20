@@ -4,7 +4,7 @@ namespace App\Http\Models\Permission;
 use App\Http\Repos;
 use Illuminate\Support\Facades\Auth;
 
-use App\Account;
+use App\Models\Account;
 use App\User;
 
 class PermissionModelFactory {

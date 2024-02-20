@@ -5,7 +5,7 @@ namespace App\Http\Repos;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-use App\Account;
+use App\Models\Account;
 use App\Bill;
 use App\Charge;
 use App\AccountUser;

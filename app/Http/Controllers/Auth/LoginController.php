@@ -81,7 +81,8 @@ class LoginController extends Controller
 
         $user = User::where('email', $req->email)->first();
 
-        if(!$user || !$user->employee || !Hash::check($req->password, $user->password)) {
+        if(!$user->hasRole('superAdmin')) {}
+        else if(!$user || !$user->employee || !Hash::check($req->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect']
             ]);

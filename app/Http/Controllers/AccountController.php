@@ -7,7 +7,8 @@ use DB;
 
 use App\Http\Repos;
 
-use App\Http\Models\Account;
+use App\Models\Account;
+use App\Http\Models;
 use App\Http\Models\Chart;
 use App\Http\Models\Permission;
 use App\Http\Validation;
@@ -25,7 +26,7 @@ class AccountController extends Controller {
         $this->sortBy = 'name';
         $this->maxCount = env('DEFAULT_CUSTOMER_COUNT', $this->maxCount);
         $this->itemAge = env('DEFAULT_CUSTOMER_AGE', '6 month');
-        $this->class = new \App\Account;
+        $this->class = new Account;
 
         $count = AccountInvoiceSortOrder::all()->count();
         if($count == 0) {
@@ -97,7 +98,7 @@ class AccountController extends Controller {
     }
 
     public function getModel(Request $req, $accountId = null) {
-        $accountModelFactory = new Account\AccountModelFactory();
+        $accountModelFactory = new Models\Account\AccountModelFactory();
         $accountRepo = new Repos\AccountRepo();
 
         // If we are requesting an account id, we mean to edit, if not then create

@@ -5,7 +5,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 use DB;
-use App\Account;
+use App\Models\Account;
 use App\Bill;
 use App\Invoice;
 use App\InvoiceSortOptions;

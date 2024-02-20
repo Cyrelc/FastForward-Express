@@ -10,7 +10,7 @@ use App\Http\Filters\BillFilters\Dispatch;
 use App\Http\Filters\BillFilters\Invoiced;
 use App\Http\Filters\IsNull;
 
-use App\Account;
+use App\Models\Account;
 use App\Bill;
 use App\LineItem;
 use DB;
