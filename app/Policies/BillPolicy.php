@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Bill;
+use App\Models\Bill;
 use App\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -46,7 +46,7 @@ class BillPolicy
      * Determine whether the user can delete the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Bill  $bill
+     * @param  \App\Models\Bill  $bill
      * @return mixed
      */
     public function delete(User $user, Bill $bill)
@@ -58,7 +58,7 @@ class BillPolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Bill  $bill
+     * @param  \App\Models\Bill  $bill
      * @return mixed
      */
     public function updateBasic(User $user, Bill $bill) {
@@ -101,7 +101,7 @@ class BillPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Bill  $bill
+     * @param  \App\Models\Bill  $bill
      * @return mixed
      */
     public function viewBasic(User $user, Bill $bill) {

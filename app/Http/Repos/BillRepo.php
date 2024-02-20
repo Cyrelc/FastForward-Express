@@ -11,7 +11,7 @@ use App\Http\Filters\BillFilters\Invoiced;
 use App\Http\Filters\IsNull;
 
 use App\Models\Account;
-use App\Bill;
+use App\Models\Bill;
 use App\LineItem;
 use DB;
 use Illuminate\Support\Facades\Auth;

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\Account;
 use App\Models\AccountUser;
-use App\Bill;
+use App\Models\Bill;
 use App\Charge;
 use App\Models\EmailAddress;
 use App\Employee;

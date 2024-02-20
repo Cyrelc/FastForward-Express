@@ -2,9 +2,10 @@
 
 namespace App\Http\Models\Bill;
 
+use App\Models\Address;
+use App\Models\Bill;
 use App\Http\Models;
 use App\Http\Repos;
-use App\Http\Models\Bill;
 use App\Models\Contact;
 
 class BillModelFactory{
@@ -56,11 +57,11 @@ class BillModelFactory{
 			$model->charge_types = [$paymentRepo->GetAccountPaymentType()];
 		}
 
-		$model->bill = new \App\Bill();
+		$model->bill = new Bill();
 		$model->packages = array(['count' => 1, 'weight' => '', 'length' => '', 'width' => '', 'height' => '']);
-		$model->pickup_address = new \App\Models\Address();
+		$model->pickup_address = new Address();
 		$model->ratesheets = $ratesheetRepo->GetForBillsPage();
-		$model->delivery_address = new \App\Models\Address();
+		$model->delivery_address = new Address();
 
 		$model->charge_selection_submission = null;
 		$model->bill->time_call_received = date("U");

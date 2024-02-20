@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Bill;
+use App\Models\Bill;
 use App\Employee;
 use App\Events\BillUpdated;
 use Illuminate\Http\Request;
