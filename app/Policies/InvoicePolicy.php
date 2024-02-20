@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Invoice;
+use App\Models\Invoice;
 use App\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -26,7 +26,7 @@ class InvoicePolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Invoice  $invoice
+     * @param  \App\Models\Invoice  $invoice
      * @return mixed
      */
     public function view(User $user, Invoice $invoice) {
@@ -53,7 +53,7 @@ class InvoicePolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Invoice  $invoice
+     * @param  \App\Models\Invoice  $invoice
      * @return mixed
      */
     public function update(User $user, Invoice $invoice) {
@@ -64,7 +64,7 @@ class InvoicePolicy
      * Determine whether the user can delete the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Invoice  $invoice
+     * @param  \App\Models\Invoice  $invoice
      * @return mixed
      */
     public function delete(User $user) {

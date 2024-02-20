@@ -7,7 +7,7 @@ use Spatie\QueryBuilder\AllowedFilter;
 use DB;
 use App\Models\Account;
 use App\Models\Bill;
-use App\Invoice;
+use App\Models\Invoice;
 use App\InvoiceSortOptions;
 use App\LineItem;
 use App\Payment;

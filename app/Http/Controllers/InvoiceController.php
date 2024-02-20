@@ -10,8 +10,8 @@ use ZipArchive;
 use App\Http\Collectors;
 use App\Http\Requests;
 use App\Http\Repos;
-use App\Http\Models\Invoice;
 use App\Http\Services;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\Browsershot\Browsershot;
@@ -120,7 +120,7 @@ class InvoiceController extends Controller {
     public function getModel(Request $req, $invoiceId = null) {
         $invoiceModelFactory = new Invoice\InvoiceModelFactory();
         if($invoiceId) {
-            if(!\App\Invoice::where('invoice_id', $invoiceId)->exists())
+            if(!Invoice::where('invoice_id', $invoiceId)->exists())
                 abort(404);
 
             $model = $invoiceModelFactory->GetById($req, $invoiceId);

@@ -11,7 +11,7 @@ use App\Models\Bill;
 use App\Models\Charge;
 use App\Models\EmailAddress;
 use App\Models\Employee;
-use App\Invoice;
+use App\Models\Invoice;
 use App\Manifest;
 
 class SearchRepo {
