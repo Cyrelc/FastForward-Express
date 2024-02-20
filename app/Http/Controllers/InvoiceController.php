@@ -8,6 +8,7 @@ use DB;
 use View;
 use ZipArchive;
 use App\Http\Collectors;
+use App\Http\Models;
 use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Services;
@@ -118,7 +119,7 @@ class InvoiceController extends Controller {
     }
 
     public function getModel(Request $req, $invoiceId = null) {
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $invoiceModelFactory = new Models\Invoice\InvoiceModelFactory();
         if($invoiceId) {
             if(!Invoice::where('invoice_id', $invoiceId)->exists())
                 abort(404);
@@ -152,7 +153,7 @@ class InvoiceController extends Controller {
         if($req->user()->cannot('create', Invoice::class))
             abort(403);
 
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $invoiceModelFactory = new Models\Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetGenerateModel($req);
 
         return json_encode($model);
@@ -215,7 +216,7 @@ class InvoiceController extends Controller {
         $showLineItems = $req->show_line_items ?? false;
         $showPickupAndDeliveryAddress = $req->show_pickup_and_delivery_address ?? false;
 
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $invoiceModelFactory = new Models\Invoice\InvoiceModelFactory();
         $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
         return view('invoices.invoice_table', compact('model', 'amendmentsOnly', 'showLineItems', 'hideOutstandingInvoices', 'showPickupAndDeliveryAddress'));
@@ -273,7 +274,7 @@ class InvoiceController extends Controller {
         $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
 
-        $invoiceModelFactory = new Invoice\InvoiceModelFactory();
+        $invoiceModelFactory = new Models\Invoice\InvoiceModelFactory();
 
         $globalAmendmentsOnly = isset($req->amendments_only) ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
 
