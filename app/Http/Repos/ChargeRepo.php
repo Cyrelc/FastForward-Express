@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Charge;
+use App\Models\Charge;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 

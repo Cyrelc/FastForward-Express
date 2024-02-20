@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Charge;
+use App\Models\Charge;
 use App\LineItem;
 use Illuminate\Support\Facades\DB;
 
