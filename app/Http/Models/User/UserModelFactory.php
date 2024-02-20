@@ -36,7 +36,7 @@ class UserModelFactory {
     }
 
     public function getAccountUsers($accountId) {
-        $userRepo = new Repo\UserRepo();
+        $userRepo = new UserRepo();
 
         $accountUsers = $userRepo->GetAccountUsers($accountId);
         foreach($accountUsers as $key => $accountUser) {
