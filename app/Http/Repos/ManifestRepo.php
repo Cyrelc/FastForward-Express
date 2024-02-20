@@ -3,7 +3,7 @@ namespace App\Http\Repos;
 
 use DB;
 use App\Models\Bill;
-use App\Chargeback;
+use App\Models\Chargeback;
 use App\Employee;
 use App\LineItem;
 use App\Manifest;
