@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Employee;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;

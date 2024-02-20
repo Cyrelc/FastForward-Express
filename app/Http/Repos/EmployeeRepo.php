@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use DB;
-use App\Employee;
+use App\Models\Employee;
 use App\EmployeeCommission;
 use App\EmployeeEmergencyContact;
 use App\User;

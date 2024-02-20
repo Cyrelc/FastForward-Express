@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use DB;
-use App\Employee;
+use App\Models\Employee;
 use App\Http\Repos\PermissionRepo;
 use App\Http\Resources\CreateEmployeeResource;
 use App\Http\Resources\EmployeeResource;

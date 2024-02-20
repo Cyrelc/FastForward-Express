@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-use App\Employee;
+use App\Models\Employee;
 use App\Rules\PrimaryEmailConflict;
 
 class StoreEmployeeRequest extends FormRequest {

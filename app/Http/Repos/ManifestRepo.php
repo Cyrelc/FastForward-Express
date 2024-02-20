@@ -5,7 +5,7 @@ use DB;
 use App\Models\Bill;
 use App\Models\Chargeback;
 use App\Models\DriverChargeback;
-use App\Employee;
+use App\Models\Employee;
 use App\LineItem;
 use App\Manifest;
 use App\Http\Filters\DateBetween;

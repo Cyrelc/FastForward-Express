@@ -34,7 +34,7 @@ class Contact extends Model {
     }
 
     public function employees() {
-        return $this->belongsToMany(\App\Employee::class, 'employee_emergency_contacts');
+        return $this->belongsToMany(Employee::class, 'employee_emergency_contacts');
     }
 
     public function email_addresses() {

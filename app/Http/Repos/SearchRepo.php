@@ -10,7 +10,7 @@ use App\Models\AccountUser;
 use App\Models\Bill;
 use App\Models\Charge;
 use App\Models\EmailAddress;
-use App\Employee;
+use App\Models\Employee;
 use App\Invoice;
 use App\Manifest;
 

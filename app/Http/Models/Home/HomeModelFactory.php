@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Models\Home;
 
-use App\Employee;
+use App\Models\Employee;
 use App\Http\Repos;
 use App\Http\Models;
 use Illuminate\Support\Facades\Auth;

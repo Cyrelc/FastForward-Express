@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Employee;
+use App\Models\Employee;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -13,7 +13,7 @@ class EmployeePolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Employee  $employee
+     * @param  \App\Models\Employee  $employee
      * @return mixed
      */
     public function viewBasic(User $user, Employee $employee) {
@@ -49,7 +49,7 @@ class EmployeePolicy
      * Determine whether the user can update basic sections of the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Employee  $employee
+     * @param  \App\Models\Employee  $employee
      * @return mixed
     */
     public function updateBasic(User $user, Employee $employee) {

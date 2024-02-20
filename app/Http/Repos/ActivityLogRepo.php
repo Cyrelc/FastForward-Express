@@ -4,7 +4,7 @@ namespace App\Http\Repos;
 use App\Models\AccountUser;
 use App\Models\ActivityLog;
 use App\Models\Address;
-use App\Employee;
+use App\Models\Employee;
 use App\Models\EmailAddress;
 use App\Models\PhoneNumber;
 use DB;
@@ -101,7 +101,7 @@ class ActivityLogRepo {
         $phoneIds = PhoneNumber::whereIn('contact_id', $contactIds)->pluck('phone_number_id')->toArray();
         $addressIds = Address::whereIn('contact_id', $contactIds)->pluck('address_id')->toArray();
 
-        $activity = ActivityLog::where([['subject_type', 'App\Employee'], ['subject_id', $employeeId]])
+        $activity = ActivityLog::where([['subject_type', 'App\Models\Employee'], ['subject_id', $employeeId]])
             ->orWhere(function($contacts) use ($contactIds) {
                 $contacts->whereIn('subject_type', ['App\Models\Contact']);
                 $contacts->whereIn('subject_id', $contactIds);

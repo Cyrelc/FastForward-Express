@@ -5,7 +5,7 @@ namespace Tests\Unit;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-use App\Employee;
+use App\Models\Employee;
 use App\EmployeeEmergencyContact;
 use App\User;
 use App\Models\Address;
