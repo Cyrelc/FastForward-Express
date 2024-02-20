@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\Payment;
-use App\PaymentType;
+use App\Models\PaymentType;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRepo {
