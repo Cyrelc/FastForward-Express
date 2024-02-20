@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Conditional;
+use App\Models\Conditional;
 use App\Ratesheet;
 
 class ConditionalRepo {
