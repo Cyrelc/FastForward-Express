@@ -57,7 +57,7 @@ class EmployeeController extends Controller {
     public function getEmergencyContact(Request $req, $contactId = null) {
         if($contactId) {
             $employee = EmployeeEmergencyContact::firstOrFail('contact_id', $contactId)->employee;
-            dd($employee);
+
             $employeeRepo = new Repos\EmployeeRepo();
             $emergencyContact = $employeeRepo->getEmergencyContactByContactId($contactId);
             $employee = Employee::find($emergencyContact->employee_id);

@@ -8,7 +8,7 @@ use App\Models\EmailAddress;
 use App\Models\Employee;
 use App\Models\PhoneNumber;
 use App\Http\Controllers\EmployeeController;
-use App\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

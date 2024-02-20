@@ -40,7 +40,7 @@ class ActivityLogRepo {
 
         $activity = ActivityLog::where([['subject_type', 'App\Models\Contact'], ['subject_id', $contactId]])
             ->orWhere([['subject_type', 'App\Models\Contact'], ['subject_id', $contactId]])
-            ->orWhere([['subject_type', 'App\User'], ['subject_id', $userId[0]]])
+            ->orWhere([['subject_type', 'App\Models\User'], ['subject_id', $userId[0]]])
             ->orWhere(function($phones) use ($phoneNumberIds) {
                 $phones->where('subject_type', 'App\Models\PhoneNumber');
                 $phones->whereIn('subject_id', $phoneNumberIds->toArray());

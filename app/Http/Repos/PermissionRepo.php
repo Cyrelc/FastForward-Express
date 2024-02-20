@@ -4,7 +4,7 @@ namespace App\Http\Repos;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\User;
+use App\Models\User;
 
 class PermissionRepo {
     public function assignUserPermissions($user, $permissions) {
@@ -12,12 +12,12 @@ class PermissionRepo {
 
         foreach($permissions as $name => $value) {
             if($user->can($name) && $value == false) {
-                $permissionsChanged['attributes'][$name] = 'false';
-                $permissionsChanged['old'][$name] = 'true';
+                $permissionsChanged['attributes'][$name] = false;
+                $permissionsChanged['old'][$name] = true;
                 $user->revokePermissionTo($name);
             } elseif($user->cannot($name) && $value == true) {
-                $permissionsChanged['attributes'][$name] = 'true';
-                $permissionsChanged['old'] = 'false';
+                $permissionsChanged['attributes'][$name] = true;
+                $permissionsChanged['old'][$name] = false;
                 $user->givePermissionTo($name);
             }
         }

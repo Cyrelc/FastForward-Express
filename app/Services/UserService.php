@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\User;
+use App\Models\User;
 use App\Http\Repos\UserRepo;
 use App\Http\Collectors\UserCollector;
 use Illuminate\Support\Str;

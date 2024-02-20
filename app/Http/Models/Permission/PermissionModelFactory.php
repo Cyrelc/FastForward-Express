@@ -5,7 +5,7 @@ use App\Http\Repos;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\Account;
-use App\User;
+use App\Models\User;
 
 class PermissionModelFactory {
     /**

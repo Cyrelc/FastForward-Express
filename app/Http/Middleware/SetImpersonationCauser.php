@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Spatie\Activitylog\Facades\CauserResolver;
-use App\User;
+use App\Models\User;
 
 class SetImpersonationCauser {
     /**

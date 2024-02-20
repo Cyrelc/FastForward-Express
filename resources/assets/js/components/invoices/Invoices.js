@@ -1,6 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import {useHistory} from 'react-router-dom'
+import {useAPI} from '../../contexts/APIContext'
 
 import Table from '../partials/Table'
 
@@ -8,19 +9,6 @@ import Table from '../partials/Table'
  * Table functions
  *
  */
-function cellContextMenu(cell, canEdit = false) {
-    const data = cell.getData()
-    if(!data.invoice_id)
-        return undefined
-    var menuItems = [
-        {label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)},
-        {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => finalizeInvoices([cell.getRow()]), disabled: (data.payment_count !== 0)},
-        {label: 'Print', action: () => printInvoices([cell.getRow()], {download: false}), disabled: data.finalized === 0}
-    ]
-
-    return menuItems
-}
-
 function cellContextMenuFormatter(cell) {
     if(cell.getRow().getData().invoice_id)
         return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
@@ -33,22 +21,6 @@ function deleteInvoice(cell) {
             cell.getRow().delete()
         })
     }
-}
-
-function finalizeInvoices(selectedRows) {
-    const unfinalizedRows = selectedRows.filter(row => row.getData().finalized !== 1)
-    toggleInvoiceFinalized(unfinalizedRows)
-}
-
-function toggleInvoiceFinalized(selectedRows = null) {
-    if(!selectedRows || selectedRows.length === 0) {
-        toastr.warning('Please select at least one row to operate on')
-        return
-    }
-    const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
-    makeFetchRequest(`/invoices/finalize/${data}`, response => {
-        selectedRows.map(row => row.update({'finalized': row.getData().finalized === 1 ? 0 : 1}))
-    })
 }
 
 function printInvoices(selectedRows, options) {
@@ -66,11 +38,6 @@ function printInvoices(selectedRows, options) {
     window.open(printUrl + (selectedRows.length === 1 ? data[0] : data), "_blank")
 }
 
-function undoFinalizeInvoices(selectedRows) {
-    const finalizedRows = selectedRows.filter(row => row.getData().finalized === 1)
-    toggleInvoiceFinalized(finalizedRows)
-}
-
 /**
  * Table constants including definitions
  */
@@ -83,21 +50,55 @@ const groupByOptions = [
 
 const initialSort = [{column:'bill_end_date', dir: 'desc'}, {column:'account_number', dir:'asc'}]
 
-const adminWithSelected = [
-    {
-        icon: 'fas fa-check',
-        label: 'Finalize',
-        onClick: finalizeInvoices
-    },
-    {
-        icon: 'fas fa-undo',
-        label: 'Undo Finalize',
-        onClick: undoFinalizeInvoices
-    }
-]
-
 function Invoices(props) {
+    const api = useAPI()
     const history = useHistory()
+
+    const finalizeInvoices = selectedRows => {
+        const unfinalizedRows = selectedRows.filter(row => row.getData().finalized !== 1)
+        toggleInvoiceFinalized(unfinalizedRows)
+    }
+
+    const undoFinalizeInvoices = selectedRows => {
+        const finalizedRows = selectedRows.filter(row => row.getData().finalized === 1)
+        toggleInvoiceFinalized(finalizedRows)
+    }
+
+    const adminWithSelected = [
+        {
+            icon: 'fas fa-check',
+            label: 'Finalize',
+            onClick: finalizeInvoices
+        },
+        {
+            icon: 'fas fa-undo',
+            label: 'Undo Finalize',
+            onClick: undoFinalizeInvoices
+        }
+    ]
+
+    const cellContextMenu = (cell, canEdit = false) => {
+        const data = cell.getData()
+        if(!data.invoice_id)
+            return undefined
+        var menuItems = [
+            {label: 'Delete Invoice', action: () => deleteInvoice(cell), disabled: (data.payment_count != 0 || data.finalized === 1)},
+            {label: data.finalized ? 'Undo Finalize' : 'Finalize Invoice', action: () => finalizeInvoices([cell.getRow()]), disabled: (data.payment_count !== 0)},
+            {label: 'Print', action: () => printInvoices([cell.getRow()], {download: false}), disabled: data.finalized === 0}
+        ]
+
+        return menuItems
+    }
+
+    const toggleInvoiceFinalized = async (selectedRows = null) => {
+        if(!selectedRows || selectedRows.length === 0) {
+            toastr.warning('Please select at least one row to operate on')
+            return
+        }
+        const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
+        await api.get(`/invoices/finalize/${data}`)
+            .then(selectedRows.map(row => row.update({'finalized': row.getData().finalized === 1 ? 0 : 1})))
+    }
 
     const columns = [
         ...props.frontEndPermissions.invoices.edit ? [

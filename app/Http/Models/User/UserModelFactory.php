@@ -2,6 +2,7 @@
 
 namespace App\Http\Models\User;
 
+use App\Models\AccountUser;
 use App\Http\Repos;
 use App\Http\Repos\UserRepo;
 use App\Http\Models;
@@ -30,7 +31,7 @@ class UserModelFactory {
                 $model->activity_log[$key]->properties = json_decode($log->properties);
         }
 
-        $model->belongs_to = $accountRepo->GetMyAccountsStructured(\App\User::where('user_id', $model->account_user->user_id)->first());
+        $model->belongs_to = $accountRepo->GetMyAccountsStructured(\App\Models\User::where('user_id', $model->account_user->user_id)->first());
 
         return $model;
     }

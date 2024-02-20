@@ -4,7 +4,7 @@ namespace App\Http\Repos;
 use DB;
 use App\Models\Employee;
 use App\Models\EmployeeEmergencyContact;
-use App\User;
+use App\Models\User;
 use App\Http\Filters\IsNull;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;

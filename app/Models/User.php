@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -25,6 +26,7 @@ class User extends Authenticatable {
      * @var array
      */
     protected $fillable = ['email', 'is_enabled', 'name', 'username'];
+    protected $guard_name = 'web';
     protected $guarded = ['password'];
     /**
      * The attributes that should be hidden for arrays.
@@ -36,7 +38,7 @@ class User extends Authenticatable {
     ];
 
     public function accountUsers() {
-        return $this->hasMany(\App\Models\AccountUser::class, 'user_id');
+        return $this->hasMany(AccountUser::class, 'user_id');
     }
 
     public function displayName() {
@@ -49,7 +51,7 @@ class User extends Authenticatable {
     }
 
     public function employee() : HasOne {
-        return $this->hasOne(\App\Models\Employee::class, 'user_id');
+        return $this->hasOne(Employee::class, 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {

@@ -6,7 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 
-use App\User;
+use App\Models\User;
 use App\Http\Repos\UserRepo;
 use App\Services\UserService;
 

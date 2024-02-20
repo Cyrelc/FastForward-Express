@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use App\Models\Employee;
 use App\Models\EmployeeEmergencyContact;
-use App\User;
+use App\Models\User;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\PhoneNumber;

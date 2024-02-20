@@ -11,6 +11,10 @@
 |
 */
 
+Route::middleware(['auth'])->group(function() {
+    Route::get('/bills/chart', 'AdminController@getChart');
+});
+
 Route::middleware(['auth'])->controller(AccountController::class)->prefix('accounts')->group(function() {
     Route::get('/chart', 'getChart');
     Route::get('/toggleActive/{accountId}', 'toggleActive');
@@ -22,7 +26,7 @@ Route::middleware(['auth'])->controller(AccountController::class)->prefix('accou
     Route::get('/', 'index');
 });
 
-Route::middleware(['auth'])->controller(UserController::class)->prefix('accountUsers')->group(function() {
+Route::middleware(['auth'])->controller(AccountUserController::class)->prefix('accountUsers')->group(function() {
     Route::get('/account/{accountId}', 'getAccountUsers');
     Route::post('/', 'storeAccountUser');
     // potential problem here
@@ -158,13 +162,6 @@ Route::middleware(['auth'])->controller(UserController::class)->prefix('users')-
     Route::get('/getConfiguration', 'GetUserConfiguration');
 });
 
-// Authenticated SPA
-Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
-    Route::get('/{any_path?}', 'HomeController@index');
-    Route::get('/{object}/{action}', 'HomeController@index');
-    Route::get('/{object}/{action}/{object_id?}', 'HomeController@index');
-});
-
 // Authenticated views
 Route::group(['middleware' => ['auth']],
     function() {
@@ -175,8 +172,6 @@ Route::group(['middleware' => ['auth']],
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
         Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
 
-        Route::get('/bills/chart', 'AdminController@getChart');
-
         Route::get('/logout', 'Auth\LoginController@logout');
 
         // Route::post('/appsettings/hashPassword', 'AdminController@hashPassword');
@@ -185,6 +180,13 @@ Route::group(['middleware' => ['auth']],
         //     ['only' => ['index', 'create', 'edit', 'store']]);
     }
 );
+
+// Authenticated SPA
+Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
+    Route::get('/{any_path?}', 'HomeController@index');
+    Route::get('/{object}/{action}', 'HomeController@index');
+    Route::get('/{object}/{action}/{object_id?}', 'HomeController@index');
+});
 
 //Guest views web
 Route::middleware(['guest'])->controller(GuestController::class)->group(function() {

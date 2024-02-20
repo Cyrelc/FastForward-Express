@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Account;
-use App\User;
+use App\Models\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -15,7 +15,7 @@ class AccountPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function create(User $user) {
@@ -43,7 +43,7 @@ class AccountPolicy
     /**
      * Determine whether the user can view any models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
     */
     public function viewAll(User $user) {
@@ -58,7 +58,7 @@ class AccountPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Account  $account
      * @return mixed
      */
@@ -75,7 +75,7 @@ class AccountPolicy
     /**
      * Determine whether the user can view account Users assigned to the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Account  $account
      * @return mixed
      */
@@ -92,7 +92,7 @@ class AccountPolicy
     /**
      * Determine whether the user can view the activity log for model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Account  $account
      * @return mixed
      */
@@ -139,7 +139,7 @@ class AccountPolicy
     /**
      * Determine whether the user can view the payments for the model
      * 
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @param \App\Account $account
      * @return mixed
      */
@@ -175,7 +175,7 @@ class AccountPolicy
     /**
      * Updates are handled in sections - as different users have different sections
      * Determine whether the user can update the "Advanced" section of the model
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @param \App\Account $account
      * return mixed
      */
@@ -185,7 +185,7 @@ class AccountPolicy
 
     /**
      * Determine whether the user can update the "basic" section of the model
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @param \App\Account $account
      * return mixed
      */
@@ -201,7 +201,7 @@ class AccountPolicy
 
     /**
      * Determine whether the user can update the "invoicing" section of the model
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @param \App\Account $account
      * return mixed
      */
@@ -222,7 +222,7 @@ class AccountPolicy
 
     /**
      * Determine whether a user can manage payment methods for their account
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @param \App\Account $account
      * @return mixed
      */

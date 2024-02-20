@@ -38,7 +38,7 @@ class PartialsValidationRules {
         ];
         if($userId) {
             foreach($req->email_addresses as $key => $email) {
-                $existingUser = \App\User::where(['email' => $email['email']])->first();
+                $existingUser = \App\Models\User::where(['email' => $email['email']])->first();
                 if($existingUser) {
                     $accountsList = [];
                     foreach($existingUser->accountUsers as $accountUser) {

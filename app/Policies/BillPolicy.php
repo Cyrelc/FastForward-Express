@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Bill;
-use App\User;
+use App\Models\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -21,7 +21,7 @@ class BillPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function createBasic(User $user) {
@@ -35,7 +35,7 @@ class BillPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function createFull(User $user) {
@@ -45,7 +45,7 @@ class BillPolicy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\Bill  $bill
      * @return mixed
      */
@@ -57,7 +57,7 @@ class BillPolicy
     /**
      * Determine whether the user can update the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\Bill  $bill
      * @return mixed
      */
@@ -89,7 +89,7 @@ class BillPolicy
     /**
      * Determine whether the user can view any models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function viewAny(User $user) {
@@ -100,7 +100,7 @@ class BillPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\Bill  $bill
      * @return mixed
      */

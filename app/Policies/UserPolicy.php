@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\User;
+use App\Models\User;
 use App\Http\Repos;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -27,8 +27,8 @@ class UserPolicy
     /**
      * Determine whether the user can change password
      *
-     * @param  \App\User  $user
-     * @param  \App\User  $targetUser
+     * @param  \App\Models\User  $user
+     * @param  \App\Models\User  $targetUser
      * @return mixed
      */
     public function updatePassword(User $user, User $targetUser) {

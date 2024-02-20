@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\AccountUser;
-use App\User;
+use App\Models\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -14,7 +14,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
@@ -36,7 +36,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can view permissions for the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
@@ -53,7 +53,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can edit basic fields for the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
@@ -74,7 +74,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can view permissions for the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
@@ -101,7 +101,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can view activityLog for the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
@@ -118,7 +118,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function create(User $user) {
@@ -129,7 +129,7 @@ class AccountUserPolicy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */

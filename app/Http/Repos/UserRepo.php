@@ -3,7 +3,7 @@ namespace App\Http\Repos;
 
 use App\Models\AccountUser;
 use App\Models\Employee;
-use App\User;
+use App\Models\User;
 use App\UserSettings;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -116,7 +116,7 @@ class UserRepo
 
     public function GetUserByEmployeeId($employeeId) {
         $employee = Employee::where('employee_id', $employeeId)->first();
-        $user = \App\User::where('user_id', $employee->user_id)->first();
+        $user = \App\Models\User::where('user_id', $employee->user_id)->first();
 
         return $user;
     }

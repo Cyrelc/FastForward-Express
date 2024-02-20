@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Payment;
-use App\User;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class PaymentPolicy
@@ -13,7 +13,7 @@ class PaymentPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return mixed
      */
     public function create(User $user) {

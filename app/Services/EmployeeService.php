@@ -117,7 +117,6 @@ class EmployeeService {
          * End Permissions
          */
         DB::commit();
-
         return $employee;
     }
 
