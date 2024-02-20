@@ -25,6 +25,8 @@ class EmployeeService {
     }
 
     public function create($employeeData) {
+        DB::beginTransaction();
+
         $contact = $this->contactService->create($employeeData['contact']);
 
         $userData = [
@@ -40,6 +42,8 @@ class EmployeeService {
         $employee = Employee::create($employeeData);
         // TODO - move permissions to be a user (or permissions?) responsibility, because that's the model they reference
         $this->handlePermissions($employeeData['permissions'], $user);
+
+        DB::commit();
 
         return $employee;
     }
