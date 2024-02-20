@@ -4,7 +4,7 @@ namespace App\Http\Repos;
 use App\Models\Account;
 use App\Models\AccountUser;
 use App\Models\AccountInvoiceSortOrder;
-use App\InvoiceSortOption;
+use App\Models\InvoiceSortOption;
 use App\Http\Filters\IsNull;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;

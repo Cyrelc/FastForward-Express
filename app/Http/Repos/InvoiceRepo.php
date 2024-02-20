@@ -8,7 +8,7 @@ use DB;
 use App\Models\Account;
 use App\Models\Bill;
 use App\Models\Invoice;
-use App\InvoiceSortOptions;
+use App\Models\InvoiceSortOptions;
 use App\LineItem;
 use App\Payment;
 use App\Http\Filters\DateBetween;
