@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\Models\AccountUser;
 use App\Models\ActivityLog;
+use App\Models\Address;
 use App\Employee;
 use App\Models\EmailAddress;
 use App\Models\PhoneNumber;
@@ -14,10 +15,6 @@ class ActivityLogRepo {
         $userRepo = new UserRepo();
         $account = $accountRepo->GetById($accountId);
         $activity = ActivityLog::where([['subject_type', 'App\Account'], ['subject_id', $accountId]])
-            ->orWhere(function($addresses) use ($account) {
-                $addresses->where('subject_type', 'App\Address');
-                $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
-            })
             ->orWhere(function($addresses) use ($account) {
                 $addresses->where('subject_type', 'App\Models\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
@@ -44,15 +41,11 @@ class ActivityLogRepo {
             ->orWhere([['subject_type', 'App\Models\Contact'], ['subject_id', $contactId]])
             ->orWhere([['subject_type', 'App\User'], ['subject_id', $userId[0]]])
             ->orWhere(function($phones) use ($phoneNumberIds) {
-                $phones->where('subject_type', 'App\PhoneNumber');
-                $phones->whereIn('subject_id', $phoneNumberIds->toArray());
-            })
-            ->orWhere(function($phones) use ($phoneNumberIds) {
                 $phones->where('subject_type', 'App\Models\PhoneNumber');
                 $phones->whereIn('subject_id', $phoneNumberIds->toArray());
             })
             ->orWhere(function($emails) use ($emailAddressIds) {
-                $emails->where('subject_type', 'App\EmailAddress');
+                $emails->where('subject_type', 'App\Models\EmailAddress');
                 $emails->whereIn('subject_id', $emailAddressIds->toArray());
             })->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
             ->select(
@@ -76,15 +69,15 @@ class ActivityLogRepo {
 
         $activity = ActivityLog::leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
             ->where('log_name', '!=', 'system_debug')
-            ->where([['subject_type', 'App\Bill'], ['subject_id', $billId]])
-            ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->pickup_address_id]])
-            ->orWhere([['subject_type', 'App\Address'], ['subject_id', $bill->delivery_address_id]])
+            ->where([['subject_type', 'App\Models\Bill'], ['subject_id', $billId]])
+            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->pickup_address_id]])
+            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->delivery_address_id]])
             ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->delivery_address_id]])
             ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->pickup_address_id]])
-            ->orWhere([['subject_type', '=', 'App\Charge'], ['properties', 'like', '%"bill_id":' . $bill->bill_id . '%']]);
+            ->orWhere([['subject_type', '=', 'App\Models\Charge'], ['properties', 'like', '%"bill_id":' . $bill->bill_id . '%']]);
 
         foreach($charges as $charge)
-            $activity->orWhere([['subject_type', 'App\LineItem'], ['properties', 'like', '%"charge_id":' . $charge->charge_id . '%']]);
+            $activity->orWhere([['subject_type', 'App\Models\LineItem'], ['properties', 'like', '%"charge_id":' . $charge->charge_id . '%']]);
 
         $activity->select(
             'activity_log.updated_at',
@@ -104,29 +97,29 @@ class ActivityLogRepo {
         $contactIds = \App\EmployeeEmergencyContact::where('employee_id', $employeeId)->pluck('contact_id')->toArray();
         array_push($contactIds, $employee->contact_id);
 
-        $emailIds = \App\Models\EmailAddress::whereIn('contact_id', $contactIds)->pluck('email_address_id')->toArray();
-        $phoneIds = \App\Models\PhoneNumber::whereIn('contact_id', $contactIds)->pluck('phone_number_id')->toArray();
-        $addressIds = \App\Models\Address::whereIn('contact_id', $contactIds)->pluck('address_id')->toArray();
+        $emailIds = EmailAddress::whereIn('contact_id', $contactIds)->pluck('email_address_id')->toArray();
+        $phoneIds = PhoneNumber::whereIn('contact_id', $contactIds)->pluck('phone_number_id')->toArray();
+        $addressIds = Address::whereIn('contact_id', $contactIds)->pluck('address_id')->toArray();
 
         $activity = ActivityLog::where([['subject_type', 'App\Employee'], ['subject_id', $employeeId]])
             ->orWhere(function($contacts) use ($contactIds) {
-                $contacts->whereIn('subject_type', ['App\Contact', 'App\Models\Contact']);
+                $contacts->whereIn('subject_type', ['App\Models\Contact']);
                 $contacts->whereIn('subject_id', $contactIds);
             })
             ->orWhere(function($addresses) use ($addressIds) {
-                $addresses->whereIn('subject_type', ['App\Address', 'App\Models\Address']);
+                $addresses->whereIn('subject_type', ['App\Models\Address']);
                 $addresses->whereIn('subject_id', $addressIds);
             })
             ->orWhere(function($emails) use ($emailIds) {
-                $emails->whereIn('subject_type', ['App\EmailAddress', 'App\Models\EmailAddress']);
+                $emails->whereIn('subject_type', ['App\Models\EmailAddress']);
                 $emails->whereIn('subject_id', $emailIds);
             })
             ->orWhere(function($phones) use ($phoneIds) {
-                $phones->whereIn('subject_type', ['App\PhoneNumber', 'App\Models\PhoneNumber']);
+                $phones->whereIn('subject_type', ['App\Models\PhoneNumber']);
                 $phones->whereIn('subject_id', $phoneIds);
             })
             ->orWhere(function ($users) use ($employee) {
-                $users->where('subject_type', 'App\User');
+                $users->where('subject_type', 'App\Models\User');
                 $users->where('subject_id', $employee->user_id);
             })
             ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
