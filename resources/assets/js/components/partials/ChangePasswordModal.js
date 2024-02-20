@@ -1,38 +1,51 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
+import {useAPI} from '../../contexts/APIContext'
+import {toast} from 'react-toastify'
 
 export default function ChangePasswordModal(props) {
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [viewPassword, setViewPassword] = useState(false)
 
-    const generatePassword = () => {
-        makeFetchRequest('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2&minCh=20', data => {
+    const api = useAPI();
+
+    useEffect(() => {
+        if(props.show)
+            generatePassword()
+    }, [props.show])
+
+    const generatePassword = async () => {
+        await fetch('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2&minCh=20', {
+                method: 'GET',
+        }).then(response => {return response.json()})
+        .then(data => {
             setNewPassword(data.pws[0])
             setConfirmPassword(data.pws[0])
             setViewPassword(true)
         })
     }
 
-    const sendResetPasswordEmail = () => {
-        makeAjaxRequest(`/users/sendPasswordReset/${props.userId}`, 'GET', null, response => {
-            toastr.success(`Password reset email sent to ${response.email}`, 'Success', {
-                'positionClass': 'toast-top-center'
+    const sendResetPasswordEmail = async() => {
+        await api.get(`/users/sendPasswordReset/${props.userId}`)
+            .then(data => {
+                toast.success(`Password reset email sent to ${response.email}`, {
+                    position: 'top-center',
+                })
+                props.toggleModal()
             })
-            props.toggleModal()
-        })
     }
 
-    const submitChangePassword = () => {
+    const submitChangePassword = async() => {
         const data = {
             password: newPassword,
             password_confirmation: confirmPassword
         }
-        makeAjaxRequest(`/users/changePassword/${props.userId}`, 'POST', data, response => {
-            toastr.clear()
-            props.toggleModal()
-            toastr.success('Password was successfully changed', 'Success')
-        })
+        await api.post(`/users/changePassword/${props.userId}`, data)
+            .then(data => {
+                props.toggleModal()
+                toast.success('Password successfully changed')
+            })
     }
 
     return(

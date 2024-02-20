@@ -166,32 +166,6 @@ function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
     })
 }
 
-function makeFetchRequest(url, callback) {
-    fetch(url)
-    .then(response => {
-        if(response.redirected && response.url.toString().toLowerCase().indexOf('/login') > -1) {
-            location.reload()
-            return Promise.reject(response)
-        } else if (!response.ok) {
-            if(response.statusCode === 404)
-                window.location.href = '/'
-            else if(response.statusCode === 500) {
-                toastr.clear()
-                toastr.error('An unexpected error was encountered. Please contact support.')
-            }
-            else {
-                toastr.clear()
-                toastr.error(response.error, '', {'timeOut' : 0, 'extendedTImeout' : 0});
-            }
-
-            return Promise.reject(response)
-        }
-
-        return response.json()
-    })
-    .then(data => callback(data))
-}
-
 Date.prototype.addDays = function(days) {
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);

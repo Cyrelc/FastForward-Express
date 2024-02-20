@@ -38,7 +38,7 @@ import Search from '../search/Search'
 import UserSettings from '../users/UserSettings'
 
 function App(props) {
-    const [showChangePasswordModal, setShowPasswordChangeModal] = useState(false)
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -53,7 +53,7 @@ function App(props) {
     }, [props.homePage])
 
     const toggleChangePasswordModal = () => {
-        setShowPasswordChangeModal(!showPasswordChangeModal)
+        setShowChangePasswordModal(!showChangePasswordModal)
     }
 
     if(loading)
@@ -154,13 +154,11 @@ function App(props) {
                                 </Switch></Col>
                             </Row>
                         </main>
-                        {showChangePasswordModal &&
-                            <ChangePasswordModal
-                                show={showChangePasswordModal}
-                                userId={props.authenticatedUserId}
-                                toggleModal={toggleChangePasswordModal}
-                            />
-                        }
+                        <ChangePasswordModal
+                            show={showChangePasswordModal}
+                            userId={props.authenticatedUserId}
+                            toggleModal={toggleChangePasswordModal}
+                        />
                     </div>
                 </ProSidebarProvider>
             </APIProvider>
