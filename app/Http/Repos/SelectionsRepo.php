@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Selection;
+use App\Models\Selection;
 
 class SelectionsRepo {
 	public function GetSelectionsByType($type) {

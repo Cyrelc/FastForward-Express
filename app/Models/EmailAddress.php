@@ -19,7 +19,7 @@ class EmailAddress extends Model
     protected $casts = ['type' => 'array'];
 
     public function typeSelections() {
-        return \App\Selection::where('type', 'contact_type')->select('name as label', 'selection_id as value')->get();
+        return Selection::where('type', 'contact_type')->select('name as label', 'selection_id as value')->get();
     }
 
     public function getActivityLogOptions() : LogOptions {
