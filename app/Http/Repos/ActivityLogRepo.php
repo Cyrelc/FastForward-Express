@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\AccountUser;
+use App\Models\AccountUser;
 use App\ActivityLog;
 use App\Employee;
 use App\Models\EmailAddress;

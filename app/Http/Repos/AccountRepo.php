@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\Account;
-use App\AccountUser;
+use App\Models\AccountUser;
 use App\Models\AccountInvoiceSortOrder;
 use App\InvoiceSortOption;
 use App\Http\Filters\IsNull;

@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\AccountUser;
+use App\Models\AccountUser;
 use App\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -15,7 +15,7 @@ class AccountUserPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function view(User $user, AccountUser $accountUser)
@@ -37,7 +37,7 @@ class AccountUserPolicy
      * Determine whether the user can view permissions for the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function viewPermissions(User $user, AccountUser $accountUser) {
@@ -54,7 +54,7 @@ class AccountUserPolicy
      * Determine whether the user can edit basic fields for the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function updateBasic(User $user, AccountUser $accountUser) {
@@ -75,7 +75,7 @@ class AccountUserPolicy
      * Determine whether the user can view permissions for the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function updatePermissions(User $user, AccountUser $accountUser) {
@@ -102,7 +102,7 @@ class AccountUserPolicy
      * Determine whether the user can view activityLog for the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function viewActivityLog(User $user, AccountUser $accountUser) {
@@ -130,7 +130,7 @@ class AccountUserPolicy
      * Determine whether the user can delete the model.
      *
      * @param  \App\User  $user
-     * @param  \App\AccountUser  $accountUser
+     * @param  \App\Models\AccountUser  $accountUser
      * @return mixed
      */
     public function delete(User $user) {

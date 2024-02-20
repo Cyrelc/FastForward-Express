@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\AccountUser;
+use App\Models\AccountUser;
 use App\User;
 use App\UserSettings;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Permission;
 class UserRepo
 {
     public function AddUserToAccountUser($contactId, $userId) {
-        $accountUser = \App\AccountUser::where('contact_id', $contactId)->first();
+        $accountUser = AccountUser::where('contact_id', $contactId)->first();
 
         $accountUser->user_id = $userId;
 
@@ -28,7 +28,7 @@ class UserRepo
     }
 
     public function CountAccountUsers($accountId) {
-        $count = \App\AccountUser::where('account_id', $accountId)->count();
+        $count = AccountUser::where('account_id', $accountId)->count();
 
         return $count;
     }
@@ -143,7 +143,7 @@ class UserRepo
     }
 
     public function InsertAccountUser($accountUser) {
-        $new = new \App\AccountUser;
+        $new = new AccountUser;
 
         $accountUserCount = AccountUser::where('account_id', $accountUser['account_id'])->count();
         if($accountUserCount > 0)
@@ -160,7 +160,7 @@ class UserRepo
         $userId = AccountUser::where('contact_id', $contactId)->pluck('user_id');
 
         $accountUserCount = AccountUser::where('account_id', $accountId)->count();
-        $new = new \App\AccountUser;
+        $new = new AccountUser;
 
         $new->create(['account_id' => $accountId, 'contact_id' => $contactId, 'is_primary' => $accountUserCount == 0, 'user_id' => $userId[0]]);
 

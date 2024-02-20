@@ -6,9 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Account;
+use App\Models\AccountUser;
 use App\Bill;
 use App\Charge;
-use App\AccountUser;
 use App\Models\EmailAddress;
 use App\Employee;
 use App\Invoice;
