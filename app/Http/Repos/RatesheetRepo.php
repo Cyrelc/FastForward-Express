@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\Ratesheet;
-use App\Zone;
+use App\Models\Zone;
 use Illuminate\Support\Facades\Auth;
 
 class RatesheetRepo {
