@@ -2,8 +2,11 @@ import React from 'react'
 import {Badge, Card} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import ReactDOM from 'react-dom'
+import {useHistory} from 'react-router-dom'
 
 export default function PaymentTable(props) {
+    const history = useHistory()
+
     const formatPaymentIntentStatus = cell => {
         if(!cell.getValue())
             return ''
@@ -63,7 +66,7 @@ export default function PaymentTable(props) {
         ] : [],
         {title: 'Payment ID', field: 'payment_id', visible: false},
         ...props.showAccountFields ? [
-            {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/invoices/'}, sorter: 'number', headerFilter: true},
+            {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/invoices/', history.push), sorter: 'number', headerFilter: true},
             {title: 'Invoice Date', field: 'invoice_date'},
         ] : [],
         {title: 'Payment Received On', field: 'date'},
