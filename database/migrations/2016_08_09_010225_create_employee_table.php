@@ -30,7 +30,7 @@ class CreateEmployeeTable extends Migration
             $table->datetime('license_plate_expiration_date')->nullable();
             $table->string('license_plate_number')->nullable();
             $table->float('pickup_commission')->nullable();
-            $table->string('sin');
+            $table->string('sin')->nullable();
             $table->date('start_date');
             $table->unsignedInteger('user_id');
             $table->unsignedInteger('vehicle_type_id')->nullable();
