@@ -7,7 +7,7 @@ use App\Models\Chargeback;
 use App\Models\DriverChargeback;
 use App\Models\Employee;
 use App\Models\LineItem;
-use App\Manifest;
+use App\Models\Manifest;
 use App\Http\Filters\DateBetween;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;

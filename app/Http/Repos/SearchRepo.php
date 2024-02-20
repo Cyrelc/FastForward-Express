@@ -12,7 +12,7 @@ use App\Models\Charge;
 use App\Models\EmailAddress;
 use App\Models\Employee;
 use App\Models\Invoice;
-use App\Manifest;
+use App\Models\Manifest;
 
 class SearchRepo {
     private $user;
