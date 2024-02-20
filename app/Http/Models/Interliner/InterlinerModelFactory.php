@@ -3,7 +3,8 @@
 namespace App\Http\Models\Interliner;
 
 use App\Http\Repos;
-use App\Http\Models\Interliner;
+use App\Models\Address;
+use App\Models\Interliner;
 
 class InterlinerModelFactory{
 
@@ -27,8 +28,8 @@ class InterlinerModelFactory{
 
 	public function GetCreateModel($req) {
 		$model = new InterlinerFormModel();
-		$model->interliner = new \App\Interliner();
-		$model->interliner->address = new \App\Models\Address();
+		$model->interliner = new Interliner();
+		$model->interliner->address = new Address();
 
 		return $model;
 	}

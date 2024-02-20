@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Interliner;
+use App\Models\Interliner;
 
 class InterlinerRepo {
 

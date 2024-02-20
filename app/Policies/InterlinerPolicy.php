@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Interliner;
+use App\Models\Interliner;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -25,7 +25,7 @@ class InterlinerPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Interliner  $interliner
+     * @param  \App\Models\Interliner  $interliner
      * @return mixed
      */
     public function view(User $user, Interliner $interliner)
@@ -48,7 +48,7 @@ class InterlinerPolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Interliner  $interliner
+     * @param  \App\Models\Interliner  $interliner
      * @return mixed
      */
     public function update(User $user, Interliner $interliner)
