@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\Charge;
-use App\LineItem;
+use App\Models\LineItem;
 use Illuminate\Support\Facades\DB;
 
 class LineItemRepo {

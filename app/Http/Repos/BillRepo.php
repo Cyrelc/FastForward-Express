@@ -12,7 +12,7 @@ use App\Http\Filters\IsNull;
 
 use App\Models\Account;
 use App\Models\Bill;
-use App\LineItem;
+use App\Models\LineItem;
 use DB;
 use Illuminate\Support\Facades\Auth;
 

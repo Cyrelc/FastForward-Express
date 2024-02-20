@@ -9,7 +9,7 @@ use App\Models\Account;
 use App\Models\Bill;
 use App\Models\Invoice;
 use App\Models\InvoiceSortOptions;
-use App\LineItem;
+use App\Models\LineItem;
 use App\Payment;
 use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
