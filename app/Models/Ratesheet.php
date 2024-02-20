@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -8,7 +8,7 @@ use Spatie\Activitylog\LogOptions;
 
 class Ratesheet extends Model
 {
-    public $primaryKey = "ratesheet_id";
+    public $primaryKey = 'ratesheet_id';
 
     protected $fillable = ['name', 'use_internal_zones_calc', 'delivery_types', 'weight_rates', 'zone_rates', 'time_rates', 'misc_rates'];
     public $timestamps = false;

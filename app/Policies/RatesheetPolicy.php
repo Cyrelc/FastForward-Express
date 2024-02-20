@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Ratesheet;
+use App\Models\Ratesheet;
 use App\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -40,7 +40,7 @@ class RatesheetPolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Ratesheet  $ratesheet
+     * @param  \App\Models\Ratesheet  $ratesheet
      * @return mixed
      */
     public function update(User $user, Ratesheet $ratesheet) {
@@ -51,7 +51,7 @@ class RatesheetPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\User  $user
-     * @param  \App\Ratesheet  $ratesheet
+     * @param  \App\Models\Ratesheet  $ratesheet
      * @return mixed
      */
     public function view(User $user, Ratesheet $ratesheet) {

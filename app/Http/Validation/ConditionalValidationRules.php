@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Validation;
 
-use App\Ratesheet;
+use App\Models\Ratesheet;
 use App\Http\Repos;
 use Illuminate\Validation\Rule;
 

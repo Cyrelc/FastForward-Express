@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\Conditional;
-use App\Ratesheet;
+use App\Models\Ratesheet;
 
 class ConditionalRepo {
     public function Delete($conditionalId) {

@@ -57,7 +57,7 @@ class Account extends Model
     }
 
     public function ratesheet() {
-        return $this->belongsTo('App\Ratesheet');
+        return $this->belongsTo(Ratesheet::class);
     }
 
     public function shipping_address() {

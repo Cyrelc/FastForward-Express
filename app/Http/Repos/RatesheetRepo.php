@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Ratesheet;
+use App\Models\Ratesheet;
 use App\Zone;
 use Illuminate\Support\Facades\Auth;
 
