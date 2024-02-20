@@ -42,10 +42,10 @@ class StoreContactRequest extends FormRequest
             'contact.last_name' => 'required',
             'contact.phone_numbers' => ['required', 'array', new SinglePrimary],
             'contact.phone_numbers.*.phone_number' => ['required','regex:/^(?:\([2-9]\d{2}\)\ ?|[2-9]\d{2}(?:\-?|\ ?))[2-9]\d{2}[- ]?\d{4}$/'],
-            // 'contact.phone_numbers.*.phone_number_id' => 'required|nullable',
-            'contact.phone_numbers.*.is_primary' => 'required',
+            'contact.phone_numbers.*.phone_number_id' => ['nullable', 'present', 'integer'],
+            'contact.phone_numbers.*.is_primary' => 'required|boolean',
             'contact.phone_numbers.*.type' => 'required',
-            'contact.phone_numbers.*.delete' => 'sometimes',
+            'contact.phone_numbers.*.delete' => 'sometimes|boolean',
             'contact.position' => 'nullable|sometimes',
             'contact.preferred_name' => 'nullable|string|max:255',
             'contact.pronouns' => 'nullable|array'
