@@ -3,7 +3,7 @@ namespace App\Http\Repos;
 
 use DB;
 use App\Models\Chargeback;
-use App\DriverChargeback;
+use App\Models\DriverChargeback;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
