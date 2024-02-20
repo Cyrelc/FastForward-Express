@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Payment;
+use App\Models\Payment;
 use App\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 

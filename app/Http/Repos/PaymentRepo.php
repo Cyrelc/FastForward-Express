@@ -1,7 +1,7 @@
 <?php
 namespace App\Http\Repos;
 
-use App\Payment;
+use App\Models\Payment;
 use App\PaymentType;
 use Illuminate\Support\Facades\DB;
 
