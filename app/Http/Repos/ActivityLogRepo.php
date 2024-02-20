@@ -2,7 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\AccountUser;
-use App\ActivityLog;
+use App\Models\ActivityLog;
 use App\Employee;
 use App\Models\EmailAddress;
 use App\Models\PhoneNumber;
