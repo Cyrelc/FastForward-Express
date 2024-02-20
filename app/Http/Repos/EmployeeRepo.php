@@ -3,8 +3,7 @@ namespace App\Http\Repos;
 
 use DB;
 use App\Models\Employee;
-use App\EmployeeCommission;
-use App\EmployeeEmergencyContact;
+use App\Models\EmployeeEmergencyContact;
 use App\User;
 use App\Http\Filters\IsNull;
 use Spatie\QueryBuilder\QueryBuilder;

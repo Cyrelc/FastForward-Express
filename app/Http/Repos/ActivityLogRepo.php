@@ -4,8 +4,9 @@ namespace App\Http\Repos;
 use App\Models\AccountUser;
 use App\Models\ActivityLog;
 use App\Models\Address;
-use App\Models\Employee;
 use App\Models\EmailAddress;
+use App\Models\Employee;
+use App\Models\EmployeeEmergencyContact;
 use App\Models\PhoneNumber;
 use DB;
 
@@ -94,7 +95,7 @@ class ActivityLogRepo {
     public function GetEmployeeActivityLog($employeeId) {
         $employee = Employee::find($employeeId);
 
-        $contactIds = \App\EmployeeEmergencyContact::where('employee_id', $employeeId)->pluck('contact_id')->toArray();
+        $contactIds = EmployeeEmergencyContact::where('employee_id', $employeeId)->pluck('contact_id')->toArray();
         array_push($contactIds, $employee->contact_id);
 
         $emailIds = EmailAddress::whereIn('contact_id', $contactIds)->pluck('email_address_id')->toArray();

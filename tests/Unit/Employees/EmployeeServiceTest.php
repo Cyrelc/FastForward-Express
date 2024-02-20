@@ -6,7 +6,7 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use App\Models\Employee;
-use App\EmployeeEmergencyContact;
+use App\Models\EmployeeEmergencyContact;
 use App\User;
 use App\Models\Address;
 use App\Models\Contact;

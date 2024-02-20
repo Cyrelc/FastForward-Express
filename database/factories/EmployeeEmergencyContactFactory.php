@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Employee;
-use App\EmployeeEmergencyContact;
+use App\Models\EmployeeEmergencyContact;
 use App\Models\Contact;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

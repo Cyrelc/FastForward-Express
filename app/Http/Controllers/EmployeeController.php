@@ -6,7 +6,7 @@ namespace App\Http\Controllers;
 use App\Http\Repos;
 use App\Http\Collectors;
 use App\Models\Employee;
-use App\EmployeeEmergencyContact;
+use App\Models\EmployeeEmergencyContact;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Resources\EmergencyContactListResource;
 use App\Http\Resources\CreateEmployeeResource;
