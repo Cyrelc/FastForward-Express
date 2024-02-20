@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Query;
+use App\Models\Query;
 use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Validation;

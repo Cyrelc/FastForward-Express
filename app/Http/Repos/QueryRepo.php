@@ -2,7 +2,7 @@
 
 namespace App\Http\Repos;
 
-use App\Query;
+use App\Models\Query;
 use Illuminate\Support\Facades\Auth;
 
 class QueryRepo {
