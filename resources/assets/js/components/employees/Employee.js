@@ -118,7 +118,7 @@ export default function Employee(props) {
 
     const debouncedWarnings = useCallback(
         debounce(() => {
-            if(isEnabled && employeeId) {
+            if(isDriver && isEnabled && employeeId) {
                 // toastr.clear()
                 if(driversLicenseExpirationDate < now)
                     toast.error('Drivers License has passed expiration date', {toastId: `${employeeId}-dln-expiry`})
