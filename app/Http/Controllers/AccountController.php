@@ -77,7 +77,7 @@ class AccountController extends Controller {
         if($req->user()->cannot('viewPayments', $account))
             abort(403);
 
-        $accountModelFactory = new Account\AccountModelFactory();
+        $accountModelFactory = new Models\Account\AccountModelFactory();
         $billingModel = $accountModelFactory->GetBillingModel($accountId);
 
         return json_encode($billingModel);
