@@ -58,8 +58,13 @@ class PaymentIntentProcessor {
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
                 ]);
 
-                if($newStatus == 'succeeded')
+                if($newStatus == 'succeeded') {
+                    activity('payment_intent')
+                        ->performedOn($payment)
+                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->type, 'amount' => $paymentAmount])
+                        ->log('[ReceiveStripeWebhook.handle] succeeded');
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
+                }
                 if($newStatus == 'canceled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
             } else {
