@@ -11,12 +11,11 @@ use Illuminate\Queue\SerializesModels;
 
 use App\Services\PaymentIntentProcessor;
 
-class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
-{
+class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 5;
-    public $uniqueFor = 600;
+    public $uniqueFor = 3600;
 
     protected $event;
 
@@ -25,8 +24,7 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct($event)
-    {
+    public function __construct($event) {
         activity('jobs')->log('Creating pending job for Stripe transaction ' . $event->data->object->id);
         $this->event = $event;
     }
@@ -36,13 +34,16 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function handle(PaymentIntentProcessor $processor)
-    {
+    public function handle(PaymentIntentProcessor $processor) {
         activity('jobs')->log('Handling pending job for Stripe transaction: ' . $this->event->data->object->id);
         $processor->ProcessPaymentIntent($this->event);
     }
 
     public function backoff() {
         return [1, 2, 3, 5, 10, 20, 30];
+    }
+
+    public function uniqueId() {
+        return $this->event->data->object->id;
     }
 }
