@@ -25,7 +25,7 @@ export default function PaymentTable(props) {
         else if(status == 'Processing')
             variant = 'primary'
 
-        ReactDOM.render(<Badge bg={variant}>{status}</Badge>, element)
+        ReactDOM.render(<Badge bg={variant} title={`${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>, element)
 
         return element
     }
@@ -80,6 +80,8 @@ export default function PaymentTable(props) {
         {title: 'Comment', field: 'comment', formatter: 'textarea'},
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
         {title: 'Payment Status', field: 'payment_intent_status', formatter: formatPaymentIntentStatus},
+        {title: 'Error', field: 'error', visible: false},
+        {title: 'payment_intent_id', field: 'payment_intent_id', visible: false}
     ]
 
     return (
