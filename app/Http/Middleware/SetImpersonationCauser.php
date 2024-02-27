@@ -16,7 +16,7 @@ class SetImpersonationCauser {
      */
     public function handle(Request $request, Closure $next): Response {
         if(session('original_user_id')) {
-            $originalUser = User::where('user_id', session('original_user_id'))->first();
+            $originalUser = User::findOrFail(session('original_user_id'));
             if($originalUser) {
                 CauserResolver::setCauser($originalUser);
             }

@@ -29,7 +29,7 @@ class PermissionRepo {
     }
 
     public function GetByUserId($userId) {
-        $user = User::where('user_id', $userId)->first();
+        $user = User::find($userId);
 
         return $user->getAllPermissions();
     }

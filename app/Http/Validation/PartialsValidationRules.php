@@ -44,7 +44,7 @@ class PartialsValidationRules {
                     foreach($existingUser->accountUsers as $accountUser) {
                         $accountsList[] = $accountUser->account_id;
                     }
-                    $rules = array_merge($rules, ['email_addresses.' . $key . '.email' => 'unique:users,email,' . $userId . ',user_id']);
+                    $rules = array_merge($rules, ['email_addresses.' . $key . '.email' => 'unique:users,email,' . $userId . ',id']);
                     $messages = array_merge($messages, ['email_addresses.' . $key . '.email.unique' => 'Requested email address is being used for login on account ' . implode(',', $accountsList) . '. Please select another.']);
                 }
             }

@@ -36,7 +36,7 @@ class EmployeeService {
 
         $user = $this->userService->create($userData);
 
-        $employeeData['user_id'] = $user->user_id;
+        $employeeData['user_id'] = $user->id;
         $employeeData['contact_id'] = $contact->contact_id;
 
         $employee = Employee::create($employeeData);
@@ -80,7 +80,7 @@ class EmployeeService {
     }
 
     public function list($enabledOnly = false) {
-        $employees = Employee::leftJoin('users', 'users.user_id', 'employees.user_id');
+        $employees = Employee::leftJoin('users', 'users.id', 'employees.user_id');
 
         if($enabledOnly)
             $employees->where('is_enabled', true);
@@ -98,7 +98,7 @@ class EmployeeService {
 
         $employee = Employee::find($employeeData['employee_id']);
         $employeeData['contact']['contact_id'] = $employee->contact->contact_id;
-        $employeeData['user_id'] = $employee->user->user_id;
+        $employeeData['user_id'] = $employee->user_id;
 
         $contact = $this->contactService->update($employeeData['contact']);
 

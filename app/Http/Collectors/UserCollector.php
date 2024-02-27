@@ -22,7 +22,7 @@ class UserCollector {
             // 'username' => substr($req->first_name, 0, 1) . $req->last_name,
             'is_enabled' => filter_var($req->is_enabled, FILTER_VALIDATE_BOOLEAN),
             'email' => $primaryEmail,
-            'user_id' => $userId
+            'id' => $userId
         ];
 
         return $user;

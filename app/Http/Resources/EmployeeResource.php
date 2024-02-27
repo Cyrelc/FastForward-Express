@@ -19,7 +19,7 @@ class EmployeeResource extends JsonResource {
 
     private function basicFields() {
         $basicFields = [
-            'contact' => new ContactResource($this->contact),
+            'contact' => new ContactResource($this->user->contact),
             'employee_id' => $this->employee_id,
             'is_driver' => $this->is_driver,
             'is_enabled' => $this->user->is_enabled,

@@ -25,7 +25,7 @@ class UserRepo
         $old = $this->GetById($userId);
 
         $old->password = Hash::make($password);
-        $old->save();
+        return $old->save();
     }
 
     public function CountAccountUsers($accountId) {
@@ -51,7 +51,7 @@ class UserRepo
 
         if(AccountUser::where('contact_id', $contactId)->count() == 0) {
             $settings = \App\UserSettings::where('user_id', $userId)->delete();
-            $user = User::where('user_id', $userId)->delete();
+            $user = User::find($userId)->delete();
             $contactRepo = new ContactRepo();
             $contactRepo->Delete($contactId);
         }
@@ -67,7 +67,7 @@ class UserRepo
     public function GetAccountUsers($accountId) {
         $accountUsers = AccountUser::where('account_id', $accountId)
             ->leftJoin('contacts', 'account_users.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('users', 'account_users.user_id', '=', 'users.user_id')
+            ->leftJoin('users', 'account_users.user_id', '=', 'users.id')
             ->leftJoin('email_addresses', function($join) {
                 $join->on('account_users.contact_id', '=', 'email_addresses.contact_id')
                     ->where('email_addresses.is_primary', true);
@@ -78,7 +78,7 @@ class UserRepo
             })
             ->select(
                 'account_users.contact_id',
-                'users.user_id',
+                'user_id',
                 DB::raw('coalesce(preferred_name, concat(contacts.first_name, " ", contacts.last_name)) as name'),
                 'email_addresses.email as primary_email',
                 'phone_numbers.phone_number as primary_phone',
@@ -103,7 +103,7 @@ class UserRepo
     }
 
     public function GetById($userId) {
-        $user = User::where('user_id', '=', $userId)->first();
+        return User::findOrFail($userId);
 
         return $user;
     }
@@ -116,7 +116,7 @@ class UserRepo
 
     public function GetUserByEmployeeId($employeeId) {
         $employee = Employee::where('employee_id', $employeeId)->first();
-        $user = \App\Models\User::where('user_id', $employee->user_id)->first();
+        $user = \App\Models\User::where('id', $employee->user_id)->first();
 
         return $user;
     }
@@ -138,7 +138,7 @@ class UserRepo
         ));
 
         $new = $new->create($user);
-        $newUserSettings->create(['user_id' => $new->user_id]);
+        $newUserSettings->create(['user_id' => $new->id]);
 
         return $new;
     }
@@ -184,7 +184,7 @@ class UserRepo
     }
 
     public function Update($user, $updatePermissions = false) {
-        $old = $this->GetById($user['user_id']);
+        $old = $this->GetById($user['id']);
 
         // no support for usernames atm
         // $old->username = $user['username'];
