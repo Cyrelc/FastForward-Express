@@ -60,7 +60,7 @@ class EmployeeControllerTest extends TestCase {
         $employee = Employee::factory()->make();
         $contact = Contact::factory()->make();
         $address = Address::factory()->make();
-        $phoneNumbers = PhoneNumber::factory()->count(3)->make(['contact_id' => null]);
+        $phoneNumbers = PhoneNumber::factory()->count(3)->make(['contact_id' => null, 'phone_number_id' => null]);
         $phoneNumbers[2]->is_primary = true;
         $emailAddresses = EmailAddress::factory()->count(3)->make(['contact_id' => null]);
         $emailAddresses[0]->is_primary = true;
@@ -101,6 +101,7 @@ class EmployeeControllerTest extends TestCase {
             $this->assertDatabaseHas('email_addresses', $emailData);
         }
         foreach($phoneNumbers as $key => $phoneNumber)
+            unset($phoneNumber['phone_number_id']);
             $this->assertDatabaseHas('phone_numbers', array_merge($phoneNumber->toArray(), ['contact_id' => $responseJson['contact_id']]));
     }
 
