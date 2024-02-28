@@ -14,106 +14,75 @@ import LoadingSpinner from '../partials/LoadingSpinner'
 import {useAPI} from '../../contexts/APIContext'
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
+import useEmployee from './useEmployee'
 
 export default function Employee(props) {
-    const [activityLog, setActivityLog] = useState(undefined)
-    const [birthDate, setBirthDate] = useState(new Date())
-    const [companyName, setCompanyName] = useState('')
-    const [deliveryCommission, setDeliveryCommission] = useState('')
-    const [driversLicenseExpirationDate, setDriversLicenseExpirationDate] = useState(new Date())
-    const [driversLicenseNumber, setDriversLicenseNumber] = useState('')
-    const [employeeId, setEmployeeId] = useState(undefined)
-    const [employeeNumber, setEmployeeNumber] = useState('')
-    const [employeePermissions, setEmployeePermissions] = useState('')
-    const [insuranceExpirationDate, setInsuranceExpirationDate] = useState(new Date())
-    const [insuranceNumber, setInsuranceNumber] = useState('')
-    const [isDriver, setIsDriver] = useState(false)
-    const [isEnabled, setIsEnabled] = useState(true)
     const [isLoading, setIsLoading] = useState(true)
     const [key, setKey] = useState('basic')
-    const [licensePlateExpirationDate, setLicensePlateExpirationDate] = useState(new Date())
-    const [licensePlateNumber, setLicensePlateNumber] = useState('')
     const [nextEmployeeId, setNextEmployeeId] = useState(null)
     const [permissions, setPermissions] = useState([])
-    const [pickupCommission, setPickupCommission] = useState('')
     const [prevEmployeeId, setPrevEmployeeId] = useState('')
     const [readOnly, setReadOnly] = useState(false)
-    const [SIN, setSIN] = useState('')
-    const [startDate, setStartDate] = useState(new Date())
     const [updatedAt, setUpdatedAt] = useState('')
-    const [vehicleType, setVehicleType] = useState({})
-    const [vehicleTypes, setVehicleTypes] = useState([])
 
     const address = useAddress()
-    const contact = useContact()
     const api = useAPI()
+    const contact = useContact()
+    const employee = useEmployee()
     const history = useHistory()
     const now = DateTime.now().toJSDate()
     const threeMonthsFromNow = DateTime.now().plus({month: 3}).toJSDate()
+    const {
+        driversLicenseExpirationDate,
+        employeeId,
+        insuranceExpirationDate,
+        isDriver,
+        isEnabled,
+        licensePlateExpirationDate,
+    } = employee
 
-    useEffect(() => {
+    useEffect(async () => {
         // toastr.clear()
-        configureEmployee()
+        setIsLoading(true)
+        const {match: {params}} = props
+        setKey(window.location.hash?.substr(1) || 'basic')
+
+        if(params.employeeId) {
+            document.title = `Edit Employee - ${params.employeeId}`
+            let sortedEmployees = localStorage.getItem('employees.sortedList')
+            sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
+
+            const response = await api.get(`/employees/${params.employeeId}`)
+                .then(data => {
+                    const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === data.employee_id)
+                    const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
+                    const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
+                    setNextEmployeeId(nextEmployeeId)
+                    setPrevEmployeeId(prevEmployeeId)
+
+                    address.setup(data.contact.address)
+                    contact.setup(data.contact)
+                    employee.setup(data)
+                    setPermissions(data.permissions)
+                    setUpdatedAt(data.updated_at)
+                })
+        } else {
+            document.title = `Create Employee`
+            const response = await api.get('/employees/create').then(
+                data => {
+                    address.reset()
+                    contact.reset()
+                    employee.reset()
+                }
+            )
+        }
+
+        setIsLoading(false)
     }, [props.match.params.employeeId])
 
     const setTabKey = tabKey => {
         window.location.hash = tabKey
         setKey(tabKey)
-    }
-
-    // TODO - does not clear the form if directing from employee to create
-    const configureEmployee = async () => {
-        setIsLoading(true)
-        const {match: {params}} = props
-        const fetchUrl = params.employeeId ? `/employees/${params.employeeId}` : '/employees/create'
-        document.title = params.employeeId ? `Edit Employee - ${params.employeeId}` : 'Create Employee'
-
-        const response = await api.get(fetchUrl)
-
-        setEmployeePermissions(response.employee_permissions)
-        setPermissions(response.permissions)
-        setVehicleTypes(response.vehicle_types)
-        setKey(window.location.hash?.substr(1) || 'basic')
-
-        if(params.employeeId) {
-            let sortedEmployees = localStorage.getItem('employees.sortedList')
-            sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
-            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === response.employee_id)
-            const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
-            const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
-
-            address.setup(response.contact.address)
-
-            setActivityLog(response.activity_log.map(log => {
-                return {...log, properties: JSON.parse(log.properties)}
-            }))
-            setBirthDate(Date.parse(response.dob))
-            setEmployeeId(response.employee_id)
-            setEmployeeNumber(response.employee_number)
-            setIsDriver(!!response.is_driver)
-            setIsEnabled(!!response.is_enabled)
-            setNextEmployeeId(nextEmployeeId)
-            setPrevEmployeeId(prevEmployeeId)
-            setSIN(response.sin)
-            setStartDate(Date.parse(response.start_date))
-            setUpdatedAt(response.updated_at)
-            setCompanyName(response.company_name ?? '')
-            setDeliveryCommission(response.delivery_commission)
-            setDriversLicenseNumber(response.drivers_license_number)
-            setDriversLicenseExpirationDate(Date.parse(response.drivers_license_expiration_date))
-            setInsuranceNumber(response.insurance_number)
-            setInsuranceExpirationDate(Date.parse(response.insurance_expiration_date))
-            setLicensePlateNumber(response.license_plate_number)
-            setLicensePlateExpirationDate(Date.parse(response.license_plate_expiration_date))
-            setPickupCommission(response.pickup_commission)
-            setVehicleType(response.vehicle_types.find(type => type.selection_id == response.vehicle_type))
-
-            // toastr.clear()
-        }
-
-        contact.setup(response.contact)
-
-        setIsLoading(false)
     }
 
     const debouncedWarnings = useCallback(
@@ -157,47 +126,21 @@ export default function Employee(props) {
                 ...contact.collect(),
             },
             employee_id: employeeId,
+            ... permissions.editAdvanced ? employee.collectAdvanced() : [],
+            ...(permissions.editAdvanced && employee.isDriver) ? employee.collectDriver() : []
         }
 
-        if(permissions.editAdvanced)
-            data = {
-                ...data,
-                birth_date: birthDate.toISOString(),
-                employee_number: employeeNumber,
-                is_driver: isDriver,
-                is_enabled: isEnabled,
-                permissions: employeePermissions,
-                sin: SIN,
-                start_date: startDate.toISOString()
-            }
-
-        if(permissions.editAdvanced && isDriver)
-            data = {
-                ...data,
-                company_name: companyName,
-                delivery_commission: deliveryCommission,
-                drivers_license_expiration_date: driversLicenseExpirationDate.toISOString(),
-                drivers_license_number: driversLicenseNumber,
-                insurance_expiration_date: insuranceExpirationDate.toISOString(),
-                insurance_number: insuranceNumber,
-                license_plate_number: licensePlateNumber,
-                license_plate_expiration_date: licensePlateExpirationDate.toISOString(),
-                pickup_commission: pickupCommission,
-                vehicle_type: vehicleType
-            }
-
         try {
-            const response = await (employeeId ? api.put(`/employees/${employeeId}`, data) : api.post('/employees', data))
-
-            // toastr.clear()
             if(employeeId) {
+                const response = await api.put(`/employees/${employeeId}`, data)
                 setUpdatedAt(response.updated_at)
                 toast.success(`Employee ${employeeId} was successfully updated!`)
             } else {
                 setReadOnly(true)
-                toast.success(`Employee ${response.employee_id} was successfully created`, {
+                const response = await api.post('/employees', data)
+                toast.success(`Employee successfully created`, {
                     position: 'top-center',
-                    onClose: () => configureEmployee(),
+                    onClose: () => history.push(`/employees/${response.employee_id}`),
                 })
             }
             setReadOnly(false)
@@ -223,7 +166,7 @@ export default function Employee(props) {
                             {(driversLicenseExpirationDate < threeMonthsFromNow && driversLicenseExpirationDate > now) &&
                                 <ListGroup.Item variant='warning'>Drivers License Expires Soon</ListGroup.Item>
                             }
-                            {licensePlateExpirationDate < now &&
+                            {employee.licensePlateExpirationDate < now &&
                                 <ListGroup.Item variant='danger'>License Plate Expired</ListGroup.Item>
                             }
                             {(licensePlateExpirationDate < threeMonthsFromNow && licensePlateExpirationDate > now) &&
@@ -257,29 +200,7 @@ export default function Employee(props) {
                         {(permissions.viewAdvanced && isDriver) &&
                             <Tab eventKey='driver' title={<h4>Driver</h4>}>
                                 <DriverTab
-                                    companyName={companyName}
-                                    deliveryCommission={deliveryCommission}
-                                    driversLicenseExpirationDate={driversLicenseExpirationDate}
-                                    driversLicenseNumber={driversLicenseNumber}
-                                    insuranceExpirationDate={insuranceExpirationDate}
-                                    insuranceNumber={insuranceNumber}
-                                    licensePlateExpirationDate={licensePlateExpirationDate}
-                                    licensePlateNumber={licensePlateNumber}
-                                    pickupCommission={pickupCommission}
-                                    vehicleType={vehicleType}
-                                    vehicleTypes={vehicleTypes}
-
-                                    setCompanyName={setCompanyName}
-                                    setDeliveryCommission={setDeliveryCommission}
-                                    setDriversLicenseExpirationDate={setDriversLicenseExpirationDate}
-                                    setDriversLicenseNumber={setDriversLicenseNumber}
-                                    setInsuranceExpirationDate={setInsuranceExpirationDate}
-                                    setInsuranceNumber={setInsuranceNumber}
-                                    setLicensePlateExpirationDate={setLicensePlateExpirationDate}
-                                    setLicensePlateNumber={setLicensePlateNumber}
-                                    setPickupCommission={setPickupCommission}
-                                    setVehicleType={setVehicleType}
-
+                                    employee={employee}
                                     readOnly={!permissions.editAdvanced}
                                 />
                             </Tab>
@@ -287,28 +208,14 @@ export default function Employee(props) {
                         {permissions.editAdvanced &&
                             <Tab eventKey='admin' title={<h4>Administration</h4>}>
                                 <AdministrationTab
-                                    birthDate={birthDate}
-                                    employeeNumber={employeeNumber}
-                                    employeePermissions={employeePermissions}
-                                    isDriver={isDriver}
-                                    isEnabled={isEnabled}
-                                    SIN={SIN}
-                                    startDate={startDate}
-
-                                    setBirthDate={setBirthDate}
-                                    setEmployeeNumber={setEmployeeNumber}
-                                    setEmployeePermissions={setEmployeePermissions}
-                                    setIsDriver={setIsDriver}
-                                    setIsEnabled={setIsEnabled}
-                                    setSIN={setSIN}
-                                    setStartDate={setStartDate}
+                                    employee={employee}
                                 />
                             </Tab>
                         }
-                        {(activityLog && permissions.viewActivityLog) &&
+                        {(employee.activityLog && permissions.viewActivityLog) &&
                             <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                                 <ActivityLogTab
-                                    activityLog={activityLog}
+                                    activityLog={employee.activityLog}
                                 />
                             </Tab>
                         }
