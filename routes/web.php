@@ -153,13 +153,13 @@ Route::middleware(['auth'])->controller(SearchController::class)->group(function
 });
 
 Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {
-    Route::post('/changePassword/{id}', 'ChangePassword');
-    Route::get('/generatePassword', 'GeneratePassword');
-    Route::post('/impersonate', 'Impersonate');
-    Route::get('/unimpersonate', 'Unimpersonate');
-    Route::get('/sendPasswordReset/{userId}', 'SendPasswordResetEmail');
-    Route::post('/settings', 'StoreSettings');
-    Route::get('/getConfiguration', 'GetUserConfiguration');
+    Route::post('/changePassword/{id}', 'changePassword');
+    Route::get('/generatePassword', 'generatePassword');
+    Route::post('/impersonate', 'impersonate');
+    Route::get('/unimpersonate', 'unimpersonate');
+    Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
+    Route::post('/settings', 'storeSettings');
+    Route::get('/getConfiguration', 'getUserConfiguration');
 });
 
 // Authenticated views

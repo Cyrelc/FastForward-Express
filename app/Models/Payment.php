@@ -14,6 +14,7 @@ class Payment extends Model
 
     public $primaryKey = "payment_id";
     public $timestamps = false;
+    protected $dates = ['deleted_at'];
 
     protected $fillable = [
         'account_id',

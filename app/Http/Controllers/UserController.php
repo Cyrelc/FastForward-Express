@@ -7,6 +7,7 @@ use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Validation;
 use App\Http\Models\User;
+use App\Http\Resources\AuthenticatedUserResource;
 use App\Services\ContactService;
 
 use Illuminate\Http\Request;
@@ -46,12 +47,8 @@ class UserController extends Controller {
             return $req->user()->accountUser->contact;
     }
 
-    public function GetUserConfiguration(Request $req) {
-        $userModelFactory = new User\UserModelFactory;
-
-        $model = $userModelFactory->GetUserConfiguration($req);
-
-        return json_encode($model);
+    public function getUserConfiguration(Request $req) {
+        return new AuthenticatedUserResource(Auth::user());
     }
 
     public function impersonate(Request $req) {
