@@ -27,7 +27,7 @@ class EmployeeFactory extends Factory
                 return Contact::factory()->create()->contact_id;
             },
             'user_id' => function() {
-                return User::factory()->create()->id;
+                return User::factory()->create()->user_id;
             },
             'sin' => $this->faker->numerify('### ### ###'),
             'dob' => $this->faker->date($format = 'Y-m-d', $max = 'now'),
