@@ -31,7 +31,7 @@ class UserModelFactory {
                 $model->activity_log[$key]->properties = json_decode($log->properties);
         }
 
-        $model->belongs_to = $accountRepo->GetMyAccountsStructured(\App\Models\User::find($model->account_user->user_id));
+        $model->belongs_to = $accountRepo->GetMyAccountsStructured(\App\Models\User::where('user_id', $model->account_user->user_id)->first());
 
         return $model;
     }
@@ -70,9 +70,9 @@ class UserModelFactory {
         $model->frontEndPermissions = $permissionModelFactory->getFrontEndPermissionsForUser($req->user());
         $model->authenticatedEmployee = $req->user()->employee;
         $model->authenticatedAccountUsers = $req->user()->accountUsers;
-        $model->authenticatedUserId = $req->user()->id;
+        $model->authenticatedUserId = $req->user()->user_id;
         $model->is_impersonating = $req->session()->has('original_user_id');
-        $model->user_settings = $userRepo->GetSettings($req->user()->id);
+        $model->user_settings = $userRepo->GetSettings($req->user()->user_id);
         if($model->authenticatedEmployee)
             $model->contact = $req->user()->employee->contact;
         else if (count($model->authenticatedAccountUsers) > 0)

@@ -23,7 +23,7 @@ class PrimaryEmailConflict implements ValidationRule
         $primaryEmail = collect($value)->firstWhere('is_primary', true)['email'];
 
         $userExists = User::where('email', $primaryEmail)
-            ->where('id', '!=', $this->excludeUserId)
+            ->where('user_id', '!=', $this->excludeUserId)
             ->exists();
 
         if($userExists)

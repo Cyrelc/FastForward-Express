@@ -26,9 +26,9 @@ export default function DriverTab(props) {
         setLicensePlateNumber,
         setPickupCommission,
         setVehicleType,
+    } = props.employee
 
-        readOnly
-    } = props
+    const {readOnly} = props
 
     return (
         <Card border='dark'>

@@ -29,9 +29,8 @@ export default function AdministrationTab(props) {
         setIsEnabled,
         setSIN,
         setStartDate,
-
-        readOnly
-    } = props
+    } = props.employee
+    const {readOnly} = props
 
     const handlePermissionChange = event => {
         const {name, value, checked} = event.target

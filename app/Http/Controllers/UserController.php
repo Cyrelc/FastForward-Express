@@ -68,9 +68,9 @@ class UserController extends Controller {
         }
 
         if($req->session()->missing('original_user_id'))
-            $req->session()->put('original_user_id', Auth::user()->id);
+            $req->session()->put('original_user_id', Auth::user()->user_id);
 
-        Auth::loginUsingId($impersonateUser->id);
+        Auth::loginUsingId($impersonateUser->user_id);
     }
 
     public function sendPasswordResetEmail(Request $req, $userId) {
@@ -98,7 +98,7 @@ class UserController extends Controller {
 
         $settings = $userCollector->collectSettings($req);
 
-        $userRepo->storeSettings($req->user()->id, $settings);
+        $userRepo->storeSettings($req->user()->user_id, $settings);
     }
 
     public function unimpersonate(Request $req) {

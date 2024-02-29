@@ -16,6 +16,7 @@ class ContactResource extends JsonResource
         return [
             'address' => $this->address,
             'contact_id' => $this->contact_id,
+            'display_name' => $this->displayName(),
             'email_addresses' => $this->email_addresses,
             'email_types' => $this->email_addresses[0]->typeSelections(),
             'first_name' => $this->first_name,

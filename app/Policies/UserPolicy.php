@@ -32,7 +32,7 @@ class UserPolicy
      * @return mixed
      */
     public function updatePassword(User $user, User $targetUser) {
-        if($user->id === $targetUser->id)
+        if($user->user_id === $targetUser->user_id)
             return true;
         else if($targetUser->employee) {
             return $user->hasAnyPermission('employees.edit.*.*');
