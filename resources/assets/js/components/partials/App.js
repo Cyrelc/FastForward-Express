@@ -5,7 +5,6 @@ import {fetchAppConfiguration} from '../../store/reducers/app'
 import {fetchUserConfiguration} from '../../store/reducers/user'
 import {ConnectedRouter, push} from 'connected-react-router'
 import {Col, Row} from 'react-bootstrap'
-import {ProSidebarProvider} from 'react-pro-sidebar'
 import {ToastContainer} from 'react-toastify'
 
 import LoadingSpinner from '../partials/LoadingSpinner'
@@ -63,104 +62,102 @@ function App(props) {
         <ConnectedRouter history={props.history}>
             <ToastContainer />
             <APIProvider history={props.history}>
-                <ProSidebarProvider>
-                    <div style={{display: 'flex', height: '100vh', maxHeight: '100vh', direction: 'ltr'}}>
-                        <NavBar
-                            // history={props.history}
-                            toggleChangePasswordModal={toggleChangePasswordModal}
-                        />
-                        <main style={{maxHeight: '100vh', overflowY: 'auto', overflowX: 'hidden', width: '100%'}}>
-                            <Row className='justify-content-md-center' style={{paddingLeft: '40px'}}>
-                                <Col md={12}>
-                                <Switch>
-                                    <Route exact path='/'>
-                                        <Redirect to={props.homePage} />
-                                    </Route>
-                                    <Route exact path='/error404' component={PageNotFound}></Route>
-                                    <Route path='/search' exact component={Search}></Route>
-                                    <Route path='/user_settings' exact component={UserSettings}></Route>
-                                    {props.frontEndPermissions.accounts.viewAny &&
-                                        <Route path='/accounts' exact component={Accounts}></Route>
-                                    }
-                                    {props.frontEndPermissions.accounts.create &&
-                                        <Route path='/accounts/create' exact component={Account}></Route>
-                                    }
-                                    {props.frontEndPermissions.accounts.viewAny &&
-                                        <Route path='/accounts/:accountId' exact component={Account}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/accountsPayable' exact component={AccountsPayable}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/accountsReceivable' exact component={AccountsReceivable}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/appSettings' exact component={AppSettings}></Route>
-                                    }
-                                    {props.frontEndPermissions.bills.viewAny &&
-                                        <Route exact path='/bills' component={Bills}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/bills/trend' component={Charts}></Route>
-                                    }
-                                    {props.frontEndPermissions.bills.create &&
-                                        <Route path='/bills/create' exact component={Bill}></Route>
-                                    }
-                                    {props.frontEndPermissions.bills.viewAny &&
-                                        <Route path='/bills/:billId' component={Bill}></Route>
-                                    }
-                                    {props.frontEndPermissions.chargebacks.viewAny &&
-                                        <Route path='/chargebacks' exact component={Chargebacks}></Route>
-                                    }
-                                    {props.frontEndPermissions.bills.dispatch &&
-                                        <Route path='/dispatch' component={Dispatch}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/adminDashboard' exact component={AdminDashboard}></Route>
-                                    }
-                                    {props.frontEndPermissions.invoices.viewAny &&
-                                        <Route path='/invoices' exact component={Invoices}></Route>
-                                    }
-                                    {props.frontEndPermissions.invoices.create &&
-                                        <Route path='/invoices/generate' exact component={GenerateInvoices}></Route>
-                                    }
-                                    {props.frontEndPermissions.invoices.viewAny &&
-                                        <Route path='/invoices/:invoiceId' component={Invoice}></Route>
-                                    }
-                                    {props.frontEndPermissions.employees.viewAll &&
-                                        <Route path='/employees' exact component={Employees}></Route>
-                                    }
-                                    {props.frontEndPermissions.employees.create &&
-                                        <Route path='/employees/create' component={Employee}></Route>
-                                    }
-                                    {props.frontEndPermissions.employees.viewAny &&
-                                        <Route path='/employees/:employeeId' component={Employee}></Route>
-                                    }
-                                    {props.frontEndPermissions.manifests.create &&
-                                        <Route path='/manifests/generate' exact component={GenerateManifests}></Route>
-                                    }
-                                    {props.frontEndPermissions.manifests.viewAny &&
-                                        <Route path='/manifests/:manifestId' exact component={Manifest}></Route>
-                                    }
-                                    {props.frontEndPermissions.manifests.viewAny &&
-                                        <Route path='/manifests' exact component={Manifests}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/ratesheets/create' component={Ratesheet}></Route>
-                                    }
-                                    {props.frontEndPermissions.appSettings.edit &&
-                                        <Route path='/ratesheets/:ratesheetId' component={Ratesheet}></Route>
-                                    }
-                                </Switch></Col>
-                            </Row>
-                        </main>
-                        <ChangePasswordModal
-                            show={showChangePasswordModal}
-                            userId={props.authenticatedUserId}
-                            toggleModal={toggleChangePasswordModal}
-                        />
-                    </div>
-                </ProSidebarProvider>
+                <div style={{display: 'flex', height: '100vh', maxHeight: '100vh', direction: 'ltr'}}>
+                    <NavBar
+                        // history={props.history}
+                        toggleChangePasswordModal={toggleChangePasswordModal}
+                    />
+                    <main style={{maxHeight: '100vh', overflowY: 'auto', overflowX: 'hidden', width: '100%'}}>
+                        <Row className='justify-content-md-center' style={{paddingLeft: '40px'}}>
+                            <Col md={12}>
+                            <Switch>
+                                <Route exact path='/'>
+                                    <Redirect to={props.homePage} />
+                                </Route>
+                                <Route exact path='/error404' component={PageNotFound}></Route>
+                                <Route path='/search' exact component={Search}></Route>
+                                <Route path='/user_settings' exact component={UserSettings}></Route>
+                                {props.frontEndPermissions.accounts.viewAny &&
+                                    <Route path='/accounts' exact component={Accounts}></Route>
+                                }
+                                {props.frontEndPermissions.accounts.create &&
+                                    <Route path='/accounts/create' exact component={Account}></Route>
+                                }
+                                {props.frontEndPermissions.accounts.viewAny &&
+                                    <Route path='/accounts/:accountId' exact component={Account}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/accountsPayable' exact component={AccountsPayable}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/accountsReceivable' exact component={AccountsReceivable}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/appSettings' exact component={AppSettings}></Route>
+                                }
+                                {props.frontEndPermissions.bills.viewAny &&
+                                    <Route exact path='/bills' component={Bills}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/bills/trend' component={Charts}></Route>
+                                }
+                                {props.frontEndPermissions.bills.create &&
+                                    <Route path='/bills/create' exact component={Bill}></Route>
+                                }
+                                {props.frontEndPermissions.bills.viewAny &&
+                                    <Route path='/bills/:billId' component={Bill}></Route>
+                                }
+                                {props.frontEndPermissions.chargebacks.viewAny &&
+                                    <Route path='/chargebacks' exact component={Chargebacks}></Route>
+                                }
+                                {props.frontEndPermissions.bills.dispatch &&
+                                    <Route path='/dispatch' component={Dispatch}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/adminDashboard' exact component={AdminDashboard}></Route>
+                                }
+                                {props.frontEndPermissions.invoices.viewAny &&
+                                    <Route path='/invoices' exact component={Invoices}></Route>
+                                }
+                                {props.frontEndPermissions.invoices.create &&
+                                    <Route path='/invoices/generate' exact component={GenerateInvoices}></Route>
+                                }
+                                {props.frontEndPermissions.invoices.viewAny &&
+                                    <Route path='/invoices/:invoiceId' component={Invoice}></Route>
+                                }
+                                {props.frontEndPermissions.employees.viewAll &&
+                                    <Route path='/employees' exact component={Employees}></Route>
+                                }
+                                {props.frontEndPermissions.employees.create &&
+                                    <Route path='/employees/create' component={Employee}></Route>
+                                }
+                                {props.frontEndPermissions.employees.viewAny &&
+                                    <Route path='/employees/:employeeId' component={Employee}></Route>
+                                }
+                                {props.frontEndPermissions.manifests.create &&
+                                    <Route path='/manifests/generate' exact component={GenerateManifests}></Route>
+                                }
+                                {props.frontEndPermissions.manifests.viewAny &&
+                                    <Route path='/manifests/:manifestId' exact component={Manifest}></Route>
+                                }
+                                {props.frontEndPermissions.manifests.viewAny &&
+                                    <Route path='/manifests' exact component={Manifests}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/ratesheets/create' component={Ratesheet}></Route>
+                                }
+                                {props.frontEndPermissions.appSettings.edit &&
+                                    <Route path='/ratesheets/:ratesheetId' component={Ratesheet}></Route>
+                                }
+                            </Switch></Col>
+                        </Row>
+                    </main>
+                    <ChangePasswordModal
+                        show={showChangePasswordModal}
+                        userId={props.authenticatedUserId}
+                        toggleModal={toggleChangePasswordModal}
+                    />
+                </div>
             </APIProvider>
         </ConnectedRouter>
     )
