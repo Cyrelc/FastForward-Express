@@ -1,10 +1,12 @@
 import React from 'react'
 import ReactDom from 'react-dom'
-import { Provider } from 'react-redux'
-import { ConnectedRouter } from 'connected-react-router'
-import { createBrowserHistory } from 'history'
-
-import configureStore from './store/configureStore'
+import {ConnectedRouter} from 'connected-react-router'
+import {createBrowserHistory} from 'history'
+import {APIProvider} from './contexts/APIContext'
+import {ListsProvider} from './contexts/ListsContext'
+import {UserProvider} from './contexts/UserContext'
+import {ProSidebarProvider} from 'react-pro-sidebar'
+import {ToastContainer} from 'react-toastify'
 
 import App from './components/partials/App'
 /**
@@ -14,7 +16,6 @@ import App from './components/partials/App'
  */
 require('datejs')
 const history = createBrowserHistory({ basename: '/app'})
-const store = configureStore(history)
 /**
  * Next, we will create a fresh React component instance and attach it to
  * the page. Then, you may begin adding components to this application
@@ -23,9 +24,18 @@ const store = configureStore(history)
 
 ReactDom.render(
     <Provider store={store}>
-        <ConnectedRouter history={history}>
-            <App history={history}/>
-        </ConnectedRouter>
+        <APIProvider history={history}>
+            <UserProvider>
+                <ConnectedRouter history={history}>
+                    <ListsProvider>
+                        <ProSidebarProvider>
+                            <ToastContainer />
+                            <App history={history}/>
+                        </ProSidebarProvider>
+                    </ListsProvider>
+                </ConnectedRouter>
+            </UserProvider>
+        </APIProvider>
     </Provider>,
     document.getElementById('reactDiv')
 )

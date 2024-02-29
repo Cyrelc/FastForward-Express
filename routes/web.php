@@ -166,6 +166,7 @@ Route::middleware(['auth'])->controller(UserController::class)->prefix('users')-
 Route::group(['middleware' => ['auth']],
     function() {
         Route::get('/', 'HomeController@index');
+        Route::get('/lists', 'HomeController@getLists');
         Route::get('/getDashboard', 'HomeController@getDashboard');
         Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
 

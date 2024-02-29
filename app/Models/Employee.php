@@ -61,6 +61,10 @@ class Employee extends Model
         return $this->user->is_enabled;
     }
 
+    public function listLabel() {
+        return $this->employee_id . ' - ' . $this->contact->displayName();
+    }
+
     public function permissions() {
         $dbPermissions = $this->user ? $this->user->getPermissionNames()->toArray() : [];
         $permissions = array_flip(Employee::$permissionsMap);

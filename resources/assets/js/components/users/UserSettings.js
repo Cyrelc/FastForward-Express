@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Form, Row} from 'react-bootstrap'
-import {connect} from 'react-redux'
+import {useUser} from '../../contexts/UserContext'
 
-const UserSettings = (props) => {
+export default function UserSettings(props) {
     const [defaultImperial, setDefaultImperial] = useState(false)
 
+    const {authenticatedUser} = useUser()
+
     useEffect(() => {
-        console.log(props.userSettings)
-        setDefaultImperial(props.userSettings.use_imperial_default == 1)
-    }, [props.userSettings])
+        setDefaultImperial(authenticatedUser.user_settings.use_imperial_default == 1)
+    }, [authenticatedUser.user_settings])
 
     const storeUserSettings = () => {
         const data = {
@@ -54,13 +55,3 @@ const UserSettings = (props) => {
         </Card>
     )
 }
-
-
-const mapStateToProps = store => {
-    return {
-        userSettings: store.user.userSettings,
-    }
-}
-
-export default connect(mapStateToProps)(UserSettings)
-

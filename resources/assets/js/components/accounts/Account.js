@@ -1,6 +1,5 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
-import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
 import {useHistory, useParams} from 'react-router-dom'
 
@@ -14,8 +13,9 @@ import InvoicingTab from './InvoicingTab'
 import BillingTab from './billing/BillingTab'
 
 import useAddress from '../partials/Hooks/useAddress'
+import {useUser} from '../../contexts/UserContext'
 
-const Account = props => {
+export default function Account(props) {
     const [accountId, setAccountId] = useState('')
     const [accountBalance, setAccountBalance] = useState('')
     const [accountName, setAccountName] = useState('')
@@ -57,6 +57,7 @@ const Account = props => {
     const shippingAddress = useAddress()
     const {accountId: paramAccountId} = useParams()
     const history = useHistory()
+    const {authenticatedUser} = useUser()
 
     useEffect(() => {
         configureAccount()
@@ -372,7 +373,7 @@ const Account = props => {
                         <Tab eventKey='users' title={<h4>Users</h4>}>
                             <AccountUsersTab
                                 accountId={props.match.params.accountId}
-                                authenticatedUserContact={props.authenticatedUserContact}
+                                authenticatedUserContact={authenticatedUser.contact}
                                 canBeParent={canBeParent}
 
                                 canCreateAccountUsers={permissions.createAccountUsers}
@@ -446,11 +447,3 @@ const Account = props => {
         </Row>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        authenticatedUserContact: store.user.authenticatedUserContact,
-    }
-}
-
-export default connect(mapStateToProps)(Account)

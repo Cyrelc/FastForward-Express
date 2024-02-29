@@ -1,7 +1,6 @@
 import React, {Fragment, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, FormCheck, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
-import {connect} from 'react-redux'
 
 import PaymentModal from '../partials/Payments/PaymentModal'
 import PaymentTable from '../partials/Payments/PaymentTable'
@@ -16,7 +15,7 @@ function getCorrectAddress(bill) {
     return bill.pickup_address_name ? bill.pickup_address_name : bill.pickup_address_formatted
 }
 
-function Invoice(props) {
+export default function Invoice(props) {
     const [amendmentsOnly, setAmendmentsOnly] = useState(false)
     const [accountId, setAccountId] = useState('')
     const [amendments, setAmendments] = useState([])
@@ -508,12 +507,3 @@ function Invoice(props) {
         </Fragment>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        frontEndPermissions: store.user.frontEndPermissions,
-        sortedInvoices: store.invoices.sortedList
-    }
-}
-
-export default connect(mapStateToProps)(Invoice)
