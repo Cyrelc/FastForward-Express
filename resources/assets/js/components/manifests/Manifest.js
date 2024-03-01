@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import {Button, ButtonGroup, Col, Row, Table} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
-import { connect } from 'react-redux'
+import {useUser} from '../../contexts/UserContext'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 
-function Manifest(props) {
+export default function Manifest(props) {
     const [data, setData] = useState({})
     const [nextManifestId, setNextManifestId] = useState(null)
     const [prevManifestId, setPrevManifestId] = useState(null)
@@ -14,6 +14,7 @@ function Manifest(props) {
     const {manifestId} = props.match.params
     const {bills, chargebacks, manifest, overview} = data
     const {contact, employee, warnings} = data?.employee || {}
+    const {frontEndPermissions} = useUser()
 
     useEffect(() => {
         getManifest(manifestId)
@@ -79,7 +80,7 @@ function Manifest(props) {
                     <Button variant='success' href={`/manifests/print/${manifest?.manifest_id}?without_bills`}>
                         <i className='fas fa-print'></i> Print Without Bills
                     </Button>
-                    {props.frontEndPermissions.manifests.create &&
+                    {frontEndPermissions.manifests.create &&
                         <Button variant='warning' onClick={regather}><i className='fas fa-sync'></i> Regather</Button>
                     }
                 </ButtonGroup>
@@ -214,12 +215,3 @@ function Manifest(props) {
         </Row>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        frontEndPermissions: store.user.frontEndPermissions,
-        sortedManifests: store.manifests.sortedList
-    }
-}
-
-export default connect(mapStateToProps)(Manifest)

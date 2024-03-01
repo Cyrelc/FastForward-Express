@@ -41,6 +41,13 @@ class User extends Authenticatable {
         return $this->hasMany(AccountUser::class, 'user_id');
     }
 
+    public function getContactAttribute() {
+        if($this->employee)
+            return $this->employee->contact;
+        else if($this->accountUsers)
+            return $this->accountUsers[0]->contact;
+    }
+
     public function displayName() {
         if($this->employee) {
             return $this->employee->contact->display_name();
@@ -52,6 +59,10 @@ class User extends Authenticatable {
 
     public function employee() : HasOne {
         return $this->hasOne(Employee::class, 'user_id');
+    }
+
+    public function settings() : hasOne {
+        return $this->hasOne(UserSettings::class, 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {

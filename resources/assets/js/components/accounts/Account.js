@@ -1,7 +1,7 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
-import {useHistory, useParams} from 'react-router-dom'
+import {useHistory, useLocation, useParams} from 'react-router-dom'
 
 import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -57,6 +57,7 @@ export default function Account(props) {
     const shippingAddress = useAddress()
     const {accountId: paramAccountId} = useParams()
     const history = useHistory()
+    const location = useLocation()
     const {authenticatedUser} = useUser()
 
     useEffect(() => {
@@ -66,6 +67,10 @@ export default function Account(props) {
     useEffect(() => {
         handleInvoiceSortOrderChange(invoiceSortOrder)
     }, [canBeParent, customTrackingField])
+
+    useEffect(() => {
+        setKey(location.hash.substring(1))
+    }, [location.hash])
 
     const configureAccount = () => {
         const {match: {params}} = props

@@ -330,6 +330,10 @@ export default function Bill(props) {
         }
     }
 
+    useEffect(() => {
+        billDispatch({type: 'SET_TAB_KEY', payload: location.hash.substring(1)})
+    }, [location.hash])
+
     // If the pickup or delivery driver is changed, offer the user the option to update unmanifested line items
     // This doesn't happen by default, as it would otherwise throw away customized line items
     useEffect(() => {

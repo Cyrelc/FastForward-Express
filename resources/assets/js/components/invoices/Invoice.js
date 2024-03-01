@@ -205,9 +205,13 @@ export default function Invoice(props) {
                                 <tr>
                                     <td style={{width: '40%'}}>
                                         <h3>
-                                            <LinkContainer to={`/accounts/${accountId}`}>
-                                                <a>{`${parent?.account_number} - ${parent?.name}`}</a>
-                                            </LinkContainer>
+                                            {isPrepaid ?
+                                                `${parent?.account_number} - ${parent?.name}`
+                                                :
+                                                <LinkContainer to={`/accounts/${accountId}`} disabled>
+                                                    <a disabled={isPrepaid}>{`${parent?.account_number} - ${parent?.name}`}</a>
+                                                </LinkContainer>
+                                            }
                                         </h3>
                                     </td>
                                     <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>

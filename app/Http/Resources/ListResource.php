@@ -20,6 +20,8 @@ class ListResource extends JsonResource {
     public function toArray(Request $request): array {
         $lists = [
             'accounts' => [],
+            'email_types' => Selection::where('type', 'contact_type')->select('name as label', 'selection_id as value')->get(),
+            'phone_types' => Selection::where('type', 'phone_type')->select('name as label', 'selection_id as value')->get(),
             'payment_types' => PaymentType::select('name as label', 'payment_type_id as value')->get(),
         ];
 
@@ -49,6 +51,7 @@ class ListResource extends JsonResource {
                         'is_driver' => $employee->is_driver,
                     ];
                 });
+                $lists['vehicle_types'] = Selection::where('type', 'vehicle_type')->select('name as label', 'selection_id as value')->get();
             }
             if($authUser->can('bills.edit.billing.*')) {
                 $lists['repeat_intervals'] = Selection::where('type', 'repeat_interval')->select('name as label', 'selection_id as value')->get();

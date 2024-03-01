@@ -1,7 +1,8 @@
 import React from 'react'
-import { connect } from 'react-redux'
 import {useHistory} from 'react-router-dom'
 import {useAPI} from '../../contexts/APIContext'
+import {useLists} from '../../contexts/ListsContext'
+import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
 
@@ -50,9 +51,11 @@ const groupByOptions = [
 
 const initialSort = [{column:'bill_end_date', dir: 'desc'}, {column:'account_number', dir:'asc'}]
 
-function Invoices(props) {
+export default function Invoices(props) {
     const api = useAPI()
     const history = useHistory()
+    const lists = useLists()
+    const {authenticatedUser, frontEndPermissions} = useUser()
 
     const finalizeInvoices = selectedRows => {
         const unfinalizedRows = selectedRows.filter(row => row.getData().finalized !== 1)
@@ -101,7 +104,7 @@ function Invoices(props) {
     }
 
     const columns = [
-        ...props.frontEndPermissions.invoices.edit ? [
+        ...frontEndPermissions.invoices.edit ? [
             {
                 formatter: cell => cellContextMenuFormatter(cell),
                 width:50,
@@ -118,7 +121,7 @@ function Invoices(props) {
             hozAlign:'center',
             cellClick:(e, cell) => printInvoices([cell.getRow()], {download: false})
         }],
-        ...props.frontEndPermissions.invoices.edit ? [
+        ...frontEndPermissions.invoices.edit ? [
             {title: 'Date Run', field: 'date_run', visible: false}
         ] : [],
         {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
@@ -133,14 +136,14 @@ function Invoices(props) {
         {title: 'Bill Cost', field: 'bill_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
         {title: 'Total Cost', field: 'total_cost', formatter: 'money', formatterParams:{thousand: ',', symbol: '$'}, topCalc:"sum", topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams:{thousand: ',', symbol: '$'}, sorter:'number'},
         {title: 'Bill Count', field: 'bill_count', sorter: 'number', topCalc:'sum', visible: false},
-        ...props.frontEndPermissions.invoices.edit ? [
+        ...frontEndPermissions.invoices.edit ? [
             {title: 'Send Paper Invoices', field: 'send_paper_invoices', formatter: 'tickCross', visible: false}
         ] : [],
         {title: 'Finalized', field: 'finalized', hozAlign: 'center', formatter: 'tickCross', width: 100}
     ]
 
     const filters= [
-        ...props.frontEndPermissions.invoices.edit ? [
+        ...frontEndPermissions.invoices.edit ? [
             {
                 name: 'Date Run',
                 db_field: 'date_run',
@@ -170,7 +173,7 @@ function Invoices(props) {
             type: 'DateBetweenFilter'
         },
         {
-            selections: props.accounts,
+            selections: lists.accounts,
             name: 'Account',
             db_field: 'account_id',
             type: 'SelectFilter',
@@ -187,18 +190,18 @@ function Invoices(props) {
             db_field: 'payment_type_id',
             type: 'SelectFilter',
             isMulti: true,
-            selections: props.paymentTypes
+            selections: lists.paymentTypes
         },
         {
             name: 'Charge Type',
             db_field: 'charge_type_id',
             type: 'SelectFilter',
             isMulti: true,
-            selections: props.paymentTypes
+            selections: lists.paymentTypes
         }
     ]
     const withSelected = [
-        ...props.frontEndPermissions.invoices.edit ? adminWithSelected : [],
+        ...frontEndPermissions.invoices.edit ? adminWithSelected : [],
         {
             icon: 'fas fa-save',
             label: 'Download',
@@ -218,7 +221,7 @@ function Invoices(props) {
     ]
 
     const defaultFilterQuery = () => {
-        if(props.authenticatedEmployee)
+        if(authenticatedUser.employee)
             return '?filter[finalized]=false'
         else
             return ''
@@ -238,19 +241,3 @@ function Invoices(props) {
         withSelected={withSelected}
     />
 }
-
-const matchDispatchToProps = dispatch => {
-    return {
-    }
-}
-
-const mapStateToProps = store => {
-    return {
-        accounts: store.app.accounts,
-        authenticatedEmployee: store.user.authenticatedEmployee,
-        frontEndPermissions: store.user.frontEndPermissions,
-        paymentTypes: store.app.paymentTypes,
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(Invoices)

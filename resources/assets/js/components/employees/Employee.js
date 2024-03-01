@@ -3,7 +3,7 @@ import {Button, ButtonGroup, Col, ListGroup, Nav, Navbar, Tab, Tabs, Row} from '
 import {debounce} from 'lodash'
 import {DateTime} from 'luxon'
 import {toast} from 'react-toastify'
-import {useHistory} from 'react-router-dom'
+import {useHistory, useLocation} from 'react-router-dom'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
 import AdministrationTab from './AdministrationTab'
@@ -30,6 +30,7 @@ export default function Employee(props) {
     const contact = useContact()
     const employee = useEmployee()
     const history = useHistory()
+    const location = useLocation()
     const now = DateTime.now().toJSDate()
     const threeMonthsFromNow = DateTime.now().plus({month: 3}).toJSDate()
     const {
@@ -40,6 +41,10 @@ export default function Employee(props) {
         isEnabled,
         licensePlateExpirationDate,
     } = employee
+
+    useEffect(() => {
+        setKey(location.hash.substr(1))
+    }, [location.hash])
 
     useEffect(async () => {
         // toastr.clear()

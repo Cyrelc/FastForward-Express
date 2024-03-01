@@ -1,9 +1,9 @@
 import React, {Fragment, useState} from 'react'
-import { connect } from 'react-redux'
 import {useHistory} from 'react-router-dom'
 
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 import Table from '../partials/Table'
+import {useUser} from '../../contexts/UserContext'
 
 const defaultFilterQuery = '?filter[is_enabled]=true'
 
@@ -24,11 +24,12 @@ const groupByOptions = [
 
 const initialSort = [{column: 'employee_id', dir: 'asc'}]
 
-function Employees(props) {
+export default function Employees(props) {
     const [changePasswordModalUserId, setChangePasswordModalUserId] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
 
     const history = useHistory()
+    const {frontEndPermissions} = useUser()
 
     const cellContextMenu = (cell) => {
         const data = cell.getData()
@@ -37,14 +38,14 @@ function Employees(props) {
         var menuItems = [
             {label: data.is_enabled ? 'Disable' : 'Enable', action: () => toggleEmployeeEnabled(cell)},
             {label: 'Change Password', action: () => toggleChangePasswordModal(cell), disabled: !data.is_enabled},
-            ...props.frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => impersonateEmployee(cell)}] : []
+            ...frontEndPermissions.employees.impersonate ? [{label: 'Impersonate', action: () => impersonateEmployee(cell)}] : []
         ]
 
         return menuItems
     }
 
     const columns = [
-        ...props.frontEndPermissions.employees.edit ? [
+        ...frontEndPermissions.employees.edit ? [
             {
                 clickMenu: (event, cell) => cellContextMenu(cell),
                 formatter: () => {return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"</button>'},
@@ -118,17 +119,3 @@ function Employees(props) {
         </Fragment>
     )
 }
-
-const matchDispatchToProps = dispatch => {
-    return {
-    }
-}
-
-const mapStateToProps = store => {
-    return {
-        frontEndPermissions: store.user.frontEndPermissions,
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(Employees)
-
