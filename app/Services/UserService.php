@@ -22,12 +22,8 @@ class UserService {
         $response = curl_exec($curl);
         curl_close($curl);
         $data = json_decode($response, true);
-        $password = \Hash::make(Str::random(15));
-        if(!empty($data['pws'])) {
-            $password = \Hash::make($data['pws'][0]);
-        }
-
-        $user->password = $password;
+        $password = empty($data['pws']) ? \Hash::make(Str::random(15)) : $password = \Hash::make($data['pws'][0]);
+        $user->update(['password', $password]);
 
         return $user;
     }

@@ -21,13 +21,6 @@ class UserRepo
         $accountUser->save();
     }
 
-    public function ChangePassword($userId, $password) {
-        $old = $this->GetById($userId);
-
-        $old->password = Hash::make($password);
-        $old->save();
-    }
-
     public function CountAccountUsers($accountId) {
         $count = AccountUser::where('account_id', $accountId)->count();
 

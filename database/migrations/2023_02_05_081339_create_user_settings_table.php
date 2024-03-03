@@ -17,7 +17,7 @@ class CreateUserSettingsTable extends Migration
             $table->id();
             $table->timestamps();
             $table->boolean('use_imperial_default')->default(0);
-            $table->unsignedInteger('user_id');
+            $table->foreignId('user_id');
 
             $table->foreign('user_id')->references('id')->on('users');
         });
