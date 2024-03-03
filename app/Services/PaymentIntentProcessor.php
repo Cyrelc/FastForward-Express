@@ -56,6 +56,7 @@ class PaymentIntentProcessor {
                     'amount' => $paymentAmount,
                     'payment_type_id' => $paymentType->payment_type_id,
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
+                    'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null
                 ]);
 
                 if($newStatus == 'succeeded') {

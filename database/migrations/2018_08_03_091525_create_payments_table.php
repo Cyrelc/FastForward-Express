@@ -21,6 +21,7 @@ class CreatePaymentsTable extends Migration
             $table->float('amount');
             $table->string('comment')->nullable();
             $table->date('date');
+            $table->string('error')->nullable();
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('payment_type_id');
             $table->string('payment_intent_id')->nullable();

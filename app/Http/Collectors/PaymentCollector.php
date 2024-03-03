@@ -34,7 +34,7 @@ class PaymentCollector {
         return [
             'account_id' => $invoice->account_id ?? null,
             'amount' => $req->amount,
-            'comment' => $req->comment ?? 'Payment previously collected',
+            'comment' => $req->comment ?? 'Payment collected manually',
             'date' => date('Y-m-d'),
             'invoice_id' => $invoice->invoice_id,
             'payment_type_id' => $req->payment_method['payment_type_id'],

@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class AccountUser extends Model {
+class AccountUser extends Model
+{
     use LogsActivity;
 
     public $primaryKey = 'contact_id';
@@ -16,15 +17,11 @@ class AccountUser extends Model {
     protected $fillable = ['user_id', 'contact_id', 'account_id', 'is_primary'];
 
     public function account() {
-        return $this->hasOne(Account::class, 'account_id');
+        return $this->hasOne('App\Account', 'account_id');
     }
 
     public function contact() {
         return $this->hasOne(Contact::class, 'contact_id');
-    }
-
-    public function user() {
-        return $this->hasOne(User::class);
     }
 
     public function getActivityLogOptions() : LogOptions {

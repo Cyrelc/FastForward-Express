@@ -3,6 +3,7 @@ import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
+import {useHistory} from 'react-router-dom'
 
 export default function GenerateInvoices(props) {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
@@ -13,6 +14,7 @@ export default function GenerateInvoices(props) {
     const [table, setTable] = useState(null)
 
     const tableRef = useRef(null)
+    const history = useHistory()
 
     const columns = [
         {
@@ -198,7 +200,7 @@ export default function GenerateInvoices(props) {
             toastr.success('Successfully generated invoices', 'Success', {
                 'progressBar' : true,
                 'showDuration': 500,
-                'onHidden': window.location = '/invoices',
+                'onHidden': history.push('/invoices'),
                 'positionClass': 'toast-top-center'
             })
         })

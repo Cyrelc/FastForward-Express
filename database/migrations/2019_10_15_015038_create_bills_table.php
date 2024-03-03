@@ -56,7 +56,7 @@ class CreateBillsTable extends Migration
             $table->timestamps();
             $table->unique('bill_number');
             
-            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('created_by')->references('user_id')->on('users');
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
 			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
             $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');

@@ -126,7 +126,7 @@ class SearchRepo {
         $employees =
             EmailAddress::leftJoin('contacts', 'contacts.contact_id', 'email_addresses.contact_id')
             ->rightJoin('employees', 'employees.contact_id', 'contacts.contact_id')
-            ->leftJoin('users', 'users.id', 'employees.user_id')
+            ->leftJoin('users', 'users.user_id', 'employees.user_id')
             ->where('email_addresses.email', 'like', '%' . $searchTerm . '%')
             ->orWhere('employee_id', $searchTerm)
             ->orWhere(DB::raw('CONCAT(TRIM(first_name), " ", TRIM(last_name))'), 'like', '%' . $searchTerm . '%')

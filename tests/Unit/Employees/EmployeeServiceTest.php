@@ -198,7 +198,7 @@ class EmployeeServiceTest extends TestCase {
         $this->assertDatabaseMissing('email_addresses', ['email' => $updatedEmail3->email]);
         $this->assertDatabaseHas('phone_numbers', $updatedPhone1->toArray());
         $this->assertDatabaseHas('phone_numbers', $updatedPhone2->toArray());
-        $this->assertPermissionsEqual($employee->user->id, $formData['permissions']);
+        $this->assertPermissionsEqual($employee->user->user_id, $formData['permissions']);
     }
 
 }

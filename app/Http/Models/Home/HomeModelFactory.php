@@ -27,8 +27,7 @@ class HomeModelFactory {
                 $model->parent_accounts = $accountRepo->GetParentAccountsList();
             }
             if($req->user()->can('viewAll', Employee::class) || $req->user()->can('bills.view.dispatch.*')) {
-                $model->employees = Employee::leftJoin('users', 'users.id', '=', 'employees.user_id')
-                ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
+                $model->employees = Employee::leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
                 ->select(
                     DB::raw('concat(employee_number, " - ", coalesce(preferred_name , concat(first_name, " ", last_name))) as label'),
                     'employee_id as value'

@@ -3,6 +3,7 @@ namespace App\Http\Repos;
 
 use App\Models\Payment;
 use App\Models\PaymentType;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRepo {
@@ -16,17 +17,21 @@ class PaymentRepo {
     public function GetByInvoiceId($invoiceId) {
         $payments = Payment::where('invoice_id', $invoiceId)
             ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'payments.payment_type_id')
-            ->select(
-                'amount',
-                'comment',
-                'date',
-                'invoice_id',
-                'payment_intent_status',
-                'payment_types.name as payment_type',
-                'payments.payment_id',
-                'reference_value',
-                DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
-            );
+            ->select(array_merge(
+                [
+                    'amount',
+                    'comment',
+                    'date',
+                    'error',
+                    'invoice_id',
+                    'payment_intent_status',
+                    'payment_types.name as payment_type',
+                    'payments.payment_id',
+                    'reference_value',
+                    DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
+                ],
+                Auth::user()->can('undo', Payment::class) ? ['payment_intent_id'] : []
+            ));
 
         return $payments->get();
     }
@@ -35,19 +40,23 @@ class PaymentRepo {
         $payments = Payment::where('payments.account_id', $accountId)
             ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
             ->leftJoin('invoices', 'payments.invoice_id', 'invoices.invoice_id')
-            ->select(
-                'amount',
-                'comment',
-                'invoices.bill_end_date as invoice_date',
-                'payment_id',
-                'payment_types.name as payment_type',
-                'payment_intent_status',
-                'payments.invoice_id',
-                'payments.date',
-                'payments.payment_type_id',
-                DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
-                'reference_value',
-            );
+            ->select(array_merge(
+                [
+                    'amount',
+                    'comment',
+                    'error',
+                    'invoices.bill_end_date as invoice_date',
+                    'payment_id',
+                    'payment_types.name as payment_type',
+                    'payment_intent_status',
+                    'payments.invoice_id',
+                    'payments.date',
+                    'payments.payment_type_id',
+                    DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
+                    'reference_value',
+                ],
+                Auth::user()->can('undo', Payment::class) ? ['payment_intent_id'] : []
+            ));
 
         return $payments->get();
     }

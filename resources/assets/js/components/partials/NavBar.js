@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
-import {Menu, menuClasses, MenuItem, Sidebar, SubMenu, useProSidebar} from 'react-pro-sidebar'
+import {Menu, menuClasses, MenuItem, Sidebar, SubMenu} from 'react-pro-sidebar'
 import {connect} from 'react-redux'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
 import {Link, useHistory} from 'react-router-dom'
@@ -72,14 +72,14 @@ const FFETypeAhead = props => {
 }
 
 const SidebarHeader = props => {
-    const {collapsed, collapseSidebar, menuItemStyles} = props
+    const {collapsed, toggleCollapsed, menuItemStyles} = props
 
     return (
         <Menu iconShape='circle' menuItemStyles={menuItemStyles} style={{textAlign: 'center'}}>
             <MenuItem component={<Link to='/' />} style={{textAlign: 'center'}}>
                 <h5>{collapsed ? 'FFE' : 'Fast Forward Express'}</h5>
             </MenuItem>
-            <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={() => collapseSidebar(!collapsed)}/>
+            <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed}/>
             <hr/>
         </Menu>
     )
@@ -97,12 +97,11 @@ const SmallHighlighter = props => {
 }
 
 function NavBar(props) {
+    const [collapsed, setCollapsed] = useState(false)
     const [isLoadingSearch, setIsLoadingSearch] = useState(false)
     const [searchResults, setSearchResults] = useState([])
     const searchRef = useRef(null)
     const history = useHistory()
-
-    const {collapsed, collapseSidebar} = useProSidebar();
 
     const menuItemStyles = {
         root: {
@@ -136,8 +135,12 @@ function NavBar(props) {
     }
 
     useEffect(() => {
-        collapseSidebar(!!localStorage.getItem('isNavBarCollapsed'))
+        setCollapsed(JSON.parse(localStorage.getItem('isNavBarCollapsed')) === true)
     }, [])
+
+    useEffect(() => {
+        localStorage.setItem('isNavBarCollapsed', collapsed)
+    }, [collapsed])
 
     const getUserIcon = () => {
         if(props.isImpersonating)
@@ -179,8 +182,7 @@ function NavBar(props) {
     }
 
     const toggleCollapsed = () => {
-        localStorage.setItem('isNavBarCollapsed', !collapsed)
-        collapseSidebar(!collapsed)
+        setCollapsed(!collapsed)
     }
 
     const unimpersonate = () => {
@@ -190,7 +192,7 @@ function NavBar(props) {
     return (
         <Sidebar
             collapsed={collapsed}
-            toggled={true}
+            // toggled={collapsed}
         >
             <div
                 style={{
@@ -201,7 +203,7 @@ function NavBar(props) {
                     color: '#808080'
                 }}
             >
-                <SidebarHeader collapsed={collapsed} collapseSidebar={toggleCollapsed} menuItemStyles={menuItemStyles}/>
+                <SidebarHeader collapsed={collapsed} toggleCollapsed={toggleCollapsed} menuItemStyles={menuItemStyles}/>
                 <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                     <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
                         {hasAnyPermission(props.frontEndPermissions.bills) &&
@@ -286,7 +288,7 @@ function NavBar(props) {
                 </div>
                 <hr/>
                 <div style={{display: 'flex', flexDirection: 'column'}}>
-                    <Menu iconShape='circle' menuItemStyles={{...menuItemStyles, subMenuContent: {...menuItemStyles.subMenuContent, overflow: 'visible'}}}>
+                    <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
                         {collapsed ?
                             <SubMenu
                                 label='Search'
@@ -317,7 +319,7 @@ function NavBar(props) {
                                 />
                             </MenuItem>
                         }
-                        <SubMenu label={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>}>
+                        <SubMenu label={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>} defaultOpen={false}>
                             {props.authenticatedEmployee?.employee_id &&
                                 <MenuItem component={<Link to={`/employees/${props.authenticatedEmployee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>
                                     {`${props.contact.first_name} ${props.contact.last_name}`}

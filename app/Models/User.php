@@ -18,6 +18,8 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable {
     use CausesActivity, HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable, SoftDeletes;
 
+    public $primaryKey="user_id";
+
     /**
      * The attributes that are mass assignable.
      *
@@ -36,34 +38,20 @@ class User extends Authenticatable {
     ];
 
     public function accountUsers() {
-        return $this->hasMany(AccountUser::class);
-    }
-
-    public function getContactAttribute() {
-        if($this->employee && $this->employee->contact)
-            return $this->employee->contact;
-
-        if($this->accountUsers)
-            return $this->accountUsers->first()->contact;
-
-        return null;
+        return $this->hasMany(AccountUser::class, 'user_id');
     }
 
     public function displayName() {
         if($this->employee) {
-            return $this->contact->display_name();
+            return $this->employee->contact->display_name();
         } else if ($this->accountUsers) {
-            return $this->contact->display_name();
+            return $this->accountUsers[0]->contact->display_name();
         } else
             return $this->email;
     }
 
-    public function employee() : hasOne {
-        return $this->hasOne(Employee::class);
-    }
-
-    public function settings() : HasOne {
-        return $this->hasOne(UserSettings::class);
+    public function employee() : HasOne {
+        return $this->hasOne(Employee::class, 'user_id');
     }
 
     public function getActivitylogOptions() : LogOptions {
