@@ -39,6 +39,15 @@ class User extends Authenticatable {
         return $this->hasMany(AccountUser::class);
     }
 
+    public function getContactAttribute() {
+        if($this->employee)
+            return $this->employee->contact;
+        else if($this->accountUsers)
+            return $this->accountUsers[0]->contact;
+        else
+            return false;
+    }
+
     public function displayName() {
         if($this->employee) {
             return $this->employee->contact->display_name();
