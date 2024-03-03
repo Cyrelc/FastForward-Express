@@ -42,7 +42,7 @@ class User extends Authenticatable {
     public function getContactAttribute() {
         if($this->employee)
             return $this->employee->contact;
-        else if($this->accountUsers)
+        else if(count($this->accountUsers) > 0)
             return $this->accountUsers[0]->contact;
         else
             return false;
