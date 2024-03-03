@@ -115,7 +115,7 @@ class EmployeeControllerTest extends TestCase {
     }
 
     public function testGetEmployeeEditBasicBelongsToAuthenticatedUser() {
-        $employee = Employee::factory()->create(['user_id' => $this->user]);
+        $employee = Employee::factory()->create(['user_id' => $this->user->id]);
         $address = Address::factory()->create(['contact_id' => $employee->contact_id]);
         $emailAddresses = EmailAddress::factory()->count(4)->create(['contact_id' => $employee->contact_id]);
         $emailAddresses[0]->update(['is_primary' => true]);
@@ -146,7 +146,7 @@ class EmployeeControllerTest extends TestCase {
 
 
     public function testGetDriverEditBasicBelongsToAuthenticatedUser() {
-        $employee = Employee::factory()->driver()->create(['user_id' => $this->user]);
+        $employee = Employee::factory()->driver()->create(['user_id' => $this->user->id]);
         $address = Address::factory()->create(['contact_id' => $employee->contact_id]);
         $emailAddresses = EmailAddress::factory()->count(4)->create(['contact_id' => $employee->contact_id]);
         $emailAddresses[0]->update(['is_primary' => true]);

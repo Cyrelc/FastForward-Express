@@ -20,7 +20,7 @@ class ActivityLogRepo {
                 $addresses->where('subject_type', 'App\Models\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
             })
-            ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->select(
                 'activity_log.updated_at',
                 'subject_type',
@@ -48,7 +48,7 @@ class ActivityLogRepo {
             ->orWhere(function($emails) use ($emailAddressIds) {
                 $emails->where('subject_type', 'App\Models\EmailAddress');
                 $emails->whereIn('subject_id', $emailAddressIds->toArray());
-            })->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            })->leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->select(
                 'activity_log.updated_at',
                 'subject_type',
@@ -68,7 +68,7 @@ class ActivityLogRepo {
         $bill = $billRepo->GetById($billId);
         $charges = $chargeRepo->GetByBillId($billId);
 
-        $activity = ActivityLog::leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+        $activity = ActivityLog::leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->where('log_name', '!=', 'system_debug')
             ->where([['subject_type', 'App\Models\Bill'], ['subject_id', $billId]])
             ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->pickup_address_id]])
@@ -123,7 +123,7 @@ class ActivityLogRepo {
                 $users->where('subject_type', 'App\Models\User');
                 $users->where('subject_id', $employee->user_id);
             })
-            ->leftJoin('users', 'users.user_id', '=', 'activity_log.causer_id')
+            ->leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->select(
                 'activity_log.updated_at',
                 'subject_type',

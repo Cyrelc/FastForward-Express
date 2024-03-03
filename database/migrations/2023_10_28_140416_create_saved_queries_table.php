@@ -18,11 +18,11 @@ return new class extends Migration
             $table->text('name');
             $table->text('query_string');
             $table->text('table');
-            $table->unsignedInteger('user_id');
+            $table->foreignId('user_id');
 
             $table->timestamps();
 
-            $table->foreign('user_id')->references('user_id')->on('users');
+            // $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
