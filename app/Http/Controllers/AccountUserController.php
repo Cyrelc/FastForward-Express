@@ -180,12 +180,12 @@ class AccountUserController extends Controller {
                 $user = $userRepo->Insert($user);
                 $userRepo->AddUserToAccountUser($contactId, $userId);
             } else {
-                $user['user_id'] = $userId;
+                $user['id'] = $userId;
                 $user = $userRepo->Update($user, $permissions['editPermissions']);
             }
         } else {
             $user = $userRepo->Insert($user);
-            $userId = $user->user_id;
+            $userId = $user->id;
             $accountUser = $userCollector->CollectAccountUser($req, $contactId, $primaryEmailAddress, $userId);
             $accountUserId = $userRepo->InsertAccountUser($accountUser)->account_user_id;
         }

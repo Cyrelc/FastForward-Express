@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Broadcast;
 */
 
 Broadcast::channel('dispatch', function ($user) {
-    activity('system_debug')->log('Attempting to authenticate user: ' . $user->user_id . ' on dispatch channel ' . $user->cannot('viewDispatch', Bill::class));
+    activity('system_debug')->log('Attempting to authenticate user: ' . $user->id . ' on dispatch channel ' . $user->cannot('viewDispatch', Bill::class));
     if($user->cannot('bills.edit.dispatch.*'))
         abort(403);
 
