@@ -18,7 +18,7 @@ class AuthenticatedUserResource extends JsonResource {
         return [
             'user_id' => $this->id,
             'account_users' => $this->account_users,
-            'contact' => new ContactResource($this->contact),
+            'contact' => $this->contact ? new ContactResource($this->contact) : null,
             'employee' => isset($this->employee) ? [
                 'employee_id' => $this->employee->employee_id
             ] : [],
