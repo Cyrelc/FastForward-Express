@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class EmployeeRepo {
     public function getActiveDriversWithContact() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+            ->leftJoin('users', 'users.id', '=', 'employees.user_id')
             ->select(
                 'company_name',
                 'employee_id',
@@ -31,7 +31,7 @@ class EmployeeRepo {
     public function getDriverList($activeOnly = true) {
         $drivers = Employee::where('is_driver', 1)
             ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+            ->leftJoin('users', 'users.id', '=', 'employees.user_id')
             ->when($activeOnly, function($query) {
                 return $query->where('users.is_enabled', 1);
             })->select(
@@ -48,7 +48,7 @@ class EmployeeRepo {
 
     public function getEmployeeBirthdays() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-        ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+        ->leftJoin('users', 'users.id', '=', 'employees.user_id')
         ->where('is_enabled', true)
         ->whereMonth('dob', date('m'))
         ->select(
@@ -61,7 +61,7 @@ class EmployeeRepo {
 
     public function getEmployeesWithExpiries($date) {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-            ->leftJoin('users', 'users.user_id', '=', 'employees.user_id')
+            ->leftJoin('users', 'users.id', '=', 'employees.user_id')
             ->where('is_enabled', 1)
             ->where('is_driver', 1)
             ->where(function($query) use ($date) {

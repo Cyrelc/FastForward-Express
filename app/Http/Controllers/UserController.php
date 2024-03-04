@@ -18,8 +18,7 @@ use DB;
 
 class UserController extends Controller {
     public function changePassword(Request $req, $userId) {
-        $userRepo = new Repos\UserRepo();
-        $originalUser = $userRepo->GetById($userId);
+        $originalUser = User::find($userId);
         if($originalUser == null)
             abort(404, 'Requested user not found');
         if($req->user()->cannot('updatePassword', $originalUser))
@@ -31,12 +30,11 @@ class UserController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        $userRepo = new Repos\UserRepo();
-        $userRepo->ChangePassword($userId, $req->password);
+        $success = $originalUser->update(['password', \Hash::make($req->password)]);
 
         DB::commit();
         return response()->json([
-            'success' => true
+            'success' => $success
         ]);
     }
 
@@ -68,9 +66,9 @@ class UserController extends Controller {
         }
 
         if($req->session()->missing('original_user_id'))
-            $req->session()->put('original_user_id', Auth::user()->user_id);
+            $req->session()->put('original_user_id', Auth::user()->id);
 
-        Auth::loginUsingId($impersonateUser->user_id);
+        Auth::loginUsingId($impersonateUser->id);
     }
 
     public function sendPasswordResetEmail(Request $req, $userId) {
@@ -98,7 +96,7 @@ class UserController extends Controller {
 
         $settings = $userCollector->collectSettings($req);
 
-        $userRepo->storeSettings($req->user()->user_id, $settings);
+        $userRepo->storeSettings($req->user()->id, $settings);
     }
 
     public function unimpersonate(Request $req) {

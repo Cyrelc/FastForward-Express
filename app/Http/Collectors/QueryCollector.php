@@ -8,7 +8,7 @@ class QueryCollector {
             'name' => $req->name,
             'query_string' => $req->query_string,
             'table' => $req->table,
-            'user_id' => $req->user()->user_id
+            'user_id' => $req->user()->id
         ];
     }
 }

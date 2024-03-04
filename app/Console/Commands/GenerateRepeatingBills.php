@@ -17,7 +17,7 @@ class GenerateRepeatingBills extends Command {
         // Notably, this must be done **before** creation of the billRepo, which relies on user permissions for functionality
         $userRepo = new Repos\UserRepo();
         $user = $userRepo->GetUserByPrimaryEmail('system.scheduled.tasks');
-        Auth::loginUsingId($user->user_id);
+        Auth::loginUsingId($user->id);
 
         $addressRepo = new Repos\AddressRepo();
         $appSettingsRepo = new Repos\ApplicationSettingsRepo();

@@ -11,9 +11,8 @@ class CreateUsersTable extends Migration {
      */
     public function up() {
         Schema::create('users', function(Blueprint $table) {
+            $table->id();
             $table->softDeletes();
-
-            $table->increments('user_id');
 
             $table->string('email')->unique();
             $table->boolean('is_enabled')->default(true);

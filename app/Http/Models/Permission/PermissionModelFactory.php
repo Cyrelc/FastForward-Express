@@ -92,7 +92,7 @@ class PermissionModelFactory {
 
     public function GetAccountUserModelPermissions($accountUser) {
         if($accountUser)
-            $user = User::where('user_id', $accountUser->user_id)->first();
+            $user = User::find($accountUser->user_id);
 
         return [
             'is_enabled' => $accountUser ? $user->is_enabled : true,

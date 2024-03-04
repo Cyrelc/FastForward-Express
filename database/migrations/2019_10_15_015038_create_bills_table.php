@@ -3,20 +3,18 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateBillsTable extends Migration
-{
+class CreateBillsTable extends Migration {
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
-    {
+    public function up() {
         Schema::create('bills', function (Blueprint $table) {
             $table->increments('bill_id');
 
             $table->string('bill_number')->nullable();
-            $table->unsignedInteger('created_by');
+            $table->foreignId('created_by');
             $table->unsignedInteger('delivery_account_id')->nullable();
             $table->unsignedInteger('delivery_address_id');
             $table->float('delivery_driver_commission')->nullable();
@@ -56,7 +54,7 @@ class CreateBillsTable extends Migration
             $table->timestamps();
             $table->unique('bill_number');
             
-            $table->foreign('created_by')->references('user_id')->on('users');
+            $table->foreign('created_by')->references('id')->on('users');
 			$table->foreign('delivery_account_id')->references('account_id')->on('accounts');
 			$table->foreign('delivery_address_id')->references('address_id')->on('addresses');
             $table->foreign('delivery_driver_id')->references('employee_id')->on('employees');
