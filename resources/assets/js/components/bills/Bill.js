@@ -52,7 +52,7 @@ const Bill = (props) => {
             data = JSON.parse(data)
             data.drivers = props.drivers
             data.employees = props.employees
-            data.use_imperial = props.userSettings.use_imperial_default
+            data.use_imperial = false
 
             billDispatch({type: 'CONFIGURE_BILL', payload: data})
             billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
@@ -124,7 +124,7 @@ const Bill = (props) => {
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
-                packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
+                packages: packageState.packageIsMinimum ? [] : packageState.packages,
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
