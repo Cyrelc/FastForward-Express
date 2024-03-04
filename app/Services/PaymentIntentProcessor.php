@@ -44,7 +44,7 @@ class PaymentIntentProcessor {
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
             $oldStatus = str_replace('payment_intent.', '', $payment->payment_intent_status);
             $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
-            $newStatus = str_replace('payment_intent.', '', $event->status);
+            $newStatus = str_replace('payment_intent.', '', $event->data->status);
             $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
             if($oldStatusIndex != false && $newStatusIndex != false && $oldStatusIndex < $newStatusIndex) {
@@ -62,16 +62,15 @@ class PaymentIntentProcessor {
                 if($newStatus == 'succeeded') {
                     activity('payment_intent')
                         ->performedOn($payment)
-                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->status, 'amount' => $paymentAmount])
+                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->data->status, 'amount' => $paymentAmount])
                         ->log('[ReceiveStripeWebhook.handle] succeeded');
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
-                }
-                if($newStatus == 'canceled')
+                } else if($newStatus == 'canceled')
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
             } else {
                 activity('jobs')
                     ->performedOn($payment)
-                    ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $event->type])
+                    ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $event->data->status])
                     ->log('[ReceiveStripeWebhook.handle] skipped.');
             }
         }
