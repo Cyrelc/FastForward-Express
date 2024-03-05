@@ -1,7 +1,6 @@
 import React, {Fragment, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, FormCheck, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
-import {connect} from 'react-redux'
 
 import PaymentModal from '../partials/Payments/PaymentModal'
 import PaymentTable from '../partials/Payments/PaymentTable'
@@ -16,7 +15,7 @@ function getCorrectAddress(bill) {
     return bill.pickup_address_name ? bill.pickup_address_name : bill.pickup_address_formatted
 }
 
-function Invoice(props) {
+export default function Invoice(props) {
     const [amendmentsOnly, setAmendmentsOnly] = useState(false)
     const [accountId, setAccountId] = useState('')
     const [amendments, setAmendments] = useState([])
@@ -54,7 +53,7 @@ function Invoice(props) {
         makeAjaxRequest(`/invoices/getModel/${params.invoiceId}`, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = `View Invoice ${response.invoice.invoice_id}`
-            let sortedInvoices = localStorage.getItem('manifests.sortedList')
+            let sortedInvoices = localStorage.getItem('invoices.sortedList')
             if(sortedInvoices) {
                 sortedInvoices = sortedInvoices.split(',').map(index => parseInt(index))
                 const thisInvoiceIndex = sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)
@@ -206,9 +205,13 @@ function Invoice(props) {
                                 <tr>
                                     <td style={{width: '40%'}}>
                                         <h3>
-                                            <LinkContainer to={`/accounts/${accountId}`}>
-                                                <a>{`${parent?.account_number} - ${parent?.name}`}</a>
-                                            </LinkContainer>
+                                            {isPrepaid ?
+                                                `${parent?.account_number} - ${parent?.name}`
+                                                :
+                                                <LinkContainer to={`/accounts/${accountId}`} disabled>
+                                                    <a disabled={isPrepaid}>{`${parent?.account_number} - ${parent?.name}`}</a>
+                                                </LinkContainer>
+                                            }
                                         </h3>
                                     </td>
                                     <td style={{...headerTDStyle, backgroundColor: '#ADD8E6'}}>
@@ -508,12 +511,3 @@ function Invoice(props) {
         </Fragment>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        frontEndPermissions: store.user.frontEndPermissions,
-        sortedInvoices: store.invoices.sortedList
-    }
-}
-
-export default connect(mapStateToProps)(Invoice)
