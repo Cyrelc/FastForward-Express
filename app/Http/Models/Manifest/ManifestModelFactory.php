@@ -3,6 +3,8 @@ namespace App\Http\Models\Manifest;
 
 use App\Http\Models;
 use App\Http\Repos;
+use App\Http\Resources\EmployeeResource;
+use App\Models\Employee;
 
 class ManifestModelFactory{
     public function ListAll($req, $employeeId = null) {
@@ -27,7 +29,6 @@ class ManifestModelFactory{
         $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
 
-        $employeeModelFactory = new Models\Employee\EmployeeModelFactory();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
         $model = new ManifestViewModel();
@@ -36,7 +37,8 @@ class ManifestModelFactory{
         $model->bill_count = $billRepo->CountByManifestId($manifestId);
 
         //Handle Employee Information
-        $model->employee = $employeeModelFactory->GetViewModel($model->manifest->employee_id);
+        $model->employee = new EmployeeResource(Employee::findOrFail($model->manifest->employee_id));
+        $model->employee->address($model->employee->contact->address);
 
         $model->bills = $billRepo->GetByManifestId($manifestId);
         $model->overview = $billRepo->GetManifestOverviewById($manifestId);
