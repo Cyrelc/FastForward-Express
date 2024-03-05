@@ -53,7 +53,7 @@ export default function Invoice(props) {
         makeAjaxRequest(`/invoices/getModel/${params.invoiceId}`, 'GET', null, response => {
             response = JSON.parse(response)
             document.title = `View Invoice ${response.invoice.invoice_id}`
-            let sortedInvoices = localStorage.getItem('manifests.sortedList')
+            let sortedInvoices = localStorage.getItem('invoices.sortedList')
             if(sortedInvoices) {
                 sortedInvoices = sortedInvoices.split(',').map(index => parseInt(index))
                 const thisInvoiceIndex = sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)

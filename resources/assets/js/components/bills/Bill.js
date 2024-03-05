@@ -128,7 +128,7 @@ export default function Bill(props) {
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
-                packages: packageState.packageIsMinimum ? [] : packageState.tableRef?.current?.table?.getData(),
+                packages: packageState.packageIsMinimum ? [] : packageState.packages,
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
@@ -271,7 +271,9 @@ export default function Bill(props) {
                     pickup_driver_commission: billState.pickup.driverCommission,
                     pickup_person_name: billState.pickup.personName,
                     time_call_received: billState.timeCallReceived ? billState.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
+                    time_delivered: billState.timeDelivered ? billState.timeDelivered.toLocaleStreing("en-US") : null,
                     time_dispatched: billState.timeDispatched ? billState.timeDispatched.toLocaleString("en-US") : null,
+                    time_picked_up: billState.timePickedUp ? billState.timePickedUp.toLocaleString("en-US") : null,
                 }
 
             if(billId ? permissions.editBilling : permissions.createFull) {
