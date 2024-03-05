@@ -72,11 +72,7 @@ class UserController extends Controller {
     }
 
     public function sendPasswordResetEmail(Request $req, $userId) {
-        $userRepo = new Repos\UserRepo();
-        $targetUser = $userRepo->GetById($userId);
-
-        if(!$targetUser)
-            abort(404);
+        $targetUser = User::findOrFail($userId);
 
         if($req->user()->cannot('updatePassword', $targetUser))
             abort(403);
