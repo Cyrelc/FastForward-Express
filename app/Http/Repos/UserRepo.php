@@ -71,7 +71,7 @@ class UserRepo
             })
             ->select(
                 'account_users.contact_id',
-                'users.id',
+                'user_id',
                 DB::raw('coalesce(preferred_name, concat(contacts.first_name, " ", contacts.last_name)) as name'),
                 'email_addresses.email as primary_email',
                 'phone_numbers.phone_number as primary_phone',
