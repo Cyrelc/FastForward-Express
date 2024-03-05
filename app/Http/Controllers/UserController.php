@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
 use App\Http\Collectors;
 use App\Http\Repos;
 use App\Http\Validation;
-use App\Http\Models\User;
 use App\Http\Resources\AuthenticatedUserResource;
+use App\Models\Contact;
+use App\Models\User;
 use App\Services\ContactService;
 
 use Illuminate\Http\Request;
