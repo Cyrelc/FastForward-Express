@@ -171,7 +171,7 @@ class AccountUserController extends Controller {
         }
 
         //Begin User
-        $primaryEmailAddress = Contact::find($contactId)->primary_email;
+        $primaryEmailAddress = Contact::find($contactId)->primary_email->email;
 
         $user = $userCollector->CollectAccountUser($req, $contactId, $primaryEmailAddress, $userId);
 

@@ -21,6 +21,7 @@ class EmployeeResource extends JsonResource {
         $basicFields = [
             'contact' => new ContactResource($this->contact),
             'employee_id' => $this->employee_id,
+            'employee_number' => $this->employee_number,
             'is_driver' => $this->is_driver,
             'is_enabled' => $this->user->is_enabled,
             'permissions' => $this->getPermissions(),
@@ -36,7 +37,6 @@ class EmployeeResource extends JsonResource {
             return [
                 'activity_log' => $this->activity_log,
                 'dob' => $this->dob,
-                'employee_number' => $this->employee_number,
                 'employee_permissions' => $this->permissions(),
                 'sin' => $this->sin,
                 'start_date' => $this->start_date,
