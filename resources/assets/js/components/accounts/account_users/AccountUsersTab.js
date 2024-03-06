@@ -74,12 +74,8 @@ export default function AccountUsersTab(props) {
         setContactId('')
     }
 
-    const impersonate = contact_id => {
-        const data = {
-            contact_id,
-            account_id: props.accountId
-        }
-        makeAjaxRequest('/users/impersonate', 'POST', data, response => {
+    const impersonate = userId => {
+        makeAjaxRequest(`/users/impersonate/${userId}`, 'GET', null, response => {
             location.reload()
         })
     }
@@ -180,7 +176,7 @@ export default function AccountUsersTab(props) {
                                                             <Dropdown.Item
                                                                 title='Impersonate'
                                                                 variant='info'
-                                                                onClick={() => impersonate(user.contact_id)}
+                                                                onClick={() => impersonate(user.user_id)}
                                                             >
                                                                 <i className='fas fa-people-arrows'></i> Impersonate
                                                             </Dropdown.Item>

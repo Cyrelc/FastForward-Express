@@ -49,25 +49,20 @@ class UserController extends Controller {
         return new AuthenticatedUserResource(Auth::user());
     }
 
-    public function impersonate(Request $req) {
-        $userRepo = new Repos\UserRepo();
-        $impersonateUser = null;
+    public function impersonate(Request $req, $userId) {
+        $impersonateUser = User::findOrFail($userId);
 
-        if($req->employee_id) {
-            if($req->user()->cannot('employees.impersonate.*.*'))
+        if($impersonateUser->employee) {
+            if(Auth::user()->cannot('employees.impersonate.*.*'))
                 abort(403);
-
-            $impersonateUser = $userRepo->GetUserByEmployeeId($req->employee_id);
         } else {
-            if($req->user()->cannot('accountUsers.impersonate.*'))
+            if(Auth::user()->cannot('accountUsers.impersonate.*'))
                 abort(403);
-
-            $impersonateUser = $userRepo->GetAccountUser($req->contact_id, $req->account_id);
         }
 
         if($req->session()->missing('original_user_id'))
             $req->session()->put('original_user_id', Auth::user()->id);
-
+dd($impersonateUser->id);
         Auth::loginUsingId($impersonateUser->id);
     }
 
