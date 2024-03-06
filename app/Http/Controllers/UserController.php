@@ -62,7 +62,7 @@ class UserController extends Controller {
 
         if($req->session()->missing('original_user_id'))
             $req->session()->put('original_user_id', Auth::user()->id);
-dd($impersonateUser->id);
+
         Auth::loginUsingId($impersonateUser->id);
     }
 
