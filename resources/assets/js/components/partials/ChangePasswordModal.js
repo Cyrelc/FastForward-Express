@@ -29,7 +29,7 @@ export default function ChangePasswordModal(props) {
     const sendResetPasswordEmail = async() => {
         await api.get(`/users/sendPasswordReset/${props.userId}`)
             .then(data => {
-                toast.success(`Password reset email sent to ${response.email}`, {
+                toast.success(`Password reset email sent to ${data.email}`, {
                     position: 'top-center',
                 })
                 props.toggleModal()
