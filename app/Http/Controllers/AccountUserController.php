@@ -54,7 +54,7 @@ class AccountUserController extends Controller {
         ]);
     }
 
-    public function deleteAccountUser(Request $req, $contactId, $accountId) {
+    public function delete(Request $req, $contactId, $accountId) {
         if($req->user()->cannot('delete', AccountUser::class))
             abort(403);
 
