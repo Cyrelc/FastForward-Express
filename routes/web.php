@@ -155,7 +155,7 @@ Route::middleware(['auth'])->controller(SearchController::class)->group(function
 Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {
     Route::post('/changePassword/{id}', 'changePassword');
     Route::get('/generatePassword', 'generatePassword');
-    Route::post('/impersonate', 'impersonate');
+    Route::get('/impersonate/{userId}', 'impersonate');
     Route::get('/unimpersonate', 'unimpersonate');
     Route::get('/sendPasswordReset/{userId}', 'sendPasswordResetEmail');
     Route::post('/settings', 'storeSettings');

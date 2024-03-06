@@ -69,8 +69,8 @@ export default function Employees(props) {
     ]
 
     const impersonateEmployee = cell => {
-        const employee_id = cell.getRow().getData().employee_id
-        makeAjaxRequest(`/users/impersonate`, 'POST', {'employee_id': employee_id}, response => {
+        const userId = cell.getRow().getData().user_id
+        makeAjaxRequest(`/users/impersonate/${userId}`, 'GET', null, response => {
             location.reload()
         })
     }
