@@ -31,7 +31,7 @@ Route::middleware(['auth'])->controller(AccountUserController::class)->prefix('a
     Route::post('/', 'storeAccountUser');
     // potential problem here
     Route::get('/{accountId}/{contactId?}', 'getAccountUserModel');
-    Route::delete('/{accountId}/{contactId}', 'deleteAccountUser');
+    Route::delete('/{accountId}/{contactId}', 'delete');
     Route::post('/checkIfExists', 'checkIfAccountUserExists');
     Route::get('/link/{accountId}/{contactId}', 'LinkAccountUser');
     Route::get('/setPrimary/{account_id}/{contact_id}', 'setPrimary');

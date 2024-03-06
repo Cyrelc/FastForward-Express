@@ -2,6 +2,7 @@
 namespace App\Http\Repos;
 
 use App\Models\AccountUser;
+use App\Models\Contact;
 use App\Models\Employee;
 use App\Models\User;
 use App\UserSettings;
@@ -45,8 +46,7 @@ class UserRepo
         if(AccountUser::where('contact_id', $contactId)->count() == 0) {
             $settings = \App\UserSettings::where('user_id', $userId)->delete();
             $user = User::where('id', $userId)->delete();
-            $contactRepo = new ContactRepo();
-            $contactRepo->Delete($contactId);
+            Contact::find($contactId)->delete();
         }
     }
 
