@@ -1,8 +1,7 @@
 import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
-import {connect} from 'react-redux'
 import {LinkContainer} from 'react-router-bootstrap'
-import {useHistory, useParams} from 'react-router-dom'
+import {useHistory, useLocation, useParams} from 'react-router-dom'
 
 import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -14,8 +13,9 @@ import InvoicingTab from './InvoicingTab'
 import BillingTab from './billing/BillingTab'
 
 import useAddress from '../partials/Hooks/useAddress'
+import {useUser} from '../../contexts/UserContext'
 
-const Account = props => {
+export default function Account(props) {
     const [accountId, setAccountId] = useState('')
     const [accountBalance, setAccountBalance] = useState('')
     const [accountName, setAccountName] = useState('')
@@ -57,6 +57,8 @@ const Account = props => {
     const shippingAddress = useAddress()
     const {accountId: paramAccountId} = useParams()
     const history = useHistory()
+    const location = useLocation()
+    const {authenticatedUser} = useUser()
 
     useEffect(() => {
         configureAccount()
@@ -65,6 +67,10 @@ const Account = props => {
     useEffect(() => {
         handleInvoiceSortOrderChange(invoiceSortOrder)
     }, [canBeParent, customTrackingField])
+
+    useEffect(() => {
+        setKey(location.hash.substring(1))
+    }, [location.hash])
 
     const configureAccount = () => {
         const {match: {params}} = props
@@ -372,7 +378,7 @@ const Account = props => {
                         <Tab eventKey='users' title={<h4>Users</h4>}>
                             <AccountUsersTab
                                 accountId={props.match.params.accountId}
-                                authenticatedUserContact={props.authenticatedUserContact}
+                                authenticatedUserContact={authenticatedUser.contact}
                                 canBeParent={canBeParent}
 
                                 canCreateAccountUsers={permissions.createAccountUsers}
@@ -446,11 +452,3 @@ const Account = props => {
         </Row>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        authenticatedUserContact: store.user.authenticatedUserContact,
-    }
-}
-
-export default connect(mapStateToProps)(Account)

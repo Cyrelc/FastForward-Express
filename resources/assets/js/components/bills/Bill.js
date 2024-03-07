@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useReducer, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, ProgressBar, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
 import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
-import {connect} from 'react-redux'
 import {debounce} from 'lodash'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
@@ -12,6 +11,8 @@ import ActivityLogTab from '../partials/ActivityLogTab'
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
 import DispatchTab from './DispatchTab'
+import {useLists} from '../../contexts/ListsContext'
+import {useUser} from '../../contexts/UserContext'
 
 const unmanifestedDriverMismatchMessage = (
 `------------------PLEASE READ CAREFULLY------------------
@@ -23,7 +24,7 @@ Click "Okay" to reassign, or "Cancel" to leave them.
 Please remember you can view the driver who is assigned each line item by clicking the "Toggle details" button on the Billing tab`
 )
 
-const Bill = (props) => {
+export default function Bill(props) {
     const [billState, billDispatch] = useReducer(BillReducer, initialBillState)
     const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
     const [packageState, packageDispatch] = useReducer(PackageReducer, initialPackageState)
@@ -38,9 +39,12 @@ const Bill = (props) => {
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
     const {match: {params}} = props
+    const lists = useLists()
     const location = useLocation()
     const history = useHistory()
     const queryParams = new URLSearchParams(location.search)
+    const {authenticatedUser} = useUser()
+    const {front_end_permissions: frontEndPermissions} = authenticatedUser
 
     const configureBill = () => {
         billDispatch({type: 'SET_IS_LOADING', payload: true})
@@ -50,9 +54,9 @@ const Bill = (props) => {
 
         makeAjaxRequest(fetchUrl, 'GET', null, data => {
             data = JSON.parse(data)
-            data.drivers = props.drivers
-            data.employees = props.employees
-            data.use_imperial = false
+            data.drivers = lists.employees.filter(employee => employee.is_driver)
+            data.employees = lists.employees
+            data.use_imperial = authenticatedUser.user_settings.use_imperial_default
 
             billDispatch({type: 'CONFIGURE_BILL', payload: data})
             billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
@@ -328,6 +332,10 @@ const Bill = (props) => {
         }
     }
 
+    useEffect(() => {
+        billDispatch({type: 'SET_TAB_KEY', payload: location.hash.substring(1)})
+    }, [location.hash])
+
     // If the pickup or delivery driver is changed, offer the user the option to update unmanifested line items
     // This doesn't happen by default, as it would otherwise throw away customized line items
     useEffect(() => {
@@ -482,7 +490,7 @@ const Bill = (props) => {
                     {invoiceIds?.length &&
                         <Badge bg='info' text='dark' style={{margin: '0px 5px'}}>
                             <h5>Invoices: {invoiceIds.map((invoiceId, index, arr) => {
-                                if(props.frontEndPermissions.invoices.viewAny)
+                                if(frontEndPermissionss.invoices.viewAny)
                                     return (
                                         <LinkContainer to={`/invoices/${invoiceId}`} style={{marginRight: '7px'}} key={invoiceId}>
                                             <a>{invoiceId}</a>
@@ -495,7 +503,7 @@ const Bill = (props) => {
                     {manifestIds?.length &&
                         <Badge bg='light' text='dark' style={{margin: '0px 5px'}}>
                             <h5>Manifests: {manifestIds.map((manifestId, index, arr) => {
-                                if(props.frontEndPermissions.invoices.viewAny)
+                                if(frontEndPermissionss.invoices.viewAny)
                                     return (
                                         <LinkContainer to={`/manifests/${manifestId}`} style={{marginRight: '7px'}} key={manifestId}>
                                             <a>{manifestId}</a>
@@ -597,7 +605,7 @@ const Bill = (props) => {
                                 billState={billState}
                                 billDispatch={billDispatch}
                                 charges={chargeState.charges}
-                                drivers={props.drivers}
+                                drivers={lists.employees.filter(employee => employee.is_driver)}
                                 // isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
                                 // isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
                                 isPickupManifested={false}
@@ -684,14 +692,3 @@ const Bill = (props) => {
         </Row>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        drivers: store.app.drivers,
-        employees: store.app.employees,
-        frontEndPermissions: store.user.frontEndPermissions,
-        userSettings: store.user.userSettings
-    }
-}
-
-export default connect(mapStateToProps)(Bill)

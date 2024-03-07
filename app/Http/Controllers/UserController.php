@@ -18,9 +18,8 @@ use DB;
 
 class UserController extends Controller {
     public function changePassword(Request $req, $userId) {
-        $originalUser = User::find($userId);
-        if($originalUser == null)
-            abort(404, 'Requested user not found');
+        $originalUser = User::findOrFail($userId);
+
         if($req->user()->cannot('updatePassword', $originalUser))
             abort(403);
 
@@ -30,7 +29,8 @@ class UserController extends Controller {
 
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        $success = $originalUser->update(['password', \Hash::make($req->password)]);
+        $originalUser->password = \Hash::make($req->password);
+        $originalUser->save();
 
         DB::commit();
         return response()->json([

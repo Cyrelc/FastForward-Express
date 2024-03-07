@@ -1,9 +1,10 @@
 import React, {useState} from 'react'
-import {connect} from 'react-redux'
 import {useHistory} from 'react-router-dom'
 import {DateTime} from 'luxon'
 
 import Table from '../partials/Table'
+import {useLists} from '../../contexts/ListsContext'
+import {useUser} from '../../contexts/UserContext'
 
 const baseGroupByOptions = [
     {
@@ -45,20 +46,23 @@ const baseGroupByOptions = [
 
 const initialSort = [{column:'bill_id', dir: 'desc'}]
 
-function Bills(props) {
+export default function Bills(props) {
     //Begin state
     const [customFieldName, setCustomFieldName] = useState('')
     const [triggerReload, setTriggerReload] = useState(false)
 
     // Begin declarations
     const history = useHistory()
+    const lists = useLists()
+    const {authenticatedUser} = useUser()
+    const {front_end_permissions: frontEndPermissions} = authenticatedUser
     /**
      * There is some fancy array spreading here to combine to create a single array of "columns" based on permissions level
      * This is necessary just to keep columns in a strict order (for example to ensure "Amount" and "Percent Complete" remain at the end of the list)
      * So essentially it spreads an empty array if you don't have permission, and adds the correct columns if you do!
      */
     const columns = [
-            ... props.frontEndPermissions.bills.delete ? [{
+            ... frontEndPermissions.bills.delete ? [{
                 formatter: (cell) => {if(cell.getRow().getData().deletable) return "<button class='btn btn-sm btn-danger'><i class='fas fa-trash'></i></button>"},
                 titleFormatter: () => {return "<i class='fas fa-trash'></i>"},
                 width:50,
@@ -68,7 +72,7 @@ function Bills(props) {
                 headerSort: false,
                 print: false
             }] : [],
-            ... props.frontEndPermissions.bills.create ? [{
+            ... frontEndPermissions.bills.create ? [{
                 formatter: cell => "<button class='btn btn-sm btn-success'><i class='fas fa-copy'></i></button>",
                 titleFormatter: () => "<i class='fas fa-copy'></i>",
                 width: 50,
@@ -93,11 +97,11 @@ function Bills(props) {
             {title: customFieldName, field: 'custom_field_value'},
             {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
             {title: 'Delivery Address Name', field: 'delivery_address_name', visible: false},
-            ... (props.frontEndPermissions.bills.dispatch || props.authenticatedEmployee) ? [
+            ... (frontEndPermissions.bills.dispatch || authenticatedUser.employee) ? [
                 {title: 'Delivery Driver', field: 'delivery_employee_name', ...configureFakeLink('/employees/', history.push, null, 'delivery_driver_id'), visible: false},
                 {title: 'Pickup Driver', field: 'pickup_employee_name', ...configureFakeLink('/employees/', history.push, null, 'pickup_driver_id')},
             ] : [],
-            ... props.frontEndPermissions.bills.billing ? [
+            ... frontEndPermissions.bills.billing ? [
                 {title: 'Interliner', field: 'interliner_name', visible: false},
                 {title: 'Payment Type', field: 'payment_type', visible: false},
                 {title: 'Repeat Interval', field: 'repeat_interval_name', visible: false}
@@ -127,14 +131,14 @@ function Bills(props) {
         {
             isMulti: true,
             name: 'Account',
-            selections: props.accounts,
+            selections: lists.accounts,
             type: 'SelectFilter',
             db_field: 'charge_account_id'
         },
         {
             isMulti: true,
             name: 'Charge Type',
-            selections: props.chargeTypes,
+            selections: lists.chargeTypes,
             type: 'SelectFilter',
             db_field: 'charge_type_id',
         },
@@ -150,7 +154,7 @@ function Bills(props) {
             type: 'SelectFilter',
             db_field: 'invoice_id'
         },
-        ...props.frontEndPermissions.bills.create ? [
+        ...frontEndPermissions.bills.create ? [
             {
                 default: true,
                 name: 'Is Template',
@@ -164,11 +168,11 @@ function Bills(props) {
             db_field: 'is_invoiced',
             default: false
         },
-        ...props.frontEndPermissions.bills.billing ? [
+        ...frontEndPermissions.bills.billing ? [
             {
                 isMulti: true,
                 name: 'Repeat Interval',
-                selections: props.repeatIntervals,
+                selections: lists.repeatIntervals,
                 type: 'SelectFilter',
                 db_field: 'repeat_interval'
             },
@@ -181,7 +185,7 @@ function Bills(props) {
         {
             isMulti: true,
             name: 'Parent Account',
-            selections: props.parentAccounts,
+            selections: lists.accounts.filter(account => account.can_be_parent),
             type: 'SelectFilter',
             db_field: 'parent_account_id'
         },
@@ -194,11 +198,11 @@ function Bills(props) {
             max: 100,
             defaultUpperBound: 100,
         },
-        ...props.frontEndPermissions.employees.viewAll ? [
+        ...frontEndPermissions.employees.viewAll ? [
             {
                 isMulti: true,
                 name: 'Pickup Employee',
-                selections: props.drivers,
+                selections: lists.employees.filter(employee => employee.is_driver),
                 type: 'SelectFilter',
                 db_field: 'pickup_driver_id',
             },
@@ -231,7 +235,7 @@ function Bills(props) {
             type: 'StringFilter',
             db_field: 'bill_number'
         },
-        ...props.frontEndPermissions.bills.edit ? [
+        ...frontEndPermissions.bills.edit ? [
             // {
             //     fetchUrl: '/getList/interliners',
             //     name: 'Interliner',
@@ -244,7 +248,7 @@ function Bills(props) {
 
     const groupBy = ''
 
-    const groupByOptions = baseGroupByOptions.concat(...props.frontEndPermissions.employees.viewAll ? [
+    const groupByOptions = baseGroupByOptions.concat(...frontEndPermissions.employees.viewAll ? [
             {
                 label: 'Pickup Employee',
                 value: 'pickup_driver_id',
@@ -276,11 +280,11 @@ function Bills(props) {
             // {'name': 'Charge ID', 'field': 'charge_id'},
             {'name': 'Type', 'field': 'type'},
             {'name': 'Price', 'field': 'price'},
-            ... props.frontEndPermissions.bills.createFull ? [
+            ... frontEndPermissions.bills.createFull ? [
                 {'name': 'Driver Amount', 'field': 'driver_amount'}
             ] : [],
             {'name': 'Charge Account', 'field': 'charge_account_name'},
-            ... props.frontEndPermissions.bills.createFull ? [
+            ... frontEndPermissions.bills.createFull ? [
                 {'name': 'Charge Employee', 'field': 'charge_employee_name'}
             ] : [],
             {'name': 'Charge Reference Value', 'field': 'charge_reference_value'},
@@ -316,7 +320,7 @@ function Bills(props) {
     }
 
     const defaultFilterQuery = () => {
-        const billsPermissions = props.frontEndPermissions.bills
+        const billsPermissions = frontEndPermissions.bills
         if(billsPermissions.delete || billsPermissions.billing || billsPermissions.dispatch)
             return '?filter[percentage_complete]=,100'
         const billsSinceDate = DateTime.now().minus({months: 4})
@@ -324,7 +328,7 @@ function Bills(props) {
     }
 
     const deleteBill = cell => {
-        if(!props.frontEndPermissions.bills.delete) {
+        if(!frontEndPermissions.bills.delete) {
             console.log('User has no delete bills permission')
             return
         }
@@ -365,21 +369,3 @@ function Bills(props) {
         />
     )
 }
-
-const matchDispatchToProps = dispatch => {
-    return {}
-}
-
-const mapStateToProps = store => {
-    return {
-        accounts: store.app.accounts,
-        authenticatedEmployee: store.user.authenticatedEmployee,
-        chargeTypes: store.app.paymentTypes,
-        drivers: store.app.drivers,
-        frontEndPermissions: store.user.frontEndPermissions,
-        parentAccounts: store.app.parentAccounts,
-        repeatIntervals: store.app.repeatIntervals,
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(Bills)

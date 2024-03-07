@@ -1,16 +1,17 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, FormControl, InputGroup} from 'react-bootstrap'
-import {connect} from 'react-redux'
 import queryString from 'query-string'
 import {ReactTabulator} from 'react-tabulator'
 import {useHistory, useLocation} from 'react-router-dom'
+import {useUser} from '../../contexts/UserContext'
 
-const Search = (props) => {
+export default function Search(props) {
     const [searchTerm, setSearchTerm] = useState('')
     const [searchResults, setSearchResults] = useState([])
 
     const history = useHistory();
     const location = useLocation();
+    const {authenticatedUser} = useUser()
 
     const otherFieldsFormatter = (cell) => {
         const rowData = cell.getRow().getData()
@@ -33,7 +34,7 @@ const Search = (props) => {
 
     const tableColumns = [
         {title: 'Result Type', field: 'type', width: '10%'},
-        ...props.authenticatedEmployee ? [
+        ...authenticatedUser.employee ? [
             {title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')}
         ] : [],
         {title: 'Name', field: 'name', ...configureFakeLink('', history.push, null, 'link')},
@@ -87,11 +88,3 @@ const Search = (props) => {
         </Card>
     )
 }
-
-const mapStateToProps = store => {
-    return {
-        authenticatedEmployee: store.user.authenticatedEmployee
-    }
-}
-
-export default connect(mapStateToProps)(Search);

@@ -61,6 +61,10 @@ class User extends Authenticatable {
         return $this->hasOne(Employee::class);
     }
 
+    public function settings() : hasOne {
+        return $this->hasOne(UserSettings::class, 'user_id');
+    }
+
     public function getActivitylogOptions() : LogOptions {
         return LogOptions::defaults()
             ->logFillable()

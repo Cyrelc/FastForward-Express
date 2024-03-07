@@ -1,8 +1,9 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu} from 'react-pro-sidebar'
-import {connect} from 'react-redux'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
 import {Link, useHistory} from 'react-router-dom'
+
+import {useUser} from '../../contexts/UserContext'
 
 const renderMenuItemChildren = (option, text) => {
     return (
@@ -96,12 +97,14 @@ const SmallHighlighter = props => {
     )
 }
 
-function NavBar(props) {
+export default function NavBar(props) {
     const [collapsed, setCollapsed] = useState(false)
     const [isLoadingSearch, setIsLoadingSearch] = useState(false)
     const [searchResults, setSearchResults] = useState([])
     const searchRef = useRef(null)
     const history = useHistory()
+    const {authenticatedUser} = useUser()
+    const {front_end_permissions: frontEndPermissions, is_impersonating, account_users, employee} = authenticatedUser
 
     const menuItemStyles = {
         root: {
@@ -143,11 +146,11 @@ function NavBar(props) {
     }, [collapsed])
 
     const getUserIcon = () => {
-        if(props.isImpersonating)
+        if(is_impersonating)
             return 'fas fa-people-arrows'
-        if(props.authenticatedAccountUsers === null && props.authenticatedEmployee === null)
+        if(account_users === null && employee === null)
             return 'fas fa-dragon'
-        else if(props.authenticatedEmployee)
+        else if(employee)
             return 'fas fa-user-ninja'
         return 'fas fa-user-circle'
     }
@@ -206,76 +209,76 @@ function NavBar(props) {
                 <SidebarHeader collapsed={collapsed} toggleCollapsed={toggleCollapsed} menuItemStyles={menuItemStyles}/>
                 <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
                     <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
-                        {hasAnyPermission(props.frontEndPermissions.bills) &&
+                        {hasAnyPermission(frontEndPermissions.bills) &&
                             <SubMenu label={<h5>Bills</h5>} icon={<i className='fas fa-boxes fa-lg'/>}>
-                                {props.frontEndPermissions.bills.viewAny &&
+                                {frontEndPermissions.bills.viewAny &&
                                     <MenuItem component={<Link to='/bills' />} icon={<i className='fa fa-list'></i>}>List Bills</MenuItem>
                                 }
-                                {props.frontEndPermissions.bills.create &&
+                                {frontEndPermissions.bills.create &&
                                     <MenuItem component={<Link to='/bills/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Bill</MenuItem>
                                 }
-                                {/* {props.frontEndPermissions.appSettings.edit && props.frontEndPermissions.bills.create &&
+                                {/* {frontEndPermissions.appSettings.edit && frontEndPermissions.bills.create &&
                                     <MenuItem component={<Link to='/bills/create/bulk' />} icon={<i className='fas fa-mail-bulk'></i>}>Create Bills in Bulk</MenuItem>
                                 } */}
-                                {props.frontEndPermissions.appSettings.edit &&
+                                {frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/bills/trend' />} icon={<i className='fas fa-chart-bar'></i>}>Trend</MenuItem>
                                 }
                             </SubMenu>
                         }
-                        {hasAnyPermission(props.frontEndPermissions.invoices) &&
+                        {hasAnyPermission(frontEndPermissions.invoices) &&
                             <SubMenu label={<h5>Invoices</h5>} icon={<i className='fas fa-file-invoice-dollar fa-lg'/>}>
-                                {props.frontEndPermissions.invoices.viewAny &&
+                                {frontEndPermissions.invoices.viewAny &&
                                     <MenuItem component={<Link to='/invoices' />} icon={<i className='fa fa-list'></i>}>List Invoices</MenuItem>
                                 }
-                                {props.frontEndPermissions.invoices.create &&
+                                {frontEndPermissions.invoices.create &&
                                     <MenuItem component={<Link to='/invoices/generate' />} icon={<i className='fa fa-plus-square'></i>}>Generate Invoices</MenuItem>
                                 }
                             </SubMenu>
                         }
-                        {hasAnyPermission(props.frontEndPermissions.accounts) &&
+                        {hasAnyPermission(frontEndPermissions.accounts) &&
                             <SubMenu label={<h5>Accounts</h5>} icon={<i className='fas fa-city fa-lg'/>}>
                                 {(props.authenticatedAccountUsers && props.accounts.length == 1) &&
                                     <MenuItem component={<Link to={`/accounts/${props.authenticatedAccountUsers[0]?.account_id}`} />} icon={<i className='fas fa-building'></i>}>
                                         {props.accounts.find(account => account.value === props.authenticatedAccountUsers[0].account_id).label}
                                     </MenuItem>
                                 }
-                                {props.frontEndPermissions.accounts.viewAny &&
+                                {frontEndPermissions.accounts.viewAny &&
                                     <MenuItem component={<Link to='/accounts' />} icon={<i className='fa fa-list'></i>}>List Accounts</MenuItem>
                                 }
-                                {props.frontEndPermissions.accounts.create &&
+                                {frontEndPermissions.accounts.create &&
                                     <MenuItem component={<Link to='/accounts/create' />} href='/accounts/create' icon={<i className='fa fa-plus-square'></i>}>Create Account</MenuItem>
                                 }
-                                {props.frontEndPermissions.appSettings.edit &&
+                                {frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/accountsReceivable' />} icon={<i className='fas fa-balance-scale'></i>}>Accounts Receivable</MenuItem>
                                 }
-                                {props.frontEndPermissions.appSettings.edit &&
+                                {frontEndPermissions.appSettings.edit &&
                                     <MenuItem component={<Link to='/accountsPayable' />} icon={<i className='fas fa-funnel-dollar'></i>}>Accounts Payable</MenuItem>
                                 }
                             </SubMenu>
                         }
-                        {hasAnyPermission(props.frontEndPermissions.employees) &&
+                        {hasAnyPermission(frontEndPermissions.employees) &&
                             <SubMenu label={<h5>Employees</h5>} icon={<i className='fas fa-id-card-alt fa-lg'/>}>
-                                {props.frontEndPermissions.employees.viewAll &&
+                                {frontEndPermissions.employees.viewAll &&
                                     <MenuItem component={<Link to='/employees' />} icon={<i className='fa fa-list'></i>}>List Employees</MenuItem>
                                 }
-                                {props.frontEndPermissions.employees.create &&
+                                {frontEndPermissions.employees.create &&
                                     <MenuItem component={<Link to='/employees/create' />} icon={<i className='fa fa-plus-square'></i>}>Create Employee</MenuItem>
                                 }
-                                {props.frontEndPermissions.chargebacks.viewAny &&
+                                {frontEndPermissions.chargebacks.viewAny &&
                                     <MenuItem component={<Link to='/chargebacks' />} icon={<i className='fas fa-cash-register'></i>}> Chargebacks</MenuItem>
                                 }
-                                {props.frontEndPermissions.manifests.viewAny &&
+                                {frontEndPermissions.manifests.viewAny &&
                                     <MenuItem component={<Link to='/manifests' />} icon={<i className='fas fa-clipboard-list'></i>}>Manifests</MenuItem>
                                 }
-                                {props.frontEndPermissions.manifests.create &&
+                                {frontEndPermissions.manifests.create &&
                                     <MenuItem component={<Link to='/manifests/generate' />} icon={<i className='fas fa-clipboard'></i>}>Generate Manifests</MenuItem>
                                 }
                             </SubMenu>
                         }
-                        {props.frontEndPermissions.bills.dispatch &&
+                        {frontEndPermissions.bills.dispatch &&
                             <MenuItem component={<Link to='/dispatch' />} icon={<i className='fas fa-headset fa-lg'></i>}><h5>Dispatch</h5></MenuItem>
                         }
-                        {props.frontEndPermissions.appSettings.edit &&
+                        {frontEndPermissions.appSettings.edit &&
                             <SubMenu label={<h5>App Settings</h5>} icon={<i className='fas fa-toolbox fa-lg'></i>}>
                                 <MenuItem component={<Link to='/appSettings#accounting' />} icon={<i className='fas fa-calculator'></i>}>Accounting</MenuItem>
                                 <MenuItem component={<Link to='/appSettings#interliners' />} icon={<i className='fas fa-shipping-fast'></i>}>Interliners</MenuItem>
@@ -338,21 +341,3 @@ function NavBar(props) {
         </Sidebar>
     )
 }
-
-const matchDispatchToProps = dispatch => {return {}}
-
-const mapStateToProps = store => {
-    return {
-        accounts: store.app.accounts,
-        authenticatedAccountUsers: store.user.authenticatedAccountUsers,
-        authenticatedEmployee: store.user.authenticatedEmployee,
-        authenticatedUserId: store.user.authenticatedUserId,
-        contact: store.user.authenticatedUserContact,
-        employees: store.app.employees,
-        frontEndPermissions: store.user.frontEndPermissions,
-        isImpersonating: store.user.isImpersonating
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(NavBar)
-
