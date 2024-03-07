@@ -50,10 +50,10 @@ class UserModelFactory {
     public function getAccountUserCreateModel($req, $account) {
         $model = new AccountUserFormModel();
 
-        $contactService = new \App\Services\ContactService();
+        $selectionsRepo = new Repos\SelectionsRepo();
         $permissionModelFactory = new Models\Permission\PermissionModelFactory();
 
-        $model->contact = $contactService->getCreate();
+        $model->contact = ['email_types' => $selectionsRepo->GetSelectionsListByType('contact_type'), 'phone_types' => $selectionsRepo->GetSelectionsListByType('phone_type')];
         $model->permissions = $permissionModelFactory->GetAccountUserPermissions($req->user(), null, $account);
         if($req->user()->can('updateAccountUserPermissions', $account))
             $model->account_user_model_permissions = $permissionModelFactory->GetAccountUserModelPermissions(null);

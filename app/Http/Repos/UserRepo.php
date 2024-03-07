@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
-class UserRepo
-{
+class UserRepo {
     public function AddUserToAccountUser($contactId, $userId) {
         $accountUser = AccountUser::where('contact_id', $contactId)->first();
 
@@ -145,7 +144,7 @@ class UserRepo
 
         $new = $new->create($accountUser);
         $settings = new UserSettings;
-        $settings->create(['user_id' => $new->id]);
+        $settings->create(['user_id' => $new->user_id]);
 
         return $new;
     }
