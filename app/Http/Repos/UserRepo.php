@@ -5,7 +5,7 @@ use App\Models\AccountUser;
 use App\Models\Contact;
 use App\Models\Employee;
 use App\Models\User;
-use App\UserSettings;
+use App\Models\UserSettings;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +44,7 @@ class UserRepo
             ->delete();
 
         if(AccountUser::where('contact_id', $contactId)->count() == 0) {
-            $settings = \App\UserSettings::where('user_id', $userId)->delete();
+            $settings = UserSettings::where('user_id', $userId)->delete();
             $user = User::where('id', $userId)->delete();
             Contact::find($contactId)->delete();
         }
@@ -122,7 +122,7 @@ class UserRepo
 
     public function Insert($user) {
         $new = new User;
-        $newUserSettings = new \App\UserSettings;
+        $newUserSettings = new UserSettings;
 
         $user = array_merge($user, array(
             'password' => Hash::make(Str::random(15)),
@@ -144,7 +144,7 @@ class UserRepo
             $accountUser['is_primary'] = 0;
 
         $new = $new->create($accountUser);
-        $settings = new \App\UserSettings;
+        $settings = new UserSettings;
         $settings->create(['user_id' => $new->id]);
 
         return $new;
