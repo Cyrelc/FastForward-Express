@@ -1,7 +1,8 @@
 import React from 'react'
-import { connect } from 'react-redux'
 import Table from '../partials/Table'
 import {useHistory} from 'react-router-dom'
+import {useLists} from '../../contexts/ListsContext'
+import {useUser} from '../../contexts/UserContext'
 
 const defaultFilterQuery = '?filter[active]=true'
 /**
@@ -14,8 +15,10 @@ const groupByOptions = [
 
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
-function Accounts(props) {
+export default function Accounts(props) {
     const history = useHistory()
+    const lists = useLists()
+    const {frontEndPermissions} = useUser()
 
     const basicColumns = [
         {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number'},
@@ -38,9 +41,9 @@ function Accounts(props) {
         {title: 'Billing Address', field: 'billing_address', visible: false}
     ]
 
-    const adminColumns = props.frontEndPermissions.accounts.toggleEnabled ? [
+    const adminColumns = frontEndPermissions.accounts.toggleEnabled ? [
         {formatter: (cell) => {
-            if(!props.frontEndPermissions.accounts.toggleEnabled)
+            if(!frontEndPermissions.accounts.toggleEnabled)
                 return
 
             if(cell.getValue() == 1)
@@ -53,15 +56,15 @@ function Accounts(props) {
 
     const columns = Array.prototype.concat(adminColumns, basicColumns)
     const filters = [
-        {name: 'Account', db_field: 'account_id', selections: props.accounts, type: 'SelectFilter', isMulti: true},
+        {name: 'Account', db_field: 'account_id', selections: lists.accounts, type: 'SelectFilter', isMulti: true},
         {name: 'Active', db_field: 'active', type: 'BooleanFilter'},
         {name: 'Has Parent', db_field: 'has_parent', type: 'BooleanFilter'},
-        {isMulti: true, name: 'Invoice Interval', selections: props.invoice_intervals, type: 'SelectFilter', db_field: 'invoice_interval'},
-        {isMulti: true, name: 'Parent Account', selections: props.parent_accounts, type: 'SelectFilter', db_field: 'parent_id'}
+        {isMulti: true, name: 'Invoice Interval', selections: lists.invoice_intervals, type: 'SelectFilter', db_field: 'invoice_interval'},
+        {isMulti: true, name: 'Parent Account', selections: lists.accounts.filter(account => account.can_be_parent), type: 'SelectFilter', db_field: 'parent_id'}
     ]
 
     const toggleAccountActive = cell => {
-        if(!props.frontEndPermissions.accounts.toggleEnabled)
+        if(!frontEndPermissions.accounts.toggleEnabled)
             return
 
         const active = cell.getRow().getData().active
@@ -85,19 +88,3 @@ function Accounts(props) {
         tableName='accounts'
     />
 }
-
-const matchDispatchToprops = dispatch => {
-    return {
-    }
-}
-
-const mapStateToprops = store => {
-    return {
-        accounts: store.app.accounts,
-        frontEndPermissions: store.user.frontEndPermissions,
-        invoice_intervals: store.app.invoiceIntervals,
-        parent_accounts: store.app.parentAccounts,
-    }
-}
-
-export default connect(mapStateToprops, matchDispatchToprops)(Accounts)

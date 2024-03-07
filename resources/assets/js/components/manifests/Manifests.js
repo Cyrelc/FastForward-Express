@@ -1,6 +1,6 @@
 import React from 'react'
-import { connect } from 'react-redux'
 import {useHistory} from 'react-router-dom'
+import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
 
@@ -47,8 +47,9 @@ const withSelected = [
     }
 ]
 
-function Manifests(props) {
+export default function Manifests(props) {
     const history = useHistory()
+    const {frontEndPermissions} = useUser()
 
     const columns= [
         {
@@ -100,7 +101,7 @@ function Manifests(props) {
             {label: 'Print Manifest', action: () => printManifests([cell.getRow()])},
             {label: 'Print Without Bill List', action: () => printManifests([cell.getRow()], {withoutBills: true})}
         ]
-        if(props.frontEndPermissions.manifests.delete)
+        if(frontEndPermissions.manifests.delete)
             menuItems = menuItems.concat([{label: 'Delete Manifest', action: () => deleteManifest(cell)}])
 
         return menuItems
@@ -134,17 +135,3 @@ function Manifests(props) {
         withSelected={withSelected}
     />
 }
-
-const matchDispatchToProps = dispatch => {
-    return {
-    }
-}
-
-const mapStateToProps = store => {
-    return {
-        drivers: store.app.drivers,
-        frontEndPermissions: store.user.frontEndPermissions,
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(Manifests)

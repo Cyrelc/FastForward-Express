@@ -7,6 +7,7 @@ use App\Http\Models;
 use App\Http\Models\Account;
 use App\Http\Models\Permission;
 use App\Http\Models\User;
+use App\Services\ContactService;
 
 class AccountModelFactory {
     public function GetBillingModel($accountId) {
@@ -27,10 +28,10 @@ class AccountModelFactory {
         $invoiceRepo = new Repos\InvoiceRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
-        $contactModelFactory = new \App\Http\Models\Partials\ContactModelFactory();
+        $contactService = new ContactService();
 
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
-        $model->contact = $contactModelFactory->GetCreateModel();
+        $model->contact = $contactService->getCreate();
         $model->account = new \App\Account();
         $model->delivery_address = new \App\Models\Address();
         $model->billing_address = new \App\Models\Address();

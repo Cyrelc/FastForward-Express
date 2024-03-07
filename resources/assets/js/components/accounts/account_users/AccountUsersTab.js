@@ -3,6 +3,7 @@ import {Badge, Button, Card, Col, Dropdown, Row, Table} from 'react-bootstrap'
 
 import ChangePasswordModal from '../../partials/ChangePasswordModal'
 import EditAccountUser from './EditAccountUser'
+import {useUser} from '../../../contexts/UserContext'
 
 export default function AccountUsersTab(props) {
     const [accountUsers, setAccountUsers] = useState([])
@@ -11,6 +12,8 @@ export default function AccountUsersTab(props) {
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
     const [userId, setUserId] = useState(undefined)
     const [isTableLoading, setIsTableLoading] = useState(true)
+
+    const {contact} = useUser()
 
     useEffect(() => {
         setAccountUsers([])
@@ -25,7 +28,7 @@ export default function AccountUsersTab(props) {
     }
 
     const deleteAccountUser = contactId => {
-        if(!props.canDeleteAccountUsers && contactId != props.authenticatedUserContact?.contact_id)
+        if(!props.canDeleteAccountUsers && contactId != contact.contact_id)
             return
 
         const accountUser = accountUsers.find(user => user.contact_id === contactId)
@@ -41,7 +44,7 @@ export default function AccountUsersTab(props) {
     }
 
     const editAccountUser = contactId => {
-        if(!props.canEditAccountUsers && contactId != props.authenticatedUserContact?.contact_id)
+        if(!props.canEditAccountUsers && contactId != contact.contact_id)
             return;
         
         setContactId(contactId)
@@ -57,13 +60,15 @@ export default function AccountUsersTab(props) {
         return formattedPronouns
     }
 
-    const hasAnyPermissions = contact_id => {
+    const hasAnyPermissions = contactId => {
+        if(!contactId)
+            return false
         const testPermissions = [
             props.canDeleteAccountUsers,
             props.canImpersonateAccountUsers,
             props.canEditAccountUsers,
             props.canEditAccountUserPermissions,
-            contact_id === props.authenticatedUserContact?.contact_id
+            contactId === contact.contact_id
         ]
 
         return testPermissions.some(element => element == true)
@@ -135,7 +140,7 @@ export default function AccountUsersTab(props) {
                                                         <i className='fas fa-bars'></i>
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu>
-                                                        {(props.canEditAccountUsers || user.contact_id == props.authenticatedUserContact?.contact_id) &&
+                                                        {(props.canEditAccountUsers || user.contact_id == contact.contact_id) &&
                                                             <Dropdown.Item
                                                                 onClick={() => editAccountUser(user.contact_id)}
                                                                 title='Edit'
@@ -143,7 +148,7 @@ export default function AccountUsersTab(props) {
                                                                 <i className='fas fa-edit'></i> Edit
                                                             </Dropdown.Item>
                                                         }
-                                                        {(props.canEditAccountUserPermissions || user.contact_id == props.authenticatedUserContact?.contact_id) &&
+                                                        {(props.canEditAccountUserPermissions || user.contact_id == contact.contact_id) &&
                                                             <Dropdown.Item
                                                                 onClick={() => {
                                                                     setUserId(user.user_id)
@@ -164,7 +169,7 @@ export default function AccountUsersTab(props) {
                                                         }
                                                         {props.canDeleteAccountUsers &&
                                                             <Dropdown.Item
-                                                                disabled={accountUsers.length <= 1 || ! props.canDeleteAccountUsers || user.contact_id === props.authenticatedUserContact?.contact_id}
+                                                                disabled={accountUsers.length <= 1 || ! props.canDeleteAccountUsers || user.contact_id === contact.contact_id}
                                                                 onClick={() => deleteAccountUser(user.contact_id)}
                                                                 variant='danger'
                                                                 title={user.belongs_to_count == 1 ? 'Delete' : 'Unlink'}

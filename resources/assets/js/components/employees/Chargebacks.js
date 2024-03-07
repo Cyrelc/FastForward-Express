@@ -1,6 +1,4 @@
-import React, {Fragment, useEffect, useState} from 'react'
-import { connect } from 'react-redux'
-import {push} from 'connected-react-router'
+import React, {Fragment, useState} from 'react'
 
 import ChargebackModal from './ChargebackModal'
 import Table from '../partials/Table'
@@ -23,7 +21,7 @@ const groupByOptions = [
 
 const initialSort = [{column: 'chargeback_id', dir: 'desc'}]
 
-function Chargebacks(props) {
+export default function Chargebacks(props) {
     const [chargeback, setChargeback] = useState({})
     const [showChargebackModal, setShowChargebackModal] = useState(false)
     const [triggerReload, setTriggerReload] = useState(false)
@@ -131,17 +129,3 @@ function Chargebacks(props) {
         </Fragment>
     )
 }
-
-const matchDispatchToProps = dispatch => {
-    return {
-        redirect: url=>dispatch(push(url)),
-    }
-}
-
-const mapStateToProps = store => {
-    return {
-        employees: store.app.employees
-    }
-}
-
-export default connect(mapStateToProps, matchDispatchToProps)(Chargebacks)

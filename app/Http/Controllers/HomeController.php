@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Models;
 use App\Http\Repos;
 use App\Http\Requests;
+use App\Http\Resources\ListResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class HomeController extends Controller
-{
+class HomeController extends Controller {
     /**
      * Create a new controller instance.
      *
@@ -52,6 +53,10 @@ class HomeController extends Controller
         $model = $homeModelFactory->GetAdminDashboardModel();
 
         return json_encode($model);
+    }
+
+    public function getLists(Request $req) {
+        return new ListResource(Auth::user());
     }
 
     /**
