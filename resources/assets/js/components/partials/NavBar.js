@@ -54,7 +54,7 @@ const FFETypeAhead = props => {
             placeholder="Type at least three characters to begin searching"
             positionFixed
             renderMenu={(results, props, search) => {
-                return <AsyncMenu id='async-search-menu' {...props} maxHeight='90vh'>
+                return <AsyncMenu id='async-search-menu' {...props} maxHeight='90vh' >
                     {results.map((result, index) =>
                         <AsyncMenuItem key={index} option={result} position={index}>
                             {renderMenuItemChildren(result, search.text, index)}
@@ -104,7 +104,7 @@ export default function NavBar(props) {
     const searchRef = useRef(null)
     const history = useHistory()
     const {authenticatedUser} = useUser()
-    const {front_end_permissions: frontEndPermissions, is_impersonating, account_users, employee} = authenticatedUser
+    const {front_end_permissions: frontEndPermissions, is_impersonating, account_users, employee, contact} = authenticatedUser
 
     const menuItemStyles = {
         root: {
@@ -322,10 +322,10 @@ export default function NavBar(props) {
                                 />
                             </MenuItem>
                         }
-                        <SubMenu label={props.contact ? `${props.contact.first_name} ${props.contact.last_name}` : 'User'} icon={<i className={getUserIcon()}/>} defaultOpen={false}>
-                            {props.authenticatedEmployee?.employee_id &&
-                                <MenuItem component={<Link to={`/employees/${props.authenticatedEmployee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>
-                                    {`${props.contact.first_name} ${props.contact.last_name}`}
+                        <SubMenu label={contact ? contact.display_name : 'User'} icon={<i className={getUserIcon()}/>} defaultOpen={false}>
+                            {authenticatedUser.employee?.employee_id &&
+                                <MenuItem component={<Link to={`/employees/${authenticatedUser.employee.employee_id}`} />} icon={<i className='fas fa-user-ninja'></i>}>
+                                    {contact.display_name}
                                 </MenuItem>
                             }
                             <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
