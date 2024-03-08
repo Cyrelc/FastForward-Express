@@ -54,7 +54,7 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['daily'],
+            'channels' => ['daily', 'discord'],
             'ignore_exceptions' => false,
         ],
 
@@ -71,6 +71,19 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => 14,
             'replace_placeholders' => true,
+        ],
+
+        'discord' => [
+            'driver' => 'monolog',
+            'handler' => \App\Logging\DiscordWebhookHandler::class,
+            'with' => [
+                'webhookUrl' => env('DISCORD_WEBHOOK_URL'),
+                'level' => \Monolog\Logger::ERROR,
+            ],
+            'formatter' => \Monolog\Formatter\LineFormatter::class,
+            'formatter_with' => [
+                'format' => "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n"
+            ]
         ],
 
         'slack' => [

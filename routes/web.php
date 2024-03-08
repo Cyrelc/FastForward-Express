@@ -200,6 +200,9 @@ Route::middleware(['guest'])->controller(GuestController::class)->group(function
     Route::post('/requestDelivery', 'requestDeliveryForm');
     Route::get('requestQuote', 'requestQuote');
     Route::get('/services', 'services');
+    Route::get('/testExceptions', function() {
+        throw new \Exception('THIS exception IS a TEST');
+    });
 });
 
 Route::auth();
