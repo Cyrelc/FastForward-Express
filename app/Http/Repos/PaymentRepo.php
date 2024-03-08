@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PaymentRepo {
-
     public function GetById($id) {
         $payment = Payment::where('payment_id', $id)->first();
 

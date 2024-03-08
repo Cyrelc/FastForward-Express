@@ -18,21 +18,6 @@ class InvoiceRepo {
     public function AdjustBalanceOwing($invoiceId, $amount) {
         $invoice = Invoice::findOrFail($invoiceId);
 
-        if($invoice->balance_owing == 0) {
-            $payments = Payment::where('invoice_id', $invoice->invoiceId);
-            $count = 0;
-            foreach($payments as $payment) {
-                if($payment->payment_intent_status) {
-                    activity('payment_intent')
-                        ->performedOn($payment)
-                        ->log('Payment intent attempting to double pay invoice');
-                    $count++;
-                }
-            }
-            if($count)
-                return;
-        }
-
         if(gettype($amount) == 'string')
             $amount = floatval($amount);
 
