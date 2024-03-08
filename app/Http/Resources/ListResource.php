@@ -45,10 +45,12 @@ class ListResource extends JsonResource {
             if($authUser->can('viewAll', Employee::class) || $authUser->can('bills.view.dispatch.*')) {
                 $lists['employees'] = Employee::all()->map(function ($employee) {
                     return [
-                        'label' => $employee->employee_number . ' - ' . $employee->contact->displayName(),
-                        'value' => $employee->employee_id,
-                        'is_enabled' => $employee->user->is_enabled,
+                        'delivery_commission' => $employee->delivery_commission,
                         'is_driver' => $employee->is_driver,
+                        'is_enabled' => $employee->user->is_enabled,
+                        'label' => $employee->employee_number . ' - ' . $employee->contact->displayName(),
+                        'pickup_commission' => $employee->pickup_commission,
+                        'value' => $employee->employee_id,
                     ];
                 });
                 $lists['vehicle_types'] = Selection::where('type', 'vehicle_type')->select('name as label', 'selection_id as value')->get();
