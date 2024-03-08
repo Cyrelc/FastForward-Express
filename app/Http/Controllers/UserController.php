@@ -30,7 +30,7 @@ class UserController extends Controller {
         $this->validate($req, $temp['rules'], $temp['messages']);
 
         $originalUser->password = \Hash::make($req->password);
-        $originalUser->save();
+        $success = $originalUser->save();
 
         DB::commit();
         return response()->json([
