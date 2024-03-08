@@ -34,10 +34,9 @@ export default function DispatchTab(props) {
                             <InputGroup>
                                 <InputGroup.Text>Driver: </InputGroup.Text>
                                 <Select
-                                    options={billId ? drivers : drivers.filter(driver => driver.active)}
+                                    options={billId ? drivers : drivers.filter(driver => driver.is_enabled)}
                                     isClearable
                                     isSearchable
-                                    value={pickup.driver}
                                     onChange={driver => props.billDispatch({type: 'SET_PICKUP_DRIVER', payload: driver})}
                                     isDisabled={readOnly || isPickupManifested}
                                 />
@@ -107,7 +106,7 @@ export default function DispatchTab(props) {
                             <InputGroup>
                                 <InputGroup.Text>Driver: </InputGroup.Text>
                                 <Select
-                                    options={billId ? drivers : drivers.filter(driver => driver.active)}
+                                    options={billId ? drivers : drivers.filter(driver => driver.is_enabled)}
                                     isClearable
                                     isSearchable
                                     value={delivery.driver}
