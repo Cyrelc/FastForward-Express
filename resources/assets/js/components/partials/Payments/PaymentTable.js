@@ -25,7 +25,7 @@ export default function PaymentTable(props) {
         else if(status == 'Processing')
             variant = 'primary'
 
-        ReactDOM.render(<Badge bg={variant} title={`${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>, element)
+        ReactDOM.render(<Badge bg={variant} title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>, element)
 
         return element
     }

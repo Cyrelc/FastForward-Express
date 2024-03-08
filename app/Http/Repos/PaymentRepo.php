@@ -141,26 +141,9 @@ class PaymentRepo {
     }
 
     public function Update($paymentId, $payment) {
-        $old = Payment::where('payment_id', $paymentId)->first();
-        $fields = array('amount', 'payment_type_id', 'reference_value', 'payment_intent_status');
+        $updatedPayment = Payment::firstOrFail($paymentId)->update($payment);
 
-        foreach($fields as $field)
-            if(isset($payment[$field]))
-                $old->$field = $payment[$field];
-
-        $old->save();
-        return $old;
-    }
-
-    public function UpdatePaymentIntentStatus($paymentIntentId, $status) {
-        $payments = Payment::where('payment_intent_id', $paymentIntentId)->get();
-
-        foreach($payments as $payment) {
-            $payment->payment_intent_status = $status;
-            $payment->save();
-        }
-
-        return $payments;
+        return $updatedPayment;
     }
 }
 ?>

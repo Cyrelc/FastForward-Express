@@ -47,16 +47,20 @@ class PaymentIntentProcessor {
             $newStatus = str_replace('payment_intent.', '', $event->data->status);
             $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
-            if($oldStatusIndex != false && $newStatusIndex != false && $oldStatusIndex < $newStatusIndex) {
-                $paymentRepo->UpdatePaymentIntentStatus($paymentIntent->id, $newStatus);
-
+            if($oldStatusIndex == false || $newStatusIndex == false) {
+                activity('payment_intent')
+                    ->performedOn($payment)
+                    ->withProperties(['new_status_index' => $newStatusIndex, 'old_status_index' => $oldStatusIndex, 'new_status' => $event->data->status, 'old_status' => $payment->payment_intent_status])
+                    ->log(['[ReceiveStripeWebhook.handle] invalid status found']);
+            } else if($newStatusIndex > $oldStatusIndex) {
                 $paymentAmount = bcdiv($paymentIntent->amount_received, 100, 2);
 
-                $paymentRepo->Update($payment->payment_id, [
+                $payment->update([
                     'amount' => $paymentAmount,
+                    'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null,
+                    'payment_intent_status' => $newStatus,
                     'payment_type_id' => $paymentType->payment_type_id,
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
-                    'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null
                 ]);
 
                 if($newStatus == 'succeeded') {
@@ -65,8 +69,7 @@ class PaymentIntentProcessor {
                         ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->data->status, 'amount' => $paymentAmount])
                         ->log('[ReceiveStripeWebhook.handle] succeeded');
                     $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
-                } else if($newStatus == 'canceled')
-                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
+                }
             } else {
                 activity('jobs')
                     ->performedOn($payment)
