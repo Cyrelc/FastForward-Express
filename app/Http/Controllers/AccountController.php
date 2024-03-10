@@ -71,7 +71,7 @@ class AccountController extends Controller {
         ]);
     }
 
-    public function GetBillingModel(Request $req, $accountId) {
+    public function getBillingModel(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
         if($req->user()->cannot('viewPayments', $account))

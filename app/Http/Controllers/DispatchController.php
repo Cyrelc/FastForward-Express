@@ -11,7 +11,7 @@ use DB;
 use App\Http\Repos;
 
 class DispatchController extends Controller {
-    public function AssignBillToDriver(Request $req) {
+    public function assignBillToDriver(Request $req) {
         $billRepo = new Repos\BillRepo();
         $bill = Bill::find($req->bill_id);
         if($req->user()->cannot('updateDispatch', $bill))
@@ -35,7 +35,7 @@ class DispatchController extends Controller {
             'success' => true
         ]);
     }
-    public function GetBills(Request $req) {
+    public function getBills(Request $req) {
         if($req->user()->cannot('viewDispatch', Bill::Class))
             abort(403);
 
@@ -45,7 +45,7 @@ class DispatchController extends Controller {
         return json_encode($bills);
     }
 
-    public function GetModel(Request $req) {
+    public function getModel(Request $req) {
         if($req->user()->cannot('viewAll', Employee::class) || $req->user()->cannot('viewDispatch', Dispatch::class))
             abort(403);
 
@@ -60,7 +60,7 @@ class DispatchController extends Controller {
         ]);
     }
 
-    public function SetBillPickupOrDeliveryTime(Request $req) {
+    public function setBillPickupOrDeliveryTime(Request $req) {
         $billRepo = new Repos\BillRepo();
         $bill = $billRepo->GetById($req->bill_id);
         if($req->user()->cannot('updateDispatch', $bill))

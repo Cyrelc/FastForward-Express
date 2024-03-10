@@ -14,7 +14,7 @@ use App\Http\Repos;
 use App\Http\Collectors\SelectionCollector;
 
 Class AdminController extends Controller {
-    public function DeleteAppSetting(Request $req, $appSettingId) {
+    public function deleteAppSetting(Request $req, $appSettingId) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
@@ -79,7 +79,7 @@ Class AdminController extends Controller {
         return json_encode($selections);
     }
 
-    public function StoreAccountingSettings(Request $req) {
+    public function storeAccountingSettings(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
@@ -109,7 +109,7 @@ Class AdminController extends Controller {
         ]);
     }
 
-    public function StoreBlockedDate(Request $req) {
+    public function storeBlockedDate(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
@@ -129,7 +129,7 @@ Class AdminController extends Controller {
         ]);
     }
 
-    public function StoreSelection(Request $req) {
+    public function storeSelection(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 

@@ -133,7 +133,7 @@ class ManifestController extends Controller {
             ->header('Content-Disposition', 'inline; filename=' . $fileName);
     }
 
-    public function Regather(Request $req, $manifestId) {
+    public function regather(Request $req, $manifestId) {
         if($req->user()->cannot('create', Manifest::class))
             abort(403);
 
