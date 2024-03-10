@@ -44,13 +44,9 @@ class BillModelFactory{
 
 		if($permissions['createFull']) {
 			$model->accounts = $accountRepo->ListForBillsPage($req->user(), false, true);
-			$model->employees = $employeeRepo->getDriverList();
 			$model->interliners = $interlinerRepo->GetInterlinersList();
 			$model->charge_types = $paymentRepo->GetPaymentTypes();
 			$model->repeat_intervals = $selectionsRepo->GetSelectionsByType('repeat_interval');
-
-			foreach ($model->employees as $employee)
-				$employee->contact = Contact::find($employee->contact_id);
 		// Possible edge case - if user can create bills for children but not for own account
 		} else if($req->user()->can('bills.create.basic.my')) {
 			$model->accounts = $accountRepo->ListForBillsPage($req->user(), $req->user()->can('bills.create.basic.children'), true);

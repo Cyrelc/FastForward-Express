@@ -28,24 +28,6 @@ class EmployeeRepo {
         return $employees->get();
     }
 
-    public function getDriverList($activeOnly = true) {
-        $drivers = Employee::where('is_driver', 1)
-            ->leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-            ->leftJoin('users', 'users.id', '=', 'employees.user_id')
-            ->when($activeOnly, function($query) {
-                return $query->where('users.is_enabled', 1);
-            })->select(
-                DB::raw('concat(employee_number, " - ", coalesce(preferred_name, concat(first_name, " ", last_name))) as label'),
-                'employee_id as value',
-                'pickup_commission',
-                'delivery_commission',
-                'employee_id',
-                'is_enabled as active'
-            );
-
-        return $drivers->get();
-    }
-
     public function getEmployeeBirthdays() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
         ->leftJoin('users', 'users.id', '=', 'employees.user_id')
