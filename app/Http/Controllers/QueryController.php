@@ -24,7 +24,7 @@ class QueryController extends Controller {
         return $queryRepo->GetByTable($query->table);
     }
 
-    public function StoreQuery(Request $req) {
+    public function storeQuery(Request $req) {
         $queryValidationRules = new Validation\QueryValidationRules();
 
         $queryRules = $queryValidationRules->GetValidationRules($req);

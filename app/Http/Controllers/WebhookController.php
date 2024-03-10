@@ -8,7 +8,7 @@ use App\Jobs\ReceiveStripeWebhook;
 
 
 class WebhookController extends Controller {
-    public function ReceivePaymentIntentUpdate(Request $req) {
+    public function receivePaymentIntentUpdate(Request $req) {
         try {
             $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.webhook_secret'));
         } catch (\Exception $e) {

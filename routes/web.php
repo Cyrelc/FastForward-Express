@@ -21,7 +21,7 @@ Route::middleware(['auth'])->controller(AccountController::class)->prefix('accou
     Route::get('/getShippingAddress', 'getShippingAddress');
     Route::post('/adjustCredit', 'adjustAccountCredit');
     Route::get('/getModel/{accountId?}', 'getModel');
-    Route::get('/billing/{accountId}', 'GetBillingModel');
+    Route::get('/billing/{accountId}', 'getBillingModel');
     Route::post('/', 'store');
     Route::get('/', 'index');
 });
@@ -33,17 +33,17 @@ Route::middleware(['auth'])->controller(AccountUserController::class)->prefix('a
     Route::get('/{accountId}/{contactId?}', 'getAccountUserModel');
     Route::delete('/{accountId}/{contactId}', 'delete');
     Route::post('/checkIfExists', 'checkIfAccountUserExists');
-    Route::get('/link/{accountId}/{contactId}', 'LinkAccountUser');
+    Route::get('/link/{accountId}/{contactId}', 'linkAccountUser');
     Route::get('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
 });
 
 Route::middleware(['auth'])->controller(AdminController::class)->prefix('appsettings')->group(function() {
-    Route::get('/', 'AdminController@getModel');
-    Route::post('/accounting', 'AdminController@StoreAccountingSettings');
-    Route::post('/scheduling/blockedDates', 'AdminController@StoreBlockedDate');
-    Route::delete('/scheduling/blockedDates/{blockedDateId}', 'AdminController@DeleteAppSetting');
-    Route::get('/selections', 'AdminController@getSelections');
-    Route::post('/selections', 'AdminController@StoreSelection');
+    Route::get('/', 'getModel');
+    Route::post('/accounting', 'storeAccountingSettings');
+    Route::post('/scheduling/blockedDates', 'storeBlockedDate');
+    Route::delete('/scheduling/blockedDates/{blockedDateId}', 'deleteAppSetting');
+    Route::get('/selections', 'getSelections');
+    Route::post('/selections', 'storeSelection');
 });
 
 Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')->group(function() {
@@ -67,10 +67,10 @@ Route::middleware(['auth'])->controller(ChargebackController::class)->prefix('ch
 });
 
 Route::middleware(['auth'])->controller(DispatchController::class)->prefix('dispatch')->group(function() {
-    Route::post('/assignBillToDriver', 'AssignBillToDriver');
-    Route::get('/', 'GetModel');
-    Route::get('/getBills', 'GetBills');
-    Route::post('/setBillPickupOrDeliveryTime', 'SetBillPickupOrDeliveryTime');
+    Route::post('/assignBillToDriver', 'assignBillToDriver');
+    Route::get('/', 'getModel');
+    Route::get('/getBills', 'getBills');
+    Route::post('/setBillPickupOrDeliveryTime', 'setBillPickupOrDeliveryTime');
 });
 
 Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('employees')->group(function() {
@@ -114,42 +114,42 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
     Route::get('/download/{manifestIds}', 'download');
     Route::get('/print/{manifestIds}', 'print');
     Route::get('/', 'index');
-    Route::get('/regather/{invoiceId}', 'Regather');
+    Route::get('/regather/{invoiceId}', 'regather');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
-    Route::post('/{invoiceId}', 'ProcessPayment');
-    Route::get('/{invoiceId}', 'GetReceivePaymentModel');
-    Route::delete('/{paymentId}', 'RevertPayment');
+    Route::post('/{invoiceId}', 'processPayment');
+    Route::get('/{invoiceId}', 'getReceivePaymentModel');
+    Route::delete('/{paymentId}', 'revertPayment');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('paymentMethods')->group(function() {
-    Route::delete('/{accountId}', 'DeletePaymentMethod');
-    Route::get('/{accountId}', 'GetAccountPaymentMethods');
-    Route::get('/{accountId}/create', 'GetSetupIntent');
-    Route::post('/{accountId}/setDefault', 'SetDefaultPaymentMethod');
-    Route::post('/getPaymentIntent', 'GetPaymentIntent');
+    Route::delete('/{accountId}', 'deletePaymentMethod');
+    Route::get('/{accountId}', 'getAccountPaymentMethods');
+    Route::get('/{accountId}/create', 'getSetupIntent');
+    Route::post('/{accountId}/setDefault', 'setDefaultPaymentMethod');
+    Route::post('/getPaymentIntent', 'getPaymentIntent');
 });
 
 Route::middleware(['auth'])->controller(QueryController::class)->prefix('queries')->group(function() {
-    Route::post('/', 'StoreQuery');
-    Route::delete('/{queryId}', 'DeleteQuery');
+    Route::post('/', 'storeQuery');
+    Route::delete('/{queryId}', 'deleteQuery');
 });
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
-    Route::get('/create', 'GetModel');
-    Route::get('/{id?}', 'GetModel');
-    Route::get('/', 'BuildTable');
-    Route::post('/', 'Store');
-    Route::get('/{ratesheetId}/getZone', 'GetZone');
-    Route::delete('/conditional/{id}', 'DeleteConditional');
-    Route::get('/conditional/{id}', 'GetConditional');
-    Route::post('/conditional/{id?}', 'StoreConditional');
-    Route::get('/conditionals/{ratesheetId}', 'ListConditionals');
+    Route::get('/create', 'getModel');
+    Route::get('/{id?}', 'getModel');
+    Route::get('/', 'buildTable');
+    Route::post('/', 'store');
+    Route::get('/{ratesheetId}/getZone', 'getZone');
+    Route::delete('/conditional/{id}', 'deleteConditional');
+    Route::get('/conditional/{id}', 'getConditional');
+    Route::post('/conditional/{id?}', 'storeConditional');
+    Route::get('/conditionals/{ratesheetId}', 'listConditionals');
 });
 
 Route::middleware(['auth'])->controller(SearchController::class)->group(function() {
-    Route::get('/search', 'Search');
+    Route::get('/search', 'search');
 });
 
 Route::middleware(['auth'])->controller(UserController::class)->prefix('users')->group(function() {

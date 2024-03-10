@@ -102,7 +102,7 @@ class AccountUserController extends Controller {
         return json_encode($users);
     }
 
-    public function LinkAccountUser(Request $req, $contactId, $accountId) {
+    public function linkAccountUser(Request $req, $contactId, $accountId) {
         $userRepo = new Repos\UserRepo();
         $contact = Contact::findOrFail($contactId);
         $targetUser = $userRepo->GetUserByPrimaryEmail($contact->primary_email->email);

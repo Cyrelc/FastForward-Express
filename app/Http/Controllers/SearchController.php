@@ -8,7 +8,7 @@ use App\Http\Repos;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller {
-    public function Search(Request $req) {
+    public function search(Request $req) {
         $searchRepo = new Repos\SearchRepo();
         $searchTerms = explode(';', $req->input('query'));
         $searchResults = [];

@@ -13,7 +13,7 @@ use \App\Http\Validation\Utils;
 use \Stripe;
 
 class PaymentController extends Controller {
-    public function DeletePaymentMethod(Request $req, $accountId) {
+    public function deletePaymentMethod(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
 
@@ -30,7 +30,7 @@ class PaymentController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    public function GetAccountPaymentMethods(Request $req, $accountId) {
+    public function getAccountPaymentMethods(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
 
@@ -46,7 +46,7 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function GetPaymentIntent(Request $req) {
+    public function getPaymentIntent(Request $req) {
         if($req->user()->cannot('create', Payment::class))
             abort(403);
 
@@ -94,7 +94,7 @@ class PaymentController extends Controller {
         );
     }
 
-    public function GetReceivePaymentModel(Request $req, $invoiceId) {
+    public function getReceivePaymentModel(Request $req, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoice = $invoiceRepo->GetById($invoiceId);
 
@@ -106,7 +106,7 @@ class PaymentController extends Controller {
         return json_encode($paymentModelFactory->GetReceivePaymentModel($invoice));
     }
 
-    public function GetSetupIntent(Request $req, $accountId) {
+    public function getSetupIntent(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
 
@@ -122,7 +122,7 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function ProcessPayment(Request $req, $invoiceId) {
+    public function processPayment(Request $req, $invoiceId) {
         if($req->user()->cannot('create', Payment::class))
             abort(403);
 
@@ -136,18 +136,18 @@ class PaymentController extends Controller {
 
         switch($req->payment_method['type'] ?? $paymentMethod->type) {
             case 'account':
-                return $this->ProcessPaymentFromAccount($req, $invoice);
+                return $this->processPaymentFromAccount($req, $invoice);
             case 'card_on_file':
-                return $this->ProcessCardOnFilePayment($req, $invoice);
+                return $this->processCardOnFilePayment($req, $invoice);
             case 'prepaid':
-                return $this->ProcessPrepaidPayment($req, $invoice);
+                return $this->processPrepaidPayment($req, $invoice);
             case 'employee':
             case 'stripe_pending':
                 break;
         }
     }
 
-    private function ProcessPaymentFromAccount(Request $req, $invoice) {
+    private function processPaymentFromAccount(Request $req, $invoice) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -169,7 +169,7 @@ class PaymentController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    private function ProcessCardOnFilePayment(Request $req, $invoice) {
+    private function processCardOnFilePayment(Request $req, $invoice) {
         $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
 
@@ -208,7 +208,7 @@ class PaymentController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    private function ProcessPrepaidPayment(Request $req, $invoice) {
+    private function processPrepaidPayment(Request $req, $invoice) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -230,7 +230,7 @@ class PaymentController extends Controller {
         return response()->json(['success' => true]);
     }
 
-    public function SetDefaultPaymentMethod(Request $req, $accountId) {
+    public function setDefaultPaymentMethod(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $account = $accountRepo->GetById($accountId);
 
@@ -247,7 +247,7 @@ class PaymentController extends Controller {
         ]);
     }
 
-    public function RevertPayment(Request $req, $paymentId) {
+    public function revertPayment(Request $req, $paymentId) {
         if($req->user()->cannot('undo', Payment::class))
             abort(403);
 

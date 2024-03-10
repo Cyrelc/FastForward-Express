@@ -14,7 +14,7 @@ use App\Http\Models\Bill\ChargeModelFactory;
 
 
 class RatesheetController extends Controller {
-    public function BuildTable(Request $req) {
+    public function buildTable(Request $req) {
         if($req->user()->cannot('viewAny', Ratesheet::class))
             abort(403);
 
@@ -23,7 +23,7 @@ class RatesheetController extends Controller {
         return json_encode($model);
     }
 
-    public function DeleteConditional(Request $req, $conditionalId) {
+    public function deleteConditional(Request $req, $conditionalId) {
         $conditionalRepo = new Repos\ConditionalRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
 
@@ -40,7 +40,7 @@ class RatesheetController extends Controller {
         ]);
     }
 
-    public function GetModel(Request $req, $ratesheetId = null) {
+    public function getModel(Request $req, $ratesheetId = null) {
         $modelFactory = new Ratesheet\RatesheetModelFactory();
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
@@ -53,7 +53,7 @@ class RatesheetController extends Controller {
         return json_encode($ratesheetModel);
     }
 
-    public function GetConditional(Request $req, $conditionalId) {
+    public function getConditional(Request $req, $conditionalId) {
         if($req->user()->cannot('update', $ratesheet))
             abort(403);
 
@@ -64,7 +64,7 @@ class RatesheetController extends Controller {
         return json_encode($conditional);
     }
 
-    public function GetZone(Request $req, $ratesheetId) {
+    public function getZone(Request $req, $ratesheetId) {
         $ratesheetRepo = new Repos\RatesheetRepo();
         $ratesheet = $ratesheetRepo->GetById($ratesheetId);
 
@@ -81,7 +81,7 @@ class RatesheetController extends Controller {
         return $chargeModelFactory->GetZone($ratesheetId, $req->lat, $req->lng);
     }
 
-    public function ListConditionals(Request $req, $ratesheetId) {
+    public function listConditionals(Request $req, $ratesheetId) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
@@ -92,7 +92,7 @@ class RatesheetController extends Controller {
         return json_encode($conditionals);
     }
 
-    public function Store(Request $req) {
+    public function store(Request $req) {
         DB::beginTransaction();
 
         $ratesheetRepo = new Repos\RatesheetRepo();
@@ -143,7 +143,7 @@ class RatesheetController extends Controller {
         DB::commit();
     }
 
-    public function StoreConditional(Request $req, $conditionalId = null) {
+    public function storeConditional(Request $req, $conditionalId = null) {
         $ratesheetRepo = new Repos\RatesheetRepo();
 
         $ratesheet = $ratesheetRepo->GetById($req->ratesheet_id);
