@@ -38,13 +38,6 @@ class HomeController extends Controller {
         }
     }
 
-    public function getAppConfiguration(Request $req) {
-        $homeModelFactory = new Models\Home\HomeModelFactory();
-        $model = $homeModelFactory->getAppConfiguration($req);
-
-        return json_encode($model);
-    }
-
     public function getDashboard(Request $req) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);

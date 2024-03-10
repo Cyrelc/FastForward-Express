@@ -8,44 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use DB;
 
 class HomeModelFactory {
-    public function GetAppConfiguration($req) {
-        $accountRepo = new Repos\AccountRepo();
-        $employeeRepo = new Repos\EmployeeRepo();
-        $paymentRepo = new Repos\PaymentRepo();
-        $ratesheetRepo = new Repos\RatesheetRepo();
-        $selectionsRepo = new Repos\SelectionsRepo();
-
-        $model = new AppModel();
-
-        $model->payment_types = $paymentRepo->GetPaymentTypesList();
-
-        if($req->user()->employee || $req->user()->hasRole('superAdmin')) {
-            if($req->user()->can('viewAll', Account::class) || $req->user()->can('bills.view.basic.*'))
-                $model->accounts = $accountRepo->List(null);
-            if($req->user()->can('viewAll', Account::class)) {
-                $model->invoice_intervals = $selectionsRepo->GetSelectionsListByType('invoice_interval');
-                $model->parent_accounts = $accountRepo->GetParentAccountsList();
-            }
-            if($req->user()->can('viewAll', Employee::class) || $req->user()->can('bills.view.dispatch.*')) {
-                $model->employees = Employee::leftJoin('contacts', 'employees.contact_id', '=', 'contacts.contact_id')
-                ->select(
-                    DB::raw('concat(employee_number, " - ", coalesce(preferred_name , concat(first_name, " ", last_name))) as label'),
-                    'employee_id as value'
-                )->get();
-            }
-            if($req->user()->can('bills.edit.dispatch.*')) {
-                $model->drivers = $employeeRepo->getDriverList();
-            }
-            if($req->user()->can('bills.edit.billing.*')) {
-                $model->repeat_intervals = $selectionsRepo->GetSelectionsListByType('repeat_interval');
-            }
-        } else if(count($req->user()->accountUsers) > 0) {
-            $model->accounts = $accountRepo->List($req->user(), $req->user()->can('viewChildAccounts', $accountRepo->GetById($req->user()->accountUsers[0]->account_id)));
-        }
-
-        return $model;
-    }
-
     public function GetAdminDashboardModel() {
         $comparisonDate = (new \DateTime())->modify('+90 days');
 

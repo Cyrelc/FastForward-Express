@@ -168,7 +168,6 @@ Route::group(['middleware' => ['auth']],
         Route::get('/', 'HomeController@index');
         Route::get('/lists', 'HomeController@getLists');
         Route::get('/getDashboard', 'HomeController@getDashboard');
-        Route::get('/getAppConfiguration', 'HomeController@getAppConfiguration');
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
         Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
