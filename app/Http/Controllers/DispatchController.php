@@ -46,15 +46,11 @@ class DispatchController extends Controller {
     }
 
     public function getModel(Request $req) {
-        if($req->user()->cannot('viewAll', Employee::class) || $req->user()->cannot('viewDispatch', Dispatch::class))
+        if($req->user()->cannot('viewDispatch', Dispatch::class))
             abort(403);
-
-        $employeeRepo = new Repos\EmployeeRepo();
-        $employees = $employeeRepo->getActiveDriversWithContact();
 
         return response()->json([
             'success' => true,
-            'drivers' => $employees,
             'pusher_key' => env('PUSHER_APP_KEY'),
             'pusher_cluster' => env('PUSHER_APP_CLUSTER')
         ]);

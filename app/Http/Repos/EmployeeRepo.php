@@ -11,23 +11,6 @@ use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Support\Facades\Auth;
 
 class EmployeeRepo {
-    public function getActiveDriversWithContact() {
-        $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
-            ->leftJoin('users', 'users.id', '=', 'employees.user_id')
-            ->select(
-                'company_name',
-                'employee_id',
-                'employee_number',
-                'first_name',
-                'is_enabled',
-                'last_name',
-                'preferred_name'
-            )->where('is_driver', true)
-            ->where('is_enabled', true);
-
-        return $employees->get();
-    }
-
     public function getEmployeeBirthdays() {
         $employees = Employee::leftjoin('contacts', 'contacts.contact_id', '=', 'employees.contact_id')
         ->leftJoin('users', 'users.id', '=', 'employees.user_id')

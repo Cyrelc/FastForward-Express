@@ -93,11 +93,11 @@ export default function BillTable(props) {
         <Card style={{padding:'5px'}}>
             {driver &&
                 <Card.Header>
-                    <h6>{`${driver.employee_number} - `} {driver.first_name} {driver.last_name}{driver.company_name ? ` (${driver.company_name})` : ''}</h6>
+                    <h6>{driver.label}</h6>
                 </Card.Header>
             }
             <Card.Body style={{padding: 0}}>
-                <div id='driver-table' ref={tableRef} data-employeeid={driver?.employee_id ?? null}></div>
+                <div id='driver-table' ref={tableRef} data-employeeid={driver?.value ?? null}></div>
             </Card.Body>
         </Card>
     )

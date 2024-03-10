@@ -7,6 +7,7 @@ import {DateTime} from 'luxon'
 
 import Map from './Map'
 import BillTable from './BillTable'
+import {useLists} from '../../contexts/ListsContext'
 
 const getBackgroundColour = (timeRemaining, actualTime = null) => {
     if(actualTime != null)
@@ -57,6 +58,7 @@ export default function Dispatch(props) {
     const setTimeButtonRef = useRef(null)
     billRef.current = bills
     driverRef.current = drivers
+    const lists = useLists()
 
     handleBillEventRef.current = billEvent => {
         const currentDate = DateTime.fromJSDate(billDate)
@@ -85,18 +87,13 @@ export default function Dispatch(props) {
 
     useEffect(() => {
         makeAjaxRequest('/dispatch', 'GET', null, response => {
-            setDrivers(Object.values(response.drivers).map(driver => {return {...driver, view: true}}))
+            setDrivers(lists.employees.filter(employee => employee.is_driver && employee.is_enabled).map(driver => {return {...driver, view: true}}))
 
             window.echo = new Echo({
                 broadcaster: 'pusher',
                 key: response.pusher_key,
                 cluster: response.pusher_cluster,
                 forceTLS: false,
-                // enable when using laravel-websockets
-                // wsHost: window.location.hostname,
-                // wsPort: 6001,
-                // //enable when using SSL
-                // encrypted: true,
             })
 
             window.echo.private('dispatch')
