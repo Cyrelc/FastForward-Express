@@ -10,6 +10,7 @@ use App\Http\Repos\UserRepo;
 use App\Http\Validation;
 use App\Models\AccountUser;
 use App\Models\Contact;
+use App\Models\User;
 // use App\Services\AccountUserService;
 use App\Services\ContactService;
 
@@ -59,17 +60,30 @@ class AccountUserController extends Controller {
         if($req->user()->cannot('delete', $accountUser))
             abort(403);
 
-        DB::beginTransaction();
 
-        if(AccountUser::where('account_id', $accountId)->count() > 1) {
+        if(AccountUser::where('account_id', $accountId)->count() == 1) {
+            return response()->json([
+                'message' => 'Minimum of one account user required',
+                'errors' => ['min_count' => ['Account must have at least one user']]
+            ], 403);
+        } else if($accountUser->is_primary) {
+            return response()->json([
+                'message' => 'Cannot delete the primary account user. Please select another primary user and then try again',
+                'errors' => ['is_primary' => ['Unable to delete primary account user']]
+            ], 403);
+        } else {
+            DB::beginTransaction();
+
+            $accountUser->delete();
+
+            DB::commit();
             $contactService = new ContactService();
             $contactService->delete($accountUser->contact_id);
             User::find($accountUser->user_id)->delete();
-            $accountUser->delete();
-        } else
-            return response()->json(['message' => 'Minimum of one account user required', 'errors' => ['min_count' => ['Account must have at least one user']]], 403);
-
-        DB::commit();
+        }
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function getAccountUserModel(Request $req, $accountId, $contactId = null) {

@@ -29,7 +29,7 @@ class ContactService {
     public function delete($contactId) {
         DB::beginTransaction();
 
-        $contact = Contact::find($contactId)->first();
+        $contact = Contact::find($contactId);
         if($contact->address != false)
             $contact->address->delete();
         $contact->email_addresses()->delete();
