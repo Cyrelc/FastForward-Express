@@ -55,16 +55,18 @@ class AccountUserController extends Controller {
     }
 
     public function delete(Request $req, $contactId, $accountId) {
-        if($req->user()->cannot('delete', AccountUser::class))
+        $accountUser = AccountUser::where(['contact_id' => $contactId, 'account_id' => $accountId])->first();
+        if($req->user()->cannot('delete', $accountUser))
             abort(403);
 
         DB::beginTransaction();
 
-        $userRepo = new Repos\UserRepo();
-
-        if($userRepo->CountAccountUsers($accountId) > 1)
-            $userRepo->DeleteAccountUser($contactId, $accountId);
-        else
+        if(AccountUser::where('account_id', $accountId)->count() > 1) {
+            $contactService = new ContactService();
+            $contactService->delete($accountUser->contact_id);
+            User::find($accountUser->user_id)->delete();
+            $accountUser->delete();
+        } else
             return response()->json(['message' => 'Minimum of one account user required', 'errors' => ['min_count' => ['Account must have at least one user']]], 403);
 
         DB::commit();
