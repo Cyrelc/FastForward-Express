@@ -46,6 +46,7 @@ class ListResource extends JsonResource {
                 $lists['employees'] = Employee::all()->map(function ($employee) {
                     return [
                         'delivery_commission' => $employee->delivery_commission,
+                        'employee_id' => $employee->employee_id,
                         'is_driver' => $employee->is_driver,
                         'is_enabled' => $employee->user->is_enabled,
                         'label' => $employee->employee_number . ' - ' . $employee->contact->displayName(),
