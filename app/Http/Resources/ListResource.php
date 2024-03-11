@@ -59,7 +59,7 @@ class ListResource extends JsonResource {
                 $lists['repeat_intervals'] = Selection::where('type', 'repeat_interval')->select('name as label', 'selection_id as value')->get();
             }
         } else if(count($authUser->accountUsers) > 0 ) {
-            $accountRepo = new App\Http\Repos\AccountRepo();
+            $accountRepo = new \App\Http\Repos\AccountRepo();
             $lists['accounts'] = $accountRepo->List($authUser, $authUser->can('viewChildAccounts', $accountRepo->GetById($authUser->accountUsers[0]->account_id)));
         }
 

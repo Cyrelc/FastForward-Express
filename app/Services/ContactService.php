@@ -30,7 +30,8 @@ class ContactService {
         DB::beginTransaction();
 
         $contact = Contact::find($contactId)->first();
-        $contact->address()->delete();
+        if($contact->address != false)
+            $contact->address->delete();
         $contact->email_addresses()->delete();
         $contact->phone_numbers()->delete();
         $contact->delete();

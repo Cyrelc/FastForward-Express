@@ -330,7 +330,7 @@ export default function NavBar(props) {
                             }
                             <MenuItem icon={<i className='fas fa-user-shield'></i>} onClick={props.toggleChangePasswordModal}> Change Password</MenuItem>
                             <MenuItem component={<Link to='/user_settings' />} icon={<i className='fas fa-cog'></i>}>User Preferences</MenuItem>
-                            {props.isImpersonating &&
+                            {is_impersonating &&
                                 <MenuItem onClick={unimpersonate}><i className='fas fa-people-arrows'></i> Unimpersonate</MenuItem>
                             }
                             <MenuItem onClick={() => window.location.href='/logout'} icon={<i className='fas fa-door-open' />}>Log Out</MenuItem>
