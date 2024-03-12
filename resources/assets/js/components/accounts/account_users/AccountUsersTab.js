@@ -60,15 +60,13 @@ export default function AccountUsersTab(props) {
         return formattedPronouns
     }
 
-    const hasAnyPermissions = contactId => {
-        if(!contactId)
-            return false
+    const hasAnyPermissions = () => {
         const testPermissions = [
             props.canDeleteAccountUsers,
             props.canImpersonateAccountUsers,
             props.canEditAccountUsers,
             props.canEditAccountUserPermissions,
-            contactId === contact.contact_id
+            contactId === contact?.contact_id
         ]
 
         return testPermissions.some(element => element == true)
@@ -134,7 +132,7 @@ export default function AccountUsersTab(props) {
                                     : accountUsers.map(user =>
                                     <tr key={user.name}>
                                         <td>
-                                            {hasAnyPermissions(user.contact_id) && 
+                                            {hasAnyPermissions() &&
                                                 <Dropdown>
                                                     <Dropdown.Toggle size='sm' variant='secondary' id='manage-account-user-menu'>
                                                         <i className='fas fa-bars'></i>
