@@ -17,11 +17,11 @@ class AuthenticatedUserResource extends JsonResource {
 
         return [
             'user_id' => $this->id,
-            'account_users' => $this->account_users,
+            'account_users' => $this->accountUsers,
             'contact' => $this->contact ? new ContactResource($this->contact) : null,
             'employee' => isset($this->employee) ? [
                 'employee_id' => $this->employee->employee_id
-            ] : [],
+            ] : null,
             'front_end_permissions' => $permissionModelFactory->getFrontEndPermissionsForUser($this),
             'is_impersonating' => session('original_user_id') != null,
             'user_settings' => $this->settings,
