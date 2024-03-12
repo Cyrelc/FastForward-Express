@@ -2,11 +2,11 @@
 .header {
     position: fixed;
     top: -5px;
-    width: 100%;
+    left: 30px;
 }
 .header table {
-    font-size: 13px;
-    width: '100%';
+    font-size: 10px;
+    /* width: 90%; */
     margin: 0 auto;
     border-bottom: 1px solid black;
 }

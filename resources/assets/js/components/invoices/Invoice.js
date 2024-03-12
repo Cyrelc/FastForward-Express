@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect, useState} from 'react'
-import {Badge, Button, ButtonGroup, Col, Container, FormCheck, Row, Table} from 'react-bootstrap'
+import {Badge, Button, ButtonGroup, Col, Container, Dropdown, FormCheck, Nav, Navbar, NavDropdown, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 
 import PaymentModal from '../partials/Payments/PaymentModal'
@@ -27,14 +27,13 @@ export default function Invoice(props) {
     const [isPrepaid, setIsPrepaid] = useState(false)
     const [nextInvoiceId, setNextInvoiceId] = useState(null)
     const [parent, setParent] = useState({})
-    const [paymentAmount, setPaymentAmount] = useState(null)
     const [payments, setPayments] = useState([])
     const [permissions, setPermissions] = useState({})
     const [prevInvoiceId, setPrevInvoiceId] = useState(null)
     const [queryString, setQueryString] = useState('')
     const [showLineItems, setShowLineItems] = useState(true)
-    const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [showPickupAndDeliveryAddress, setShowPickupAndDeliveryAddress] = useState(false)
     const [tables, setTables] = useState([])
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
 
@@ -68,7 +67,6 @@ export default function Invoice(props) {
             setIsFinalized(response.invoice.finalized)
             setIsPrepaid(response.is_prepaid)
             setParent(response.parent)
-            setPaymentAmount(response.account_owing)
             setPayments(response.payments)
             setPermissions(response.permissions)
             setShowLineItems(response.parent?.show_invoice_line_items ?? true)
@@ -102,98 +100,108 @@ export default function Invoice(props) {
 
     return (
         <Fragment>
-            <Container fluid>
-                <Row style={{paddingTop: '20px'}} className='justify-content-md-center'>
-                    <Col md={2}>
-                        <h3>Invoice {invoice?.invoice_id}</h3>
-                        <h5>
-                            <ButtonGroup size='sm' className='rounded-pill'>
-                                <Button
-                                    disabled={true}
-                                    variant={isFinalized ? 'success' : 'danger'}
-                                >{isFinalized ? 'Finalized' : 'Not Finalized'}</Button>
-                                {(invoice && permissions.edit) &&
-                                    <Button
-                                        variant={isFinalized ? 'danger' : 'success'}
-                                        size='sm'
-                                        onClick={toggleFinalized}
-                                    >
-                                        <i className={isFinalized ? 'fas fa-unlock' : 'fas fa-lock'}></i>
-                                    </Button>
-                                }
-                            </ButtonGroup>
-                            {amendments && <Badge variant='warning'>Amended</Badge>}
-                        </h5>
-                    </Col>
-                    <Col md={2}>
-                        <ButtonGroup>
-                            <LinkContainer to={`/invoices/${prevInvoiceId}`}>
-                                <Button variant='info' disabled={!prevInvoiceId} size='sm'>
-                                    <i className='fas fa-arrow-circle-left'></i> Back - {prevInvoiceId}
-                                </Button>
-                            </LinkContainer>
-                            <LinkContainer to={`/invoices/${nextInvoiceId}`}>
-                                <Button variant='info' disabled={!nextInvoiceId} size='sm'>
-                                    Next - {nextInvoiceId} <i className='fas fa-arrow-circle-right'></i>
-                                </Button>
-                            </LinkContainer>
-                        </ButtonGroup>
-                    </Col>
-                    <Col md={4}>
-                        <FormCheck
-                            type='switch'
-                            name='showLineItems'
-                            label='Show Line Items'
-                            checked={showLineItems}
-                            onChange={() => setShowLineItems(!showLineItems)}
-                        />
-                        <FormCheck
-                            type='switch'
-                            name='showPickupAndDeliveryAddress'
-                            label='Show Pickup And Delivery Address'
-                            checked={showPickupAndDeliveryAddress}
-                            onChange={() => setShowPickupAndDeliveryAddress(!showPickupAndDeliveryAddress)}
-                        />
-                        {unpaidInvoices &&
-                            <FormCheck
-                                type='switch'
-                                name='hideOutstandingInvoices'
-                                label='Hide Outstanding Invoices'
-                                checked={hideOutstandingInvoices}
-                                onChange={() => setHideOutstandingInvoices(!hideOutstandingInvoices)}
-                            />
-                        }
-                        {amendments?.length &&
-                            <FormCheck
-                                type='switch'
-                                name='amendmentsOnly'
-                                label='Amendments Only'
-                                checked={amendmentsOnly}
-                                onChange={() => setAmendmentsOnly(!amendmentsOnly)}
-                            />
-                        }
-                    </Col>
-                    <Col md={4}>
-                        <ButtonGroup size='sm'>
+            <Navbar expand='md' variant='dark' bg='dark' className='justify-content-between'>
+                <Navbar.Brand style={{paddingLeft: 15}} align='start'>
+                    <h3>Invoice {invoice?.invoice_id}</h3>
+                </Navbar.Brand>
+                {amendments && <Badge variant='warning'>Amended</Badge>}
+                <Nav>
+                    <LinkContainer to={`/invoices/${prevInvoiceId}`}>
+                        <Nav.Link disabled={!prevInvoiceId}>
+                            <i className='fas fa-arrow-circle-left'></i> Back - {prevInvoiceId}
+                        </Nav.Link>
+                    </LinkContainer>
+                    <LinkContainer to={`/invoices/${nextInvoiceId}`}>
+                        <Nav.Link disabled={!nextInvoiceId}>
+                            Next - {nextInvoiceId} <i className='fas fa-arrow-circle-right'></i>
+                        </Nav.Link>
+                    </LinkContainer>
+                </Nav>
+                <Nav>
+                    {(invoice && permissions.edit) &&
+                        <Nav.Link onClick={regather} disabled={billCountWithMissedLineItems == 0}>
+                            <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{invoice.bill_count_with_missed_line_items}</Badge>
+                        </Nav.Link>
+                    }
+                    {(permissions.processPayments && isFinalized && invoice.balance_owing > 0) &&
+                        <Nav.Link disabled={invoice.balance_owing == 0} onClick={() => setShowPaymentModal(!showPaymentModal)}>
+                            <i className='fas fa-hand-holding-usd'></i> Process Payment
+                        </Nav.Link>
+                    }
+                    <ButtonGroup size='sm' className='rounded-pill'>
+                        <Button
+                            disabled={true}
+                            variant={isFinalized ? 'success' : 'danger'}
+                        >{isFinalized ? 'Finalized' : 'Not Finalized'}</Button>
+                        {(invoice && permissions.edit) &&
                             <Button
-                                variant='secondary'
-                                href={invoice ? `/invoices/print/${invoice.invoice_id}${queryString}` : null}
+                                variant={isFinalized ? 'danger' : 'success'}
+                                size='sm'
+                                onClick={toggleFinalized}
+                            >
+                                <i className={isFinalized ? 'fas fa-unlock' : 'fas fa-lock'}></i>
+                            </Button>
+                        }
+                    </ButtonGroup>
+                </Nav>
+                <Dropdown as={ButtonGroup} align='end'>
+                    <Button
+                        variant='dark'
+                        href={invoice ? `/invoices/print/${invoice.invoice_id}${queryString}` : null}
+                        target='_blank'
+                    >
+                        <i className='fas fa-print'></i> Generate PDF
+                    </Button>
+                    <Dropdown.Toggle split variant='dark' id="print-options">
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={event => event.stopPropagation()}>
+                                <FormCheck
+                                    type='switch'
+                                    name='showLineItems'
+                                    label='Show Line Items'
+                                    checked={showLineItems}
+                                    onChange={() => setShowLineItems(!showLineItems)}
+                                />
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={event => event.stopPropagation()}>
+                                <FormCheck
+                                    type='switch'
+                                    name='showPickupAndDeliveryAddress'
+                                    label='Show Pickup And Delivery Address'
+                                    checked={showPickupAndDeliveryAddress}
+                                    onChange={() => setShowPickupAndDeliveryAddress(!showPickupAndDeliveryAddress)}
+                                />
+                            </Dropdown.Item>
+                            {unpaidInvoices &&
+                                <Dropdown.Item onClick={event => event.stopPropagation()}>
+                                    <FormCheck
+                                        type='switch'
+                                        name='hideOutstandingInvoices'
+                                        label='Hide Outstanding Invoices'
+                                        checked={hideOutstandingInvoices}
+                                        onChange={() => setHideOutstandingInvoices(!hideOutstandingInvoices)}
+                                    />
+                                </Dropdown.Item>
+                            }
+                            {amendments?.length &&
+                                <Dropdown.Item onClick={event => event.stopPropagation()}>
+                                    <FormCheck
+                                        type='switch'
+                                        name='amendmentsOnly'
+                                        label='Amendments Only'
+                                        checked={amendmentsOnly}
+                                        onChange={() => setAmendmentsOnly(!amendmentsOnly)}
+                                    />
+                                </Dropdown.Item>
+                            }
+                            <Dropdown.Item
+                                href={invoice ? `/invoices/printBills/${invoice.invoice_id}` : null}
                                 target='_blank'
-                            ><i className='fas fa-print'></i> Generate PDF</Button>
-                            {(invoice && permissions.edit) &&
-                                <Button variant='warning' onClick={regather} disabled={billCountWithMissedLineItems == 0}>
-                                    <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{invoice.bill_count_with_missed_line_items}</Badge>
-                                </Button>
-                            }
-                            {(permissions.processPayments && isFinalized && invoice.balance_owing > 0) &&
-                                <Button variant='success' disabled={invoice.balance_owing == 0} onClick={() => setShowPaymentModal(!showPaymentModal)}>
-                                    <i className='fas fa-hand-holding-usd'></i> Process Payment
-                                </Button>
-                            }
-                        </ButtonGroup>
-                    </Col>
-                </Row>
-            </Container>
+                            ><i className='fas fa-boxes' size='sm'></i> Print Bills</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown.Toggle>
+                </Dropdown>
+            </Navbar>
             <Container fluid>
                 <Row className='justify-content-md-center'>
                     <Col md={11}>

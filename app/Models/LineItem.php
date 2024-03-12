@@ -26,8 +26,12 @@ class LineItem extends Model {
         'type'
     ];
 
-    public function charge() {
+    public function charge() : belongsTo {
         return $this->belongsTo(Charge::class, 'charge_id');
+    }
+
+    public function invoice() : belongsTo {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
     public function getActivityLogOptions() : LogOptions {
