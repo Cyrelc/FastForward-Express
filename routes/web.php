@@ -100,6 +100,7 @@ Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoi
     Route::get('/getModel/{invoiceId?}','getModel');
     Route::get('/getOutstanding', 'getOutstandingByAccountId');
     Route::get('/print/{invoiceIds}', 'print');
+    Route::get('/printBills/{invoiceId}', 'printBills');
     Route::get('/printPreview/{invoiceId}', 'printPreview');
     Route::post('/', 'store');
     Route::post('/createFromCharge', 'createFromCharge');
