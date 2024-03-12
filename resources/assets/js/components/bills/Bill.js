@@ -54,8 +54,8 @@ export default function Bill(props) {
 
         makeAjaxRequest(fetchUrl, 'GET', null, data => {
             data = JSON.parse(data)
-            data.drivers = lists.employees.filter(employee => employee.is_driver)
-            data.employees = lists.employees
+            data.drivers = lists.employees ? lists.employees.filter(employee => employee.is_driver) : []
+            data.employees = lists.employees ?? []
             data.use_imperial = authenticatedUser.user_settings.use_imperial_default
 
             billDispatch({type: 'CONFIGURE_BILL', payload: data})
