@@ -4,7 +4,7 @@
     font-size: 8px;
 }
 .footer table {
-    font-size: 12px;
+    font-size: 8px;
     width: 90%;
     margin: 0 auto;
 }

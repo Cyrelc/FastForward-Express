@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class Invoice extends Model
-{
+class Invoice extends Model {
     use LogsActivity;
 
     public $primaryKey = "invoice_id";
@@ -28,6 +28,23 @@ class Invoice extends Model
         'tax',
         'total_cost',
     ];
+
+    public function account() : BelongsTo {
+        return $this->belongsTo(Account::class, 'account_id', 'account_id');
+    }
+
+    public function bills() {
+        return Bill::join('charges', 'charges.bill_id', 'bills.bill_id')
+            ->join('line_items', 'line_items.charge_id', 'charges.charge_id')
+            ->where('line_items.invoice_id', $this->invoice_id)
+            ->select('bills.*')
+            ->distinct()
+            ->get();
+    }
+
+    public function line_items() : hasMany {
+        return $this->hasMany(LineItem::class, 'invoice_id', 'invoice_id');
+    }
 
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()

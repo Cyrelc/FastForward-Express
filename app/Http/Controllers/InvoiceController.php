@@ -13,6 +13,8 @@ use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Services;
 use App\Models\Invoice;
+use App\Services\PDFService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\Browsershot\Browsershot;
@@ -164,45 +166,66 @@ class InvoiceController extends Controller {
         if(count($invoiceIds) > 50)
             abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
+        $PDFService = new PDFService();
         $files = $this->preparePdfs($invoiceIds, $req);
 
-        $pdfMerger = PDFMerger::init();
+        $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : 'Invoice_' . $invoiceIds[0] . '.pdf';
 
-        foreach($files as $file)
-            $pdfMerger->addPDF($file);
-
-        $pdfMerger->merge();
-
-        $this->cleanPdfs($files);
-
-        $fileName = count($files) > 1 ? 'Invoices.' . time() . '.pdf' : array_key_first($files);
-
-        return response($pdfMerger->output())
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename=' . $fileName);
+        return response($PDFService->create($fileName, $files))
+            ->header('Content-Type', 'application/pdf');
     }
 
-    public function download(Request $req, $invoiceIds) {
-        $invoiceIds = explode(',', $invoiceIds);
-        if(count($invoiceIds) > 50)
-            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
+    public function printBills(Request $req, $invoiceId) {
+        $invoice = Invoice::findOrFail($invoiceId);
+        if(Auth::user()->cannot('view', $invoice))
+            abort(403);
 
-        $files = $this->preparePdfs($invoiceIds, $req);
+        $billHtml = [];
+        $PDFService = new PDFService();
 
-        $zipArchive = new ZipArchive();
-        $tempDir = sys_get_temp_dir();
-        $tempFile = tempnam($tempDir, 'zip');
-        $zipArchive->open($tempFile, ZipArchive::CREATE);
+        $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
+        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
 
-        foreach($files as $name => $file)
-            $zipArchive->addFile($file, $name);
+        foreach($invoice->bills() as $bill) {
+            $bill = \App\Models\Bill::findOrFail($bill->bill_id);
+            $permissions = $permissionModelFactory->GetBillPermissions(Auth::user(), $bill);
+            $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
 
-        $zipArchive->close();
+            $showCharges = isset($req->showCharges);
 
-        $this->cleanPdfs($files);
+            $billHtml[] = [
+                'body' => view('bills.bill_print_view', compact('model', 'showCharges'))->render(),
+                'footer' => view('bills.bill_footer')->render()
+            ];
+        }
 
-        return response()->download($tempFile, 'invoices-' . time() . '.zip')->deleteFileAfterSend(true);
+        $fileName = 'invoice_' . $invoiceId . '_bills.pdf';
+
+        return response($PDFService->create($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]))
+            ->header('Content-Type', 'application/pdf');
     }
+
+    // public function download(Request $req, $invoiceIds) {
+    //     $invoiceIds = explode(',', $invoiceIds);
+    //     if(count($invoiceIds) > 50)
+    //         abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
+
+    //     $files = $this->preparePdfs($invoiceIds, $req);
+
+    //     $zipArchive = new ZipArchive();
+    //     $tempDir = sys_get_temp_dir();
+    //     $tempFile = tempnam($tempDir, 'zip');
+    //     $zipArchive->open($tempFile, ZipArchive::CREATE);
+
+    //     foreach($files as $name => $file)
+    //         $zipArchive->addFile($file, $name);
+
+    //     $zipArchive->close();
+
+    //     $this->cleanPdfs($files);
+
+    //     return response()->download($tempFile, 'invoices-' . time() . '.zip')->deleteFileAfterSend(true);
+    // }
 
     public function printPreview(Request $req, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
@@ -279,8 +302,6 @@ class InvoiceController extends Controller {
         $globalAmendmentsOnly = isset($req->amendments_only) ? filter_var($req->amendments_only, FILTER_VALIDATE_BOOLEAN) : false;
 
         $files = array();
-        $path = $this->storagePath;
-        mkdir($path, 0777, true);
 
         foreach($invoiceIds as $invoiceId) {
             $invoice = $invoiceRepo->GetById($invoiceId);
@@ -298,50 +319,25 @@ class InvoiceController extends Controller {
             if($req->user()->cannot('view', $model->invoice))
                 abort(403);
 
-            $fileName = trim($model->parent->name) . '-' . $model->invoice->invoice_id;
-            $fileName = preg_replace('/\s+/', '_', $fileName);
-            $fileName = preg_replace('/[(&.\/\\:*?"<>|, )]/', '', $fileName);
             //check if invoice even has amendments otherwise forcibly set to false
             $amendmentsOnly = isset($model->amendments) ? $globalAmendmentsOnly : false;
             $hideOutstandingInvoices = $account->hide_outstanding_invoices;
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
-            $header = view('invoices.invoice_table_header', compact('model'))->render();
-            $footer = view('invoices.invoice_table_footer')->render();
-            $outputFilePath = $this->storagePath . $fileName . '.pdf';
-
-            Pdf::view('invoices.invoice_table', [
-                'model' => $model,
-                'amendmentsOnly' => $amendmentsOnly,
-                'showLineItems' => $showLineItems,
-                'showPickupAndDeliveryAddress' => $showPickupAndDeliveryAddress,
-                'hideOutstandingInvoices' => $hideOutstandingInvoices
-            ])->withBrowsershot(function (Browsershot $browsershot) use ($header, $footer) {
-                $browsershot->format('Letter')
-                    ->showBackground(true)
-                    ->margins(20, 10, 20, 10)
-                    ->showBrowserHeaderAndFooter()
-                    ->headerHtml($header)
-                    ->footerHtml($footer);
-
-                if(config('app.chrome_path') != null)
-                    $browsershot->setChromePath(config('app.chrome_path'));
-
-                return $browsershot;
-            })->save($outputFilePath);
-
-            $files[$fileName . '.pdf'] = $outputFilePath;
+            $files[] = [
+                'body' => view('invoices.invoice_table', [
+                    'model' => $model,
+                    'amendmentsOnly' => $amendmentsOnly,
+                    'showLineItems' => $showLineItems,
+                    'showPickupAndDeliveryAddress' => $showPickupAndDeliveryAddress,
+                    'hideOutstandingInvoices' => $hideOutstandingInvoices
+                ])->render(),
+                'footer' => view('invoices.invoice_table_footer')->render(),
+                'header' => view('invoices.invoice_table_header', compact('model'))->render(),
+            ];
         }
 
         return $files;
-    }
-
-    private function cleanPdfs($files) {
-        foreach($files as $file)
-            unlink($file);
-        rmdir($this->storagePath);
-
-        return !is_dir($this->storagePath);
     }
 }
