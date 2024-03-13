@@ -490,7 +490,7 @@ export default function Bill(props) {
                     {invoiceIds?.length &&
                         <Badge bg='info' text='dark' style={{margin: '0px 5px'}}>
                             <h5>Invoices: {invoiceIds.map((invoiceId, index, arr) => {
-                                if(frontEndPermissionss.invoices.viewAny)
+                                if(frontEndPermissions.invoices.viewAny)
                                     return (
                                         <LinkContainer to={`/invoices/${invoiceId}`} style={{marginRight: '7px'}} key={invoiceId}>
                                             <a>{invoiceId}</a>
@@ -503,7 +503,7 @@ export default function Bill(props) {
                     {manifestIds?.length &&
                         <Badge bg='light' text='dark' style={{margin: '0px 5px'}}>
                             <h5>Manifests: {manifestIds.map((manifestId, index, arr) => {
-                                if(frontEndPermissionss.invoices.viewAny)
+                                if(frontEndPermissions.invoices.viewAny)
                                     return (
                                         <LinkContainer to={`/manifests/${manifestId}`} style={{marginRight: '7px'}} key={manifestId}>
                                             <a>{manifestId}</a>
