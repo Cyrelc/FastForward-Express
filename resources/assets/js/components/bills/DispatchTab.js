@@ -39,6 +39,7 @@ export default function DispatchTab(props) {
                                     isSearchable
                                     onChange={driver => props.billDispatch({type: 'SET_PICKUP_DRIVER', payload: driver})}
                                     isDisabled={readOnly || isPickupManifested}
+                                    value={pickup.driver}
                                 />
                             </InputGroup>
                         </Col>
