@@ -156,8 +156,8 @@ class BillModelFactory{
 		$model->charge_types = $paymentRepo->GetPaymentTypes();
 		$model = $this->setBusinessHours($model);
 
-		$model->pickup_address = $model->bill->pickupAddress;
-		$model->delivery_address = $model->bill->deliveryAddress;
+		$model->pickup_address = $model->bill->pickup_address;
+		$model->delivery_address = $model->bill->delivery_address;
 
 		$model->bill->packages = json_decode($model->bill->packages);
 		if($model->bill->pickup_driver_id)

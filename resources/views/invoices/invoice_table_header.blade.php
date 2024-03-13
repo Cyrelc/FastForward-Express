@@ -1,14 +1,14 @@
 <style>
-.header {
-    position: fixed;
-    top: -5px;
+header {
+    margin-top: 10px;
     left: 30px;
 }
-.header table {
-    font-size: 10px;
-    /* width: 90%; */
+header table {
+    font-size: 14px;
+    width: 100%;
     margin: 0 auto;
     border-bottom: 1px solid black;
+    margin-bottom: 10px;
 }
 .invoiceInfo {
     text-align: left;
@@ -22,13 +22,13 @@
     text-align: right;
     width: 30%;
 }
-h2, h4, td, table {
+h2, h4, td {
     margin-bottom: 0px;
     padding-bottom: 0px;
 }
 </style>
 
-<div class='header'>
+<header>
     <table>
         <td class='invoiceInfo'>
             <h4>
@@ -50,4 +50,4 @@ h2, h4, td, table {
             </h4>
         </td>
     </table>
-</div>
+</header>

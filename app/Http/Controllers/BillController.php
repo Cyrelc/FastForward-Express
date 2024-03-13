@@ -8,13 +8,14 @@ use App\Events\BillUpdated;
 // Classes
 use App\Http\Collectors;
 use App\Http\Repos;
-use App\Http\Models\Bill;
 use App\Http\Models\Permission;
-use Spatie\LaravelPdf\Facades\Pdf;
-use Spatie\Browsershot\Browsershot;
+use App\Http\Resources\BillPrintResource;
+use App\Models\Bill;
+use App\Services\PDFService;
 
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Validator;
 
 class BillController extends Controller {
@@ -82,14 +83,14 @@ class BillController extends Controller {
         $temp = $chargeValidation->GenerateChargesValidationRules($req);
         $this->validate($req, $temp['rules'], $temp['messages']);
 
-        $chargeModelFactory = new Bill\ChargeModelFactory();
+        $chargeModelFactory = new \App\Http\Models\Bill\ChargeModelFactory();
         $charges = $chargeModelFactory->GenerateCharges($req);
 
         return json_encode($charges);
     }
 
     public function getModel(Request $req, $billId = null) {
-        $billModelFactory = new Bill\BillModelFactory();
+        $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();
         if($billId) {
             $billRepo = new Repos\BillRepo();
@@ -132,7 +133,7 @@ class BillController extends Controller {
         if($user->cannot('viewAny', Bill::class))
             abort(403);
 
-        $billModelFactory = new Bill\BillModelFactory();
+        $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
 
         $bills = $billModelFactory->BuildTable($req);
 
@@ -184,50 +185,26 @@ class BillController extends Controller {
     }
 
     public function print(Request $req, $billId) {
-        $billRepo = new Repos\BillRepo();
-
-        $bill = $billRepo->GetById($billId);
-
-        if($req->user()->cannot('viewBasic', $bill))
+        $bill = Bill::findOrFail($billId);
+        if(Auth::user()->cannot('viewBasic', $bill))
             abort(403);
 
-        $billModelFactory = new Bill\BillModelFactory();
-        $permissionModelFactory = new Permission\PermissionModelFactory();
+        $billHtml = [];
+        $PDFService = new PDFService();
 
-        $permissions = $permissionModelFactory->GetBillPermissions($req->user(), $bill);
+        $showCharges = $req->has('showCharges') && Auth::user()->can('viewBilling', $bill);
+
+        $bills = BillPrintResource::collection([$bill])->response()->getData(true)['data'];
+
+        $billHtml[] = [
+            'body' => view('bills.bill_print_view', compact('bills', 'showCharges')),
+            'footer' => view('bills.bill_footer')
+        ];
 
         $fileName = 'bill_' . $bill->bill_id . '_' . preg_replace('/\s+|:/', '_', $bill->time_pickup_scheduled);
-        mkdir($this->storagePath, 0777, true);
 
-        $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
-
-        $showCharges = isset($req->showCharges);
-
-        $outputFile = $this->storagePath . $fileName . '.pdf';
-        $headerFile = $this->storagePath . $fileName . '-header.html';
-        $footerFile = $this->storagePath . $fileName . '-footer.html';
-
-        file_put_contents($footerFile, view('bills.bill_footer')->render());
-
-        $footer = view('bills.bill_footer')->render();
-        $outputFile = $this->storagePath . $fileName . '.pdf';
-
-        Pdf::view('bills.bill_print_view', compact('model', 'showCharges'))
-            ->withBrowsershot(function (Browsershot $browsershot) use ($footer) {
-                $browsershot->format('Letter')
-                    ->showBackground(true)
-                    ->landscape(true)
-                    ->margins(8, 10, 15, 10)
-                    ->showBrowserHeaderAndFooter()
-                    ->footerHtml($footer);
-
-                if(config('app.chrome_path') != null)
-                    $browsershot->setChromePath(config('app.chrome_path'));
-
-                return $browsershot;
-            })->save($outputFile);
-
-        return response()->file($outputFile)->deleteFileAfterSend(true);
+        return response($PDFService->create($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]))
+            ->header('Content-Type', 'application/pdf');
     }
 
     public function store(Request $req) {

@@ -8,10 +8,10 @@ use Spatie\Browsershot\Browsershot;
 use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
 class PDFService {
-    public function create($fileName, $pdfFiles, $options = []) {
+    public function create($fileName, $views, $options = []) {
         $defaultOptions = [
             'format' => 'Letter',
-            'margins' => [20, 10, 20, 10],
+            'margins' => [0, 10, 20, 10],
             'showBrowserHeaderAndFooter' => true
         ];
         $options = array_merge($defaultOptions, $options);
@@ -22,35 +22,33 @@ class PDFService {
         $pdfMerger = PDFMerger::init();
         $pdfMerger->setFileName($fileName);
 
-        foreach($pdfFiles as $key => $file) {
-            $fileName = ($tmpFolder . $key . '.pdf');
-            $browserShot = Browsershot::html($file['body'])
-                ->format('Letter')
-                ->showBackground(true)
-                ->margins(...$options['margins']);
-
-            if(array_key_exists('landscape', $options))
-                $browserShot->landscape();
-            if(array_key_exists('header', $file) || array_key_exists('footer', $file))
-                $browserShot->showBrowserHeaderAndFooter();
-            if(array_key_exists('header', $file))
-                $browserShot->headerHtml($file['header']);
-            if(array_key_exists('footer', $file))
-                $browserShot->footerHtml($file['footer']);
-
-            if(config('app.chrome_path') != null)
-                $browserShot->setChromePath(config('app.chrome_path'));
-
-            $browserShot->save($fileName);
-
-            $pdfMerger->addPDF($fileName);
+        $htmlDocument = '';
+        foreach($views as $key => $view) {
+            if(array_key_exists('header', $view))
+                $htmlDocument .= $view['header'];
+            $htmlDocument .= $view['body'];
         }
 
-        $pdfMerger->merge();
+        $browserShot = Browsershot::html($htmlDocument)
+            ->format('Letter')
+            ->showBackground(true)
+            ->margins(...$options['margins']);
 
-        $this->cleanUp($tmpFolder);
+        if(array_key_exists('landscape', $options))
+            $browserShot->landscape();
+        if(array_key_exists('header', $view) || array_key_exists('footer', $view))
+            $browserShot->showBrowserHeaderAndFooter();
+        if(array_key_exists('header', $view)) {
+            $browserShot->marginTop('0mm');
+            $browserShot->headerHtml('<span></span>');
+        }
+        if(array_key_exists('footer', $view))
+            $browserShot->footerHtml($view['footer']);
 
-        return $pdfMerger->output();
+        if(config('app.chrome_path') != null)
+            $browserShot->setChromePath(config('app.chrome_path'));
+
+        return $browserShot->pdf('testName');
     }
 
     private function cleanUp($tempFolder) {

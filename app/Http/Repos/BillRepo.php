@@ -49,9 +49,9 @@ class BillRepo {
         $lineItemRepo = new LineItemRepo();
 
         $bill = Bill::where('bill_id', $billId)->first();
-        $newPickupAddress = $bill->pickupAddress->replicate();
+        $newPickupAddress = $bill->pickup_address->replicate();
         $newPickupAddress->save();
-        $newDeliveryAddress = $bill->deliveryAddress->replicate();
+        $newDeliveryAddress = $bill->delivery_address->replicate();
         $newDeliveryAddress->save();
 
         $pickupTime = new \DateTime($bill->time_pickup_scheduled);

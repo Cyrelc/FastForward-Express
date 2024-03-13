@@ -118,7 +118,11 @@ class Bill extends Model
         return $this->hasMany(Charge::class, 'bill_id');
     }
 
-    public function pickupAddress() {
+    public function delivery_type_name() {
+        return Selection::where('value', $this->delivery_type)->first()->name;
+    }
+
+    public function pickup_address() {
         return $this->hasOne(Address::class, 'address_id', 'pickup_address_id');
     }
 
@@ -126,12 +130,16 @@ class Bill extends Model
         return $this->hasOne(Employee::class, 'employee_id', 'pickup_driver_id');
     }
 
-    public function deliveryAddress() {
+    public function delivery_address() {
         return $this->hasOne(Address::class, 'address_id', 'delivery_address_id');
     }
 
     public function delivery_employee() {
         return $this->hasOne(Employee::class, 'employee_id', 'delivery_driver_id');
+    }
+
+    public function line_items() {
+        return $this->hasManyThrough(LineItem::class, Charge::class, 'bill_id', 'charge_id');
     }
 
     public function getActivityLogOptions() : LogOptions {
