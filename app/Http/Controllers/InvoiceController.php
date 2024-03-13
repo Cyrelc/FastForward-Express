@@ -11,6 +11,7 @@ use App\Http\Collectors;
 use App\Http\Models;
 use App\Http\Requests;
 use App\Http\Repos;
+use App\Http\Resources\BillPrintResource;
 use App\Http\Services;
 use App\Models\Invoice;
 use App\Services\PDFService;
@@ -183,21 +184,14 @@ class InvoiceController extends Controller {
         $billHtml = [];
         $PDFService = new PDFService();
 
-        $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
-        $permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+        $showCharges = $req->has('showCharges');
 
-        foreach($invoice->bills() as $bill) {
-            $bill = \App\Models\Bill::findOrFail($bill->bill_id);
-            $permissions = $permissionModelFactory->GetBillPermissions(Auth::user(), $bill);
-            $model = $billModelFactory->GetEditModel($req, $bill->bill_id, $permissions);
+        $bills = BillPrintResource::collection($invoice->bills())->response()->getData(true)['data'];
 
-            $showCharges = isset($req->showCharges);
-
-            $billHtml[] = [
-                'body' => view('bills.bill_print_view', compact('model', 'showCharges'))->render(),
-                'footer' => view('bills.bill_footer')->render()
-            ];
-        }
+        $billHtml[] = [
+            'body' => view('bills.bill_print_view', compact('bills', 'showCharges')),
+            'footer' => view('bills.bill_footer')
+        ];
 
         $fileName = 'invoice_' . $invoiceId . '_bills.pdf';
 
@@ -334,7 +328,7 @@ class InvoiceController extends Controller {
                     'hideOutstandingInvoices' => $hideOutstandingInvoices
                 ])->render(),
                 'footer' => view('invoices.invoice_table_footer')->render(),
-                'header' => view('invoices.invoice_table_header', compact('model'))->render(),
+                'header' => view('invoices.invoice_table_header', ['model' => $model])->render(),
             ];
         }
 

@@ -1,10 +1,9 @@
 <style>
 .footer {
     width: 100%;
-    font-size: 8px;
 }
 .footer table {
-    font-size: 8px;
+    font-size: 10px;
     width: 90%;
     margin: 0 auto;
 }

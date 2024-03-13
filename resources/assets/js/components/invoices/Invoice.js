@@ -152,7 +152,7 @@ export default function Invoice(props) {
                     >
                         <i className='fas fa-print'></i> Generate PDF
                     </Button>
-                    <Dropdown.Toggle split variant='dark' id="print-options">
+                    <Dropdown.Toggle split variant='dark' id="print-options">PDF Options
                         <Dropdown.Menu>
                             <Dropdown.Item onClick={event => event.stopPropagation()}>
                                 <FormCheck
@@ -195,7 +195,7 @@ export default function Invoice(props) {
                                 </Dropdown.Item>
                             }
                             <Dropdown.Item
-                                href={invoice ? `/invoices/printBills/${invoice.invoice_id}` : null}
+                                href={invoice ? `/invoices/printBills/${invoice.invoice_id}?showCharges` : null}
                                 target='_blank'
                             ><i className='fas fa-boxes' size='sm'></i> Print Bills</Dropdown.Item>
                         </Dropdown.Menu>

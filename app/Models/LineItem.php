@@ -34,6 +34,10 @@ class LineItem extends Model {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
+    public function typeName() {
+        return Selection::where('value', $this->type)->firstOrFail()->name;
+    }
+
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()
             ->logFillable()
