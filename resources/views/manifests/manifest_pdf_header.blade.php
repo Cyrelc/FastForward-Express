@@ -5,7 +5,7 @@
     top: -18px;
 }
 .header table {
-    font-size: 14px;
+    font-size: 10px;
     margin: 0 auto;
     border-bottom: 1px solid black;
     width: 90%;

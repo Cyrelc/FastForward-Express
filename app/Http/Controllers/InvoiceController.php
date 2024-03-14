@@ -163,7 +163,7 @@ class InvoiceController extends Controller {
     }
 
     public function print(Request $req, $invoiceIds) {
-        $invoiceIds = explode(',', $invoiceIds);
+        $invoiceIds = array_filter(explode(',', $invoiceIds));
         if(count($invoiceIds) > 50)
             abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
@@ -181,6 +181,7 @@ class InvoiceController extends Controller {
         if(Auth::user()->cannot('view', $invoice))
             abort(403);
 
+
         $billHtml = [];
         $PDFService = new PDFService();
 
@@ -195,7 +196,7 @@ class InvoiceController extends Controller {
 
         $fileName = 'invoice_' . $invoiceId . '_bills.pdf';
 
-        return response($PDFService->create($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]))
+        return response($PDFService->createAsUnifiedHtml($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]), $fileName)
             ->header('Content-Type', 'application/pdf');
     }
 

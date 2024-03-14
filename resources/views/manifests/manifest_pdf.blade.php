@@ -13,7 +13,7 @@
     <tr>
         <td class='text-left'>
             <strong>Address:</strong><br/>
-            @foreach(explode(',', $model->employee->address->formatted) as $addressLine)
+            @foreach(explode(',', $model->employee->contact->address->formatted) as $addressLine)
                 {{$addressLine}}<br/>
             @endforeach
         </td>

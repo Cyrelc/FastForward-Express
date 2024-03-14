@@ -1,14 +1,15 @@
 <style>
 header {
-    margin-top: 10px;
+    position: fixed;
+    top: -5px;
     left: 30px;
 }
 header table {
-    font-size: 14px;
-    width: 100%;
+    font-size: 10px;
     margin: 0 auto;
     border-bottom: 1px solid black;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
 }
 .invoiceInfo {
     text-align: left;

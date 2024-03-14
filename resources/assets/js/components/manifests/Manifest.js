@@ -12,8 +12,8 @@ export default function Manifest(props) {
     const [isLoading, setIsLoading] = useState(true)
 
     const {manifestId} = props.match.params
-    const {bills, chargebacks, manifest, overview} = data
-    const {contact, employee, warnings} = data?.employee || {}
+    const {bills, chargebacks, manifest, overview, employee} = data
+    const {contact, warnings} = data?.employee || {}
     const {frontEndPermissions} = useUser()
 
     useEffect(() => {
@@ -105,7 +105,7 @@ export default function Manifest(props) {
                                 <LinkContainer to={'/employees/' + employee?.employee_id}>
                                     <h3>
                                         <a href=''>
-                                            {`${employee?.employee_number} - ${employee?.company_name ? employee?.company_name : `${contact.first_name} ${contact.last_name}`}`}
+                                            {`${employee?.employee_number} - ${employee?.company_name ?? contact.display_name}`}
                                         </a>
                                     </h3>
                                 </LinkContainer>

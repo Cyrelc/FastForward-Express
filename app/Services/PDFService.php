@@ -9,6 +9,72 @@ use Webklex\PDFMerger\Facades\PDFMergerFacade as PDFMerger;
 
 class PDFService {
     public function create($fileName, $views, $options = []) {
+        $start = microtime(true);
+
+        $timeStamps = [];
+        $defaultOptions = [
+            'format' => 'Letter',
+            'margins' => [20, 10, 20, 10],
+            'showBrowserHeaderAndFooter' => true
+        ];
+        $options = array_merge($defaultOptions, $options);
+        //sanitize the requested file name jic
+        $tmpFolder = storage_path() . '/temp/' . (new \DateTime())->format('Y_m_d_H-i-s/');
+        mkdir($tmpFolder, 0777, true);
+
+        $pdfMerger = PDFMerger::init();
+        $pdfMerger->setFileName($fileName);
+
+        foreach($views as $key => $view) {
+            $fileProcessStart = microtime(true);
+            $browserShotStart = microtime(true);
+            $fileName = ($tmpFolder . $key . '.pdf');
+            $browserShot = Browsershot::html($view['body'])
+                ->format('Letter')
+                ->showBackground(true)
+                ->margins(...$options['margins']);
+
+            if(array_key_exists('landscape', $options))
+                $browserShot->landscape();
+            if(array_key_exists('header', $view) || array_key_exists('footer', $view))
+                $browserShot->showBrowserHeaderAndFooter();
+            if(array_key_exists('header', $view))
+                $browserShot->headerHtml($view['header']);
+            if(array_key_exists('footer', $view))
+                $browserShot->footerHtml($view['footer']);
+
+            if(config('app.chrome_path') != null)
+                $browserShot->setChromePath(config('app.chrome_path'));
+
+            $browserShot->save($fileName);
+            $browserShotEnd = microtime(true);
+
+            $pdfMergerStart = microtime(true);
+            $pdfMerger->addPDF($fileName);
+            $pdfMergerEnd = microtime(true);
+            $fileProcessEnd = microtime(true);
+
+            $timeStamps[$key] = [
+                'fileProcessTime' => $fileProcessEnd - $fileProcessStart,
+                'browserShotTime' => $browserShotEnd - $browserShotStart,
+                'pdfMergerTime' => $pdfMergerEnd - $pdfMergerStart
+            ];
+        }
+
+        $pdfMerger->merge();
+
+        $this->cleanUp($tmpFolder);
+        $end = microtime(true);
+        $timeStamps['overall'] = $end - $start;
+        $generateOutputStart = microtime(true);
+        $pdfMerger->output();
+        $generateOutputEnd = microtime(true);
+        $timeStamps['generateOutput'] = $generateOutputEnd - $generateOutputStart;
+
+        return $pdfMerger->output();
+    }
+
+    public function createAsUnifiedHtml($fileName, $views, $options = []) {
         $defaultOptions = [
             'format' => 'Letter',
             'margins' => [0, 10, 20, 10],
@@ -24,8 +90,7 @@ class PDFService {
 
         $htmlDocument = '';
         foreach($views as $key => $view) {
-            if(array_key_exists('header', $view))
-                $htmlDocument .= $view['header'];
+            $htmlDocument .= $view['header'];
             $htmlDocument .= $view['body'];
         }
 

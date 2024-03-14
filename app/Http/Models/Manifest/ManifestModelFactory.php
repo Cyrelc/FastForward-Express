@@ -38,7 +38,6 @@ class ManifestModelFactory{
 
         //Handle Employee Information
         $model->employee = new EmployeeResource(Employee::findOrFail($model->manifest->employee_id));
-        $model->employee->address($model->employee->contact->address);
 
         $model->bills = $billRepo->GetByManifestId($manifestId);
         $model->overview = $billRepo->GetManifestOverviewById($manifestId);
