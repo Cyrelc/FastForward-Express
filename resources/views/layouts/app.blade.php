@@ -12,8 +12,10 @@
 <div class='container-fluid'>
     <div class='row'>
         <div class='col-md-12'>
-            <nav class='navbar navbar-dark bg-dark'>
-                <a class='navbar-brand' style='padding-left: 10px' href='/home'><h4>Fast Forward<br/>&nbsp&nbsp&nbsp&nbspExpress</h4></a>
+            <nav class='navbar navbar-dark bg-dark' style='padding: 0rem 1rem'>
+                <a class='nav-item nav-link' style='padding: 0rem' href='/home'>
+                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px'>
+                </a>
                 <a class='nav-item nav-link' href='/about'><h4>About</h4><a>
                 <a class='nav-item nav-link' href='/services'><h4>Services</h4><a>
                 <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4><a>
