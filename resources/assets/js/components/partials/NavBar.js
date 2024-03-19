@@ -2,7 +2,7 @@ import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu} from 'react-pro-sidebar'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
 import {Link, useHistory} from 'react-router-dom'
-import fullLogo from '/images/fast_forward_full_logo_transparent.png'
+import fullLogo from '/images/fast_forward_full_logo_transparent_cropped.png'
 import shortLogo from '/images/fast_forward_short_logo_transparent.png'
 
 import {useUser} from '../../contexts/UserContext'
@@ -80,7 +80,7 @@ const SidebarHeader = props => {
     return (
         <Menu iconShape='circle' menuItemStyles={menuItemStyles} style={{textAlign: 'center'}}>
             <MenuItem component={<Link to='/' />} style={{textAlign: 'center'}}>
-                {collapsed ? <img src={shortLogo} alt='FFE' width='40' /> : <img src={fullLogo} alt='Fast Forward Express' width='210' style={{paddingTop: 10}} />}
+                {collapsed ? <img src={shortLogo} alt='FFE' width='40' /> : <img src={fullLogo} alt='Fast Forward Express' width='210' />}
             </MenuItem>
             <MenuItem style={{textAlign: 'center'}} onClick={toggleCollapsed}>
                 <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} />
