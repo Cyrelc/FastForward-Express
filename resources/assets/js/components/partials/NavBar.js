@@ -82,8 +82,8 @@ const SidebarHeader = props => {
             <MenuItem component={<Link to='/' />} style={{textAlign: 'center'}}>
                 {collapsed ? <img src={shortLogo} alt='FFE' width='40' /> : <img src={fullLogo} alt='Fast Forward Express' width='210' style={{paddingTop: 10}} />}
             </MenuItem>
-            <MenuItem style={{textAlign: 'center'}}>
-                <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed} />
+            <MenuItem style={{textAlign: 'center'}} onClick={toggleCollapsed}>
+                <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} />
             </MenuItem>
             <hr/>
         </Menu>
