@@ -2,6 +2,8 @@ import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Menu, menuClasses, MenuItem, Sidebar, SubMenu} from 'react-pro-sidebar'
 import {AsyncTypeahead, Highlighter, Menu as AsyncMenu, MenuItem as AsyncMenuItem} from 'react-bootstrap-typeahead'
 import {Link, useHistory} from 'react-router-dom'
+import fullLogo from '/images/fast_forward_full_logo_transparent.png'
+import shortLogo from '/images/fast_forward_short_logo_transparent.png'
 
 import {useUser} from '../../contexts/UserContext'
 
@@ -78,9 +80,11 @@ const SidebarHeader = props => {
     return (
         <Menu iconShape='circle' menuItemStyles={menuItemStyles} style={{textAlign: 'center'}}>
             <MenuItem component={<Link to='/' />} style={{textAlign: 'center'}}>
-                <h5>{collapsed ? 'FFE' : 'Fast Forward Express'}</h5>
+                {collapsed ? <img src={shortLogo} alt='FFE' width='40' /> : <img src={fullLogo} alt='Fast Forward Express' width='210' style={{paddingTop: 10}} />}
             </MenuItem>
-            <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed}/>
+            <MenuItem style={{textAlign: 'center'}}>
+                <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} onClick={toggleCollapsed} />
+            </MenuItem>
             <hr/>
         </Menu>
     )
@@ -121,7 +125,8 @@ export default function NavBar(props) {
         },
         subMenuContent: {
             backgroundColor: collapsed ? 'black' : 'transparent',
-            width: '250px'
+            width: '250px',
+            overflow: collapsed ? 'visible' : 'hidden',
         },
         button: {
             [`&.${menuClasses.disabled}`]: {
@@ -291,7 +296,7 @@ export default function NavBar(props) {
                 </div>
                 <hr/>
                 <div style={{display: 'flex', flexDirection: 'column'}}>
-                    <Menu iconShape='circle' menuItemStyles={menuItemStyles}>
+                    <Menu iconShape='circle' menuItemStyles={{...menuItemStyles, overflow: 'visible'}}>
                         {collapsed ?
                             <SubMenu
                                 label='Search'

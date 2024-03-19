@@ -7,6 +7,7 @@
         <meta name='apple-mobile-web-app-capable' content='yes'>
         <meta name='mobile-web-app-capable' content='yes'>
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <link rel='icon' type='image/x-icon' href='/images/fast_forward_short_logo_transparent.png'>
         <title>
             FastForwardExpress
             @if(array_key_exists('title', View::getSections()))
