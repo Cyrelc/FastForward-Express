@@ -196,7 +196,7 @@ class InvoiceController extends Controller {
 
         $fileName = 'invoice_' . $invoiceId . '_bills.pdf';
 
-        return response($PDFService->createAsUnifiedHtml($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]), $fileName)
+        return response($PDFService->createAsUnifiedHtml($fileName, $billHtml, ['landscape' => true, 'margins' => [8, 10, 20, 10]]))
             ->header('Content-Type', 'application/pdf');
     }
 
