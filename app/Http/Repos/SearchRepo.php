@@ -34,7 +34,7 @@ class SearchRepo {
                 $words = array_filter($words, function($word) {
                     return strlen($word) > 2;
                 });
-                $words = '+' . implode('* +', $words) . '*';
+                $words = $words ? '+' . implode('* +', $words) . '*' : [''];
 
                 $query->where('account_id', $searchTerm)
                 ->orWhere('account_number', 'like', '%' . $searchTerm . '%')
