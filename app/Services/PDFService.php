@@ -90,7 +90,8 @@ class PDFService {
 
         $htmlDocument = '';
         foreach($views as $key => $view) {
-            $htmlDocument .= $view['header'];
+            if(array_key_exists('header', $view))
+                $htmlDocument .= $view['header'];
             $htmlDocument .= $view['body'];
         }
 
