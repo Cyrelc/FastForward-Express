@@ -43,6 +43,7 @@ class BillPrintResource extends JsonResource {
             'proof_of_delivery_required' => $this->proof_of_delivery_required,
             'time_delivery_scheduled' => $this->time_delivery_scheduled,
             'time_pickup_scheduled' => $this->time_pickup_scheduled,
+            'use_imperial' => $this->use_imperial,
         ];
     }
 }

@@ -137,7 +137,7 @@ body table {
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($bill['packages'] as $package)
+                                @foreach(json_decode($bill['packages']) as $package)
                                     <tr>
                                         <td style='text-align: center'>{{$package->count}}</td>
                                         <td style='text-align: center'>{{$package->weight . ($bill['use_imperial'] ? ' lbs' : ' kgs')}}</td>
