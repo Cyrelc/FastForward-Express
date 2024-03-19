@@ -11,9 +11,8 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 
 class AccountRepo {
-    public function AdjustBalance($account_id, $amount) {
-        $account = Account::where('account_id', $account_id)
-            ->first();
+    public function AdjustBalance($accountId, $amount) {
+        $account = Account::findOrFail($accountId);
 
         $account->account_balance += $amount;
 

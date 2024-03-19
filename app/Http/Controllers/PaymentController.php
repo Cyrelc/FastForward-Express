@@ -148,6 +148,7 @@ class PaymentController extends Controller {
     }
 
     private function processPaymentFromAccount(Request $req, $invoice) {
+        $accountRepo = new Repos\AccountRepo();
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
@@ -162,6 +163,7 @@ class PaymentController extends Controller {
         DB::beginTransaction();
 
         $payment = $paymentRepo->insert($payment);
+        $accountRepo->AdjustBalance($invoice->account_id, -$payment->amount);
         $invoiceRepo->AdjustBalanceOwing($invoice->invoice_id, -$payment->amount);
 
         DB::commit();

@@ -181,7 +181,6 @@ class InvoiceController extends Controller {
         if(Auth::user()->cannot('view', $invoice))
             abort(403);
 
-
         $billHtml = [];
         $PDFService = new PDFService();
 
