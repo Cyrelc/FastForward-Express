@@ -46,43 +46,50 @@ export default function Employee(props) {
         setKey(location.hash.substr(1))
     }, [location.hash])
 
-    useEffect(async () => {
+    useEffect(() => {
         // toastr.clear()
         setIsLoading(true)
         const {match: {params}} = props
         setKey(window.location.hash?.substr(1) || 'basic')
+
+        const getCreate = async () => {
+            await api.get('/employees/create').then(
+                data => {
+                    address.reset()
+                    contact.reset()
+                    employee.reset()
+                    setIsLoading(false)
+                }
+            )
+        }
+
+        const getEmployee = async (employeeId) => {
+            await api.get(`/employees/${params.employeeId}`)
+                .then(data => {
+                    address.setup(data.contact.address)
+                    contact.setup(data.contact)
+                    employee.setup(data)
+                    setPermissions(data.permissions)
+                    setUpdatedAt(data.updated_at)
+                    setIsLoading(false)
+                })
+        }
 
         if(params.employeeId) {
             document.title = `Edit Employee - ${params.employeeId}`
             let sortedEmployees = localStorage.getItem('employees.sortedList')
             sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
 
-            const response = await api.get(`/employees/${params.employeeId}`)
-                .then(data => {
-                    const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === data.employee_id)
-                    const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
-                    const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
-                    setNextEmployeeId(nextEmployeeId)
-                    setPrevEmployeeId(prevEmployeeId)
-
-                    address.setup(data.contact.address)
-                    contact.setup(data.contact)
-                    employee.setup(data)
-                    setPermissions(data.permissions)
-                    setUpdatedAt(data.updated_at)
-                })
+            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === data.employee_id)
+            const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
+            const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
+            setNextEmployeeId(nextEmployeeId)
+            setPrevEmployeeId(prevEmployeeId)
+            getEmployee()
         } else {
             document.title = `Create Employee`
-            const response = await api.get('/employees/create').then(
-                data => {
-                    address.reset()
-                    contact.reset()
-                    employee.reset()
-                }
-            )
+            getCreate()
         }
-
-        setIsLoading(false)
     }, [props.match.params.employeeId])
 
     const setTabKey = tabKey => {

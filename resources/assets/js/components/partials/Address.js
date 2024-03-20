@@ -210,6 +210,7 @@ export default function Address(props) {
                         > */}
                             <GoogleMap
                                 center={mapCenter}
+                                loading='async'
                                 mapContainerStyle={{height: '250px', marginTop: 20}}
                                 onClick={handleMapClickEvent}
                                 options={{

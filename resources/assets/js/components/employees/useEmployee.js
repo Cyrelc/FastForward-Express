@@ -68,7 +68,6 @@ export default function useEmployee() {
         setPickupCommission('')
         setSIN('')
         setStartDate(Date.now())
-        setUpdatedAt(null)
         setVehicleType(null)
     }
 

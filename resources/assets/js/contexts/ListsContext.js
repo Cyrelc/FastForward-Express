@@ -5,9 +5,11 @@ const ListsContext = createContext()
 
 export const ListsProvider = ({children}) => {
     const [accounts, setAccounts] = useState([])
+    const [emailTypes, setEmailTypes] = useState([])
     const [employees, setEmployees] = useState([])
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
     const [paymentTypes, setPaymentTypes] = useState([])
+    const [phoneTypes, setPhoneTypes] = useState([])
     const [repeatIntervals, setRepeatIntervals] = useState([])
     const [vehicleTypes, setVehicleTypes] = useState([])
 
@@ -18,9 +20,11 @@ export const ListsProvider = ({children}) => {
             .then(data => {
                 data = data.data
                 setAccounts(data.accounts)
+                setEmailTypes(data.email_types)
                 setEmployees(data.employees)
                 setInvoiceIntervals(data.invoice_intervals ?? [])
                 setPaymentTypes(data.payment_types?? [])
+                setPhoneTypes(data.phone_types)
                 setRepeatIntervals(data.repeat_intervals ?? [])
                 setVehicleTypes(data.vehicle_types ?? [])
             })
@@ -30,9 +34,11 @@ export const ListsProvider = ({children}) => {
         <ListsContext.Provider value={{
             accounts,
             // appUpdated,
+            emailTypes,
             employees,
             invoiceIntervals,
             paymentTypes,
+            phoneTypes,
             repeatIntervals,
             vehicleTypes,
         }}>

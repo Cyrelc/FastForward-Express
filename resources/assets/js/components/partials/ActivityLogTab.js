@@ -1,61 +1,20 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Card, Table} from 'react-bootstrap';
-import {ReactTabulator, reactFormatter} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
-function AttributeTable({cell}) {
-    const data = cell.getValue()
-    const activityLogType = cell.getRow().getData().description
-
-    return (
-        <Table striped bordered size='sm' width='100%' responsive>
-            <thead>
-                <tr>
-                    <th style={{textAlign: 'center'}}>Attribute</th>
-                    <th style={{textAlign: 'center'}}>New Value</th>
-                    {activityLogType != 'created' && 
-                        <th style={{textAlign: 'center'}}>Old Value</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                {Object.keys(data.attributes).map(key => {
-                    let value = data?.attributes[key]
-                    let oldValue = data?.old ? data.old[key] : ''
-
-                    try {
-                        const parsedJSON = JSON.parse(data?.attributes[key])
-                        if (parsedJSON)
-                            value = parsedJSON
-                    } catch (e) {}
-
-                    try {
-                        const parsedJSON = JSON.parse(data?.old[key])
-                        if(parsedJSON)
-                            oldValue = parsedJSON
-                    } catch (e) {}
-
-                    return (
-                        <tr key={Math.random()}>
-                            <th>{key}</th>
-                            <td>
-                                <pre>{JSON.stringify(value, null, '\t')}</pre>
-                            </td>
-                            {activityLogType != 'created' &&
-                                <td>
-                                    <pre>{JSON.stringify(oldValue, null, '\t')}</pre>
-                                </td>
-                            }
-                        </tr>
-                    )
-                })}
-            </tbody>
-        </Table>
-    )
+const transformAttributes = data => {
+    if(!data.attributes)
+        return data
+    return Object.keys(data.attributes).map(key => {
+        if(data.old)
+            return {key: key, new: data.attributes[key], old: data.old[key]}
+        return {key: key, new: data.attributes[key], old: null}
+    })
 }
 
 const activityLogColumns = [
-    {title: 'Date Modified', field: 'updated_at', width:150},
-    // subject type is stored as the absolute location of the class in PHP, so generally App\ClassName - additionally another \ is added when storing in the database to escape the backslash in the path name
+    {title: 'Date Modified', field: 'updated_at'},
+    // subject type is stored as the absolute location of the class in PHP, so generally App\Models\ClassName - additionally another \ is added when storing in the database to escape the backslash in the path name
     {
         title: 'Type',
         field: 'subject_type',
@@ -68,30 +27,72 @@ const activityLogColumns = [
             return value
         },
         headerFilter: true,
-        width: 150
     },
-    {title: 'Subject ID', field: 'subject_id', width: 100},
-    {title: 'Action', field: 'description', headerFilter: true, width: 100},
-    {title: 'Modified By', field: 'user_name', headerFilter: true, width: 200},
-    {title: 'Attributes', field: 'properties', formatter: reactFormatter(<AttributeTable/>), headerSort: false}
+    {title: 'Subject ID', field: 'subject_id'},
+    {title: 'Action', field: 'description', headerFilter: true},
+    {title: 'Modified By', field: 'user_name', headerFilter: true},
 ]
 
 export default function ActivityLogTab(props) {
     const {activityLog} = props
+    const tableRef = useRef(null)
+
+    useEffect(() => {
+        if(tableRef.current) {
+            new Tabulator(tableRef.current, {
+                columns: activityLogColumns,
+                data: activityLog,
+                height: '70vh',
+                initialSort: 'updated_at',
+                layout: 'fitColumns',
+                pagination: 'local',
+                paginationSize: 5,
+                rowFormatter: row => {
+                    let data = row.getData().properties
+                    try {
+                        data = JSON.parse(row.getData().properties)
+                    } catch (error) {}
+
+                    data = transformAttributes(data)
+                    if(!data.length)
+                        return
+                    //create and style holder elements
+                    var holderEl = document.createElement("div");
+                    var tableEl = document.createElement("div");
+
+                    holderEl.style.boxSizing = "border-box";
+                    holderEl.style.padding = "10px 30px 10px 10px";
+                    holderEl.style.borderTop = "1px solid #333";
+                    holderEl.style.borderBotom = "1px solid #333";
+
+                    tableEl.style.border = "1px solid #333";
+
+                    holderEl.appendChild(tableEl);
+
+                    row.getElement().appendChild(holderEl);
+
+                    new Tabulator(tableEl, {
+                        layout:'fitColumns',
+                        data: data,
+                        columns:[
+                            {title:"Attribute", field:"key"},
+                            {title:"New Value", field:"new"},
+                            ...data[0].old ? [{title:"Old Value", field:"old"}] : [],
+                        ],
+                        rowFormatter: row => {
+                            row.getElement().classList.add('table-dark')
+                            row.getElement().classList.add('bg-dark')
+                        }
+                    })
+                },
+            })
+        }
+    }, [tableRef])
+
     return (
         <Card border='dark'>
             <Card.Body>
-                <ReactTabulator
-                    columns={activityLogColumns}
-                    data={activityLog}
-                    height='70vh'
-                    layout='fitDataStretch'
-                    options={{
-                        pagination: 'local',
-                        paginationSize: 10
-                    }}
-                    responsiveLayout='collapse'
-                />
+                <div ref={tableRef}/>
             </Card.Body>
         </Card>
     )
