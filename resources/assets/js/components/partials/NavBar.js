@@ -85,7 +85,7 @@ const SidebarHeader = props => {
             <MenuItem style={{textAlign: 'center'}} onClick={toggleCollapsed}>
                 <i className={collapsed ? 'far fa-arrow-alt-circle-right fa-lg' : 'far fa-arrow-alt-circle-left fa-lg'} />
             </MenuItem>
-            <hr/>
+            <hr style={{height: '2px', backgroundColor: 'black', border: 'none'}} />
         </Menu>
     )
 }
@@ -198,13 +198,10 @@ export default function NavBar(props) {
     }
 
     return (
-        <Sidebar
-            collapsed={collapsed}
-            // toggled={collapsed}
-        >
+        <Sidebar collapsed={collapsed} collapsedWidth='85px'>
             <div
                 style={{
-                    backgroundImage: 'linear-gradient(to bottom, black, #0770b1, black)',
+                    backgroundImage: 'linear-gradient(to bottom, lightsteelblue, black, black, lightsteelblue)',
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: '100%',
@@ -294,7 +291,7 @@ export default function NavBar(props) {
                         }
                     </Menu>
                 </div>
-                <hr/>
+                <hr style={{height: '2px', backgroundColor: 'black', border: 'none'}} />
                 <div style={{display: 'flex', flexDirection: 'column'}}>
                     <Menu iconShape='circle' menuItemStyles={{...menuItemStyles, overflow: 'visible'}}>
                         {collapsed ?
