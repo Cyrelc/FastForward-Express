@@ -152,7 +152,7 @@ a.dropdown-toggle {
 }
 
 .navbar, .navbar-default, footer {
-	background-image:linear-gradient(to right, black, #0770b1, black) !important;
+	background-image:linear-gradient(to right, lightsteelblue, black, black) !important;
 }
 
 .home-tile {

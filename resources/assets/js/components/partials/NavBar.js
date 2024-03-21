@@ -201,7 +201,7 @@ export default function NavBar(props) {
         <Sidebar collapsed={collapsed} collapsedWidth='85px'>
             <div
                 style={{
-                    backgroundImage: 'linear-gradient(to bottom, lightsteelblue, black, black, lightsteelblue)',
+                    backgroundImage: 'linear-gradient(to bottom, lightsteelblue, black, black)',
                     display: 'flex',
                     flexDirection: 'column',
                     minHeight: '100%',
