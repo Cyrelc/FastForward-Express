@@ -118,6 +118,13 @@ class BillPolicy
         return $user->hasAnyPermission('bills.view.billing.*', 'bills.edit.billing.*');
     }
 
+    public function viewCharges(User $user, Bill $bill) {
+        if($user->hasAnyPermission('bills.view.billing.*', 'bills.edit.billing.*'))
+            return true;
+        else if ($user->accountUsers && $this->billBelongsToMyAccounts($user, $bill) && $user->can('invoices.view.my'))
+            return true;
+    }
+
     public function viewDispatch(User $user) {
         return $user->hasAnyPermission('bills.view.*.*', 'bills.edit.*.*', 'bills.view.dispatch.*', 'bills.edit.dispatch.*');
     }

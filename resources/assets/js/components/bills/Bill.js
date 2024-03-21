@@ -567,20 +567,22 @@ export default function Bill(props) {
                                     title='Print Bill'
                                     variant='success'
                                 ><i className='fas fa-print'></i> Print</Button>
-                                <Dropdown.Toggle
-                                    id='print-button-split'
-                                    split
-                                    variant='success'
-                                >
-                                    <Dropdown.Menu>
-                                        <Dropdown.Item
-                                            href={billId ? `/bills/print/${billId}?showCharges` : null}
-                                            target='_blank'
-                                            title='Print Bill with Charges'
-                                            variant='success'
-                                        >Print with Charges</Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown.Toggle>
+                                {frontEndPermissions.invoices?.viewAny &&
+                                    <Dropdown.Toggle
+                                        id='print-button-split'
+                                        split
+                                        variant='success'
+                                    >
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item
+                                                href={billId ? `/bills/print/${billId}?showCharges` : null}
+                                                target='_blank'
+                                                title='Print Bill with Charges'
+                                                variant='success'
+                                            >Print with Charges</Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown.Toggle>
+                                }
                             </Dropdown>
                         }
                     </Navbar.Collapse>

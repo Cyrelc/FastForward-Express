@@ -18,6 +18,7 @@ class BillPrintResource extends JsonResource {
                 $charges[] = [
                     'account_id' => $charge->charge_account_id,
                     'charge_account_name' => $charge->account->name,
+                    'charge_account_number' => $charge->account->account_number,
                     'price' => $charge->price,
                     'line_items' => $charge->lineItems->map(function($lineItem) {
                         return [
@@ -33,13 +34,13 @@ class BillPrintResource extends JsonResource {
             'bill_id' => $this->bill_id,
             'charges' => $charges,
             'delivery_address' => ['formatted' => $this->delivery_address->formatted, 'name' => $this->delivery_address->name],
-            'delivery_driver_number' => $this->delivery_employee->employee_number,
+            'delivery_driver_number' => $this->delivery_employee->employee_number ?? null,
             'delivery_type_friendly' => $this->delivery_type_name(),
             'description' => $this->description,
             'is_min_weight_size' => $this->is_min_weight_size,
             'packages' => $this->packages,
             'pickup_address' => ['formatted' => $this->pickup_address->formatted, 'name' => $this->pickup_address->name],
-            'pickup_driver_number' => $this->pickup_employee->employee_number,
+            'pickup_driver_number' => $this->pickup_employee->employee_number ?? null,
             'proof_of_delivery_required' => $this->proof_of_delivery_required,
             'time_delivery_scheduled' => $this->time_delivery_scheduled,
             'time_pickup_scheduled' => $this->time_pickup_scheduled,

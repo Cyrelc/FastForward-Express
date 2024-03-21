@@ -257,8 +257,8 @@ export default function Invoice(props) {
                                             {Object.keys(tables[key].headers)
                                                 .filter(headerKey => showPickupAndDeliveryAddress ? true : headerKey != 'Pickup Address')
                                                     .map(headerKey => {
-                                                        if(headerKey === 'Amount')
-                                                            return <td key={headerKey} style={{textAlign: 'right'}}>{headerKey}</td>
+                                                        if(headerKey === 'Price')
+                                                            return <td key={headerKey} style={{textAlign: 'right'}} width={showLineItems ? '30%' : '10%'}>{headerKey}</td>
                                                         return <td key={headerKey}>{headerKey}</td>
                                                     })
                                             }

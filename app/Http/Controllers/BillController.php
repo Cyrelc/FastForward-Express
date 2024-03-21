@@ -192,7 +192,7 @@ class BillController extends Controller {
         $billHtml = [];
         $PDFService = new PDFService();
 
-        $showCharges = $req->has('showCharges') && Auth::user()->can('viewBilling', $bill);
+        $showCharges = $req->has('showCharges') && Auth::user()->can('viewCharges', $bill);
 
         $bills = BillPrintResource::collection([$bill])->response()->getData(true)['data'];
 
