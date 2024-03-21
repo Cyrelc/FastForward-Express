@@ -80,7 +80,7 @@ export default function Employee(props) {
             let sortedEmployees = localStorage.getItem('employees.sortedList')
             sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
 
-            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === data.employee_id)
+            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === params.employeeId)
             const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
             const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
             setNextEmployeeId(nextEmployeeId)
