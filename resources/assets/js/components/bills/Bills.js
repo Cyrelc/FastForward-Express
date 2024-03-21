@@ -340,7 +340,7 @@ export default function Bills(props) {
 
         if(confirm(`Are you sure you wish to delete bill ${data.bill_id}?\n\nThis action can not be undone`)) {
             makeAjaxRequest(`/bills/${data.bill_id}`, 'DELETE', null, response => {
-                fetchTableData()
+                setTriggerReload(true)
             })
         }
     }
