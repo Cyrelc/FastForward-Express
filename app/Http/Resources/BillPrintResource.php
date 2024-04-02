@@ -13,22 +13,20 @@ class BillPrintResource extends JsonResource {
      */
     public function toArray(Request $request): array {
         $charges = [];
-        if($request->has('showCharges')) {
-            foreach($this->charges as $charge)
-                $charges[] = [
-                    'account_id' => $charge->charge_account_id,
-                    'charge_account_name' => $charge->account->name,
-                    'charge_account_number' => $charge->account->account_number,
-                    'price' => $charge->price,
-                    'line_items' => $charge->lineItems->map(function($lineItem) {
-                        return [
-                            'name' => $lineItem->name,
-                            'friendly_type_name' => $lineItem->typeName(),
-                            'price' => $lineItem->price
-                        ];
-                    }),
-                ];
-        }
+        foreach($this->charges as $charge)
+            $charges[] = [
+                'account_id' => $charge->charge_account_id,
+                'charge_account_name' => $charge->account->name,
+                'charge_account_number' => $charge->account->account_number,
+                'price' => $charge->price,
+                'line_items' => $charge->lineItems->map(function($lineItem) {
+                    return [
+                        'name' => $lineItem->name,
+                        'friendly_type_name' => $lineItem->typeName(),
+                        'price' => $lineItem->price
+                    ];
+                }),
+            ];
 
         return [
             'bill_id' => $this->bill_id,
