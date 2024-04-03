@@ -16,7 +16,7 @@ class BillPrintResource extends JsonResource {
         foreach($this->charges as $charge)
             $charges[] = [
                 'account_id' => $charge->charge_account_id,
-                'charge_account_name' => $charge->account ? $charge->account->name : $charge->type,
+                'charge_account_name' => $charge->account ? $charge->account->name : $charge->paymentType->name,
                 'charge_account_number' => $charge->account ? $charge->account->account_number : null,
                 'price' => $charge->price,
                 'line_items' => $charge->lineItems->map(function($lineItem) {
