@@ -3,6 +3,8 @@ import React, {Fragment, useState} from 'react'
 import ChargebackModal from './ChargebackModal'
 import Table from '../partials/Table'
 
+import {useLists} from '../../contexts/ListsContext'
+
 const groupBy = {
     label: 'Employee ID',
     value: 'employee_id',
@@ -25,6 +27,8 @@ export default function Chargebacks(props) {
     const [chargeback, setChargeback] = useState({})
     const [showChargebackModal, setShowChargebackModal] = useState(false)
     const [triggerReload, setTriggerReload] = useState(false)
+
+    const lists = useLists()
 
     const cellContextMenu = [
         {label: '<i class="fas fa-edit"></i> Edit Chargeback', action: (event, cell) => {
@@ -57,7 +61,7 @@ export default function Chargebacks(props) {
         {
             isMulti: true,
             name: 'Employee',
-            selections: props.employees,
+            selections: lists.employees,
             type: 'SelectFilter',
             db_field: 'employee_id'
         },
@@ -120,7 +124,7 @@ export default function Chargebacks(props) {
             />
             <ChargebackModal
                 chargeback={chargeback}
-                employees={props.employees}
+                employees={lists.employees}
 
                 setTriggerReload={setTriggerReload}
                 show={showChargebackModal}
