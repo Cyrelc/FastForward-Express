@@ -138,7 +138,7 @@ export default function Bills(props) {
         {
             isMulti: true,
             name: 'Charge Type',
-            selections: lists.chargeTypes,
+            selections: lists.paymentTypes,
             type: 'SelectFilter',
             db_field: 'charge_type_id',
         },

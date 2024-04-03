@@ -32,6 +32,10 @@ class Charge extends Model {
         return $this->lineItems()->sum('price');
     }
 
+    public function getTypeAttribute() {
+        return PaymentType::find($this->charge_type_id)->name;
+    }
+
     public function lineItems() {
         return $this->hasMany(LineItem::class, 'charge_id');
     }
