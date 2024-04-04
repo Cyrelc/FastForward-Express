@@ -98,7 +98,7 @@ class ContactService {
                     'email_address_id' => $emailAddress['email_address_id'] ?? null,
                     'email' => strtolower($emailAddress['email']),
                     'is_primary' => filter_var($emailAddress['is_primary'], FILTER_VALIDATE_BOOLEAN),
-                    'type' => $emailAddress['type'],
+                    'type' => $emailAddress['type'] ?? null,
                 ];
 
                 if(isset($emailAddress['email_address_id']))
