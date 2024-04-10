@@ -6,6 +6,8 @@ import {ResponsiveLine} from '@nivo/line'
 import {ReactTabulator} from 'react-tabulator'
 import {LinkContainer} from 'react-router-bootstrap'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function AdminDashboard(props) {
     const calendarEndDate = DateTime.now().startOf('year').toJSDate()
     const calendarStartDate = DateTime.now().endOf('year').minus({years: 1}).toJSDate()
@@ -16,18 +18,18 @@ export default function AdminDashboard(props) {
     const [loading, setLoading] = useState(true)
     const [upcomingHolidays, setUpcomingHolidays] = useState(undefined)
     const [ytdChart, setYtdChart] = useState([])
+    const api = useAPI()
 
     useEffect(() => {
-        makeAjaxRequest('/getDashboard', 'GET', null, response => {
-            response = JSON.parse(response)
-
-            setCalendarHeatChart(response.calendar_heat_chart)
-            setEmployeeBirthdays(response.employee_birthdays)
-            setEmployeeExpiries(response.employee_expiries)
-            setYtdChart(response.ytd_chart)
-            setUpcomingHolidays(response.upcoming_holidays)
-            setLoading(false)
-        })
+        api.get('/getDashboard')
+            .then(response => {
+                setCalendarHeatChart(response.calendar_heat_chart)
+                setEmployeeBirthdays(response.employee_birthdays)
+                setEmployeeExpiries(response.employee_expiries)
+                setYtdChart(response.ytd_chart)
+                setUpcomingHolidays(response.upcoming_holidays)
+                setLoading(false)
+            })
     }, [])
 
     const birthdayFormatter = cell => {

@@ -1,6 +1,8 @@
 import React from 'react'
 import Table from '../partials/Table'
 import {useHistory} from 'react-router-dom'
+
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
@@ -16,6 +18,7 @@ const groupByOptions = [
 const initialSort = [{column: 'account_id', dir: 'asc'}]
 
 export default function Accounts(props) {
+    const api = useAPI()
     const history = useHistory()
     const lists = useLists()
     const {frontEndPermissions} = useUser()
@@ -69,7 +72,8 @@ export default function Accounts(props) {
 
         const active = cell.getRow().getData().active
         if(confirm(`Are you sure you wish to ${active ? 'DEACTIVATE' : 'ACTIVATE'} account ${cell.getRow().getData().name}?`)) {
-            makeAjaxRequest(`/accounts/toggleActive/${cell.getRow().getData().account_id}`, 'GET', null, response => {
+            api.get(`/accounts/toggleActive/${cell.getRow().getData().account_id}`)
+                .then(response => {
                 fetchAccounts()
             })
         }

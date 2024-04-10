@@ -6,6 +6,7 @@ import Select from 'react-select'
 import {debounce} from 'lodash'
 import {toast} from 'react-toastify'
 
+import {useAPI} from '../../../contexts/APIContext'
 const math = require('mathjs')
 
 math.createUnit('CAD')
@@ -323,7 +324,7 @@ const ConditionalModal = props => {
                 value_type: valueType.value
             }
 
-            makeAjaxRequest(`/ratesheets/conditional/${conditional_id ?? ''}`, 'POST', data, response => {
+            api.post(`/ratesheets/conditional/${conditional_id ?? ''}`, data).then(response => {
                 toast.success(`Successfully stored conditional ${response.conditional_id}`)
                 props.reload()
                 props.onHide()

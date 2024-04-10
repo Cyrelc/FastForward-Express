@@ -1,8 +1,12 @@
 import React, {Fragment, useState} from 'react'
 import {Button, ButtonGroup, Col, FormControl, Modal, Row} from 'react-bootstrap'
 
+import {useAPI} from '../../../contexts/APIContext'
+
 export default function AccountCreditBody(props) {
     const [comment, setComment] = useState('')
+
+    const api = useAPI()
 
     const storePayment = () => {
         const accountBalance = parseFloat(props.paymentMethod.account_balance)
@@ -15,7 +19,7 @@ export default function AccountCreditBody(props) {
         }
 
         if(confirm(`Are you sure you would like to pay ${localPaymentAmount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})} towards invoice ${props.invoiceId}?`)) {
-            makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
+            api.post(`/payments/${props.invoiceId}`, data).then(response => {
                 props.hideModal()
             })
         }

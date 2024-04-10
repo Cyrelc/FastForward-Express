@@ -5,6 +5,7 @@ import {ReactTabulator} from 'react-tabulator'
 import {toast} from 'react-toastify'
 
 import LinkLineItemModal from './modals/LinkLineItemModal'
+import {useAPI} from '../../contexts/APIContext'
 // import PriceAdjustModal from './modals/PriceAdjustModal'
 // import ReassignChargesModal from './ReassignChargesModal'
 
@@ -81,6 +82,7 @@ export default function Charge(props) {
     const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
 
+    const api = useAPI()
     const tableRef = useRef()
     const history = useHistory()
 
@@ -233,10 +235,10 @@ export default function Charge(props) {
             return
         }
 
-        makeAjaxRequest('/invoices/createFromCharge', 'POST', {charge_id: charge.charge_id}, response => {
-            response = JSON.parse(response)
-            toast.success(`Successfully created invoice I${response.invoice_id}`)
-        })
+        api.post('/invoices/createFromCharge', {charge_id: charge.charge_id})
+            .then(response => {
+                toast.success(`Successfully created invoice I${response.invoice_id}`)
+            })
     }
 
     const linkTo = (cell, type) => {
@@ -283,9 +285,10 @@ export default function Charge(props) {
             line_item_id: cell.getRow().getData()['line_item_id'],
             link_type: type
         }
-        makeAjaxRequest('/bills/manageLineItemLinks', 'POST', data, response => {
-            cell.getRow().update(JSON.parse(response))
-        })
+        api.post('/bills/manageLineItemLinks', data)
+            .then(response => {
+                cell.getRow().update(response)
+            })
     }
 
     return (

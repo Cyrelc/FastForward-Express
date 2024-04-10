@@ -1,9 +1,13 @@
 import React, {Fragment, useState} from 'react'
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
 
+import {useAPI} from '../../../contexts/APIContext'
+
 export default function PrepaidBody(props) {
     const [comment, setComment] = useState('')
     const [paymentReferenceValue, setPaymentReferenceValue] = useState('')
+
+    const api = useAPI()
 
     const storePayment = () => {
         // TODO: Change invoice list to individual, remove payment_method_id, and payment_method_on_file, as this can be split to only cards_on_file type transactions
@@ -16,9 +20,10 @@ export default function PrepaidBody(props) {
             reference_value: props.paymentMethod.required_field ? paymentReferenceValue : null
         }
 
-        makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
-            props.hideModal()
-        })
+        api.post(`/payments/${props.invoiceId}`, data)
+            .then(response => {
+                props.hideModal()
+            })
     }
 
     return (

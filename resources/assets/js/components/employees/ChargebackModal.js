@@ -3,6 +3,8 @@ import {Button, ButtonGroup, Col, Form, FormControl, InputGroup, Modal, Row} fro
 import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 
+import {useAPI} from '../../contexts/APIContext'
+
 const initialState = {
     chargebackId: '',
     chargebackName: '',
@@ -26,6 +28,8 @@ export default function ChargebackModal(props) {
     const [glCode, setGlCode] = useState('')
     const [selectedEmployees, setSelectedEmployees] = useState([])
     const [startDate, setStartDate] = useState(new Date())
+
+    const api = useAPI()
 
     useEffect(() => {
         setAmount(props.chargeback?.amount ?? '')
@@ -51,10 +55,11 @@ export default function ChargebackModal(props) {
             employee_ids: selectedEmployees.map(employee => {return employee.value}),
             name: chargebackName
         }
-        makeAjaxRequest('/chargebacks', 'POST', data, response => {
-            props.setTriggerReload(true)
-            props.toggleModal()
-        })
+        api.post('/chargebacks', data)
+            .then(response => {
+                props.setTriggerReload(true)
+                props.toggleModal()
+            })
     }
 
     return (

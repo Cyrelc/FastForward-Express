@@ -3,8 +3,10 @@ import {Badge, Card} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import ReactDOM from 'react-dom'
 import {useHistory} from 'react-router-dom'
+import {useAPI} from '../../../contexts/APIContext'
 
 export default function PaymentTable(props) {
+    const api = useAPI()
     const history = useHistory()
 
     const formatPaymentIntentStatus = cell => {
@@ -42,7 +44,7 @@ export default function PaymentTable(props) {
         }
 
         if(confirm(`Are you certain you would like to undo the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
-            makeAjaxRequest(`/payments/${rowData.payment_id}`, 'DELETE', null, response => {
+            api.delete(`/payments/${rowData.payment_id}`).then(response => {
                 props.refresh()
             })
     }

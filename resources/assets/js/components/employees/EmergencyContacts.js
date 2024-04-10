@@ -6,6 +6,7 @@ import Contact from '../partials/Contact'
 import LoadingSpinner from '../partials/LoadingSpinner'
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
+import {useAPI} from '../../contexts/APIContext'
 
 export default function EmergencyContacts (props) {
     const [emergencyContacts, setEmergencyContacts] = useState([])
@@ -13,6 +14,7 @@ export default function EmergencyContacts (props) {
     const [showEmergencyContactModal, setShowEmergencyContactModal] = useState(false)
 
     const address = useAddress()
+    const api = useAPI()
     const contact = useContact()
 
     const {
@@ -20,8 +22,7 @@ export default function EmergencyContacts (props) {
     } = props
 
     useEffect(() => {
-        makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'GET', null, response => {
-            // response = JSON.parse(response)
+        api.get(`/employees/${employeeId}/emergencyContacts`).then(response => {
             setEmergencyContacts(response.emergency_contacts)
             setIsLoading(false)
         }, () => setIsLoading(false))
@@ -47,7 +48,7 @@ export default function EmergencyContacts (props) {
             return
         if(confirm(`Are you sure you wish to delete contact ${emergencyContact.name}?\nThis action can not be undone`)) {
             setIsLoading(true)
-            makeAjaxRequest(`/employees/${employeeId}/emergencyContacts/${emergencyContact.contact_id}`, 'DELETE', null, response => {
+            api.delete(`/employees/${employeeId}/emergencyContacts/${emergencyContact.contact_id}`).then(response => {
                 setEmergencyContacts(response.emergencyContacts)
                 setIsLoading(false)
             }, () => setIsLoading(false))
@@ -55,8 +56,7 @@ export default function EmergencyContacts (props) {
     }
 
     const editEmergencyContact = emergencyContactId => {
-        makeAjaxRequest(`/employees/emergencyContacts/${emergencyContactId}`, 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get(`/employees/emergencyContacts/${emergencyContactId}`).then(response => {
             contact.setup(response)
             address.setup(response.address)
             setShowEmergencyContactModal(true)
@@ -79,7 +79,7 @@ export default function EmergencyContacts (props) {
             address_place_id: address.placeId,
         }
 
-        makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'POST', data, response => {
+        api.post(`/employees/${employeeId}/emergencyContacts`).then(response => {
             toast.success(`Contact "${contact.firstName} ${contact.lastName}" successfully ${contact.contactId ? 'updated' : 'created'}`)
 
             setShowEmergencyContactModal(false)

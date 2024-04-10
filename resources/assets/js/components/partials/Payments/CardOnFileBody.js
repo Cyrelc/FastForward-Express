@@ -12,7 +12,7 @@ export default function CardOnFileBody(props) {
             reference_value: props.paymentMethod.name
         }
 
-        makeAjaxRequest(`/payments/${props.invoiceId}`, 'POST', data, response => {
+        api.post(`/payments/${props.invoiceId}`, data).then(response => {
             props.hideModal()
         }, () => props.hideModal())
     }

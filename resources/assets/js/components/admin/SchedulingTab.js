@@ -2,34 +2,40 @@ import React, {useState} from 'react'
 import {Button, Card, Col, FormControl, InputGroup, Row, Table} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function SchedulingTab(props) {
     const [blockedDate, setBlockedDate] = useState(new Date())
     const [blockedDateName, setBlockedDateName] = useState('')
 
+    const api = useAPI()
+
     const addBlockedDate = () => {
         const data = {date: blockedDate.toLocaleString('en-CA'), name: blockedDateName}
-        makeAjaxRequest(`/appsettings/scheduling/blockedDates`, 'POST', data, response => {
-            props.setBlockedDates(response.blocked_dates.map(date => {
-                return {
-                    ...date,
-                    date: Date.parse(date.value)
-                }
-            }))
-            setBlockedDate(new Date())
-            setBlockedDateName('')
-        })
+        api.post(`/appsettings/scheduling/blockedDates`, data)
+            .then(response => {
+                props.setBlockedDates(response.blocked_dates.map(date => {
+                    return {
+                        ...date,
+                        date: Date.parse(date.value)
+                    }
+                }))
+                setBlockedDate(new Date())
+                setBlockedDateName('')
+            })
     }
 
     const deleteBlockedDate = blockedDate => {
         if(confirm(`You are about to delete date ${blockedDate.name}. This action can not be undone`)) {
-            makeAjaxRequest(`/appsettings/scheduling/blockedDates/${blockedDate.id}`, 'DELETE', null, response => {
-                response = JSON.parse(response)
-                const blockedDates = response.blocked_dates.map(blocked => {
-                    return {...blocked, date: Date.parse(blocked.value)}
+            api.delete(`/appsettings/scheduling/blockedDates/${blockedDate.id}`, null)
+                .then(response => {
+
+                    const blockedDates = response.blocked_dates.map(blocked => {
+                        return {...blocked, date: Date.parse(blocked.value)}
+                    })
+                    props.setBlockedDates(blockedDates)
                 })
-                props.setBlockedDates(blockedDates)
-            })
-        }
+            }
     }
 
     return (

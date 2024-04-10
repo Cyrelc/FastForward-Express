@@ -12,6 +12,7 @@ import ActivityLogTab from '../partials/ActivityLogTab'
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
 import DispatchTab from './DispatchTab'
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
@@ -39,6 +40,7 @@ export default function Bill(props) {
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
     const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
 
+    const api = useAPI()
     const {match: {params}} = props
     const lists = useLists()
     const location = useLocation()
@@ -53,62 +55,62 @@ export default function Bill(props) {
 
         document.title = params.billId ? `Manage Bill: ${params.billId}` : 'Create Bill - Fast Forward Express'
 
-        makeAjaxRequest(fetchUrl, 'GET', null, data => {
-            data = JSON.parse(data)
-            data.drivers = lists.employees ? lists.employees.filter(employee => employee.is_driver) : []
-            data.employees = lists.employees ?? []
-            data.use_imperial = authenticatedUser.user_settings.use_imperial_default
+        api.get(fetchUrl)
+            .then(data => {
+                data.drivers = lists.employees ? lists.employees.filter(employee => employee.is_driver) : []
+                data.employees = lists.employees ?? []
+                data.use_imperial = authenticatedUser.user_settings.use_imperial_default
 
-            billDispatch({type: 'CONFIGURE_BILL', payload: data})
-            billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
+                billDispatch({type: 'CONFIGURE_BILL', payload: data})
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
 
-            chargeDispatch({
-                type: 'CONFIGURE_CHARGES',
-                payload: {
-                    accounts: data.accounts,
-                    activeRatesheet: data.ratesheets[0],
-                    charges: data?.charges,
-                    chargeTypes: data.charge_types,
-                    interliners: data.interliners,
-                    ratesheets: data.ratesheets
-                }
-            })
-            packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
-
-            if(data.bill?.bill_id) {
-                billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                let sortedBills = localStorage.getItem('bills.sortedList')
-                if(sortedBills) {
-                    sortedBills = sortedBills.split(',').map(index => parseInt(index))
-                    const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
-                    if(currentBillIndex != -1) {
-                        const prevBillId = currentBillIndex == 0 ? null : sortedBills[currentBillIndex - 1]
-                        const nextBillId = currentBillIndex <= sortedBills.length ? sortedBills[currentBillIndex + 1] : null
-                        billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
-                        billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                chargeDispatch({
+                    type: 'CONFIGURE_CHARGES',
+                    payload: {
+                        accounts: data.accounts,
+                        activeRatesheet: data.ratesheets[0],
+                        charges: data?.charges,
+                        chargeTypes: data.charge_types,
+                        interliners: data.interliners,
+                        ratesheets: data.ratesheets
                     }
-                }
+                })
+                packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
 
-                if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
-                    const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
-                    const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-                    if(ratesheet)
-                        billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
-                }
-            } else {
-                if(data.permissions.createFull && !data.permissions.packages)
-                    packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
-                if(queryParams.get('copy_from')) {
-                    billDispatch({type: 'CONFIGURE_COPY', payload: data})
+                if(data.bill?.bill_id) {
+                    billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                }
-                billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
-            }
+                    packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                    let sortedBills = localStorage.getItem('bills.sortedList')
+                    if(sortedBills) {
+                        sortedBills = sortedBills.split(',').map(index => parseInt(index))
+                        const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
+                        if(currentBillIndex != -1) {
+                            const prevBillId = currentBillIndex == 0 ? null : sortedBills[currentBillIndex - 1]
+                            const nextBillId = currentBillIndex <= sortedBills.length ? sortedBills[currentBillIndex + 1] : null
+                            billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
+                            billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                        }
+                    }
 
-            billDispatch({type: 'SET_IS_LOADING', payload: false})
-        })
+                    if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
+                        const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
+                        const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
+                        if(ratesheet)
+                            billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                    }
+                } else {
+                    if(data.permissions.createFull && !data.permissions.packages)
+                        packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
+                    if(queryParams.get('copy_from')) {
+                        billDispatch({type: 'CONFIGURE_COPY', payload: data})
+                        chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                    }
+                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                }
+
+                billDispatch({type: 'SET_IS_LOADING', payload: false})
+            })
     }
 
     const copyBill = () => {
@@ -139,24 +141,24 @@ export default function Bill(props) {
             }
             setAwaitingCharges(true)
 
-            makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
-                response = JSON.parse(response)
-                if(overwrite) {
-                    chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                } else {
-                    chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                }
-                setAwaitingCharges(false)
-                toast.warn(
-                    'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
-                    {
-                        position: 'top-center',
-                        showDuration: 300,
-                        timeOut: 5000,
-                        extendedTImeout: 5000
+            api.post('/bills/generateCharges', data)
+                .then(response => {
+                    if(overwrite) {
+                        chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+                    } else {
+                        chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
                     }
-                )
-            }, error => {setAwaitingCharges(false)})
+                    setAwaitingCharges(false)
+                    toast.warn(
+                        'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
+                        {
+                            position: 'top-center',
+                            showDuration: 300,
+                            timeOut: 5000,
+                            extendedTImeout: 5000
+                        }
+                    )
+                }, error => {setAwaitingCharges(false)})
         }, 500), [
             activeRatesheet,
             chargeAccount,
@@ -203,9 +205,10 @@ export default function Bill(props) {
     }
 
     const toggleTemplate = () => {
-        makeAjaxRequest(`/bills/template/${billId}`, 'GET', null, response => {
-            billDispatch({type: 'SET_IS_TEMPLATE', payload: response.is_template})
-        })
+        api.get(`/bills/template/${billId}`)
+            .then(response => {
+                billDispatch({type: 'SET_IS_TEMPLATE', payload: response.is_template})
+            })
     }
 
     const toggleTermsAndConditions = event => {
@@ -305,20 +308,21 @@ export default function Bill(props) {
                 }
             }
 
-            makeAjaxRequest('/bills/store', 'POST', data, response => {
-                if(billId) {
-                    toast.success(`Bill ${billId} was successfully updated!`)
-                    configureBill()
-                } else {
-                    toast.success(`Bill ${response.id} was successfully created`, {
-                        position: 'top-center',
-                        onClose: () => {
-                            billDispatch({type: 'SET_TAB_KEY', payload: 'basic'})
-                            billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
-                            configureBill()
-                        }
-                    })
-                }
+            api.post('/bills/store', data)
+                .then(response => {
+                    if(billId) {
+                        toast.success(`Bill ${billId} was successfully updated!`)
+                        configureBill()
+                    } else {
+                        toast.success(`Bill ${response.id} was successfully created`, {
+                            position: 'top-center',
+                            onClose: () => {
+                                billDispatch({type: 'SET_TAB_KEY', payload: 'basic'})
+                                billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
+                                configureBill()
+                            }
+                        })
+                    }
             }, error => {
                 billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
             })
