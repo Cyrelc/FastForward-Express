@@ -94,7 +94,7 @@ export default function AccountUsersTab(props) {
     }
 
     const setPrimary = contactId => {
-        makeAjaxRequest(`/accountUsers/setPrimary/${props.accountId}/${contactId}`, 'POST', null, response => {
+        makeAjaxRequest(`/accountUsers/setPrimary/${props.accountId}/${contactId}`, 'GET', null, response => {
             refreshAccountUsers()
         })
     }
