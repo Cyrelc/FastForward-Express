@@ -1,12 +1,14 @@
 import React from 'react'
 import {useHistory} from 'react-router-dom'
+import {toast} from 'react-toastify'
+
 import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
 
 function printManifests(selectedRows, options = null) {
     if(!selectedRows || selectedRows.length === 0) {
-        toastr.warning('Please select at least one row to operate on')
+        toast.warn('Please select at least one row to operate on')
         return
     }
 

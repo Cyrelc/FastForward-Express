@@ -1,6 +1,7 @@
 import React from 'react'
 import {Button, Card, Row, Col, InputGroup, FormControl} from 'react-bootstrap'
 import Select from 'react-select'
+import {toast} from 'react-toastify'
 
 export default function AccountingTab(props) {
     const handleDefaultRatesheetChange = (paymentTypeId, ratesheetId) => {
@@ -18,8 +19,7 @@ export default function AccountingTab(props) {
             paymentTypes: props.paymentTypes
         }
         makeAjaxRequest('/appsettings', 'POST', data, response => {
-            toastr.clear()
-            toastr.success('Settings successfully applied')
+            toast.success('Settings successfully applied')
         })
     }
 

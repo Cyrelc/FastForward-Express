@@ -1,3 +1,5 @@
+import {toast} from 'react-toastify'
+
 const basicCharge = (chargeType) => {
     return {
         chargeType: chargeType,
@@ -39,8 +41,7 @@ export default function chargeReducer(state, action) {
         case 'ADD_CHARGE_TABLE':
             const {chargeAccount, chargeEmployee, chargeType} = state
             if(!chargeType) {
-                toastr.clear()
-                toastr.warning('Charge type selector may not be empty')
+                toast.warn('Charge type selector may not be empty')
                 console.log('chargeType may not be empty. Aborting')
                 return
             }
@@ -49,8 +50,7 @@ export default function chargeReducer(state, action) {
             switch(chargeType.name) {
                 case 'Account':
                     if(!chargeAccount) {
-                        toastr.clear()
-                        toastr.warning('Charge account can not be empty')
+                        toast.warn('Charge account can not be empty')
                         console.log('chargeAccount may not be empty. Aborting')
                         return
                     }
@@ -64,8 +64,7 @@ export default function chargeReducer(state, action) {
                     break;
                 case 'Employee':
                     if(!chargeEmployee) {
-                        toastr.clear()
-                        toastr.warning('Charge Employee may not be empty')
+                        toast.warn('Charge Employee may not be empty')
                         console.log('chargeEmployee may not be empty. Aborting')
                         return
                     }

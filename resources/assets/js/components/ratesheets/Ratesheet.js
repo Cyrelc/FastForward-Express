@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
 import polylabel from 'polylabel'
+import {toast} from 'react-toastify'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 
@@ -368,15 +369,13 @@ export default class Ratesheet extends Component {
             miscRates: this.state.miscRates.slice()
         }
         makeAjaxRequest('/ratesheets', 'POST', data, response => {
-            toastr.clear()
             this.setState({savingMap: 100})
             if(this.state.ratesheetId) {
-                toastr.success(`${this.state.ratesheetName} was successfully updated!`, 'Success', {'onHidden': function(){location.reload()}})
+                toast.success(`${this.state.ratesheetName} was successfully updated!`, {onClose: location.reload})
             } else {
-                toastr.success(`${this.state.ratesheetName} was successfully created`, 'Success', {
-                    'progressBar': true,
-                    'positionClass': 'toast-top-full-width',
-                    'showDuration': 500,
+                toast.success(`${this.state.ratesheetName} was successfully created`, {
+                    position: 'top-center',
+                    autoClose: 5000,
                 })
             }
         }, errorResponse => {

@@ -1,4 +1,5 @@
 import {DateTime} from 'luxon'
+import {toast} from 'react-toastify'
 
 const getDeliveryEstimates = (deliveryTypes, pickupZone = null, deliveryZone = null) => {
     return deliveryTypes.map(deliveryType => {
@@ -131,15 +132,11 @@ export default function billReducer(state, action) {
             time = time.plus({minutes: 15})
 
         if(!time.hasSame(originalTime, 'day')) {
-            toastr.clear()
-            toastr.warning(
+            toast.warn(
                 'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
-                'Insufficient time',
                 {
-                    positionClass: 'toast-bottom-full-width',
-                    showDuration: 300,
-                    timeOut: 5000,
-                    extendedTImeout: 5000
+                    position: 'to-center',
+                    autoClose: 5000
                 }
             )
         }
@@ -410,8 +407,7 @@ export default function billReducer(state, action) {
                         deliveryType: deliveryType
                     })
                 } else {
-                    toastr.clear()
-                    toastr.error('An error has occurred with restricted time settings. Please contact support and describe the action you were attempting to perform')
+                    toast.error('An error has occurred with restricted time settings. Please contact support and describe the action you were attempting to perform')
                     return state
                 }
             } else
@@ -450,9 +446,12 @@ export default function billReducer(state, action) {
         case 'TOGGLE_READ_ONLY':
             return Object.assign({}, state, {readOnly: payload})
         case 'TOGGLE_RESTRICTIONS':
-            toastr.clear()
             if(state.applyRestrictions)
-                toastr.error('Restrictions lifted, some autocomplete functionality has been disabled. Please review all work carefully for accuracy before submitting', 'WARNING', {'timeOut' : 0, 'extendedTImeout' : 0, positionClass: 'toast-top-center'});
+                toast.error('Restrictions lifted, some autocomplete functionality has been disabled. Please review all work carefully for accuracy before submitting',
+                {
+                    position: 'top-center',
+                    autoClose: false
+                });
             return Object.assign({}, state, {
                 applyRestrictions: !state.applyRestrictions
             })

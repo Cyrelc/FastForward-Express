@@ -47,7 +47,6 @@ export default function Employee(props) {
     }, [location.hash])
 
     useEffect(() => {
-        // toastr.clear()
         setIsLoading(true)
         const {match: {params}} = props
         setKey(window.location.hash?.substr(1) || 'basic')
@@ -100,7 +99,6 @@ export default function Employee(props) {
     const debouncedWarnings = useCallback(
         debounce(() => {
             if(isDriver && isEnabled && employeeId) {
-                // toastr.clear()
                 if(driversLicenseExpirationDate < now)
                     toast.error('Drivers License has passed expiration date', {toastId: `${employeeId}-dln-expiry`})
                 else if(driversLicenseExpirationDate < threeMonthsFromNow)

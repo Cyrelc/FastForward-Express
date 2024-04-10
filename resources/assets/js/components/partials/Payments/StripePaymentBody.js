@@ -20,12 +20,13 @@ const StripeForm = (props) => {
                 elements, redirect: 'if_required',
             })
 
-            console.log('result.status', result.status)
-            toastr.success('Payment successful!', result.status)
+            toast.success('Payment successful!')
             props.hideModal()
         } catch (error) {
             console.error('Failed to submit stripe payment', error)
-            toastr.error(error.message, 'Error')
+            toast.error(error.message, {
+                autoClose: false
+            })
         }
     }
 

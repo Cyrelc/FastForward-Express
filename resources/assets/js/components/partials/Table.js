@@ -151,7 +151,6 @@ export default function Table(props) {
 
     const fetchTableData = (query = null) => {
         setIsLoading(true)
-        toastr.clear()
         if(query == null) {
             const activeFilters = {}
             filters.forEach(filter => {
@@ -184,7 +183,7 @@ export default function Table(props) {
 
     const saveCurrentQuery = () => {
         if(!queryName) {
-            toastr.warn('Please enter a name for the query!')
+            toast.warn('Please enter a name for the query!')
             return
         }
         const data = {
@@ -231,7 +230,7 @@ export default function Table(props) {
         } catch (error) {
             console.error('Unable to write to clipboard', error.message)
         }
-        toastr.success('Query copied to clipboard!')
+        toast.success('Query copied to clipboard!')
     }
 
     return (

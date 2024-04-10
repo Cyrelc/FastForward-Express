@@ -56,7 +56,6 @@ export default function EditAccountUser(props) {
     }
 
     const storeAccountUser = () => {
-        toastr.clear()
         const data = {
             ...contact.collect(),
             account_id: props.accountId,

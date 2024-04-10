@@ -26,7 +26,7 @@ root.render(
         <UserProvider>
             <BrowserRouter basename='/app'>
                 <ListsProvider>
-                    <ToastContainer />
+                    <ToastContainer theme='dark'/>
                     <App history={history}/>
                 </ListsProvider>
             </BrowserRouter>

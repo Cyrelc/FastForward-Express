@@ -2,6 +2,7 @@ import React, {Fragment, useCallback, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Nav, Navbar, Row, Tab, Tabs} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 import {useHistory, useLocation, useParams} from 'react-router-dom'
+import {toast} from 'react-toastify'
 
 import AccountUsersTab from './account_users/AccountUsersTab'
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -161,9 +162,8 @@ export default function Account(props) {
     }, [canBeParent, customTrackingField])
 
     const storeAccount = () => {
-        toastr.clear()
         if(accountId ? !(permissions.editBasic || permissions.editInvoicing || permissions.editAdvanced) : !permissions.create) {
-            toastr.error('User does not have permissions to update this account')
+            toast.error('User does not have permissions to update this account', {toastId: `${accountId}-no-edit-permission`})
             return
         }
 
@@ -217,11 +217,10 @@ export default function Account(props) {
             }
 
         makeAjaxRequest('/accounts', 'POST', data, response => {
-            toastr.clear()
-            toastr.success(`Account ${response.account_id} successfully ${accountId  ? 'updated' : 'created'}`, 'Success', {
-                'onHidden': () => {
+            toast.success(`Account ${response.account_id} successfully ${accountId  ? 'updated' : 'created'}`, {
+                onClose: () => {
                     if(!accountId)
-                        props.history.push(`/accounts/${response.account_id}`)
+                        history.push(`/accounts/${response.account_id}`)
                 }
             })
         })

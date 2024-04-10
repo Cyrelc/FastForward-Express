@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
+import {toast} from 'react-toastify'
 
 import {Button, Col, Dropdown, Modal, Row, Table} from 'react-bootstrap'
 
@@ -157,7 +158,7 @@ const AddCreditCard = (props) => {
         })
 
         if(result.error) {
-            toastr.error(result.error.message, 'ERROR')
+            toast.error(result.error.message)
         } else {
             props.fetchPaymentMethods()
             props.hideCreateBody()

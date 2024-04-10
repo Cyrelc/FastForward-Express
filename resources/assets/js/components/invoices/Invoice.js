@@ -1,6 +1,7 @@
 import React, {Fragment, useEffect, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Container, Dropdown, FormCheck, Nav, Navbar, NavDropdown, Row, Table} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
+import {toast} from 'react-toastify'
 
 import PaymentModal from '../partials/Payments/PaymentModal'
 import PaymentTable from '../partials/Payments/PaymentTable'
@@ -82,9 +83,9 @@ export default function Invoice(props) {
         makeAjaxRequest(`/invoices/regather/${invoice.invoice_id}`, 'GET', null, response => {
             response = JSON.parse(response)
             if(response.count > 0)
-                toastr.success('Success', `${response.count} line items successfully added to invoice`)
+                toast.success(`${response.count} line items successfully added to invoice`)
             else
-                toastr.error('Warning', 'No matching line items were found for this invoice');
+                toast.error('No matching line items were found for this invoice');
         })
     }
 

@@ -1,5 +1,6 @@
 import React, {Fragment, useEffect, useState} from 'react'
 import { Modal, Row, Col, Button, ButtonGroup, Table } from "react-bootstrap"
+import {toast} from 'react-toastify'
 
 import Contact from '../partials/Contact'
 import LoadingSpinner from '../partials/LoadingSpinner'
@@ -28,7 +29,7 @@ export default function EmergencyContacts (props) {
 
     useEffect(() => {
         if(emergencyContacts.length < 2 && !isLoading)
-            toastr.error('Please provide a minimum of 2 emergency contacts', 'WARNING', {'timeOut': 0, 'extendedTImeout': 0})
+            toast.error('Please provide a minimum of 2 emergency contacts', {autoClose: false})
     }, [emergencyContacts, isLoading])
 
     const addEmergencyContact = () => {
@@ -79,8 +80,7 @@ export default function EmergencyContacts (props) {
         }
 
         makeAjaxRequest(`/employees/${employeeId}/emergencyContacts`, 'POST', data, response => {
-            toastr.clear()
-            toastr.success(`Contact "${contact.firstName} ${contact.lastName}" successfully ${contact.contactId ? 'updated' : 'created'}`, 'Success')
+            toast.success(`Contact "${contact.firstName} ${contact.lastName}" successfully ${contact.contactId ? 'updated' : 'created'}`)
 
             setShowEmergencyContactModal(false)
             setEmergencyContacts(response.emergency_contacts)

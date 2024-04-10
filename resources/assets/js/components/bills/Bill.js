@@ -3,6 +3,7 @@ import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, Nav
 import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
 import {debounce} from 'lodash'
+import {toast} from 'react-toastify'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
@@ -112,7 +113,7 @@ export default function Bill(props) {
 
     const copyBill = () => {
         if(!billId) {
-            toastr.error("Can't copy a bill that doesn't exist... how did you even get this menu!?!?")
+            toast.error("Can't copy a bill that doesn't exist... how did you even get this menu!?!?")
             return
         }
         history.push(`/bills/create?copy_from=${billId}`)
@@ -146,11 +147,10 @@ export default function Bill(props) {
                     chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
                 }
                 setAwaitingCharges(false)
-                toastr.warning(
+                toast.warn(
                     'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
-                    'Automatic Pricing',
                     {
-                        positionClass: 'toast-bottom-full-width',
+                        position: 'top-center',
                         showDuration: 300,
                         timeOut: 5000,
                         extendedTImeout: 5000
@@ -306,16 +306,13 @@ export default function Bill(props) {
             }
 
             makeAjaxRequest('/bills/store', 'POST', data, response => {
-                toastr.clear()
                 if(billId) {
-                    toastr.success(`Bill ${billId} was successfully updated!`, 'Success')
+                    toast.success(`Bill ${billId} was successfully updated!`)
                     configureBill()
                 } else {
-                    toastr.success(`Bill ${response.id} was successfully created`, 'Success', {
-                        'progressBar': true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 300,
-                        'onHidden': () => {
+                    toast.success(`Bill ${response.id} was successfully created`, {
+                        position: 'top-center',
+                        onClose: () => {
                             billDispatch({type: 'SET_TAB_KEY', payload: 'basic'})
                             billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
                             configureBill()

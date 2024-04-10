@@ -4,6 +4,7 @@ import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
 import {BootstrapConfig} from '@react-awesome-query-builder/bootstrap'
 import Select from 'react-select'
 import {debounce} from 'lodash'
+import {toast} from 'react-toastify'
 
 const math = require('mathjs')
 
@@ -323,8 +324,7 @@ const ConditionalModal = props => {
             }
 
             makeAjaxRequest(`/ratesheets/conditional/${conditional_id ?? ''}`, 'POST', data, response => {
-                toastr.clear()
-                toastr.success('Success', `Successfully stored conditional ${response.conditional_id}`)
+                toast.success(`Successfully stored conditional ${response.conditional_id}`)
                 props.reload()
                 props.onHide()
             })

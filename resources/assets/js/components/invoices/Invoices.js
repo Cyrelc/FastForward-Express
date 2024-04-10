@@ -1,5 +1,7 @@
 import React from 'react'
+import {toast} from 'react-toastify'
 import {useHistory} from 'react-router-dom'
+
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
@@ -26,12 +28,12 @@ function deleteInvoice(cell) {
 
 function printInvoices(selectedRows, options) {
     if(!selectedRows || selectedRows.length === 0) {
-        toastr.warning('Please select at least one row to operate on')
+        toast.warn('Please select at least one row to operate on')
         return
     }
     if(selectedRows.length > 50) {
         selectedRows = selectedRows.slice(0, 49)
-        toastr.warning('Unable to generate more than 50 Invoices at a time - limiting your request to the first 50 items selected.\nApologies for any inconvenience')
+        toast.warn('Unable to generate more than 50 Invoices at a time - limiting your request to the first 50 items selected.\nApologies for any inconvenience')
     }
     const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})
 
@@ -95,7 +97,7 @@ export default function Invoices(props) {
 
     const toggleInvoiceFinalized = async (selectedRows = null) => {
         if(!selectedRows || selectedRows.length === 0) {
-            toastr.warning('Please select at least one row to operate on')
+            toast.warn('Please select at least one row to operate on')
             return
         }
         const data = selectedRows.map(selectedRow => {return selectedRow.getData().invoice_id})

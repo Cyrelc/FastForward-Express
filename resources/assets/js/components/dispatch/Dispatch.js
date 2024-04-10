@@ -146,9 +146,7 @@ export default function Dispatch(props) {
             bill_id: billId,
             employee_id: employeeId
         }
-        makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {
-            toastr.clear()
-        })
+        makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {})
     }
 
     const setTimeModalView = cell => {
@@ -163,7 +161,6 @@ export default function Dispatch(props) {
         const actualTime = DateTime.fromJSDate(timeModalActualTime).toSQL()
         const data = {bill_id: timeModalBillId, type: timeModalField, time: actualTime}
         makeAjaxRequest('/dispatch/setBillPickupOrDeliveryTime', 'POST', data, response => {
-            toastr.clear()
             const refreshedBills = bills.map(bill => {
                 if(bill.bill_id === timeModalBillId) {
                     if(timeModalField === 'pickup')

@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import {Button, ButtonGroup, Card, Col, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {useHistory} from 'react-router-dom'
 import {ReactTabulator} from 'react-tabulator'
+import {toast} from 'react-toastify'
 
 import LinkLineItemModal from './modals/LinkLineItemModal'
 // import PriceAdjustModal from './modals/PriceAdjustModal'
@@ -196,7 +197,7 @@ export default function Charge(props) {
     const deleteChargeTable = charge => {
         if(!canChargeTableBeDeleted(charge)) {
             const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced or manifested'
-            toastr.error(errorMessage)
+            toast.error(errorMessage)
             console.log(errorMessage)
             return
         }
@@ -218,12 +219,12 @@ export default function Charge(props) {
 
     const invoiceAsOneOff = () => {
         if(charge.chargeType.type != 'prepaid') {
-            toastr.error('Unable to invoice non-prepaid type as one-off call. Aborting')
+            toast.error('Unable to invoice non-prepaid type as one-off call. Aborting')
             return
         }
 
         if(!charge?.lineItems) {
-            toastr.error('Unable to invoice as a one-off call. Charge has no line items')
+            toast.error('Unable to invoice as a one-off call. Charge has no line items')
             return
         }
 
@@ -234,7 +235,7 @@ export default function Charge(props) {
 
         makeAjaxRequest('/invoices/createFromCharge', 'POST', {charge_id: charge.charge_id}, response => {
             response = JSON.parse(response)
-            toastr.success(`Successfully created invoice I${response.invoice_id}`, 'Success')
+            toast.success(`Successfully created invoice I${response.invoice_id}`)
         })
     }
 

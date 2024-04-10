@@ -4,6 +4,7 @@ import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
+import {toast} from 'react-toastify'
 
 export default function GenerateInvoices(props) {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
@@ -166,7 +167,6 @@ export default function GenerateInvoices(props) {
 
         makeAjaxRequest('/invoices/getUninvoiced', 'POST', data, response => {
             response = JSON.parse(response)
-            toastr.clear()
             if(response.pending_creation)
                 setPendingCreation(Object.values(response.pending_creation))
         })
@@ -182,7 +182,7 @@ export default function GenerateInvoices(props) {
 
     const store = () => {
         if(table?.getSelectedData().length === 0) {
-            toastr.error('Please select at least one invoice to be created')
+            toast.error('Please select at least one invoice to be created')
             return
         }
 
@@ -196,8 +196,7 @@ export default function GenerateInvoices(props) {
         }
 
         makeAjaxRequest('/invoices', 'POST', data, response => {
-            toastr.clear()
-            toastr.success('Successfully generated invoices', 'Success', {
+            toast.success('Successfully generated invoices', 'Success', {
                 'progressBar' : true,
                 'showDuration': 500,
                 'onHidden': history.push('/invoices'),
