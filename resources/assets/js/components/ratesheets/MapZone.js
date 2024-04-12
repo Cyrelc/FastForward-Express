@@ -29,12 +29,6 @@ export default function Zone(props) {
                                 <Dropdown.Item onClick={() => props.deleteZone(props.id)}>
                                     <i className='fas fa-trash'></i> Delete
                                 </Dropdown.Item>
-                                <Dropdown.Item onClick={() => props.zoneRemoveDuplicates(props.id)} size='sm'>
-                                    <span className='fa-stack'>
-                                        <i className='fas fa-copy fa-stack-1x'></i>
-                                        <i className='fas fa-ban fa-stack-2x'></i>
-                                    </span> Dedup
-                                </Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </Col>

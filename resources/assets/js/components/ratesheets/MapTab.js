@@ -1,9 +1,21 @@
 import React from 'react'
-import {ButtonGroup, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton} from 'react-bootstrap'
-import Zone from './Zone'
+import {Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import Zone from './MapZone'
 import Select from 'react-select'
+import {GoogleMap, DrawingManager, LoadScript} from '@react-google-maps/api'
 
 export default function MapTab(props) {
+    const {
+        defaultZoneType,
+        editZoneZIndex,
+        setDefaultZoneType,
+        mapCenter,
+        mapZoom,
+        mapZones,
+        setMap,
+        setDrawingManager,
+    } = props.mapState
+
     const popover = (
         <Popover id='map-info-popover' title='How to Create a Great RateMap'>
             <strong>Maps Zones</strong> come in two varieties:<br/>
@@ -19,10 +31,12 @@ export default function MapTab(props) {
             <Row>
                 <Col md={3}>
                     <Select
-                        options={props.mapZones}
-                        getOptionLabel={zone => zone.name + '  (' + zone.type + ')' + '  (' + zone.coordinates.length + ' points)'}
+                        options={mapZones}
+                        getOptionLabel={zone => {
+                            console.log(zone)
+                            return `${zone.name} (${zone.type}) (${zone.getCoordinateCount()} points)`}}
                         getOptionValue={zone => zone.id}
-                        value={props.mapZones.filter(zone => zone.viewDetails)[0]}
+                        value={mapZones.find(zone => zone.id == editZoneZIndex)}
                         onChange={zone => props.editZone(zone.id)}
                         isSearchable
                     />
@@ -30,32 +44,34 @@ export default function MapTab(props) {
                 <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
                         <InputGroup.Text>New Zone Type: </InputGroup.Text>
-                        <ButtonGroup>
-                            <ToggleButton 
-                                type='radio'
-                                variant='secondary'
-                                name='defaultZoneType'
-                                value='internal'
-                                active={props.defaultZoneType === 'internal'}
-                                onChange={props.handleChange}
-                                style={{backgroundColor: props.polyColours.internalFill, color:props.defaultZoneType === 'internal' ? 'black' : 'white'}}>Internal</ToggleButton>
+                        <ToggleButtonGroup
+                            type='radio'
+                            name='defaultZoneType'
+                            onChange={value => setDefaultZoneType(value)}
+                            value={defaultZoneType}
+                        >
                             <ToggleButton
-                                type='radio'
+                                id={'defaultZoneType.internal'}
                                 variant='secondary'
-                                name='defaultZoneType'
+                                value='internal'
+                                key='internal'
+                                style={{backgroundColor: props.polyColours.internalFill, color: defaultZoneType === 'internal' ? 'black' : 'white'}}
+                            >Internal</ToggleButton>
+                            <ToggleButton
+                                variant='secondary'
+                                id='defaultZoneType.peripheral'
                                 value='peripheral'
-                                active={props.defaultZoneType === 'peripheral'}
-                                onChange={props.handleChange}
-                                style={{backgroundColor: props.polyColours.peripheralFill, color:props.defaultZoneType === 'peripheral' ? 'black' : 'white'}}>Peripheral</ToggleButton>
-                            <ToggleButton 
-                                type='radio'
-                                variant='secondary' 
-                                name='defaultZoneType' 
-                                value='outlying' 
-                                active={props.defaultZoneType === 'outlying'} 
-                                onChange={props.handleChange}
-                                style={{backgroundColor: props.polyColours.outlyingFill, color:props.defaultZoneType === 'outlying' ? 'black' : 'white'}}>Outlying</ToggleButton>
-                        </ButtonGroup>
+                                key='peripheral'
+                                style={{backgroundColor: props.polyColours.peripheralFill, color: defaultZoneType === 'peripheral' ? 'black' : 'white'}}
+                            >Peripheral</ToggleButton>
+                            <ToggleButton
+                                variant='secondary'
+                                id='defaultZoneType.outlying'
+                                value='outlying'
+                                key='outlying' 
+                                style={{backgroundColor: props.polyColours.outlyingFill, color: defaultZoneType === 'outlying' ? 'black' : 'white'}}
+                            >Outlying</ToggleButton>
+                        </ToggleButtonGroup>
                     </InputGroup>
                 </Col>
                 <Col md={3}>
@@ -72,7 +88,7 @@ export default function MapTab(props) {
             </Row>
             <Row>
                 <Col md={3}>
-                    {props.mapZones && props.mapZones.length > 0 && props.mapZones.filter(zone => zone.viewDetails).map(zone =>
+                    {mapZones && mapZones.length > 0 && mapZones.filter(zone => zone.viewDetails).map(zone =>
                         <Zone
                             key={zone.id}
                             id={zone.id}
@@ -83,13 +99,41 @@ export default function MapTab(props) {
                             editZone={props.editZone}
                             viewDetails={zone.viewDetails}
                             colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
-                            zoneRemoveDuplicates={props.zoneRemoveDuplicates}
                         />
                     )}
-                    Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommedation is to create a simple polygon, and then edit it to fit your desired dimensions
+                    Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommendation is to create a simple polygon, and then edit it to fit your desired dimensions
                 </Col>
                 <Col md={9}>
-                    <div id='googleMap' style={{height:800}}></div>
+                    <GoogleMap
+                        center={mapCenter}
+                        mapContainerStyle={{height: '85vh', width: '100%'}}
+                        options={{disableDefaultUI: true}}
+                        zoom={mapZoom}
+                        onLoad={map => {
+                            setMap(map)
+                        }}
+                    >
+                        <DrawingManager
+                            onLoad={drawingManager => setDrawingManager(drawingManager)}
+                            options={{
+                                drawingControl: true,
+                                drawingControlOptions: {
+                                    position: window.google.maps.ControlPosition.TOP_CENTER,
+                                    drawingModes: [
+                                        window.google.maps.drawing.OverlayType.POLYGON
+                                    ]
+                                },
+                                polygonOptions: {
+                                    clickable: true,
+                                    editable: true,
+                                    fillColor: props.polyColours[`${defaultZoneType}Fill`],
+                                    strokeColor: props.polyColours[`${defaultZoneType}Stroke`],
+                                    zIndex: mapZones.length + 1
+                                }
+                            }}
+                            onPolygonComplete={props.onPolygonComplete}
+                        />
+                    </GoogleMap>
                 </Col>
             </Row>
         </Card>

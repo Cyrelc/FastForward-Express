@@ -4,32 +4,38 @@ import {Button, Card, Col, InputGroup, FormControl, Form, Row, Table} from 'reac
 import RateOption from './RateOption'
 
 export default function BasicRatesTab(props) {
+    const {
+        deliveryTypes,
+        setDeliveryTypes,
+        miscRates,
+        name,
+        setName,
+        setMiscRates,
+        useInternalZonesCalc,
+        setUseInternalZonesCalc
+    } = props.ratesheetState
 
-    function addMiscRate() {
-        props.handleChange({target: {
-            name: 'miscRates',
-            type: 'object',
-            value: props.miscRates.concat([{name: '', price: ''}])
-        }})
+    const addMiscRate = () => {
+        setMiscRates(miscRates.concat({name: '', price: ''}))
     }
 
-    function deleteMiscRate(index) {
-        props.handleChange({target: {
-            name: 'miscRates',
-            type: 'object',
-            value: props.miscRates.filter((rate, i) => i != index)
-        }})
+    const deleteMiscRate = deleteIndex => {
+        newMiscRates = miscRates.filter((miscRate, index) => index !== deleteIndex)
+        setMiscRates(newMiscRates)
     }
 
-    function handleMiscRateChange(event) {
-        const {name, value} = event.target
-        console.log(name, value, event.target.dataset.miscrateindex)
-        const miscRates = props.miscRates.map((rate, i) => {
-            if(i == event.target.dataset.miscrateindex)
-                return {...rate, [name]: value}
-            return rate
+    const handleDeliveryTypeChange = (index, field, value) => {
+        console.log(index, field, value)
+    }
+
+    const handleMiscRateChange = (index, field, value) =>  {
+        const updated = miscRates.map((miscRate, i) => {
+            if(i == index)
+                return {...miscRate, [field]: value}
+            return miscRate
         })
-        props.handleChange({target: {name: 'miscRates', type: 'object', value: miscRates}})
+        console.log(index, field, value, updated)
+        setMiscRates(updated)
     }
 
     return (
@@ -42,17 +48,23 @@ export default function BasicRatesTab(props) {
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Ratesheet Name</InputGroup.Text>
-                            <FormControl type='text' placeholder='Ratesheet Name' name='ratesheetName' value={props.ratesheetName} onChange={props.handleChange}/>
+                            <FormControl type='text' placeholder='Ratesheet Name' name='ratesheetName' value={name} onChange={event => setName(event.target.value)}/>
                         </InputGroup>
                     </Col>
                     <Col md={4}>
                         <strong>
-                            <Form.Check type='checkbox' name='useInternalZonesCalc' label='Use Internal Zones Crossed to Calculate Pricing' checked={props.useInternalZonesCalc} onChange={props.handleChange} />
+                            <Form.Check
+                                type='checkbox'
+                                name='useInternalZonesCalc'
+                                label='Use Internal Zones Crossed to Calculate Pricing'
+                                checked={useInternalZonesCalc}
+                                onChange={event => setUseInternalZonesCalc(event.target.checked)}
+                            />
                         </strong>
                     </Col>
                 </Row>
             </Card.Header>
-            {!props.useInternalZonesCalc &&
+            {!useInternalZonesCalc &&
                 <Card.Body>
                     <Row>
                         <Col md={2}>
@@ -68,14 +80,14 @@ export default function BasicRatesTab(props) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {props.deliveryTypes.map(type => 
-                                        <RateOption 
+                                    {deliveryTypes.map(type => 
+                                        <RateOption
                                             key={type.id}
                                             friendlyName={type.friendlyName}
                                             time={type.time}
                                             cost={type.cost}
                                             id={type.id}
-                                            handleChange={props.handleChange}
+                                            handleChange={handleDeliveryTypeChange}
                                         />
                                     )}
                                 </tbody>
@@ -93,15 +105,23 @@ export default function BasicRatesTab(props) {
                         <Table size='sm'>
                             <thead>
                                 <tr>
-                                    <th><Button variant='success' onClick={addMiscRate} size='sm'><i className='fas fa-plus'></i></Button></th>
+                                    <th>
+                                        <Button variant='success' onClick={addMiscRate} size='sm'>
+                                            <i className='fas fa-plus'></i>
+                                        </Button>
+                                    </th>
                                     <th>Name</th>
                                     <th>Price</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {props.miscRates && props.miscRates.map((rate, index) =>
+                                {miscRates && miscRates.map((rate, index) =>
                                     <tr key={'miscRates.' + index}>
-                                        <td><Button variant='danger' onClick={() => deleteMiscRate(index)} size='sm'><i className='fas fa-trash'></i></Button></td>
+                                        <td>
+                                            <Button variant='danger' onClick={() => deleteMiscRate(index)} size='sm'>
+                                                <i className='fas fa-trash'></i>
+                                            </Button>
+                                        </td>
                                         <td>
                                             <InputGroup size='sm'>
                                                 <FormControl
@@ -109,7 +129,7 @@ export default function BasicRatesTab(props) {
                                                     value={rate.name}
                                                     key={index}
                                                     data-miscrateindex={index}
-                                                    onChange={handleMiscRateChange}
+                                                    onChange={event => handleMiscRateChange(index, 'name', event.target.value)}
                                                 />
                                             </InputGroup>
                                         </td>
@@ -123,7 +143,7 @@ export default function BasicRatesTab(props) {
                                                     value={rate.price}
                                                     key={index}
                                                     data-miscrateindex={index}
-                                                    onChange={handleMiscRateChange}
+                                                    onChange={event => handleMiscRateChange(index, 'price', event.target.value)}
                                                 />
                                             </InputGroup>
                                         </td>

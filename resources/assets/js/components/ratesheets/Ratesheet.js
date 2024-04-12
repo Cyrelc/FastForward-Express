@@ -1,525 +1,363 @@
-import React, {Component} from 'react'
-import {Button, Col, Modal, Row, Tabs, Tab} from 'react-bootstrap'
-import polylabel from 'polylabel'
+import React, {useEffect, useState, useRef} from 'react'
+import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
 import {toast} from 'react-toastify'
+// import {GoogleMap, OverlayView} from '@react-google-maps/api'
 
 import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
+import Zone, {polyColours} from './Classes/Zone'
 
 import BasicRatesTab from './BasicRatesTab'
 import ConditionalsTab from './Conditionals/ConditionalsTab'
-import ImportRatesModal from './ImportRatesModal'
+import ImportRatesTab from './ImportRatesTab'
 import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
 import DistanceRatesTab from './DistanceRatesTab'
 // import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
+import useImport from './Hooks/useImportFromRatesheet'
+import useMap from './Hooks/useMap'
+import useRatesheet from './Hooks/useRatesheet'
+import {useAPI} from '../../contexts/APIContext'
 
-const polyColours = {
-    internalStroke : '#3651c9',
-    internalFill: '#8491c9',
-    outlyingStroke: '#d16b0c',
-    outlyingFill: '#e8a466',
-    peripheralStroke:'#2c9122',
-    peripheralFill: '#3bd82d'
+const sleep = ms => {
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-var polygonNextIndex = 0;
+var nextPolygonIndex = 0;
 
-export default class Ratesheet extends Component {
-    constructor() {
-        super()
-        this.state = {
-            key: 'basic',
-            defaultZoneType: 'internal',
-            deliveryTypes: [],
-            drawingMap: 0,
-            latLngPrecision: 5,
-            map: undefined,
-            mapCenter: new google.maps.LatLng(53.544389, -113.4909266),
-            mapDrawingManager: undefined,
-            mapZones: [],
-            mapZoom: 11,
-            miscRates: [],
-            polySnapper: null,
-            ratesheetId: null,
-            ratesheetName: '',
-            ratesheets: [],
-            savingMap: 100,
-            snapPrecision: 100,
-            timeRates: [],
-            useInternalZonesCalc: true,
-            volumeRates: [],
-            weightRates: undefined,
-            zoneRates: [],
-            //import Variables
-            importRatesheet: undefined,
-            importType: undefined,
-            selectedImports: [],
-            showImportModal: false,
-            showReplaceModal: false
-        }
-        this.createPolygon = this.createPolygon.bind(this)
-        this.deleteZone = this.deleteZone.bind(this)
-        this.editZone = this.editZone.bind(this)
-        this.handleChange = this.handleChange.bind(this)
-        this.handleImport = this.handleImport.bind(this)
-        this.handleZoneRateChange = this.handleZoneRateChange.bind(this)
-        this.handleZoneTypeChange = this.handleZoneTypeChange.bind(this)
-        this.zoneRemoveDuplicates = this.zoneRemoveDuplicates.bind(this)
-        this.store = this.store.bind(this)
-    }
+export default function Ratesheet(props) {
+    const api = useAPI()
+    const importFromRatesheet = useImport()
+    const mapState = useMap()
+    const ratesheetState = useRatesheet()
 
-    componentDidMount() {
-        const {match: {params}} = this.props
-        const map = new google.maps.Map(document.getElementById('googleMap'), {center: this.state.mapCenter, zoom: this.state.mapZoom, disableDefaultUI: true})
-        const drawingManager = new google.maps.drawing.DrawingManager({
-            drawingControlOptions: {
-                drawingModes: ['polygon'],
-                position: google.maps.ControlPosition.TOP_CENTER
-            },
-            polygonOptions: {clickable: true}
-        })
-        drawingManager.setMap(map)
-        google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
-        this.setState({map: map, mapDrawingManager: drawingManager, ratesheetId: params.ratesheetId}, () => {
-            document.title = params.ratesheetId ? 'Edit Ratesheet - ' + params.ratesheetId : 'Create Ratesheet'
-            makeAjaxRequest(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create', 'GET', null, response => {
-                response = JSON.parse(response)
+    const [key, setKey] = useState('basic')
+
+    useEffect(() => {
+        const {match: {params}} = props
+        document.title = params.ratesheetId ? `Edit Ratesheet - ${params.ratesheetId}` : 'Create Ratesheet'
+        if(window.location.hash)
+            setKey(window.location.hash.substr(1))
+        ratesheetState.setRatesheetId(params.ratesheetId)
+    }, [])
+
+    useEffect(() => {
+        if(mapState.map && mapState.drawingManager) {
+            const {match: {params}} = props
+            api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create').then(async(response) => {
                 var timeRates = response.timeRates.map(rate => {
                     return {...rate, brackets: rate.brackets.map(bracket => {
                         return {...bracket, startTime: bracket.startTime ? new Date(bracket.startTime) : null, endTime: bracket.endTime ? new Date(bracket.endTime) : null}
                     })
                 }})
-                this.setState({
-                    deliveryTypes: response.deliveryTypes,
-                    key: window.location.hash ? window.location.hash.substr(1) : 'basic',
-                    ratesheetName: response.name,
-                    miscRates: response.miscRates ?? [],
-                    palletRate: response.palletRate,
-                    ratesheets: response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId),
-                    timeRates: timeRates,
-                    weightRates: response.weightRates,
-                    volumeRates: [],
-                    zoneRates: response.zoneRates,
-                    useInternalZonesCalc: response.useInternalZonesCalc
-                })
+                ratesheetState.setDeliveryTypes(response.deliveryTypes)
+                ratesheetState.setName(response.name)
+                ratesheetState.setMiscRates(response.miscRates ?? [])
+                ratesheetState.setPalletRate(response.palletRate)
+                importFromRatesheet.setRatesheets(response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId))
+                ratesheetState.setTimeRates(timeRates)
+                ratesheetState.setWeightRates(response.weightRates)
+                ratesheetState.setVolumeRates(response.volumeRates)
+                ratesheetState.setZoneRates(response.zoneRates)
+                ratesheetState.setUseInternalZonesCalc(response.useInternalZonesCalc)
                 if(params.ratesheetId) {
-                    response.mapZones.forEach(mapZone => {
+                    const mapZonesLength = response.mapZones.length
+                    const mapZones = []
+                    for (let index = 0; index < mapZonesLength; index++) {
+                        const mapZone = response.mapZones[index]
+                        const percentComplete = (index / mapZonesLength).toPrecision(2) * 100
+                        mapState.setDrawingMap(percentComplete)
                         const polygon = new google.maps.Polygon({
-                                paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
-                            })
-                        polygon.setMap(this.state.map)
-                        this.createPolygon(polygon, mapZone)
-                    })
-                    this.state.mapDrawingManager.setOptions({polygonOptions: {clickable: true, zIndex: response.mapZones.length + 1}});
+                            paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
+                        })
+                        polygon.setMap(mapState.map)
+                        mapZones.push(createZone(polygon, mapZone))
+                        // await sleep(100)
+                    }
+                    mapState.setDrawingMap(100)
                 }
-                this.setState({drawingMap: 100})
             })
-        })
-    }
+        }
+    }, [mapState.map, mapState.drawingManager])
 
-    componentDidUpdate(prevProps) {
-        const {match: {params}} = this.props
-        if(prevProps.match.params.ratesheetId != params.ratesheetId)
-            window.location.reload()
-    }
-
-    createPolygon(polygon, zone = null) {
+    const createZone = (polygon, zone = null) => {
         var strokeColour, fillColour, type
         if(zone) {
             strokeColour = polyColours[`${zone.type}Stroke`]
             fillColour = polyColours[`${zone.type}Fill`]
             type = zone.type
         } else {
-            strokeColour = polyColours[`${this.state.defaultZoneType}Stroke'`]
-            fillColour = polyColours[`${this.state.defaultZoneType}Fill`]
-            type = this.state.defaultZoneType
+            strokeColour = polyColours[`${mapState.defaultZoneType}Stroke'`]
+            fillColour = polyColours[`${mapState.defaultZoneType}Fill`]
+            type = mapState.defaultZoneType
         }
-        polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: polygonNextIndex++})
-        polygon.addListener('click', () => this.editZone(polygon.zIndex))
-        google.maps.event.addListener(polygon, 'rightclick', (point) => this.deletePolyPoint(point, polygon.zIndex));
-        const coordinates = this.getCoordinates(polygon).map(coordinatePair => {
-            return [coordinatePair.lat, coordinatePair.lng]
-        })
-        const name = zone ? zone.name : this.state.defaultZoneType + '_zone_' + polygon.zIndex
-        const position = polylabel([coordinates])
-        const neighbourLabel = new google.maps.Marker({
-            map: null,
-            label: 'A',
-            position: {lat: position[0], lng: position[1]},
-        })
-        var newZone = {
+        polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: nextPolygonIndex++})
+        polygon.addListener('click', () => mapState.setEditZoneZIndex(polygon.zIndex))
+        const name = zone ? zone.name : `${mapState.defaultZoneType}_zone_${polygon.zIndex}`
+        var zoneData = {
             id: polygon.zIndex,
             name : name,
             type: type,
             polygon: polygon,
-            viewDetails: false,
-            coordinates: coordinates,
-            neighbourLabel: neighbourLabel,
-            zoneId: zone ? zone.zone_id : null,
+            view_details: false,
+            zone_id: zone ? zone.zone_id : null,
         }
         if(type === 'peripheral') {
             const cost = zone ? JSON.parse(zone.additional_costs) : null
-            newZone.regularCost = cost ? cost.regular : ''
-            newZone.additionalTime = zone ? zone.additional_time : ''
+            zoneData.regularCost = cost ? cost.regular : ''
+            zoneData.additionalTime = zone ? zone.additional_time : ''
         } else if (type === 'outlying') {
             const costs = zone ? JSON.parse(zone.additional_costs) : null
-            newZone.regularCost = costs ? costs.regular : ''
-            newZone.rushCost = costs ? costs.rush : ''
-            newZone.directCost = costs ? costs.direct : ''
-            newZone.directRushCost = costs ? costs.direct_rush : ''
-            newZone.additionalTime = zone ? zone.additional_time : ''
+            zoneData.regularCost = costs ? costs.regular : ''
+            zoneData.rushCost = costs ? costs.rush : ''
+            zoneData.directCost = costs ? costs.direct : ''
+            zoneData.directRushCost = costs ? costs.direct_rush : ''
+            zoneData.additionalTime = zone ? zone.additional_time : ''
         }
-        this.setState((prevState, props) => ({mapZones: prevState.mapZones.concat(newZone)}))
+        const newZone = new Zone(zoneData)
+        mapState.setMapZones(prevMapZones => prevMapZones.concat(newZone))
     }
 
-    deletePolyPoint(point, id) {
-        if(point.vertex != null)
-            this.state.mapZones.map((zone, index) => {
-                if(zone.id === id) {
-                    zone.polygon.getPath().removeAt(point.vertex);
-                }
-            })
-    }
-
-    deleteZone(id) {
-        const name = this.state.mapZones.find(zone => zone.id == id).name
+    const deleteZone = id => {
+        const name = mapState.mapZones.find(zone => zone.id == id).name
         if(confirm(`Are you sure you wish to delete zone "${name}"?\n This action can not be undone`)) {
             var deleteIndex = null
-            this.state.mapZones.map((zone, index) => {
+            mapState.mapZones.map((zone, index) => {
                 if(zone.id === id) {
                     deleteIndex = index
                     zone.polygon.setMap(null)
                     // zone.polyLabel.setMap(null)
                 }
             })
-            this.setState({mapZones: this.state.mapZones.filter((zone, index) => index !== deleteIndex)})
+            mapState.setMapZones(mapState.mapZones.filter((zone, index) => index !== deleteIndex))
         }
     }
 
-    editZone(id) {
-        const activeZone = this.state.mapZones.filter(zone => zone.id === id)[0]
-        const updated = this.state.mapZones.map(zone => {
-            if(zone.id === id) {
+    useEffect(() => {
+        const activeZone = mapState.mapZones.find(zone => zone.id == mapState.editZoneZIndex)
+        const updated = mapState.mapZones.map(zone => {
+            if(zone.id === mapState.editZoneZIndex) {
                 zone.polygon.setOptions({editable: true, snapable: false})
                 zone.neighbourLabel.setMap(null)
                 return {...zone, viewDetails: true}
-            } else if(this.findCommonCoordinates(this.getCoordinates(activeZone.polygon), this.getCoordinates(zone.polygon)))
-                zone.neighbourLabel.setMap(this.state.map)
+            } else if(activeZone.hasCommonCoordinates(zone))
+                zone.neighbourLabel.setMap(mapState.map)
             else
                 zone.neighbourLabel.setMap(null)
             zone.polygon.setOptions({editable: false, snapable: true})
             return {...zone, viewDetails: false}
         })
         const polySnapper = new PolySnapper({
-            map: this.state.map,
-            threshold: this.state.snapPrecision,
-            polygons: this.state.mapZones.map(mapZone => {return mapZone.polygon}),
+            map: mapState.map,
+            threshold: mapState.snapPrecision,
+            polygons: mapState.mapZones.map(mapZone => {return mapZone.polygon}),
             hidePOI: true,
         })
-        polySnapper.enable(this.state.mapZones.filter(mapZone => mapZone.id === id)[0].polygon.zIndex)
-        this.setState({mapZones: updated, polySnapper: polySnapper})
-    }
+        // polySnapper.enable(mapState.editZoneZIndex)
+        // polySnapper.enable(mapState.editZoneZIndex)
+        mapState.setMapZones(updated)
+        mapState.setPolySnapper(polySnapper)
+    }, [mapState.editZoneZIndex])
 
-    findCommonCoordinates(coordinates1, coordinates2) {
-        return coordinates1.some(coord1 => {
-            return coordinates2.some(coord2 => coord1.lat === coord2.lat && coord1.lng === coord2.lng)
-        })
-    }
+    // const handleChange = (event, section, id) => {
+    //     const {name, value, type, checked} = event.target
+    //     if(section) {
+    //         const updated = this.state[section].map(obj => {
+    //             if(obj.id === id)
+    //                 return type === 'checkbox' ? {...obj, [name]: checked} : {...obj, [name]: value}
+    //             return obj
+    //         })
+    //         this.setState({[section] : updated})
+    //     } else
+    //         if(name === 'key')
+    //             window.location.hash = value
+    //     type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
+    // }
 
-    getCoordinates(polygon) {
-        return polygon.getPath().getArray().map(point => {return {lat: parseFloat(point.lat().toFixed(this.state.latLngPrecision)), lng: parseFloat(point.lng().toFixed(this.state.latLngPrecision))}})
-    }
-
-    handleChange(event, section, id) {
-        const {name, value, type, checked} = event.target
-        if(section) {
-            const updated = this.state[section].map(obj => {
-                if(obj.id === id)
-                    return type === 'checkbox' ? {...obj, [name]: checked} : {...obj, [name]: value}
-                return obj
-            })
-            this.setState({[section] : updated})
-        } else
-            if(name === 'key')
-                window.location.hash = value
-        type === 'checkbox' ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
-    }
-
-    handleImport(event, replace = false) {
-        if(!this.state.selectedImports) {
+    const handleImport = (event, replace = false) => {
+        if(!importFromRatesheet.selectedImports) {
             console.log('ERROR - Selected imports value is invalid or empty array. Aborting.')
             return
         }
-        switch(this.state.importType) {
+        switch(importFromRatesheet.importType) {
             case 'mapZones':
-                this.state.selectedImports.forEach(importZone => {
+                importFromRatesheet.selectedImports.forEach(importZone => {
                     console.log(`attempting to parse new mapzone: ${importZone.name}`)
                     const polygon = new google.maps.Polygon({
                         paths: importZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
                     })
-                    polygon.setMap(this.state.map)
-                    const oldZone = this.state.mapZones.find(zone => zone.name === importZone.name)
+                    polygon.setMap(mapState.map)
+                    const oldZone = mapState.mapZones.find(zone => zone.name === importZone.name)
                     if(oldZone && replace) {
                         const temp_id = oldZone.zoneId;
-                        this.deleteZone(oldZone.zoneId, oldZone.name)
-                        this.createPolygon(polygon, {...importZone, zone_id: temp_id})
+                        deleteZone(oldZone.zoneId, oldZone.name)
+                        createZone(polygon, {...importZone, zone_id: temp_id})
                     } else
-                        this.createPolygon(polygon, {...importZone, name: oldZone ? importZone.name + '(copy)' : importZone.name, zoneId: null})
+                        createZone(polygon, {...importZone, name: oldZone ? `${importZone.name} (copy)` : importZone.name, zoneId: null})
                 })
                 break;
             case 'timeRates':
-                let timeRates = this.state.timeRates
-                this.state.selectedImports.forEach(importRate => {
+                let timeRates = ratesheetState.timeRates
+                importFromRatesheet.selectedImports.forEach(importRate => {
                     const oldRateIndex = timeRates.findIndex(timeRate => timeRate.name === importRate.name)
                     const brackets = importRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
                     if(oldRateIndex >= 0 && replace) {
                         timeRates[oldRateIndex] = {...importRate, brackets: brackets}
                     } else
-                        timeRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name, brackets: brackets})
+                        timeRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name, brackets: brackets})
                 })
-                this.setState({timeRates: timeRates})
+                ratesheetState.setTimeRates(timeRates)
                 break;
             case 'miscRates':
-                let miscRates = this.state.miscRates
-                this.state.selectedImports.forEach(importRate => {
+                let miscRates = ratesheetState.miscRates
+                importFromRatesheet.selectedImports.forEach(importRate => {
                     const oldRateIndex = miscRates.findIndex(miscRate => miscRate.name === importRate.name)
                     if(oldRateIndex >= 0 && replace) {
                         miscRates[oldRateIndex] = importRate
                     } else
-                        miscRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name})
+                        miscRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name})
                 })
-                this.setState({miscRates: miscRates})
+                ratesheetState.setMiscRates(miscRates)
                 break
             case 'weightRates':
-                let weightRates = this.state.weightRates
-                this.state.selectedImports.forEach(importRate => {
+                let weightRates = ratesheetState.weightRates
+                importFromRatesheet.selectedImports.forEach(importRate => {
                     const oldRateIndex = weightRates.findIndex(weightRate => weightRate.name === importRate.name)
                     if(oldRateIndex >= 0 && replace) {
                         weightRates[oldRateIndex] = importRate
                     } else
-                        weightRates.push({...importRate, name: oldRateIndex >= 0 ? importRate.name + ' (copy)' : importRate.name})
+                        weightRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name})
                 })
-                this.setState({weightRates: weightRates})
+                ratesheetState.setWeightRates(weightRates)
                 break;
             default:
                 return
         }
-
-        this.setState({
-            addAll: false,
-            replaceAll: false,
-            selectedImports: [],
-            showImportModal: false,
-        })
+        importFromRatesheet.reset()
     }
 
-    handleZoneRateChange(event, id) {
-        const {name, value} = event.target
-        const updated = this.state.zoneRates.map(zoneRate => {
-            if(zoneRate.id == id) {
-                return {...zoneRate, [name]: value}
-            }
-            return zoneRate
-        })
-        this.setState({zoneRates: updated})
-    }
-
-    handleZoneTypeChange(event, id) {
+    const handleZoneTypeChange = (event, id) => {
         const {value} = event.target
         const strokeColour = polyColours[`${value}Stroke`]
         const fillColour = polyColours[`${value}Fill`]
 
-        const updated = this.state.mapZones.map(mapZone => {
+        const updated = mapState.mapZones.map(mapZone => {
             if(mapZone.id == id) {
                 mapZone.polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour})
                 return {...mapZone, type: value}
             }
             return mapZone
         })
-        this.setState({mapZones: updated})
+        mapState.setMapZones(updated)
     }
 
-    prepareZoneForStore(zone) {
-        var storeZone = {id: zone.id, name: zone.name.slice(), type: zone.type.slice(), coordinates: JSON.stringify(this.getCoordinates(zone.polygon)), zoneId: zone.zoneId}
-        if(storeZone.type === 'peripheral') {
-            storeZone.regularCost = zone.regularCost
-            storeZone.additionalTime = zone.additionalTime
-        } else if(storeZone.type === 'outlying') {
-            storeZone.additionalTime = zone.additionalTime
-            storeZone.directCost = zone.directCost
-            storeZone.directRushCost = zone.directRushCost
-            storeZone.rushCost = zone.rushCost
-            storeZone.regularCost = zone.regularCost
-        }
-        return storeZone
-    }
-
-    store() {
-        this.setState({savingMap: 0})
+    const store = () => {
+        mapState.setSavingMap(0)
         var data = {
-            name: this.state.ratesheetName,
-            ratesheet_id: this.state.ratesheetId,
-            useInternalZonesCalc: this.state.useInternalZonesCalc,
-            deliveryTypes: this.state.deliveryTypes.slice(),
-            weightRates: this.state.weightRates.slice(),
-            zoneRates: this.state.zoneRates.slice(),
-            mapZones: this.state.mapZones.map(zone => this.prepareZoneForStore(zone)),
-            timeRates: this.state.timeRates.slice(),
-            miscRates: this.state.miscRates.slice()
+            name: ratesheetState.name,
+            ratesheet_id: ratesheetState.ratesheetId,
+            useInternalZonesCalc: ratesheetState.useInternalZonesCalc,
+            deliveryTypes: ratesheetState.deliveryTypes.slice(),
+            weightRates: ratesheetState.weightRates.slice(),
+            zoneRates: ratesheetState.zoneRates.slice(),
+            mapZones: mapState.mapZones.map(zone => prepareZoneForStore(zone)),
+            timeRates: ratesheetState.timeRates.slice(),
+            miscRates: ratesheetState.miscRates.slice()
         }
-        makeAjaxRequest('/ratesheets', 'POST', data, response => {
-            this.setState({savingMap: 100})
-            if(this.state.ratesheetId) {
-                toast.success(`${this.state.ratesheetName} was successfully updated!`, {onClose: location.reload})
+        api.post('/ratesheets', data).then(response => {
+            mapState.setSavingMap(100)
+            if(ratesheetState.ratesheetId) {
+                toast.success(`${ratesheetState.name} was successfully updated!`, {onClose: location.reload})
             } else {
-                toast.success(`${this.state.ratesheetName} was successfully created`, {
+                toast.success(`${ratesheetState.name} was successfully created`, {
                     position: 'top-center',
                     autoClose: 5000,
                 })
             }
         }, errorResponse => {
-            this.setState({savingMap: 100})
+            mapState.setSavingMap(100)
         })
     }
 
-    zoneRemoveDuplicates(id) {
-        const dedup = this.state.mapZones.map(zone => {
-            if(zone.id == id) {
-                let filtered = []
-                let duplicates = []
-                let count = 0
-                const cleanedPath = zone.polygon.getPath().forEach(polyPoint => {
-                    if(filtered.find(testPoint => testPoint.lat() === polyPoint.lat() && testPoint.lng() === polyPoint.lng()) === undefined)
-                        filtered.push(polyPoint)
-                    else {
-                        duplicates.push({lat: polyPoint.lat(), lng: polyPoint.lng()})
-                        count++
+    return (
+        <Row className='justify-content-md-center'>
+            <Modal show={mapState.drawingMap < 100}>
+                <h4>Drawing map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+                <ProgressBar now={mapState.drawingMap} />
+            </Modal>
+            <Modal show={mapState.savingMap < 100}>
+                <h4>Saving map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
+            </Modal>
+            <Col md={12}>
+                <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={key} onSelect={newKey => setKey(newKey)}>
+                    <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
+                        <BasicRatesTab
+                            ratesheetState={ratesheetState}
+                        />
+                    </Tab>
+                    {ratesheetState.useInternalZonesCalc &&
+                        <Tab eventKey='distance' title={<h4><i className='fas fa-map'></i>Distance Rates</h4>}>
+                            <DistanceRatesTab
+                                ratesheetState={ratesheetState}
+                                // handleZoneRateChange={handleZoneRateChange}
+                            />
+                        </Tab>
                     }
-                })
-                console.log(`${count} duplicates found`, filtered.length, duplicates)
-                zone.polygon.setPath(filtered)
-                return zone
-            }
-            return zone
-        })
-    }
-
-    render() {
-        return (
-            <Row className='justify-content-md-center'>
-                <Modal show={this.state.drawingMap < 100}>
-                    <h4>Drawing map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
-                </Modal>
-                <Modal show={this.state.savingMap < 100}>
-                    <h4>Saving map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
-                </Modal>
-                <Col md={12}>
-                    <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={this.state.key} onSelect={key => this.handleChange({target: {name: 'key', type: 'string', value: key}})}>
-                        <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
-                            <BasicRatesTab
-                                deliveryTypes={this.state.deliveryTypes}
-                                miscRates={this.state.miscRates}
-                                ratesheetName={this.state.ratesheetName}
-                                ratesheets={this.state.ratesheets}
-                                showImportModal={this.state.showImportModal}
-                                useInternalZonesCalc={this.state.useInternalZonesCalc}
-
-                                selectedImports={this.state.selectedImports}
-                                importRatesheet={this.state.importRatesheet}
-                                importType={this.state.importType}
-
-                                handleChange={this.handleChange}
-                                handleImport={this.handleImport}
-                                handleZoneRateChange={this.handleZoneRateChange}
+                    <Tab eventKey='weight' title={<h4><i className='fas fa-weight'></i> Weight Rates</h4>}>
+                        <WeightRatesTab
+                            setWeightRates={ratesheetState.setWeightRates}
+                            weightRates={ratesheetState.weightRates}
+                        />
+                    </Tab>
+                    <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
+                        <TimeRatesTab
+                            setTimeRates={ratesheetState.setTimeRates}
+                            timeRates={ratesheetState.timeRates}
+                        />
+                    </Tab>
+                    {ratesheetState.ratesheetId &&
+                        <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
+                            <ConditionalsTab
+                                mapZones={mapState.mapZones}
+                                ratesheetId={ratesheetState.ratesheetId}
                             />
                         </Tab>
-                        {this.state.useInternalZonesCalc &&
-                            <Tab eventKey='distance' title={<h4><i className='fas fa-map'></i>Distance Rates</h4>}>
-                                <DistanceRatesTab
-                                    deliveryTypes={this.state.deliveryTypes}
-                                    handleChange={this.handleChange}
-                                    handleZoneRateChange={this.handleZoneRateChange}
-                                    useInternalZonesCalc={this.state.useInternalZonesCalc}
-                                    zoneRates={this.state.zoneRates}
-                                />
-                            </Tab>
-                        }
-                        <Tab eventKey='weight' title={<h4><i className='fas fa-weight'></i> Weight Rates</h4>}>
-                            <WeightRatesTab
-                                handleChange={this.handleChange}
-                                weightRates={this.state.weightRates}
-                            />
-                        </Tab>
-                        <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
-                            <TimeRatesTab
-                                timeRates={this.state.timeRates}
-                                handleChange={this.handleChange}
-                            />
-                        </Tab>
-                        {/* <Tab eventKey='volume' title={<h4><i className='fas fa-ruler-combined'></i> Volume Rates</h4>}>
-                            <VolumeRatesTab
+                    }
+                    <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
+                        <MapTab
+                            polyColours={polyColours}
+                            mapState={mapState}
 
-                            />
-                        </Tab> */}
-                        {this.state.ratesheetId &&
-                            <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
-                                <ConditionalsTab
-                                    mapZones={this.state.mapZones}
-                                    ratesheetId={this.state.ratesheetId}
-                                />
-                            </Tab>
-                        }
-                        <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
-                            <MapTab
-                                polyColours = {polyColours}
-                                defaultZoneType = {this.state.defaultZoneType}
-                                snapPrecision={this.state.snapPrecision}
-                                mapZones={this.state.mapZones}
+                            onPolygonComplete={createZone}
+                            // handleZoneTypeChange={handleZoneTypeChange}
+                            // deleteZone={deleteZone}
+                            // editZone={editZone}
+                        />
+                    </Tab>
+                    <Tab
+                        eventKey='import'
+                        title={<h4><i className='fas fa-solid fa-file-import' /> Import</h4>}
+                    >
+                        <ImportRatesTab
+                            importFromRatesheet={importFromRatesheet}
+                            originalRates={{
+                                mapZones: mapState.mapZones,
+                                miscRates: ratesheetState.miscRates,
+                                timeRates: ratesheetState.timeRates,
+                                weightRates: ratesheetState.weightRates
+                            }}
+                            type='miscRates'
 
-                                handleChange={this.handleChange}
-                                handleZoneTypeChange={this.handleZoneTypeChange}
-                                deleteZone={this.deleteZone}
-                                editZone={this.editZone}
-                                zoneRemoveDuplicates={this.zoneRemoveDuplicates}
-                            />
-                        </Tab>
-                        <Tab
-                            title={
-                                <Button
-                                    variant='secondary'
-                                    onClick={() => {
-                                        this.handleChange({target: {name: 'showImportModal', type: 'boolean', value: true}});
-                                        this.handleChange({target: {name: 'selectedImports', type: 'array', value: []}})}
-                                    }
-                                ><i className='fas fa-solid fa-file-import'/> Import</Button>
-                            }
-                        ></Tab>
-                    </Tabs>
-                    <Row className='justify-content-md-center'>
-                        <Col md={1}>
-                            <Button onClick={this.store}>Save</Button>
-                        </Col>
-                    </Row>
-                    <ImportRatesModal
-                        ratesheets={this.state.ratesheets}
-                        importRatesheet={this.state.importRatesheet}
-                        importType={this.state.importType}
-                        selectedImports={this.state.selectedImports}
-                        showImportModal={this.state.showImportModal}
-                        originalRates={{
-                            mapZones: this.state.mapZones,
-                            miscRates: this.state.miscRates,
-                            timeRates: this.state.timeRates,
-                            weightRates: this.state.weightRates
-                        }}
-                        type='miscRates'
-
-                        handleChange={this.handleChange}
-                        handleImport={this.handleImport}
-                    />
-                </Col>
-            </Row>
-        )
-    }
+                            handleImport={handleImport}
+                        />
+                    </Tab>
+                </Tabs>
+                <Row className='justify-content-md-center'>
+                    <Col md={1}>
+                        <Button onClick={store}>Save</Button>
+                    </Col>
+                </Row>
+            </Col>
+        </Row>
+    )
 }
