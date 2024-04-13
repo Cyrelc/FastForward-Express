@@ -118,9 +118,9 @@ export default function billReducer(state, action) {
     /**
      * Takes the current state, and a requested time value, and will return the **next** valid option 
      * after testing recursively in 15 minute increments
-     * @param {object} state
      * @param {DateTime} time
-     * @returns {DateTime} result
+     * @param {array} deliveryTypes
+     * @returns {DateTime}
      */
     const getValidPickupTime = (time, deliveryTypes, prevTime = null) => {
         const originalTime = time
@@ -135,8 +135,8 @@ export default function billReducer(state, action) {
             toast.warn(
                 'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
                 {
-                    position: 'to-center',
-                    autoClose: 5000
+                    position: 'top-center',
+                    toastId: `${state.billId}-insufficient-time-remaining`,
                 }
             )
         }
