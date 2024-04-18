@@ -30,7 +30,7 @@ class AccountModelFactory {
         $selectionsRepo = new Repos\SelectionsRepo();
 
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
-        $model->account = new \App\Account();
+        $model->account = new \App\Models\Account();
         $model->delivery_address = new \App\Models\Address();
         $model->billing_address = new \App\Models\Address();
         $model->account->start_date = date("U");
