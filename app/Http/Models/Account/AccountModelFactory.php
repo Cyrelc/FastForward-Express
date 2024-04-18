@@ -28,10 +28,8 @@ class AccountModelFactory {
         $invoiceRepo = new Repos\InvoiceRepo();
         $ratesheetRepo = new Repos\RatesheetRepo();
         $selectionsRepo = new Repos\SelectionsRepo();
-        $contactService = new ContactService();
 
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
-        $model->contact = $contactService->getCreate();
         $model->account = new \App\Account();
         $model->delivery_address = new \App\Models\Address();
         $model->billing_address = new \App\Models\Address();
