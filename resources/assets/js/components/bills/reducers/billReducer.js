@@ -311,12 +311,16 @@ export default function billReducer(state, action) {
             })
         }
         case 'SET_DELIVERY_DRIVER':
+            let newCommission = state.delivery.driverCommission
+            if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
+                newCommission = parseInt(payload.delivery_commission)
             return Object.assign({}, state, {
                 timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
                 delivery: {
                     ...state.delivery,
                     driver: payload,
-                    driverCommission: state.delivery.driverCommission ? state.delivery.driverCommission : parseInt(payload.delivery_commission)}
+                    driverCommission: newCommission
+                }
             })
         case 'SET_DELIVERY_TIME_EXPECTED':
             return Object.assign({}, state, {delivery: {...state.delivery, timeScheduled: payload}})
@@ -372,17 +376,23 @@ export default function billReducer(state, action) {
             })
         }
         case 'SET_PICKUP_DRIVER':
+            let newPickupCommission = state.pickup.driverCommission
+            if(!state.pickup.driverCommission || state.pickup.driver.delivery_commission == state.pickup.driverCommission)
+                newPickupCommission = parseInt(payload.pickup_commission)
+            let newDeliveryCommission = state.delivery.driverCommission
+            if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
+                newDeliveryCommission = parseInt(payload.delivery_commission)
             return Object.assign({}, state, {
                 timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
                 pickup: {
                     ...state.pickup,
                     driver: payload,
-                    driverCommission: state.pickup.driverCommission ? state.pickup.driverCommission : parseInt(payload.pickup_commission)
+                    driverCommission: newPickupCommission
                 },
                 delivery: state.delivery.driver ? state.delivery : {
                     ...state.delivery,
                     driver: payload,
-                    driverCommission: parseInt(payload.delivery_commission)
+                    driverCommission: newDeliveryCommission
                 }
             })
         case 'SET_PICKUP_TIME_EXPECTED': {
