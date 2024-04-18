@@ -1,8 +1,7 @@
-import React, {Fragment, useEffect, useRef, useState} from 'react'
-import {Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Tooltip} from 'react-bootstrap'
+import React, {Fragment, useEffect} from 'react'
+import {Button, Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Table, Tooltip} from 'react-bootstrap'
 import Select from 'react-select'
 import {DateTime} from 'luxon'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import DatePicker from 'react-datepicker'
 
 import Address from '../partials/Address'
@@ -18,9 +17,6 @@ const filterDates = date => {
 }
 
 export default function BasicTab(props) {
-    const tableRef = useRef(null)
-    const [table, setTable] = useState(null)
-
     const {
         accounts,
         addressTypes,
@@ -37,9 +33,22 @@ export default function BasicTab(props) {
         readOnly,
     } = props.billState
 
-    const {packageIsMinimum, packageIsPallet, packages, proofOfDeliveryRequired, useImperial} = props.packageState
+    const {
+        packageArray,
+        packageIsMinimum,
+        packageIsPallet,
+        requireProofOfDelivery,
+        setPackageIsMinimum,
+        setPackageIsPallet,
+        setRequireProofOfDelivery,
+        setUseImperial,
+        useImperial,
+    } = props.packages
 
     const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, isInvoiced} = props.chargeState
+
+    const totalWeight = packageArray.reduce((acc, parcel) => acc + parcel.totalWeight ? parseFloat(parcel.totalWeight) : 0, 0)
+    const totalCubedWeight = packageArray.reduce((acc, parcel) => acc + parcel.cubedWeight ? parseFloat(parcel.cubedWeight) : 0, 0)
 
     const pickupTimeFilter = time => {
         const dateTime = DateTime.fromJSDate(time)
@@ -91,43 +100,6 @@ export default function BasicTab(props) {
     }
 
     useEffect(() => {
-        if(tableRef.current && !table && !packageIsMinimum) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                columns: packageColumns,
-                data: packages,
-                layout: 'fitColumns'
-                // rowAdded: row => {
-                //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                // },
-                // rowDeleted: row => {
-                //     props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-                // }
-            })
-
-            newTabulator.on('cellEdited', (cell) => {
-                const fieldName = cell.getField()
-                const row = cell.getRow()
-                const rowData = row.getData()
-                if(fieldName === 'count' || 'weight') {
-                    const totalWeight = parseInt(rowData.count) * parseFloat(rowData.weight)
-                    row.update({'totalWeight': isNaN(totalWeight) ? null : totalWeight})
-                }
-                if(fieldName === 'count' || 'height' || 'width' || 'length') {
-                    const totalVolume = parseInt(rowData.count) * parseFloat(rowData.length) * parseInt(rowData.height) * parseInt(rowData.width)
-                    row.update({'totalVolume': isNaN(totalVolume) ? null : totalVolume})
-                }
-                props.packageDispatch({type: 'UPDATE_PACKAGES', payload: row.getTable().getData()})
-            })
-            newTabulator.on('rowAdded', row => props.packageDispatch({type: 'UPDATE_PACAKGES', payload: row.getTable().getData()}))
-            newTabulator.on('rowDeleted', row => props.packageDispatch({type: 'UPDATE_PACAKGES', payload: row.getTable().getData()}))
-
-            setTable(newTabulator)
-        } else {
-            setTable(null)
-        }
-    }, [tableRef, packageIsMinimum])
-
-    useEffect(() => {
         if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
             makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
                 props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
@@ -146,50 +118,6 @@ export default function BasicTab(props) {
             })
     }, [delivery.addressLat, delivery.addressLng])
 
-    const packageColumns = [
-        {
-            formatter: cell => {
-                if(cell.getValue() && !readOnly) return '<button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>'
-            },
-            titleFormatter: cell => {
-                return readOnly ? '' : `<button class='btn btn-sm btn-success'><i class='fas fa-plus'></i></button>`
-            },
-            field: 'deletable',
-            width: 50,
-            hozAlign: 'center',
-            cellClick: (e, cell) => {
-                const table = cell.getTable()
-                if(table.getDataCount() > 1) {
-                    cell.getRow().delete()
-                    if(table.getDataCount() == 1)
-                        table.getRows()[0].update({deletable: false})
-                }
-            },
-            headerClick: (e, column) => {
-                e.stopPropagation()
-                const table = column.getTable()
-                table.getRows().forEach(row => {
-                    row.update({"deletable": true})
-                })
-                table.addData([{count: 1, deletable: true}], true)
-            },
-            headerSort: false,
-            print: false
-        },
-        {title: 'Count', field: 'count', headerSort: false, topCalc: 'sum', editor: 'number'},
-        {title: `Weight ${useImperial ? '(lbs)' : '(kgs)'}`, field: 'weight', headerSort: false, editor: 'number', editorParams: {min: 1, step: 1, selectContents: true}},
-        {title: `Length ${useImperial ? '(in)' : '(cm)'}`, field: 'length', headerSort: false, editor: 'number', editorParams: {min: 1, step: 1, selectContents: true}},
-        {title: `Width ${useImperial ? '(in)' : '(cm)'}`, field: 'width', headerSort: false, editor: 'number', editorParams: {min: 1, step: 1, selectContents: true}},
-        {title: `Height ${useImperial ? '(in)' : '(cm)'}`, field: 'height', headerSort: false, editor: 'number', editorParams: {min: 1, step: 1, selectContents: true}},
-        {title: `Total Weight ${useImperial ? '(lbs)' : '(kgs)'}`, field: 'totalWeight', topCalc: 'sum'},
-        {title: `Total Volume ${useImperial ? '(in\u00B3)' : '(cm\u00B3)'}`, field: 'totalVolume', topCalc: 'sum'}
-    ]
-
-    useEffect(() => {
-        if(table)
-            table.setColumns(packageColumns)
-    }, [useImperial])
-
     return (
         <Card border='dark'>
             <Card.Body>
@@ -201,12 +129,11 @@ export default function BasicTab(props) {
                         <Row>
                             <Col md={3}>
                                 <FormCheck
-                                    name='proofOfDeliveryRequired'
                                     label='Proof of Delivery Required'
-                                    value={proofOfDeliveryRequired}
-                                    checked={proofOfDeliveryRequired}
+                                    value={requireProofOfDelivery}
+                                    checked={requireProofOfDelivery}
                                     disabled={readOnly || isInvoiced}
-                                    onChange={event => props.packageDispatch({type: 'TOGGLE_PROOF_OF_DELIVERY'})}
+                                    onChange={event => setRequireProofOfDelivery(!requireProofOfDelivery)}
                                 />
                             </Col>
                             <Col md={3}>
@@ -216,7 +143,7 @@ export default function BasicTab(props) {
                                     value={packageIsMinimum}
                                     checked={packageIsMinimum}
                                     disabled={readOnly || packageIsPallet || isInvoiced}
-                                    onChange={event => props.packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})}
+                                    onChange={event => setPackageIsMinimum(!packageIsMinimum)}
                                 />
                             </Col>
                             {!packageIsMinimum &&
@@ -227,7 +154,7 @@ export default function BasicTab(props) {
                                         value={packageIsPallet}
                                         checked={packageIsPallet}
                                         disabled={readOnly || isInvoiced}
-                                        onChange={event => props.packageDispatch({type: 'TOGGLE_PACKAGE_IS_PALLET'})}
+                                        onChange={event => setPackageIsPallet(!packageIsPallet)}
                                     />
                                 </Col>
                             }
@@ -239,13 +166,133 @@ export default function BasicTab(props) {
                                         value={useImperial}
                                         checked={useImperial}
                                         disabled={readOnly || isInvoiced}
-                                        onChange={event => props.packageDispatch({type: 'TOGGLE_USE_IMPERIAL'})}
+                                        onChange={event => setUseImperial(!useImperial)}
                                     />
                                 </Col>
                             }
                             {!packageIsMinimum &&
                                 <Col md={12}>
-                                    <div ref={tableRef}></div>
+                                    <Table striped bordered size='sm'>
+                                        <thead>
+                                            <tr>
+                                                <th><Button size='sm' variant='success' onClick={props.packages.addPackage}><i className='fas fa-plus'/></Button></th>
+                                                <th>Count</th>
+                                                <th>{`Weight ${useImperial ? '(lb)' : '(kg)'}`}</th>
+                                                <th>{`Length ${useImperial ? '(in)' : '(cm)'}`}</th>
+                                                <th>{`Width ${useImperial ? '(in)' : '(cm)'}`}</th>
+                                                <th>{`Height ${useImperial ? '(in)' : '(cm)'}`}</th>
+                                                <th>Total Weight (kg)</th>
+                                                <th>{`Cubed Weight (m\u00B3)`}</th>
+                                            </tr>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th style={{
+                                                    ...(totalWeight > totalCubedWeight ? {backgroundColor: 'lightgreen'} : {})
+                                                    }}
+                                                >
+                                                    {totalWeight ? totalWeight.toFixed(2) : ''}
+                                                </th>
+                                                <th style={{
+                                                    ...(totalCubedWeight > totalWeight ? {backgroundColor: 'lightgreen'} : {})
+                                                    }}
+                                                >
+                                                    {totalCubedWeight ? totalCubedWeight.toFixed(2) : ''}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {packageArray.map((parcel, index) =>
+                                                <tr key={`parcel.${index}`}>
+                                                    <td>
+                                                        <Button size='sm' variant='danger' onClick={() => props.packages.deletePackage(index)} disabled={packageArray.length < 2}>
+                                                            <i className='fas fa-trash' />
+                                                        </Button>
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            name='count'
+                                                            type='number'
+                                                            step='1'
+                                                            min='1'
+                                                            data-packageid={index}
+                                                            value={parcel.count}
+                                                            onChange={event => props.packages.handlePackageUpdate(event)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            name='weight'
+                                                            type='number'
+                                                            step='0.01'
+                                                            min='0.01'
+                                                            data-packageid={index}
+                                                            value={parcel.weight}
+                                                            onChange={event => props.packages.handlePackageUpdate(event)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            name='length'
+                                                            type='number'
+                                                            step='0.01'
+                                                            min='0.01'
+                                                            data-packageid={index}
+                                                            value={parcel.length}
+                                                            onChange={event => props.packages.handlePackageUpdate(event)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            name='width'
+                                                            type='number'
+                                                            step='0.01'
+                                                            min='0.01'
+                                                            data-packageid={index}
+                                                            value={parcel.width}
+                                                            onChange={event => props.packages.handlePackageUpdate(event)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            name='height'
+                                                            type='number'
+                                                            step='0.01'
+                                                            min='0.01'
+                                                            data-packageid={index}
+                                                            value={parcel.height}
+                                                            onChange={event => props.packages.handlePackageUpdate(event)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            disabled={true}
+                                                            value={isNaN(parcel.totalWeight) ? null : parcel.totalWeight}
+                                                            // style={{...(parcel.totalWeight && parcel.cubedWeight && parcel.totalWeight > parcel.cubedWeight && {backgroundColor: 'lightgreen'})}}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <FormControl
+                                                            size='sm'
+                                                            disabled={true}
+                                                            // style={{...(parcel.totalWeight && parcel.cubedWeight && parcel.totalWeight < parcel.cubedWeight && {backgroundColor: 'lightgreen'})}}
+                                                            value={parcel.cubedWeight ?? null}
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </Table>
                                 </Col>
                             }
                         </Row>

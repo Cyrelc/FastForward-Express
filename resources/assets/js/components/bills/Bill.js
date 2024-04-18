@@ -7,7 +7,8 @@ import {toast} from 'react-toastify'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
-import PackageReducer, {initialState as initialPackageState} from './reducers/packageReducer'
+import usePackages from './hooks/usePackages'
+
 import ActivityLogTab from '../partials/ActivityLogTab'
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
@@ -28,7 +29,7 @@ Please remember you can view the driver who is assigned each line item by clicki
 export default function Bill(props) {
     const [billState, billDispatch] = useReducer(BillReducer, initialBillState)
     const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
-    const [packageState, packageDispatch] = useReducer(PackageReducer, initialPackageState)
+    const packages = usePackages()
 
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
     const [awaitingCharges, setAwaitingCharges] = useState(false)
@@ -37,7 +38,7 @@ export default function Bill(props) {
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, isMall: deliveryAddressIsMall, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, isMall: pickupAddressIsMall, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
-    const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
+    const {packageIsMinimum, packageIsPallet, packageArray, requireProofOfDelivery, useImperial} = packages
 
     const {match: {params}} = props
     const lists = useLists()
@@ -73,12 +74,11 @@ export default function Bill(props) {
                     ratesheets: data.ratesheets
                 }
             })
-            packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
 
             if(data.bill?.bill_id) {
                 billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                 chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                packages.setup(data.bill)
                 let sortedBills = localStorage.getItem('bills.sortedList')
                 if(sortedBills) {
                     sortedBills = sortedBills.split(',').map(index => parseInt(index))
@@ -99,7 +99,7 @@ export default function Bill(props) {
                 }
             } else {
                 if(data.permissions.createFull && !data.permissions.packages)
-                    packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
+                    packages.setPackageIsMinimum(true)
                 if(queryParams.get('copy_from')) {
                     billDispatch({type: 'CONFIGURE_COPY', payload: data})
                     chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
@@ -129,7 +129,7 @@ export default function Bill(props) {
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
-                packages: packageState.packageIsMinimum ? [] : packageState.packages,
+                packages: packageIsMinimum ? [] : packages.packages,
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
@@ -222,6 +222,7 @@ export default function Bill(props) {
             var data = {bill_id: billId}
             if(billId ? permissions.editBasic : permissions.createBasic)
                 data = {...data,
+                    ...packages.collect(),
                     delivery_account_id: billState.delivery.account?.account_id,
                     delivery_address_formatted: billState.delivery.addressFormatted,
                     delivery_address_is_mall: billState.delivery.isMall,
@@ -233,9 +234,6 @@ export default function Bill(props) {
                     delivery_type: billState.deliveryType,
                     delivery_reference_value: billState.delivery.referenceValue,
                     description: billState.description,
-                    is_min_weight_size: packageState.packageIsMinimum ? true : false,
-                    is_pallet: packageState.packageIsPallet,
-                    packages: packageState.packageIsMinimum ? [] : packageState.packages,
                     pickup_account_id: billState.pickup.account?.account_id,
                     pickup_address_formatted: billState.pickup.addressFormatted,
                     pickup_address_is_mall: billState.pickup.isMall,
@@ -245,11 +243,9 @@ export default function Bill(props) {
                     pickup_address_place_id: billState.pickup.addressPlaceId,
                     pickup_address_type: billState.pickup.addressType,
                     pickup_reference_value: billState.pickup.referenceValue,
-                    proof_of_delivery_required: packageState.proofOfDeliveryRequired,
                     time_delivery_scheduled: billState.delivery.timeScheduled.toLocaleString("en-US"),
                     time_pickup_scheduled: billState.pickup.timeScheduled.toLocaleString("en-US"),
                     updated_at: billState.updatedAt.toLocaleString("en-US"),
-                    use_imperial: packageState.useImperial
                 }
 
             if(!billId && permissions.createBasic && !permissions.createFull)
@@ -594,8 +590,7 @@ export default function Bill(props) {
                             chargeDispatch={chargeDispatch}
                             chargeState={chargeState}
                             setPickupTimeExpected={debounceSetPickupTimeExpected}
-                            packageDispatch={packageDispatch}
-                            packageState={packageState}
+                            packages={packages}
                         />
                     </Tab>
                     {(billId ? permissions.viewDispatch : permissions.createFull) &&
