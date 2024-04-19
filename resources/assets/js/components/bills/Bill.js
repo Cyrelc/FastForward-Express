@@ -76,12 +76,11 @@ export default function Bill(props) {
                         ratesheets: data.ratesheets
                     }
                 })
-                packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
 
                 if(data.bill?.bill_id) {
                     billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                    packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                    packages.setup(data.bill)
                     let sortedBills = localStorage.getItem('bills.sortedList')
                     if(sortedBills) {
                         sortedBills = sortedBills.split(',').map(index => parseInt(index))
@@ -102,7 +101,7 @@ export default function Bill(props) {
                     }
                 } else {
                     if(data.permissions.createFull && !data.permissions.packages)
-                        packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
+                        packages.setPackageIsMinimum(true)
                     if(queryParams.get('copy_from')) {
                         billDispatch({type: 'CONFIGURE_COPY', payload: data})
                         chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
