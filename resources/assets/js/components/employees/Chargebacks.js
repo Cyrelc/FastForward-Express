@@ -3,6 +3,7 @@ import React, {Fragment, useState} from 'react'
 import ChargebackModal from './ChargebackModal'
 import Table from '../partials/Table'
 
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 
 const groupBy = {
@@ -28,6 +29,7 @@ export default function Chargebacks(props) {
     const [showChargebackModal, setShowChargebackModal] = useState(false)
     const [triggerReload, setTriggerReload] = useState(false)
 
+    const api = useAPI()
     const lists = useLists()
 
     const cellContextMenu = [
@@ -46,9 +48,10 @@ export default function Chargebacks(props) {
     const deleteChargeback = (event, cell) => {
         const data = cell.getData()
         if(confirm(`Are you sure you wish to delete chargeback ${data.chargeback_id}?\nThis action can not be undone`))
-            makeAjaxRequest(`/chargebacks/${cell.getData().chargeback_id}`, 'DELETE', null, response => {
-                cell.getRow().delete()
-            })
+            api.delete(`/chargebacks/${cell.getData().chargeback_id}`, null)
+                .then(response => {
+                    cell.getRow().delete()
+                })
     }
 
     const filters = [

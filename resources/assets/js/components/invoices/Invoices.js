@@ -17,15 +17,6 @@ function cellContextMenuFormatter(cell) {
         return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
 }
 
-function deleteInvoice(cell) {
-    const data = cell.getData()
-    if(data.payment_count == 0 && confirm(`Are you sure you wish to delete invoice ${data.invoice_id}?\nThis action can not be undone`)) {
-        makeAjaxRequest(`/invoices/${data.invoice_id}`, 'DELETE', null, response => {
-            cell.getRow().delete()
-        })
-    }
-}
-
 function printInvoices(selectedRows, options) {
     if(!selectedRows || selectedRows.length === 0) {
         toast.warn('Please select at least one row to operate on')
@@ -58,6 +49,15 @@ export default function Invoices(props) {
     const history = useHistory()
     const lists = useLists()
     const {authenticatedUser, frontEndPermissions} = useUser()
+
+    function deleteInvoice(cell) {
+        const data = cell.getData()
+        if(data.payment_count == 0 && confirm(`Are you sure you wish to delete invoice ${data.invoice_id}?\nThis action can not be undone`)) {
+            api.delete(`/invoices/${data.invoice_id}`).then(response => {
+                cell.getRow().delete()
+            })
+        }
+    }
 
     const finalizeInvoices = selectedRows => {
         const unfinalizedRows = selectedRows.filter(row => row.getData().finalized !== 1)

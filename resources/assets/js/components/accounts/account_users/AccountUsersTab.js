@@ -3,6 +3,7 @@ import {Badge, Button, Card, Col, Dropdown, Row, Table} from 'react-bootstrap'
 
 import ChangePasswordModal from '../../partials/ChangePasswordModal'
 import EditAccountUser from './EditAccountUser'
+import {useAPI} from '../../../contexts/APIContext'
 import {useUser} from '../../../contexts/UserContext'
 
 export default function AccountUsersTab(props) {
@@ -13,6 +14,7 @@ export default function AccountUsersTab(props) {
     const [userId, setUserId] = useState(undefined)
     const [isTableLoading, setIsTableLoading] = useState(true)
 
+    const api = useAPI()
     const {contact} = useUser()
 
     useEffect(() => {
@@ -37,9 +39,10 @@ export default function AccountUsersTab(props) {
         // TODO - this account user length check is incorrect
         if(confirm(`Are you sure you wish to ${accountUser.belongs_to_count > 1 ? 'delete' : 'unlink'} account user ${accountUser.name}?\nThis action can not be undone\n\n` + 
             'WARNING - If this user belongs to more than one account, they will need to be deleted on each account separately')) {
-            makeAjaxRequest(`/accountUsers/${contactId}/${props.accountId}`, 'DELETE', null, response => {
-                refreshAccountUsers()
-            })
+            api.delete(`/accountUsers/${contactId}/${props.accountId}`)
+                .then(response => {
+                    refreshAccountUsers()
+                })
         }
     }
 
@@ -78,25 +81,27 @@ export default function AccountUsersTab(props) {
     }
 
     const impersonate = userId => {
-        makeAjaxRequest(`/users/impersonate/${userId}`, 'GET', null, response => {
-            location.reload()
-        })
+        api.get(`/users/impersonate/${userId}`)
+            .then(response => {
+                location.reload()
+            })
     }
 
     const refreshAccountUsers = () => {
         setIsTableLoading(true)
-        makeAjaxRequest(`/accountUsers/account/${props.accountId}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setAccountUsers(response)
-            setShowAccountUserModal(false)
-            setIsTableLoading(false)
-        })
+        api.get(`/accountUsers/account/${props.accountId}`)
+            .then(response => {
+                setAccountUsers(response)
+                setShowAccountUserModal(false)
+                setIsTableLoading(false)
+            })
     }
 
     const setPrimary = contactId => {
-        makeAjaxRequest(`/accountUsers/setPrimary/${props.accountId}/${contactId}`, 'GET', null, response => {
-            refreshAccountUsers()
-        })
+        api.post(`/accountUsers/setPrimary/${props.accountId}/${contactId}`)
+            .then(response => {
+                refreshAccountUsers()
+            })
     }
 
     return (

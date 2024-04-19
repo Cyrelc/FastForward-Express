@@ -14,6 +14,7 @@ import InvoicingTab from './InvoicingTab'
 import BillingTab from './billing/BillingTab'
 
 import useAddress from '../partials/Hooks/useAddress'
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 export default function Account(props) {
@@ -54,6 +55,7 @@ export default function Account(props) {
     const [startDate, setStartDate] = useState(new Date())
     const [useShippingForBillingAddress, setUseShippingForBillingAddress] = useState(true)
 
+    const api = useAPI()
     const billingAddress = useAddress()
     const shippingAddress = useAddress()
     const {accountId: paramAccountId} = useParams()
@@ -85,66 +87,65 @@ export default function Account(props) {
 
         setIsLoading(true)
 
-        makeAjaxRequest(fetchUrl, 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get(fetchUrl)
+            .then(response => {
+                billingAddress.reset()
+                shippingAddress.reset()
 
-            billingAddress.reset()
-            shippingAddress.reset()
+                setInvoiceInterval(response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === 'monthly'))
+                setInvoiceIntervals(response.invoice_intervals)
+                handleInvoiceSortOrderChange(response.account.invoice_sort_order)
+                setParentAccounts(response.parent_accounts)
+                setPermissions(response.permissions)
+                setRatesheets(response.ratesheets)
+                setKey(window.location.hash?.substr(1) || 'basic')
 
-            setInvoiceInterval(response.invoice_intervals.find(invoiceInterval => invoiceInterval.value === 'monthly'))
-            setInvoiceIntervals(response.invoice_intervals)
-            handleInvoiceSortOrderChange(response.account.invoice_sort_order)
-            setParentAccounts(response.parent_accounts)
-            setPermissions(response.permissions)
-            setRatesheets(response.ratesheets)
-            setKey(window.location.hash?.substr(1) || 'basic')
+                if(params.accountId) {
+                    let sortedAccounts = localStorage.getItem('accounts.sortedList')
+                    if(sortedAccounts) {
+                        sortedAccounts = sortedAccounts.split(',').map(index => parseInt(index))
+                        const thisAccountIndex = sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
+                        setPrevAccountIndex(thisAccountIndex <= 0 ? null : sortedAccounts[thisAccountIndex - 1])
+                        setNextAccountIndex((thisAccountIndex < 0 || thisAccountIndex === sortedAccounts.length - 1) ? null : sortedAccounts[thisAccountIndex + 1])
+                    }
 
-            if(params.accountId) {
-                let sortedAccounts = localStorage.getItem('accounts.sortedList')
-                if(sortedAccounts) {
-                    sortedAccounts = sortedAccounts.split(',').map(index => parseInt(index))
-                    const thisAccountIndex = sortedAccounts.findIndex(account_id => account_id === response.account.account_id)
-                    setPrevAccountIndex(thisAccountIndex <= 0 ? null : sortedAccounts[thisAccountIndex - 1])
-                    setNextAccountIndex((thisAccountIndex < 0 || thisAccountIndex === sortedAccounts.length - 1) ? null : sortedAccounts[thisAccountIndex + 1])
+                    setAccountBalance(parseFloat(response.account.account_balance))
+                    setAccountId(response.account.account_id)
+                    setAccountName(response.account.name)
+                    setAccountNumber(response.account.account_number)
+                    setIsActive(response.account.active)
+                    setActivityLog(response.activity_log)
+                    setBalanceOwing(response.balance_owing)
+                    setCanBeParent(!!response.account.can_be_parent)
+                    setCustomFieldMandatory(response.account.is_custom_field_mandatory)
+                    setCustomTrackingField(response.account.custom_field || '')
+                    setDiscount(response.account.discount || '')
+                    setInvoiceComment(response.account.invoice_comment || '')
+                    setInvoiceInterval(response.invoice_intervals.find(interval => interval.value == response.account.invoice_interval))
+                    setInvoiceSeparatelyFromParent(response.account.invoice_separately_from_parent)
+                    setIsGstExempt(response.account.gst_exempt)
+                    setMinInvoiceAmount(response.account.min_invoice_amount)
+                    setParentAccount((response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(account => account.value === response.account.parent_account_id) : null)
+                    setSendEmailInvoices(response.account.send_email_invoices)
+                    setSendPaperInvoices(response.account.send_paper_invoices)
+                    shippingAddress.setup(response.shipping_address)
+                    setShowInvoiceLineItems(response.account.show_invoice_line_items)
+                    setShowPickupAndDeliveryAddress(response.account.show_pickup_and_delivery_address)
+                    setStartDate(Date.parse(response.account.start_date))
+                    setUseShippingForBillingAddress(response.account.billing_address_id === null)
+
+                    if(response.billing_address)
+                        billingAddress.setup(response.billing_address)
                 }
 
-                setAccountBalance(parseFloat(response.account.account_balance))
-                setAccountId(response.account.account_id)
-                setAccountName(response.account.name)
-                setAccountNumber(response.account.account_number)
-                setIsActive(response.account.active)
-                setActivityLog(response.activity_log)
-                setBalanceOwing(response.balance_owing)
-                setCanBeParent(!!response.account.can_be_parent)
-                setCustomFieldMandatory(response.account.is_custom_field_mandatory)
-                setCustomTrackingField(response.account.custom_field || '')
-                setDiscount(response.account.discount || '')
-                setInvoiceComment(response.account.invoice_comment || '')
-                setInvoiceInterval(response.invoice_intervals.find(interval => interval.value == response.account.invoice_interval))
-                setInvoiceSeparatelyFromParent(response.account.invoice_separately_from_parent)
-                setIsGstExempt(response.account.gst_exempt)
-                setMinInvoiceAmount(response.account.min_invoice_amount)
-                setParentAccount((response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(account => account.value === response.account.parent_account_id) : null)
-                setSendEmailInvoices(response.account.send_email_invoices)
-                setSendPaperInvoices(response.account.send_paper_invoices)
-                shippingAddress.setup(response.shipping_address)
-                setShowInvoiceLineItems(response.account.show_invoice_line_items)
-                setShowPickupAndDeliveryAddress(response.account.show_pickup_and_delivery_address)
-                setStartDate(Date.parse(response.account.start_date))
-                setUseShippingForBillingAddress(response.account.billing_address_id === null)
+                if(response.permissions.editAdvanced)
+                    setRatesheet(response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id))
 
-                if(response.billing_address)
-                    billingAddress.setup(response.billing_address)
-            }
-
-            if(response.permissions.editAdvanced)
-                setRatesheet(response.ratesheets.find(ratesheet => ratesheet.value === response.account.ratesheet_id))
-
-            if(response.permissions.viewChildren) {
-                setCanBeParent(response.child_account_list.length > 0 ? true : response.account.can_be_parent)
-                setChildAccountList(response.child_account_list)
-            }
-            setIsLoading(false)
+                if(response.permissions.viewChildren) {
+                    setCanBeParent(response.child_account_list.length > 0 ? true : response.account.can_be_parent)
+                    setChildAccountList(response.child_account_list)
+                }
+                setIsLoading(false)
         })
     }
 
@@ -216,7 +217,8 @@ export default function Account(props) {
                 start_date: startDate.toLocaleString(),
             }
 
-        makeAjaxRequest('/accounts', 'POST', data, response => {
+        api.post('/accounts', data)
+            .then(response => {
             toast.success(`Account ${response.account_id} successfully ${accountId  ? 'updated' : 'created'}`, {
                 onClose: () => {
                     if(!accountId)
@@ -254,9 +256,11 @@ export default function Account(props) {
                                 {permissions.editAdvanced ? 
                                     <Button variant={isActive ? 'success' : 'danger'} style={{marginRight: '15px'}} onClick={() => {
                                         if(confirm(`Are you sure you wish to ${isActive ? 'DEACTIVATE' : 'ACTIVATE'} account ${accountName}?`)) {
-                                            makeAjaxRequest(`/accounts/toggleActive/${accountId}`, 'GET', null, response => {
-                                                setIsActive(!isActive)
-                                            })
+                                            api.get(`/accounts/toggleActive/${accountId}`)
+                                                .then(response => {
+                                                    setIsActive(!isActive)
+                                                }
+                                            )
                                         }
                                     }}>{isActive ? 'Active' : 'Inactive'}</Button>
                                     : <Badge variant={isActive ? 'success' : 'danger'}>{isActive ? 'Active' : 'Inactive'}</Badge>

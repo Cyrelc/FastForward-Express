@@ -3,6 +3,8 @@ import {Button, Card, Col, InputGroup, Row, Table} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 import {ReactTabulator} from 'react-tabulator'
 
+import {useAPI} from '../../contexts/APIContext'
+
 const moneyColumnStandardParams = {
     formatter: 'money',
     formatterParams: {thousand: ',', symbol: '$', selectContents: true},
@@ -25,6 +27,8 @@ export default function AccountsPayable(props) {
     const [startDate, setStartDate] = useState(new Date())
     const [endDate, setEndDate] = useState(new Date())
 
+    const api = useAPI()
+
     useEffect(() => {
         getAccountsPayable()
     }, [])
@@ -34,10 +38,10 @@ export default function AccountsPayable(props) {
     }, [startDate, endDate])
 
     const getAccountsPayable = () => {
-        makeAjaxRequest(`/admin/getAccountsPayable?start_date=${encodeURIComponent(startDate.toISOString())}&end_date=${encodeURIComponent(endDate.toISOString())}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setAccountsPayable(response.accounts_payable)
-        })
+        api.get(`/admin/getAccountsPayable?start_date=${encodeURIComponent(startDate.toISOString())}&end_date=${encodeURIComponent(endDate.toISOString())}`)
+            .then(response => {
+                setAccountsPayable(response.accounts_payable)
+            })
     }
 
     const tableRef = useRef(null)

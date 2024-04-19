@@ -3,6 +3,7 @@ import {useHistory} from 'react-router-dom'
 
 import ChangePasswordModal from '../partials/ChangePasswordModal'
 import Table from '../partials/Table'
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 const defaultFilterQuery = '?filter[is_enabled]=true'
@@ -28,6 +29,7 @@ export default function Employees(props) {
     const [changePasswordModalUserId, setChangePasswordModalUserId] = useState(false)
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
 
+    const api = useAPI()
     const history = useHistory()
     const {frontEndPermissions} = useUser()
 
@@ -70,7 +72,7 @@ export default function Employees(props) {
 
     const impersonateEmployee = cell => {
         const userId = cell.getRow().getData().user_id
-        makeAjaxRequest(`/users/impersonate/${userId}`, 'GET', null, response => {
+        api.get(`/users/impersonate/${userId}`).then(response => {
             location.reload()
         })
     }
@@ -79,7 +81,7 @@ export default function Employees(props) {
         const {is_enabled, employee_id, employee_name, employee_number} = cell.getRow().getData()
         if(confirm(`Are you sure you wish to ${is_enabled ? 'DEACTIVATE' : 'ACTIVATE'} employee ${employee_number} - ${employee_name}`)) {
             const url = '/employees/toggleEnabled/' + employee_id
-            makeAjaxRequest(url, 'GET', null, response => {
+            api.get(url).then(response => {
                 cell.getRow().update({'is_enabled': !is_enabled})
             })
         }

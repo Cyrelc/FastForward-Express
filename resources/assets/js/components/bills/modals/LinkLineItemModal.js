@@ -1,6 +1,8 @@
 import React, {createRef, useState} from 'react'
 import {Alert, Button, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap' 
 
+import {useAPI} from '../../../contexts/APIContext'
+
 export default function LinkLineItemModal(props) {
     const [targetObject, setTargetObject] = useState(undefined)
     const [searchValue, setSearchValue] = useState(undefined)
@@ -8,17 +10,18 @@ export default function LinkLineItemModal(props) {
     const searchTextFieldRef = createRef()
 
     const {linkLineItemCell, linkLineItemToType, show} = props
+    const api = useAPI()
 
     const searchLinkTo = () => {
         if (linkLineItemToType === 'Invoice') {
-            makeAjaxRequest(`/invoices/getModel/${searchValue}`, 'GET', null, response => {
-                response = JSON.parse(response)
+            api.get(`/invoices/getModel/${searchValue}`)
+            .then(response => {
                 setTargetObject(response)
                 setTargetId(response.invoice.invoice_id)
             })
         } else if (linkLineItemToType === 'Pickup Manifest' || linkLineItemToType == 'Delivery Manifest') {
-            makeAjaxRequest(`/manifests/${searchValue}`, 'GET', null, response => {
-                response = JSON.parse(response)
+            api.get(`/manifests/${searchValue}`)
+                .then(response => {
                 setTargetObject(response)
                 setTargetId(response.manifest.manifest_id)
             })
@@ -33,13 +36,14 @@ export default function LinkLineItemModal(props) {
             link_to_target_id: targetId
         }
 
-        makeAjaxRequest('/bills/manageLineItemLinks', 'POST', data, response => {
-            linkLineItemCell.getRow().update(JSON.parse(response))
+        api.post('/bills/manageLineItemLinks', data)
+            .then(response => {
+                linkLineItemCell.getRow().update(response)
 
-            setSearchValue(undefined)
-            setTargetObject(undefined)
-            setTargetId(undefined)
-            props.hide()
+                setSearchValue(undefined)
+                setTargetObject(undefined)
+                setTargetId(undefined)
+                props.hide()
         })
     }
 

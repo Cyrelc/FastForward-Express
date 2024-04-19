@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
+import {useAPI} from '../../contexts/APIContext'
 
 export default function GenerateInvoices(props) {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
@@ -14,6 +15,7 @@ export default function GenerateInvoices(props) {
     const [selectedInvoiceIntervals, setSelectedInvoiceIntervals] = useState([])
     const [table, setTable] = useState(null)
 
+    const api = useAPI()
     const tableRef = useRef(null)
     const history = useHistory()
 
@@ -101,8 +103,7 @@ export default function GenerateInvoices(props) {
 
     useEffect(() => {
         document.title = 'Generate Invoices - Fast Forward Express'
-        makeAjaxRequest('/invoices/getModel', 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get('/invoices/getModel').then(response => {
             setInvoiceIntervals(response.invoice_intervals)
             setStartDate(Date.parse(response.start_date))
             setEndDate(Date.parse(response.end_date))
@@ -165,8 +166,7 @@ export default function GenerateInvoices(props) {
             end_date: endDate.toLocaleString('en-US')
         }
 
-        makeAjaxRequest('/invoices/getUninvoiced', 'POST', data, response => {
-            response = JSON.parse(response)
+        api.post('/invoices/getUninvoiced', data).then(response => {
             if(response.pending_creation)
                 setPendingCreation(Object.values(response.pending_creation))
         })
@@ -195,7 +195,7 @@ export default function GenerateInvoices(props) {
             end_date: endDate.toLocaleString('en-US')
         }
 
-        makeAjaxRequest('/invoices', 'POST', data, response => {
+        api.post('/invoices', data).then(response => {
             toast.success('Successfully generated invoices', 'Success', {
                 'progressBar' : true,
                 'showDuration': 500,

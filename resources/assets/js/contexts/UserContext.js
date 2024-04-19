@@ -8,6 +8,7 @@ export function UserProvider ({children}) {
     const [contact, setContact] = useState({})
     const [frontEndPermissions, setFrontEndPermissions] = useState({})
     const [homePage, setHomePage] = useState('')
+    const [settings, setSettings] = useState([])
 
     const api = useAPI()
 
@@ -19,6 +20,7 @@ export function UserProvider ({children}) {
                 setAuthenticatedUser(data)
                 setContact(data.contact)
                 setFrontEndPermissions(data.front_end_permissions)
+                setSettings(data.user_settings)
                 if(data.front_end_permissions.appSettings.edit)
                     setHomePage('/adminDashboard')
                 else if(data.employee)
@@ -38,6 +40,7 @@ export function UserProvider ({children}) {
             contact,
             frontEndPermissions,
             homePage,
+            settings,
         }}>
             {children}
         </UserContext.Provider>

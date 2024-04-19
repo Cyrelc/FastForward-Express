@@ -7,6 +7,8 @@ import PaymentModal from '../partials/Payments/PaymentModal'
 import PaymentTable from '../partials/Payments/PaymentTable'
 import LoadingSpinner from '../partials/LoadingSpinner'
 
+import {useAPI} from '../../contexts/APIContext'
+
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
 
@@ -38,6 +40,7 @@ export default function Invoice(props) {
     const [tables, setTables] = useState([])
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
 
+    const api = useAPI()
     const {match: {params}} = props
 
     useEffect(() => {
@@ -50,8 +53,7 @@ export default function Invoice(props) {
 
     const getInvoice = () => {
         setIsLoading(true)
-        makeAjaxRequest(`/invoices/getModel/${params.invoiceId}`, 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get(`/invoices/getModel/${params.invoiceId}`).then(response => {
             document.title = `View Invoice ${response.invoice.invoice_id}`
             let sortedInvoices = localStorage.getItem('invoices.sortedList')
             if(sortedInvoices) {
@@ -80,8 +82,7 @@ export default function Invoice(props) {
     }
 
     const regather = () => {
-        makeAjaxRequest(`/invoices/regather/${invoice.invoice_id}`, 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get(`/invoices/regather/${invoice.invoice_id}`).then(response => {
             if(response.count > 0)
                 toast.success(`${response.count} line items successfully added to invoice`)
             else
@@ -90,7 +91,7 @@ export default function Invoice(props) {
     }
 
     const toggleFinalized = () => {
-        makeAjaxRequest(`/invoices/finalize/${params.invoiceId}`, 'GET', null, response => {
+        api.get(`/invoices/finalize/${params.invoiceId}`).then(response => {
             const finalized = response.invoices[params.invoiceId]['finalized']
             setIsFinalized(finalized)
         })

@@ -10,7 +10,6 @@ const bracketsInfo = 'The "Price" column can be applied only once for the entire
     'To have no separation, and instead to price for the entire range, simply leave the field blank, or enter 0'
 
 export default function WeightRate(props) {
-
     function deleteWeightBracket(index) {
         props.handleWeightRateChange({...props.weightRate, brackets: props.weightRate.brackets.filter((bracket, i) => i != index)}, props.index)
     }

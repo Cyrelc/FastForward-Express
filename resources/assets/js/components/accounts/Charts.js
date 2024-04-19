@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Card, InputGroup, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
 import {ResponsiveBar} from '@nivo/bar'
 import {DateTime} from 'luxon'
+import {useAPI} from '../../contexts/APIContext'
 
 export default function Charts(props) {
     const [chartData, setChartData] = useState([])
@@ -10,6 +11,7 @@ export default function Charts(props) {
     const [isLoading, setIsLoading] = useState(true)
 
     const {accountId} = props
+    const api = useAPI()
 
     useEffect(() => {
         setIsLoading(true)
@@ -23,13 +25,13 @@ export default function Charts(props) {
             start_date: startDate.toFormat('yyyy-MM-dd'),
             summationType
         }
-        makeAjaxRequest(`/accounts/chart`, 'GET', data, response => {
-            response = JSON.parse(response)
-            if(response.bills)
-                setChartData(Object.values(response.bills).map(value => {return value}))
-            setKeys(response.keys)
-            setIsLoading(false)
-        })
+        api.get(`/accounts/chart`)
+            .then(response => {
+                if(response.bills)
+                    setChartData(Object.values(response.bills).map(value => {return value}))
+                setKeys(response.keys)
+                setIsLoading(false)
+            })
     }, [accountId, summationType])
 
     return (isLoading

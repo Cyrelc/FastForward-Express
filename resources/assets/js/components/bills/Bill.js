@@ -7,11 +7,13 @@ import {toast} from 'react-toastify'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
-import PackageReducer, {initialState as initialPackageState} from './reducers/packageReducer'
+import usePackages from './hooks/usePackages'
+
 import ActivityLogTab from '../partials/ActivityLogTab'
 import BasicTab from './BasicTab'
 import BillingTab from './BillingTab'
 import DispatchTab from './DispatchTab'
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
@@ -28,7 +30,7 @@ Please remember you can view the driver who is assigned each line item by clicki
 export default function Bill(props) {
     const [billState, billDispatch] = useReducer(BillReducer, initialBillState)
     const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
-    const [packageState, packageDispatch] = useReducer(PackageReducer, initialPackageState)
+    const packages = usePackages()
 
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
     const [awaitingCharges, setAwaitingCharges] = useState(false)
@@ -37,8 +39,9 @@ export default function Bill(props) {
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, isMall: deliveryAddressIsMall, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, isMall: pickupAddressIsMall, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
     const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
-    const {packageIsMinimum, packageIsPallet, packages, useImperial} = packageState
+    const {packageIsMinimum, packageIsPallet, packageArray, requireProofOfDelivery, useImperial} = packages
 
+    const api = useAPI()
     const {match: {params}} = props
     const lists = useLists()
     const location = useLocation()
@@ -53,62 +56,61 @@ export default function Bill(props) {
 
         document.title = params.billId ? `Manage Bill: ${params.billId}` : 'Create Bill - Fast Forward Express'
 
-        makeAjaxRequest(fetchUrl, 'GET', null, data => {
-            data = JSON.parse(data)
-            data.drivers = lists.employees ? lists.employees.filter(employee => employee.is_driver) : []
-            data.employees = lists.employees ?? []
-            data.use_imperial = authenticatedUser.user_settings.use_imperial_default
+        api.get(fetchUrl)
+            .then(data => {
+                data.drivers = lists.employees ? lists.employees.filter(employee => employee.is_driver) : []
+                data.employees = lists.employees ?? []
+                data.use_imperial = authenticatedUser.user_settings.use_imperial_default
 
-            billDispatch({type: 'CONFIGURE_BILL', payload: data})
-            billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
+                billDispatch({type: 'CONFIGURE_BILL', payload: data})
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
 
-            chargeDispatch({
-                type: 'CONFIGURE_CHARGES',
-                payload: {
-                    accounts: data.accounts,
-                    activeRatesheet: data.ratesheets[0],
-                    charges: data?.charges,
-                    chargeTypes: data.charge_types,
-                    interliners: data.interliners,
-                    ratesheets: data.ratesheets
-                }
-            })
-            packageDispatch({type: 'CONFIGURE_PACKAGES', payload: data})
-
-            if(data.bill?.bill_id) {
-                billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                packageDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                let sortedBills = localStorage.getItem('bills.sortedList')
-                if(sortedBills) {
-                    sortedBills = sortedBills.split(',').map(index => parseInt(index))
-                    const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
-                    if(currentBillIndex != -1) {
-                        const prevBillId = currentBillIndex == 0 ? null : sortedBills[currentBillIndex - 1]
-                        const nextBillId = currentBillIndex <= sortedBills.length ? sortedBills[currentBillIndex + 1] : null
-                        billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
-                        billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                chargeDispatch({
+                    type: 'CONFIGURE_CHARGES',
+                    payload: {
+                        accounts: data.accounts,
+                        activeRatesheet: data.ratesheets[0],
+                        charges: data?.charges,
+                        chargeTypes: data.charge_types,
+                        interliners: data.interliners,
+                        ratesheets: data.ratesheets
                     }
-                }
+                })
 
-                if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
-                    const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
-                    const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-                    if(ratesheet)
-                        billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
-                }
-            } else {
-                if(data.permissions.createFull && !data.permissions.packages)
-                    packageDispatch({type: 'TOGGLE_PACKAGE_IS_MINIMUM'})
-                if(queryParams.get('copy_from')) {
-                    billDispatch({type: 'CONFIGURE_COPY', payload: data})
+                if(data.bill?.bill_id) {
+                    billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                }
-                billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
-            }
+                    packages.setup(data.bill)
+                    let sortedBills = localStorage.getItem('bills.sortedList')
+                    if(sortedBills) {
+                        sortedBills = sortedBills.split(',').map(index => parseInt(index))
+                        const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)
+                        if(currentBillIndex != -1) {
+                            const prevBillId = currentBillIndex == 0 ? null : sortedBills[currentBillIndex - 1]
+                            const nextBillId = currentBillIndex <= sortedBills.length ? sortedBills[currentBillIndex + 1] : null
+                            billDispatch({type: 'SET_NEXT_BILL_ID', payload: nextBillId})
+                            billDispatch({type: 'SET_PREV_BILL_ID', payload: prevBillId})
+                        }
+                    }
 
-            billDispatch({type: 'SET_IS_LOADING', payload: false})
-        })
+                    if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
+                        const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
+                        const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
+                        if(ratesheet)
+                            billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                    }
+                } else {
+                    if(data.permissions.createFull && !data.permissions.packages)
+                        packages.setPackageIsMinimum(true)
+                    if(queryParams.get('copy_from')) {
+                        billDispatch({type: 'CONFIGURE_COPY', payload: data})
+                        chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                    }
+                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                }
+
+                billDispatch({type: 'SET_IS_LOADING', payload: false})
+            })
     }
 
     const copyBill = () => {
@@ -129,7 +131,7 @@ export default function Bill(props) {
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
-                packages: packageState.packageIsMinimum ? [] : packageState.packages,
+                packages: packageIsMinimum ? [] : packageArray,
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
@@ -139,24 +141,24 @@ export default function Bill(props) {
             }
             setAwaitingCharges(true)
 
-            makeAjaxRequest('/bills/generateCharges', 'POST', data, response => {
-                response = JSON.parse(response)
-                if(overwrite) {
-                    chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                } else {
-                    chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                }
-                setAwaitingCharges(false)
-                toast.warn(
-                    'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
-                    {
-                        position: 'top-center',
-                        showDuration: 300,
-                        timeOut: 5000,
-                        extendedTImeout: 5000
+            api.post('/bills/generateCharges', data)
+                .then(response => {
+                    if(overwrite) {
+                        chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+                    } else {
+                        chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
                     }
-                )
-            }, error => {setAwaitingCharges(false)})
+                    setAwaitingCharges(false)
+                    toast.warn(
+                        'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
+                        {
+                            position: 'top-center',
+                            showDuration: 300,
+                            timeOut: 5000,
+                            extendedTImeout: 5000
+                        }
+                    )
+                })
         }, 500), [
             activeRatesheet,
             chargeAccount,
@@ -168,7 +170,7 @@ export default function Bill(props) {
             deliveryType,
             packageIsMinimum,
             packageIsPallet,
-            packages,
+            packageArray,
             pickupAddressIsMall,
             pickupAddressLat,
             pickupAddressLng,
@@ -203,9 +205,10 @@ export default function Bill(props) {
     }
 
     const toggleTemplate = () => {
-        makeAjaxRequest(`/bills/template/${billId}`, 'GET', null, response => {
-            billDispatch({type: 'SET_IS_TEMPLATE', payload: response.is_template})
-        })
+        api.get(`/bills/template/${billId}`)
+            .then(response => {
+                billDispatch({type: 'SET_IS_TEMPLATE', payload: response.is_template})
+            })
     }
 
     const toggleTermsAndConditions = event => {
@@ -222,6 +225,7 @@ export default function Bill(props) {
             var data = {bill_id: billId}
             if(billId ? permissions.editBasic : permissions.createBasic)
                 data = {...data,
+                    ...packages.collect(),
                     delivery_account_id: billState.delivery.account?.account_id,
                     delivery_address_formatted: billState.delivery.addressFormatted,
                     delivery_address_is_mall: billState.delivery.isMall,
@@ -233,9 +237,6 @@ export default function Bill(props) {
                     delivery_type: billState.deliveryType,
                     delivery_reference_value: billState.delivery.referenceValue,
                     description: billState.description,
-                    is_min_weight_size: packageState.packageIsMinimum ? true : false,
-                    is_pallet: packageState.packageIsPallet,
-                    packages: packageState.packageIsMinimum ? [] : packageState.packages,
                     pickup_account_id: billState.pickup.account?.account_id,
                     pickup_address_formatted: billState.pickup.addressFormatted,
                     pickup_address_is_mall: billState.pickup.isMall,
@@ -245,11 +246,9 @@ export default function Bill(props) {
                     pickup_address_place_id: billState.pickup.addressPlaceId,
                     pickup_address_type: billState.pickup.addressType,
                     pickup_reference_value: billState.pickup.referenceValue,
-                    proof_of_delivery_required: packageState.proofOfDeliveryRequired,
                     time_delivery_scheduled: billState.delivery.timeScheduled.toLocaleString("en-US"),
                     time_pickup_scheduled: billState.pickup.timeScheduled.toLocaleString("en-US"),
                     updated_at: billState.updatedAt.toLocaleString("en-US"),
-                    use_imperial: packageState.useImperial
                 }
 
             if(!billId && permissions.createBasic && !permissions.createFull)
@@ -305,20 +304,21 @@ export default function Bill(props) {
                 }
             }
 
-            makeAjaxRequest('/bills/store', 'POST', data, response => {
-                if(billId) {
-                    toast.success(`Bill ${billId} was successfully updated!`)
-                    configureBill()
-                } else {
-                    toast.success(`Bill ${response.id} was successfully created`, {
-                        position: 'top-center',
-                        onClose: () => {
-                            billDispatch({type: 'SET_TAB_KEY', payload: 'basic'})
-                            billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
-                            configureBill()
-                        }
-                    })
-                }
+            api.post('/bills/store', data)
+                .then(response => {
+                    if(billId) {
+                        toast.success(`Bill ${billId} was successfully updated!`)
+                        configureBill()
+                    } else {
+                        toast.success(`Bill ${response.id} was successfully created`, {
+                            position: 'top-center',
+                            onClose: () => {
+                                billDispatch({type: 'SET_TAB_KEY', payload: 'basic'})
+                                billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
+                                configureBill()
+                            }
+                        })
+                    }
             }, error => {
                 billDispatch({type: 'TOGGLE_READ_ONLY', payload: false})
             })
@@ -429,8 +429,8 @@ export default function Bill(props) {
             if(packageIsMinimum) {
                 conditionsMet = true
             } else {
-                if(packages.length > 0) {
-                    conditionsMet = packages.reduce(currentPackage => {
+                if(packageArray.length > 0) {
+                    conditionsMet = packageArray.reduce(currentPackage => {
                         return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
                     })
                 }
@@ -450,7 +450,7 @@ export default function Bill(props) {
         deliveryType,
         packageIsMinimum,
         packageIsPallet,
-        packages,
+        packageArray,
         pickupAddressIsMall,
         pickupAddressLat,
         pickupAddressLng,
@@ -594,8 +594,7 @@ export default function Bill(props) {
                             chargeDispatch={chargeDispatch}
                             chargeState={chargeState}
                             setPickupTimeExpected={debounceSetPickupTimeExpected}
-                            packageDispatch={packageDispatch}
-                            packageState={packageState}
+                            packages={packages}
                         />
                     </Tab>
                     {(billId ? permissions.viewDispatch : permissions.createFull) &&

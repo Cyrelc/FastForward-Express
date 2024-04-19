@@ -7,6 +7,7 @@ import LoadingSpinner from '../../partials/LoadingSpinner'
 import ManagePaymentMethodsModal from './ManagePaymentMethodsModal'
 import PaymentTable from '../../partials/Payments/PaymentTable'
 import PaymentModal from '../../partials/Payments/PaymentModal'
+import {useAPI} from '../../../contexts/APIContext'
 
 export default function BillingTab(props) {
     const [isLoading, setIsLoading] = useState(true)
@@ -16,6 +17,8 @@ export default function BillingTab(props) {
     const [showAdjustAccountCreditModal, setShowAdjustAccountCreditModal] = useState(false)
     const [showManagePaymentMethodsModal, setShowManagePaymentMethodsModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+
+    const api = useAPI()
 
     const invoiceColumns = [
         {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number'},
@@ -33,12 +36,12 @@ export default function BillingTab(props) {
 
     const refreshModel = () => {
         setIsLoading(true)
-        makeAjaxRequest(`/accounts/billing/${props.accountId}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setPayments(response.payments)
-            setOutstandingInvoices(response.outstanding_invoices)
-            setIsLoading(false)
-        }, () => setIsLoading(false))
+        api.get(`/accounts/billing/${props.accountId}`)
+            .then(response => {
+                setPayments(response.payments)
+                setOutstandingInvoices(response.outstanding_invoices)
+                setIsLoading(false)
+            }, () => setIsLoading(false))
     }
 
     useEffect(() => {

@@ -9,6 +9,8 @@ import RatesheetsTab from './RatesheetsTab'
 import SchedulingTab from './SchedulingTab'
 import SelectionsTab from './SelectionsTab'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function AppSettings(props) {
     const [activeKey, setActiveKey] = useState('accounting')
     const [gst, setGst] = useState('')
@@ -17,20 +19,22 @@ export default function AppSettings(props) {
     const [ratesheets, setRatesheets] = useState([])
     const [blockedDates, setBlockedDates] = useState([])
 
+    const api = useAPI()
+
     useEffect(() => {
         document.title = 'Application Settings - Fast Forward Express'
         setActiveKey(location.hash?.slice(1) ?? 'accounting')
-        makeAjaxRequest(`/appsettings`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setGst(response.gst)
-            setInterliners(response.interliners)
-            setPaymentTypes(response.payment_types)
-            setRatesheets(response.ratesheets)
-            const blockedDates = response.blocked_dates.map(blocked => {
-                return {...blocked, date: Date.parse(blocked.value)}
+        api.get(`/appsettings`)
+            .then(response => {
+                setGst(response.gst)
+                setInterliners(response.interliners)
+                setPaymentTypes(response.payment_types)
+                setRatesheets(response.ratesheets)
+                const blockedDates = response.blocked_dates.map(blocked => {
+                    return {...blocked, date: Date.parse(blocked.value)}
+                })
+                setBlockedDates(blockedDates)
             })
-            setBlockedDates(blockedDates)
-        })
     }, [])
 
     useEffect(() => {

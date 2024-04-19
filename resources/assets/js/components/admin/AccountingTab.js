@@ -3,7 +3,11 @@ import {Button, Card, Row, Col, InputGroup, FormControl} from 'react-bootstrap'
 import Select from 'react-select'
 import {toast} from 'react-toastify'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function AccountingTab(props) {
+    const api = useAPI()
+
     const handleDefaultRatesheetChange = (paymentTypeId, ratesheetId) => {
         const paymentTypes = props.paymentTypes.map(paymentType => {
             if(paymentType.payment_type_id === paymentTypeId)
@@ -18,9 +22,10 @@ export default function AccountingTab(props) {
             gst: props.gst,
             paymentTypes: props.paymentTypes
         }
-        makeAjaxRequest('/appsettings', 'POST', data, response => {
-            toast.success('Settings successfully applied')
-        })
+        api.post('/appsettings', data)
+            .then(response => {
+                toast.success('Settings successfully applied')
+            })
     }
 
     return (

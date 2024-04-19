@@ -7,6 +7,7 @@ import {DateTime} from 'luxon'
 
 import Map from './Map'
 import BillTable from './BillTable'
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 
 const getBackgroundColour = (timeRemaining, actualTime = null) => {
@@ -52,6 +53,7 @@ export default function Dispatch(props) {
     const [timeModalActualTime, setTimeModalActualTime] = useState(new Date())
     const [timeModalBillId, setTimeModalBillId] = useState(null)
 
+    const api = useAPI()
     const handleBillEventRef = useRef()
     const billRef = useRef(null)
     const driverRef = useRef(null)
@@ -73,33 +75,34 @@ export default function Dispatch(props) {
         if(existingBill && !matchesCurrentDate) {
             setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'remove', bill: billEvent}]))
         } else if (matchesCurrentDate) {
-            makeAjaxRequest(`/bills/${billEvent.bill_id}`, 'GET', null, response => {
-                const data = JSON.parse(response)
-                const pendingBill = formatBill(data)
-                if(existingBill) {
-                    setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'update', bill: pendingBill}]))
-                } else {
-                    setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'add', bill: pendingBill}]))
-                }
-            })
+            api.get(`/bills/${billEvent.bill_id}`)
+                .then(data => {
+                    const pendingBill = formatBill(data)
+                    if(existingBill) {
+                        setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'update', bill: pendingBill}]))
+                    } else {
+                        setPendingBillEvents(pendingBillEvents => pendingBillEvents.concat([{type: 'add', bill: pendingBill}]))
+                    }
+                })
         }
     }
 
     useEffect(() => {
-        makeAjaxRequest('/dispatch', 'GET', null, response => {
-            setDrivers(lists.employees.filter(employee => employee.is_driver && employee.is_enabled).map(driver => {return {...driver, view: true}}))
+        api.get('/dispatch')
+            .then(response => {
+                setDrivers(lists.employees.filter(employee => employee.is_driver && employee.is_enabled).map(driver => {return {...driver, view: true}}))
 
-            window.echo = new Echo({
-                broadcaster: 'pusher',
-                key: response.pusher_key,
-                cluster: response.pusher_cluster,
-                forceTLS: false,
+                window.echo = new Echo({
+                    broadcaster: 'pusher',
+                    key: response.pusher_key,
+                    cluster: response.pusher_cluster,
+                    forceTLS: false,
+                })
+
+                window.echo.private('dispatch')
+                    .listen('BillUpdated', event => handleBillEventRef.current(event))
+                    .listen('BillCreated', event => handleBillEventRef.current(event))
             })
-
-            window.echo.private('dispatch')
-                .listen('BillUpdated', event => handleBillEventRef.current(event))
-                .listen('BillCreated', event => handleBillEventRef.current(event))
-        })
 
         const interval = setInterval(() => {
             if(!rowInTransit)
@@ -111,16 +114,16 @@ export default function Dispatch(props) {
 
     useEffect(() => {
         const date = DateTime.fromJSDate(billDate).toFormat('yyyy-MM-dd')
-        makeAjaxRequest(`/dispatch/getBills?filter[dispatch]=true&filter[time_pickup_scheduled]=${date},${date}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            const bills = response.map(bill => {
-                return {...bill,
-                    view: bill.view === undefined ? true : bill.view,
-                    current_time: Date.now()
-                }
+        api.get(`/dispatch/getBills?filter[dispatch]=true&filter[time_pickup_scheduled]=${date},${date}`)
+            .then(response => {
+                const bills = response.map(bill => {
+                    return {...bill,
+                        view: bill.view === undefined ? true : bill.view,
+                        current_time: Date.now()
+                    }
+                })
+                setBills(bills)
             })
-            setBills(bills)
-        })
     }, [billDate])
 
     useEffect(() => {
@@ -146,7 +149,8 @@ export default function Dispatch(props) {
             bill_id: billId,
             employee_id: employeeId
         }
-        makeAjaxRequest('/dispatch/assignBillToDriver', 'POST', data, response => {})
+        api.post('/dispatch/assignBillToDriver', data)
+            .then(response => {})
     }
 
     const setTimeModalView = cell => {
@@ -160,21 +164,22 @@ export default function Dispatch(props) {
     const submitActualTime = () => {
         const actualTime = DateTime.fromJSDate(timeModalActualTime).toSQL()
         const data = {bill_id: timeModalBillId, type: timeModalField, time: actualTime}
-        makeAjaxRequest('/dispatch/setBillPickupOrDeliveryTime', 'POST', data, response => {
-            const refreshedBills = bills.map(bill => {
-                if(bill.bill_id === timeModalBillId) {
-                    if(timeModalField === 'pickup')
-                        return {...bill, time_picked_up: actualTime}
-                    return {...bill, time_delivered: actualTime}
-                }
-                return bill
-            })
-            setBills(
-                refreshedBills.filter(bill => {
-                    return (bill.time_picked_up == null || bill.time_delivered == null || bill.delivery_driver == null || bill.pickup_driver == null)
+        api.post('/dispatch/setBillPickupOrDeliveryTime', data)
+            .then(response => {
+                const refreshedBills = bills.map(bill => {
+                    if(bill.bill_id === timeModalBillId) {
+                        if(timeModalField === 'pickup')
+                            return {...bill, time_picked_up: actualTime}
+                        return {...bill, time_delivered: actualTime}
+                    }
+                    return bill
                 })
-            )
-        })
+                setBills(
+                    refreshedBills.filter(bill => {
+                        return (bill.time_picked_up == null || bill.time_delivered == null || bill.delivery_driver == null || bill.pickup_driver == null)
+                    })
+                )
+            })
         setShowTimeModal(false)
     }
 

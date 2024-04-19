@@ -4,6 +4,7 @@ import {loadStripe} from '@stripe/stripe-js'
 import {toast} from 'react-toastify'
 
 import {Button, Col, Dropdown, Modal, Row, Table} from 'react-bootstrap'
+import {useAPI} from '../../../contexts/APIContext'
 
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
@@ -12,6 +13,8 @@ export default function ManagePaymentMethodsModal(props) {
     const [paymentMethods, setPaymentMethods] = useState([])
     const [showCreatePaymentMethod, setShowCreatePaymentMethod] = useState(false)
     const [tableIsLoading, setTableIsLoading] = useState(true)
+
+    const api = useAPI()
 
     useEffect(() => {
         if(props.show)
@@ -24,32 +27,35 @@ export default function ManagePaymentMethodsModal(props) {
 
     useEffect(() => {
         if(!clientSecret && showCreatePaymentMethod)
-            makeAjaxRequest(`/paymentMethods/${props.accountId}/create`, 'GET', null, response => {
-                setClientSecret(response.client_secret)
-            })
+            api.get(`/paymentMethods/${props.accountId}/create`)
+                .then(response => {
+                    setClientSecret(response.client_secret)
+                })
     }, [showCreatePaymentMethod])
 
     const deleteCreditCard = card => {
         if(confirm(`Are you sure you would like to delete the credit card ${card.name}?\n\nThis action can not be undone`)) {
             setTableIsLoading(true)
-            makeAjaxRequest(`/paymentMethods/${props.accountId}`, 'DELETE', {payment_method_id: card.payment_method_id}, response => {
-                fetchPaymentMethods()
-                setTableIsLoading(false)
-            })
+            api.delete(`/paymentMethods/${props.accountId}`, {payment_method_id: card.payment_method_id})
+                .then(response => {
+                    fetchPaymentMethods()
+                    setTableIsLoading(false)
+                })
         }
     }
 
     const fetchPaymentMethods = () => {
         setTableIsLoading(true)
-        makeAjaxRequest(`/paymentMethods/${props.accountId}`, 'GET', null, response => {
-            if(response.payment_methods?.length)
-                setPaymentMethods(response.payment_methods.map(paymentMethod => {
-                    return {...paymentMethod, expiry_date: new Date(paymentMethod.expiry_date)}
-                }))
-            else
-                setShowCreatePaymentMethod(true)
-            setTableIsLoading(false)
-        })
+        api.get(`/paymentMethods/${props.accountId}`)
+            .then(response => {
+                if(response.payment_methods?.length)
+                    setPaymentMethods(response.payment_methods.map(paymentMethod => {
+                        return {...paymentMethod, expiry_date: new Date(paymentMethod.expiry_date)}
+                    }))
+                else
+                    setShowCreatePaymentMethod(true)
+                setTableIsLoading(false)
+            })
     }
 
     const getCardIcon = type => {
@@ -61,17 +67,19 @@ export default function ManagePaymentMethodsModal(props) {
 
     const hideCreateBody = () => {
         setShowCreatePaymentMethod(false)
-        makeAjaxRequest(`/paymentMethods/${props.accountId}/create`, 'GET', null, response => {
-            setClientSecret(response.client_secret)
-        })
+        api.get(`/paymentMethods/${props.accountId}/create`)
+            .then(response => {
+                setClientSecret(response.client_secret)
+            })
     }
 
     const setDefaultCard = card => {
         setTableIsLoading(true)
-        makeAjaxRequest(`/paymentMethods/${props.accountId}/setDefault`, 'POST', {payment_method_id: card.payment_method_id}, response => {
-            fetchPaymentMethods()
-            setTableIsLoading(false)
-        })
+        api.post(`/paymentMethods/${props.accountId}/setDefault`, {payment_method_id: card.payment_method_id})
+            .then(response => {
+                fetchPaymentMethods()
+                setTableIsLoading(false)
+            })
     }
 
     return (
