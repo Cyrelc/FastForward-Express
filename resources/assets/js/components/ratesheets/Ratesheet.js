@@ -13,7 +13,6 @@ import TimeRatesTab from './TimeRatesTab'
 import WeightRatesTab from './WeightRatesTab'
 import DistanceRatesTab from './DistanceRatesTab'
 // import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
-import {useAPI} from '../../contexts/APIContext'
 
 const polyColours = {
     internalStroke : '#3651c9',
@@ -59,7 +58,6 @@ export default class Ratesheet extends Component {
             showImportModal: false,
             showReplaceModal: false
         }
-        this.api = this.api.bind(this)
         this.createPolygon = this.createPolygon.bind(this)
         this.deleteZone = this.deleteZone.bind(this)
         this.editZone = this.editZone.bind(this)
@@ -70,8 +68,6 @@ export default class Ratesheet extends Component {
         this.zoneRemoveDuplicates = this.zoneRemoveDuplicates.bind(this)
         this.store = this.store.bind(this)
     }
-
-    api = useAPI()
 
     componentDidMount() {
         const {match: {params}} = this.props
@@ -87,7 +83,8 @@ export default class Ratesheet extends Component {
         google.maps.event.addListener(drawingManager, 'polygoncomplete', event => {this.createPolygon(event)})
         this.setState({map: map, mapDrawingManager: drawingManager, ratesheetId: params.ratesheetId}, () => {
             document.title = params.ratesheetId ? 'Edit Ratesheet - ' + params.ratesheetId : 'Create Ratesheet'
-            this.api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create').then(response => {
+            makeAjaxRequest(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create', 'GET', null, response => {
+                response = JSON.parse(response)
                 var timeRates = response.timeRates.map(rate => {
                     return {...rate, brackets: rate.brackets.map(bracket => {
                         return {...bracket, startTime: bracket.startTime ? new Date(bracket.startTime) : null, endTime: bracket.endTime ? new Date(bracket.endTime) : null}
@@ -371,7 +368,7 @@ export default class Ratesheet extends Component {
             timeRates: this.state.timeRates.slice(),
             miscRates: this.state.miscRates.slice()
         }
-        this.api.post('/ratesheets', data).then(response => {
+        makeAjaxRequest('/ratesheets', 'POST', data, response => {
             this.setState({savingMap: 100})
             if(this.state.ratesheetId) {
                 toast.success(`${this.state.ratesheetName} was successfully updated!`, {onClose: location.reload})
