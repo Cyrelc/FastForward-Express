@@ -2,6 +2,7 @@ import React from 'react'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
 
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
@@ -53,6 +54,7 @@ export default function Manifests(props) {
     const history = useHistory()
     const {frontEndPermissions} = useUser()
 
+    const api = useAPI()
     const columns= [
         {
             formatter: cell => cellContextMenuFormatter(cell),
@@ -117,7 +119,7 @@ export default function Manifests(props) {
     const deleteManifest = cell => {
         const manifestId = cell.getRow().getData().manifest_id 
         if(confirm(`Are you sure you want to delete manifest ${manifestId}?\nThis action can not be undone`)) {
-            makeAjaxRequest(`/manifests/${manifestId}`, 'DELETE', null, response => {
+            api.delete(`/manifests/${manifestId}`).then(response => {
                 cell.getRow().delete()
             })
         }

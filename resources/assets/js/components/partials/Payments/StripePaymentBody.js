@@ -3,9 +3,12 @@ import {Button, Modal} from 'react-bootstrap'
 import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
 
+import {useAPI} from '../../../contexts/APIContext'
+
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
 const StripeForm = (props) => {
+    const api = useAPI()
     const elements = useElements()
     const stripe = useStripe()
 
@@ -55,10 +58,10 @@ export default function StripePaymentBody(props) {
             invoice_id: props.invoiceId,
         }
 
-        makeAjaxRequest('/paymentMethods/getPaymentIntent', 'POST', data, response => {
-            response = JSON.parse(response)
-            setClientSecret(response.client_secret)
-        })
+        api.post('/paymentMethods/getPaymentIntent', data)
+            .then(response => {
+                setClientSecret(response.client_secret)
+            })
     }, [])
 
     const options = {

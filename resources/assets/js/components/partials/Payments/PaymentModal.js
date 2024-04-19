@@ -7,6 +7,7 @@ import AccountCreditBody from './AccountCreditBody'
 import CardOnFileBody from './CardOnFileBody'
 import PrepaidBody from './PrepaidBody'
 import StripePaymentBody from './StripePaymentBody'
+import {useAPI} from '../../../contexts/APIContext'
 
 /**
  *  Modal types will be limited to
@@ -24,6 +25,8 @@ const PaymentModal = props => {
     const [paymentMethod, setPaymentMethod] = useState('')
     const [paymentMethods, setPaymentMethods] = useState([])
 
+    const api = useAPI()
+
     useEffect(() => {
         setPaymentAmount(props.invoiceBalanceOwing)
     }, [props.invoiceBalanceOwing])
@@ -37,8 +40,7 @@ const PaymentModal = props => {
             invoice_id: props.invoiceId,
         }
 
-        makeAjaxRequest('/paymentMethods/getPaymentIntent', 'POST', data, response => {
-            response = JSON.parse(response)
+        api.post('/paymentMethods/getPaymentIntent', data).then(response => {
             setClientSecret(response.client_secret)
         })
     }, [paymentMethod])
@@ -53,9 +55,7 @@ const PaymentModal = props => {
     useEffect(() => {
         if(props.show) {
             setIsLoading(true)
-            makeAjaxRequest(`/payments/${props.invoiceId}`, 'GET', null, response => {
-                response = JSON.parse(response)
-
+            api.get(`/payments/${props.invoiceId}`).then(response => {
                 setPaymentMethods(response.payment_methods)
 
                 setIsLoading(false)

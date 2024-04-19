@@ -3,6 +3,8 @@ import {Button, Card, Table} from 'react-bootstrap'
 
 import InterlinerModal from './InterlinerModal'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function InterlinersTab(props) {
     const [interlinerId, setInterlinerId] = useState(null)
     const [addressName, setAddressName] = useState('')
@@ -12,6 +14,8 @@ export default function InterlinersTab(props) {
     const [addressPlaceId, setPlaceId] = useState('')
     const [interlinerName, setInterlinerName] = useState('')
     const [showInterlinerModal, setShowInterlinerModal] = useState(false)
+
+    const api = useAPI()
 
     const storeInterliner = () => {
         const data = {
@@ -23,11 +27,11 @@ export default function InterlinersTab(props) {
             address_name: addressName,
             address_place_id: addressPlaceId
         }
-        makeAjaxRequest(`/interliners`, 'POST', data, response => {
-            console.log('success')
-            props.setInterliners(response.interliners)
-            setShowInterlinerModal(false)
-        })
+        api.post(`/interliners`, data)
+            .then(response => {
+                props.setInterliners(response.interliners)
+                setShowInterlinerModal(false)
+            })
     }
 
     const toggleInterlinerModal = (interliner = null) => {

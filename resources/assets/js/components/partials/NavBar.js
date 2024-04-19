@@ -5,6 +5,7 @@ import {Link, useHistory} from 'react-router-dom'
 import fullLogo from '/images/fast_forward_full_logo_transparent_cropped.png'
 import shortLogo from '/images/fast_forward_short_logo_transparent.png'
 
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 const renderMenuItemChildren = (option, text) => {
@@ -105,10 +106,12 @@ export default function NavBar(props) {
     const [collapsed, setCollapsed] = useState(false)
     const [isLoadingSearch, setIsLoadingSearch] = useState(false)
     const [searchResults, setSearchResults] = useState([])
-    const searchRef = useRef(null)
-    const history = useHistory()
+
+    const api = useAPI()
     const {authenticatedUser} = useUser()
     const {front_end_permissions: frontEndPermissions, is_impersonating, account_users, employee, contact} = authenticatedUser
+    const history = useHistory()
+    const searchRef = useRef(null)
 
     const menuItemStyles = {
         root: {
@@ -181,7 +184,7 @@ export default function NavBar(props) {
         if(isLoadingSearch)
             return
         setIsLoadingSearch(true)
-        makeAjaxRequest(`/search?query=${query}`, 'GET', null, response => {
+        api.get(`/search?query=${query}`).then(response => {
             setSearchResults(response)
             setIsLoadingSearch(false)
         }, error => {
@@ -194,7 +197,7 @@ export default function NavBar(props) {
     }
 
     const unimpersonate = () => {
-        makeAjaxRequest('/users/unimpersonate', 'GET', null, response => location.reload())
+        api.get('/users/unimpersonate').then(response => location.reload())
     }
 
     return (

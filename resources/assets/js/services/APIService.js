@@ -20,6 +20,25 @@ export default class ApiService {
         this.history = history
     }
 
+    async delete(endpoint, data = null) {
+        try {
+            const response = await fetch(`${endpoint}`, {
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: data ? JSON.stringify(data) : null
+            })
+
+            return await this._handleResponse(response)
+        } catch (error) {
+            console.error('DELETE Request Error:', error)
+            throw error
+        }
+    }
+
     async get(endpoint) {
         try {
             const response = await fetch(`${endpoint}`, {

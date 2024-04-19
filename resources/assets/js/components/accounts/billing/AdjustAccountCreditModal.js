@@ -1,8 +1,9 @@
 import React, {useState} from 'react'
-
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
 import CurrencyInput from 'react-currency-input-field'
 import Select from 'react-select'
+
+import {useAPI} from '../../../contexts/APIContext'
 
 const trackAgainstOptions = [
     {label: 'Bill ID', value: 'bill'},
@@ -14,6 +15,8 @@ export default function AdjustAccountCreditModal(props) {
     const [trackId, setTrackId] = useState('')
     const [comment, setComment] = useState('')
     const [trackAgainst, setTrackAgainst] = useState(trackAgainstOptions[0])
+
+    const api = useAPI()
 
     const storeAccountCredit = () => {
         if(!props.canEditPayments) {
@@ -27,11 +30,12 @@ export default function AdjustAccountCreditModal(props) {
             track_against_type: trackAgainst.value,
             track_against_id: trackId,
         }
-        makeAjaxRequest('/accounts/adjustCredit', 'POST', data, response => {
-            props.setAccountBalance(response.new_account_balance)
-            props.refreshPaymentsTab()
-            props.hide()
-        })
+        api.post('/accounts/adjustCredit', data)
+            .then(response => {
+                props.setAccountBalance(response.new_account_balance)
+                props.refreshPaymentsTab()
+                props.hide()
+            })
     }
 
     return (

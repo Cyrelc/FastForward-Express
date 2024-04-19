@@ -7,6 +7,7 @@ import LoadingSpinner from '../../partials/LoadingSpinner'
 import UserPermissionTab from './UserPermissionTab'
 
 import useContact from '../../partials/Hooks/useContact'
+import {useAPI} from '../../../contexts/APIContext'
 
 export default function EditAccountUser(props) {
     const [accountUserPermissions, setAccountUserPermissions] = useState([])
@@ -16,24 +17,25 @@ export default function EditAccountUser(props) {
     const [key, setKey] = useState('contact')
     const [permissions, setPermissions] = useState([])
 
+    const api = useAPI()
     const contact = useContact()
 
     useEffect(() => {
         setIsLoading(true)
         if(props.contactId) {
-            makeAjaxRequest(`/accountUsers/${props.accountId}/${props.contactId}`, 'GET', null, response => {
-                response = JSON.parse(response)
-                configureModal(response)
-                setIsLoading(false)
-            })
+            api.get(`/accountUsers/${props.accountId}/${props.contactId}`)
+                .then(response => {
+                    configureModal(response)
+                    setIsLoading(false)
+                })
         } else {
             if(!props.canCreateAccountUsers)
                 return
-            makeAjaxRequest(`/accountUsers/${props.accountId}`, 'GET', null, response => {
-                response = JSON.parse(response)
-                configureModal(response)
-                setIsLoading(false)
-            }, () => {setIsLoading(false)})
+            api.get(`/accountUsers/${props.accountId}`)
+                .then(response => {
+                    configureModal(response)
+                    setIsLoading(false)
+                }, () => {setIsLoading(false)})
         }
     }, [props.show])
 
@@ -64,21 +66,25 @@ export default function EditAccountUser(props) {
         }
 
         if(contact.contactId) {
-            makeAjaxRequest('/accountUsers', 'POST', data, response => {
-                props.refreshAccountUsers()
-            })
+            api.post('/accountUsers', data)
+                .then(response => {
+                    props.refreshAccountUsers()
+                })
         } else
-            makeAjaxRequest('/accountUsers/checkIfExists', 'POST', data, response => {
-                if(response.email_in_use) {
-                    if(confirm(`This email is already in use by another user: ${response.name} \n\n On accounts:\n ${response.accounts.map(account => `\t${account.account_number} - ${account.label}`)} \n\n Would you instead like to link the existing user to this account?`))
-                        makeAjaxRequest(`/accountUsers/link/${response.contact_id}/${props.accountId}`, 'GET', null, response => {
-                            props.refreshAccountUsers()
-                        })
-                } else
-                    makeAjaxRequest('/accountUsers', 'POST', data, response => {
-                        props.refreshAccountUsers()
-                    })
-            })
+            api.post('/accountUsers/checkIfExists', data)
+                .then(response => {
+                    if(response.email_in_use) {
+                        if(confirm(`This email is already in use by another user: ${response.name} \n\n On accounts:\n ${response.accounts.map(account => `\t${account.account_number} - ${account.label}`)} \n\n Would you instead like to link the existing user to this account?`))
+                            api.get(`/accountUsers/link/${response.contact_id}/${props.accountId}`)
+                                .then(response => {
+                                    props.refreshAccountUsers()
+                                })
+                    } else
+                        api.post('/accountUsers', data)
+                            .then(response => {
+                                props.refreshAccountUsers()
+                            })
+                })
     }
 
     return (

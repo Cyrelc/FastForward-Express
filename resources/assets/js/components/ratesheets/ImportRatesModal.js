@@ -2,7 +2,11 @@ import React from 'react'
 import {Button, ButtonGroup, Col, Form, InputGroup, ListGroup, Modal, Row} from 'react-bootstrap'
 import Select from 'react-select'
 
+import {useAPI} from '../../contexts/APIContext'
+
 export default function ImportRatesModal(props) {
+    const api = useAPI()
+
     const importTypes = [
         {label: 'Miscellanous', value: 'miscRates'},
         {label: 'Weight Rates', value: 'weightRates'},
@@ -17,8 +21,8 @@ export default function ImportRatesModal(props) {
     function getRatesheet(ratesheetId) {
         if(props.importRatesheet && ratesheetId === props.importRatesheet.ratesheet_id)
             return
-        makeAjaxRequest(`/ratesheets/${ratesheetId}`, 'GET', null, response => {
-            props.handleChange({target: {name: 'importRatesheet', type: 'object', value: JSON.parse(response)}})
+        api.get(`/ratesheets/${ratesheetId}`).then(response => {
+            props.handleChange({target: {name: 'importRatesheet', type: 'object', value: response}})
         })
     }
 

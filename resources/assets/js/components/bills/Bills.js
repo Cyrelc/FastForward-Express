@@ -3,6 +3,7 @@ import {useHistory} from 'react-router-dom'
 import {DateTime} from 'luxon'
 
 import Table from '../partials/Table'
+import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
@@ -52,6 +53,7 @@ export default function Bills(props) {
     const [triggerReload, setTriggerReload] = useState(false)
 
     // Begin declarations
+    const api = useAPI()
     const history = useHistory()
     const lists = useLists()
     const {authenticatedUser} = useUser()
@@ -339,9 +341,10 @@ export default function Bills(props) {
         }
 
         if(confirm(`Are you sure you wish to delete bill ${data.bill_id}?\n\nThis action can not be undone`)) {
-            makeAjaxRequest(`/bills/${data.bill_id}`, 'DELETE', null, response => {
-                setTriggerReload(true)
-            })
+            api.delete(`/bills/${data.bill_id}`, null)
+                .then(response => {
+                    setTriggerReload(true)
+                })
         }
     }
 

@@ -3,12 +3,14 @@ import {Button, Card, FormControl, InputGroup} from 'react-bootstrap'
 import queryString from 'query-string'
 import {ReactTabulator} from 'react-tabulator'
 import {useHistory, useLocation} from 'react-router-dom'
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 export default function Search(props) {
     const [searchTerm, setSearchTerm] = useState('')
     const [searchResults, setSearchResults] = useState([])
 
+    const api = useAPI()
     const history = useHistory();
     const location = useLocation();
     const {authenticatedUser} = useUser()
@@ -48,7 +50,7 @@ export default function Search(props) {
     useEffect(() => {
         if(searchTerm != location.search)
             setSearchTerm(queryString.parse(location.search)['term'])
-        makeAjaxRequest(`/search${location.search}`, 'GET', null, response => {
+        api.get(`/search${location.search}`).then(response => {
             if(response.length == 1)
                 history.push(response[0].link)
             setSearchResults(response)

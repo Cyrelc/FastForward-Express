@@ -5,6 +5,7 @@ import {DateTime} from 'luxon'
 import DatePicker from 'react-datepicker'
 
 import Address from '../partials/Address'
+import {useAPI} from '../../contexts/APIContext'
 
 const filterDates = date => {
     const dateTime = DateTime.fromJSDate(date)
@@ -17,6 +18,8 @@ const filterDates = date => {
 }
 
 export default function BasicTab(props) {
+    const api = useAPI()
+
     const {
         accounts,
         addressTypes,
@@ -101,21 +104,23 @@ export default function BasicTab(props) {
 
     useEffect(() => {
         if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
-            makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`, 'GET', null, response => {
-                props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
-                if(!billId && applyRestrictions)
-                    props.setPickupTimeExpected(new Date())
-            })
+            api.get(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`)
+                .then(response => {
+                    props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
+                    if(!billId && applyRestrictions)
+                        props.setPickupTimeExpected(new Date())
+                })
         }
     }, [pickup.addressLat, pickup.addressLng])
 
     useEffect(() => {
         if(delivery.addressLat && delivery.addressLng && props.chargeState.activeRatesheet)
-            makeAjaxRequest(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`, 'GET', null, response => {
-                props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
-                if(!billId && applyRestrictions)
-                    props.setPickupTimeExpected(new Date())
-            })
+            api.get(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`)
+                .then(response => {
+                    props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
+                    if(!billId && applyRestrictions)
+                        props.setPickupTimeExpected(new Date())
+                })
     }, [delivery.addressLat, delivery.addressLng])
 
     return (

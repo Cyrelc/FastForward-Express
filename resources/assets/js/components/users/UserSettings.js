@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Form, Row} from 'react-bootstrap'
+
+import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
 
 export default function UserSettings(props) {
     const [defaultImperial, setDefaultImperial] = useState(false)
 
+    const api = useAPI()
     const {authenticatedUser} = useUser()
 
     useEffect(() => {
@@ -16,7 +19,7 @@ export default function UserSettings(props) {
             use_imperial_default: defaultImperial
         }
 
-        makeAjaxRequest('/users/settings', 'POST', data, response => {
+        api.post('/users/settings', data).then(response => {
             console.log(response)
         })
     }

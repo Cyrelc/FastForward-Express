@@ -3,6 +3,8 @@ import {Button, Card, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
 import {ReactTabulator} from 'react-tabulator'
 
+import {useAPI} from '../../contexts/APIContext'
+
 /**
  * Note - severity, employee_type, zone_type, and charge type deliberately excluded here
  * because they have underlying business logic that would not support simply inserting new values
@@ -38,6 +40,8 @@ export default function SelectionsTab(props) {
     const [selectionType, setSelectionType] = useState({})
     const [selectionValue, setSelectionValue] = useState('')
 
+    const api = useAPI()
+
     useEffect(() => {
         const transformedName = selectionName.replace(/\W+/g, '_')
         setSelectionValue(transformedName.toLowerCase())
@@ -55,10 +59,10 @@ export default function SelectionsTab(props) {
     }, [selectionName, selectionType, selectionValue])
 
     const getSelections = () => {
-        makeAjaxRequest('/appsettings/selections', 'GET', null, response => {
-            response = JSON.parse(response)
-            setSelections(response)
-        })
+        api.get('/appsettings/selections')
+            .then(response => {
+                setSelections(response)
+            })
     }
 
     const storeSelection = () => {
@@ -68,13 +72,13 @@ export default function SelectionsTab(props) {
             value: selectionValue
         }
 
-        makeAjaxRequest('/appsettings/selections', 'POST', data, response => {
-            response = JSON.parse(response)
-            setSelections(response)
-            setSelectionName('')
-            setSelectionType({})
-            setSelectionValue('')
-        })
+        api.post('/appsettings/selections', data)
+            .then(response => {
+                setSelections(response)
+                setSelectionName('')
+                setSelectionType({})
+                setSelectionValue('')
+            })
     }
 
     return (

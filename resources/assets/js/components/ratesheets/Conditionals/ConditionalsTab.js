@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, Row, Table} from 'react-bootstrap'
 
 import ConditionalModal from './ConditionalModal'
+import {useAPI} from '../../../contexts/APIContext'
 
 const formatCondition = condition => {
     return 'friendly formatted condition'
@@ -12,6 +13,8 @@ const formatResult = result => {
 }
 
 export default function ConditionalsTab(props) {
+    const api = useAPI()
+
     const [conditionals, setConditionals] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [editConditional, setEditConditional] = useState(false)
@@ -19,7 +22,7 @@ export default function ConditionalsTab(props) {
 
     const deleteConditional = conditional => {
         if(confirm(`Are you sure you wish to delete conditional "${conditional.name}"?\n\nThis action can not be undone.`))
-            makeAjaxRequest(`/ratesheets/conditional/${conditional.conditional_id}`, 'DELETE', null, response => {
+            api.delete(`/ratesheets/conditional/${conditional.conditional_id}`).then(response => {
                 reload()
             })
     }
@@ -37,8 +40,8 @@ export default function ConditionalsTab(props) {
     const reload = () => {
         setIsLoading(true)
         setEditConditional(false)
-        makeAjaxRequest(`/ratesheets/conditionals/${props.ratesheetId}`, 'GET', null, response => {
-            setConditionals(JSON.parse(response).map(conditional => {
+        api.get(`/ratesheets/conditionals/${props.ratesheetId}`).then(response => {
+            setConditionals(response.map(conditional => {
                 return {...conditional, action: JSON.parse(conditional.action)}
             }))
             setIsLoading(false)

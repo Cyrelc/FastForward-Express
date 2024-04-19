@@ -3,6 +3,8 @@ import {Button, ButtonGroup, Col, Row, Table} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import {useUser} from '../../contexts/UserContext'
 
+import {useAPI} from '../../contexts/APIContext'
+
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 
 export default function Manifest(props) {
@@ -11,6 +13,7 @@ export default function Manifest(props) {
     const [prevManifestId, setPrevManifestId] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
 
+    const api = useAPI()
     const {manifestId} = props.match.params
     const {bills, chargebacks, manifest, overview, employee} = data
     const {contact, warnings} = data?.employee || {}
@@ -22,8 +25,7 @@ export default function Manifest(props) {
 
     const getManifest = () => {
         setIsLoading(true)
-        makeAjaxRequest(`/manifests/${manifestId}`, 'GET', null, response => {
-            response = JSON.parse(response)
+        api.get(`/manifests/${manifestId}`).then(response => {
             document.title = `View Manifest - ${response.manifest.manifest_id}`
             let sortedManifests = localStorage.getItem('manifests.sortedList')
             if(sortedManifests) {
@@ -40,8 +42,8 @@ export default function Manifest(props) {
 
     const regather = () => {
         setIsLoading(true)
-        makeAjaxRequest(`/manifests/regather/${manifestId}`, 'GET', null, response => {
-            setData(JSON.parse(response))
+        api.get(`/manifests/regather/${manifestId}`).then(response => {
+            setData(response)
             setIsLoading(false)
         }, error => setIsLoading(false))
     }

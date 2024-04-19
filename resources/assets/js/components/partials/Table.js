@@ -6,6 +6,7 @@ import queryString from 'query-string'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import Dropdown from 'react-multilevel-dropdown'
 
+import {useAPI} from '../../contexts/APIContext'
 import TableFilters from './TableFilters'
 
 const localFilterQueryGet = (pageTitle) => {
@@ -18,6 +19,7 @@ const localFilterQuerySet = (pageTitle, filterQuery) => {
 }
 
 export default function Table(props) {
+    const api = useAPI()
     const history = useHistory()
     const location = useLocation()
     const tableRef = useRef(null)
@@ -144,7 +146,7 @@ export default function Table(props) {
 
     const deleteQuery = query => {
         if(confirm(`Are you sure you wish to delete query "${query.name}?\nThis action can not be undone`))
-            makeAjaxRequest(`/queries/${query.id}`, 'DELETE', null, response => {
+            api.delete(`/queries/${query.id}`).then(response => {
                 setQueries(response)
             })
     }
@@ -163,7 +165,7 @@ export default function Table(props) {
             history.push({search: query})
         }
 
-        makeAjaxRequest(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`, 'GET', null, response => {
+        api.get(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`).then(response => {
             if(props.transformResponse)
                 response = props.transformResponse(response)
             setTableData(response.data)
@@ -191,7 +193,7 @@ export default function Table(props) {
             query_string: location.search,
             table: props.tableName.toLowerCase()
         }
-        makeAjaxRequest('/queries', 'POST', data, response => {
+        api.post('/queries', data).then(response => {
             setQueries(response)
             setQueryName('')
         })

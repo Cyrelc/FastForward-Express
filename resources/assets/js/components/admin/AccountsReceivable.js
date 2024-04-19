@@ -3,6 +3,8 @@ import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
+import {useAPI} from '../../contexts/APIContext'
+
 const moneyColumnStandardParams = {
     formatter: 'money',
     formatterParams: {thousand: ',', symbol: '$', selectContents: true},
@@ -28,6 +30,7 @@ export default function AccountsReceivable(props) {
     const [endDate, setEndDate] = useState(new Date())
     const [table, setTable] = useState(null)
 
+    const api = useAPI()
     const tabulatorRef = useRef(null)
 
     useEffect(() => {
@@ -60,10 +63,10 @@ export default function AccountsReceivable(props) {
     }, [accountsReceivable])
 
     const getAccountsReceivable = () => {
-        makeAjaxRequest(`/admin/getAccountsReceivable/${startDate.toISOString()}/${endDate.toISOString()}`, 'GET', null, response => {
-            response = JSON.parse(response)
-            setAccountsReceivable(response.accounts_receivable)
-        })
+        api.get(`/admin/getAccountsReceivable/${startDate.toISOString()}/${endDate.toISOString()}`)
+            .then(response => {
+                setAccountsReceivable(response.accounts_receivable)
+            })
     }
 
     return (
