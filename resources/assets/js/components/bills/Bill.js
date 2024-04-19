@@ -129,7 +129,7 @@ export default function Bill(props) {
                 delivery_type_id: deliveryType.id,
                 package_is_minimum: packageIsMinimum,
                 package_is_pallet: packageIsPallet,
-                packages: packageIsMinimum ? [] : packages.packages,
+                packages: packageIsMinimum ? [] : packageArray,
                 pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
                 // TODO: replace this with ratesheet logic (mine > parents > default)
                 ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
@@ -153,7 +153,8 @@ export default function Bill(props) {
                         position: 'top-center',
                         showDuration: 300,
                         timeOut: 5000,
-                        extendedTImeout: 5000
+                        extendedTImeout: 5000,
+                        toastId: 'auto-pricing-experimental-toast'
                     }
                 )
             }, error => {setAwaitingCharges(false)})
@@ -168,7 +169,7 @@ export default function Bill(props) {
             deliveryType,
             packageIsMinimum,
             packageIsPallet,
-            packages,
+            packageArray,
             pickupAddressIsMall,
             pickupAddressLat,
             pickupAddressLng,
@@ -425,8 +426,8 @@ export default function Bill(props) {
             if(packageIsMinimum) {
                 conditionsMet = true
             } else {
-                if(packages.length > 0) {
-                    conditionsMet = packages.reduce(currentPackage => {
+                if(packageArray.length > 0) {
+                    conditionsMet = packageArray.reduce(currentPackage => {
                         return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
                     })
                 }
@@ -446,7 +447,7 @@ export default function Bill(props) {
         deliveryType,
         packageIsMinimum,
         packageIsPallet,
-        packages,
+        packageArray,
         pickupAddressIsMall,
         pickupAddressLat,
         pickupAddressLng,
