@@ -102,12 +102,14 @@ class PaymentController extends Controller {
 
         foreach($payments as $payment) {
             try {
+                DB::beginTransaction();
                 $paymentIntent = $stripe->paymentIntents->retrieve($payment->payment_intent_id);
 
                 if($paymentIntent->charges->data[0]->receipt_url)
                     $payment->update(['receipt_url' => $paymentIntent->charges->data[0]->receipt_url]);
+                DB::commit();
             } catch (\Exception $e) {
-                dd($e);
+                DB::rollback();
             }
         }
 
