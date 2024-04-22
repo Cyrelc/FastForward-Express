@@ -1,4 +1,5 @@
 import polylabel from 'polylabel'
+import simplify from 'simplify'
 
 export const polyColours = {
     internalStroke : '#3651c9',
@@ -11,16 +12,18 @@ export const polyColours = {
 
 export default class Zone {
     constructor(mapZone) {
-        this.additionalCosts = mapZone.additional_costs
-        this.additionalTime = mapZone.additional_time
-        this.id = mapZone.id
-        this.zoneId = mapZone.zone_id
+        this.additionalCosts = mapZone.additionalCosts
+        this.additionalTime = mapZone.additionalTime
+        this.fillColour = polyColours[`${mapZone.type}Fill`]
         this.name = mapZone.name
         this.neighbours = mapZone.neighbours
-        this.neighbourLabel = 
+        this.polygon = mapZone.polygon
+        this.strokeColour = polyColours[`${mapZone.type}Stroke`]
         this.type = mapZone.type
-        if(mapZone.polygon)
-            this.polygon = mapZone.polygon
+        this.zoneId = mapZone.zone_id
+
+        this.polygon.setOptions({strokeColor: this.strokeColour, fillColour: this.fillColour})
+
         const coordinates = this.getCoordinates().map(coordinatePair => {
             return [coordinatePair.lat, coordinatePair.lng]
         })
@@ -58,58 +61,200 @@ export default class Zone {
         this.polygon.getPath().removeAt(point.vertex);
     }
 
-    getForStore() {
+    collect = () => {
         var storeZone = {
-            id: this.id,
             name: this.name,
             type: this.type,
             coordinates: JSON.stringify(this.getCoordinates()),
-            zoneId: this.id
+            zoneId: this.zoneId
         }
         if(storeZone.type === 'peripheral') {
             storeZone.regularCost = this.additionalCosts.regular
             storeZone.additionalTime = this.additionalTime
         } else if(storeZone.type === 'outlying') {
             storeZone.additionalTime = this.additionalTime
-            storeZone.directCost = this.additionalCosts.directCost
-            storeZone.directRushCost = this.additionalCosts.directRushCost
-            storeZone.rushCost = this.additionalCosts.rushCost
-            storeZone.regularCost = this.additionalCosts.regularCost
+            storeZone.directCost = this.additionalCosts.direct
+            storeZone.directRushCost = this.additionalCosts.direct_rush
+            storeZone.rushCost = this.additionalCosts.rush
+            storeZone.regularCost = this.additionalCosts.regular
         }
         return storeZone
     }
 
-    // handleEdit() {
-    //     const updated = mapState.mapZones.map(zone => {
-    //         if(zone.id === id) {
-    //             zone.polygon.setOptions({editable: true, snapable: false})
-    //             zone.neighbourLabel.setMap(null)
-    //             return {...zone, viewDetails: true}
-    //         } else if(findCommonCoordinates(getCoordinates(activeZone.polygon), getCoordinates(zone.polygon)))
-    //             zone.neighbourLabel.setMap(mapState.map)
-    //         else
-    //             zone.neighbourLabel.setMap(null)
-    //         zone.polygon.setOptions({editable: false, snapable: true})
-    //         return {...zone, viewDetails: false}
-    //     })
-    //     const polySnapper = new PolySnapper({
-    //         map: mapState.map,
-    //         threshold: mapState.snapPrecision,
-    //         polygons: mapState.mapZones.map(mapZone => {return mapZone.polygon}),
-    //         hidePOI: true,
-    //     })
-    //     polySnapper.enable(mapState.mapZones.filter(mapZone => mapZone.id === id)[0].polygon.zIndex)
-    //     mapState.setMapZones(updated)
-    //     mapState.setPolySnapper(polySnapper)
+    edit = () => {
+        this.polygon.setOptions({editable: true, snapable: false})
+        this.neighbourLabel.setMap(null)
+        this.viewDetails = true
+    }
+
+    // Would eventually call "removeDuplicates()", followed by "match()", and finally "smooth()"
+    // to be triggered whenever editing a zone ends, or when hitting submit (on the current zone being edited)
+    // TODO - problem, is that "this" does not have a link to all mapZones (for Match), would have to be passed in as a parameter?
+    // finalize = (mapZones) => {
+        // this.removeDuplicates()
+        // this.match(mapZones)
+        // this.smooth()
     // }
 
-    hasCommonCoordinates = otherZone => {
-        return this.getCoordinates().some(coord1 => {
-            return otherZone.getCoordinates().some(coord2 => coord1.lat === coord2.lat && coord1.lng === coord2.lng)
+    // TODO - this feature may **never** work - Google attempts to match a path to the nearest roads, but it has a few limitations
+    // 1) This is meant to be for driven coordinates, and as such doesn't really fit polygons
+    // 2) It has a limit of 100 points
+    // snapToRoads = async () => {
+    //     const path = (this.getCoordinates()).map(point => `${point.lat},${point.lng}`).join('|')
+    //     const url = `https://roads.googleapis.com/v1/snapToRoads?path=${encodeURIComponent(path)}&key=AIzaSyBaijyvCruJ9RD1d40rahp8yYafw0xYH6U`
+
+    //     try {
+    //         const response = await fetch(url)
+    //         const json = await response.json()
+    //         const snappedCoordinates = json.snappedPoints.map(point => ({
+    //             lat: point.location.latitude,
+    //             lng: point.location.longitude
+    //         }))
+    //         if(snappedCoordinates)
+    //             this.polygon.setPath(snappedCoordinates)
+    //         else
+    //             console.error('error retrieving snapped coordinates')
+    //     } catch (error) {
+    //         console.error('Error snapping to roads: ', error)
+    //         return null
+    //     }
+    // }
+
+    smooth = variance => {
+        const myCoordinates = this.getCoordinates().map(({lat, lng}) => {return {x: lat, y: lng}})
+        this.polygon.setPath(simplify(myCoordinates, 0.0001).map(({x, y}) => {return {lat: x, lng: y}}))
+    }
+
+    match = allMapZones => {
+        const calculateDistance = (point1, point2) => {
+            const deltaX = Math.abs(point2.lat - point1.lat)
+            const deltaY = Math.abs(point2.lng - point1.lng)
+            return Math.sqrt(deltaX * deltaY + deltaY * deltaX)
+        }
+
+        const calculateSegmentLength = segment => {
+            let totalLength = 0
+            //special case if there are only two points in the list
+            if(segment.length == 2) {
+                return calculateDistance(segment[0], segment[1])
+            }
+
+            for (let i = 0; i < segment.length - 2; i++)
+                totalLength += calculateDistance(segment[i], segment[i + 1])
+            return totalLength
+        }
+
+        const extractSubsegment = (coordinates, start, end) => {
+            // To solve the "wrap around the start point" issue, we can use the starting coordinate AS the start point, to avoid it happening!
+            // This will let us consider the two "halves" of the polygon as determined by the end point for length
+            // and assume the shorter one is correct.
+            // We do still have to consider order when creating this new coordinate array however
+            let startIndex = coordinates.findIndex(p => p.lat === start.lat && p.lng === start.lng)
+            let endIndex = coordinates.findIndex(p => p.lat === end.lat && p.lng === end.lng)
+            // we take from the start point of the matched segment, to the end of the list, then from the beginning of the list to the startIndex
+            coordinates = Array.prototype.concat(coordinates.slice(startIndex), coordinates.slice(0, startIndex))
+            // So start index will now always be zero, which prevents wrapping around, and end index MUST be contained within the array somewhere
+            endIndex = coordinates.findIndex(p => p.lat === end.lat && p.lng === end.lng)
+            // Now we have two possible paths between the two points
+            // we choose the "shortest" of the two as the most likely candidate
+            const path1 = coordinates.slice(0, endIndex + 1)
+            // We have to duplicate the start point here to include the final path
+            const path2 = Array.prototype.concat(coordinates.slice(endIndex), [coordinates[0]])
+            if(calculateSegmentLength(path1) < calculateSegmentLength(path2))
+                return path1
+            return path2
+        }
+
+        /**
+         * Takes two arrays of lat lng with shared first and last coordinates, and combines them to make a singular path
+         * This allows streamlining and straightening of coordinates before saving, and should also clean up whitespace between zones
+         * @param {Array[{lat, lng}]} segment1
+         * @param {Array[{lat, lng}]} segment2
+         */
+        const mergeSegments = (segment1, segment2) => {
+            // If the two segments are going in opposite directions, reverse one of them
+            if(segment1[0].lat == segment2[segment2.length - 1].lat && segment1[0].lng == segment2[segment2.length - 1].lng)
+                segment2 = segment2.reverse()
+
+            // Filter out all duplicates from segment 2 (treat segment1 as a sort of "master")
+            segment2 = segment2.filter(p2 => {
+                return !segment1.some(p1 => p2.lat == p1.lat && p2.lng == p1.lng)
+            })
+
+            // pop the first element from segment1, as it is now the only instance of the starting point
+            let mergedSegment = [segment1.shift()]
+            while(segment1.length > 0 || segment2.length > 0) {
+                //if either segment is empty, simply shift from the other one
+                if(segment2.length == 0) {
+                    mergedSegment.push(segment1.shift())
+                } else if(segment1.length == 0) {
+                    mergedSegment.push(segment2.shift())
+                } else {
+                    //otherwise, compute the distance between the next points to see which is closer, and shift that one
+                    const lastPoint = mergedSegment[mergedSegment.length - 1]
+                    const distanceToNextPoint1 = google.maps.geometry.spherical.computeDistanceBetween(segment1[0], lastPoint)
+                    const distanceToNextPoint2 = google.maps.geometry.spherical.computeDistanceBetween(segment2[0], lastPoint)
+                    if(distanceToNextPoint1 < distanceToNextPoint2)
+                        mergedSegment.push(segment1.shift())
+                    else
+                        mergedSegment.push(segment2.shift())
+                }
+            }
+            //repeat until both arrays are empty, and return the result
+            return mergedSegment
+        }
+
+        const replaceSegment = (zone, mergedSegment) => {
+            const startPoint = mergedSegment[0]
+            const endPoint = mergedSegment[mergedSegment.length - 1]
+            if(!startPoint || !endPoint) {
+                console.error('replaceSegment error', zone.name, mergedSegment)
+                return
+            }
+            const coordinates = zone.getCoordinates()
+            if(mergedSegment.findIndex(point => point.lat == coordinates[0].lat && point.lng == coordinates[0].lng) > -1) {
+                console.error('replacement segment contains start and end of polygon - special case', coordinates[0], mergedSegment)
+                return
+            }
+            const startIndex = coordinates.findIndex(p => p.lat === startPoint.lat && p.lng === startPoint.lng)
+            const endIndex = coordinates.findIndex(p => p.lat === endPoint.lat && p.lng === endPoint.lng)
+            let newPath = []
+            if(startIndex > endIndex) {
+                newPath = Array.prototype.concat(coordinates.slice(0, endIndex), mergedSegment.reverse(), coordinates.slice(startIndex))
+            } else 
+                newPath = Array.prototype.concat(coordinates.slice(0, startIndex), mergedSegment, coordinates.slice(endIndex))
+            zone.polygon.setPath(newPath)
+        }
+
+        allMapZones.forEach(zone => {
+            if(zone.polygon.zIndex == this.polygon.zIndex)
+                return
+            const commonPoints = this.getCommonCoordinates(zone)
+            if(commonPoints.length <= 1)
+                return
+            for (let i = 0; i < commonPoints.length - 2; i++) {
+                const start = commonPoints[i];
+                const end = commonPoints[i + 1];
+
+                const segment1 = extractSubsegment(this.getCoordinates(), start, end);
+                const segment2 = extractSubsegment(zone.getCoordinates(), start, end);
+                const mergedSegment = mergeSegments(segment1, segment2)
+                if(mergedSegment && mergedSegment.length) {
+                    replaceSegment(zone, mergedSegment)
+                    replaceSegment(this, mergedSegment)
+                }
+            }
+        })
+
+    }
+
+    getCommonCoordinates = otherZone => {
+        return this.getCoordinates().filter(coord1 => {
+            return otherZone.getCoordinates().some(coord2 => coord1.lat == coord2.lat && coord1.lng == coord2.lng)
         })
     }
 
-    removeDuplicates() {
+    removeDuplicates = () => {
         let filtered = []
         let duplicates = []
         let count = 0

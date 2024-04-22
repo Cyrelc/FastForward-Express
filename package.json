@@ -80,6 +80,7 @@
         "react-toastify": "^9.0.3",
         "reactstrap": "^9.1.5",
         "save": "^2.4.0",
+        "simplify": "^1.0.0",
         "snazzy-info-window": "^1.1.1",
         "tempusdominus-core": "^5.19.0",
         "yargs": "^17.7.2"
