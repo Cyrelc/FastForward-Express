@@ -1,19 +1,25 @@
 import React from 'react'
-import {Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import {Button, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
 import Zone from './MapZone'
 import Select from 'react-select'
 import {GoogleMap, DrawingManager, LoadScript} from '@react-google-maps/api'
 
 export default function MapTab(props) {
     const {
+        createZone,
         defaultZoneType,
+        deleteZone,
         editZoneZIndex,
-        setDefaultZoneType,
+        handleZoneEdit,
         mapCenter,
-        mapZoom,
         mapZones,
-        setMap,
+        mapZoom,
+        setDefaultZoneType,
         setDrawingManager,
+        setEditZoneZIndex,
+        setMap,
+        setSnapPrecision,
+        snapPrecision,
     } = props.mapState
 
     const popover = (
@@ -33,15 +39,15 @@ export default function MapTab(props) {
                     <Select
                         options={mapZones}
                         getOptionLabel={zone => {
-                            console.log(zone)
-                            return `${zone.name} (${zone.type}) (${zone.getCoordinateCount()} points)`}}
-                        getOptionValue={zone => zone.id}
-                        value={mapZones.find(zone => zone.id == editZoneZIndex)}
-                        onChange={zone => props.editZone(zone.id)}
+                            return `${zone.name} (${zone.type}) (${zone.getCoordinateCount()} points)`
+                        }}
+                        getOptionValue={zone => zone.polygon.zIndex}
+                        value={mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)}
+                        onChange={zone => setEditZoneZIndex(zone.polygon.zIndex)}
                         isSearchable
                     />
                 </Col>
-                <Col md={6} className='justify-content-md-center' style={{display: 'flex'}}>
+                <Col md={3} className='justify-content-md-center' style={{display: 'flex'}}>
                     <InputGroup>
                         <InputGroup.Text>New Zone Type: </InputGroup.Text>
                         <ToggleButtonGroup
@@ -75,13 +81,26 @@ export default function MapTab(props) {
                     </InputGroup>
                 </Col>
                 <Col md={3}>
+                    <Button onClick={() => {
+                        mapZones.forEach(mapZone => {
+                            console.log('running match for zone', mapZone.polygon.zIndex)
+                            mapZone.match(mapZones.filter(zone => zone.polygon.zIndex > mapZone.polygon.zIndex))
+                        })
+                        mapZones.forEach(mapZone => {
+                            console.log('running smooth for zone', mapZone.polygon.zIndex)
+                            mapZone.smooth()
+                        })
+                        mapZones.forEach(mapZone => mapZone.removeDuplicates())
+                    }}>Clean Map (Recommended; experimental){mapZones.reduce((acc, zone) => acc + zone.getCoordinateCount(), 0)}</Button>
+                </Col>
+                <Col md={3}>
                     <InputGroup>
                         <InputGroup.Text>Snap Accuracy</InputGroup.Text>
                         <FormControl
                             type='number'
                             name='snapPrecision'
-                            value={props.snapPrecision}
-                            onChange={props.handleChange}
+                            value={snapPrecision}
+                            onChange={event => setSnapPrecision(event.target.value)}
                         />
                     </InputGroup>
                 </Col>
@@ -90,15 +109,16 @@ export default function MapTab(props) {
                 <Col md={3}>
                     {mapZones && mapZones.length > 0 && mapZones.filter(zone => zone.viewDetails).map(zone =>
                         <Zone
-                            key={zone.id}
-                            id={zone.id}
-                            zone={zone}
-                            handleChange={props.handleChange}
-                            handleZoneTypeChange={props.handleZoneTypeChange}
+                            colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
                             deleteZone={props.deleteZone}
                             editZone={props.editZone}
+                            handleChange={props.handleChange}
+                            handleZoneTypeChange={props.handleZoneTypeChange}
+                            id={zone.polygon.zIndex}
+                            key={zone.polygon.zIndex}
+                            mapZones={mapZones}
                             viewDetails={zone.viewDetails}
-                            colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
+                            zone={zone}
                         />
                     )}
                     Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommendation is to create a simple polygon, and then edit it to fit your desired dimensions
@@ -112,6 +132,7 @@ export default function MapTab(props) {
                         onLoad={map => {
                             setMap(map)
                         }}
+                        id='test_id'
                     >
                         <DrawingManager
                             onLoad={drawingManager => setDrawingManager(drawingManager)}

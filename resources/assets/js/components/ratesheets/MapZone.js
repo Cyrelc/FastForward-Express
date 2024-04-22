@@ -29,6 +29,18 @@ export default function Zone(props) {
                                 <Dropdown.Item onClick={() => props.deleteZone(props.id)}>
                                     <i className='fas fa-trash'></i> Delete
                                 </Dropdown.Item>
+                                <Dropdown.Item onClick={props.zone.snapToRoads}>
+                                    <i className='fas fa-road' />Snap To Roads
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={props.zone.smooth}>
+                                    <i className='fas fa-chart-line' />Smooth
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={() => props.zone.match(props.mapZones)}>
+                                    <i className='fas fa-check' />Match
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={props.zone.removeDuplicates}>
+                                    Dedup
+                                </Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </Col>
@@ -76,11 +88,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='regularCost'
-                                onValueChange={value => props.handleChange({target: {name: 'regularCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='regular'
+                                onValueChange={value => props.handleChange({target: {name: 'regular', type: 'currency', value: value}}, 'mapZones', props.id)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.regularCost}
+                                value={props.zone.additionalCosts.regular}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -89,11 +101,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='rushCost'
-                                onValueChange={value => props.handleChange({target: {name: 'rushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='rush'
+                                onValueChange={value => props.handleChange({target: {name: 'rush', type: 'currency', value: value}}, 'mapZones', props.id)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.rushCost}
+                                value={props.zone.additionalCosts.rush}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -102,11 +114,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='directCost'
-                                onValueChange={value => props.handleChange({target: {name: 'directCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='direct'
+                                onValueChange={value => props.handleChange({target: {name: 'direct', type: 'currency', value: value}}, 'mapZones', props.id)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.directCost}
+                                value={props.zone.additionalCosts.direct}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -115,11 +127,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='directRushCost'
-                                onValueChange={value => props.handleChange({target: {name: 'directRushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='directRush'
+                                onValueChange={value => props.handleChange({target: {name: 'directRush', type: 'currency', value: value}}, 'mapZones', props.id)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.directRushCost}
+                                value={props.zone.additionalCosts.direct_rush}
                             />
                         </InputGroup>
                     </div>

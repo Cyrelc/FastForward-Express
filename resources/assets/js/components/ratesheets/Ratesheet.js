@@ -1,9 +1,7 @@
-import React, {useEffect, useState, useRef} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
 import {toast} from 'react-toastify'
-// import {GoogleMap, OverlayView} from '@react-google-maps/api'
 
-import PolySnapper from '../../../../../public/js/polysnapper-master/polysnapper.js'
 import Zone, {polyColours} from './Classes/Zone'
 
 import BasicRatesTab from './BasicRatesTab'
@@ -17,6 +15,7 @@ import DistanceRatesTab from './DistanceRatesTab'
 import useImport from './Hooks/useImportFromRatesheet'
 import useMap from './Hooks/useMap'
 import useRatesheet from './Hooks/useRatesheet'
+
 import {useAPI} from '../../contexts/APIContext'
 
 const sleep = ms => {
@@ -62,17 +61,21 @@ export default function Ratesheet(props) {
                 ratesheetState.setUseInternalZonesCalc(response.useInternalZonesCalc)
                 if(params.ratesheetId) {
                     const mapZonesLength = response.mapZones.length
-                    const mapZones = []
                     for (let index = 0; index < mapZonesLength; index++) {
                         const mapZone = response.mapZones[index]
                         const percentComplete = (index / mapZonesLength).toPrecision(2) * 100
                         mapState.setDrawingMap(percentComplete)
-                        const polygon = new google.maps.Polygon({
+                        const zIndex = nextPolygonIndex++
+                        mapZone.polygon = new google.maps.Polygon({
                             paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
+                            map: mapState.map,
+                            zIndex: zIndex
                         })
-                        polygon.setMap(mapState.map)
-                        mapZones.push(createZone(polygon, mapZone))
-                        // await sleep(100)
+                        mapZone.polygon.addListener('click', () => mapState.setEditZoneZIndex(zIndex))
+                        mapZone.additionalCosts = JSON.parse(mapZone.additional_costs)
+                        mapZone.additionalTime = parseFloat(mapZone.additional_time)
+                        const newZone = new Zone(mapZone)
+                        mapState.setMapZones(prevMapZones => prevMapZones.concat(newZone))
                     }
                     mapState.setDrawingMap(100)
                 }
@@ -80,50 +83,12 @@ export default function Ratesheet(props) {
         }
     }, [mapState.map, mapState.drawingManager])
 
-    const createZone = (polygon, zone = null) => {
-        var strokeColour, fillColour, type
-        if(zone) {
-            strokeColour = polyColours[`${zone.type}Stroke`]
-            fillColour = polyColours[`${zone.type}Fill`]
-            type = zone.type
-        } else {
-            strokeColour = polyColours[`${mapState.defaultZoneType}Stroke'`]
-            fillColour = polyColours[`${mapState.defaultZoneType}Fill`]
-            type = mapState.defaultZoneType
-        }
-        polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour, zIndex: nextPolygonIndex++})
-        polygon.addListener('click', () => mapState.setEditZoneZIndex(polygon.zIndex))
-        const name = zone ? zone.name : `${mapState.defaultZoneType}_zone_${polygon.zIndex}`
-        var zoneData = {
-            id: polygon.zIndex,
-            name : name,
-            type: type,
-            polygon: polygon,
-            view_details: false,
-            zone_id: zone ? zone.zone_id : null,
-        }
-        if(type === 'peripheral') {
-            const cost = zone ? JSON.parse(zone.additional_costs) : null
-            zoneData.regularCost = cost ? cost.regular : ''
-            zoneData.additionalTime = zone ? zone.additional_time : ''
-        } else if (type === 'outlying') {
-            const costs = zone ? JSON.parse(zone.additional_costs) : null
-            zoneData.regularCost = costs ? costs.regular : ''
-            zoneData.rushCost = costs ? costs.rush : ''
-            zoneData.directCost = costs ? costs.direct : ''
-            zoneData.directRushCost = costs ? costs.direct_rush : ''
-            zoneData.additionalTime = zone ? zone.additional_time : ''
-        }
-        const newZone = new Zone(zoneData)
-        mapState.setMapZones(prevMapZones => prevMapZones.concat(newZone))
-    }
-
-    const deleteZone = id => {
-        const name = mapState.mapZones.find(zone => zone.id == id).name
+    const deleteZone = zIndex => {
+        const name = mapState.mapZones.find(zone => zone.zIndex == zIndex).name
         if(confirm(`Are you sure you wish to delete zone "${name}"?\n This action can not be undone`)) {
             var deleteIndex = null
             mapState.mapZones.map((zone, index) => {
-                if(zone.id === id) {
+                if(zone.zIndex === zIndex) {
                     deleteIndex = index
                     zone.polygon.setMap(null)
                     // zone.polyLabel.setMap(null)
@@ -132,32 +97,6 @@ export default function Ratesheet(props) {
             mapState.setMapZones(mapState.mapZones.filter((zone, index) => index !== deleteIndex))
         }
     }
-
-    useEffect(() => {
-        const activeZone = mapState.mapZones.find(zone => zone.id == mapState.editZoneZIndex)
-        const updated = mapState.mapZones.map(zone => {
-            if(zone.id === mapState.editZoneZIndex) {
-                zone.polygon.setOptions({editable: true, snapable: false})
-                zone.neighbourLabel.setMap(null)
-                return {...zone, viewDetails: true}
-            } else if(activeZone.hasCommonCoordinates(zone))
-                zone.neighbourLabel.setMap(mapState.map)
-            else
-                zone.neighbourLabel.setMap(null)
-            zone.polygon.setOptions({editable: false, snapable: true})
-            return {...zone, viewDetails: false}
-        })
-        const polySnapper = new PolySnapper({
-            map: mapState.map,
-            threshold: mapState.snapPrecision,
-            polygons: mapState.mapZones.map(mapZone => {return mapZone.polygon}),
-            hidePOI: true,
-        })
-        // polySnapper.enable(mapState.editZoneZIndex)
-        // polySnapper.enable(mapState.editZoneZIndex)
-        mapState.setMapZones(updated)
-        mapState.setPolySnapper(polySnapper)
-    }, [mapState.editZoneZIndex])
 
     // const handleChange = (event, section, id) => {
     //     const {name, value, type, checked} = event.target
@@ -191,9 +130,10 @@ export default function Ratesheet(props) {
                     if(oldZone && replace) {
                         const temp_id = oldZone.zoneId;
                         deleteZone(oldZone.zoneId, oldZone.name)
-                        createZone(polygon, {...importZone, zone_id: temp_id})
+                        // createZone(polygon, {...importZone, zone_id: temp_id})
                     } else
-                        createZone(polygon, {...importZone, name: oldZone ? `${importZone.name} (copy)` : importZone.name, zoneId: null})
+                        console.log('test')
+                        // createZone(polygon, {...importZone, name: oldZone ? `${importZone.name} (copy)` : importZone.name, zoneId: null})
                 })
                 break;
             case 'timeRates':
@@ -236,13 +176,13 @@ export default function Ratesheet(props) {
         importFromRatesheet.reset()
     }
 
-    const handleZoneTypeChange = (event, id) => {
+    const handleZoneTypeChange = (event, zIndex) => {
         const {value} = event.target
         const strokeColour = polyColours[`${value}Stroke`]
         const fillColour = polyColours[`${value}Fill`]
 
         const updated = mapState.mapZones.map(mapZone => {
-            if(mapZone.id == id) {
+            if(mapZone.zIndex == zIndex) {
                 mapZone.polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour})
                 return {...mapZone, type: value}
             }
@@ -257,12 +197,12 @@ export default function Ratesheet(props) {
             name: ratesheetState.name,
             ratesheet_id: ratesheetState.ratesheetId,
             useInternalZonesCalc: ratesheetState.useInternalZonesCalc,
-            deliveryTypes: ratesheetState.deliveryTypes.slice(),
-            weightRates: ratesheetState.weightRates.slice(),
-            zoneRates: ratesheetState.zoneRates.slice(),
-            mapZones: mapState.mapZones.map(zone => prepareZoneForStore(zone)),
-            timeRates: ratesheetState.timeRates.slice(),
-            miscRates: ratesheetState.miscRates.slice()
+            deliveryTypes: ratesheetState.deliveryTypes,
+            weightRates: ratesheetState.weightRates,
+            zoneRates: ratesheetState.zoneRates,
+            mapZones: mapState.mapZones.map(zone => zone.collect()),
+            timeRates: ratesheetState.timeRates,
+            miscRates: ratesheetState.miscRates
         }
         api.post('/ratesheets', data).then(response => {
             mapState.setSavingMap(100)
@@ -327,11 +267,6 @@ export default function Ratesheet(props) {
                         <MapTab
                             polyColours={polyColours}
                             mapState={mapState}
-
-                            onPolygonComplete={createZone}
-                            // handleZoneTypeChange={handleZoneTypeChange}
-                            // deleteZone={deleteZone}
-                            // editZone={editZone}
                         />
                     </Tab>
                     <Tab
