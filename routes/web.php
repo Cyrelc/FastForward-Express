@@ -119,6 +119,7 @@ Route::middleware(['auth'])->controller(ManifestController::class)->prefix('mani
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
+    Route::get('/receipts', 'getReceipts');
     Route::post('/{invoiceId}', 'processPayment');
     Route::get('/{invoiceId}', 'getReceivePaymentModel');
     Route::delete('/{paymentId}', 'revertPayment');
