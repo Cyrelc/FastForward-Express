@@ -1,4 +1,5 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
+import PolySnapper from '../../../../../../public/js/polysnapper-master/polysnapper.js'
 
 export default function useMap() {
     const [defaultZoneType, setDefaultZoneType] = useState('internal')
@@ -10,18 +11,39 @@ export default function useMap() {
     const [drawingManager, setDrawingManager] = useState(undefined)
     const [mapZones, setMapZones] = useState([])
     const [mapZoom, setMapZoom] = useState(11)
-    const [nextPolygonIndex, setNextPolygonIndex] = useState(0)
     const [polySnapper, setPolySnapper] = useState(null)
     const [savingMap, setSavingMap] = useState(100)
     const [snapPrecision, setSnapPrecision] = useState(100)
 
-    const getNextPolygonIndex = () => {
-        let newIndex = null
-        setNextPolygonIndex(prevIndex => {
-            newIndex = prevIndex + 1
-            return newIndex
+    useEffect(() => {
+        const activeZone = mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)
+        if(!activeZone)
+            return
+        mapZones.forEach(zone => {
+            if(zone.polygon.zIndex === editZoneZIndex)
+                zone.edit()
+            else {
+                zone.neighbourLabel.setMap(activeZone.getCommonCoordinates(zone).length ? map : null)
+                zone.polygon.setOptions({editable: false, snapable: true})
+                zone.viewDetails = false
+            }
         })
-        return newIndex
+        const polySnapper = new PolySnapper({
+            map: map,
+            threshold: snapPrecision,
+            polygons: mapZones.map(mapZone => mapZone.polygon),
+            hidePOI: true,
+        })
+        polySnapper.enable(activeZone.polygon.zIndex)
+        setPolySnapper(polySnapper)
+    }, [editZoneZIndex])
+
+    const createZone = () => {}
+
+    const deleteZone = () => {}
+
+    const handleZoneChange = (event, zIndex) => {
+        
     }
 
     return {
@@ -30,7 +52,6 @@ export default function useMap() {
         drawingMap,
         editZoneZIndex,
         latLngPrecision,
-        getNextPolygonIndex,
         map,
         mapCenter,
         mapZones,
