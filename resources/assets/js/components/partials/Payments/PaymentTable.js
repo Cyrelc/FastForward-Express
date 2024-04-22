@@ -1,5 +1,5 @@
-import React from 'react'
-import {Badge, Card} from 'react-bootstrap'
+import React, {Fragment} from 'react'
+import {Button, Badge, Card} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import ReactDOM from 'react-dom'
 import {useHistory} from 'react-router-dom'
@@ -27,7 +27,12 @@ export default function PaymentTable(props) {
         else if(status == 'Processing')
             variant = 'primary'
 
-        ReactDOM.render(<Badge bg={variant} title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>, element)
+        ReactDOM.render(
+            <Fragment>
+                <Badge bg={variant} title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>
+                {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
+            </Fragment>
+        , element)
 
         return element
     }
@@ -83,7 +88,8 @@ export default function PaymentTable(props) {
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
         {title: 'Payment Status', field: 'payment_intent_status', formatter: formatPaymentIntentStatus},
         {title: 'Error', field: 'error', visible: false},
-        {title: 'payment_intent_id', field: 'payment_intent_id', visible: false}
+        {title: 'payment_intent_id', field: 'payment_intent_id', visible: false},
+        {title: 'receipt_url', field: 'receipt_url', visible: false}
     ]
 
     return (
