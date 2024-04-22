@@ -94,30 +94,6 @@ class PaymentController extends Controller {
         );
     }
 
-    public function getReceipts(Request $req) {
-        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-        $payments = \App\Models\Payment::whereNotNull('payment_intent_id')
-            ->whereNull('receipt_url')
-            ->get();
-
-        foreach($payments as $payment) {
-            try {
-                DB::beginTransaction();
-                $paymentIntent = $stripe->paymentIntents->retrieve($payment->payment_intent_id);
-
-                if($paymentIntent->charges->data[0]->receipt_url)
-                    $payment->update(['receipt_url' => $paymentIntent->charges->data[0]->receipt_url]);
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollback();
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-        ]);
-    }
-
     public function getReceivePaymentModel(Request $req, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $invoice = $invoiceRepo->GetById($invoiceId);
