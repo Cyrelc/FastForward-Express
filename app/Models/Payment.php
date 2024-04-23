@@ -25,6 +25,7 @@ class Payment extends Model
         'payment_intent_id',
         'payment_intent_status',
         'payment_type_id',
+        'receipt_url',
         'reference_value',
     ];
 

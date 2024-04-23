@@ -60,6 +60,7 @@ class PaymentIntentProcessor {
                     'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null,
                     'payment_intent_status' => $newStatus,
                     'payment_type_id' => $paymentType->payment_type_id,
+                    'receipt_url' => $paymentIntent->charges->data[0]->receipt_url ?? null,
                     'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
                 ]);
 

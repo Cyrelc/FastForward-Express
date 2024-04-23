@@ -25,6 +25,7 @@ class CreatePaymentsTable extends Migration
             $table->unsignedInteger('invoice_id')->nullable();
             $table->unsignedInteger('payment_type_id');
             $table->string('payment_intent_id')->nullable();
+            $table->string('receipt_url')->nullable();
             $table->string('reference_value')->nullable();
 
             $table->foreign('account_id')->references('account_id')->on('accounts');

@@ -26,6 +26,7 @@ class PaymentRepo {
                     'payment_intent_status',
                     'payment_types.name as payment_type',
                     'payments.payment_id',
+                    'receipt_url',
                     'reference_value',
                     DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
                 ],
