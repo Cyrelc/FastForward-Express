@@ -64,6 +64,9 @@ class UserController extends Controller {
             $req->session()->put('original_user_id', Auth::user()->id);
 
         Auth::loginUsingId($impersonateUser->id);
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function sendPasswordResetEmail(Request $req, $userId) {
@@ -96,6 +99,9 @@ class UserController extends Controller {
             abort(403);
 
         Auth::loginUsingId($originalUserId);
+        return response()->json([
+            'success' => true,
+        ]);
     }
 }
 ?>
