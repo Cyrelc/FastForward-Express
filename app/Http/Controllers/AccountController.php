@@ -83,11 +83,11 @@ class AccountController extends Controller {
         return json_encode($billingModel);
     }
 
-    public function getChart(Request $req) {
+    public function getChart(Request $req, $accountId) {
         $accountRepo = new Repos\AccountRepo();
         $chartModelFactory = new Chart\ChartModelFactory();
 
-        $account = $accountRepo->GetById($req->account_id);
+        $account = $accountRepo->GetById($accountId);
         if($req->user()->cannot('viewPayments', $account))
             abort(403);
 
