@@ -1,9 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
 import {toast} from 'react-toastify'
-
-import Zone, {polyColours} from './Classes/Zone'
-
 import BasicRatesTab from './BasicRatesTab'
 import ConditionalsTab from './Conditionals/ConditionalsTab'
 import ImportRatesTab from './ImportRatesTab'
@@ -22,8 +19,6 @@ const sleep = ms => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-var nextPolygonIndex = 0;
-
 export default function Ratesheet(props) {
     const api = useAPI()
     const importFromRatesheet = useImport()
@@ -39,6 +34,13 @@ export default function Ratesheet(props) {
             setKey(window.location.hash.substr(1))
         ratesheetState.setRatesheetId(params.ratesheetId)
     }, [])
+
+    useEffect(() => {
+        if(location.hash.substring(1))
+            setKey(location.hash.substring(1))
+        else
+            setKey('basic')
+    }, [location.hash])
 
     useEffect(() => {
         if(mapState.map && mapState.drawingManager) {
@@ -65,38 +67,13 @@ export default function Ratesheet(props) {
                         const mapZone = response.mapZones[index]
                         const percentComplete = (index / mapZonesLength).toPrecision(2) * 100
                         mapState.setDrawingMap(percentComplete)
-                        const zIndex = nextPolygonIndex++
-                        mapZone.polygon = new google.maps.Polygon({
-                            paths: mapZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}}),
-                            map: mapState.map,
-                            zIndex: zIndex
-                        })
-                        mapZone.polygon.addListener('click', () => mapState.setEditZoneZIndex(zIndex))
-                        mapZone.additionalCosts = JSON.parse(mapZone.additional_costs)
-                        mapZone.additionalTime = parseFloat(mapZone.additional_time)
-                        const newZone = new Zone(mapZone)
-                        mapState.setMapZones(prevMapZones => prevMapZones.concat(newZone))
+                        mapState.createZone(null, mapZone)
                     }
                     mapState.setDrawingMap(100)
                 }
             })
         }
     }, [mapState.map, mapState.drawingManager])
-
-    const deleteZone = zIndex => {
-        const name = mapState.mapZones.find(zone => zone.zIndex == zIndex).name
-        if(confirm(`Are you sure you wish to delete zone "${name}"?\n This action can not be undone`)) {
-            var deleteIndex = null
-            mapState.mapZones.map((zone, index) => {
-                if(zone.zIndex === zIndex) {
-                    deleteIndex = index
-                    zone.polygon.setMap(null)
-                    // zone.polyLabel.setMap(null)
-                }
-            })
-            mapState.setMapZones(mapState.mapZones.filter((zone, index) => index !== deleteIndex))
-        }
-    }
 
     // const handleChange = (event, section, id) => {
     //     const {name, value, type, checked} = event.target
@@ -176,21 +153,6 @@ export default function Ratesheet(props) {
         importFromRatesheet.reset()
     }
 
-    const handleZoneTypeChange = (event, zIndex) => {
-        const {value} = event.target
-        const strokeColour = polyColours[`${value}Stroke`]
-        const fillColour = polyColours[`${value}Fill`]
-
-        const updated = mapState.mapZones.map(mapZone => {
-            if(mapZone.zIndex == zIndex) {
-                mapZone.polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour})
-                return {...mapZone, type: value}
-            }
-            return mapZone
-        })
-        mapState.setMapZones(updated)
-    }
-
     const store = () => {
         mapState.setSavingMap(0)
         var data = {
@@ -229,7 +191,7 @@ export default function Ratesheet(props) {
                 <h4>Saving map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
             </Modal>
             <Col md={12}>
-                <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={key} onSelect={newKey => setKey(newKey)}>
+                <Tabs id='ratesheet-tabs' className='nav-justified' activeKey={key} onSelect={newKey => {window.location.hash = newKey}}>
                     <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
                         <BasicRatesTab
                             ratesheetState={ratesheetState}
@@ -265,7 +227,6 @@ export default function Ratesheet(props) {
                     }
                     <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
                         <MapTab
-                            polyColours={polyColours}
                             mapState={mapState}
                         />
                     </Tab>

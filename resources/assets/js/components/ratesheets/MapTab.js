@@ -1,6 +1,7 @@
 import React from 'react'
 import {Button, Card, Col, FormControl, InputGroup, Popover, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
-import Zone from './MapZone'
+import {polyColours} from './Classes/Zone'
+import MapZone from './MapZone'
 import Select from 'react-select'
 import {GoogleMap, DrawingManager, LoadScript} from '@react-google-maps/api'
 
@@ -16,15 +17,18 @@ export default function MapTab(props) {
         mapZoom,
         setDefaultZoneType,
         setDrawingManager,
+        setDrawingMap,
         setEditZoneZIndex,
         setMap,
         setSnapPrecision,
         snapPrecision,
     } = props.mapState
 
+    const editZone = mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)
+
     const popover = (
         <Popover id='map-info-popover' title='How to Create a Great RateMap'>
-            <strong>Maps Zones</strong> come in two varieties:<br/>
+            <strong>Map Zones</strong> come in two varieties:<br/>
             <strong>Internal</strong> and <strong>Peripheral</strong><br/><br/>
             <strong>Peripheral Zones</strong> are areas outside of your regular delivery service area. They have additional costs, and time requirements associated with them.<br/><br/>
             <strong>Internal Zones</strong> are areas within your regular delivery service area. You can either have <strong>one</strong> internal zone, in which case there will be no associated charge with crossing that zone, or you can have <strong>many</strong> internal zones. If you choose to have many, then define them on the map and the map will be able to automatically calculate how many zones were crossed for a delivery, and charge the correct rate.<br/><br/>
@@ -61,37 +65,44 @@ export default function MapTab(props) {
                                 variant='secondary'
                                 value='internal'
                                 key='internal'
-                                style={{backgroundColor: props.polyColours.internalFill, color: defaultZoneType === 'internal' ? 'black' : 'white'}}
+                                style={{backgroundColor: polyColours.internalFill, color: defaultZoneType === 'internal' ? 'black' : 'white'}}
                             >Internal</ToggleButton>
                             <ToggleButton
                                 variant='secondary'
                                 id='defaultZoneType.peripheral'
                                 value='peripheral'
                                 key='peripheral'
-                                style={{backgroundColor: props.polyColours.peripheralFill, color: defaultZoneType === 'peripheral' ? 'black' : 'white'}}
+                                style={{backgroundColor: polyColours.peripheralFill, color: defaultZoneType === 'peripheral' ? 'black' : 'white'}}
                             >Peripheral</ToggleButton>
                             <ToggleButton
                                 variant='secondary'
                                 id='defaultZoneType.outlying'
                                 value='outlying'
                                 key='outlying' 
-                                style={{backgroundColor: props.polyColours.outlyingFill, color: defaultZoneType === 'outlying' ? 'black' : 'white'}}
+                                style={{backgroundColor: polyColours.outlyingFill, color: defaultZoneType === 'outlying' ? 'black' : 'white'}}
                             >Outlying</ToggleButton>
                         </ToggleButtonGroup>
                     </InputGroup>
                 </Col>
                 <Col md={3}>
                     <Button onClick={() => {
-                        mapZones.forEach(mapZone => {
+                        setDrawingMap(0)
+                        mapZones.forEach((mapZone, index) => {
+                            setDrawingMap(index / mapZones.length / 3)
                             console.log('running match for zone', mapZone.polygon.zIndex)
                             mapZone.match(mapZones.filter(zone => zone.polygon.zIndex > mapZone.polygon.zIndex))
                         })
-                        mapZones.forEach(mapZone => {
+                        mapZones.forEach((mapZone, index)=> {
+                            setDrawingMap(33 + index / mapZones.length / 3)
                             console.log('running smooth for zone', mapZone.polygon.zIndex)
                             mapZone.smooth()
                         })
-                        mapZones.forEach(mapZone => mapZone.removeDuplicates())
-                    }}>Clean Map (Recommended; experimental){mapZones.reduce((acc, zone) => acc + zone.getCoordinateCount(), 0)}</Button>
+                        mapZones.forEach((mapZone, index) => {
+                            setDrawingMap(66 + index / mapZones.length / 3)
+                            mapZone.removeDuplicates()
+                        })
+                        setDrawingMap(100)
+                    }}>Clean Map (Recommended; experimental) {mapZones.reduce((acc, zone) => acc + zone.getCoordinateCount(), 0)}</Button>
                 </Col>
                 <Col md={3}>
                     <InputGroup>
@@ -107,20 +118,16 @@ export default function MapTab(props) {
             </Row>
             <Row>
                 <Col md={3}>
-                    {mapZones && mapZones.length > 0 && mapZones.filter(zone => zone.viewDetails).map(zone =>
-                        <Zone
-                            colour={zone.type === 'internal' ? props.polyColours.internalFill : zone.type === 'peripheral' ? props.polyColours.peripheralFill : props.polyColours.outlyingFill}
-                            deleteZone={props.deleteZone}
-                            editZone={props.editZone}
-                            handleChange={props.handleChange}
-                            handleZoneTypeChange={props.handleZoneTypeChange}
-                            id={zone.polygon.zIndex}
-                            key={zone.polygon.zIndex}
+                    {editZone &&
+                        <MapZone
+                            deleteZone={props.mapState.deleteZone}
+                            // editZone={props.editZone}
+                            handleZoneChange={props.mapState.handleZoneChange}
+                            // handleZoneTypeChange={props.mapState.handleZoneTypeChange}
                             mapZones={mapZones}
-                            viewDetails={zone.viewDetails}
-                            zone={zone}
+                            zone={editZone}
                         />
-                    )}
+                    }
                     Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommendation is to create a simple polygon, and then edit it to fit your desired dimensions
                 </Col>
                 <Col md={9}>
@@ -147,12 +154,12 @@ export default function MapTab(props) {
                                 polygonOptions: {
                                     clickable: true,
                                     editable: true,
-                                    fillColor: props.polyColours[`${defaultZoneType}Fill`],
-                                    strokeColor: props.polyColours[`${defaultZoneType}Stroke`],
+                                    fillColor: polyColours[`${defaultZoneType}Fill`],
+                                    strokeColor: polyColours[`${defaultZoneType}Stroke`],
                                     zIndex: mapZones.length + 1
                                 }
                             }}
-                            onPolygonComplete={props.onPolygonComplete}
+                            onPolygonComplete={createZone}
                         />
                     </GoogleMap>
                 </Col>

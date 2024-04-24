@@ -22,7 +22,7 @@ export default class Zone {
         this.type = mapZone.type
         this.zoneId = mapZone.zone_id
 
-        this.polygon.setOptions({strokeColor: this.strokeColour, fillColour: this.fillColour})
+        this.polygon.setOptions({strokeColor: this.strokeColour, fillColor: this.fillColour})
 
         const coordinates = this.getCoordinates().map(coordinatePair => {
             return [coordinatePair.lat, coordinatePair.lng]
@@ -34,6 +34,44 @@ export default class Zone {
             position: {lat: neighbourLabelPosition[0], lng: neighbourLabelPosition[1]},
         })
         google.maps.event.addListener(this.polygon, 'rightclick', (point) => this.deletePolyPoint(point));
+    }
+
+    collect = () => {
+        return {
+            additionalTime: this.additionalTime,
+            coordinates: JSON.stringify(this.getCoordinates()),
+            directCost: this.additionalCosts.direct,
+            directRushCost: this.additionalCosts.direct_rush,
+            name: this.name,
+            regularCost: this.additionalCosts.regular,
+            rushCost: this.additionalCosts.rush,
+            type: this.type,
+            zoneId: this.zoneId,
+        }
+    }
+
+    delete = () => {
+        this.polygon.setMap(null)
+        this.neighbourLabel.setMap(null)
+    }
+
+    deletePolyPoint = (point) => {
+        if(!this.polygon) {
+            console.error('Unable to delete polypoint, polygon has not been created')
+            return
+        }
+        this.polygon.getPath().removeAt(point.vertex);
+    }
+
+    edit = () => {
+        this.polygon.setOptions({editable: true, snapable: false})
+        this.neighbourLabel.setMap(null)
+    }
+
+    getCommonCoordinates = otherZone => {
+        return this.getCoordinates().filter(coord1 => {
+            return otherZone.getCoordinates().some(coord2 => coord1.lat == coord2.lat && coord1.lng == coord2.lng)
+        })
     }
 
     getCoordinateCount = () => {
@@ -51,40 +89,6 @@ export default class Zone {
                 lng: parseFloat(point.lng().toFixed(latLngPrecision))
             }
         })
-    }
-
-    deletePolyPoint = (point) => {
-        if(!this.polygon) {
-            console.error('Unable to delete polypoint, polygon has not been created')
-            return
-        }
-        this.polygon.getPath().removeAt(point.vertex);
-    }
-
-    collect = () => {
-        var storeZone = {
-            name: this.name,
-            type: this.type,
-            coordinates: JSON.stringify(this.getCoordinates()),
-            zoneId: this.zoneId
-        }
-        if(storeZone.type === 'peripheral') {
-            storeZone.regularCost = this.additionalCosts.regular
-            storeZone.additionalTime = this.additionalTime
-        } else if(storeZone.type === 'outlying') {
-            storeZone.additionalTime = this.additionalTime
-            storeZone.directCost = this.additionalCosts.direct
-            storeZone.directRushCost = this.additionalCosts.direct_rush
-            storeZone.rushCost = this.additionalCosts.rush
-            storeZone.regularCost = this.additionalCosts.regular
-        }
-        return storeZone
-    }
-
-    edit = () => {
-        this.polygon.setOptions({editable: true, snapable: false})
-        this.neighbourLabel.setMap(null)
-        this.viewDetails = true
     }
 
     // Would eventually call "removeDuplicates()", followed by "match()", and finally "smooth()"
@@ -119,11 +123,6 @@ export default class Zone {
     //         return null
     //     }
     // }
-
-    smooth = variance => {
-        const myCoordinates = this.getCoordinates().map(({lat, lng}) => {return {x: lat, y: lng}})
-        this.polygon.setPath(simplify(myCoordinates, 0.0001).map(({x, y}) => {return {lat: x, lng: y}}))
-    }
 
     match = allMapZones => {
         const calculateDistance = (point1, point2) => {
@@ -248,12 +247,6 @@ export default class Zone {
 
     }
 
-    getCommonCoordinates = otherZone => {
-        return this.getCoordinates().filter(coord1 => {
-            return otherZone.getCoordinates().some(coord2 => coord1.lat == coord2.lat && coord1.lng == coord2.lng)
-        })
-    }
-
     removeDuplicates = () => {
         let filtered = []
         let duplicates = []
@@ -268,6 +261,11 @@ export default class Zone {
         })
         console.log(`${count} duplicates found`, filtered.length, duplicates)
         this.polygon.setPath(filtered)
+    }
+
+    smooth = variance => {
+        const myCoordinates = this.getCoordinates().map(({lat, lng}) => {return {x: lat, y: lng}})
+        this.polygon.setPath(simplify(myCoordinates, 0.0001).map(({x, y}) => {return {lat: x, lng: y}}))
     }
 }
 
