@@ -8,7 +8,6 @@ import {useAPI} from '../../../contexts/APIContext'
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
 const StripeForm = (props) => {
-    const api = useAPI()
     const elements = useElements()
     const stripe = useStripe()
 
@@ -50,6 +49,8 @@ const StripeForm = (props) => {
 
 export default function StripePaymentBody(props) {
     const [clientSecret, setClientSecret]  = useState(null)
+
+    const api = useAPI()
 
     useEffect(() => {
         console.log('called StripePaymentBody')
