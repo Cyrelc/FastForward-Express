@@ -5,7 +5,7 @@ import {useAPI} from '../../../contexts/APIContext'
 export default function CardOnFileBody(props) {
     const [comment, setComment] = useState('')
 
-    const api = useApi()
+    const api = useAPI()
 
     const storePayment = () => {
         const data = {
