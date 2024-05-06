@@ -2,6 +2,7 @@ import React, {Fragment, useEffect, useState} from 'react'
 import {Button, Modal} from 'react-bootstrap'
 import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
+import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
 
