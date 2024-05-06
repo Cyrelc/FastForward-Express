@@ -5,8 +5,10 @@ import {useHistory, useLocation} from 'react-router-dom'
 import queryString from 'query-string'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import Dropdown from 'react-multilevel-dropdown'
+import {toast} from 'react-toastify'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useUser} from '../../contexts/UserContext'
 import TableFilters from './TableFilters'
 
 const localFilterQueryGet = (pageTitle) => {
@@ -23,6 +25,7 @@ export default function Table(props) {
     const history = useHistory()
     const location = useLocation()
     const tableRef = useRef(null)
+    const user = useUser()
 
     const [columns, setColumns] = useState([])
     const [filters, setFilters] = useState([])
@@ -229,10 +232,10 @@ export default function Table(props) {
     const writeQueryToClipboard = async (queryString) => {
         try {
             await navigator.clipboard.writeText(location.pathname + queryString)
+            toast.success('Query copied to clipboard!')
         } catch (error) {
             console.error('Unable to write to clipboard', error.message)
         }
-        toast.success('Query copied to clipboard!')
     }
 
     return (
@@ -385,13 +388,15 @@ export default function Table(props) {
                                                                             size='sm'
                                                                             style={{flex: 1}}
                                                                         >{query.name}</Button>
-                                                                        {/* <Button
-                                                                            key={query.id + '.share'}
-                                                                            onClick={() => writeQueryToClipboard(query.query_string)}
-                                                                            size='sm'
-                                                                            style={{flex: 0}}
-                                                                            variant='success'
-                                                                        ><i className='fas fa-share'></i></Button> */}
+                                                                        {user.frontEndPermissions.appSettings.edit &&
+                                                                            <Button
+                                                                                key={query.id + '.share'}
+                                                                                onClick={() => writeQueryToClipboard(query.query_string)}
+                                                                                size='sm'
+                                                                                style={{flex: 0}}
+                                                                                variant='success'
+                                                                            ><i className='fas fa-share'></i></Button>
+                                                                        }
                                                                     </ButtonGroup>
                                                                 )}
                                                             </ButtonGroup>
