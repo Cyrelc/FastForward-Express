@@ -12,7 +12,7 @@ import TableFilters from './TableFilters'
 
 const localFilterQueryGet = (pageTitle) => {
     const value = localStorage.getItem(`${pageTitle}.queryString`)
-    return value ? '?' + value : null
+    return value ?? null
 }
 
 const localFilterQuerySet = (pageTitle, filterQuery) => {
@@ -34,6 +34,7 @@ export default function Table(props) {
     const [table, setTable] = useState(null)
     const [tableData, setTableData] = useState([])
     const [tableBuilt, setTableBuilt] = useState(false)
+
     // Initial setup, set document title, get initial searchQuery
     useEffect(() => {
         setIsLoading(true)
