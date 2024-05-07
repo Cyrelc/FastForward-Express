@@ -67,7 +67,7 @@ class PaymentIntentProcessor {
                 if($newStatus == 'succeeded') {
                     activity('payment_intent')
                         ->performedOn($payment)
-                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->data->status, 'amount' => $paymentAmount])
+                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->data->status, 'amount' => $paymentAmount, 'receipt_url' => $paymentIntent->charges->data[0]->receipt_url])
                         ->log('[ReceiveStripeWebhook.handle] succeeded');
                     if($invoice->balance_owing == 0)
                         throw new \Exception('Attempting to double pay invoice #' . $payment->invoice_id, $event);
