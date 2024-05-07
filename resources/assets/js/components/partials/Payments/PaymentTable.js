@@ -29,7 +29,11 @@ export default function PaymentTable(props) {
 
         ReactDOM.render(
             <Fragment>
-                <Badge bg={variant} title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}>{status}</Badge>
+                <Badge
+                    bg={variant}
+                    title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}
+                    onClick={navigator.clipboard.writeText(data.payment_intent_id)}
+                >{status}</Badge>
                 {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
             </Fragment>
         , element)
