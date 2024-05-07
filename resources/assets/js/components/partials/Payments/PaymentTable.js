@@ -3,6 +3,8 @@ import {Button, Badge, Card} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import ReactDOM from 'react-dom'
 import {useHistory} from 'react-router-dom'
+import {toast} from 'react-toastify'
+
 import {useAPI} from '../../../contexts/APIContext'
 
 export default function PaymentTable(props) {
@@ -32,7 +34,12 @@ export default function PaymentTable(props) {
                 <Badge
                     bg={variant}
                     title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}
-                    onClick={navigator.clipboard.writeText(data.payment_intent_id)}
+                    onClick={() => {
+                        if(window.location.protocol === 'https:') {
+                            navigator.clipboard.writeText(data.payment_intent_id)}
+                            toast.success('Query copied to clipboard!')
+                        }
+                    }
                 >{status}</Badge>
                 {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
             </Fragment>
