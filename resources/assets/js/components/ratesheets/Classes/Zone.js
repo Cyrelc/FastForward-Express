@@ -12,7 +12,7 @@ export const polyColours = {
 
 export default class Zone {
     constructor(mapZone) {
-        this.additionalCosts = mapZone.additionalCosts
+        this.additionalCosts = mapZone.additionalCosts ?? [{regular: null, rush: null, direct_rush: null, direct: null}]
         this.additionalTime = mapZone.additionalTime
         this.fillColour = polyColours[`${mapZone.type}Fill`]
         this.name = mapZone.name

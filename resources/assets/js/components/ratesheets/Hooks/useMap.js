@@ -116,19 +116,22 @@ export default function useMap() {
     }
 
     const handleZoneChange = (event, zIndex) => {
-        console.log(event, zIndex)
         const {name, value} = event.target
         const updated = mapZones.map(zone => {
             if(zone.polygon.zIndex == zIndex) {
-                if(name.includes('additionalCosts.'))
-                    return {...zone, additionalCosts: {...zone.additionalCosts, [name.split('.')[1]]: value}}
+                if(name.includes('additionalCosts.')) {
+                    zone.additionalCosts[name.split('.')[1]] = value
+                }
                 else if(name == 'type') {
                     const fillColour = polyColours[`${value}Fill`]
                     const strokeColour = polyColours[`${value}Stroke`]
                     zone.polygon.setOptions({strokeColor: strokeColour, fillColor: fillColour})
-                    return {...zone, type: value, fillColour: fillColour, strokeColour: strokeColour}
+                    zone.type = value
+                    zone.fillColour = fillColour
+                    zone.strokeColour = strokeColour
                 } else
-                    return {...zone, [name]: value}
+                    zone[name] = value
+                return zone
             }
             return zone
         })

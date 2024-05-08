@@ -169,7 +169,7 @@ export default function Ratesheet(props) {
         api.post('/ratesheets', data).then(response => {
             mapState.setSavingMap(100)
             if(ratesheetState.ratesheetId) {
-                toast.success(`${ratesheetState.name} was successfully updated!`, {onClose: location.reload})
+                toast.success(`${ratesheetState.name} was successfully updated!`)
             } else {
                 toast.success(`${ratesheetState.name} was successfully created`, {
                     position: 'top-center',
