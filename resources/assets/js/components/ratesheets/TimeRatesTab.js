@@ -4,27 +4,28 @@ import {Button, Card, Col, Row} from 'react-bootstrap'
 import TimeRate from './TimeRate'
 
 export default function TimeRatesTab(props) {
+    const {timeRates, setTimeRates} = props
 
     function addTimeRate() {
-        props.handleChange({target: {name: 'timeRates', type: 'object', value: props.timeRates.concat([{
+        setTimeRates(timeRates.concat([{
             name: '',
             price: 0.00,
             brackets: [{startDay: null, startTime: 0, endDay: null, endTime: 0}]
-        }])}})
+        }]))
     }
 
     function deleteTimeRate(index) {
         if(confirm('Are you sure you wish to delete this Time Rate?\n\nThis action can not be undone'))
-            props.handleChange({target: {name: 'timeRates', type: 'object', value: props.timeRates.filter((timeRate, i) => i != index)}})
+            setTimeRates(props.timeRates.filter((timeRate, i) => i != index))
     }
 
     function handleTimeRateChange(modifiedTimeRate, index) {
-        const timeRates = props.timeRates.map((timeRate, i) => {
+        const updated = props.timeRates.map((timeRate, i) => {
             if(i == index)
                 return modifiedTimeRate
             return timeRate
         })
-        props.handleChange({target: {name: 'timeRates', type: 'object', value: timeRates}})
+        setTimeRates(updated)
     }
 
     return (
@@ -38,7 +39,7 @@ export default function TimeRatesTab(props) {
                 </Row>
             </Card.Header>
             <Card.Body>
-                {props.timeRates && props.timeRates.map((timeRate, index) => 
+                {timeRates && timeRates.map((timeRate, index) => 
                     <TimeRate
                         deleteTimeRate={deleteTimeRate}
                         handleTimeRateChange={handleTimeRateChange}

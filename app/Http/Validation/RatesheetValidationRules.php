@@ -17,7 +17,7 @@ class RatesheetValidationRules {
             'name.unique' => 'Ratesheet Name is already taken. Please try another',
         ];
 
-        if($req->useInternalZonesCalc === 'true') {
+        if($req->useInternalZonesCalc) {
             foreach($req->zoneRates as $key => $rate)
             if($key != sizeOf($req->zoneRates) - 1) {
                 foreach(['regular_cost' => 'Regular cost', 'rush_cost' => 'Rush cost', 'direct_cost' => 'Direct cost', 'direct_rush_cost' => 'Direct Rush cost'] as $field => $message) {

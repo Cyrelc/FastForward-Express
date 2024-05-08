@@ -141,6 +141,9 @@ class RatesheetController extends Controller {
         $this->updateNeighbours($ratesheetId);
 
         DB::commit();
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function storeConditional(Request $req, $conditionalId = null) {

@@ -9,15 +9,30 @@ const zoneTypes = [
     {label: 'Outlying', value: 'outlying'}
 ]
 
-export default function Zone(props) {
+export default function MapZone(props) {
+    const {
+        additionalCosts,
+        additionalTime,
+        fillColour,
+        name,
+        type,
+    } = props.zone
+console.log(type)
+    const {zIndex} = props.zone.polygon
+
     return(
         <Card>
-            <Card.Header style={{backgroundColor: props.colour}}>
+            <Card.Header style={{backgroundColor: fillColour}}>
                 <Row>
                     <Col>
                         <InputGroup size='sm'>
                             <InputGroup.Text>Name: </InputGroup.Text>
-                            <FormControl type='text' name='name' value={props.zone.name} onChange={event => props.handleChange(event, 'mapZones', props.id)}/>
+                            <FormControl
+                                type='text'
+                                name='name'
+                                value={name}
+                                onChange={event => props.handleZoneChange(event, zIndex)}
+                            />
                         </InputGroup>
                     </Col>
                     <Col md='auto'>
@@ -26,14 +41,17 @@ export default function Zone(props) {
                                 <i className='fas fa-bars'></i>
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
-                                <Dropdown.Item onClick={() => props.deleteZone(props.id)}>
+                                <Dropdown.Item onClick={() => props.deleteZone(zIndex)}>
                                     <i className='fas fa-trash'></i> Delete
                                 </Dropdown.Item>
-                                <Dropdown.Item onClick={() => props.zoneRemoveDuplicates(props.id)} size='sm'>
-                                    <span className='fa-stack'>
-                                        <i className='fas fa-copy fa-stack-1x'></i>
-                                        <i className='fas fa-ban fa-stack-2x'></i>
-                                    </span> Dedup
+                                <Dropdown.Item onClick={props.zone.smooth}>
+                                    <i className='fas fa-chart-line' />Smooth
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={() => props.zone.match(props.mapZones)}>
+                                    <i className='fas fa-check' />Match
+                                </Dropdown.Item>
+                                <Dropdown.Item onClick={props.zone.removeDuplicates}>
+                                    Dedup
                                 </Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
@@ -45,21 +63,21 @@ export default function Zone(props) {
                     <InputGroup.Text>Zone Type</InputGroup.Text>
                     <Select
                         options={zoneTypes}
-                        onChange={zoneType => props.handleZoneTypeChange({target: {name: 'type', type: 'string', value: zoneType.value}}, props.id)}
+                        onChange={zoneType => props.handleZoneChange({target: {name: 'type', type: 'string', value: zoneType.value}}, zIndex)}
                         value={zoneTypes.find(zoneType => zoneType.value === props.zone.type)}
                     />
                 </InputGroup>
             </Card.Body>
-            {(props.zone.type === 'peripheral' || props.zone.type === 'outlying') &&
-            <Collapse in={props.zone.viewDetails}>
+            {(type == 'peripheral' || type == 'outlying') &&
+            <Collapse in={true}>
                 <Card.Body>
                     <hr/>
                     <InputGroup size='sm'>
                         <InputGroup.Text>Additional Time: </InputGroup.Text>
-                        <FormControl type='number' step={0.1} min={0.00} name='additionalTime' value={props.zone.additionalTime} onChange={event => props.handleChange(event, 'mapZones', props.id)} />
+                        <FormControl type='number' step={0.1} min={0.00} name='additionalTime' value={additionalTime} onChange={event => props.handleZoneChange(event, zIndex)} />
                         <InputGroup.Text> hours</InputGroup.Text>
                     </InputGroup>
-                {props.zone.type !== 'peripheral' ? null :
+                {type == 'peripheral' &&
                     <InputGroup size='sm'>
                         <InputGroup.Text>Additional Cost: </InputGroup.Text>
                         <CurrencyInput
@@ -67,14 +85,14 @@ export default function Zone(props) {
                             decimalScale={2}
                             min={0.01}
                             name='regularCost'
-                            onValueChange={value => props.handleChange({target: {name: 'regularCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                            onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.regular', type: 'currency', value: value}}, zIndex)}
                             prefix='$'
                             step={0.01}
-                            value={props.zone.regularCost}
+                            value={additionalCosts.regular}
                         />
                     </InputGroup>
                 }
-                {props.zone.type !== 'outlying' ? null :
+                {type == 'outlying' &&
                     <div>
                         <InputGroup size='sm'>
                             <InputGroup.Text>Regular Cost: </InputGroup.Text>
@@ -82,11 +100,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='regularCost'
-                                onValueChange={value => props.handleChange({target: {name: 'regularCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='regular'
+                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.regular', type: 'currency', value: value}}, zIndex)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.regularCost}
+                                value={additionalCosts.regular}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -95,11 +113,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='rushCost'
-                                onValueChange={value => props.handleChange({target: {name: 'rushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='rush'
+                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.rush', type: 'currency', value: value}}, zIndex)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.rushCost}
+                                value={additionalCosts.rush}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -108,11 +126,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='directCost'
-                                onValueChange={value => props.handleChange({target: {name: 'directCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='direct'
+                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.direct', type: 'currency', value: value}}, zIndex)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.directCost}
+                                value={additionalCosts.direct}
                             />
                         </InputGroup>
                         <InputGroup size='sm'>
@@ -121,11 +139,11 @@ export default function Zone(props) {
                                 decimalsLimit={2}
                                 decimalScale={2}
                                 min={0.01}
-                                name='directRushCost'
-                                onValueChange={value => props.handleChange({target: {name: 'directRushCost', type: 'currency', value: value}}, 'mapZones', props.id)}
+                                name='directRush'
+                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.direct_rush', type: 'currency', value: value}}, zIndex)}
                                 prefix='$'
                                 step={0.01}
-                                value={props.zone.directRushCost}
+                                value={additionalCosts.direct_rush}
                             />
                         </InputGroup>
                     </div>

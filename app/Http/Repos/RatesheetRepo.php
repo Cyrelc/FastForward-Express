@@ -125,7 +125,7 @@ class RatesheetRepo {
     }
 
     public function UpdateZone($zone) {
-        $old = Zone::where('zone_id', $zone['zone_id'])->first();
+        $old = Zone::find($zone['zone_id']);
 
         $old->additional_costs = $zone['additional_costs'];
         $old->additional_time = $zone['additional_time'];
@@ -135,6 +135,7 @@ class RatesheetRepo {
         $old->type = $zone['type'];
 
         $old->save();
+
         return $old;
     }
 }

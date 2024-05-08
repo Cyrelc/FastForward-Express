@@ -4,17 +4,18 @@ import {Button, Card, Col, Row} from 'react-bootstrap'
 import WeightRate from './WeightRate'
 
 export default function WeightRatesTab(props) {
+    const {weightRates, setWeightRates} = props
 
     function addWeightRate() {
-        props.handleChange({target: {name: 'weightRates', type: 'object', value: props.weightRates.concat([{
+        setWeightRates(weightRates.concat([{
             name: '',
             brackets: [{price: 0.00, kgmax: 0.00, lbmax: 0.00, additionalXKgs: 0.00, additionalXLbs: 0.00}],
-        }])}})
+        }]))
     }
 
     function deleteWeightRate(index) {
         if(confirm('Are you sure you wish to delete this weightRate?\n\nThis action cannot be undone.'))
-            props.handleChange({target: {name: 'weightRates', type: 'object', value: props.weightRates.filter((weightRate, i) => i != index)}})
+            setWeightRates(weightRates.filter((weightRate, i) => i !== index))
     }
     
     function handleWeightRateChange(modifiedWeightRate, index) {
@@ -22,13 +23,13 @@ export default function WeightRatesTab(props) {
             console.log("ERROR: handleWeightRateChange called with invalid index. Aborting")
             return
         }
-        const weightRates = props.weightRates.map((weightRate, i) => {
+        const updated = weightRates.map((weightRate, i) => {
             if(i === index)
                 return modifiedWeightRate
             else
                 return weightRate
         })
-        props.handleChange({target: {name: 'weightRates', type: 'object', value: weightRates}})
+        setWeightRates(updated)
     }
 
     return (
@@ -40,7 +41,7 @@ export default function WeightRatesTab(props) {
                 </Row>
             </Card.Header>
             <Card.Body>
-                {props.weightRates && props.weightRates.map((weightRate, index) =>
+                {weightRates && weightRates.map((weightRate, index) =>
                     <WeightRate
                         deleteWeightRate={deleteWeightRate}
                         handleWeightRateChange={handleWeightRateChange}
