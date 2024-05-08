@@ -96,8 +96,10 @@ export default function Bill(props) {
                     if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
                         const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
                         const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-                        if(ratesheet)
+                        if(ratesheet) {
                             billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                            chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                        }
                     }
                 } else {
                     if(data.permissions.createFull && !data.permissions.packages)

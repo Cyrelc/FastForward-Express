@@ -2,13 +2,13 @@ import React, {Fragment, useEffect, useState} from 'react'
 import {Button, Modal} from 'react-bootstrap'
 import {Elements, PaymentElement, useElements, useStripe} from '@stripe/react-stripe-js'
 import {loadStripe} from '@stripe/stripe-js'
+import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
 
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
 const StripeForm = (props) => {
-    const api = useAPI()
     const elements = useElements()
     const stripe = useStripe()
 
@@ -50,6 +50,8 @@ const StripeForm = (props) => {
 
 export default function StripePaymentBody(props) {
     const [clientSecret, setClientSecret]  = useState(null)
+
+    const api = useAPI()
 
     useEffect(() => {
         console.log('called StripePaymentBody')

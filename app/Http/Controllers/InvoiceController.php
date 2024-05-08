@@ -256,17 +256,17 @@ class InvoiceController extends Controller {
         if($req->user()->cannot('create', Invoice::class))
             abort(403);
 
-        DB::beginTransaction();
-
         $validationRules = [
-            'accounts' => 'required_if:prepaid,[]|array|min:1',
-            'prepaid' => 'required_if:accounts,[]|array|min:1',
+            'accounts' => 'array',
+            'prepaid' => 'array',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:' . $req->start_date
         ];
 
         $validationMessages = ['accounts.required_if' => 'You must select at least one item to invoice'];
         $this->validate($req, $validationRules, $validationMessages);
+
+        DB::beginTransaction();
 
         $invoiceRepo = new Repos\InvoiceRepo();
 
@@ -281,6 +281,9 @@ class InvoiceController extends Controller {
                 $invoiceRepo->CreateFromCharge($chargeId);
 
         DB::commit();
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     /**

@@ -5,13 +5,14 @@ import {useHistory, useLocation} from 'react-router-dom'
 import queryString from 'query-string'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import Dropdown from 'react-multilevel-dropdown'
+import {toast} from 'react-toastify'
 
 import {useAPI} from '../../contexts/APIContext'
 import TableFilters from './TableFilters'
 
 const localFilterQueryGet = (pageTitle) => {
     const value = localStorage.getItem(`${pageTitle}.queryString`)
-    return value ? '?' + value : null
+    return value ?? null
 }
 
 const localFilterQuerySet = (pageTitle, filterQuery) => {
@@ -36,16 +37,16 @@ export default function Table(props) {
 
     // Initial setup, set document title, get initial searchQuery
     useEffect(() => {
+        setIsLoading(true)
         document.title = `${props.pageTitle} - Fast Forward Express`
 
-        const initialQuery = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
-        fetchTableData(initialQuery)
-        if(location.search != initialQuery) {
-            history.replace(location.pathname + initialQuery)
-        }
+        const query = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
 
-        const queryStrings = queryString.parse(initialQuery)
-        const initialFilters = props.filters.map(filter => {
+        if(location.search != query) {
+            history.push({search: query})
+        }
+        const queryStrings = queryString.parse(query)
+        const filters = props.filters.map(filter => {
             const value = queryStrings[`filter[${filter.db_field}]`]
             return {
                 ...filter,
@@ -53,8 +54,18 @@ export default function Table(props) {
                 value: value,
             }
         })
-        setFilters(initialFilters)
-    }, [])
+        setFilters(filters)
+
+        localFilterQuerySet(props.tableName, query)
+
+        api.get(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`).then(response => {
+            if(props.transformResponse)
+                response = props.transformResponse(response)
+            setTableData(response.data)
+            setQueries(response.queries ?? [])
+            setIsLoading(false)
+        }, () => {setIsLoading(false)})
+    }, [location.search])
 
     // Initialize datatable
     useEffect(() => {
@@ -151,27 +162,13 @@ export default function Table(props) {
             })
     }
 
-    const fetchTableData = (query = null) => {
-        setIsLoading(true)
-        if(query == null) {
-            const activeFilters = {}
-            filters.forEach(filter => {
-                if(filter.active && filter.value)
-                    activeFilters[`filter[${filter.db_field}]`] = filter.value
-            })
-
-            query = queryString.stringify(activeFilters)
-            localFilterQuerySet(props.tableName, query)
-            history.push({search: query})
-        }
-
-        api.get(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`).then(response => {
-            if(props.transformResponse)
-                response = props.transformResponse(response)
-            setTableData(response.data)
-            setQueries(response.queries ?? [])
-            setIsLoading(false)
-        }, () => {setIsLoading(false)})
+    const getQueryFromFilters = () => {
+        const activeFilters = {}
+        filters.forEach(filter => {
+            if(filter.active && filter.value)
+                activeFilters[`filter[${filter.db_field}]`] = filter.value
+        })
+        return queryString.stringify(activeFilters)
     }
 
     const handleActiveFiltersChange = activeFilters => {
@@ -229,10 +226,10 @@ export default function Table(props) {
     const writeQueryToClipboard = async (queryString) => {
         try {
             await navigator.clipboard.writeText(location.pathname + queryString)
+            toast.success('Query copied to clipboard!')
         } catch (error) {
             console.error('Unable to write to clipboard', error.message)
         }
-        toast.success('Query copied to clipboard!')
     }
 
     return (
@@ -277,7 +274,7 @@ export default function Table(props) {
                                                 })
                                             }}
                                         />
-                                        <Button variant='success' onClick={() => fetchTableData()}>Apply Filters</Button>
+                                        <Button variant='success' onClick={() => history.push({search: getQueryFromFilters()})}>Apply Filters</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col style={{textAlign: 'right'}}>
@@ -381,17 +378,20 @@ export default function Table(props) {
                                                                         ><i className='fas fa-trash'></i></Button>
                                                                         <Button
                                                                             key={query.id + '.load'}
-                                                                            onClick={() => history.push(location.pathname + query.query_string)}
+                                                                            onClick={() => {
+                                                                                history.push(location.pathname + query.query_string)
+                                                                                // fetchTableData(query.query_string)
+                                                                            }}
                                                                             size='sm'
                                                                             style={{flex: 1}}
                                                                         >{query.name}</Button>
-                                                                        {/* <Button
+                                                                        <Button
                                                                             key={query.id + '.share'}
                                                                             onClick={() => writeQueryToClipboard(query.query_string)}
                                                                             size='sm'
                                                                             style={{flex: 0}}
                                                                             variant='success'
-                                                                        ><i className='fas fa-share'></i></Button> */}
+                                                                        ><i className='fas fa-clipboard'></i></Button>
                                                                     </ButtonGroup>
                                                                 )}
                                                             </ButtonGroup>

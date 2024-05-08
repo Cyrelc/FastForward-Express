@@ -14,7 +14,7 @@ const filterDates = date => {
     if(dateTime.diffNow("days").days < 0)
         return false
     const day = date.getDay()
-    return day !== 6 && day !== 7
+    return day !== 0 && day !== 6
 }
 
 export default function BasicTab(props) {

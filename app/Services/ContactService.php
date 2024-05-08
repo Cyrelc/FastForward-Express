@@ -141,7 +141,7 @@ class ContactService {
             'last_name' => $contactData['last_name'],
             'position' => $contactData['position'] ?? null,
             'preferred_name' => isset($contactData['preferred_name']) ? $contactData['preferred_name'] : null,
-            'pronouns' => isset($contactData['pronouns']) ? json_encode($contactData['pronouns']) : null
+            'pronouns' => isset($contactData['pronouns']) && $contactData['pronouns'] ? json_encode($contactData['pronouns']) : null
         ];
     }
 }
