@@ -21,11 +21,14 @@ class CreateConditionalsTable extends Migration
             $table->text('human_readable');
             $table->text('json_logic');
             $table->text('name');
+            $table->unsignedInteger('priority')->nullable();
             $table->unsignedInteger('ratesheet_id');
+            $table->unsignedInteger('type');
             $table->float('value');
             $table->text('value_type');
 
             $table->foreign('ratesheet_id')->references('ratesheet_id')->on('ratesheets');
+            $table->foreign('type')->references('selection_id')->on('selections');
         });
     }
 

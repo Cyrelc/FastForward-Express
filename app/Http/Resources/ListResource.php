@@ -58,6 +58,7 @@ class ListResource extends JsonResource {
             }
             if($authUser->can('bills.edit.billing.*')) {
                 $lists['repeat_intervals'] = Selection::where('type', 'repeat_interval')->select('name as label', 'selection_id as value')->get();
+                $lists['charge_types'] = Selection::where('type', 'charge_type')->select('name as label', 'selection_id as value')->get();
             }
         } else if(count($authUser->accountUsers) > 0 ) {
             $accountRepo = new \App\Http\Repos\AccountRepo();
