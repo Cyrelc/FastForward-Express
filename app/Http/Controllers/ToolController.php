@@ -10,7 +10,7 @@ class ToolController extends Controller {
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
         $payments = \App\Models\Payment::whereNotNull('payment_intent_id')
             ->whereNull('receipt_url')
-            // ->where('payment_intent_status', 'like', 'succeeded')
+            ->where('payment_intent_status', 'like', 'succeeded')
             ->get();
 
         $successCount = 0;
