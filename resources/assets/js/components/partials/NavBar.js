@@ -290,6 +290,7 @@ export default function NavBar(props) {
                                 <MenuItem component={<Link to='/appSettings#ratesheets' />} icon={<i className='fas fa-tags'></i>}>Ratesheets</MenuItem>
                                 <MenuItem component={<Link to='/appSettings#scheduling' />} icon={<i className='fas fa-calendar-alt'></i>}>Scheduling</MenuItem>
                                 <MenuItem component={<Link to='/appSettings#selections' />} icon={<i className='fas fa-list-ul'></i>}>Selections</MenuItem>
+                                <MenuItem component={<Link to='/appSettings#tools' />} icon={<i className='fas fa-tools'></i>}>Tools</MenuItem>
                             </SubMenu>
                         }
                     </Menu>
