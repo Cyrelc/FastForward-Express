@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use \Stripe;
 
 class ToolController extends Controller {
     public function getStripeReceipts(Request $req) {
