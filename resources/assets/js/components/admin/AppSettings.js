@@ -8,6 +8,7 @@ import RatesheetsTab from './RatesheetsTab'
 // import MiscTab from './MiscTab'
 import SchedulingTab from './SchedulingTab'
 import SelectionsTab from './SelectionsTab'
+import ToolsTab from './ToolsTab'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -79,6 +80,9 @@ export default function AppSettings(props) {
                                 <Accordion.Item eventKey='selections' onClick={() => handleTabChange('selections')}>
                                     <Accordion.Header>Selections</Accordion.Header>
                                 </Accordion.Item>
+                                <Accordion.Item eventKey='tools' onClick={() => handleTabChange('tools')}>
+                                    <Accordion.Header>Tools</Accordion.Header>
+                                </Accordion.Item>
                                 {/* <Accordion.Item eventKey='company'>
                                     <Accordion.Header>Company Info</Accordion.Header>
                                 </Accordion.Item> */}
@@ -133,6 +137,11 @@ export default function AppSettings(props) {
                             <Tab.Content>
                                 <Tab.Pane eventKey='selections'>
                                     <SelectionsTab/>
+                                </Tab.Pane>
+                            </Tab.Content>
+                            <Tab.Content>
+                                <Tab.Pane eventKey='tools'>
+                                    <ToolsTab/>
                                 </Tab.Pane>
                             </Tab.Content>
                             {/* <Tab.Content>
