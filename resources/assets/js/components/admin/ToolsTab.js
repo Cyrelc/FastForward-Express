@@ -8,7 +8,7 @@ export default function ToolsTab(props) {
     const api = useAPI()
 
     const refreshReceipts = () => {
-        api.get('/api/payments/getStripeReceipts')
+        api.get('/api/tools/getStripeReceipts')
             .then(response => {
                 toast.success(`Successfully retrieved ${response.count} receipts`)
             })
