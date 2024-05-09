@@ -19,7 +19,9 @@ class Conditional extends Model {
         'json_logic',
         'name',
         'original_equation_string',
+        'priority',
         'ratesheet_id',
+        'type',
         'value',
         'value_type'
     ];

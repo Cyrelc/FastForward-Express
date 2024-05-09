@@ -7,6 +7,7 @@ import {debounce} from 'lodash'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
+import {useLists} from '../../../contexts/ListsContext'
 const math = require('mathjs')
 
 math.createUnit('CAD')
@@ -162,20 +163,23 @@ const valueTypes = [
 ]
 
 const ConditionalModal = props => {
+    const [conditionalType, setConditionalType] = useState('')
     const [demoEquationString, setDemoEquationString] = useState('')
-    const [equationString, setEquationString] = useState('')
-    const [serverEquationString, setServerEquationString] = useState('')
-
     const [demoResult, setDemoResult] = useState('')
+    const [equationString, setEquationString] = useState('')
     const [name, setName] = useState('')
+    const [priority, setPriority] = useState(0)
     const [queryTree, setQueryTree] = useState(QbUtils.checkTree(QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
     const [resultAction, setResultAction] = useState({value: 'charge', label: 'Charge'})
     const [resultValue, setResultValue] = useState(0)
+    const [serverEquationString, setServerEquationString] = useState('')
     const [testVariables, setTestVariables] = useState(availableTestVariables)
     const [valueType, setValueType] = useState({value: 'amount', label: 'Amount'})
 
     const {ratesheetId} = props
     const {conditional_id} = props.conditional
+    const api = useAPI()
+    const {chargeTypes} = useLists()
 
     const debouncedEvaluateEquationString = useCallback(
         debounce(() => {
@@ -288,6 +292,8 @@ const ConditionalModal = props => {
         setResultValue(props.conditional?.value ?? 0)
         setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.original_equation_string : '')
         setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.equation_string : '')
+        setPriority(props.conditional?.priority ?? 0)
+        setConditionalType(props.conditional?.type ? chargeTypes.find(chargeType => chargeType.value == props.conditional.type) : {})
     }, [props.conditional])
 
     useEffect(() => {
@@ -314,17 +320,18 @@ const ConditionalModal = props => {
 
             const data = {
                 action: resultAction,
-                equation_string: serverEquationString,
                 ratesheet_id: ratesheetId,
                 json_logic: JSON.stringify(jsonLogic['logic']),
                 human_readable: humanReadable,
                 name,
                 original_equation_string: equationString,
+                priority: priority,
+                type: conditionalType.value,
                 value: resultValue,
                 value_type: valueType.value
             }
 
-            api.post(`/ratesheets/conditional/${conditional_id ?? ''}`, data).then(response => {
+            api.post(`/ratesheets/conditional${conditional_id ? `/${conditional_id}` : ''}`, data).then(response => {
                 toast.success(`Successfully stored conditional ${response.conditional_id}`)
                 props.reload()
                 props.onHide()
@@ -365,11 +372,33 @@ const ConditionalModal = props => {
                                 </Col>
                                 <Col md={8}>
                                     <InputGroup>
-                                        <InputGroup.Text>Rule Name: </InputGroup.Text>
+                                        <InputGroup.Text>Name: </InputGroup.Text>
                                         <FormControl
                                             name='name'
                                             value={name}
                                             onChange={event => setName(event.target.value)}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={6}>
+                                    <InputGroup>
+                                        <InputGroup.Text>Type:</InputGroup.Text>
+                                        <Select
+                                            options={chargeTypes}
+                                            value={conditionalType}
+                                            onChange={setConditionalType}
+                                        />
+                                    </InputGroup>
+                                </Col>
+                                <Col md={6}>
+                                    <InputGroup>
+                                        <InputGroup.Text>Priority:</InputGroup.Text>
+                                        <FormControl
+                                            type='number'
+                                            step='1'
+                                            min='0'
+                                            value={priority}
+                                            onChange={event => setPriority(event.target.value)}
                                         />
                                     </InputGroup>
                                 </Col>

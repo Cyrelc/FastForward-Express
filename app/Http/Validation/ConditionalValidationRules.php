@@ -27,10 +27,12 @@ class ConditionalValidationRules {
             'original_equation_string' => [
                 Rule::requiredIf($req->value_type == 'equation')
             ],
+            'priority' => ['numeric'],
             'ratesheet_id' => [
                 Rule::exists(Ratesheet::class, 'ratesheet_id'),
                 'required',
             ],
+            'type' => ['required', 'numeric', 'exists:selections,selection_id'],
             'value' => ['required', 'numeric'],
             'value_type' => 'required'
         ];

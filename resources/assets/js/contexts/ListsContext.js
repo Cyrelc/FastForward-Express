@@ -5,6 +5,7 @@ const ListsContext = createContext()
 
 export const ListsProvider = ({children}) => {
     const [accounts, setAccounts] = useState([])
+    const [chargeTypes, setChargeTypes] = useState([])
     const [emailTypes, setEmailTypes] = useState([])
     const [employees, setEmployees] = useState([])
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
@@ -20,6 +21,7 @@ export const ListsProvider = ({children}) => {
             .then(data => {
                 data = data.data
                 setAccounts(data.accounts)
+                setChargeTypes(data.charge_types ?? [])
                 setEmailTypes(data.email_types)
                 setEmployees(data.employees)
                 setInvoiceIntervals(data.invoice_intervals ?? [])
@@ -34,6 +36,7 @@ export const ListsProvider = ({children}) => {
         <ListsContext.Provider value={{
             accounts,
             // appUpdated,
+            chargeTypes,
             emailTypes,
             employees,
             invoiceIntervals,
