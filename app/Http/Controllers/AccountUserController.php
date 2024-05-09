@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Password;
 use DB;
 
 class AccountUserController extends Controller {
-
     public function checkIfAccountUserExists(Request $req) {
         $userRepo = new Repos\UserRepo();
         foreach($req->email_addresses as $email) {
@@ -161,12 +160,14 @@ class AccountUserController extends Controller {
         $permissions = $permissionModelFactory->GetAccountUserPermissions($req->user(), $originalAccountUser, $account);
 
         $partialsValidation = new Validation\PartialsValidationRules();
-        $userValidation = new Validation\UserValidationRules();
 
         $userId = $originalAccountUser ? $originalAccountUser->user_id : null;
 
-        $partialsValidationRules = $partialsValidation->GetContactValidationRules($req, $userId);
-        $this->validate($req, $partialsValidationRules['rules'], $partialsValidationRules['messages']);
+        $partialsValidation = $partialsValidation->GetContactValidationRules($req, $userId);
+        $partialsValidation['rules'] = array_merge($partialsValidation['rules'], [
+            'email' => 'required|string|email|max:255|unique:users',
+        ]);
+        $this->validate($req, $partialsValidation['rules'], $partialsValidation['messages']);
 
         DB::beginTransaction();
 
