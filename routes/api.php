@@ -29,7 +29,7 @@ Route::controller(WebhookController::class)->prefix('webhooks')->group(function(
     Route::post('/stripe/receivePaymentIntentUpdate', 'ReceivePaymentIntentUpdate');
 });
 
-Route::controller(HelperController::class)->prefix('adminTools')->group(function() {
+Route::controller(PaymentController::class)->prefix('payments')->group(function() {
     Route::get('/getStripeReceipts', 'getStripeReceipts');
 });
 
