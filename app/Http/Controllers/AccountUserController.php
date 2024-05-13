@@ -164,9 +164,9 @@ class AccountUserController extends Controller {
         $userId = $originalAccountUser ? $originalAccountUser->user_id : null;
 
         $partialsValidation = $partialsValidation->GetContactValidationRules($req, $userId);
-        $partialsValidation['rules'] = array_merge($partialsValidation['rules'], [
-            'email' => 'required|string|email|max:255|unique:users',
-        ]);
+        // $partialsValidation['rules'] = array_merge($partialsValidation['rules'], [
+        //     'email' => 'required|string|email|max:255|unique:users',
+        // ]);
         $this->validate($req, $partialsValidation['rules'], $partialsValidation['messages']);
 
         DB::beginTransaction();
