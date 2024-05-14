@@ -51,7 +51,13 @@ class PaymentIntentProcessor {
                 if($oldStatusIndex == false || $newStatusIndex == false) {
                     activity('payment_intent')
                         ->performedOn($payment)
-                        ->withProperties(['new_status_index' => $newStatusIndex, 'old_status_index' => $oldStatusIndex, 'new_status' => $event->data->status, 'old_status' => $payment->payment_intent_status])
+                        ->withProperties([
+                            'event' => $event,
+                            'new_status' => $event->data->status ?? null,
+                            'new_status_index' => $newStatusIndex,
+                            'old_status' => $payment->payment_intent_status,
+                            'old_status_index' => $oldStatusIndex,
+                        ])
                         ->log(['[ReceiveStripeWebhook.handle] invalid status found']);
                 } else if($newStatusIndex > $oldStatusIndex) {
                     $paymentAmount = bcdiv($paymentIntent->amount_received, 100, 2);
