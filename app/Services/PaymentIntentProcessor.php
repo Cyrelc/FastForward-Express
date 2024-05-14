@@ -45,18 +45,22 @@ class PaymentIntentProcessor {
             try {
                 $oldStatus = str_replace('payment_intent.', '', $payment->payment_intent_status);
                 $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
-                $newStatus = str_replace('payment_intent.', '', $event->data->status);
+                $newStatus = str_replace('payment_intent.', '', $paymentIntent->status);
                 $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
                 if($oldStatusIndex == false || $newStatusIndex == false) {
                     activity('payment_intent')
                         ->performedOn($payment)
                         ->event('error')
-                        ->withProperties(['event' => $event, 'old_status' => $oldStatus, 'old_status_index' => $oldStatusIndex, 'newStatus' => $event->data->status ?? null, 'new_status_index' => $newStatusIndex])
-                        ->log(['[ReceiveStripeWebhook.handle] invalid status found']);
+                        ->withProperties([
+                            'event' => $event,
+                            'old_status' => $oldStatus,
+                            'old_status_index' => $oldStatusIndex,
+                            'newStatus' => $paymentIntent->status ?? null,
+                            'new_status_index' => $newStatusIndex
+                        ])->log(['[ReceiveStripeWebhook.handle] invalid status found']);
                 } else if($newStatusIndex > $oldStatusIndex) {
                     $paymentAmount = bcdiv($paymentIntent->amount_received, 100, 2);
-                    activity('payment_intent')->log('Greater status found for ' . $event->data->object->id);
 
                     $payment->update([
                         'amount' => $paymentAmount,
