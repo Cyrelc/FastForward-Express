@@ -74,8 +74,12 @@ class PaymentIntentProcessor {
                     if($newStatus == 'succeeded') {
                         activity('payment_intent')
                             ->performedOn($payment)
-                            ->withProperties(['payment_intent_id' => $paymentIntent->id, 'webhook_status' => $event->data->status, 'amount' => $paymentAmount, 'receipt_url' => $paymentIntent->charges->data[0]->receipt_url])
-                            ->log('[ReceiveStripeWebhook.handle] succeeded');
+                            ->withProperties([
+                                'payment_intent_id' => $paymentIntent->id,
+                                'webhook_status' => $paymentIntent->status,
+                                'amount' => $paymentAmount,
+                                'receipt_url' => $paymentIntent->charges->data[0]->receipt_url
+                            ])->log('[ReceiveStripeWebhook.handle] succeeded');
                         if($invoice->balance_owing == 0)
                             throw new \Exception('Attempting to double pay invoice #' . $payment->invoice_id, $event);
                         $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
@@ -83,7 +87,7 @@ class PaymentIntentProcessor {
                 } else {
                     activity('jobs')
                         ->performedOn($payment)
-                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $event->data->status])
+                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $paymentIntent->status])
                         ->log('[ReceiveStripeWebhook.handle] skipped.');
                 }
             } catch (\Throwable $e) {
