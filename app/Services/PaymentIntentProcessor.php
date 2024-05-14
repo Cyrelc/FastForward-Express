@@ -51,6 +51,7 @@ class PaymentIntentProcessor {
                 if($oldStatusIndex == false || $newStatusIndex == false) {
                     activity('payment_intent')
                         ->performedOn($payment)
+                        ->event('error')
                         ->withProperties([
                             'event' => $event,
                             'new_status' => $event->data->status ?? null,
