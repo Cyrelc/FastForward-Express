@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Repos;
 
+use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 
 class PaymentIntentProcessor {
