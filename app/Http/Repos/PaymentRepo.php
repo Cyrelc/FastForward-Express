@@ -80,17 +80,6 @@ class PaymentRepo {
         return $paymentType->first();
     }
 
-    public function GetIncompletePaymentIntents($invoiceId) {
-        $stripePaymentTypeId = $this->GetPaymentTypeByName('Stripe (Pending)');
-
-        $payments = Payment::where('invoice_id', $invoiceId)
-            ->whereNotNull('payment_intent_id')
-            ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
-            ->where('payment_intent_status', 'requires_payment_method');
-
-        return $payments->get();
-    }
-
     public function GetPaymentsByPaymentIntentId($paymentIntentId) {
         $payment = Payment::where('payment_intent_id', $paymentIntentId);
 

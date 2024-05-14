@@ -59,8 +59,20 @@ class PaymentController extends Controller {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
+        $pendingPaymentIntents = Payment::where('invoice_id', $invoiceId)
+            ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
+            ->where('payment_intent_status', 'requires_payment_method')
+            ->get();
+
+        if(!$pendingPaymentIntents->isEmpty())
+            abort(422, 'Unable to request a new payment while an old one is pending. Please review or complete the pending payment before creating a new one.');
+
         $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
-        $incompletePaymentIntents = $paymentRepo->GetIncompletePaymentIntents($outstandingInvoice->invoice_id);
+        $incompletePaymentIntents = Payment::where('invoice_id', $invoiceId)
+                ->whereNotNull('payment_intent_id')
+                ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
+                ->where('payment_intent_status', 'requires_payment_method')
+                ->get();
 
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
 
