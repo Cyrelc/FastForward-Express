@@ -86,6 +86,8 @@ class PaymentIntentProcessor {
                     ->performedOn($payment)
                     ->withProperties(['payment_intent_event' => $event])
                     ->log('[ReceiveStripeWebhook.handle] failed');
+
+                throw $e;
             }
         }
 
