@@ -21,13 +21,13 @@ class PaymentIntentProcessor {
     ];
 
     public function ProcessPaymentIntent($event) {
-        activity('jobs')->log('Processing payment intent update for ' . $event->data->object->id);
+        $paymentIntent = $event->data->object;
+        activity('jobs')->log('Processing payment intent update for ' . $paymentIntent->id);
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
         DB::beginTransaction();
 
-        $paymentIntent = $event->data->object;
         try {
             $card = $paymentIntent->charges->data[0]->payment_method_details->card;
             $paymentType = $paymentRepo->GetPaymentTypeByName($card->brand);
@@ -72,6 +72,7 @@ class PaymentIntentProcessor {
                     ]);
 
                     if($newStatus == 'succeeded') {
+                        $invoice = Invoice::find($payment->invoice_id);
                         activity('payment_intent')
                             ->performedOn($payment)
                             ->withProperties([
