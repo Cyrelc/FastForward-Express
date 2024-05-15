@@ -313,7 +313,7 @@ export default function billReducer(state, action) {
         case 'SET_DELIVERY_DRIVER':
             let newCommission = state.delivery.driverCommission
             if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
-                newCommission = parseInt(payload.delivery_commission)
+                newCommission = payload ? parseInt(payload.delivery_commission) : 0
             return Object.assign({}, state, {
                 timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
                 delivery: {
@@ -378,10 +378,10 @@ export default function billReducer(state, action) {
         case 'SET_PICKUP_DRIVER':
             let newPickupCommission = state.pickup.driverCommission
             if(!state.pickup.driverCommission || state.pickup.driver.delivery_commission == state.pickup.driverCommission)
-                newPickupCommission = parseInt(payload.pickup_commission)
+                newPickupCommission = payload ? parseInt(payload.pickup_commission) : 0
             let newDeliveryCommission = state.delivery.driverCommission
             if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
-                newDeliveryCommission = parseInt(payload.delivery_commission)
+                newDeliveryCommission = payload ? parseInt(payload.delivery_commission) : 0
             return Object.assign({}, state, {
                 timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
                 pickup: {
