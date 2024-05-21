@@ -69,23 +69,9 @@ export default function Table(props) {
 
     // Initialize datatable
     useEffect(() => {
-        let localStorageColumnVisibility = localStorage.getItem(`${props.tableName}.columnVisibility`)
-        let columnsWithVisibilityParsed = null
-        if(localStorageColumnVisibility) {
-            localStorageColumnVisibility = JSON.parse(localStorageColumnVisibility)
-            columnsWithVisibilityParsed = columns.map(column => {
-                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && column.title == column.title)
-                if(visible)
-                    return {...column, visible: visible.visible}
-                return column
-            })
-        }
-        if(columnsWithVisibilityParsed)
-            setColumns(columnsWithVisibilityParsed)
-
         if(tableRef.current && !table && !isLoading) {
             const newTabulator = new Tabulator(tableRef.current, {
-                columns: columnsWithVisibilityParsed ?? columns,
+                columns: columns,
                 data: tableData,
                 groupBy: groupBy?.value ?? null,
                 groupHeader: groupBy?.groupHeader ?? null,
@@ -120,13 +106,30 @@ export default function Table(props) {
     }, [tableData])
 
     useEffect(() => {
-        const updatedColumns = props.columns.map(column => {
-            const oldColumn = columns.find(oldColumn => oldColumn.field == column.field)
-            if(oldColumn)
-                return {...column, visible: oldColumn.visible}
-            return column
-        })
-        setColumns(updatedColumns)
+        let localStorageColumnVisibility = localStorage.getItem(`${props.tableName}.columnVisibility`)
+        let columnsWithVisibilityParsed = null
+        if(localStorageColumnVisibility) {
+            localStorageColumnVisibility = JSON.parse(localStorageColumnVisibility)
+            columnsWithVisibilityParsed = props.columns.map(column => {
+                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && column.title == column.title)
+                if(visible)
+                    return {...column, visible: visible.visible}
+                return column
+            })
+        }
+
+        if(columnsWithVisibilityParsed?.length) {
+            setColumns(columnsWithVisibilityParsed)
+        } else {
+            const updatedColumns = props.columns.map(column => {
+                const oldColumn = columns.find(oldColumn => oldColumn.field == column.field)
+                if(oldColumn)
+                    return {...column, visible: oldColumn.visible}
+                return column
+            })
+            setColumns(updatedColumns)
+        }
+
     }, [props.columns])
 
     // Handle column definition changes
