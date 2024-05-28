@@ -1,7 +1,7 @@
 <style>
 header {
     position: fixed;
-    top: -5px;
+    top: 4px;
     left: 30px;
 }
 header table {
