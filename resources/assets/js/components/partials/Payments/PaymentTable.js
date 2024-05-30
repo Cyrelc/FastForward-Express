@@ -18,13 +18,13 @@ export default function PaymentTable(props) {
         const element = document.createElement('div')
 
         const data = cell.getRow().getData();
-        let status = data.is_stripe_transaction ? data.payment_intent_status : 'Succeeded'
+        let status = data.is_stripe_transaction ? data.stripe_status : 'Succeeded'
 
         if(status.includes('.'))
             status = status.split('.')[1]
         status = status.split('_').map(word => word.charAt(0).toUpperCase() + word.substring(1)).join(' ')
         let variant = 'danger'
-        if(status == 'Succeeded')
+        if(status == 'Succeeded' || status == 'Refunded')
             variant = 'success'
         else if(status == 'Processing')
             variant = 'primary'
@@ -33,10 +33,10 @@ export default function PaymentTable(props) {
             <Fragment>
                 <Badge
                     bg={variant}
-                    title={`Payment Intent ID: ${data.payment_intent_id ?? ''} \n ${data.error ? data.error : ''}`}
+                    title={`Payment Intent ID: ${data.stripe_id ?? ''} \n ${data.error ? data.error : ''}`}
                     onClick={() => {
                         if(window.location.protocol === 'https:') {
-                            navigator.clipboard.writeText(data.payment_intent_id)}
+                            navigator.clipboard.writeText(data.stripe_id)}
                             toast.success('Query copied to clipboard!')
                         }
                     }
@@ -97,9 +97,9 @@ export default function PaymentTable(props) {
         {title: 'Reference Number', field: 'reference_value', headerFilter: true},
         {title: 'Comment', field: 'comment', formatter: 'textarea'},
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
-        {title: 'Payment Status', field: 'payment_intent_status', formatter: formatPaymentIntentStatus},
+        {title: 'Payment Status', field: 'stripe_status', formatter: formatPaymentIntentStatus},
         {title: 'Error', field: 'error', visible: false},
-        {title: 'payment_intent_id', field: 'payment_intent_id', visible: false},
+        {title: 'stripe_id', field: 'stripe_id', visible: false},
         {title: 'receipt_url', field: 'receipt_url', visible: false}
     ]
 

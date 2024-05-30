@@ -8,22 +8,23 @@ use \Stripe;
 class ToolController extends Controller {
     public function getStripeReceipts(Request $req) {
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-        $payments = \App\Models\Payment::whereNotNull('payment_intent_id')
+        $payments = \App\Models\Payment::whereNotNull('stripe_id')
+            ->where('stripe_object_type', 'payment_intent')
             ->whereNull('receipt_url')
-            ->where('payment_intent_status', 'like', 'succeeded')
+            ->where('stripe_status', 'like', 'succeeded')
             ->get();
 
         $successCount = 0;
 
         foreach($payments as $payment) {
             try {
-                $paymentIntent = $stripe->paymentIntents->retrieve($payment->payment_intent_id);
+                $paymentIntent = $stripe->paymentIntents->retrieve($payment->stripe_id);
 
                 if($paymentIntent->charges->data[0]->receipt_url)
                     $payment->update(['receipt_url' => $paymentIntent->charges->data[0]->receipt_url]);
                 $successCount++;
             } catch (\Exception $e) {
-                \Log::error("Error processing payment intent {$payment->payment_intent_id}: {$e->getMessage()}", [
+                \Log::error("Error processing payment intent {$payment->stripe_id}: {$e->getMessage()}", [
                     'exception' => $e
                 ]);
                 continue;

@@ -44,7 +44,7 @@ class PaymentIntentProcessor {
             // this means we don't process 'created' before 'success' but also means we never accidentally process the same payment twice. 
             // which the stripe API makes a possibility. They do not guarantee idempotence, so instead this does
             try {
-                $oldStatus = str_replace('payment_intent.', '', $payment->payment_intent_status);
+                $oldStatus = str_replace('payment_intent.', '', $payment->stripe_status);
                 $oldStatusIndex = array_search($oldStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
                 $newStatus = str_replace('payment_intent.', '', $paymentIntent->status);
                 $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
@@ -66,7 +66,7 @@ class PaymentIntentProcessor {
                     $payment->update([
                         'amount' => $paymentAmount,
                         'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null,
-                        'payment_intent_status' => $newStatus,
+                        'stripe_status' => $newStatus,
                         'payment_type_id' => $paymentType->payment_type_id,
                         'receipt_url' => $paymentIntent->charges->data[0]->receipt_url ?? null,
                         'reference_value' => $card ? '**** **** **** ' . $card->last4 : null,
@@ -77,7 +77,7 @@ class PaymentIntentProcessor {
                         activity('payment_intent')
                             ->performedOn($payment)
                             ->withProperties([
-                                'payment_intent_id' => $paymentIntent->id,
+                                'stripe_id' => $paymentIntent->id,
                                 'webhook_status' => $paymentIntent->status,
                                 'amount' => $paymentAmount,
                                 'receipt_url' => $paymentIntent->charges->data[0]->receipt_url
@@ -89,7 +89,7 @@ class PaymentIntentProcessor {
                 } else {
                     activity('jobs')
                         ->performedOn($payment)
-                        ->withProperties(['payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->payment_intent_status, 'webhook_status' => $paymentIntent->status])
+                        ->withProperties(['stripe_id' => $paymentIntent->id, 'database_status' => $payment->stripe_status, 'webhook_status' => $paymentIntent->status])
                         ->log('[ReceiveStripeWebhook.handle] skipped.');
                 }
             } catch (\Throwable $e) {

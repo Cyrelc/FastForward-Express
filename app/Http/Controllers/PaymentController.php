@@ -61,7 +61,7 @@ class PaymentController extends Controller {
 
         $pendingPaymentIntents = Payment::where('invoice_id', $invoiceId)
             ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
-            ->where('payment_intent_status', 'requires_payment_method')
+            ->where('stripe_status', 'requires_payment_method')
             ->get();
 
         if(!$pendingPaymentIntents->isEmpty())
@@ -69,9 +69,9 @@ class PaymentController extends Controller {
 
         $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
         $incompletePaymentIntents = Payment::where('invoice_id', $invoiceId)
-                ->whereNotNull('payment_intent_id')
-                ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
-                ->where('payment_intent_status', 'requires_payment_method')
+                ->whereNotNull('stripe_id')
+                ->where('stripe_id', $stripePaymentTypeId->payment_type_id)
+                ->where('stripe_status', 'requires_payment_method')
                 ->get();
 
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
@@ -79,7 +79,7 @@ class PaymentController extends Controller {
         $paymentAmount = (float)$req->amount * 100;
         // If there is an existing PaymentIntent that has not resolved, use that first so as to not create multiple database entries
         if(!$incompletePaymentIntents->isEmpty()) {
-            $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['payment_intent_id']);
+            $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['stripe_id']);
             if($paymentAmount != $paymentIntent->amount) {
                 $stripe->paymentIntents->update($paymentIntent->id, ['amount' => $paymentAmount]);
                 $paymentRepo->Update($incompletePaymentIntents[0]->payment_id, [

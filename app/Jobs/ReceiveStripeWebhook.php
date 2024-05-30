@@ -15,7 +15,7 @@ class ReceiveStripeWebhook implements ShouldQueue, ShouldBeUnique {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 5;
-    public $uniqueFor = 3600;
+    public $uniqueFor = 600;
 
     protected $event;
 

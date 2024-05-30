@@ -10,8 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\AppEmployee>
  */
-class EmployeeFactory extends Factory
-{
+class EmployeeFactory extends Factory {
     protected $model = Employee::class;
     /**
      * Define the model's default state.

@@ -23,14 +23,14 @@ class PaymentRepo {
                     'date',
                     'error',
                     'invoice_id',
-                    'payment_intent_status',
+                    'stripe_status',
                     'payment_types.name as payment_type',
                     'payments.payment_id',
                     'receipt_url',
                     'reference_value',
-                    DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
+                    DB::raw('case when stripe_id is null then false else true end as is_stripe_transaction'),
                 ],
-                Auth::user()->can('undo', Payment::class) ? ['payment_intent_id'] : []
+                Auth::user()->can('undo', Payment::class) ? ['stripe_id'] : []
             ));
 
         return $payments->get();
@@ -48,14 +48,14 @@ class PaymentRepo {
                     'invoices.bill_end_date as invoice_date',
                     'payment_id',
                     'payment_types.name as payment_type',
-                    'payment_intent_status',
+                    'stripe_status',
                     'payments.invoice_id',
                     'payments.date',
                     'payments.payment_type_id',
-                    DB::raw('case when payment_intent_id is null then false else true end as is_stripe_transaction'),
+                    DB::raw('case when stripe_id is null then false else true end as is_stripe_transaction'),
                     'reference_value',
                 ],
-                Auth::user()->can('undo', Payment::class) ? ['payment_intent_id'] : []
+                Auth::user()->can('undo', Payment::class) ? ['stripe_id'] : []
             ));
 
         return $payments->get();
@@ -81,7 +81,7 @@ class PaymentRepo {
     }
 
     public function GetPaymentsByPaymentIntentId($paymentIntentId) {
-        $payment = Payment::where('payment_intent_id', $paymentIntentId);
+        $payment = Payment::where('stripe_id', $paymentIntentId);
 
         return $payment->get();
     }

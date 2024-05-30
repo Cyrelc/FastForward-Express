@@ -8,8 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class Payment extends Model
-{
+class Payment extends Model {
     use LogsActivity, SoftDeletes;
 
     public $primaryKey = "payment_id";
@@ -22,15 +21,16 @@ class Payment extends Model
         'comment',
         'date',
         'invoice_id',
-        'payment_intent_id',
-        'payment_intent_status',
         'payment_type_id',
         'receipt_url',
         'reference_value',
+        'stripe_id',
+        'stripe_object_type',
+        'stripe_status',
     ];
 
     public function IsStripeTransaction() {
-        return $this->payment_intent_id != null;
+        return $this->stripe_id != null;
     }
 
     public function getActivityLogOptions() : LogOptions {

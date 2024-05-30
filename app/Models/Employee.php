@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-class Employee extends Model
-{
+class Employee extends Model {
     use HasFactory, LogsActivity;
 
     public $timestamps = false;

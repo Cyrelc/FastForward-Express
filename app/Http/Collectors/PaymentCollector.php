@@ -50,10 +50,10 @@ class PaymentCollector {
             'comment' => $req->comment == "" ? null : $req->comment,
             'date' => date('Y-m-d'),
             'invoice_id' => $invoice->invoice_id,
-            'payment_intent_id' => $paymentIntent->id,
+            'stripe_id' => $paymentIntent->id,
             'payment_type_id' => $req->payment_method['payment_type_id'],
             'reference_value' => $req->payment_method['name'],
-            'payment_intent_status' => 'payment_intent.pending'
+            'stripe_status' => 'pending'
         ];
     }
 
@@ -68,8 +68,8 @@ class PaymentCollector {
             'comment' => null,
             'date' => gmdate("Y-m-d\TH:i:s\Z", $paymentIntent->created),
             'invoice_id' => $req->invoice_id,
-            'payment_intent_id' => $paymentIntent->id,
-            'payment_intent_status' => $paymentIntent->status,
+            'stripe_id' => $paymentIntent->id,
+            'stripe_status' => $paymentIntent->status,
             'payment_type_id' => $stripePaymentType->payment_type_id,
             'reference_value' => null
         ];
