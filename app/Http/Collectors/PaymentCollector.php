@@ -51,9 +51,10 @@ class PaymentCollector {
             'date' => date('Y-m-d'),
             'invoice_id' => $invoice->invoice_id,
             'stripe_id' => $paymentIntent->id,
+            'stripe_object_type' => 'payment_intent',
+            'stripe_status' => 'pending',
             'payment_type_id' => $req->payment_method['payment_type_id'],
             'reference_value' => $req->payment_method['name'],
-            'stripe_status' => 'pending'
         ];
     }
 
