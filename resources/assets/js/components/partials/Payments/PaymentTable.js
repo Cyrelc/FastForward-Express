@@ -1,5 +1,5 @@
-import React, {Fragment} from 'react'
-import {Button, Badge, Card} from 'react-bootstrap'
+import React, {Fragment, useState} from 'react'
+import {Badge, Button, ButtonGroup, Card, FormControl, InputGroup, Modal,} from 'react-bootstrap'
 import {ReactTabulator} from 'react-tabulator'
 import ReactDOM from 'react-dom'
 import {useHistory} from 'react-router-dom'
@@ -15,6 +15,9 @@ const parseTitle = (data) => {
 }
 
 export default function PaymentTable(props) {
+    const [revertReason, setRevertReason] = useState('')
+    const [revertRow, setRevertRow] = useState(null)
+
     const api = useAPI()
     const history = useHistory()
 
@@ -58,19 +61,31 @@ export default function PaymentTable(props) {
         return element
     }
 
-    const revertPayment = cell => {
+    const revertPayment = revertReason => {
         if(!props.canRevertPayments) {
             console.error("Does not have permission to revert payments")
             return
         }
-        const rowData = cell.getRow().getData()
+        if(!revertRow) {
+            console.error('No payment set to be reverted')
+            return
+        }
+        if(!revertReason) {
+            toast.error('Must provide a reason for reverting this payment. Please try again.')
+            return
+        }
+
+        const rowData = revertRow.getData()
         if(!rowData.can_be_reverted) {
             console.error("This payment may not be reverted at this time.")
             return
         }
 
+        const data = {reason: revertReason}
         if(confirm(`Are you certain you would like to revert the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
-            api.delete(`/payments/${rowData.payment_id}`).then(response => {
+            api.delete(`/payments/${rowData.payment_id}`, data).then(response => {
+                setRevertRow(null)
+                setRevertReason('')
                 props.refresh()
             })
     }
@@ -89,7 +104,7 @@ export default function PaymentTable(props) {
                 headerHozAlign: 'center',
                 headerSort: false,
                 print: false,
-                cellClick: (e, cell) => revertPayment(cell)
+                cellClick: (e, cell) => setRevertRow(cell.getRow())
             }
         ] : [],
         {title: 'Payment ID', field: 'payment_id', visible: false},
@@ -130,6 +145,32 @@ export default function PaymentTable(props) {
                 printAsHtml={true}
                 printStyled={true}
             />
+            <Modal show={revertRow != null} onHide={() => setRevertRow(null)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Please select a reason</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <ButtonGroup>
+                        <Button onClick={() => revertPayment('duplicate')}>
+                            Duplicate
+                        </Button>
+                        <Button onClick={() => revertPayment('requested_by_customer')}>
+                            Requested by Customer
+                        </Button>
+                        <Button onClick={() => revertPayment(revertReason)}>
+                            Other
+                        </Button>
+                    </ButtonGroup>
+                    <InputGroup>
+                        <InputGroup.Text>Reason</InputGroup.Text>
+                        <FormControl
+                            value={revertReason}
+                            onChange={event => setRevertReason(event.target.value)}
+                            placeholder='Required only for "other"'
+                        />
+                    </InputGroup>
+                </Modal.Body>
+            </Modal>
         </Card.Body>
     )
 }

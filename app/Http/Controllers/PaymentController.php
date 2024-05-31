@@ -8,7 +8,8 @@ use DB;
 use App\Http\Repos;
 use App\Http\Models;
 use App\Http\Collectors;
-use App\Http\Models\Payment;
+use App\Http\Models\Payment\PaymentModelFactory;
+use App\Models\Payment;
 use \App\Http\Validation\Utils;
 use \Stripe;
 
@@ -37,7 +38,7 @@ class PaymentController extends Controller {
         if($req->user()->cannot('updatePaymentMethods', $account))
             abort(403);
 
-        $paymentModelFactory = new Payment\PaymentModelFactory();
+        $paymentModelFactory = new PaymentModelFactory();
         $paymentMethods = $paymentModelFactory->GetAccountStripePaymentMethods($account);
 
         return response()->json([
@@ -115,7 +116,7 @@ class PaymentController extends Controller {
         if($req->user()->cannot('create', Payment::class))
             abort(403);
 
-        $paymentModelFactory = new Models\Payment\PaymentModelFactory();
+        $paymentModelFactory = new PaymentModelFactory();
 
         return json_encode($paymentModelFactory->GetReceivePaymentModel($invoice));
     }
@@ -264,7 +265,7 @@ class PaymentController extends Controller {
     }
 
     public function revertPayment(Request $req, $paymentId) {
-        $payment = Payment::find($paymentId);
+        $payment = Payment::findOrFail($paymentId);
         if(!$payment || $req->user()->cannot('revert', $payment))
             abort(403);
 
@@ -276,18 +277,27 @@ class PaymentController extends Controller {
         if($payment->isStripeTransaction()) {
             $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
 
-            $refund = $stripe->refunds->create([
-                'payment_intent' => $payment->payment_intent_id,
-                'reason' => $req->reason,
-            ]);
+            try {
+                $refund = $stripe->refunds->create([
+                    'payment_intent' => $payment->stripe_payment_intent_id,
+                    'reason' => $req->reason,
+                ]);
 
-            $refundPayment = $payment->replicate();
-            $refundPayment['stripe_refund_id'] = $refund->id;
-            $refundPayment['stripe_object_type'] = 'refund';
-            $refundPayment['stripe_status'] = 'pending';
-            $refundPayment['amount'] = -$payment->amount;
-            $refundPayment->save();
+                $refundPayment = $payment->replicate();
+                $refundPayment['amount'] = -$payment->amount;
+                $refundPayment['comment'] = $request->reason;
+                $refundPayment['stripe_object_type'] = 'refund';
+                $refundPayment['stripe_refund_id'] = $refund->id;
+                $refundPayment['stripe_status'] = 'pending';
+                $refundPayment->save();
+            } catch (\Exception $e) {
+                return response()->json(['errors' => [
+                    'stripe_error' => [$e->getMessage()]
+                ]], 400);
+            }
         } else {
+            $payment->update(['comment' => $req->reason]);
+
             if($payment->invoice_id) {
                 $invoiceRepo = new Repos\InvoiceRepo();
                 $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);

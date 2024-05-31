@@ -59,7 +59,6 @@ class AccountUserController extends Controller {
         if($req->user()->cannot('delete', $accountUser))
             abort(403);
 
-
         if(AccountUser::where('account_id', $accountId)->count() == 1) {
             return response()->json([
                 'message' => 'Minimum of one account user required',
