@@ -8,10 +8,13 @@ import {toast} from 'react-toastify'
 import {useAPI} from '../../../contexts/APIContext'
 
 const parseTitle = (data) => {
-    if(data.stripe_object_type == 'payment_intent')
-        return `Payment Intent ID: ${data.stripe_payment_intent_id ?? ''} \n ${data.error ?? ''}`
-    else if(data.stripe_object_type == 'refund')
-        return `Refund ID: ${data.stripe_refund_id ?? ''} \n ${data.error ?? ''}`
+    let title = ''
+    if(data.stripe_payment_intent_id)
+        title += `Payment Intent ID: ${data.stripe_payment_intent_id}\n${data.error ?? ''}\n`
+    if(data.stripe_refund_id)
+        title += `Refund ID: ${data.stripe_refund_id} \n ${data.error ?? ''}`
+
+    return title
 }
 
 export default function PaymentTable(props) {
