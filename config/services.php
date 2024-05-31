@@ -38,6 +38,7 @@ return [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
         'currency' => env('CASHIER_CURRENCY', 'cad'),
-        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET')
+        'stripe_payment_intent_secret' => env('STRIPE_PAYMENT_INTENT_SECRET'),
+        'stripe_refund_secret' => env('STRIPE_REFUND_SECRET')
     ],
 ];

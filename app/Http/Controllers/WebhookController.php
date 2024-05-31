@@ -10,7 +10,7 @@ use App\Jobs\ReceiveStripeRefundWebhook;
 class WebhookController extends Controller {
     public function receivePaymentIntentUpdate(Request $req) {
         try {
-            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.webhook_secret'));
+            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.stripe_payment_intent_secret'));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Webhook signature verification failed'], 403);
         }
@@ -23,7 +23,7 @@ class WebhookController extends Controller {
 
     public function receiveRefundUpdate(Request $req) {
         try {
-            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.webhook_secret'));
+            $event = \Stripe\Webhook::constructEvent($req->getContent(), $req->header('Stripe-Signature'), config('services.stripe.stripe_refund_secret'));
         } catch (\Exception $e) {
             return response()->json(['error' => 'Webhook signature verification failed', 403]);
         }

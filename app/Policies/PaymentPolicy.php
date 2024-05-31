@@ -20,9 +20,7 @@ class PaymentPolicy {
     }
 
     public function revert(User $user, Payment $payment) {
-        if($payment->stripe_payment_intent_id == null) {
-            return $user->can('payments.delete.*.*');
-        } else {
+        if($payment->isStripeTransaction()) {
             if($payment->stripe_object_type == 'refund')
                 return false;
             if($payment->stripe_object_type == 'payment_intent') {
@@ -31,6 +29,8 @@ class PaymentPolicy {
                     ->first();
                 return $refund == null;
             }
+        } else {
+            return $user->can('payments.delete.*.*');
         }
         return false;
     }
