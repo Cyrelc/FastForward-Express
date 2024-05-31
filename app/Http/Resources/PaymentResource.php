@@ -33,7 +33,7 @@ class PaymentResource extends JsonResource {
         if(Auth::user()->can('revertAny', Payment::class)) {
             $payment['stripe_payment_intent_id'] = $this->stripe_payment_intent_id;
             $payment['stripe_refund_id'] = $this->stripe_refund_id;
-            $payment['can_be_reverted'] = Auth::user()->can('revert', $this->resource);
+            $payment['can_be_reverted'] = Auth::user()->can('revert', $this->resource) && $this->can_be_reverted;
         }
 
         return $payment;

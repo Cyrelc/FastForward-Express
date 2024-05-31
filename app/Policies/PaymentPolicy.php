@@ -20,19 +20,7 @@ class PaymentPolicy {
     }
 
     public function revert(User $user, Payment $payment) {
-        if($payment->isStripeTransaction()) {
-            if($payment->stripe_object_type == 'refund')
-                return false;
-            if($payment->stripe_object_type == 'payment_intent') {
-                $refund = Payment::where('stripe_payment_intent_id', $payment->stripe_payment_intent_id)
-                    ->whereNotNull('stripe_refund_id')
-                    ->first();
-                return $refund == null;
-            }
-        } else {
-            return $user->can('payments.delete.*.*');
-        }
-        return false;
+        return $user->can('payments.delete.*.*');
     }
 
     public function revertAny(User $user) {

@@ -33,6 +33,17 @@ class Payment extends Model {
         'stripe_status',
     ];
 
+    public function getCanBeRevertedAttribute() {
+        if(!$this->isStripeTransaction())
+            return true;
+        else {
+            $existingRefund = Payment::where('stripe_payment_intent_id', $this->stripe_payment_intent_id)
+                ->whereNotNull('stripe_refund_id')
+                ->first();
+
+            return $existingRefund == null;
+        }
+    }
 
     public function payment_type() {
         return $this->hasOne(PaymentType::class, 'payment_type_id', 'payment_type_id');
