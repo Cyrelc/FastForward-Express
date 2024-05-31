@@ -13,54 +13,6 @@ class PaymentRepo {
         return $payment;
     }
 
-    public function GetByInvoiceId($invoiceId) {
-        $payments = Payment::where('invoice_id', $invoiceId)
-            ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'payments.payment_type_id')
-            ->select(array_merge(
-                [
-                    'amount',
-                    'comment',
-                    'date',
-                    'error',
-                    'invoice_id',
-                    'stripe_status',
-                    'payment_types.name as payment_type',
-                    'payments.payment_id',
-                    'receipt_url',
-                    'reference_value',
-                    DB::raw('case when stripe_id is null then false else true end as is_stripe_transaction'),
-                ],
-                Auth::user()->can('undo', Payment::class) ? ['stripe_id'] : []
-            ));
-
-        return $payments->get();
-    }
-
-    public function GetPaymentsByAccountId($accountId) {
-        $payments = Payment::where('payments.account_id', $accountId)
-            ->leftJoin('payment_types', 'payments.payment_type_id', '=', 'payment_types.payment_type_id')
-            ->leftJoin('invoices', 'payments.invoice_id', 'invoices.invoice_id')
-            ->select(array_merge(
-                [
-                    'amount',
-                    'comment',
-                    'error',
-                    'invoices.bill_end_date as invoice_date',
-                    'payment_id',
-                    'payment_types.name as payment_type',
-                    'stripe_status',
-                    'payments.invoice_id',
-                    'payments.date',
-                    'payments.payment_type_id',
-                    DB::raw('case when stripe_id is null then false else true end as is_stripe_transaction'),
-                    'reference_value',
-                ],
-                Auth::user()->can('undo', Payment::class) ? ['stripe_id'] : []
-            ));
-
-        return $payments->get();
-    }
-
     public function Insert($payment) {
     	$new = new Payment;
 
@@ -81,7 +33,7 @@ class PaymentRepo {
     }
 
     public function GetPaymentsByPaymentIntentId($paymentIntentId) {
-        $payment = Payment::where('stripe_id', $paymentIntentId);
+        $payment = Payment::where('stripe_payment_intent_id', $paymentIntentId);
 
         return $payment->get();
     }

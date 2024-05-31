@@ -13,6 +13,7 @@ use App\Http\Requests;
 use App\Http\Repos;
 use App\Http\Resources\BillPrintResource;
 use App\Http\Services;
+use App\Http\Models\Invoice\InvoiceModelFactory;
 use App\Models\Invoice;
 use App\Services\PDFService;
 use Illuminate\Support\Facades\Auth;
@@ -122,7 +123,7 @@ class InvoiceController extends Controller {
     }
 
     public function getModel(Request $req, $invoiceId = null) {
-        $invoiceModelFactory = new Models\Invoice\InvoiceModelFactory();
+        $invoiceModelFactory = new InvoiceModelFactory();
         if($invoiceId) {
             if(!Invoice::where('invoice_id', $invoiceId)->exists())
                 abort(404);

@@ -3,15 +3,17 @@
 namespace App\Http\Models\Invoice;
 
 use App\Http\Repos;
-use App\Http\Models\Invoice;
+use App\Models\Invoice;
+use App\Models\Payment;
 use App\Http\Models\Payment\PaymentModelFactory;
+use App\Http\Models\Permission\PermissionModelFactory;
+use App\Http\Resources\PaymentResource;
 
 class InvoiceModelFactory{
 	public function GetById($req, $invoiceId) {
 		$model = new InvoiceViewModel();
 
-		$paymentModelFactory = new PaymentModelFactory();
-		$permissionModelFactory = new \App\Http\Models\Permission\PermissionModelFactory();
+		$permissionModelFactory = new PermissionModelFactory();
 
 		$accountRepo = new Repos\AccountRepo();
 		$addressRepo = new Repos\AddressRepo();
@@ -86,7 +88,7 @@ class InvoiceModelFactory{
 			$model->account_owing = $invoiceRepo->CalculateAccountBalanceOwing($model->invoice->account_id);
 
 			if($req->user()->can('viewPayments', $model->parent))
-				$model->payments = $paymentModelFactory->GetInvoicePayments($model->invoice->invoice_id);
+				$model->payments = PaymentResource::collection(Payment::where('invoice_id', $invoiceId)->get());
 
 			if($req->user()->can('processPayments', $model->parent)) {
 				$paymentModelFactory = new PaymentModelFactory();
@@ -123,7 +125,7 @@ class InvoiceModelFactory{
 			$model->account_owing = $model->invoice->balance_owing;
 
 			if($req->user()->can('payments.view.*.*'))
-				$model->payments = $paymentModelFactory->GetInvoicePayments($model->invoice->invoice_id);
+				$model->payments = PaymentResource::collection(Payment::where('invoice_id', $invoiceId)->get());
 		}
 
 		$model->permissions = $permissionModelFactory->GetInvoicePermissions($req->user(), $model->invoice);

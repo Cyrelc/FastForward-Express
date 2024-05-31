@@ -59,9 +59,11 @@ class PaymentController extends Controller {
         $invoiceRepo = new Repos\InvoiceRepo();
         $paymentRepo = new Repos\PaymentRepo();
 
+        $stripePaymentType = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+
         $pendingPaymentIntents = Payment::where('invoice_id', $invoiceId)
-            ->where('payment_type_id', $stripePaymentTypeId->payment_type_id)
-            ->where('stripe_status', 'requires_payment_method')
+            ->where('payment_type_id', $stripePaymentType->payment_type_id)
+            ->where('stripe_status', 'pending')
             ->get();
 
         if(!$pendingPaymentIntents->isEmpty())
@@ -69,8 +71,8 @@ class PaymentController extends Controller {
 
         $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
         $incompletePaymentIntents = Payment::where('invoice_id', $invoiceId)
-                ->whereNotNull('stripe_id')
-                ->where('stripe_id', $stripePaymentTypeId->payment_type_id)
+                ->whereNotNull('stripe_payment_intent_id')
+                ->where('payment_type_id', $stripePaymentType->payment_type_id)
                 ->where('stripe_status', 'requires_payment_method')
                 ->get();
 
@@ -79,7 +81,7 @@ class PaymentController extends Controller {
         $paymentAmount = (float)$req->amount * 100;
         // If there is an existing PaymentIntent that has not resolved, use that first so as to not create multiple database entries
         if(!$incompletePaymentIntents->isEmpty()) {
-            $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['stripe_id']);
+            $paymentIntent = $stripe->paymentIntents->retrieve($incompletePaymentIntents[0]['stripe_payment_intent_id']);
             if($paymentAmount != $paymentIntent->amount) {
                 $stripe->paymentIntents->update($paymentIntent->id, ['amount' => $paymentAmount]);
                 $paymentRepo->Update($incompletePaymentIntents[0]->payment_id, [
@@ -262,25 +264,41 @@ class PaymentController extends Controller {
     }
 
     public function revertPayment(Request $req, $paymentId) {
-        if($req->user()->cannot('undo', Payment::class))
+        $payment = Payment::find($paymentId);
+        if(!$payment || $req->user()->cannot('revert', $payment))
             abort(403);
 
         $paymentRepo = new Repos\PaymentRepo();
-        $payment = $paymentRepo->GetById($paymentId);
         $accountPaymentTypeId = $paymentRepo->GetPaymentTypeByName('Account')->payment_type_id;
 
         DB::beginTransaction();
 
-        if($payment->invoice_id && !$payment->isStripeTransaction()) {
-            $invoiceRepo = new Repos\InvoiceRepo();
-            $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
-        }
-        if($payment->payment_type_id == $accountPaymentTypeId) {
-            $accountRepo = new Repos\AccountRepo();
-            $accountRepo->AdjustBalance($payment->account_id, $payment->amount);
-        }
+        if($payment->isStripeTransaction()) {
+            $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
 
-        $payment->delete();
+            $refund = $stripe->refunds->create([
+                'payment_intent' => $payment->payment_intent_id,
+                'reason' => $req->reason,
+            ]);
+
+            $refundPayment = $payment->replicate();
+            $refundPayment['stripe_refund_id'] = $refund->id;
+            $refundPayment['stripe_object_type'] = 'refund';
+            $refundPayment['stripe_status'] = 'pending';
+            $refundPayment['amount'] = -$payment->amount;
+            $refundPayment->save();
+        } else {
+            if($payment->invoice_id) {
+                $invoiceRepo = new Repos\InvoiceRepo();
+                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $payment->amount);
+            }
+            if($payment->payment_type_id == $accountPaymentTypeId) {
+                $accountRepo = new Repos\AccountRepo();
+                $accountRepo->AdjustBalance($payment->account_id, $payment->amount);
+            }
+
+            $payment->delete();
+        }
 
         DB::commit();
     }

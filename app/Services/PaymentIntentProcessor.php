@@ -50,7 +50,7 @@ class PaymentIntentProcessor {
                 $newStatusIndex = array_search($newStatus, $this->ORDERED_PAYMENT_INTENT_STATUSES);
 
                 if($oldStatusIndex == false || $newStatusIndex == false) {
-                    activity('payment_intent')
+                    activity('stripe')
                         ->performedOn($payment)
                         ->event('error')
                         ->withProperties([
@@ -74,10 +74,10 @@ class PaymentIntentProcessor {
 
                     if($newStatus == 'succeeded') {
                         $invoice = Invoice::find($payment->invoice_id);
-                        activity('payment_intent')
+                        activity('stripe')
                             ->performedOn($payment)
                             ->withProperties([
-                                'stripe_id' => $paymentIntent->id,
+                                'stripe_payment_intent_id' => $paymentIntent->id,
                                 'webhook_status' => $paymentIntent->status,
                                 'amount' => $paymentAmount,
                                 'receipt_url' => $paymentIntent->charges->data[0]->receipt_url
@@ -89,7 +89,7 @@ class PaymentIntentProcessor {
                 } else {
                     activity('jobs')
                         ->performedOn($payment)
-                        ->withProperties(['stripe_id' => $paymentIntent->id, 'database_status' => $payment->stripe_status, 'webhook_status' => $paymentIntent->status])
+                        ->withProperties(['stripe_payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->stripe_status, 'webhook_status' => $paymentIntent->status])
                         ->log('[ReceiveStripeWebhook.handle] skipped.');
                 }
             } catch (\Throwable $e) {

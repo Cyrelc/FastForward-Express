@@ -3,20 +3,21 @@
 namespace App\Http\Models\Account;
 
 use App\Http\Repos;
-use App\Http\Models;
-use App\Http\Models\Account;
-use App\Http\Models\Permission;
-use App\Http\Models\User;
+use App\Http\Models\Permission\PermissionModelFactory;
+use App\Http\Models\User\UserModelFactory;
+use App\Http\Resources\PaymentResource;
+use App\Models\Account;
+use App\Models\Payment;
+use App\Models\Permission;
+use App\Models\User;
 use App\Services\ContactService;
 
 class AccountModelFactory {
     public function GetBillingModel($accountId) {
-        $paymentModelFactory = new Models\Payment\PaymentModelFactory();
-
         $invoiceRepo = new Repos\InvoiceRepo();
 
         $model = new \stdClass();
-        $model->payments = $paymentModelFactory->GetAccountPayments($accountId);
+        $model->payments = PaymentResource::collection(Payment::where('account_id', $accountId)->get());
         $model->outstanding_invoices = $invoiceRepo->GetOutstandingByAccountId($accountId);
 
         return $model;
@@ -30,9 +31,9 @@ class AccountModelFactory {
         $selectionsRepo = new Repos\SelectionsRepo();
 
         $model->parent_accounts = $accountRepo->GetParentAccountsList();
-        $model->account = new \App\Models\Account();
-        $model->delivery_address = new \App\Models\Address();
-        $model->billing_address = new \App\Models\Address();
+        $model->account = new Account();
+        $model->delivery_address = new Address();
+        $model->billing_address = new Address();
         $model->account->start_date = date("U");
         $model->commissions = [];
         $model->give_commission_1 = false;
@@ -56,8 +57,8 @@ class AccountModelFactory {
         $model = new AccountFormModel();
 
         //Model factories
-        $permissionModelFactory = new Permission\PermissionModelFactory();
-        $userModelFactory = new User\UserModelFactory();
+        $permissionModelFactory = new PermissionModelFactory();
+        $userModelFactory = new UserModelFactory();
 
         //Repos
         $accountRepo = new Repos\AccountRepo();

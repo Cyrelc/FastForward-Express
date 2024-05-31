@@ -4,12 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
+use App\Models\PaymentType;
+
 class Payment extends Model {
-    use LogsActivity, SoftDeletes;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     public $primaryKey = "payment_id";
     public $timestamps = false;
@@ -24,13 +27,19 @@ class Payment extends Model {
         'payment_type_id',
         'receipt_url',
         'reference_value',
-        'stripe_id',
         'stripe_object_type',
+        'stripe_payment_intent_id',
+        'stripe_refund_id',
         'stripe_status',
     ];
 
-    public function IsStripeTransaction() {
-        return $this->stripe_id != null;
+
+    public function payment_type() {
+        return $this->hasOne(PaymentType::class, 'payment_type_id', 'payment_type_id');
+    }
+
+    public function isStripeTransaction() {
+        return $this->stripe_payment_intent_id != null;
     }
 
     public function getActivityLogOptions() : LogOptions {

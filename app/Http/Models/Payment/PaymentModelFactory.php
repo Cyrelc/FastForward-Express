@@ -10,20 +10,6 @@ class PaymentModelFactory {
         return $this->GetStripePaymentMethods($account);
     }
 
-    public function GetAccountPayments($accountId) {
-        $paymentRepo = new Repos\PaymentRepo();
-        $payments = $paymentRepo->GetPaymentsByAccountId($accountId);
-
-        return $this->FindRevertablePayments($payments);
-    }
-
-    public function GetInvoicePayments($invoiceId) {
-        $paymentRepo = new Repos\PaymentRepo();
-        $payments = $paymentRepo->GetByInvoiceId($invoiceId);
-
-        return $this->FindRevertablePayments($payments);
-    }
-
     public function GetReceivePaymentModel($invoice) {
         $accountRepo = new Repos\AccountRepo();
         $paymentRepo = new Repos\PaymentRepo();

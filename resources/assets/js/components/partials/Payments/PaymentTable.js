@@ -7,6 +7,13 @@ import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
 
+const parseTitle = (data) => {
+    if(data.stripe_object_type == 'payment_intent')
+        return `Payment Intent ID: ${data.stripe_payment_intent_id ?? ''} \n ${data.error ?? ''}`
+    else if(data.stripe_object_type == 'refund')
+        return `Refund ID: ${data.stripe_refund_id ?? ''} \n ${data.error ?? ''}`
+}
+
 export default function PaymentTable(props) {
     const api = useAPI()
     const history = useHistory()
@@ -33,11 +40,14 @@ export default function PaymentTable(props) {
             <Fragment>
                 <Badge
                     bg={variant}
-                    title={`Payment Intent ID: ${data.stripe_id ?? ''} \n ${data.error ? data.error : ''}`}
+                    title={parseTitle(data)}
                     onClick={() => {
                         if(window.location.protocol === 'https:') {
-                            navigator.clipboard.writeText(data.stripe_id)}
-                            toast.success('Query copied to clipboard!')
+                            if(data.stripe_object_type == 'payment_intent')
+                                navigator.clipboard.writeText(data.stripe_payment_intent_id)}
+                            else
+                                navigator.clipboard.writeText(data.stripe_refund_id)
+                            toast.success('Stripe ID copied to clipboard')
                         }
                     }
                 >{status}</Badge>
@@ -50,16 +60,16 @@ export default function PaymentTable(props) {
 
     const revertPayment = cell => {
         if(!props.canRevertPayments) {
-            console.log("Does not have permission to undo payments")
+            console.error("Does not have permission to revert payments")
             return
         }
         const rowData = cell.getRow().getData()
         if(!rowData.can_be_reverted) {
-            console.log("This payment may not be reverted at this time.")
+            console.error("This payment may not be reverted at this time.")
             return
         }
 
-        if(confirm(`Are you certain you would like to undo the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
+        if(confirm(`Are you certain you would like to revert the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
             api.delete(`/payments/${rowData.payment_id}`).then(response => {
                 props.refresh()
             })
@@ -99,8 +109,10 @@ export default function PaymentTable(props) {
         {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
         {title: 'Payment Status', field: 'stripe_status', formatter: formatPaymentIntentStatus},
         {title: 'Error', field: 'error', visible: false},
-        {title: 'stripe_id', field: 'stripe_id', visible: false},
-        {title: 'receipt_url', field: 'receipt_url', visible: false}
+        {title: 'stripe_payment_intent_id', field: 'stripe_payment_intent_id', visible: false},
+        {title: 'stripe_refund_id', field: 'stripe_refund_id', visible: false},
+        {title: 'receipt_url', field: 'receipt_url', visible: false},
+        {title: 'can_be_reverted', field: 'can_be_reverted', visible: false},
     ]
 
     return (

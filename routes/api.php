@@ -27,6 +27,7 @@ Route::middleware(['guest'])->post(
 
 Route::controller(WebhookController::class)->prefix('webhooks')->group(function() {
     Route::post('/stripe/receivePaymentIntentUpdate', 'receivePaymentIntentUpdate');
+    Route::post('/stripe/receiveRefundUpdate', 'receiveRefundUpdate');
 });
 
 Route::controller(ToolController::class)->prefix('tools')->group(function() {
