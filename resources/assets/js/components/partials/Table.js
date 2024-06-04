@@ -38,6 +38,9 @@ export default function Table(props) {
     // Initial setup, set document title, get initial searchQuery
     useEffect(() => {
         setIsLoading(true)
+        if(props.triggerReload)
+            props.setTriggerReload(false)
+
         document.title = `${props.pageTitle} - Fast Forward Express`
 
         const query = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
@@ -65,7 +68,7 @@ export default function Table(props) {
             setQueries(response.queries ?? [])
             setIsLoading(false)
         }, () => {setIsLoading(false)})
-    }, [location.search])
+    }, [location.search, props.triggerReload])
 
     // Initialize datatable
     useEffect(() => {
@@ -150,14 +153,6 @@ export default function Table(props) {
             table?.setGroupBy()
     }, [groupBy])
 
-    // Handle trigger call from parent to refresh table data
-    useEffect(() => {
-        if(props.triggerReload) {
-            fetchTableData()
-            props.setTriggerReload(false)
-        }
-    }, [props.triggerReload])
-
     const deleteQuery = query => {
         if(confirm(`Are you sure you wish to delete query "${query.name}?\nThis action can not be undone`))
             api.delete(`/queries/${query.id}`).then(response => {
@@ -203,7 +198,7 @@ export default function Table(props) {
     const setSortedList = (column, data, callingFunction) => {
         if(data && props.indexName)
             localStorage.setItem(`${props.tableName}.sortedList`, data.map(row => row.getData()[props.indexName]))
-    } 
+    }
 
     /**
      * Note: We check both field and title here, because for navigation reasons, several columns may use the same "field" in the backend, and then
