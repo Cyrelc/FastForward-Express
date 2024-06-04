@@ -183,17 +183,17 @@ class AccountRepo {
     }
 
     public function GetWithUninvoicedLineItems($invoiceIntervals, $startDate, $endDate) {
-        $accounts = Account::leftJoin('selections', 'selections.value', '=', 'accounts.invoice_interval')
+        $accounts = Account::leftJoin('selections as invoice_intervals', 'invoice_intervals.value', '=', 'accounts.invoice_interval')
             ->leftJoin('accounts as parent_account', 'parent_account.account_id', '=', 'accounts.parent_account_id')
-            ->whereIn('accounts.invoice_interval', $invoiceIntervals)
+            ->whereIn('invoice_intervals.selection_id', $invoiceIntervals)
             ->where('accounts.active', true)
             ->select(
                 'accounts.account_id as id',
                 'accounts.account_number as number',
-                'selections.name as invoice_interval',
+                'invoice_intervals.name as invoice_interval',
                 'accounts.name',
                 DB::raw('case when accounts.parent_account_id is not null then concat(parent_account.account_number, " - ", parent_account.name) when accounts.can_be_parent = 1 then concat (accounts.account_number, " - ", accounts.name) else "None" end as parent_account'),
-                'selections.selection_id as invoice_interval_selection_id',
+                'invoice_intervals.selection_id as invoice_interval_selection_id',
                 DB::raw(
                     '(select count(distinct bills.bill_id) from line_items
                     left join charges on charges.charge_id = line_items.charge_id

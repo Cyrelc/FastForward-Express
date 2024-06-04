@@ -133,39 +133,6 @@ class InvoiceModelFactory{
 		return $model;
 	}
 
-	public function GetCreateModel() {
-		$paymentRepo = new Repos\PaymentRepo();
-		$selectionsRepo = new Repos\SelectionsRepo();
-
-		$model = new Invoice\InvoiceFormModel();
-		$model->invoice_intervals = array(new \stdClass, new \stdClass);
-		$model->invoice_intervals[0]->label = 'Invoice Intervals';
-		$model->invoice_intervals[0]->options = array();
-		$model->invoice_intervals[1]->label = 'Prepaid Types';
-		$model->invoice_intervals[1]->options = array();
-
-		foreach($selectionsRepo->GetSelectionsByType('invoice_interval') as $invoiceInterval) {
-			$model->invoice_intervals[0]->options[] = [
-				'label' => $invoiceInterval->name,
-				'value' => $invoiceInterval->value,
-				'type' => 'invoice_interval'
-			];
-		}
-
-		foreach($paymentRepo->GetPrepaidPaymentTypes() as $paymentType) {
-			$model->invoice_intervals[1]->options[] = [
-				'label' => $paymentType->name,
-				'value' => $paymentType->payment_type_id,
-				'type' => 'prepaid_type'
-			];
-		}
-
-		$model->start_date = date('Y-m-d H:i:s', strtotime("first day of last month"));
-		$model->end_date = date('Y-m-d H:i:s', strtotime("last day of last month"));
-
-		return $model;
-	}
-
 	public function GetGenerateModel($req) {
         $startDate = (new \DateTime($req->start_date))->format('Y-m-d');
         $endDate = (new \DateTime($req->end_date))->format('Y-m-d');

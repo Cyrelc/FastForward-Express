@@ -5,7 +5,10 @@ import DatePicker from 'react-datepicker'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
+import {DateTime} from 'luxon'
+
 import {useAPI} from '../../contexts/APIContext'
+import {useLists} from '../../contexts/ListsContext'
 
 export default function GenerateInvoices(props) {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
@@ -16,6 +19,7 @@ export default function GenerateInvoices(props) {
     const [table, setTable] = useState(null)
 
     const api = useAPI()
+    const lists = useLists()
     const tableRef = useRef(null)
     const history = useHistory()
 
@@ -103,11 +107,14 @@ export default function GenerateInvoices(props) {
 
     useEffect(() => {
         document.title = 'Generate Invoices - Fast Forward Express'
-        api.get('/invoices/getModel').then(response => {
-            setInvoiceIntervals(response.invoice_intervals)
-            setStartDate(Date.parse(response.start_date))
-            setEndDate(Date.parse(response.end_date))
-        })
+        const startDate = DateTime.now().minus({months: 1})
+        setStartDate(startDate.startOf('month').toJSDate())
+        setEndDate(startDate.endOf('month').toJSDate())
+        let options = [
+            {label: 'Invoice Intervals', options: lists.invoiceIntervals.map(interval => {return {...interval, type: 'invoice_interval'}})},
+            {label: 'Prepaid', options: lists.paymentTypes.filter(paymentType => paymentType.type == 'prepaid').map(paymentType => {return {...paymentType, type: 'prepaid_type'}})}
+        ]
+        setInvoiceIntervals(options)
     }, [])
 
     useEffect(() => {

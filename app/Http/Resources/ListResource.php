@@ -22,7 +22,7 @@ class ListResource extends JsonResource {
             'accounts' => [],
             'email_types' => Selection::where('type', 'contact_type')->select('name as label', 'selection_id as value')->get(),
             'phone_types' => Selection::where('type', 'phone_type')->select('name as label', 'selection_id as value')->get(),
-            'payment_types' => PaymentType::select('name as label', 'payment_type_id as value')->get(),
+            'payment_types' => PaymentType::select('name as label', 'payment_type_id as value', 'type')->get(),
         ];
 
         $authUser = $this;

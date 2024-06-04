@@ -122,22 +122,15 @@ class InvoiceController extends Controller {
         return response()->json(['success' => true, 'invoices' => $invoices]);
     }
 
-    public function getModel(Request $req, $invoiceId = null) {
+    public function getModel(Request $req, $invoiceId) {
         $invoiceModelFactory = new InvoiceModelFactory();
-        if($invoiceId) {
-            if(!Invoice::where('invoice_id', $invoiceId)->exists())
-                abort(404);
+        if(!Invoice::where('invoice_id', $invoiceId)->exists())
+            abort(404);
 
-            $model = $invoiceModelFactory->GetById($req, $invoiceId);
+        $model = $invoiceModelFactory->GetById($req, $invoiceId);
 
-            if($req->user()->cannot('view', $model->invoice))
-                abort(403);
-        } else {
-            if($req->user()->cannot('create', Invoice::class))
-                abort(403);
-
-            $model = $invoiceModelFactory->GetCreateModel();
-        }
+        if($req->user()->cannot('view', $model->invoice))
+            abort(403);
 
         return json_encode($model);
     }
