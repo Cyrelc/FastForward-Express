@@ -9,6 +9,7 @@ use App\Http\Repos;
 use App\Http\Models;
 use App\Http\Collectors;
 use App\Http\Models\Payment\PaymentModelFactory;
+use App\Models\Invoice;
 use App\Models\Payment;
 use \App\Http\Validation\Utils;
 use \Stripe;
@@ -61,8 +62,9 @@ class PaymentController extends Controller {
         $paymentRepo = new Repos\PaymentRepo();
 
         $stripePaymentType = $paymentRepo->GetPaymentTypeByName('Stripe (Pending)');
+        $invoice = Invoice::findOrFail($req->invoice_id);
 
-        $pendingPaymentIntents = Payment::where('invoice_id', $invoiceId)
+        $pendingPaymentIntents = Payment::where('invoice_id', $invoice->invoice_id)
             ->where('payment_type_id', $stripePaymentType->payment_type_id)
             ->where('stripe_status', 'pending')
             ->get();
@@ -70,8 +72,7 @@ class PaymentController extends Controller {
         if(!$pendingPaymentIntents->isEmpty())
             abort(422, 'Unable to request a new payment while an old one is pending. Please review or complete the pending payment before creating a new one.');
 
-        $outstandingInvoice = $invoiceRepo->GetById($req->invoice_id);
-        $incompletePaymentIntents = Payment::where('invoice_id', $invoiceId)
+        $incompletePaymentIntents = Payment::where('invoice_id', $invoice->invoice_id)
                 ->whereNotNull('stripe_payment_intent_id')
                 ->where('payment_type_id', $stripePaymentType->payment_type_id)
                 ->where('stripe_status', 'requires_payment_method')
