@@ -1,6 +1,8 @@
 import React from 'react'
 import {Card, Col, Form, Row, Table} from 'react-bootstrap'
 
+import {useUser} from '../../../contexts/UserContext'
+
 export default function UserPermissionTab(props) {
     const accountUserEnabledDescription = 'Enabled Users can log in to the system and have the following basic permissions:\n\n' +
         '\t- Edit their personal details (name, phone numbers, emails, etc.)\n' +
@@ -9,6 +11,8 @@ export default function UserPermissionTab(props) {
         '\t- View the list of account users, but not their details'
 
     const hasChildren = props.belongsTo.some(account => account.children.length > 0) || props.canBeParent
+
+    const {authenticatedUser} = useUser()
 
     return (
         <Row>
@@ -26,7 +30,14 @@ export default function UserPermissionTab(props) {
                         <tr key='is_enabled'>
                             <th>Enabled <i className='fas fa-question-circle' title={accountUserEnabledDescription}></i></th>
                             <td></td>
-                            <td><Form.Check checked={props.accountUserPermissions.is_enabled} name='is_enabled' onChange={props.handlePermissionChange} disabled={props.readOnly}></Form.Check></td>
+                            <td>
+                                <Form.Check
+                                    checked={props.accountUserPermissions.is_enabled}
+                                    name='is_enabled'
+                                    onChange={props.handlePermissionChange}
+                                    disabled={props.readOnly || authenticatedUser.contact.contact_id == props.contactId}
+                                ></Form.Check>
+                            </td>
                             {hasChildren == true && <td></td>}
                         </tr>
                         {/* Accounts */}
