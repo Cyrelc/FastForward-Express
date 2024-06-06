@@ -22,7 +22,9 @@ class ChargebackController extends Controller {
         $chargebackRepo->delete($chargebackId);
 
         DB::commit();
-        return;
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function index(Request $req) {
@@ -64,6 +66,8 @@ class ChargebackController extends Controller {
 
         DB::commit();
 
-        return;
+        return response()->json([
+            'success' => true,
+        ]);
     }
 }
