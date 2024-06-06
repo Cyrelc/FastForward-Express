@@ -98,7 +98,7 @@ export default function AccountUsersTab(props) {
     }
 
     const setPrimary = contactId => {
-        api.post(`/accountUsers/setPrimary/${props.accountId}/${contactId}`)
+        api.get(`/accountUsers/setPrimary/${props.accountId}/${contactId}`)
             .then(response => {
                 refreshAccountUsers()
             })
