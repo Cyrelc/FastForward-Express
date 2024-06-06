@@ -142,6 +142,8 @@ class AccountUserController extends Controller {
 
         $userRepo = new Repos\UserRepo();
         $userRepo->SetAccountUserAsPrimary($accountId, $contactId);
+
+        return response()->json(['success' => true]);
     }
 
     public function storeAccountUser(Request $req) {
