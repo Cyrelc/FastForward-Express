@@ -99,10 +99,10 @@ class PaymentController extends Controller {
         $paymentIntent = $stripe->paymentIntents->create([
             'amount' => $paymentAmount,
             'currency' => config('services.stripe.currency'),
-            'description' => 'Payment on FastForward Invoice #' . $outstandingInvoice['invoice_id'],
+            'description' => 'Payment on FastForward Invoice #' . $invoice->invoice_id,
         ]);
         DB::beginTransaction();
-        $paymentRepo->Insert($paymentCollector->CollectStripePaymentIntent($req, $outstandingInvoice, $paymentIntent));
+        $paymentRepo->Insert($paymentCollector->CollectStripePaymentIntent($req, $invoice->invoice_id, $paymentIntent));
         DB::commit();
 
         return json_encode(
