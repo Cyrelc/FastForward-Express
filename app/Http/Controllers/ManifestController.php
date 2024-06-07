@@ -36,6 +36,10 @@ class ManifestController extends Controller {
         $manifestRepo->delete($manifestId);
 
         DB::commit();
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function download(Request $req, $manifestIds) {

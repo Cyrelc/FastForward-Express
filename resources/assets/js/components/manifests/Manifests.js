@@ -60,7 +60,7 @@ export default function Manifests(props) {
             formatter: cell => cellContextMenuFormatter(cell),
             width: 50,
             hozAlign: 'center',
-            clickMenu: (cell) => cellContextMenu(cell),
+            clickMenu: (event, cell) => cellContextMenu(cell),
             headerSort: false,
             print: false
         },
