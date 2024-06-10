@@ -32,20 +32,22 @@ export default function Chargebacks(props) {
     const api = useAPI()
     const lists = useLists()
 
-    const cellContextMenu = [
-        {label: '<i class="fas fa-edit"></i> Edit Chargeback', action: (event, cell) => {
-            setChargeback(cell.getData())
-            setShowChargebackModal(true)
-        }},
-        {label: '<i class="fas fa-copy"></i> Copy Chargeback', action: (event, cell) => {
-            // TODO: remove chargeback_id from cell data for copy action
-            setChargeback({...cell.getData(), chargeback_id: null})
-            setShowChargebackModal(true)
-        }},
-        {label: '<i class="fas fa-trash"></i> Delete Chargeback', action: (event, cell) => deleteChargeback(cell)},
-    ]
+    const cellContextMenu = cell => {
+        return [
+            {label: '<i class="fas fa-edit"></i> Edit Chargeback', action: (event, cell) => {
+                setChargeback(cell.getData())
+                setShowChargebackModal(true)
+            }},
+            {label: '<i class="fas fa-copy"></i> Copy Chargeback', action: (event, cell) => {
+                // TODO: remove chargeback_id from cell data for copy action
+                setChargeback({...cell.getData(), chargeback_id: null})
+                setShowChargebackModal(true)
+            }},
+            {label: '<i class="fas fa-trash"></i> Delete Chargeback', action: (event, cell) => deleteChargeback(cell)},
+        ]
+    }
 
-    const deleteChargeback = (event, cell) => {
+    const deleteChargeback = cell => {
         const data = cell.getData()
         if(confirm(`Are you sure you wish to delete chargeback ${data.chargeback_id}?\nThis action can not be undone`))
             api.delete(`/chargebacks/${cell.getData().chargeback_id}`, null)
@@ -88,7 +90,7 @@ export default function Chargebacks(props) {
 
     const columns = [
         {
-            clickMenu: cellContextMenu,
+            clickMenu: (event, cell) => cellContextMenu(cell),
             formatter: cell => {return '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'},
             headerSort: false,
             hozAlign: 'center',
