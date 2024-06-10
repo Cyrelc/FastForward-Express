@@ -4,6 +4,7 @@ import Select from 'react-select'
 import {ReactTabulator} from 'react-tabulator'
 
 import Charge from './Charge'
+import useCharge from './hooks/useCharge'
 
 const commonRateNames = ['Adjustment', 'Refund', 'Other', 'Incorrect Information', 'Interliner', 'GST']
 
@@ -52,25 +53,26 @@ function lineItemTypeGroupFormatter(value) {
     }
 }
 
-export default function BillingTab(props) {
+export default function BillingTab({billState, chargeState}) {
     const [rateTable, setRateTable] = useState([])
+    const [chargeAccount, setChargeAccount] = useState([])
+    const [chargeType, setChargeType] = useState({})
+    const [chargeEmployee, setChargeEmployee] = useState({})
 
     const {
         activeRatesheet,
+        addCharge,
         charges,
-        chargeAccount,
-        chargeEmployee,
-        chargeType,
         chargeTypes,
-        hasInterliner,
-        interliner,
-        interlinerActualCost,
-        interlinerReferenceValue,
-        interliners,
-        isDeliveryManifested,
-        isInvoiced,
-        isPickupManifested
-    } = props.chargeState
+        // hasInterliner,
+        // interliner,
+        // interlinerActualCost,
+        // interlinerReferenceValue,
+        // interliners,
+        // isDeliveryManifested,
+        // isInvoiced,
+        // isPickupManifested
+    } = chargeState
 
     const {
         accounts,
@@ -81,7 +83,18 @@ export default function BillingTab(props) {
         repeatInterval,
         repeatIntervals,
         skipInvoicing
-    } = props.billState
+    } = billState
+
+    // Set the ratesheet (for purposes of delivery type time primarily) - based on the currently selected charge Account on the basic page
+    useEffect(() => {
+        if(permissions.createBasic && billID && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
+            const ratesheet = ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
+            if(ratesheet) {
+                console.log('bill dispatch', ratesheet)
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+            }
+        }
+    }, [chargeAccount])
 
     useEffect(() => {
         if(!activeRatesheet)
@@ -254,7 +267,7 @@ export default function BillingTab(props) {
                                 getOptionLabel={type => type.name}
                                 getOptionValue={type => type.payment_type_id}
                                 value={chargeType}
-                                onChange={chargeType => props.chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeType})}
+                                onChange={type => setChargeType(type)}
                                 isDisabled={readOnly}
                             />
                         </InputGroup>
@@ -268,7 +281,7 @@ export default function BillingTab(props) {
                                     getOptionLabel={account => account.account_number + ' - ' + account.name}
                                     getOptionValue={account => account.account_id}
                                     isSearchable
-                                    onChange={account => props.chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: account})}
+                                    onChange={account => setChargeAccount(account)}
                                     value={chargeAccount}
                                     isDisabled={readOnly}
                                 />
@@ -285,7 +298,7 @@ export default function BillingTab(props) {
                                     getOptionLabel={employee => employee.label}
                                     getOptionValue={employee => employee.value}
                                     value={chargeEmployee}
-                                    onChange={employee => props.chargeDispatch({type: 'SET_CHARGE_EMPLOYEE', payload: employee})}
+                                    onChange={employee => setChargeEmployee(employee)}
                                     isDisabled={readOnly}
                                 />
                             </InputGroup>
@@ -294,7 +307,7 @@ export default function BillingTab(props) {
                     <Col md={1}>
                         <Button
                             variant='success'
-                            onClick={() => props.chargeDispatch({type: 'ADD_CHARGE_TABLE'})}
+                            onClick={() => props.addCharge(chargeType, chargeAccount, chargeEmployee)}
                             disabled={
                                 chargeType?.name === 'Account' ? !chargeAccount :
                                 chargeType?.name === 'Employee' ? !chargeEmployee :

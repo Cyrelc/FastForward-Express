@@ -66,7 +66,7 @@ const groupBy = (data, charge) => {
 }
 
 function groupHeaderFormatter(key, count, data, group) {
-    const styledCount = '<span style="color:blue">(' + count + ')</span>'
+    const styledCount = `<span style="color:blue">(${count})</span>`
     const value = data[0][key]
     if(key === 'invoice_id')
         return `${value ? `Invoice #${value}` : 'Not Yet Invoiced'}${styledCount}`
@@ -131,12 +131,6 @@ export default function Charge(props) {
         return readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
     }
 
-    function canChargeTableBeDeleted(charge) {
-        if(!charge || !!props.readOnly)
-            return false
-        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
-    }
-
     const chargeTableColumns = chargeType => {
         return [
             {
@@ -194,18 +188,6 @@ export default function Charge(props) {
             {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
             {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('invoices', cell)}
         ]
-    }
-
-    const deleteChargeTable = charge => {
-        if(!canChargeTableBeDeleted(charge)) {
-            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced or manifested'
-            toast.error(errorMessage)
-            console.log(errorMessage)
-            return
-        }
-        if(confirm('Are you sure you wish to delete this charge group?\n This action can not be undone')) {
-            props.chargeDispatch({type: 'DELETE_CHARGE_TABLE', payload: index})
-        }
     }
 
     const hidePriceAdjustModal = () => {
@@ -334,8 +316,8 @@ export default function Charge(props) {
                                         {/* <Dropdown.Item onClick={() => reassignCharge(charge)}>
                                             <i className='fas fa-exchange-alt'></i> Reassign Charge
                                         </Dropdown.Item>} */}
-                                        {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
-                                            <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
+                                        {(charge.lineItems && charge.can_be_deleted) &&
+                                            <Dropdown.Item onClick={() => props.deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
                                         }
                                         {(charge.chargeType.type == 'prepaid' && charge.lineItems?.find(lineItem => lineItem.invoice_id == null)) ?
                                             <Dropdown.Item onClick={invoiceAsOneOff}>

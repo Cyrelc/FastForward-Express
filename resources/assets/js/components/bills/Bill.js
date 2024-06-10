@@ -7,6 +7,7 @@ import {toast} from 'react-toastify'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
 import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
+import useCharges from './hooks/useCharges'
 import usePackages from './hooks/usePackages'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -29,7 +30,8 @@ Please remember you can view the driver who is assigned each line item by clicki
 
 export default function Bill(props) {
     const [billState, billDispatch] = useReducer(BillReducer, initialBillState)
-    const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
+    // const [chargeState, chargeDispatch] = useReducer(ChargeReducer, initialChargeState)
+    const chargeState = useCharges()
     const packages = usePackages()
 
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
@@ -38,7 +40,7 @@ export default function Bill(props) {
     const {accounts, billId, deliveryType, isLoading, isTemplate, nextBillId, permissions, prevBillId, readOnly} = billState
     const {account: deliveryAccount, addressLat: deliveryAddressLat, addressLng: deliveryAddressLng, isMall: deliveryAddressIsMall, timeScheduled: deliveryTimeScheduled, driver: deliveryDriver} = billState.delivery
     const {account: pickupAccount, addressLat: pickupAddressLat, addressLng: pickupAddressLng, isMall: pickupAddressIsMall, timeScheduled: pickupTimeScheduled, driver: pickupDriver} = billState.pickup
-    const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
+    // const {account: chargeAccount, activeRatesheet, charges, invoiceIds, manifestIds, ratesheets} = chargeState
     const {packageIsMinimum, packageIsPallet, packageArray, requireProofOfDelivery, useImperial} = packages
 
     const api = useAPI()
@@ -65,21 +67,22 @@ export default function Bill(props) {
                 billDispatch({type: 'CONFIGURE_BILL', payload: data})
                 billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: data.ratesheets[0]})
 
-                chargeDispatch({
-                    type: 'CONFIGURE_CHARGES',
-                    payload: {
-                        accounts: data.accounts,
-                        activeRatesheet: data.ratesheets[0],
-                        charges: data?.charges,
-                        chargeTypes: data.charge_types,
-                        interliners: data.interliners,
-                        ratesheets: data.ratesheets
-                    }
-                })
+                charges.setup(data)
+                // chargeDispatch({
+                //     type: 'CONFIGURE_CHARGES',
+                //     payload: {
+                //         accounts: data.accounts,
+                //         activeRatesheet: data.ratesheets[0],
+                //         charges: data?.charges,
+                //         chargeTypes: data.charge_types,
+                //         interliners: data.interliners,
+                //         ratesheets: data.ratesheets
+                //     }
+                // })
 
                 if(data.bill?.bill_id) {
                     billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
-                    chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
+                    // chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     packages.setup(data.bill)
                     let sortedBills = localStorage.getItem('bills.sortedList')
                     if(sortedBills) {
@@ -94,7 +97,7 @@ export default function Bill(props) {
                     }
 
                     if(data.charges?.length === 1 && data.charges[0].charge_account_id) {
-                        const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
+                        // const chargeAccount = data.accounts.find(account => account.account_id === data.charges[0].charge_account_id)
                         const ratesheet = data.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
                         if(ratesheet) {
                             billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
@@ -123,63 +126,63 @@ export default function Bill(props) {
         history.push(`/bills/create?copy_from=${billId}`)
     }
 
-    const debouncedGenerateCharges = useCallback(
-        debounce((chargeIndex, overwrite = false) => {
-            const charge = charges[chargeIndex]
+    // const debouncedGenerateCharges = useCallback(
+    //     debounce((chargeIndex, overwrite = false) => {
+    //         const charge = charges[chargeIndex]
 
-            const data = {
-                charge_account_id: charge?.account_id,
-                delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng, is_mall: deliveryAddressIsMall},
-                delivery_type_id: deliveryType.id,
-                package_is_minimum: packageIsMinimum,
-                package_is_pallet: packageIsPallet,
-                packages: packageIsMinimum ? [] : packageArray,
-                pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
-                // TODO: replace this with ratesheet logic (mine > parents > default)
-                ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
-                time_pickup_scheduled: pickupTimeScheduled.toLocaleString('en-US'),
-                time_delivery_scheduled: deliveryTimeScheduled.toLocaleString('en-US'),
-                use_imperial: useImperial
-            }
-            setAwaitingCharges(true)
+    //         const data = {
+    //             charge_account_id: charge?.account_id,
+    //             delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng, is_mall: deliveryAddressIsMall},
+    //             delivery_type_id: deliveryType.id,
+    //             package_is_minimum: packageIsMinimum,
+    //             package_is_pallet: packageIsPallet,
+    //             packages: packageIsMinimum ? [] : packageArray,
+    //             pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
+    //             // TODO: replace this with ratesheet logic (mine > parents > default)
+    //             ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
+    //             time_pickup_scheduled: pickupTimeScheduled.toLocaleString('en-US'),
+    //             time_delivery_scheduled: deliveryTimeScheduled.toLocaleString('en-US'),
+    //             use_imperial: useImperial
+    //         }
+    //         setAwaitingCharges(true)
 
-            api.post('/bills/generateCharges', data)
-                .then(response => {
-                    if(overwrite) {
-                        chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                    } else {
-                        chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                    }
-                    setAwaitingCharges(false)
-                    toast.warn(
-                        'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
-                        {
-                            position: 'top-center',
-                            showDuration: 300,
-                            timeOut: 5000,
-                            extendedTImeout: 5000
-                        }
-                    )
-                })
-        }, 500), [
-            activeRatesheet,
-            chargeAccount,
-            charges,
-            deliveryAddressIsMall,
-            deliveryAddressLat,
-            deliveryAddressLng,
-            deliveryTimeScheduled,
-            deliveryType,
-            packageIsMinimum,
-            packageIsPallet,
-            packageArray,
-            pickupAddressIsMall,
-            pickupAddressLat,
-            pickupAddressLng,
-            pickupTimeScheduled,
-            useImperial,
-        ]
-    )
+    //         api.post('/bills/generateCharges', data)
+    //             .then(response => {
+    //                 if(overwrite) {
+    //                     chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+    //                 } else {
+    //                     chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
+    //                 }
+    //                 setAwaitingCharges(false)
+    //                 toast.warn(
+    //                     'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
+    //                     {
+    //                         position: 'top-center',
+    //                         showDuration: 300,
+    //                         timeOut: 5000,
+    //                         extendedTImeout: 5000
+    //                     }
+    //                 )
+    //             })
+    //     }, 500), [
+    //         activeRatesheet,
+    //         chargeAccount,
+    //         charges,
+    //         deliveryAddressIsMall,
+    //         deliveryAddressLat,
+    //         deliveryAddressLng,
+    //         deliveryTimeScheduled,
+    //         deliveryType,
+    //         packageIsMinimum,
+    //         packageIsPallet,
+    //         packageArray,
+    //         pickupAddressIsMall,
+    //         pickupAddressLat,
+    //         pickupAddressLng,
+    //         pickupTimeScheduled,
+    //         useImperial,
+    //     ]
+    // )
 
     const debounceSetPickupTimeExpected = useCallback(debounce((value) => {
         billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})
@@ -407,17 +410,6 @@ export default function Bill(props) {
         }
     }, [deliveryAccount, isLoading])
 
-    // Set the ratesheet (for purposes of delivery type time primarily) - based on the currently selected charge Account on the basic page
-    useEffect(() => {
-        if(permissions.createBasic && billID && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
-            const ratesheet = billState.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-            if(ratesheet) {
-                console.log('bill dispatch', ratesheet)
-                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
-            }
-        }
-    }, [chargeAccount])
-
     // If the charge account changes, and it is the only valid option as a chargeType for this user (i.e. they only have one account so it is automatically locked currently)
     // then create a charge assigned to this account so that the submission will be successful
     useEffect(() => {
@@ -618,7 +610,6 @@ export default function Bill(props) {
                             <BillingTab
                                 billDispatch={billDispatch}
                                 billState={billState}
-                                chargeDispatch={chargeDispatch}
                                 chargeState={chargeState}
                                 generateCharges={generateCharges}
                             />
