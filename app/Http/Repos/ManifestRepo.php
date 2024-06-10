@@ -27,7 +27,7 @@ class ManifestRepo {
         return $manifests;
     }
 
-    public function Delete($manifestId) {
+    public function delete($manifestId) {
         $pickupLineItems = LineItem::where('pickup_manifest_id', $manifestId)->get();
         $deliveryLineItems = LineItem::where('delivery_manifest_id', $manifestId)->get();
         $chargebacks = Chargeback::where('manifest_id', $manifestId)->get();
