@@ -27,6 +27,8 @@ import Ratesheet from '../ratesheets/Ratesheet'
 import Search from '../search/Search'
 import UserSettings from '../users/UserSettings'
 
+import NewBill from '../bills_new/Bill'
+
 export default function Router(props) {
     const {authenticatedUser} = useUser()
 
@@ -69,6 +71,12 @@ export default function Router(props) {
                         }
                         {frontEndPermissions.bills.create &&
                             <Route path='/bills/create' exact component={Bill}></Route>
+                        }
+                        {frontEndPermissions.bills.create &&
+                            <Route path='/bills/new/create' exact component={NewBill}></Route>
+                        }
+                        {frontEndPermissions.bills.viewAny &&
+                            <Route path='/bills/new/:billId' component={NewBill}></Route>
                         }
                         {frontEndPermissions.bills.viewAny &&
                             <Route path='/bills/:billId' component={Bill}></Route>

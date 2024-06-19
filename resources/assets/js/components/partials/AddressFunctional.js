@@ -16,23 +16,24 @@ export default function Address(props) {
 
     const {accounts, readOnly, showAddressSearch, usePickupDelivery = false} = props
 
-    // const {account, referenceValue} = props.data
     const {
-        // account,
+        account = null,
         formatted,
         isMall,
         lat,
         lng,
         name,
         type,
+        referenceValue = null,
+        setAccount = null,
         setFormatted,
         setLat,
         setLng,
         setIsMall,
         setName,
         setPlaceId,
-        setType
-        // referenceValue
+        setReferenceValue = null,
+        setType,
     } = props.address
 
     useEffect(() => {
@@ -90,6 +91,7 @@ export default function Address(props) {
                     {props.useIsMall &&
                         <Col>
                             <FormCheck
+                                id={`${props.id}isMall`}
                                 name='isMall'
                                 label='Location In Mall'
                                 value={isMall}
@@ -181,7 +183,7 @@ export default function Address(props) {
                                     options={accounts}
                                     isSearchable
                                     value={account}
-                                    onChange={props.handleAccountChange}
+                                    onChange={setAccount}
                                     isDisabled={readOnly}
                                 />
                             </InputGroup>
@@ -190,11 +192,11 @@ export default function Address(props) {
                     {(accounts?.length && type === 'Account' && account?.custom_field) &&
                         <Col md={12}>
                             <InputGroup>
-                                <InputGroup.Text>{props.data?.account?.custom_field}</InputGroup.Text>
+                                <InputGroup.Text>{account?.custom_field}</InputGroup.Text>
                                 <FormControl
                                     name={`${props.id}ReferenceValue`}
                                     value={referenceValue}
-                                    onChange={event => props.handleReferenceValueChange(account, referenceValue, event.target.value)}
+                                    onChange={event => setReferenceValue(event.target.value)}
                                     readOnly={readOnly}
                                 />
                             </InputGroup>
@@ -232,7 +234,7 @@ export default function Address(props) {
                             googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
                             libraries={['places', 'drawing', 'geometry']}
                         > */}
-                            <GoogleMap
+                            {/* <GoogleMap
                                 center={mapCenter}
                                 mapContainerStyle={{height: '250px', marginTop: 20}}
                                 onClick={handleMapClickEvent}
@@ -242,7 +244,7 @@ export default function Address(props) {
                                 zoom={zoom}
                             >
                                 {markerCoords && <Marker position={markerCoords}/>}
-                            </GoogleMap>
+                            </GoogleMap> */}
                         {/* </LoadScript> */}
                     </Col>
                 </Row>

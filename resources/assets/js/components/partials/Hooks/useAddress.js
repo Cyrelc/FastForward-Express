@@ -9,6 +9,7 @@ export default function useAddress() {
     const [name, setName] = useState('')
     const [placeId, setPlaceId] = useState('')
     const [type, setType] = useState('Search')
+    const [zone, setZone] = useState({})
 
     const collect = () => {
         return {
@@ -25,7 +26,7 @@ export default function useAddress() {
     const setFromAccount = account => {
         setFormatted(account.shipping_address ? account.shipping_address_formatted : account.billing_address_formatted)
         setLat(account.shipping_address ? account.shipping_address_lat : account.billing_address_lat)
-        setLng(account.shipping_address ? account.billing_address_lat : account.billing_address_lng)
+        setLng(account.shipping_address ? account.shipping_address_lng : account.billing_address_lng)
         setName(account.shipping_address ? account.shipping_address_name : account.billing_address_name),
         setPlaceId(account.shipping_address ? account.shipping_address_place_id : account.billing_address_place_id)
     }
@@ -60,6 +61,7 @@ export default function useAddress() {
         name,
         placeId,
         type,
+        zone,
 
         collect,
         reset,
@@ -71,6 +73,7 @@ export default function useAddress() {
         setName,
         setPlaceId,
         setType,
+        setZone,
         setup,
     }
 }

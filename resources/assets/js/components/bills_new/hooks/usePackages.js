@@ -13,7 +13,7 @@ export default function usePackages() {
     const [packageIsMinimum, setPackageIsMinimum] = useState(false)
     const [packageIsPallet, setPackageIsPallet] = useState(false)
     const [requireProofOfDelivery, setRequireProofOfDelivery] = useState(false)
-    const [useImperial, setUseImperial] = useState(user?.settings?.use_imperial_default ?? false)
+    const [useImperial, setUseImperial] = useState(user.settings.use_imperial_default ?? false)
 
     useEffect(() => {
         setPackageArray(packageArray.map(parcel => {
