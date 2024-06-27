@@ -33,6 +33,7 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
         permissions,
         readOnly,
         setDescription,
+        setDeliveryType
     } = bill
 
     const {
@@ -52,48 +53,55 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
     const totalWeight = packageArray.reduce((acc, parcel) => acc + parcel.totalWeight ? parseFloat(parcel.totalWeight) : 0, 0)
     const totalCubedWeight = packageArray.reduce((acc, parcel) => acc + parcel.cubedWeight ? parseFloat(parcel.cubedWeight) : 0, 0)
 
-    const pickupTimeFilter = time => {
-        const dateTime = DateTime.fromJSDate(time)
-        // If requested time is in the past
-        if(dateTime.diffNow('minutes').minutes < 0)
-            return false
-        // If requested time is not a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
-        if(dateTime.weekday === 6 || dateTime.weekday === 7)
-            return false
-        // If requested time is AFTER business hours - (modified for shortest available delivery window)
-        const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-        const adjustedBusinessHoursMax = businessHoursMax.minus({hours: minimumTimeToDoADelivery})
-        const lastPickupTime = DateTime.fromJSDate(time).set({hour: adjustedBusinessHoursMax.hour, minute: adjustedBusinessHoursMax.minute})
-        if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
-            return false
-        // If requested time is BEFORE business hours - (no modification required)
-        const earliestValidPickupTime = DateTime.fromJSDate(time).set({hour: businessHoursMin.hour, minute: businessHoursMin.minute})
-        if(dateTime.diff(earliestValidPickupTime, 'minutes').minutes < 0)
-            return false
-
-        return true
+    const includeTimes = []
+    for (let hour = businessHoursMin.hour; hour < businessHoursMax.hour; hour++) {
+        for(let minute = 0; minute < 60; minute += 15)
+            includeTimes.push(new Date().setHours(hour, minute))
     }
+    console.log(includeTimes)
 
-    const deliveryTimeFilter = time => {
-        const dateTime = DateTime.fromJSDate(time)
-        // If requested time is in the past
-        if(dateTime.diffNow('minutes').minutes < 0)
-            return false
-        // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
-        if(dateTime.weekday === 6 || dateTime.weekday === 7)
-            return false
-        // If requested time is AFTER business hours - (no modification required)
-        const lastDeliveryTime = DateTime.fromJSDate(time).set({hour: businessHoursMax.hour, minute: businessHoursMax.minute})
-        if(dateTime.diff(lastDeliveryTime, 'minutes').minutes > 0)
-            return false
-        // If requested time is BEFORE time_pickup_expected + minimum delivery time (as defined by deliveryTypes)
-        const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
-        const earliestValidDeliveryTime = DateTime.fromJSDate(pickup.timeScheduled).plus({hours: minimumTimeToDoADelivery})
-        if(dateTime.diff(earliestValidDeliveryTime, 'minutes').minutes <= 1)
-            return false
+    // const pickupTimeFilter = time => {
+    //     const dateTime = DateTime.fromJSDate(time)
+    //     // If requested time is in the past
+    //     if(dateTime.diffNow('minutes').minutes < 0)
+    //         return false
+    //     // If requested time is not a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
+    //     if(dateTime.weekday === 6 || dateTime.weekday === 7)
+    //         return false
+    //     // If requested time is AFTER business hours - (modified for shortest available delivery window)
+    //     const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
+    //     const adjustedBusinessHoursMax = businessHoursMax.minus({hours: minimumTimeToDoADelivery})
+    //     const lastPickupTime = DateTime.fromJSDate(time).set({hour: adjustedBusinessHoursMax.hour, minute: adjustedBusinessHoursMax.minute})
+    //     if(dateTime.diff(lastPickupTime, 'minutes').minutes > 0)
+    //         return false
+    //     // If requested time is BEFORE business hours - (no modification required)
+    //     const earliestValidPickupTime = DateTime.fromJSDate(time).set({hour: businessHoursMin.hour, minute: businessHoursMin.minute})
+    //     if(dateTime.diff(earliestValidPickupTime, 'minutes').minutes < 0)
+    //         return false
 
-        return true
-    }
+    //     return true
+    // }
+
+    // const deliveryTimeFilter = time => {
+    //     const dateTime = DateTime.fromJSDate(time)
+    //     // If requested time is in the past
+    //     if(dateTime.diffNow('minutes').minutes < 0)
+    //         return false
+    //     // If requested time is a weekend (6 = Saturday, 7 = Sunday) See moment.github.io/luxon/api-docs/index.html#datetimeweekday for more details
+    //     if(dateTime.weekday === 6 || dateTime.weekday === 7)
+    //         return false
+    //     // If requested time is AFTER business hours - (no modification required)
+    //     const lastDeliveryTime = DateTime.fromJSDate(time).set({hour: businessHoursMax.hour, minute: businessHoursMax.minute})
+    //     if(dateTime.diff(lastDeliveryTime, 'minutes').minutes > 0)
+    //         return false
+    //     // If requested time is BEFORE time_pickup_expected + minimum delivery time (as defined by deliveryTypes)
+    //     const minimumTimeToDoADelivery = deliveryTypes.reduce((minimum, type) => type.time < minimum ? type.time : minimum, deliveryTypes[0].time)
+    //     const earliestValidDeliveryTime = DateTime.fromJSDate(pickup.timeScheduled).plus({hours: minimumTimeToDoADelivery})
+    //     if(dateTime.diff(earliestValidDeliveryTime, 'minutes').minutes <= 1)
+    //         return false
+
+    //     return true
+    // }
 
     // const handleReferenceValueChange = (account, prevValue, value) => {
     //     const payload = {account, prevValue, value}
@@ -328,7 +336,7 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                 <hr/>
                 <Row>
                     <Col md={2}><h4 className='text-muted'>Scheduling</h4></Col>
-                    {/* <Col md={4}>
+                    <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
                             <Select
@@ -344,20 +352,20 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                                     value: deliveryType.id,
                                     key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
                                 }}
-                                onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: deliveryTypes[item.key]})}
+                                onChange={item => setDeliveryType(deliveryTypes[item.key])}
                                 isDisabled={readOnly || invoiceIds.length > 0}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
                             />
                         </InputGroup>
-                    </Col> */}
-                    {/* <Col md={3}>
+                    </Col>
+                    <Col md={3}>
                         <InputGroup>
                             <InputGroup.Text>Package Ready: </InputGroup.Text>
                             <DatePicker
                                 showTimeSelect
-                                timeIntervals={15}
+                                timeIntervals={60 * 24}
                                 dateFormat='MMMM d, yyyy h:mm aa'
-                                onChange={value => props.setPickupTimeExpected(value)}
+                                onChange={value => pickup.setTimeScheduled(value)}
                                 showMonthDropdown
                                 monthDropdownItemNumber={15}
                                 scrollableMonthDropdown
@@ -366,11 +374,12 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                                 className='form-control'
                                 //Rules for non-admins only
                                 filterDate={applyRestrictions && filterDates}
-                                filterTime={applyRestrictions && pickupTimeFilter}
+                                injectTimes={includeTimes.map(time => new Date(time))}
+                                // filterTime={applyRestrictions && pickupTimeFilter}
                                 wrapperClassName='form-control'
                             />
                         </InputGroup>
-                    </Col> */}
+                    </Col>
                     {/* <Col md={3}>
                         <InputGroup>
                             <InputGroup.Text>Delivery By: </InputGroup.Text>
@@ -378,7 +387,7 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                                 showTimeSelect
                                 timeIntervals={15}
                                 dateFormat='MMMM d, yyyy h:mm aa'
-                                onChange={value => props.billDispatch({type: 'SET_DELIVERY_TIME_EXPECTED', payload: value})}
+                                onChange={value => delivery.setTimeScheduled(value)}
                                 showMonthDropdown
                                 monthDropdownItemNumber={15}
                                 scrollableMonthDropdown
@@ -387,7 +396,8 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                                 className='form-control'
                                 //Rules for non-admins only
                                 filterDate={applyRestrictions && filterDates}
-                                filterTime={applyRestrictions && deliveryTimeFilter}
+                                includeTimes={includeTimes}
+                                // filterTime={applyRestrictions && deliveryTimeFilter}
                                 wrapperClassName='form-control'
                             />
                             <OverlayTrigger

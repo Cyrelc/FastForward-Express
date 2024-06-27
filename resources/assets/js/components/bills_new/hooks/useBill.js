@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react'
 
-import {useUser} from '../../../contexts/UserContext'
+// import {useUser} from '../../../contexts/UserContext'
+import {DateTime} from 'luxon'
 
 import useCharges from './useCharges'
 import usePackages from './usePackages'
@@ -25,6 +26,10 @@ export default function useBill() {
     const [activeRatesheet, setActiveRatesheet] = useState({})
     const [applyRestrictions, setApplyRestrictions] = useState(true)
     const [billId, setBillId] = useState(null)
+    const [businessHoursMax, setBusinessHoursMax] = useState(DateTime.now())
+    const [businessHoursMin, setBusinessHoursMin] = useState(DateTime.now())
+    const [deliveryType, setDeliveryType] = useState(null)
+    const [deliveryTypes, setDeliveryTypes] = useState([])
     const [description, setDescription] = useState('')
     const [incompleteFields, setIncompleteFields] = useState([])
     const [isTemplate, setIsTemplate] = useState(false)
@@ -33,7 +38,7 @@ export default function useBill() {
     const [persistFields, setPersistFields] = useState([])
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
-    const charges = useCharges()
+    const charges = useCharges(activeRatesheet)
     const delivery = usePickupDelivery(activeRatesheet)
     const packages = usePackages()
     const pickup = usePickupDelivery(activeRatesheet)
@@ -59,9 +64,28 @@ export default function useBill() {
         }
     }, [delivery.account])
 
+    useEffect(() => {
+        if(activeRatesheet?.delivery_types) {
+            const deliveryTypes = JSON.parse(activeRatesheet.delivery_types)
+            setDeliveryTypes(deliveryTypes)
+            if(deliveryType) {
+                setDeliveryType(deliveryTypes.find(activeRatesheetDeliveryType => activeRatesheetDeliveryType.id == deliveryType.value))
+            } else {
+                setDeliveryType(deliveryTypes.delivery_types[0])
+            }
+        }
+    }, [activeRatesheet])
+
     const setup = data => {
         setAccounts(data.accounts)
+        setActiveRatesheet(data.ratesheets[0])
+        setBusinessHoursMax(DateTime.fromISO(data.time_max))
+        setBusinessHoursMin(DateTime.fromISO(data.time_min))
+        // setDeliveryType(data.ratesheets[0].delivery_types[0])
         setPermissions(data.permissions)
+        // businessHoursMax: DateTime.fromISO(payload.time_max),
+        // businessHoursMin: DateTime.fromISO(payload.time_min),
+
         if(data.bill?.bill_id)
             setupExisting(data)
         else {
@@ -70,14 +94,16 @@ export default function useBill() {
         }
     }
 
-    // TODO - maybe delete, might be redundant
+    // TODO - maybe delete, might be redundant (all "create" logic may be done in setup regardless)
     // const configureCreate = data => {
 
     // }
 
     // internal function, never needs to be returned
     const setupExisting = data => {
+        // setActiveRatesheet()
         setBillId(data.bill.bill_id)
+        setDeliveryType(data.delivery_types.find(deliveryType => deliveryType.value == data.bill.delivery_type))
         setDescription(data.bill.description)
         setIncompleteFields(JSON.parse(data.bill.incomplete_fields))
         setIsTemplate(data.bill.is_template)
@@ -132,6 +158,10 @@ export default function useBill() {
             accounts,
             applyRestrictions,
             billId,
+            businessHoursMax,
+            businessHoursMin,
+            deliveryType,
+            deliveryTypes,
             description,
             incompleteFields,
             isTemplate,
@@ -140,6 +170,8 @@ export default function useBill() {
             persistFields,
             viewTermsAndConditions,
             //setters,
+            setActiveRatesheet,
+            setDeliveryType,
             setDescription,
             //functions,
             setup,

@@ -8,8 +8,8 @@ function canChargeTableBeDeleted(charge) {
     return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
 }
 
-export default function useCharges() {
-    const [activeRatesheet, setActiveRatesheet] = useState({})
+export default function useCharges({activeRatesheet}) {
+    // const [activeRatesheet, setActiveRatesheet] = useState({})
     const [chargeAccount, setChargeAccount] = useState({})
     const [charges, setCharges] = useState([])
     const [chargeReferenceValue, setChargeReferenceValue] = useState('')
@@ -209,7 +209,7 @@ export default function useCharges() {
         isDeliveryManifested,
         manifestIds,
         //setters
-        setActiveRatesheet,
+        // setActiveRatesheet,
         //functions
         addCharge,
         deleteCharge,
