@@ -5,7 +5,7 @@
     <div class='col-md-12' style='padding-bottom: 70px;'>
         <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
-                <h3 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white'>We're big enough to handle it<br/>but small enough to care</h3>
+                <h3 style='padding-left:130px; padding-top:100px; color:white'>We're big enough to handle it<br/>but small enough to care</h3>
             </div>
         </div>
     </div>
@@ -33,7 +33,7 @@
     <div class='col-md-7' style='padding-right: 0px'>
         <div style='border: 4px solid black; background: url({{URL::to("/")}}/images/landing-why-FFE.jpg) no-repeat; height: 100%; width: 100%; position: relative;'>
             <div style='background: rgba(92, 94, 212, 0.7); height: 100%'>
-                <h1 class='panel-heading' style='padding-left:130px; padding-top:230px; color:white'>Why choose Fast Forward Express?</h1>
+                <h1 style='padding-left:130px; padding-top:230px; color:white'>Why choose Fast Forward Express?</h1>
             </div>
         </div>
     </div>

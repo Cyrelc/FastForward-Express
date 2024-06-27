@@ -30,13 +30,14 @@ mix.js('resources/assets/js/app.js', 'public/compiled_js')
    .sass('resources/assets/sass/manifest_pdf.scss', 'public/css');
 
 mix.scripts([
-   'resources/assets/js/public/bootstrap-combobox.js',
+   'node_modules/bootstrap/dist/js/bootstrap.min.js',
    'resources/assets/js/public/toastr.min.js',
    'resources/assets/js/public/utils.js'
 ], 'public/compiled_js/public.js');
 
 mix.styles([
    'resources/assets/sass/public/toastr.min.css',
+   'node_modules/bootstrap/dist/css/bootstrap.min.css',
    'resources/assets/sass/public/login.css',
    'resources/assets/sass/public/app2.css',
 ], 'public/css/public.css');

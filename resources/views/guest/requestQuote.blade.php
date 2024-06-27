@@ -15,41 +15,41 @@
         <h6 style='padding-bottom: 25px'>Fast Forward's custom built application allows you to create and control profiles for each of your staff, allowing customizable access for requesting deliveries, billing accessibility, and much much more</h6>
         <div class='row justify-content-center'>
             <div class='col col-md-8'>
-                <form>
+                <form id='open-account-form'>
                     <div class='row'>
                         <div class='col-md-6'>
-                            <div class='form-group'>
-                                <label for='open-account-company-name'>Company Name</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-company-name'><strong>Company Name</strong></label>
                                 <input type='text' class='form-control' id='open-account-company-name' />
                             </div>
                         </div>
                         <div class='col-md-6'>
-                            <div class='form-group'>
-                                <label for='open-account-contact-name'>Contact Name</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-contact-name'><strong>Contact Name</strong></label>
                                 <input type='text' class='form-control' id='open-account-contact-name' />
                             </div>
                         </div>
                         <div class='col-md-6'>
-                            <div class='form-group'>
-                                <label for='open-account-email'>Email</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-email'><strong>Email</strong></label>
                                 <input type='text' class='form-control' id='open-account-email' />
                             </div>
                         </div>
                         <div class='col-md-6'>
-                            <div class='form-group'>
-                                <label for='open-account-phone'>Phone</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-phone'><strong>Phone</strong></label>
                                 <input type='text' class='form-control' id='open-account-phone' />
                             </div>
                         </div>
                         <div class='col-md-6'>
-                            <div class='form-group'>
-                                <label for='open-account-phone'>Estimated deliveries per month</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-phone'><strong>Estimated deliveries per month</strong></label>
                                 <input type='text' class='form-control' id='deliveries-per-month' />
                             </div>
                         </div>
                         <div class='col-md-12'>
-                            <div class='form-group'>
-                                <label for='open-account-message'>Message</label>
+                            <div class='mb-3'>
+                                <label class='form-label' for='open-account-message'><strong>Message</strong></label>
                                 <textarea rows='10' class='form-control' id='open-account-message' placeholder='Tell us more about your needs, your company, and what services you are looking for'></textarea>
                             </div>
                         </div>
@@ -64,47 +64,31 @@
 
 @section('footer')
 <script type="text/javascript">
-    $(document).ready(function(){
-        $.ajaxSetup({
-           headers: {
-               'X-CSRF-TOKEN': $("meta[name='csrf-token']").attr('content')
-           }
-        });
+    document.addEventListener("DOMContentLoaded", function() {
+        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 
-        $('#open-account-submit').click(function() {
-            const companyName = $('#open-account-company-name').val();
-            const contactName = $('#open-account-contact-name').val();
-            const email = $('#open-account-email').val();
-            const estimatedDeliveryCount = $('#deliveries-per-month').val();
-            const message = $('#open-account-message').val();
-            const phone = $('#open-account-phone').val();
+        document.getElementById('open-account-submit').addEventListener('click', function() {
+            const data = new FormData(document.getElementById('open-account-form'))
 
-            $.ajax({
-                url: '/requestAccount',
-                type: 'POST',
-                data: {
-                    companyName: companyName,
-                    contactName: contactName,
-                    email: email,
-                    estimatedDeliveryCount: estimatedDeliveryCount,
-                    message: message,
-                    phone: phone
-                },
-                success: function(response) {
-                    clearForm();
-                    toastr.clear();
-                    toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
-                        'progressBar' : true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 300,
-                    })
-                },
-                error: function(response) {
-                    handleErrorResponse(response)
-                }
-            });
-        });
-    });
+            fetch('/requestAccount', {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(response => {
+                clearForm();
+                toastr.clear();
+                toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
+                    'progressBar' : true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 300,
+                })
+            }).catch(error => {
+                handleErrorResponse(response)
+            })
+        })
+    })
 
     function clearForm() {
         $('#open-account-email').val('');

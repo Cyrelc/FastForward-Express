@@ -8,16 +8,17 @@ a.nav-link:hover {
 	color: #808080
 }
 
-.about-nav .col-md-4 {
+.about-nav {
 	padding: 40px;
+	height: 100%;
 }
 
-.about-nav .col-md-4 h4 {
+.about-nav h4 {
 	font-weight: bold;
 }
 
 .bottom15 {
-	padding-bottom:15px;
+	padding-bottom: 15px !important;
 }
 
 .employee-profile h3 {
@@ -171,4 +172,8 @@ a.dropdown-toggle {
 
 .nav-bar-search {
 	padding-right: 15px
+}
+
+#request-delivery-form hr {
+	margin: 16px 0px;
 }

@@ -5,7 +5,7 @@
     <div class='col-md-12'>
         <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
-                <h1 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white; text-align: left'>About Us</h1>
+                <h1 style='padding-left:130px; padding-top:100px; color:white; text-align: left'>About Us</h1>
             </div>
         </div>
     </div>
@@ -48,9 +48,11 @@
                 <h5>Riley also provides backup for dispatch where necessary. He has been with Fast Forward for nearly {{((new DateTime('2015-01-01'))->diff(new DateTime()))->y}} years.</h5>
             </div>
         </div>
-        <div class='col-md-12'>
-            <div class='row about-nav'>
-                <div class='col-md-4' style='background: #0770b1; color: white'>
+    </div>
+    <div class="col-md-12">
+        <div class="row">
+            <div class='col-md-4' style='padding-right: 0px'>
+                <div class='about-nav' style='background: #0770b1; color: white'>
                     <h4>Learn more about our</h4>
                     <h2>Services</h2>
                     <h5>Our services are personalized for your needs. Even if you need an emergency delivery, we can help.</h5>
@@ -58,7 +60,9 @@
                         <a type='button' class='btn btn-outline-light' href='/services'>Read More</a>
                     </div>
                 </div>
-                <div class='col-md-4' style='background: black; color: white'>
+            </div>
+            <div class='col-md-4' style='padding-right: 0px; padding-left: 0px'>
+                <div class='about-nav' style='background: black; color: white'>
                     <h4>Access your</h4>
                     <h2>Account</h2>
                     <h5>Returning customer? Click here to access your account.</h5>
@@ -66,7 +70,9 @@
                         <a type='button' class='btn btn-outline-light' href='/login'>Log in</a>
                     </div>
                 </div>
-                <div class='col-md-4' style='background: grey; color: white'>
+            </div>
+            <div class='col-md-4' style='padding-left: 0px'>
+                <div class='about-nav' style='background: grey; color: white'>
                     <h4>Get a</h4>
                     <h2>Quote</h2>
                     <h5>Need a delivery quote? Fill out this online form and we'll get back to you within 24 hours.</h5>

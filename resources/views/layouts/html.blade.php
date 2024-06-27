@@ -16,8 +16,6 @@
             @endif
         </title>
 
-        <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
         <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,drawing,geometry"></script>
         <script type='text/javascript' src='{{mix("/compiled_js/public.js")}}'></script>
 
@@ -27,8 +25,6 @@
 
         <!-- Styles -->
         <link rel='stylesheet' type='text/css' href='{{mix("/css/public.css")}}' />
-        {{-- TODO: package bootstrap stylesheets with the rest, requires upgrading to bootstrap 5 --}}
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-211586883-1"></script>
         <script>
