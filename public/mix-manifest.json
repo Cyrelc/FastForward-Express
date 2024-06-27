@@ -2,5 +2,7 @@
     "/compiled_js/app.js": "/compiled_js/app.js",
     "/css/app.css": "/css/app.css",
     "/css/manifest_pdf.css": "/css/manifest_pdf.css",
-    "/css/invoice_pdf.css": "/css/invoice_pdf.css"
+    "/css/invoice_pdf.css": "/css/invoice_pdf.css",
+    "/compiled_js/public.js": "/compiled_js/public.js",
+    "/css/public.css": "/css/public.css"
 }

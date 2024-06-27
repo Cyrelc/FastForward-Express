@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-center">
     <div class="col-md-6">
         <div class="card" style="margin: 20px">
-            <div class="card-header"><h4 class='card-title'>Login</h4></div>
+            <div class="card-header"><h1 class='card-title'>Login</h1></div>
             <div class="card-body">
                 <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}">
                     {{ csrf_field() }}
