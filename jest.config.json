@@ -1,0 +1,4 @@
+{
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/resources/assets/js/setupTests.js"]
+}
