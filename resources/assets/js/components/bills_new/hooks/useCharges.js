@@ -203,12 +203,14 @@ export default function useCharges({activeRatesheet}) {
     return {
         //getters
         activeRatesheet,
+        chargeAccount,
         charges,
         invoiceIds,
         isPickupManifested,
         isDeliveryManifested,
         manifestIds,
         //setters
+        setChargeAccount,
         // setActiveRatesheet,
         //functions
         addCharge,

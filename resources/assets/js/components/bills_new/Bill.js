@@ -37,6 +37,7 @@ export default function Bill(props) {
     const params = useParams()
 
     const {
+        acceptTermsAndConditions,
         applyRestrictions,
         billId,
         incompleteFields,
@@ -44,9 +45,11 @@ export default function Bill(props) {
         percentComplete,
         permissions,
         persistFields,
+        readOnly,
         toggleIsTemplate,
         togglePersistField,
         toggleRestrictions,
+        toggleAcceptTermsAndConditions,
         toggleViewTermsAndConditions,
         viewTermsAndConditions,
     } = bill
@@ -528,10 +531,10 @@ export default function Bill(props) {
                 <Col md='auto'>
                     <FormCheck
                         name={'acceptTermsAndConditions'}
-                        label={<p>I have read and agree to the <a href='' onClick={event => toggleTermsAndConditions(event)}>terms and conditions</a></p>}
-                        checked={billState.acceptTermsAndConditions}
+                        label={<p>I have read and agree to the <a href='' onClick={toggleAcceptTermsAndConditions}>terms and conditions</a></p>}
+                        checked={acceptTermsAndConditions}
                         disabled={readOnly}
-                        onChange={billState.toggleAcceptTermsAndConditions}
+                        onChange={toggleAcceptTermsAndConditions}
                         type='switch'
                         style={{whiteSpace: 'nowrap'}}
                     />

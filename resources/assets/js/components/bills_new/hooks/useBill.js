@@ -36,12 +36,14 @@ export default function useBill() {
     const [percentComplete, setPercentComplete] = useState(null)
     const [permissions, setPermissions] = useState([])
     const [persistFields, setPersistFields] = useState([])
+    // TODO - statically set, needs logic
+    const [readOnly, setReadOnly] = useState(false)
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
     const charges = useCharges(activeRatesheet)
-    const delivery = usePickupDelivery(activeRatesheet)
+    const delivery = usePickupDelivery(accounts, activeRatesheet)
     const packages = usePackages()
-    const pickup = usePickupDelivery(activeRatesheet)
+    const pickup = usePickupDelivery(accounts, activeRatesheet)
 
     // In the event a new pickup or delivery account has been set and there is no charge account, automatically populate the charge account
     useEffect(() => {
@@ -71,7 +73,7 @@ export default function useBill() {
             if(deliveryType) {
                 setDeliveryType(deliveryTypes.find(activeRatesheetDeliveryType => activeRatesheetDeliveryType.id == deliveryType.value))
             } else {
-                setDeliveryType(deliveryTypes.delivery_types[0])
+                setDeliveryType(deliveryTypes[0])
             }
         }
     }, [activeRatesheet])
@@ -112,13 +114,13 @@ export default function useBill() {
         // charges.setup(data)
         packages.setup(data.bill)
         delivery.setup({
-            account: data.bill.delivery_account_id,
+            account: data.accounts.find(account => account.account_id === data.bill.delivery_account_id),
             address: data.delivery_address,
             driver: data.bill.delivery_driver_id ? employees.find(employee => employee.employee_id == data.bill.delivery_driver_id) : {},
             driver_comission: data.bill.delivery_driver_commission,
         })
         pickup.setup({
-            account: data.bill.pickup_account_id,
+            account: data.accounts.find(account => account.account_id === data.bill.pickup_account_id),
             address: data.pickup_address,
             driver: data.bill.pickup_driver_id ? employees.find(employee => employee.employee_id == data.bill.pickup_driver_id) : {},
             driver_comission: data.bill.pickup_driver_commission,
@@ -168,6 +170,7 @@ export default function useBill() {
             percentComplete,
             permissions,
             persistFields,
+            readOnly,
             viewTermsAndConditions,
             //setters,
             setActiveRatesheet,

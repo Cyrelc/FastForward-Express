@@ -1,11 +1,8 @@
 import React, {useEffect, useState} from 'react'
 
 import useAddress from '../../partials/Hooks/useAddress'
-import {useLists} from '../../../contexts/ListsContext'
 
-export default function usePickupDelivery({activeRatesheet}) {
-    const {accounts} = useLists
-
+export default function usePickupDelivery({accounts, activeRatesheet}) {
     const address = useAddress()
 
     const [account, setAccount] = useState({})
@@ -33,8 +30,10 @@ export default function usePickupDelivery({activeRatesheet}) {
     }, [address.lat, address.lng, activeRatesheet])
 
     const setup = data => {
-        if(data.account)
-            setAccount(accounts.find(account => account.account_id == data.account))
+        if(data.account) {
+            setAccount(data.account)
+            address.setType('Account')
+        }
         setDriver(driver)
         setDriverCommission(data.driver_commission)
         address.setup(data.address)

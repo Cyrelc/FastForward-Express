@@ -94,7 +94,7 @@ export default function Bills(props) {
                 headerSort: false,
                 print: false
             },
-            {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/bills/', history.push), sorter:'number'},
+            {title: 'Bill ID', field: 'bill_id', ...configureFakeLink('/bills/new/', history.push), sorter:'number'},
             {title: 'Waybill #', field: 'bill_number'},
             {title: customFieldName, field: 'custom_field_value'},
             {title: 'Delivery Address', field: 'delivery_address_formatted', visible: false},
