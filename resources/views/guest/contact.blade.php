@@ -19,27 +19,27 @@
     </div>
     <div class='col-md-6 offset-md-1'>
         <h3 style='color: grey; background: linear-gradient(to right, grey, white) left bottom no-repeat; background-size: 50% 2px'>General Inquiries</h3>
-        <form>
+        <form id='contact-us-form'>
             <div class='row'>
                 <div class='col-md-6'>
-                    <div class="form-group">
-                        <label for="comment-title">Email</label>
+                    <div class="mb-3">
+                        <label class='form-label' for="comment-title"><strong>Email</strong></label>
                         <input type="text" class="form-control" id="contact-us-email" />
                     </div>
                 </div>
                 <div class='col-md-6'>
-                    <div class="form-group">
-                        <label for="comment-title">Phone</label>
+                    <div class="mb-3">
+                        <label class='form-label' for="comment-title"><strong>Phone</strong></label>
                         <input type="text" class="form-control" id="contact-us-phone" />
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="comment-text">Subject</label>
+            <div class="mb-3">
+                <label class='form-label' for="comment-text"><strong>Subject</strong></label>
                 <input type="text" class="form-control" id="contact-us-subject" />
             </div>
-            <div class="form-group">
-                <label for="comment-text">Message</label>
+            <div class="mb-3">
+                <label class='form-label' for="comment-text"><strong>Message</strong></label>
                 <textarea rows="10" class="form-control" id="contact-us-message"></textarea>
             </div>
         </form>
@@ -48,15 +48,15 @@
     <div class='col-md-4' style='text-align: right'>
         <h3 style='color: grey; background: linear-gradient(to right, white, grey) right bottom no-repeat; background-size: 50% 2px'>Get in Touch</h3>
         <h4><i>Phone Number</i></h4>
-        <h4>780-458-1074</h4>
+        <h5>780-458-1074</h5>
         <br/>
         <h4><i>Emergency/After Office Hours</i></h4>
-        <h4>780-668-1074</h4>
+        <h5>780-668-1074</h5>
         <br/>
         <h4><i>Email</i></h4>
-        <h4>contactus@fastforwardexpress.ca</h4>
-        <h4>dispatch@fastforwardexpress.ca</h4>
-        <h4>fastfex@telus.net</h4>
+        <h5>contactus@fastforwardexpress.ca</h5>
+        <h5>dispatch@fastforwardexpress.ca</h5>
+        <h5>fastfex@telus.net</h5>
         <br/>
         <h4><i>Office Hours</i></h4>
         <table class='office-hours'>
@@ -97,41 +97,27 @@
 
 @section('footer')
 <script type="text/javascript">
-    $(document).ready(function(){
-        $.ajaxSetup({
-           headers: {
-               'X-CSRF-TOKEN': $("meta[name='csrf-token']").attr('content')
-           }
-        });
+    document.addEventListener("DOMContentLoaded", () => {
+        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 
-        $('#contact-us-submit').click(function(){
-           const email = $('#contact-us-email').val();
-           const phone = $('#contact-us-phone').val();
-           const subject = $('#contact-us-subject').val();
-           const message = $('#contact-us-message').val();
+        document.getElementById('contact-us-submit').addEventListener(() => {
+            const data = new FormData(document.getElementById('contact-us-form'))
 
-            $.ajax({
-                url: '/contact',
-                type: 'POST',
-                data: {
-                    email: email,
-                    phone: phone,
-                    subject: subject,
-                    message: message
-                },
-                success: function(response) {
-                    clearForm();
-                    toastr.clear()
-                    toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
-                        'progressBar' : true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 300,
-                    })
-                },
-                error: function(response) {
-                    handleErrorResponse(response)
-                }
-            });
+            fetch('/contact', {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(response => {
+                clearForm();
+                toastr.clear()
+                toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
+                    'progressBar' : true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 300,
+                })
+            }).catch(error => handleErrorResponse(error))
         });
     });
 

@@ -2,6 +2,8 @@
 /node_modules
 /public/storage
 /public/compiled_js
+/public/css
+/public/js
 /public/mix-manifest.json
 /public/css/app.css
 /public/css/invoice_pdf.css

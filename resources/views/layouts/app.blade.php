@@ -13,8 +13,9 @@
     <div class='row'>
         <div class='col-md-12'>
             <nav class='navbar navbar-dark bg-dark' style='padding: 0rem 1rem'>
-                <a class='nav-item nav-link' style='padding: 0rem' href='/home'>
-                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px'>
+                <a class='nav-item nav-link' style='padding: 0rem' href='/home' alt='Fast Forward Express Logo'>
+                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px' alt='fast-forward-full-logo-transparent'>
+                    <span class='sr-only'>Fast Forward Express Home</span>
                 </a>
                 <a class='nav-item nav-link' href='/about'><h4>About</h4><a>
                 <a class='nav-item nav-link' href='/services'><h4>Services</h4><a>
@@ -53,24 +54,24 @@
 
 {{-- <a title="Comments or Concerns?" href="#" data-toggle="modal" data-target="#contact-us-modal"><i class="fa fa-smile"></i></a> --}}
 
-<div id="contact-us-modal" class="modal fade" tabindex="-1" role="dialog">
+<div id="contact-us-modal" class="modal fade" tabindex="-1" tabindex="-1">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Feedback?</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h5 class="modal-title">Feedback?</h5>
             </div>
             <div class="modal-body">
                 <form>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="comment-title">Title</label>
                         <input type="text" class="form-control" id="comment-title" />
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="comment-text">Description</label>
                         <textarea rows="8" class="form-control" id="comment-text"></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label for="comment-text">Feedback Type</label>
                         <select id="issue-type" class="form-control">
                             <option value="bug">Bug</option>
@@ -83,7 +84,7 @@
             </div>
             <div class="modal-footer">
                 <div id="feedback-state-default">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" id="feedback-clear"><i class="fa fa-eraser"></i> Clear</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" id="feedback-clear"><i class="fa fa-eraser"></i> Clear</button>
                     <button type="submit" class="btn btn-primary" id="feedback-submit">Submit <i class="fa fa-arrow-right"></i></button>
                 </div>
 

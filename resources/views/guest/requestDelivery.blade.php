@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class='row'>
+<div class='row' id='request-delivery-form'>
     <div class='col-md-12'>
         <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg); position:relative; height: 300px;' alt='Landing Page Image'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
@@ -151,52 +151,34 @@
 
 @section('footer')
 <script type="text/javascript">
-    $(document).ready(function() {
-        $.ajaxSetup({
-           headers: {
-               'X-CSRF-TOKEN': $("meta[name='csrf-token']").attr('content')
-           }
-        });
-
+    document.addEventListener("DOMContentLoaded", function() {
+        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
+        
         const now = new Date()
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
         document.getElementById('pickup-time').value = now.toISOString().slice(0, 16)
 
-        $('#request-delivery-submit').click(function() {
-            const data = $('#request-delivery-form').serialize()
-            $.ajax({
-                url: '/requestDelivery',
-                type: 'POST',
-                data: $('#request-delivery-form').serialize(),
-                // data: {
-                //     contactName: $('#contact-name').val(),
-                //     email: $('#email').val(),
-                //     email_confirmation: $('#email-confirmation').val(),
-                //     phone: $('#phone').val(),
-                //     pickupAddress: $('#pickup-address').val(),
-                //     pickupPostalCode: $('#pickup-postal-code').val(),
-                //     pickupTime: $('#pickup-time').val(),
-                //     deliveryAddress: $('#delivery-address').val(),
-                //     deliveryPostalCode: $('#delivery-postal-code').val(),
-                //     deliveryTime: $('#delivery-time').val(),
-                //     weightKg: $('#weight-kg').val(),
-                //     description: $('#description').val()
-                // },
-                success: function(response) {
-                    clearForm();
-                    toastr.clear();
-                    toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
-                        'progressBar' : true,
-                        'positionClass': 'toast-top-full-width',
-                        'showDuration': 300,
-                    })
-                },
-                error: function(response) {
-                    handleErrorResponse(response)
-                }
-            });
-        });
-    });
+        document.getElementById('request-delivery-submit').addEventListener('click', function() {
+            const data = new FormData(document.getElementById('request-delivery-form'));
+            fetch('/requestDelivery', {
+                method: 'POST',
+                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(response => {
+                clearForm()
+                toastr.clear()
+                toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
+                    'progressBar' : true,
+                    'positionClass': 'toast-top-full-width',
+                    'showDuration': 300,
+                })
+            }).catch(error => {
+                handleErrorResponse(error)
+            })
+        })
+    })
 
     function clearForm(){
         $('#open-account-email').val('');

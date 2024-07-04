@@ -4,13 +4,13 @@
 <div class="d-flex justify-content-center">
     <div class="col-md-6">
         <div class="card" style="margin: 20px">
-            <div class="card-header"><h4 class='card-title'>Login</h4></div>
+            <div class="card-header"><h1 class='card-title'>Login</h1></div>
             <div class="card-body">
                 <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}">
                     {{ csrf_field() }}
                     <input type='hidden' name='device_name' id='device_name'>
 
-                    <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
+                    <div class="mb-3{{ $errors->has('email') ? ' has-error' : '' }}">
                         <div class="col-md-12">
                             <div class='input-group'>
                                 <div class='input-group-prepend'>
@@ -27,7 +27,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
+                    <div class="mb-3{{ $errors->has('password') ? ' has-error' : '' }}">
                         <div class="col-md-12">
                             <div class='input-group'>
                                 <div class='input-group-prepend'>
@@ -44,7 +44,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="col-md-6 col-md-offset-4">
                             <div class="checkbox">
                                 <label>
@@ -54,7 +54,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="mb-3">
                         <div class="col-md-6 col-md-offset-4">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-btn fa-sign-in"></i> Login

@@ -5,27 +5,27 @@
     <div class='col-md-12' style='padding-bottom: 70px;'>
         <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
-                <h3 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white'>We're big enough to handle it<br/>but small enough to care</h3>
+                <h3 style='padding-left:130px; padding-top:100px; color:white'>We're big enough to handle it<br/>but small enough to care</h3>
             </div>
         </div>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/requestDelivery'>
-            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Landing-Request-Delivery'>
+            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Landing-Request-Delivery' loading='lazy'>
             <h3>Request Delivery</h3>
             <h5>Easily request your delivery using our online tool or by giving us a call</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/services'>
-            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Landing-Services'>
+            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Landing-Services' loading='lazy'>
             <h3>Services</h3>
             <h5>Whether you need it delivered now, tomorrow, or next week, we've got your back!</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/contact'>
-            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='some placeholder images go here'>
+            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='Get-In-Touch' loading='lazy'>
             <h3>Get In Touch</h3>
             <h5>Have a question or want to connect with us? Drop us a line or call us at 780-458-1074</h5>
         </a>
@@ -33,7 +33,7 @@
     <div class='col-md-7' style='padding-right: 0px'>
         <div style='border: 4px solid black; background: url({{URL::to("/")}}/images/landing-why-FFE.jpg) no-repeat; height: 100%; width: 100%; position: relative;'>
             <div style='background: rgba(92, 94, 212, 0.7); height: 100%'>
-                <h1 class='panel-heading' style='padding-left:130px; padding-top:230px; color:white'>Why choose Fast Forward Express?</h1>
+                <h1 style='padding-left:130px; padding-top:230px; color:white'>Why choose Fast Forward Express?</h1>
             </div>
         </div>
     </div>

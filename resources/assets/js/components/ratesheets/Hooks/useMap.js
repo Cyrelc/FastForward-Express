@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import PolySnapper from '../../../../../../public/js/polysnapper-master/polysnapper.js'
+import PolySnapper from '../../../public/polysnapper-master/polysnapper.js'
 import Zone, {polyColours} from '../Classes/Zone'
 
 var nextPolygonIndex = 0;
