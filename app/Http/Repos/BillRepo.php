@@ -487,6 +487,8 @@ class BillRepo {
                 'time_pickup_scheduled',
             )->groupBy('bills.bill_id');
 
+        $bills->orderBy('time_pickup_scheduled');
+
         return $bills->get();
     }
 
