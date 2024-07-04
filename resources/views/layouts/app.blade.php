@@ -14,7 +14,7 @@
         <div class='col-md-12'>
             <nav class='navbar navbar-dark bg-dark' style='padding: 0rem 1rem'>
                 <a class='nav-item nav-link' style='padding: 0rem' href='/home' alt='Fast Forward Express Logo'>
-                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px'>
+                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px' alt='fast-forward-full-logo-transparent'>
                     <span class='sr-only'>Fast Forward Express Home</span>
                 </a>
                 <a class='nav-item nav-link' href='/about'><h4>About</h4><a>

@@ -11,21 +11,21 @@
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/requestDelivery'>
-            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Landing-Request-Delivery'>
+            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Landing-Request-Delivery' loading='lazy'>
             <h3>Request Delivery</h3>
             <h5>Easily request your delivery using our online tool or by giving us a call</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/services'>
-            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Landing-Services'>
+            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Landing-Services' loading='lazy'>
             <h3>Services</h3>
             <h5>Whether you need it delivered now, tomorrow, or next week, we've got your back!</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/contact'>
-            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='some placeholder images go here'>
+            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='Get-In-Touch' loading='lazy'>
             <h3>Get In Touch</h3>
             <h5>Have a question or want to connect with us? Drop us a line or call us at 780-458-1074</h5>
         </a>
