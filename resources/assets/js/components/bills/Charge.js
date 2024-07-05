@@ -83,7 +83,7 @@ export default function Charge(props) {
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
 
     const api = useAPI()
-    const tableRef = useRef()
+    const tableRef = useRef(null)
     const history = useHistory()
 
     const {
@@ -96,8 +96,10 @@ export default function Charge(props) {
     } = props
 
     useEffect(() => {
-        if(tableRef?.current?.table)
-            tableRef.current.table.setGroupHeader(groupHeaderFormatter)
+        if(tableRef?.current) {
+            tableRef.current.setColumns(chargeTableColumns(charge.chargeType))
+            tableRef.current.setGroupHeader(groupHeaderFormatter)
+        }
     }, [showDetails])
 
     const actionCellContextMenu = cell => {
@@ -364,7 +366,7 @@ export default function Charge(props) {
                 </Card.Header>
                 <Card.Body>
                     <ReactTabulator
-                        ref={tableRef}
+                        onRef={r => tableRef.current = r.current}
                         columns={chargeTableColumns(charge.chargeType)}
                         data={charge.lineItems}
                         events={{
