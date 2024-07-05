@@ -310,6 +310,17 @@ export default function Bill(props) {
                 .then(response => {
                     if(billId) {
                         toast.success(`Bill ${billId} was successfully updated!`)
+                        if(response.warnings)
+                            // console.log(response.warnings)
+                            toast.warn(
+                                <ul>
+                                    {Object.keys(response.warnings).map(key => 
+                                        <li key={key}>
+                                            {response.warnings[key]}
+                                        </li>
+                                    )}
+                                </ul>
+                            )
                         configureBill()
                     } else {
                         toast.success(`Bill ${response.id} was successfully created`, {

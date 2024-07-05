@@ -11,6 +11,7 @@ use App\Http\Repos;
 use App\Http\Models\Permission;
 use App\Http\Resources\BillPrintResource;
 use App\Models\Bill;
+use App\Models\LineItem;
 use App\Services\PDFService;
 
 use DB;
@@ -210,6 +211,7 @@ class BillController extends Controller {
     public function store(Request $req) {
         $billRepo = new Repos\BillRepo();
         $oldBill = $billRepo->getById($req->bill_id);
+        $warnings = [];
 
         if($oldBill) {
             if($req->user()->cannot('updateBasic', $oldBill) && $req->user()->cannot('updateDispatch', $oldBill) && $req->user()->cannot('updateBilling', $oldBill))
@@ -228,8 +230,7 @@ class BillController extends Controller {
 
         $this->validate($req, $validationRules, $validationMessages);
 
-        $acctRepo = new Repos\AccountRepo();
-        $addrRepo = new Repos\AddressRepo();
+        $addressRepo = new Repos\AddressRepo();
         $packageRepo = new Repos\PackageRepo();
         $chargebackRepo = new Repos\ChargebackRepo();
         $paymentRepo = new Repos\PaymentRepo();
@@ -244,11 +245,11 @@ class BillController extends Controller {
         DB::beginTransaction();
 
         if ($oldBill) {
-            $pickupAddressId = $addrRepo->UpdateMinimal($pickupAddress)->address_id;
-            $deliveryAddressId = $addrRepo->UpdateMinimal($deliveryAddress)->address_id;
+            $pickupAddressId = $addressRepo->UpdateMinimal($pickupAddress)->address_id;
+            $deliveryAddressId = $addressRepo->UpdateMinimal($deliveryAddress)->address_id;
         } else {
-            $pickupAddressId = $addrRepo->InsertMinimal($pickupAddress)->address_id;
-            $deliveryAddressId = $addrRepo->InsertMinimal($deliveryAddress)->address_id;
+            $pickupAddressId = $addressRepo->InsertMinimal($pickupAddress)->address_id;
+            $deliveryAddressId = $addressRepo->InsertMinimal($deliveryAddress)->address_id;
         }
 
         $bill = $billCollector->Collect($req, $permissions, $pickupAddressId, $deliveryAddressId);
@@ -260,10 +261,10 @@ class BillController extends Controller {
 
         if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editBilling']) && $permissions['editBilling'])) {
             $charges = $billCollector->CollectCharges($req, $bill->bill_id);
-            $this->handleCharges($charges);
+            $warnings = $this->handleCharges($charges, $warnings);
         } else if(!$oldBill && $req->user()->accountUsers()) {
             $charges = $billCollector->CreateChargeForAccountUser($req, $bill->bill_id);
-            $this->handleCharges($charges);
+            $warnings = $this->handleCharges($charges, $warnings);
         }
 
         DB::commit();
@@ -276,7 +277,8 @@ class BillController extends Controller {
         return response()->json([
             'success' => true,
             'id' => $bill->bill_id,
-            'updated_at' => $bill->updated_at
+            'updated_at' => $bill->updated_at,
+            'warnings' => $warnings
         ]);
     }
 
@@ -304,10 +306,9 @@ class BillController extends Controller {
       * Handles different charge types.
       * Account simply charges to account, driver creates a chargeback, all others create a payment object instance
       */
-    private function handleCharges($charges) {
-        $billCollector = new Collectors\BillCollector();
+    private function handleCharges($charges, $warnings) {
         $chargeRepo = new Repos\ChargeRepo();
-        $lineItemRepo = new Repos\LineItemRepo();
+        $warnings = null;
 
         foreach($charges as $charge) {
             if($charge['to_be_deleted']) {
@@ -321,37 +322,47 @@ class BillController extends Controller {
                     $chargeId = $chargeRepo->Update($charge)->charge_id;
                 else
                     $chargeId = $chargeRepo->Insert($charge)->charge_id;
-                $this->handleLineItems($charge['line_items'], $chargeId);
+                $warnings = $this->handleLineItems($charge['line_items'], $chargeId);
             }
         }
+
+        return $warnings;
     }
 
     private function handleLineItems($lineItems, $chargeId) {
         $invoiceRepo = new Repos\InvoiceRepo();
         $lineItemRepo = new Repos\LineItemRepo();
+        $invoicesToRegather = [];
+        $warnings = [];
 
         foreach($lineItems as $lineItem) {
             if(isset($lineItem['to_be_deleted']) && $lineItem['to_be_deleted'] === true) {
                 // If the line item doesn't have a line_item_id then it was never entered into the database and it's okay to skip it
-                if(!$lineItem['line_item_id'])
+                if(!isset($lineItem['line_item_id']))
                     continue;
                 $lineItemRepo->Delete($lineItem['line_item_id']);
-            } else if($lineItem['line_item_id']) {
-                $invoiceId = $lineItemRepo->GetById($lineItem['line_item_id'])->invoice_id;
-                if($invoiceId != null) {
-                    $invoice = $invoiceRepo->GetById($invoiceId);
-                    if(!$invoice->is_finalized) {
-                        $lineItemRepo->UpdateAsBill($lineItem);
-                        $invoiceRepo->RegatherInvoice($invoice);
+            }
+            else if($lineItem['line_item_id']) {
+                $dbLineItem = LineItem::find($lineItem['line_item_id']);
+                if($dbLineItem->invoice->invoice_id != null) {
+                    if(!$dbLineItem->invoice->finalized) {
+                        $lineItemRepo->updateAsBill($lineItem);
+                        $invoicesToRegather[] = $dbLineItem->invoice;
                     } else
-                        abort(422, 'Unable to modify price on line item: Attached invoice has been finalized');
+                        $warnings[] = 'Unable to modify line item ' . $dbLineItem->line_item_id . ': Attached invoice has been finalized';
                 } else
-                    $lineItemRepo->UpdateAsBill($lineItem);
+                    $lineItemRepo->updateAsBill($lineItem);
             }
             else {
                 $lineItem['charge_id'] = $chargeId;
                 $lineItemRepo->Insert($lineItem);
             }
         }
+
+        // Regather invoices after all changes are made to allow for deletion of non-processed LineItems
+        foreach($invoicesToRegather as $invoice)
+            $invoiceRepo->RegatherInvoice($invoice);
+
+        return $warnings;
     }
 }
