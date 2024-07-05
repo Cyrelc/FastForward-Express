@@ -13,6 +13,7 @@ export default function useCharges({activeRatesheet}) {
     const [chargeAccount, setChargeAccount] = useState({})
     const [charges, setCharges] = useState([])
     const [chargeReferenceValue, setChargeReferenceValue] = useState('')
+    const [chargeType, setChargeType] = useState({})
     const [chargeTypes, setChargeTypes] = useState([])
     const [hasInterliner, setHasInterliner] = useState(false)
     const [interliner, setInterliner] = useState({})
@@ -185,12 +186,12 @@ export default function useCharges({activeRatesheet}) {
     }
 
     const setup = data => {
-        const {activeRatesheet, chargeAccount, chargeType, chargeTypes, charges, interliners, ratesheets} = data
+        const {activeRatesheet, chargeAccount, chargeType, charges} = data
 
-        console.log(charges)
-        setChargeTypes(chargeTypes)
-        setInterliners(interliners)
-        setRatesheets(ratesheets)
+        console.log(charges, chargeTypes)
+        setChargeTypes(data.charge_types)
+        setInterliners(data.interliners)
+        setRatesheets(data.ratesheets)
         // setActiveRatesheet(activeRatesheet)
 
         if(data.bill?.bill_id) {
@@ -205,12 +206,14 @@ export default function useCharges({activeRatesheet}) {
         activeRatesheet,
         chargeAccount,
         charges,
+        chargeTypes,
         invoiceIds,
         isPickupManifested,
         isDeliveryManifested,
         manifestIds,
         //setters
         setChargeAccount,
+        setChargeType,
         // setActiveRatesheet,
         //functions
         addCharge,

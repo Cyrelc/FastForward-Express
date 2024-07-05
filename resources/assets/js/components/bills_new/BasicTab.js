@@ -338,7 +338,7 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
-                            {/* <Select
+                            <Select
                                 options={deliveryTypes.map((type, index) => {
                                     return {
                                         label: `${type.friendlyName} (Est. ~ ${type.time} hours)`,
@@ -347,14 +347,14 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
                                     }
                                 })}
                                 value={{
-                                    label: `${deliveryType.friendlyName} (Est. ~${deliveryType.time} hours)`,
-                                    value: deliveryType.id,
-                                    key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
+                                    label: `${deliveryType?.friendlyName} (Est. ~${deliveryType?.time} hours)`,
+                                    value: deliveryType?.id,
+                                    key: deliveryTypes.findIndex(dt => dt.id === deliveryType?.id)
                                 }}
                                 onChange={item => setDeliveryType(deliveryTypes[item.key])}
                                 isDisabled={readOnly || invoiceIds.length > 0}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
-                            /> */}
+                            />
                         </InputGroup>
                     </Col>
                     <Col md={3}>

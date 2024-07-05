@@ -41,7 +41,7 @@ export default function useBill() {
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
     const charges = useCharges(activeRatesheet)
-    const delivery = usePickupDelivery(accounts, activeRatesheet)
+    const delivery = usePickupDelivery({accounts, activeRatesheet, isPickup: false})
     const packages = usePackages()
     const pickup = usePickupDelivery(accounts, activeRatesheet)
 
@@ -93,6 +93,7 @@ export default function useBill() {
         else {
             const localPersistFields = localStorage.getItem('bill.persistFields')
             setPersistFields(localPersistFields ? JSON.parse(localPersistFields) : initialPersistFields)
+            charges.setup(data)
         }
     }
 

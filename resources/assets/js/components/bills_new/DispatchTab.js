@@ -21,13 +21,15 @@ const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
     return (income - outgoing).toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
 }
 
-export default function DispatchTab(props) {
+export default function DispatchTab({bill, delivery, pickup}) {
     const {employees} = useLists()
     const drivers = employees.filter(employee => employee.is_driver)
 
-    const {billId, delivery, internalComments, pickup, timeDispatched, timeCallReceived, timeTenFoured} = props.billState
+    const {billId, charges, internalComments, readOnly, timeDispatched, timeCallReceived, timeTenFoured} = bill
 
-    const {charges, isDeliveryManifested, isPickupManifested, readOnly} = props
+    const isDeliveryManifested = false
+    const isPickupManifested = false
+    // const {charges, isDeliveryManifested, isPickupManifested, readOnly} = props
 
     return (
         <Card border='dark'>
@@ -42,7 +44,7 @@ export default function DispatchTab(props) {
                                     options={billId ? drivers : drivers.filter(driver => driver.is_enabled)}
                                     isClearable
                                     isSearchable
-                                    onChange={driver => props.billDispatch({type: 'SET_PICKUP_DRIVER', payload: driver})}
+                                    onChange={pickup.changeDriver}
                                     isDisabled={readOnly || isPickupManifested}
                                     value={pickup.driver}
                                 />
@@ -56,13 +58,13 @@ export default function DispatchTab(props) {
                                     min={0}
                                     max={100}
                                     value={pickup.driverCommission}
-                                    onChange={event => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: 'driverCommission', value: event.target.value}})}
+                                    onChange={event => pickup.setDriverCommission(event.target.value)}
                                     readOnly={readOnly || isPickupManifested}
                                 />
                                 <InputGroup.Text> %</InputGroup.Text>
                             </InputGroup>
                         </Col>
-                        <Col md={4}>
+                        {/* <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Est. Income</InputGroup.Text>
                                 <FormControl
@@ -70,8 +72,8 @@ export default function DispatchTab(props) {
                                     disabled={true}
                                 />
                             </InputGroup>
-                        </Col>
-                        <Col md={4}>
+                        </Col> */}
+                        {/* <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Actual Time: </InputGroup.Text>
                                 <DatePicker
@@ -88,8 +90,8 @@ export default function DispatchTab(props) {
                                     wrapperClassName='form-control'
                                 />
                             </InputGroup>
-                        </Col>
-                        <Col md={4}>
+                        </Col> */}
+                        {/* <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Picked Up From:</InputGroup.Text>
                                 <FormControl
@@ -99,13 +101,13 @@ export default function DispatchTab(props) {
                                     readOnly={readOnly}
                                 />
                             </InputGroup>
-                        </Col>
+                        </Col> */}
                     </Row>
                 </Col>
             </Row>
             <hr/>
             <Row> {/* Delivery */}
-                <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
+                {/* <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
                 <Col md={10}>
                     <Row>
                         <Col md={4}>
@@ -176,9 +178,9 @@ export default function DispatchTab(props) {
                         </Col>
                     </Row>
                 </Col>
-            </Row>
+            </Row> */}
             <hr/>
-            <Row className='pad-top'>
+            {/* <Row className='pad-top'>
                 <Col md={2}><h4 className='text-muted'>Internal Comments</h4></Col>
                 <Col md={10}>
                     <FormControl
@@ -189,10 +191,10 @@ export default function DispatchTab(props) {
                         readOnly={readOnly}
                     />
                 </Col>
-            </Row>
+            </Row> */}
             <hr/>
-            <Row>
-                <Col md={2}>
+            {/* <Row> */}
+                {/* <Col md={2}>
                     <h4 className='text-muted'>Additional Timestamps</h4>
                 </Col>
                 <Col md={3}>
@@ -239,7 +241,7 @@ export default function DispatchTab(props) {
                             wrapperClassName='form-control'
                         />
                     </InputGroup>
-                </Col>
+                </Col> */}
             </Row>
         </Card>
     )

@@ -495,12 +495,12 @@ export default function Bill(props) {
                             pickup={pickup}
                         />
                     </Tab>
-                    {/* {(billId ? permissions.viewDispatch : permissions.createFull) &&
-                        <Tab eventKey='dispatch' title={<h4>Dispatch <i className='fas fa-truck'></i></h4>}>
+                    {(billId ? permissions.viewDispatch : permissions.createFull) &&
+                        <Tab eventKey='#dispatch' title={<h4>Dispatch <i className='fas fa-truck'></i></h4>}>
                             <DispatchTab
-                                billState={billState}
-                                billDispatch={billDispatch}
-                                charges={chargeState.charges}
+                                bill={bill}
+                                delivery={delivery}
+                                pickup={pickup}
                                 // isDeliveryManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.delivery_manifest_id))}
                                 // isPickupManifested={this.state.charges.some(charge => charge.lineItems.some(lineItem => lineItem.pickup_manifest_id))}
                                 isPickupManifested={false}
@@ -508,8 +508,8 @@ export default function Bill(props) {
                             />
                         </Tab>
                     }
-                    {(billId ? permissions.viewBilling : permissions.createFull) &&
-                        <Tab eventKey='billing' title={<h4>Billing  <i className='fas fa-credit-card'></i></h4>}>
+                    {/* {(billId ? permissions.viewBilling : permissions.createFull) &&
+                        <Tab eventKey='#billing' title={<h4>Billing  <i className='fas fa-credit-card'></i></h4>}>
                             <BillingTab
                                 billDispatch={billDispatch}
                                 billState={billState}
@@ -517,9 +517,9 @@ export default function Bill(props) {
                                 generateCharges={generateCharges}
                             />
                         </Tab>
-                    }
-                    {(permissions.viewActivityLog && billState.activityLog) &&
-                        <Tab eventKey='activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
+                    } */}
+                    {/* {(permissions.viewActivityLog && billState.activityLog) &&
+                        <Tab eventKey='#activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                             <ActivityLogTab
                                 activityLog={billState.activityLog}
                             />
