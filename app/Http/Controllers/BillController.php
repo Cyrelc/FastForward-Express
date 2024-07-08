@@ -344,7 +344,7 @@ class BillController extends Controller {
             }
             else if($lineItem['line_item_id']) {
                 $dbLineItem = LineItem::find($lineItem['line_item_id']);
-                if($dbLineItem->invoice->invoice_id != null) {
+                if($dbLineItem->invoice && $dbLineItem->invoice->invoice_id != null) {
                     if(!$dbLineItem->invoice->finalized) {
                         $lineItemRepo->updateAsBill($lineItem);
                         $invoicesToRegather[] = $dbLineItem->invoice;
