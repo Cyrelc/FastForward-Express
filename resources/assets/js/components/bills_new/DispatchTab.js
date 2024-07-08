@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Card, Row, Col, InputGroup, FormControl} from 'react-bootstrap';
 import Select from 'react-select'
 import DatePicker from 'react-datepicker'
@@ -6,8 +6,8 @@ import DatePicker from 'react-datepicker'
 import {useLists} from '../../contexts/ListsContext'
 
 const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
-    if(!charges || !commission || !employeeId)
-        null
+    if(!charges || charges?.length == 0 || !commission || !employeeId)
+        return null
 
     const income = commission / 100 * charges.reduce((chargeTotal, charge) =>
         charge.charge_employee_id == employeeId ? chargeTotal :
@@ -31,6 +31,30 @@ export default function DispatchTab({bill, delivery, pickup}) {
     const isPickupManifested = false
     // const {charges, isDeliveryManifested, isPickupManifested, readOnly} = props
 
+    const handlePickupDriverChange = driver => {
+        console.log(pickup.driverCommission, driver, pickup.driver.pickup_commission, pickup.driverCommission, pickup.driver.pickup_commission == pickup.driverCommission)
+        if(!pickup.driverCommission || pickup.driver.pickup_commission == pickup.driverCommission)
+            pickup.setDriverCommission(driver.pickup_commission)
+        pickup.setDriver(driver)
+    }
+
+    const setDeliveryDriver = driver => {
+        if(!delivery.driverCommission || delivery.driver.driverCommission == driver.delivery_commission) {
+            delivery.setDriverCommission(driver.delivery_commission)
+        }
+        delivery.setDriver(driver)
+    }
+
+    useEffect(() => {
+        if(pickup.driver && !delivery.driver)
+            setDeliveryDriver(pickup.driver)
+    }, [pickup.driver])
+
+    useEffect(() => {
+        if(pickup.driver && delivery.driver && !bill.timeDispatched)
+            bill.setTimeDispatched(new Date())
+    }, [pickup.driver, delivery.driver])
+
     return (
         <Card border='dark'>
             <Row> {/* Pickup */}
@@ -44,7 +68,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     options={billId ? drivers : drivers.filter(driver => driver.is_enabled)}
                                     isClearable
                                     isSearchable
-                                    onChange={pickup.changeDriver}
+                                    onChange={handlePickupDriverChange}
                                     isDisabled={readOnly || isPickupManifested}
                                     value={pickup.driver}
                                 />
@@ -64,7 +88,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                 <InputGroup.Text> %</InputGroup.Text>
                             </InputGroup>
                         </Col>
-                        {/* <Col md={4}>
+                        <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Est. Income</InputGroup.Text>
                                 <FormControl
@@ -72,8 +96,8 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     disabled={true}
                                 />
                             </InputGroup>
-                        </Col> */}
-                        {/* <Col md={4}>
+                        </Col>
+                        <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Actual Time: </InputGroup.Text>
                                 <DatePicker
@@ -84,30 +108,31 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     timeIntervals={15}
                                     dateFormat='MMMM d, yyyy h:mm aa'
                                     selected={pickup.timeActual}
-                                    onChange={datetime => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: 'timeActual', type:'date', value: datetime}})}
+                                    onChange={date => pickup.setTimeActual(date)}
                                     readOnly={readOnly || isPickupManifested}
+                                    disabled={readOnly || isPickupManifested}
                                     className='form-control'
                                     wrapperClassName='form-control'
                                 />
                             </InputGroup>
-                        </Col> */}
-                        {/* <Col md={4}>
+                        </Col>
+                        <Col md={4}>
                             <InputGroup>
                                 <InputGroup.Text>Picked Up From:</InputGroup.Text>
                                 <FormControl
                                     value={pickup.personName}
-                                    onChange={event => props.billDispatch({type: 'SET_PICKUP_VALUE', payload: {name: 'personName', type: 'string', value: event.target.value}})}
+                                    onChange={event => pickup.setPersonName(event.target.value)}
                                     placeholder='name'
                                     readOnly={readOnly}
                                 />
                             </InputGroup>
-                        </Col> */}
+                        </Col>
                     </Row>
                 </Col>
             </Row>
             <hr/>
             <Row> {/* Delivery */}
-                {/* <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
+                <Col md={2}><h4 className='text-muted'>Delivery</h4></Col>
                 <Col md={10}>
                     <Row>
                         <Col md={4}>
@@ -118,7 +143,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     isClearable
                                     isSearchable
                                     value={delivery.driver}
-                                    onChange={driver => props.billDispatch({type: 'SET_DELIVERY_DRIVER', payload: driver})}
+                                    onChange={setDeliveryDriver}
                                     isDisabled={readOnly || isDeliveryManifested}
                                 />
                             </InputGroup>
@@ -132,7 +157,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     max='100'
                                     name='deliveryEmployeeCommission'
                                     value={delivery.driverCommission}
-                                    onChange={event => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: 'driverCommission', value: event.target.value}})}
+                                    onChange={event => delivery.setDriverCommission(event.target.value)}
                                     readOnly={readOnly || isDeliveryManifested}
                                 />
                                 <InputGroup.Text> %</InputGroup.Text>
@@ -158,7 +183,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                     timeIntervals={15}
                                     dateFormat='MMMM d, yyyy h:mm aa'
                                     selected={delivery.timeActual}
-                                    onChange={datetime => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: 'timeActual', type:'date', value: datetime}})}
+                                    onChange={delivery.setTimeActual}
                                     readOnly={readOnly || isDeliveryManifested}
                                     className='form-control'
                                     wrapperClassName='form-control'
@@ -170,7 +195,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                                 <InputGroup.Text>Received By:</InputGroup.Text>
                                 <FormControl
                                     value={delivery.personName}
-                                    onChange={event => props.billDispatch({type: 'SET_DELIVERY_VALUE', payload: {name: 'personName', type: 'string', value: event.target.value}})}
+                                    onChange={event => delivery.setPersonName(event.target.value)}
                                     placeholder='name'
                                     readOnly={readOnly}
                                 />
@@ -178,23 +203,23 @@ export default function DispatchTab({bill, delivery, pickup}) {
                         </Col>
                     </Row>
                 </Col>
-            </Row> */}
+            </Row>
             <hr/>
-            {/* <Row className='pad-top'>
+            <Row className='pad-top'>
                 <Col md={2}><h4 className='text-muted'>Internal Comments</h4></Col>
                 <Col md={10}>
                     <FormControl
                         as='textarea'
                         placeholder='Internal comments are never meant to be seen by the client'
                         value={internalComments}
-                        onChange={event => props.billDispatch({type: 'SET_INTERNAL_COMMENTS', payload: event.target.value})}
+                        onChange={event => bill.setInternalComments(event.target.value)}
                         readOnly={readOnly}
                     />
                 </Col>
-            </Row> */}
+            </Row>
             <hr/>
-            {/* <Row> */}
-                {/* <Col md={2}>
+            <Row>
+                <Col md={2}>
                     <h4 className='text-muted'>Additional Timestamps</h4>
                 </Col>
                 <Col md={3}>
@@ -241,7 +266,7 @@ export default function DispatchTab({bill, delivery, pickup}) {
                             wrapperClassName='form-control'
                         />
                     </InputGroup>
-                </Col> */}
+                </Col>
             </Row>
         </Card>
     )

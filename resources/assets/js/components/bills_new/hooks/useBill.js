@@ -6,6 +6,7 @@ import {DateTime} from 'luxon'
 import useCharges from './useCharges'
 import usePackages from './usePackages'
 import usePickupDelivery from './usePickupDelivery'
+import {useLists} from '../../../contexts/ListsContext'
 
 const initialPersistFields = [
     // {name: 'chargeAccount', label: 'Charge Account', checked: false},
@@ -32,18 +33,23 @@ export default function useBill() {
     const [deliveryTypes, setDeliveryTypes] = useState([])
     const [description, setDescription] = useState('')
     const [incompleteFields, setIncompleteFields] = useState([])
+    const [internalComments, setInternalComments] = useState('')
     const [isTemplate, setIsTemplate] = useState(false)
     const [percentComplete, setPercentComplete] = useState(null)
     const [permissions, setPermissions] = useState([])
     const [persistFields, setPersistFields] = useState([])
     // TODO - statically set, needs logic
     const [readOnly, setReadOnly] = useState(false)
+    const [timeDispatched, setTimeDispatched] = useState()
+    const [timeCallReceived, setTimeCallReceived] = useState()
+    const [timeTenFoured, setTimeTenFoured] = useState()
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
     const charges = useCharges(activeRatesheet)
     const delivery = usePickupDelivery({accounts, activeRatesheet, isPickup: false})
     const packages = usePackages()
     const pickup = usePickupDelivery(accounts, activeRatesheet)
+    const {employees} = useLists()
 
     // In the event a new pickup or delivery account has been set and there is no charge account, automatically populate the charge account
     useEffect(() => {
@@ -109,8 +115,12 @@ export default function useBill() {
         setDeliveryType(data.delivery_types.find(deliveryType => deliveryType.value == data.bill.delivery_type))
         setDescription(data.bill.description)
         setIncompleteFields(JSON.parse(data.bill.incomplete_fields))
+        setInternalComments(data.bill.internal_comments)
         setIsTemplate(data.bill.is_template)
         setPercentComplete(data.bill.percentage_complete)
+        setTimeCallReceived(Date.parse(data.bill.time_call_received))
+        setTimeDispatched(Date.parse(data.bill.time_dispatched))
+        setTimeTenFoured(Date.parse(data.bill.time_ten_foured))
 
         // charges.setup(data)
         packages.setup(data.bill)
@@ -118,13 +128,15 @@ export default function useBill() {
             account: data.accounts.find(account => account.account_id === data.bill.delivery_account_id),
             address: data.delivery_address,
             driver: data.bill.delivery_driver_id ? employees.find(employee => employee.employee_id == data.bill.delivery_driver_id) : {},
-            driver_comission: data.bill.delivery_driver_commission,
+            driver_commission: data.bill.delivery_driver_commission,
+            person_name: data.bill.delivery_person_name
         })
         pickup.setup({
             account: data.accounts.find(account => account.account_id === data.bill.pickup_account_id),
             address: data.pickup_address,
             driver: data.bill.pickup_driver_id ? employees.find(employee => employee.employee_id == data.bill.pickup_driver_id) : {},
-            driver_comission: data.bill.pickup_driver_commission,
+            driver_commission: data.bill.pickup_driver_commission,
+            person_name: data.bill.pickup_person_name
         })
     }
     
@@ -167,16 +179,22 @@ export default function useBill() {
             deliveryTypes,
             description,
             incompleteFields,
+            internalComments,
             isTemplate,
             percentComplete,
             permissions,
             persistFields,
             readOnly,
+            timeCallReceived,
+            timeDispatched,
+            timeTenFoured,
             viewTermsAndConditions,
             //setters,
             setActiveRatesheet,
             setDeliveryType,
             setDescription,
+            setInternalComments,
+            setTimeDispatched,
             //functions,
             setup,
             toggleAcceptTermsAndConditions,
