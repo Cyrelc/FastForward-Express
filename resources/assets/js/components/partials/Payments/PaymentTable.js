@@ -1,7 +1,7 @@
-import React, {Fragment, useState} from 'react'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Badge, Button, ButtonGroup, Card, FormControl, InputGroup, Modal,} from 'react-bootstrap'
-import {ReactTabulator} from 'react-tabulator'
-import ReactDOM from 'react-dom'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
+import {createRoot} from 'react-dom/client'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
 
@@ -20,15 +20,42 @@ const parseTitle = (data) => {
 export default function PaymentTable(props) {
     const [revertReason, setRevertReason] = useState('')
     const [revertRow, setRevertRow] = useState(null)
+    const [table, setTable] = useState()
+
+    const tableRef = useRef()
 
     const api = useAPI()
     const history = useHistory()
+
+    useEffect(() => {
+        if(tableRef.current && !table) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                data: props.payments,
+                columns: columns,
+                initialSort: [{column: 'date', dir: 'asc'}],
+                maxHeight: '75vh',
+                layout: 'fitColumns',
+                pagination: 'local',
+                paginationSize: 10,
+                printAsHtml: true,
+                printStyled: true
+            })
+
+            setTable(newTabulator)
+        }
+    }, [tableRef, table])
+
+    useEffect(() => {
+        if(table)
+            table.setData(props.payments)
+    }, [props.payments, table])
 
     const formatPaymentIntentStatus = cell => {
         if(!cell.getValue())
             return ''
 
         const element = document.createElement('div')
+        const root = createRoot(element)
 
         const data = cell.getRow().getData();
         let status = data.is_stripe_transaction ? data.stripe_status : 'Succeeded'
@@ -42,7 +69,7 @@ export default function PaymentTable(props) {
         else if(status == 'Processing')
             variant = 'primary'
 
-        ReactDOM.render(
+        root.render(
             <Fragment>
                 <Badge
                     bg={variant}
@@ -59,7 +86,7 @@ export default function PaymentTable(props) {
                 >{status}</Badge>
                 {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
             </Fragment>
-        , element)
+        )
 
         return element
     }
@@ -135,19 +162,7 @@ export default function PaymentTable(props) {
 
     return (
         <Card.Body>
-            <ReactTabulator
-                data={props.payments}
-                columns={columns}
-                initialSort={[{column: 'date', dir: 'desc'}]}
-                maxHeight='75vh'
-                options={{
-                    layout: 'fitColumns',
-                    pagination: 'local',
-                    paginationSize: 10
-                }}
-                printAsHtml={true}
-                printStyled={true}
-            />
+            <div ref={tableRef}></div>
             <Modal show={revertRow != null} onHide={() => setRevertRow(null)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Please select a reason</Modal.Title>
