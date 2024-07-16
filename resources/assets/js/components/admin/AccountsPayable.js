@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react'
 import {Button, Card, Col, InputGroup, Row, Table} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -26,6 +26,7 @@ export default function AccountsPayable(props) {
     const [accountsPayable, setAccountsPayable] = useState([])
     const [startDate, setStartDate] = useState(new Date())
     const [endDate, setEndDate] = useState(new Date())
+    const [table, setTable] = useState()
 
     const api = useAPI()
 
@@ -36,6 +37,26 @@ export default function AccountsPayable(props) {
     useEffect(() => {
         getAccountsPayable()
     }, [startDate, endDate])
+
+    useEffect(() => {
+        if(tableRef.current && !table) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: columns,
+                data: accountsPayable,
+                columnCalcs: 'both',
+                groupBy: 'type',
+                printStyled: true,
+                printHeader: `<h3>${startDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})} to ${endDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</h3>`
+            })
+
+            setTable(newTabulator)
+        }
+    }, [tableRef, table])
+
+    useEffect(() => {
+        if(table)
+            table.setData(accountsPayable)
+    }, [accountsPayable])
 
     const getAccountsPayable = () => {
         api.get(`/admin/getAccountsPayable?start_date=${encodeURIComponent(startDate.toISOString())}&end_date=${encodeURIComponent(endDate.toISOString())}`)
@@ -91,17 +112,7 @@ export default function AccountsPayable(props) {
                         </Row>
                     </Card.Header>
                     <Card.Body>
-                        <ReactTabulator
-                            ref={tableRef}
-                            columns={columns}
-                            data={accountsPayable}
-                            options={{
-                                columnCalcs: 'both',
-                                groupBy: 'type',
-                                printStyled: true,
-                                printHeader: `<h3>${startDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})} to ${endDate.toLocaleDateString(undefined, {month: 'short', year: 'numeric'})}</h3>`
-                            }}
-                        />
+                        <div ref={tableRef}></div>
                     </Card.Body>
                 </Card>
             </Col>
