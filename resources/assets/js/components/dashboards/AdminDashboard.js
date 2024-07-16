@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Card, Col, Row} from 'react-bootstrap'
 import {DateTime} from 'luxon'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {LinkContainer} from 'react-router-bootstrap'
 
 import {useAPI} from '../../contexts/APIContext'
@@ -12,13 +12,55 @@ export default function AdminDashboard(props) {
     const calendarEndDate = DateTime.now().startOf('year').toJSDate()
     const calendarStartDate = DateTime.now().endOf('year').minus({years: 1}).toJSDate()
 
+    const [birthdayTable, setBirthdayTable] = useState()
     const [calendarHeatChart, setCalendarHeatChart] = useState([])
-    const [employeeBirthdays, setEmployeeBirthdays] = useState(undefined)
-    const [employeeExpiries, setEmployeeExpiries] = useState(undefined)
+    const [employeeBirthdays, setEmployeeBirthdays] = useState([])
+    const [employeeExpiries, setEmployeeExpiries] = useState([])
+    const [expiriesTable, setExpiriesTable] = useState()
+    const [holidaysTable, setHolidaysTable] = useState()
     const [loading, setLoading] = useState(true)
-    const [upcomingHolidays, setUpcomingHolidays] = useState(undefined)
+    const [upcomingHolidays, setUpcomingHolidays] = useState([])
     const [ytdChart, setYtdChart] = useState([])
+
+    const birthdayTableRef = useRef()
+    const expiriesTableRef = useRef()
+    const holidaysTableRef = useRef()
     const api = useAPI()
+
+    useEffect(() => {
+        if(!birthdayTable && birthdayTableRef.current && employeeBirthdays.length) {
+            const newTabulator = new Tabulator(birthdayTableRef.current, {
+                columns: employeeBirthdayColumns,
+                data: employeeBirthdays
+            })
+
+            setBirthdayTable(newTabulator)
+        }
+    }, [birthdayTable, birthdayTableRef, employeeBirthdays])
+
+    useEffect(() => {
+        if(!expiriesTable && expiriesTableRef.current && employeeExpiries.length) {
+            const newTabulator = new Tabulator(expiriesTableRef.current, {
+                columns: employeeExpiryColumns,
+                data: employeeExpiries,
+                groupBy: 'type',
+                layout: 'fitColumns',
+            })
+
+            setExpiriesTable(newTabulator)
+        }
+    }, [expiriesTable, expiriesTableRef, employeeExpiries])
+
+    useEffect(() => {
+        if(!holidaysTable && holidaysTableRef.current && upcomingHolidays.length) {
+            const newTabulator = new Tabulator(holidaysTableRef.current, {
+                columns: holidayColumns,
+                data: upcomingHolidays,
+            })
+
+            setHolidaysTable(newTabulator)
+        }
+    }, [holidaysTable, holidaysTableRef, upcomingHolidays])
 
     useEffect(() => {
         api.get('/getDashboard')
@@ -78,28 +120,16 @@ export default function AdminDashboard(props) {
                         <Card.Body>
                             <Row>
                                 <Col md={3}>
-                                    <h4>Employee Birthdays</h4>
-                                    <ReactTabulator
-                                        columns={employeeBirthdayColumns}
-                                        data={employeeBirthdays}
-                                    />
+                                    <h4 className='text-muted'>Employee Birthdays</h4>
+                                    <div ref={birthdayTableRef}></div>
                                     <hr/>
-                                    <h4>Employee Expiries</h4>
-                                    <ReactTabulator
-                                        columns={employeeExpiryColumns}
-                                        data={employeeExpiries}
-                                        options={{
-                                            groupBy: 'type'
-                                        }}
-                                    />
+                                    <h4 className='text-muted'>Employee Expiries</h4>
+                                    <div ref={expiriesTableRef}></div>
                                     <hr/>
                                     <LinkContainer to='/appSettings#scheduling'>
-                                        <a><h4>Upcoming Holidays</h4></a>
+                                        <a><h4 className='text-muted'>Upcoming Holidays</h4></a>
                                     </LinkContainer>
-                                    <ReactTabulator
-                                        columns={holidayColumns}
-                                        data={upcomingHolidays}
-                                    />
+                                    <div ref={holidaysTableRef}></div>
                                 </Col>
                                 <Col md={9}>
                                     <h4>Bill Counts Per Day Year Over Year</h4>
