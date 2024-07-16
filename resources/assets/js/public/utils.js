@@ -133,39 +133,6 @@ function cleave() {
  * All functions must use the following wrappers to perform Ajax or Fetch requests
  */
 
-function makeAjaxRequest(url, type, data, callback, errorCallback = null) {
-    $.ajax({
-        'url': url,
-        'type': type,
-        'data': data,
-        'success': (response, textStatus, xhr) => {
-            console.log('XHR.status: ' + xhr.status)
-            callback(response)
-        },
-        'error': (response, textStatus, xhr) => {
-            console.log(response.status)
-            if(response.status === 401 || response.message === 'CSRF token mismatch.')
-                location.reload()
-            else if(response.status === 404)
-                window.location.href = '/app/error404'
-            else if(response.status === 500) {
-                toastr.clear()
-                toastr.error('An unexpected server error was encountered. Please contact support.')
-            } else if(response.status === 403) {
-                responseText = JSON.parse(response.responseText)
-                if(responseText.message)
-                    toastr.error(responseText.message, 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
-                else
-                    toastr.error('Authenticated User does not have permission to perform the requested action', 'Permission Denied', {'timeOut': 4000, 'extendedTImeout': 4000})
-            } else {
-                if(errorCallback)
-                    errorCallback(response)
-                handleErrorResponse(response)
-            }
-        }
-    })
-}
-
 Date.prototype.addDays = function(days) {
     var date = new Date(this.valueOf());
     date.setDate(date.getDate() + days);
@@ -193,11 +160,6 @@ Array.prototype.sortBy = function(p) {
     return this.slice(0).sort(function(a,b) {
         return (a[p].localeCompare(b[p], undefined, {numeric: true, sensitivity: 'base'}))
     })
-}
-
-function toFixedNumber(num, digits, base) {
-    var pow = Math.pow(base || 10, digits)
-    return Math.round(num * pow) / pow
 }
 
 function formatPhoneNumber(phone) {

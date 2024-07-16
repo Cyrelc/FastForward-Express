@@ -34,7 +34,7 @@ export default function Router(props) {
 
     return (
         <main style={{maxHeight: '100vh', overflowY: 'auto', overflowX: 'hidden', width: '100%'}}>
-            <Row className='justify-content-md-center' style={{paddingLeft: '40px'}}>
+            <Row className='justify-content-md-center'>
                 <Col md={12}>
                     <Switch>
                         <Route exact path='/'>

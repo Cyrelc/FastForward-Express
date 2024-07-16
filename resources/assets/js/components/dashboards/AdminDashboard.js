@@ -1,10 +1,12 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {Card, Col, Row} from 'react-bootstrap'
 import {DateTime} from 'luxon'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
+import {AgGridReact} from 'ag-grid-react'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {LinkContainer} from 'react-router-bootstrap'
+import {LinkCellRenderer} from '../../utils/utils'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -12,55 +14,14 @@ export default function AdminDashboard(props) {
     const calendarEndDate = DateTime.now().startOf('year').toJSDate()
     const calendarStartDate = DateTime.now().endOf('year').minus({years: 1}).toJSDate()
 
-    const [birthdayTable, setBirthdayTable] = useState()
     const [calendarHeatChart, setCalendarHeatChart] = useState([])
     const [employeeBirthdays, setEmployeeBirthdays] = useState([])
     const [employeeExpiries, setEmployeeExpiries] = useState([])
-    const [expiriesTable, setExpiriesTable] = useState()
-    const [holidaysTable, setHolidaysTable] = useState()
     const [loading, setLoading] = useState(true)
     const [upcomingHolidays, setUpcomingHolidays] = useState([])
     const [ytdChart, setYtdChart] = useState([])
 
-    const birthdayTableRef = useRef()
-    const expiriesTableRef = useRef()
-    const holidaysTableRef = useRef()
     const api = useAPI()
-
-    useEffect(() => {
-        if(!birthdayTable && birthdayTableRef.current && employeeBirthdays.length) {
-            const newTabulator = new Tabulator(birthdayTableRef.current, {
-                columns: employeeBirthdayColumns,
-                data: employeeBirthdays
-            })
-
-            setBirthdayTable(newTabulator)
-        }
-    }, [birthdayTable, birthdayTableRef, employeeBirthdays])
-
-    useEffect(() => {
-        if(!expiriesTable && expiriesTableRef.current && employeeExpiries.length) {
-            const newTabulator = new Tabulator(expiriesTableRef.current, {
-                columns: employeeExpiryColumns,
-                data: employeeExpiries,
-                groupBy: 'type',
-                layout: 'fitColumns',
-            })
-
-            setExpiriesTable(newTabulator)
-        }
-    }, [expiriesTable, expiriesTableRef, employeeExpiries])
-
-    useEffect(() => {
-        if(!holidaysTable && holidaysTableRef.current && upcomingHolidays.length) {
-            const newTabulator = new Tabulator(holidaysTableRef.current, {
-                columns: holidayColumns,
-                data: upcomingHolidays,
-            })
-
-            setHolidaysTable(newTabulator)
-        }
-    }, [holidaysTable, holidaysTableRef, upcomingHolidays])
 
     useEffect(() => {
         api.get('/getDashboard')
@@ -70,35 +31,20 @@ export default function AdminDashboard(props) {
                 setEmployeeExpiries(response.employee_expiries)
                 setYtdChart(response.ytd_chart)
                 setUpcomingHolidays(response.upcoming_holidays)
+            }).finally(
                 setLoading(false)
-            })
+            )
     }, [])
 
-    const birthdayFormatter = cell => {
-        const date = Date.parse(cell.getValue())
-        const today = new Date()
-        if(date === today)
-            cell.getElement().style.backgroundColor = 'lightgreen'
-        return cell.getValue()
-    }
-
     const employeeBirthdayColumns = [
-        {title: 'Employee', field: 'employee_name', formatter: cell => birthdayFormatter(cell)},
-        {title: 'Birthday', field: 'birthday',formatter: cell => birthdayFormatter(cell)}
+        {headerName: 'Employee', field: 'employee_name', flex: 1},
+        {field: 'birthday', width: 120}
     ]
 
     const employeeExpiryColumns = [
-        {title: 'Employee', field: 'employee_id', formatter: 'link', formatterParams: {labelField: 'employee_name', urlPrefix: '/app/employees/'}},
-        {title: 'Date', field: 'date', formatter: cell => {
-            const date = Date.parse(cell.getValue())
-            const today = new Date()
-            if(date < today)
-                cell.getElement().style.backgroundColor = 'salmon'
-            else
-                cell.getElement().style.backgroundColor = 'darkorange'
-            return cell.getValue()
-        }},
-        {title: 'Type', field: 'type', visible: false}
+        {headerName: 'Employee', field: 'employee_id', cellRenderer: LinkCellRenderer, cellRendererParams: {labelField: 'employee_name', urlPrefix: '/employees/'}, width: 130},
+        {headerName: 'Date', field: 'date', sort: 'asc', width: 120},
+        {title: 'Type', field: 'type', visible: false, width: 130}
     ]
 
     const holidayColumns = [
@@ -107,7 +53,7 @@ export default function AdminDashboard(props) {
     ]
 
     return (
-        <Row className='justify-content-md-center'>
+        <Row className='justify-content-md-center' style={{margin: 0}}>
             <Col md={12}>
                 <Card>
                     <Card.Header>
@@ -121,19 +67,37 @@ export default function AdminDashboard(props) {
                             <Row>
                                 <Col md={3}>
                                     <h4 className='text-muted'>Employee Birthdays</h4>
-                                    <div ref={birthdayTableRef}></div>
+                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%'}}>
+                                        <AgGridReact
+                                            rowData={employeeBirthdays}
+                                            columnDefs={employeeBirthdayColumns}
+                                            domLayout='autoHeight'
+                                        />
+                                    </div>
                                     <hr/>
                                     <h4 className='text-muted'>Employee Expiries</h4>
-                                    <div ref={expiriesTableRef}></div>
+                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%', overflowY: 'auto'}}>
+                                        <AgGridReact
+                                            rowData={employeeExpiries}
+                                            columnDefs={employeeExpiryColumns}
+                                            domLayout='autoHeight'
+                                        />
+                                    </div>
                                     <hr/>
                                     <LinkContainer to='/appSettings#scheduling'>
                                         <a><h4 className='text-muted'>Upcoming Holidays</h4></a>
                                     </LinkContainer>
-                                    <div ref={holidaysTableRef}></div>
+                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%', overflowY: 'auto'}}>
+                                        <AgGridReact
+                                            rowData={upcomingHolidays}
+                                            columnDefs={holidayColumns}
+                                            domLayout='autoHeight'
+                                        />
+                                    </div>
                                 </Col>
                                 <Col md={9}>
                                     <h4>Bill Counts Per Day Year Over Year</h4>
-                                    <div style={{height: '50vh', width: '100%', marginTop: '-60px'}}>
+                                    <div style={{height: '50%', width: '100%', marginTop: '-80px'}}>
                                         <ResponsiveCalendar
                                             data={calendarHeatChart}
                                             from={calendarStartDate}
@@ -143,7 +107,7 @@ export default function AdminDashboard(props) {
                                     </div>
                                     <hr/>
                                     <h4>Income/Outgoing</h4>
-                                    <div style={{height: '50vh', width: '100%', marginTop: '-30px'}}>
+                                    <div style={{height: '40vh', width: '100%', marginTop: '-30px'}}>
                                         <ResponsiveLine
                                             animate={true}
                                             axisBottom={{
