@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Card, Table} from 'react-bootstrap';
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
@@ -34,12 +34,15 @@ const activityLogColumns = [
 ]
 
 export default function ActivityLogTab(props) {
+    const [isLoading, setIsLoading] = useState(true)
+    const [table, setTable] = useState()
+
     const {activityLog} = props
     const tableRef = useRef(null)
 
     useEffect(() => {
-        if(tableRef.current) {
-            new Tabulator(tableRef.current, {
+        if(tableRef.current && isLoading) {
+            const table = new Tabulator(tableRef.current, {
                 columns: activityLogColumns,
                 data: activityLog,
                 height: '70vh',
@@ -86,8 +89,16 @@ export default function ActivityLogTab(props) {
                     })
                 },
             })
+            setIsLoading(false)
+            setTable(table)
         }
     }, [tableRef])
+
+    useEffect(() => {
+        if(table && !isLoading) {
+            table.redraw()
+        }
+    }, [table, isLoading])
 
     return (
         <Card border='dark'>

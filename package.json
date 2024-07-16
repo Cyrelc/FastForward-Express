@@ -82,7 +82,7 @@
         "save": "^2.4.0",
         "simplify": "^1.0.0",
         "snazzy-info-window": "^1.1.1",
-        "tabulator-tables": "^5.6.1",
+        "tabulator-tables": "^6.2.4",
         "tempusdominus-core": "^5.19.0",
         "yargs": "^17.7.2"
     }

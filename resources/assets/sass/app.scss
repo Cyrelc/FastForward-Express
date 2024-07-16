@@ -1,8 +1,6 @@
-// @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
-
 @import '~bootstrap/dist/css/bootstrap.min.css';
 @import '~react-datepicker/dist/react-datepicker.css';
-@import '~tabulator-tables/dist/css/tabulator.min.css';
+@import '/node_modules/tabulator-tables/dist/css/tabulator.min.css';
 @import '~@react-awesome-query-builder/bootstrap/css/compact_styles.scss';
 @import './ffe.scss';
 @import '~react-bootstrap-typeahead/css/Typeahead.css';
