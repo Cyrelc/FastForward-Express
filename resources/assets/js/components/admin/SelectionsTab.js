@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -39,8 +39,30 @@ export default function SelectionsTab(props) {
     const [selectionName, setSelectionName] = useState('')
     const [selectionType, setSelectionType] = useState({})
     const [selectionValue, setSelectionValue] = useState('')
+    const [table, setTable] = useState()
+
+    const tableRef = useRef()
 
     const api = useAPI()
+
+    useEffect(() => {
+        if(!table && tableRef.current) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: columns,
+                data: selections,
+                layout: 'fitColumns',
+                pagination: 'local',
+                paginationSize: 20,
+            })
+
+            setTable(newTabulator)
+        }
+    })
+
+    useEffect(() => {
+        if(table)
+            table.setData(selections)
+    }, [selections])
 
     useEffect(() => {
         const transformedName = selectionName.replace(/\W+/g, '_')
@@ -127,15 +149,7 @@ export default function SelectionsTab(props) {
                 </Row>
             </Card.Body>
             <Card.Body>
-                <ReactTabulator
-                    columns={columns}
-                    data={selections}
-                    options={{
-                        layout: 'fitColumns',
-                        pagination: 'local',
-                        paginationSize: 20
-                    }}
-                />
+                <div ref={tableRef}></div>
             </Card.Body>
         </Card>
     )
