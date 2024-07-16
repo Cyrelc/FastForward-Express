@@ -43,7 +43,7 @@ export default function GenerateInvoices(props) {
                 } else {
                     const rows = table.getRows()
                     rows.forEach(row => {
-                        if(table.options.selectableCheck(row)) {
+                        if(table.options.selectableRowsCheck(row)) {
                             row.select()
                         }
                     })
@@ -127,10 +127,9 @@ export default function GenerateInvoices(props) {
                 groupBy: 'parent_account',
                 layout: 'fitColumns',
                 maxHeight: '65vh',
-                selectable: true,
-                selectableCheck: row => {
-                    const selectable = row.getData().valid_bill_count > 0
-                    return selectable
+                selectableRows: true,
+                selectableRowsCheck: row => {
+                    return row.getData().valid_bill_count > 0
                 },
             })
 

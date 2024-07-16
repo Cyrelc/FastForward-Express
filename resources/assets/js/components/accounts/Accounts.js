@@ -88,7 +88,7 @@ export default function Accounts(props) {
         indexName='account_id'
         initialSort={initialSort}
         pageTitle='Accounts'
-        selectable={false}
+        selectableRows={false}
         tableName='accounts'
     />
 }

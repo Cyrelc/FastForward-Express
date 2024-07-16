@@ -38,10 +38,9 @@ export default function GenerateManifests(props) {
                 layout: 'fitColumns',
                 maxHeight: '80vh',
                 placeholder: 'No employees fit the selected criteria for generating a manifest',
-                selectable: true,
-                selectableCheck: row => {
-                const selectable = row.getData().valid_bill_count > 0
-                    return selectable
+                selectableRows: true,
+                selectableRowsCheck: row => {
+                    return row.getData().valid_bill_count > 0
                 }
             })
 

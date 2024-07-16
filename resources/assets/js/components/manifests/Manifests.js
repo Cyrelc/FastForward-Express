@@ -134,7 +134,7 @@ export default function Manifests(props) {
         indexName='manifest_id'
         initialSort={[{column:'manifest_id', dir:'desc'}]}
         pageTitle='Manifests'
-        selectable='highlight'
+        selectableRows='highlight'
         tableName='manifests'
         withSelected={withSelected}
     />

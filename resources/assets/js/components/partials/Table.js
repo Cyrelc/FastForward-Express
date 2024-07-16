@@ -85,8 +85,8 @@ export default function Table(props) {
                 printStyled: true,
                 initialSort: props.initialSort,
                 rowFormatter: props.rowFormatter ?? null,
-                selectable: props.selectable ?? false,
-                selectableCheck: () => {return props.selectable ? true : false}
+                selectableRows: props.selectableRows ?? false,
+                selectableRowsCheck: () => {return props.selectableRows ? true : false}
             })
 
             newTabulator.on('dataSorted', (sorters, rows) => {
