@@ -1,6 +1,6 @@
-import React, {useEffect, useRef} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import Select from 'react-select'
 
 const addressFormattingTooltip = 'Addresses will begin a new line on commas'
@@ -13,6 +13,32 @@ export default function InvoicingTab(props) {
 
         readOnly
     } = props
+
+    const [table, setTable] = useState()
+    const tableRef = useRef()
+
+    useEffect(() => {
+        if(tableRef.current && !table && !props.isLoading) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: columns,
+                data: invoiceSortOrder,
+                height: '150px',
+                layout: 'fitColumns',
+                movableRows: !readOnly,
+                initialFilter: [{field: 'isValid', type:'=', value: true}],
+                initialSort: [{field: 'priority', dir: 'asc'}],
+            })
+
+            newTabulator.on('rowMoved', handleInvoiceSortOrderChange)
+
+            setTable(newTabulator)
+        }
+    }, [tableRef, table])
+
+    useEffect(() => {
+        if(table)
+            table.setData(invoiceSortOrder)
+    }, [invoiceSortOrder])
 
     const columns = [
         {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
@@ -28,7 +54,9 @@ export default function InvoicingTab(props) {
     ]
 
     const handleInvoiceSortOrderChange = row => {
-        const data = row.getTable().getData()
+        const data = row.getTable().getData().map((option, index) => {
+            return {...option, priority: index}
+        })
         props.setInvoiceSortOrder(data)
     }
 
@@ -39,7 +67,7 @@ export default function InvoicingTab(props) {
             return
         const newInvoiceSortOrder = tableData.map(option => {
             if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
-                return {...option, subtotal_by: !option.subtotal_by}
+                return {...option, subtotal_by: option.subtotal_by ? 0 : 1}
             return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
         })
         props.handleInvoiceSortOrderChange(newInvoiceSortOrder)
@@ -170,20 +198,7 @@ export default function InvoicingTab(props) {
                         <h5 className='text-muted'>Order Bills By</h5>
                     </Col>
                     <Col md={5} key={props.handleInvoiceSortOrderChange}>
-                        {!props.isLoading && invoiceSortOrder?.length > 0 &&
-                            <ReactTabulator
-                                columns={columns}
-                                data={invoiceSortOrder}
-                                options={{
-                                    height: '150px',
-                                    layout: 'fitColumns',
-                                    movableRows: !readOnly,
-                                    rowMoved: handleInvoiceSortOrderChange
-                                }}
-                                initialFilter={[{field: 'isValid', type:'=', value: true}]}
-                                initialSort={[{field: 'priority', dir: 'asc'}]}
-                            />
-                        }
+                        <div ref={tableRef}></div>
                     </Col>
                 </Row>
             </Card.Body>
