@@ -25,6 +25,7 @@ export default function useBill() {
     const [acceptTermsAndConditions, setAcceptTermsAndConditions] = useState(false)
     const [accounts, setAccounts] = useState([])
     const [activeRatesheet, setActiveRatesheet] = useState({})
+    const [activityLog, setActivityLog] = useState([])
     const [applyRestrictions, setApplyRestrictions] = useState(true)
     const [billId, setBillId] = useState(null)
     const [businessHoursMax, setBusinessHoursMax] = useState(DateTime.now())
@@ -111,6 +112,7 @@ export default function useBill() {
     // internal function, never needs to be returned
     const setupExisting = data => {
         // setActiveRatesheet()
+        setActivityLog(data.activity_log)
         setBillId(data.bill.bill_id)
         setDeliveryType(data.delivery_types.find(deliveryType => deliveryType.value == data.bill.delivery_type))
         setDescription(data.bill.description)
@@ -171,6 +173,7 @@ export default function useBill() {
         bill: {
             acceptTermsAndConditions,
             accounts,
+            activityLog,
             applyRestrictions,
             billId,
             businessHoursMax,

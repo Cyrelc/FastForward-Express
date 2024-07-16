@@ -518,13 +518,13 @@ export default function Bill(props) {
                             />
                         </Tab>
                     } */}
-                    {/* {(permissions.viewActivityLog && billState.activityLog) &&
+                    {(permissions.viewActivityLog && bill.activityLog) &&
                         <Tab eventKey='#activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                             <ActivityLogTab
-                                activityLog={billState.activityLog}
+                                activityLog={bill.activityLog}
                             />
                         </Tab>
-                    } */}
+                    }
                 </Tabs>
             </Col>
             {(!billId && permissions.createBasic && !permissions.createFull) &&
