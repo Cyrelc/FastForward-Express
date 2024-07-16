@@ -1,6 +1,6 @@
-import React, {Fragment, useEffect, useState} from 'react'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, Row} from 'react-bootstrap'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
 import AdjustAccountCreditModal from './AdjustAccountCreditModal'
 import LoadingSpinner from '../../partials/LoadingSpinner'
@@ -17,6 +17,9 @@ export default function BillingTab(props) {
     const [showAdjustAccountCreditModal, setShowAdjustAccountCreditModal] = useState(false)
     const [showManagePaymentMethodsModal, setShowManagePaymentMethodsModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [table, setTable] = useState()
+
+    const tableRef = useRef()
 
     const api = useAPI()
 
@@ -29,6 +32,33 @@ export default function BillingTab(props) {
         }, width: 50, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, cellClick: (e, cell) => makePayment(cell)}
     ]
 
+    useEffect(() => {
+        if(tableRef.current && !table && !isLoading) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                data: outstandingInvoices,
+                columns: invoiceColumns,
+                maxHeight: '75vh',
+                layout: 'fitColumns',
+                pagination: 'local',
+                paginationSize: 10,
+                printAsHtml: true,
+                printStyled: true,
+            })
+
+            setTable(newTabulator)
+        }
+    }, [tableRef, table, isLoading])
+
+    useEffect(() => {
+        console.log(!!table)
+        if(table)
+            table.setData(outstandingInvoices)
+    }, [outstandingInvoices, table])
+
+    useEffect(() => {
+        refreshModel()
+    }, [])
+
     const makePayment = cell => {
         setPaymentInvoice(cell.getData())
         setShowPaymentModal(!showPaymentModal)
@@ -40,14 +70,10 @@ export default function BillingTab(props) {
             .then(response => {
                 setPayments(response.payments)
                 setOutstandingInvoices(response.outstanding_invoices)
-                setIsLoading(false)
-            }, () => setIsLoading(false))
+            }).finally(
+                () => setIsLoading(false)
+            )
     }
-
-    useEffect(() => {
-        refreshModel()
-    }, []);
-
     return (
         <Fragment>
             <Card>
@@ -77,20 +103,8 @@ export default function BillingTab(props) {
                             <h5>Outstanding Invoices</h5>
                         </Col>
                         <Col md={10}>
-                            {isLoading ? <LoadingSpinner /> :
-                                <ReactTabulator
-                                    data={outstandingInvoices}
-                                    columns={invoiceColumns}
-                                    maxHeight='75vh'
-                                    options={{
-                                    layout: 'fitColumns',
-                                        pagination: 'local',
-                                        paginationSize: 10,
-                                    }}
-                                    printAsHtml={true}
-                                    printStyled={true}
-                                />
-                            }
+                            {isLoading && <LoadingSpinner />}
+                            <div ref={tableRef}></div>
                         </Col>
                     </Row>
                     <hr/>
