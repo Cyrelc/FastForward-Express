@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, FormControl, InputGroup} from 'react-bootstrap'
 import queryString from 'query-string'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory, useLocation} from 'react-router-dom'
 import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
@@ -9,11 +9,34 @@ import {useUser} from '../../contexts/UserContext'
 export default function Search(props) {
     const [searchTerm, setSearchTerm] = useState('')
     const [searchResults, setSearchResults] = useState([])
+    const [table, setTable] = useState()
 
     const api = useAPI()
     const history = useHistory();
     const location = useLocation();
+    const tableRef = useRef()
     const {authenticatedUser} = useUser()
+
+    useEffect(() => {
+        if(!table && tableRef.current) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: tableColumns,
+                data: searchResults,
+                height: '85vh',
+                layout: 'fitDataStretch',
+                pagination: 'local',
+                paginationSize: 25,
+                placeholder: 'No results found matching your request. Please try a different query'
+            })
+
+            setTable(newTabulator)
+        }
+    }, [tableRef, table])
+
+    useEffect(() => {
+        if(table)
+            table.setData(searchResults)
+    }, [searchResults])
 
     const otherFieldsFormatter = (cell) => {
         const rowData = cell.getRow().getData()
@@ -74,18 +97,7 @@ export default function Search(props) {
                 </InputGroup>
             </Card.Header>
             <Card.Body>
-                <ReactTabulator
-                    columns={tableColumns}
-                    data={searchResults}
-                    height='85vh'
-                    layout='fitDataStretch'
-                    options={{
-                        pagination:'local',
-                        paginationSize:25,
-                        placeholder: 'No results found matching your request. Please try a different query'
-                    }}
-                    // responsiveLayout='collapse'
-                />
+                <div ref={tableRef}></div>
             </Card.Body>
         </Card>
     )
