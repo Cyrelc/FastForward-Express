@@ -76,7 +76,7 @@ export default function Employee(props) {
 
         if(params.employeeId) {
             document.title = `Edit Employee - ${params.employeeId}`
-            let sortedEmployees = localStorage.getItem('employees.sortedList')
+            let sortedEmployees = localStorage.getItem('employees.sortedList') ?? ''
             sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
 
             const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === params.employeeId)
