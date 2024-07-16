@@ -310,8 +310,7 @@ export default function Bill(props) {
                 .then(response => {
                     if(billId) {
                         toast.success(`Bill ${billId} was successfully updated!`)
-                        if(response.warnings)
-                            // console.log(response.warnings)
+                        if(response.warnings?.length)
                             toast.warn(
                                 <ul>
                                     {Object.keys(response.warnings).map(key => 
