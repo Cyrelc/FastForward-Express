@@ -44,12 +44,12 @@ export default function AdminDashboard(props) {
     const employeeExpiryColumns = [
         {headerName: 'Employee', field: 'employee_id', cellRenderer: LinkCellRenderer, cellRendererParams: {labelField: 'employee_name', urlPrefix: '/employees/'}, width: 130},
         {headerName: 'Date', field: 'date', sort: 'asc', width: 120},
-        {headerName: 'Type', field: 'type', visible: false, width: 130}
+        {headerName: 'Type', field: 'type', width: 130}
     ]
 
     const holidayColumns = [
         {headerName: 'Name', field: 'name'},
-        {headerName: 'Date', field: 'value', formatter: row => (new Date(row.getData().value)).toDateString()}
+        {headerName: 'Date', field: 'value', cellRenderer: props => (new Date(props.value)).toDateString()}
     ]
 
     return (
