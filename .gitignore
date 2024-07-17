@@ -21,4 +21,4 @@ resources/assets/passwordSeed.txt
 /storage/invoices
 /storage/manifests
 .phpunit*
-
+/public/mix-manifest.json
