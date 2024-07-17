@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Col, Row, Table} from 'react-bootstrap'
+import {Button, ButtonGroup, Card, Col, Row, Table} from 'react-bootstrap'
+import {AgGridReact} from 'ag-grid-react'
 
 import ConditionalModal from './ConditionalModal'
 import {useAPI} from '../../../contexts/APIContext'
+import {useLists} from '../../../contexts/ListsContext'
 
 const formatCondition = condition => {
     return 'friendly formatted condition'
@@ -14,6 +16,7 @@ const formatResult = result => {
 
 export default function ConditionalsTab(props) {
     const api = useAPI()
+    const {chargeTypes} = useLists()
 
     const [conditionals, setConditionals] = useState([])
     const [isLoading, setIsLoading] = useState(true)
@@ -72,7 +75,43 @@ export default function ConditionalsTab(props) {
                 </Row>
             </Card.Header>
             <Card.Body>
-                <Table>
+                <div className='ag-theme-quartz-dark'>
+                    <AgGridReact
+                        rowData={conditionals}
+                        columnDefs={[
+                            {headerName: 'Actions', field: '', cellRenderer: api => {
+                                return (
+                                    <ButtonGroup>
+                                        <Button onClick={() => edit(api.data)} variant='warning' size='sm'>
+                                            <i className='fas fa-edit'></i>
+                                        </Button>
+                                        <Button variant='danger' size='sm' onClick={() => deleteConditional(api.data)}>
+                                            <i className='fas fa-trash'></i>
+                                        </Button>
+                                    </ButtonGroup>
+                                )
+                            }},
+                            {headerName: 'Conditional Type', field: 'type', valueGetter: api => {
+                                const chargeType = chargeTypes.find(chargeType => chargeType.value == api.data.type)
+                                return chargeType.label
+                            }},
+                            {field: 'name'},
+                            {headerName: 'Condition', field: 'human_readable', flex: 1},
+                            {field: 'action', valueGetter: api => api.data.action.label},
+                            {headerName: 'Value Type', field: 'value_type'},
+                            {headerName: 'Value', field: 'value', valueGetter: api => {
+                                const {value_type, value} = api.data
+                                if(value_type == 'amount')
+                                    return value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
+                                else if(value_type == 'percent')
+                                    return `${value}%`
+                                return value
+                            }}
+                        ]}
+                        domLayout='autoHeight'
+                    />
+                </div>
+                {/* <Table>
                     <thead>
                         <tr>
                             <th>Actions</th>
@@ -88,13 +127,6 @@ export default function ConditionalsTab(props) {
                             return (
                                 <tr key={conditional.conditional_id}>
                                     <td>
-                                        <Button
-                                            onClick={() => edit(conditional)}
-                                            variant='warning'
-                                            size='sm'
-                                        >
-                                            <i className='fas fa-edit'></i>
-                                        </Button>
                                         <Button
                                             onClick={() => deleteConditional(conditional)}
                                             variant='danger'
@@ -116,7 +148,7 @@ export default function ConditionalsTab(props) {
                             )
                         })}
                     </tbody>
-                </Table>
+                </Table> */}
             </Card.Body>
             <ConditionalModal
                 conditional={editConditional}

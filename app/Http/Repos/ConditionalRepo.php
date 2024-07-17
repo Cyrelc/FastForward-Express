@@ -43,7 +43,6 @@ class ConditionalRepo {
         $old = Conditional::where('conditional_id', $conditional['conditional_id'])->first();
 
         $old->action = $conditional['action'];
-        $old->equation_string = $conditional['equation_string'];
         $old->human_readable = $conditional['human_readable'];
         $old->json_logic = $conditional['json_logic'];
         $old->name = $conditional['name'];
