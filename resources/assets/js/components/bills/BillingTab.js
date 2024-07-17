@@ -110,7 +110,6 @@ export default function BillingTab(props) {
     }, [tabulatorTableRef, tabulatorTable])
 
     useEffect(() => {
-        console.log('tried', !!tabulatorTable, tabulatorTable)
         if(tabulatorTable)
             tabulatorTable.setData(rateTable)
     }, [rateTable])
