@@ -70,7 +70,7 @@ export default function AdvancedTab(props) {
                             <DatePicker
                                 className='form-control'
                                 dateFormat='MMM d, yyy'
-                                onChange={value => setStartDate}
+                                onChange={setStartDate}
                                 selected={startDate}
                                 showMonthDropdown
                                 scrollableMonthDropdown
