@@ -140,11 +140,11 @@ export default function UserPermissionTab(props) {
                     <Card.Body>
                         <ul>
                             {props.belongsTo.map(account =>
-                                <li key={account.account_id}>
+                                <li key={'parent_' + account.account_id}>
                                     {`${account.account.account_number} - ${account.account.name}`}
                                     <ul key={account.account_id + '.children'}>
                                         {account.children.map(child =>
-                                            <li key={child.account_id}>{`${child.account_number} - ${child.name}`}</li>
+                                            <li key={'child_' + child.account_id}>{`${child.account_number} - ${child.name}`}</li>
                                         )}
                                     </ul>
                                 </li>

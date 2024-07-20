@@ -1,14 +1,29 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {Card, Col, Row} from 'react-bootstrap'
 import {DateTime} from 'luxon'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
-import {AgGridReact} from 'ag-grid-react'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {LinkContainer} from 'react-router-bootstrap'
 import {LinkCellRenderer} from '../../utils/utils'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
+
+const commonTableSettings = {
+    enableBottomToolbar: false,
+    enableColumnActions: false,
+    enablePagination: false,
+    enableToolbarInternalActions: false,
+    enableTopToolbar: false,
+    muiTableBodyProps: {
+        sx: {
+            //stripe the rows, make odd rows a darker color
+            '& tr:nth-of-type(odd) > td': {
+                backgroundColor: 'dimgrey',
+            },
+        },
+    },
+}
 
 export default function AdminDashboard(props) {
     const calendarEndDate = DateTime.now().startOf('year').toJSDate()
@@ -36,21 +51,58 @@ export default function AdminDashboard(props) {
             )
     }, [])
 
-    const employeeBirthdayColumns = [
-        {headerName: 'Employee', field: 'employee_name', flex: 1},
-        {field: 'birthday', width: 120}
-    ]
+    const employeeBirthdayColumns = useMemo(() => [
+        {accessorKey: 'employee_name', header: 'Employee'},
+        {accessorKey: 'birthday', header: 'Birthday'}
+    ], [])
 
-    const employeeExpiryColumns = [
-        {headerName: 'Employee', field: 'employee_id', cellRenderer: LinkCellRenderer, cellRendererParams: {labelField: 'employee_name', urlPrefix: '/employees/'}, width: 130},
-        {headerName: 'Date', field: 'date', sort: 'asc', width: 120},
-        {headerName: 'Type', field: 'type', width: 130}
-    ]
+    console.log(employeeExpiries)
 
-    const holidayColumns = [
-        {headerName: 'Name', field: 'name'},
-        {headerName: 'Date', field: 'value', cellRenderer: props => (new Date(props.value)).toDateString()}
-    ]
+    const employeeBirthdayTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: employeeBirthdayColumns,
+        data: employeeBirthdays,
+        initialState: {
+            density: 'compact',
+        },
+    })
+
+    const employeeExpiryColumns = useMemo(() => [
+        {
+            header: 'Employee',
+            accessorKey: 'employee_id',
+            Cell: ({renderedCellValue, row}) => (
+                <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='/employees/' labelField='employee_name' />
+            ),
+            size: 130
+        },
+        {header: 'Date', accessorKey: 'date', size: 100, grow: false},
+        {header: 'Type', accessorKey: 'type', size: 130}
+    ])
+
+    const employeeExpiriesTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: employeeExpiryColumns,
+        data: employeeExpiries,
+        initialState: {
+            density: 'compact',
+        }
+    })
+
+    const holidayColumns = useMemo(() => ([
+        {header: 'Name', accessorKey: 'name'},
+        {header: 'Date', accessorKey: 'value', Cell: props => (new Date(props.value)).toDateString()}
+    ]), [])
+
+    const holidayTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: holidayColumns,
+        data: upcomingHolidays,
+        initialState: {
+            density: 'compact',
+            sorting: [{id: 'date', asc: true}]
+        }
+    })
 
     return (
         <Row className='justify-content-md-center' style={{margin: 0}}>
@@ -67,33 +119,15 @@ export default function AdminDashboard(props) {
                             <Row>
                                 <Col md={3}>
                                     <h4 className='text-muted'>Employee Birthdays</h4>
-                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%'}}>
-                                        <AgGridReact
-                                            rowData={employeeBirthdays}
-                                            columnDefs={employeeBirthdayColumns}
-                                            domLayout='autoHeight'
-                                        />
-                                    </div>
+                                    <MaterialReactTable table={employeeBirthdayTable} />
                                     <hr/>
                                     <h4 className='text-muted'>Employee Expiries</h4>
-                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%', overflowY: 'auto'}}>
-                                        <AgGridReact
-                                            rowData={employeeExpiries}
-                                            columnDefs={employeeExpiryColumns}
-                                            domLayout='autoHeight'
-                                        />
-                                    </div>
+                                    <MaterialReactTable table={employeeExpiriesTable} />
                                     <hr/>
                                     <LinkContainer to='/appSettings#scheduling'>
                                         <a><h4 className='text-muted'>Upcoming Holidays</h4></a>
                                     </LinkContainer>
-                                    <div className='ag-theme-quartz-dark' style={{maxHeight: '25%', overflowY: 'auto'}}>
-                                        <AgGridReact
-                                            rowData={upcomingHolidays}
-                                            columnDefs={holidayColumns}
-                                            domLayout='autoHeight'
-                                        />
-                                    </div>
+                                    <MaterialReactTable table={holidayTable} />
                                 </Col>
                                 <Col md={9}>
                                     <h4>Bill Counts Per Day Year Over Year</h4>

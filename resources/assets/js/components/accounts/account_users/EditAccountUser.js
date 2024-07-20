@@ -118,13 +118,13 @@ export default function EditAccountUser(props) {
                                             />
                                         </Tab>
                                     }
-                                    {/* {activityLog && permissions.viewActivityLog &&
+                                    {activityLog && permissions.viewActivityLog &&
                                         <Tab eventKey='activityLog' title={<h4>Activity Log</h4>}>
                                             <ActivityLogTab
                                                 activityLog={activityLog}
                                             />
                                         </Tab>
-                                    } */}
+                                    }
                                 </Tabs>
                             </Col>
                         </Row>
