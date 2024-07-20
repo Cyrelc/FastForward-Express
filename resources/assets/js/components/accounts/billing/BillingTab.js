@@ -50,7 +50,6 @@ export default function BillingTab(props) {
     }, [tableRef, table, isLoading])
 
     useEffect(() => {
-        console.log(!!table)
         if(table)
             table.setData(outstandingInvoices)
     }, [outstandingInvoices, table])

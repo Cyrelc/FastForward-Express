@@ -2,19 +2,19 @@ import React from 'react';
 
 import {useHistory} from 'react-router-dom'
 
-export const LinkCellRenderer = (props) => {
+export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField = null}) => {
     const history = useHistory()
 
     const handleClick = () => {
-        history.push(`${props.urlPrefix}${props.value}`)
-    };
+        history.push(`${urlPrefix}${renderedCellValue}`)
+    }
 
     return (
         <span
             style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
             onClick={handleClick}
         >
-            {props.labelField ? props.data[props.labelField] : props.value}
+            {labelField ? row.original[labelField] : renderedCellValue}
         </span>
     );
 };
