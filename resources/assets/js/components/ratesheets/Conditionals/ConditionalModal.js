@@ -259,7 +259,7 @@ const ConditionalModal = props => {
                                             </h5>
                                         </Col>
                                         <Col md={10}>
-                                            {testVariables.map(variable => (
+                                            {testVariables.filter(variable => equationString.includes(variable.dbName)).map(variable => (
                                                 <Col md={12} key={variable.dbName}>
                                                     <Table variant='striped' size='sm'>
                                                         <thead>
@@ -271,11 +271,14 @@ const ConditionalModal = props => {
                                                         <tbody>
                                                             <tr>
                                                                 <td>
-                                                                    <FormControl
-                                                                        type='number'
-                                                                        onChange={event => handleVariableValueChange(event, variable.dbName)}
-                                                                        value={variable.value}
-                                                                    />
+                                                                    <InputGroup>
+                                                                        <FormControl
+                                                                            type='number'
+                                                                            onChange={event => handleVariableValueChange(event, variable.dbName)}
+                                                                            value={variable.value}
+                                                                        />
+                                                                        <InputGroup.Text>{variable.unit}</InputGroup.Text>
+                                                                    </InputGroup>
                                                                 </td>
                                                                 <td>{demoResult}</td>
                                                             </tr>

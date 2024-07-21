@@ -120,14 +120,16 @@ export const availableTestVariables = [
         description: 'The total weight of all packages in the delivery',
         name: `Total Weight`,
         type: 'number',
-        value: '900 kg'
+        value: '900',
+        unit: 'kg'
     },
     {
         dbName: 'longest_side',
         description: 'The longest dimension of the largest package',
         name: 'Longest Side',
         type: 'number',
-        value: '3 m'
+        value: '3',
+        unit: 'm'
     }
 ]
 

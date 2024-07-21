@@ -1,10 +1,33 @@
 import React, {useCallback, useEffect, useState} from 'react'
-import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
 import {debounce} from 'lodash'
-const math = require('mathjs')
+import {
+    addDependencies,
+    create,
+    createUnitDependencies,
+    divideDependencies,
+    evaluateDependencies,
+    multiplyDependencies,
+    roundDependencies,
+    subtractDependencies,
+    unitDependencies,
+} from 'mathjs';
+
+const math = create({
+    add: addDependencies,
+    createUnit: createUnitDependencies,
+    divide: divideDependencies,
+    evaluate: evaluateDependencies,
+    multiply: multiplyDependencies,
+    round: roundDependencies,
+    subtract: subtractDependencies,
+    unit: unitDependencies,
+}, {
+    matrix: 'Array',
+    number: 'number'
+});
+
 math.createUnit('CAD')
-// math.createUnit('lb', '1 lbs')
-// math.createUnit('kg', '1 kgs')
+math.createUnit('kgs', '1 kg')
 
 import config, {availableTestVariables} from './conditionalConfig'
 
@@ -85,14 +108,12 @@ export default function useEquation({conditional}) {
                             try {
                                 let metricUnit = imperialToMetric[varUnit];
                                 value = math.unit(value, varUnit).toNumber(metricUnit);
-                                console.log('converting imperial value: ', value, varUnit, ' to metric', metricUnit)
                                 return `${value}`;
                             } catch (error) {
                                 console.log(error);
                                 return match;
                             }
                         } else {
-                            console.log('else return ${value}.trim()')
                             return `${value}`.trim();
                         }
                     } else {
@@ -133,10 +154,14 @@ export default function useEquation({conditional}) {
                     }
                 }
             });
-            console.log(serverEquation)
 
             try {
-                let result = math.evaluate(demoEquation, testVariables)
+                const variables = testVariables.reduce((accumulator, variable) => {
+                    const {dbName, value} = variable
+                    return {...accumulator, dbName: value}
+                }, {})
+                console.log(variables)
+                let result = math.evaluate(demoEquation, variables)
                 // Verify that the result is a number
                 if(isNaN(result)) {
                     setDemoResult('Invalid equation');
