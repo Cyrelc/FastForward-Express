@@ -32,15 +32,10 @@ root.render(
         <UserProvider>
             <BrowserRouter basename='/app'>
                 <ListsProvider>
-                    <GoogleMapsProvider
-                        googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
-                        libraries={['places', 'drawing', 'geometry']}
-                    >
-                        <ThemeProvider theme={darkTheme}>
-                            <ToastContainer theme='dark'/>
-                            <App history={history}/>
-                        </ThemeProvider>
-                    </GoogleMapsProvider>
+                    <ThemeProvider theme={darkTheme}>
+                        <ToastContainer theme='dark'/>
+                        <App history={history}/>
+                    </ThemeProvider>
                 </ListsProvider>
             </BrowserRouter>
         </UserProvider>
