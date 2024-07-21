@@ -12,9 +12,6 @@ class ConditionalValidationRules {
 
         $rules = [
             'action' => 'required',
-            'equation_string' => [
-                Rule::requiredIf($req->value_type == 'equation')
-            ],
             'human_readable' => 'required',
             'json_logic' => 'required|json',
             'name' => [

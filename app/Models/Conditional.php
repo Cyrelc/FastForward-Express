@@ -14,7 +14,6 @@ class Conditional extends Model {
 
     protected $fillable = [
         'action',
-        'equation_string',
         'human_readable',
         'json_logic',
         'name',

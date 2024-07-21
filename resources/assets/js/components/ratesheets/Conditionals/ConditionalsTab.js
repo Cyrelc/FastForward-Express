@@ -1,24 +1,53 @@
 import React, {useEffect, useState} from 'react'
-import {Button, Card, Col, Row, Table} from 'react-bootstrap'
+import {Button, ButtonGroup, Card, Col, Row, Table} from 'react-bootstrap'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import ConditionalModal from './ConditionalModal'
 import {useAPI} from '../../../contexts/APIContext'
-
-const formatCondition = condition => {
-    return 'friendly formatted condition'
-}
-
-const formatResult = result => {
-    return 'friendly formatted result'
-}
+import {useLists} from '../../../contexts/ListsContext'
 
 export default function ConditionalsTab(props) {
     const api = useAPI()
+    const {chargeTypes} = useLists()
 
     const [conditionals, setConditionals] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [editConditional, setEditConditional] = useState(false)
     const [showConditionalModal, setShowConditionalModal] = useState(false)
+
+    const table = useMaterialReactTable({
+        data: conditionals,
+        columns: [
+            {header: 'Actions', size: 120, Cell: ({row}) => (
+                    <ButtonGroup>
+                        <Button onClick={() => edit(row.original)} variant='primary' size='sm'>
+                            <i className='fas fa-edit'></i>
+                        </Button>
+                        <Button variant='danger' size='sm' onClick={() => deleteConditional(row.original)}>
+                            <i className='fas fa-trash'></i>
+                        </Button>
+                    </ButtonGroup>
+            )},
+            {header: 'Priority', accessorKey: 'priority', size: 120},
+            {header: 'Conditional Type', accessorKey: 'type', size: 250, Cell: ({row}) => {
+                const chargeType = chargeTypes.find(chargeType => chargeType.value == row.original.type)
+                return chargeType.label
+            }},
+            {accessorKey: 'name', header: 'Name', grow: true},
+            {header: 'Condition', accessorKey: 'human_readable', grow: true},
+            {accessorKey: 'action', header: 'Action', Cell: ({row}) => row.original.action.label},
+            {header: 'Value Type', accessorKey: 'value_type'},
+            {header: 'Value', accessorKey: 'value', Cell: ({row}) => {
+                const {value_type, value} = row.original
+                if(value_type == 'amount')
+                    return value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
+                else if(value_type == 'percent')
+                    return `${value}%`
+                return value
+            }}
+        ],
+        layoutMode: 'grid-no-grow',
+    })
 
     const deleteConditional = conditional => {
         if(confirm(`Are you sure you wish to delete conditional "${conditional.name}"?\n\nThis action can not be undone.`))
@@ -72,51 +101,7 @@ export default function ConditionalsTab(props) {
                 </Row>
             </Card.Header>
             <Card.Body>
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>Actions</th>
-                            <th>Name</th>
-                            <th>Condition</th>
-                            <th>Action</th>
-                            <th>Value Type</th>
-                            <th>Value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {conditionals.map(conditional => {
-                            return (
-                                <tr key={conditional.conditional_id}>
-                                    <td>
-                                        <Button
-                                            onClick={() => edit(conditional)}
-                                            variant='warning'
-                                            size='sm'
-                                        >
-                                            <i className='fas fa-edit'></i>
-                                        </Button>
-                                        <Button
-                                            onClick={() => deleteConditional(conditional)}
-                                            variant='danger'
-                                            size='sm'
-                                        >
-                                            <i className='fas fa-trash'></i>
-                                        </Button>
-                                    </td>
-                                    <td>{conditional.name}</td>
-                                    <td>{conditional.human_readable}</td>
-                                    <td>{conditional.action['label']}</td>
-                                    <td>{conditional.value_type}</td>
-                                    <td>
-                                        {conditional.value_type == 'amount' && conditional.value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}
-                                        {conditional.value_type == 'percent' && `${conditional.value}%`}
-                                        {conditional.value_type == 'equation' && `${conditional.value}`}
-                                    </td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </Table>
+                <MaterialReactTable table={table} />
             </Card.Body>
             <ConditionalModal
                 conditional={editConditional}

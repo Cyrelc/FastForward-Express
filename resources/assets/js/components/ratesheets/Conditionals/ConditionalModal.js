@@ -1,17 +1,13 @@
-import React, {Fragment, useCallback, useEffect, useRef, useState} from 'react'
-import {Button, Card, Col, InputGroup, FormControl, Modal, Row} from 'react-bootstrap'
+import React, {Fragment, useState} from 'react'
+import {Button, Card, Col, InputGroup, FormControl, Modal, Row, Table} from 'react-bootstrap'
 import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
-import {BootstrapConfig} from '@react-awesome-query-builder/bootstrap'
 import Select from 'react-select'
-import {debounce} from 'lodash'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
+import config, {availableTestVariables, valueTypes} from './conditionalConfig'
+import useConditional from './useConditional'
 import {useLists} from '../../../contexts/ListsContext'
-const math = require('mathjs')
-
-math.createUnit('CAD')
-// math.createUnit('lbs', '1 lb')
 
 const renderBuilder = (props) => (
     <div className='query-builder-container' style={{padding: '10px'}}>
@@ -21,284 +17,40 @@ const renderBuilder = (props) => (
     </div>
 )
 
-const addressSubfields = (prefix) => {
-    return {
-        zone: {
-            type: '!struct',
-            label: 'Zone',
-            label2: `${prefix} Zone`,
-            subfields: {
-                name: {
-                    label: `${prefix} Zone Name`,
-                    type: 'text',
-                    operators: [
-                        'equal',
-                        'not_equal',
-                        'like',
-                        'not_like'
-                    ]
-                },
-                type: {
-                    label: `${prefix} Zone Type`,
-                    type: 'select',
-                    fieldSettings: {
-                        listValues: [
-                            {value: 'internal', title: 'Internal'},
-                            {value: 'peripheral', title: 'Peripheral'},
-                            {value: 'outlying', title: 'Outlying'},
-                        ]
-                    }
-                }
-            }
-        },
-        is_mall: {
-            label: `${prefix} Is Mall`,
-            type: 'boolean',
-            default: true
-        }
-    }
-}
-
-const timeSubfields = (prefix) => {
-    return {
-        day_of_the_week: {
-            label: `${prefix} Day of the Week`,
-            type: 'select',
-            fieldSettings: {
-                listValues: [
-                    {value: 0, title: 'Sunday'},
-                    {value: 1, title: 'Monday'},
-                    {value: 2, title: 'Tuesday'},
-                    {value: 3, title: 'Wednesday'},
-                    {value: 4, title: 'Thursday'},
-                    {value: 5, title: 'Friday'},
-                    {value: 6, title: 'Saturday'},
-                ]
-            }
-        },
-        time: {
-            label: `${prefix} Time (Scheduled)`,
-            type: 'time'
-        }
-    }
-}
-
-const availableTestVariables = [
-    {
-        dbName: 'total_weight',
-        description: 'The total weight of all packages in the delivery',
-        name: `Total Weight`,
-        type: 'number',
-        value: 2000
-    }
-]
-
-const allowedVariableNameTooltip = `
-The following variable names are currently supported:
------------------------------------------------------
-${availableTestVariables.map(variable => `${variable.name}: ${variable.description}\n`)}
-`
-
-const config = {
-    ...BootstrapConfig,
-    settings: {
-        ...BootstrapConfig.settings,
-    },
-    fields: {
-        package: {
-            type: '!struct',
-            label: 'Package',
-            subfields: {
-                is_pallet: {
-                    label: 'Is Pallet',
-                    type: 'boolean',
-                    default: true
-                },
-                total_weight: {
-                    label: 'Total Weight (kg)',
-                    type: 'number'
-                }
-            }
-        },
-        delivery_address: {
-            type: '!struct',
-            label: 'Delivery Address',
-            subfields: addressSubfields('Delivery Address')
-        },
-        pickup_address: {
-            type: '!struct',
-            label: 'Pickup Address',
-            subfields: addressSubfields('Pickup Address')
-        },
-        time_delivery_scheduled: {
-            type: '!struct',
-            label: 'Delivery Time',
-            subfields: timeSubfields('Delivery')
-        },
-        time_pickup_scheduled: {
-            type: '!struct',
-            label: 'Pickup Time',
-            subfields: timeSubfields('Pickup')
-        }
-    }
-}
-
-const imperialToMetric = {
-    'lb': 'kg',
-    'kgs': 'kg',
-    'kg': 1,
-    'oz': 'g',
-    'in': 'cm',
-    'ft': 'm',
-    'yd': 'm',
-    'mi': 'km',
-    'sqft': 'm2',
-    'CAD': 1
-}
-
-const valueTypes = [
-    {value: 'percent', label: 'Percent'},
-    {value: 'amount', label: 'Amount'},
-    {value: 'equation', label: 'Equation'}
-]
-
 const ConditionalModal = props => {
-    const [conditionalType, setConditionalType] = useState('')
-    const [demoEquationString, setDemoEquationString] = useState('')
-    const [demoResult, setDemoResult] = useState('')
-    const [equationString, setEquationString] = useState('')
-    const [name, setName] = useState('')
-    const [priority, setPriority] = useState(0)
-    const [queryTree, setQueryTree] = useState(QbUtils.checkTree(QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
-    const [resultAction, setResultAction] = useState({value: 'charge', label: 'Charge'})
-    const [resultValue, setResultValue] = useState(0)
-    const [serverEquationString, setServerEquationString] = useState('')
-    const [testVariables, setTestVariables] = useState(availableTestVariables)
-    const [valueType, setValueType] = useState({value: 'amount', label: 'Amount'})
+    const {conditional: {conditional_id} = null, ratesheetId} = props
+    const {
+        action,
+        demoResult,
+        equationString,
+        name,
+        priority,
+        queryTree,
+        resultValue,
+        serverEquationString,
+        setAction,
+        setEquationString,
+        setName,
+        setPriority,
+        setQueryTree,
+        setResultValue,
+        setServerEquationString,
+        setTestVariables,
+        setType,
+        setValueType,
+        testVariables,
+        type,
+        valueType,
+    } = useConditional({conditional: props.conditional})
 
-    const {ratesheetId} = props
-    const {conditional_id} = props.conditional
     const api = useAPI()
     const {chargeTypes} = useLists()
 
-    const debouncedEvaluateEquationString = useCallback(
-        debounce(() => {
-            // Ensure every number is followed by a unit or a variable by a bracket or operator
-            let equation = equationString.replace(/\$(\d+(\.\d+)?)/g, (match, value) => {
-                return value + " CAD";
-            });
-
-            let regex = /(\b[a-zA-Z_][a-zA-Z0-9_]*\b|\d+(\.\d+)?)\s*(\b[a-zA-Z_][a-zA-Z0-9_]*\b)?/g;
-            let match;
-            while ((match = regex.exec(equation)) !== null) {
-                const value = match[1]
-                const unit = match[3]
-
-                const isVariable = availableTestVariables.some(variable => variable.dbName == value)
-                const isValue = !isNaN(parseFloat(value))
-
-                console.log(unit, imperialToMetric[unit], Object.keys(imperialToMetric).includes(unit))
-
-                if(!isVariable && !isValue) {
-                    setDemoResult('Invalid variable: ', value)
-                } else if(!Object.keys(imperialToMetric).includes(unit) && imperialToMetric[unit] != 1) {
-                    setDemoResult(`Missing unit, invalid unit, or incorrect placement in equation near: ${value}`);
-                }
-            }
-
-            const demoEquation = equation.replace(/(([\d.]+)\s*([a-zA-Z$]+)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s*([a-zA-Z$]*))/g, (match, _, number, unit, variable, varUnit) => {
-                if (variable) {
-                    let value = testVariables.find(v => v.dbName == variable)?.value
-                    if (value) {
-                        if (varUnit && imperialToMetric.hasOwnProperty(varUnit) && imperialToMetric[varUnit] != 1) {
-                            try {
-                                let metricUnit = imperialToMetric[varUnit];
-                                value = math.unit(value, varUnit).toNumber(metricUnit);
-                                return `${value}`;
-                            } catch (error) {
-                                console.log(error);
-                                return match;
-                            }
-                        } else {
-                            console.log('else return ${value}.trim()')
-                            return `${value}`.trim();
-                        }
-                    } else {
-                        console.log(`Unknown variable: ${variable}`)
-                        setDemoResult(`Unknown variable: ${variable}`);
-                        return match;
-                    }
-                } else {
-                    number = parseFloat(number);
-                    if (imperialToMetric.hasOwnProperty(unit) && imperialToMetric[unit] != 1) {
-                        try {
-                            let metricUnit = imperialToMetric[unit];
-                            let newValue = math.unit(number, unit).toNumber(metricUnit);
-                            return `${newValue}`;
-                        } catch (error) {
-                            return match;
-                        }
-                    } else {
-                        return `${number}`;
-                    }
-                }
-            });
-
-            const serverEquation = equation.replace(/(([\d.]+)\s*([a-zA-Z$]+)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s*([a-zA-Z$]*))/g, (match, _, number, unit, variable, varUnit) => {
-                if (variable) {
-                    return variable;
-                } else {
-                    number = parseFloat(number);
-                    if (imperialToMetric.hasOwnProperty(unit) && imperialToMetric[unit] != 1) {
-                        try {
-                            let metricUnit = imperialToMetric[unit];
-                            let newValue = math.unit(number, unit).toNumber(metricUnit);
-                            return `${newValue}`;
-                        } catch (error) {
-                            return match;
-                        }
-                    } else {
-                        return `${number}`;
-                    }
-                }
-            });
-            console.log(serverEquation)
-
-            try {
-                let result = math.evaluate(demoEquation)
-                // Verify that the result is a number
-                if (isNaN(result)) {
-                    setDemoResult('Invalid equation');
-                } else {
-                    setDemoResult('$' + result.toFixed(2))
-                }
-            } catch (error) {
-                setDemoResult(`Error in evaluating the equation: ${error.message}`);
-            }
-
-            setDemoEquationString(demoEquation)
-            setServerEquationString(serverEquation)
-        }, 500), [equationString, testVariables])
-
-    // On page load, load the condition into the tree by parsing it from JSON logic
-    // (or set an empty logic tree, if creating)
-    useEffect(() => {
-        const tree = props.conditional ? QbUtils.loadFromJsonLogic(JSON.parse(props.conditional.json_logic), config) : QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}, config)
-        setQueryTree(tree)
-
-        setName(props.conditional?.name)
-        setResultAction(props.conditional?.action ?? {value: 'charge', label: 'Charge'})
-        setValueType(props.conditional?.value_type ? valueTypes.find(valueType => props.conditional.value_type == valueType.value) : {value: 'amount', label: 'Amount'})
-        setResultValue(props.conditional?.value ?? 0)
-        setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.original_equation_string : '')
-        setEquationString(props.conditional?.value_type == 'equation' ? props.conditional.equation_string : '')
-        setPriority(props.conditional?.priority ?? 0)
-        setConditionalType(props.conditional?.type ? chargeTypes.find(chargeType => chargeType.value == props.conditional.type) : {})
-    }, [props.conditional])
-
-    useEffect(() => {
-        debouncedEvaluateEquationString()
-    }, [equationString, testVariables])
+    const allowedVariableNameTooltip = `
+    The following variable names are currently supported:
+    -----------------------------------------------------
+    ${availableTestVariables.map(variable => `${variable.name}: ${variable.description}\n`)}
+    `
 
     const handleVariableValueChange = (event, key) => {
         const updatedVariables = testVariables.map(variable => {
@@ -319,20 +71,20 @@ const ConditionalModal = props => {
                 throw 'Error encountered forming JSON logic'
 
             const data = {
-                action: resultAction,
+                action: action,
                 ratesheet_id: ratesheetId,
                 json_logic: JSON.stringify(jsonLogic['logic']),
                 human_readable: humanReadable,
                 name,
                 original_equation_string: equationString,
                 priority: priority,
-                type: conditionalType.value,
+                type: type.value,
                 value: resultValue,
                 value_type: valueType.value
             }
 
             api.post(`/ratesheets/conditional${conditional_id ? `/${conditional_id}` : ''}`, data).then(response => {
-                toast.success(`Successfully stored conditional ${response.conditional_id}`)
+                toast.success(`Successfully stored conditional "${name}"`)
                 props.reload()
                 props.onHide()
             })
@@ -347,17 +99,32 @@ const ConditionalModal = props => {
             <Row>
                 <Col md={2}>
                     <ul>
-                        <li>Units</li>
+                        <li>Supported Units</li>
                         <ul>
-                            <li>$</li>
-                            <li>lb</li>
-                            <li>kg</li>
+                            <li>Currency</li>
+                                <ul>
+                                    <li>$</li>
+                                    <li>CAD</li>
+                                </ul>
+                            <li>Weight</li>
+                                <ul>
+                                    <li>lb</li>
+                                    <li>kg</li>
+                                </ul>
+                            <li>Length</li>
+                                <ul>
+                                    <li>cm</li>
+                                    <li>in</li>
+                                    <li>ft</li>
+                                    <li>m</li>
+                                </ul>
                         </ul>
                     </ul>
                     <ul>
                         <li>Variables</li>
                         <ul>
                             <li>total_weight</li>
+                            <li>longest_side</li>
                         </ul>
                     </ul>
                 </Col>
@@ -385,8 +152,8 @@ const ConditionalModal = props => {
                                         <InputGroup.Text>Type:</InputGroup.Text>
                                         <Select
                                             options={chargeTypes}
-                                            value={conditionalType}
-                                            onChange={setConditionalType}
+                                            value={type}
+                                            onChange={setType}
                                         />
                                     </InputGroup>
                                 </Col>
@@ -406,10 +173,13 @@ const ConditionalModal = props => {
                         </Card.Header>
                         <Card.Body>
                             <Row>
-                                <Col md={12}>
-                                    <h4 className='text-muted'>If</h4>
+                                <Col md={1}>
+                                    <h4 className='text-muted' style={{padding: 0}}>If</h4>
                                 </Col>
-                                <Col md={12}>
+                                <Col md={11}>
+                                    <p>{JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)}</p>
+                                </Col>
+                                <Col md={12} style={{padding: 0}}>
                                     <Query
                                         {...config}
                                         value={queryTree}
@@ -417,10 +187,6 @@ const ConditionalModal = props => {
                                         renderBuilder={renderBuilder}
                                     />
                                 </Col>
-                            </Row>
-                            <hr/>
-                            <Row>
-                                <p>{JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)}</p>
                             </Row>
                             <hr/>
                             <Row>
@@ -433,8 +199,8 @@ const ConditionalModal = props => {
                                             {value: 'charge', label: 'Charge'},
                                             {value: 'discount', label: 'Discount'},
                                         ]}
-                                        value={resultAction}
-                                        onChange={setResultAction}
+                                        value={action}
+                                        onChange={setAction}
                                     />
                                 </Col>
                                 <Col md={3}>
@@ -455,12 +221,14 @@ const ConditionalModal = props => {
                                                 onChange={event => setResultValue(event.target.value)}
                                                 value={resultValue}
                                             />
+                                            {valueType.value == 'percent' && <InputGroup.Text>%</InputGroup.Text>}
                                         </InputGroup>
                                     </Col>
                                 }
                             </Row>
+                        </Card.Body>
                             {valueType.value == 'equation' &&
-                                <Fragment>
+                                <Card.Body>
                                     <hr/>
                                     <Row className='bottom15'>
                                         <Col md={2}>
@@ -491,31 +259,38 @@ const ConditionalModal = props => {
                                             </h5>
                                         </Col>
                                         <Col md={10}>
-                                            {testVariables
-                                                .filter(variable => equationString.includes(variable.dbName))
-                                                .map(variable => (
-                                                    <Col md={4} key={variable.dbName}>
-                                                        <InputGroup>
-                                                            <InputGroup.Text>{variable.name}</InputGroup.Text>
-                                                            <FormControl
-                                                                type='number'
-                                                                onChange={event => handleVariableValueChange(event, variable.dbName)}
-                                                                value={variable.value}
-                                                            />
-                                                            {variable.unit && <InputGroup.Text>{variable.unit}</InputGroup.Text>}
-                                                        </InputGroup>
-                                                    </Col>
+                                            {testVariables.filter(variable => equationString.includes(variable.dbName)).map(variable => (
+                                                <Col md={12} key={variable.dbName}>
+                                                    <Table variant='striped' size='sm'>
+                                                        <thead>
+                                                            <tr>
+                                                                <th>{variable.name}</th>
+                                                                <th>Result</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <InputGroup>
+                                                                        <FormControl
+                                                                            type='number'
+                                                                            onChange={event => handleVariableValueChange(event, variable.dbName)}
+                                                                            value={variable.value}
+                                                                        />
+                                                                        <InputGroup.Text>{variable.unit}</InputGroup.Text>
+                                                                    </InputGroup>
+                                                                </td>
+                                                                <td>{demoResult}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </Table>
+                                                </Col>
                                                 )
                                             )}
                                         </Col>
-                                        <Col md={2}>
-                                            <h5 className='text-muted'>Test Result</h5>
-                                        </Col>
-                                        <Col md={10}><h4>{demoResult}</h4></Col>
                                     </Row>
-                                </Fragment>
+                                </Card.Body>
                             }
-                        </Card.Body>
                         <Card.Footer style={{textAlign: 'center'}}>
                             <Button
                                 onClick={storeConditional}
