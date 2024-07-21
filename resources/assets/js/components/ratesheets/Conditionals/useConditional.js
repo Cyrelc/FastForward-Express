@@ -33,8 +33,6 @@ export default function useConditional({conditional}) {
         setType(conditional?.type ? chargeTypes.find(chargeType => chargeType.value == conditional.type) : {})
     }, [conditional])
 
-    // const {demoEquationString, demoResult, equationString, resultValue, serverEquationString, testVariables} = useEquation(availableTestVariables, config, conditional, setQueryTree)
-
     return {
         ...equation,
         //getters

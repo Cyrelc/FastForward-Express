@@ -8,10 +8,6 @@ import {useAPI} from '../../../contexts/APIContext'
 import config, {availableTestVariables, valueTypes} from './conditionalConfig'
 import useConditional from './useConditional'
 import {useLists} from '../../../contexts/ListsContext'
-const math = require('mathjs')
-
-math.createUnit('CAD')
-// math.createUnit('lbs', '1 lb')
 
 const renderBuilder = (props) => (
     <div className='query-builder-container' style={{padding: '10px'}}>
@@ -25,21 +21,26 @@ const ConditionalModal = props => {
     const {conditional: {conditional_id} = null, ratesheetId} = props
     const {
         action,
+        demoResult,
         equationString,
         name,
         priority,
         queryTree,
         resultValue,
+        serverEquationString,
         setAction,
+        setEquationString,
         setName,
         setPriority,
-        setResultValue,
         setQueryTree,
+        setResultValue,
+        setServerEquationString,
+        setTestVariables,
         setType,
         setValueType,
+        testVariables,
         type,
         valueType,
-        valueTypes,
     } = useConditional({conditional: props.conditional})
 
     const api = useAPI()
@@ -51,15 +52,15 @@ const ConditionalModal = props => {
     ${availableTestVariables.map(variable => `${variable.name}: ${variable.description}\n`)}
     `
 
-    // const handleVariableValueChange = (event, key) => {
-    //     const updatedVariables = testVariables.map(variable => {
-    //         if(variable.dbName == key)
-    //             return {...variable, value: Number(event.target.value)}
-    //         else
-    //             return variable
-    //     })
-    //     setTestVariables(updatedVariables)
-    // }
+    const handleVariableValueChange = (event, key) => {
+        const updatedVariables = testVariables.map(variable => {
+            if(variable.dbName == key)
+                return {...variable, value: Number(event.target.value)}
+            else
+                return variable
+        })
+        setTestVariables(updatedVariables)
+    }
 
     const storeConditional = () => {
         try {
@@ -172,10 +173,13 @@ const ConditionalModal = props => {
                         </Card.Header>
                         <Card.Body>
                             <Row>
-                                <Col md={12}>
-                                    <h4 className='text-muted'>If</h4>
+                                <Col md={1}>
+                                    <h4 className='text-muted' style={{padding: 0}}>If</h4>
                                 </Col>
-                                <Col md={12}>
+                                <Col md={11}>
+                                    <p>{JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)}</p>
+                                </Col>
+                                <Col md={12} style={{padding: 0}}>
                                     <Query
                                         {...config}
                                         value={queryTree}
@@ -183,10 +187,6 @@ const ConditionalModal = props => {
                                         renderBuilder={renderBuilder}
                                     />
                                 </Col>
-                            </Row>
-                            <hr/>
-                            <Row>
-                                <p>{JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)}</p>
                             </Row>
                             <hr/>
                             <Row>
@@ -226,8 +226,9 @@ const ConditionalModal = props => {
                                     </Col>
                                 }
                             </Row>
-                            {/* {valueType.value == 'equation' &&
-                                <Fragment>
+                        </Card.Body>
+                            {valueType.value == 'equation' &&
+                                <Card.Body>
                                     <hr/>
                                     <Row className='bottom15'>
                                         <Col md={2}>
@@ -258,38 +259,35 @@ const ConditionalModal = props => {
                                             </h5>
                                         </Col>
                                         <Col md={10}>
-                                            {testVariables
-                                                .filter(variable => equationString.includes(variable.dbName))
-                                                .map(variable => (
-                                                    <Col md={4} key={variable.dbName}>
-                                                        <Table variant='striped' size='sm'>
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>{variable.name}</th>
-                                                                    <th>Result</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td>
-                                                                        <FormControl
-                                                                            type='number'
-                                                                            onChange={event => handleVariableValueChange(event, variable.dbName)}
-                                                                            value={variable.value}
-                                                                        />
-                                                                    </td>
-                                                                    <td>{demoResult}</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </Table>
-                                                    </Col>
+                                            {testVariables.map(variable => (
+                                                <Col md={12} key={variable.dbName}>
+                                                    <Table variant='striped' size='sm'>
+                                                        <thead>
+                                                            <tr>
+                                                                <th>{variable.name}</th>
+                                                                <th>Result</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>
+                                                                    <FormControl
+                                                                        type='number'
+                                                                        onChange={event => handleVariableValueChange(event, variable.dbName)}
+                                                                        value={variable.value}
+                                                                    />
+                                                                </td>
+                                                                <td>{demoResult}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </Table>
+                                                </Col>
                                                 )
                                             )}
                                         </Col>
                                     </Row>
-                                </Fragment>
-                            } */}
-                        </Card.Body>
+                                </Card.Body>
+                            }
                         <Card.Footer style={{textAlign: 'center'}}>
                             <Button
                                 onClick={storeConditional}

@@ -79,10 +79,10 @@ export default function ConditionalsTab(props) {
                     <AgGridReact
                         rowData={conditionals}
                         columnDefs={[
-                            {headerName: 'Actions', field: '', cellRenderer: api => {
+                            {headerName: 'Actions', field: '', width: 100, cellRenderer: api => {
                                 return (
                                     <ButtonGroup>
-                                        <Button onClick={() => edit(api.data)} variant='warning' size='sm'>
+                                        <Button onClick={() => edit(api.data)} variant='primary' size='sm'>
                                             <i className='fas fa-edit'></i>
                                         </Button>
                                         <Button variant='danger' size='sm' onClick={() => deleteConditional(api.data)}>
@@ -91,6 +91,7 @@ export default function ConditionalsTab(props) {
                                     </ButtonGroup>
                                 )
                             }},
+                            {headerName: 'Priority', field: 'priority', width: 80},
                             {headerName: 'Conditional Type', field: 'type', valueGetter: api => {
                                 const chargeType = chargeTypes.find(chargeType => chargeType.value == api.data.type)
                                 return chargeType.label
