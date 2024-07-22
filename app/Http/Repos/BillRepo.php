@@ -724,7 +724,8 @@ class BillRepo {
                 if(
                     isset($bill[$field]) ||
                     ($field == 'pickup_account_id' && array_key_exists($field, $bill)) ||
-                    ($field == 'delivery_account_id' && array_key_exists($field, $bill))
+                    ($field == 'delivery_account_id' && array_key_exists($field, $bill)) ||
+                    ($field == 'description' && array_key_exists($field, $bill))
                 )
                     $old->$field = $bill[$field];
 
