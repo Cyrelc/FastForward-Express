@@ -131,7 +131,7 @@ export default function Account(props) {
                     shippingAddress.setup(response.shipping_address)
                     setShowInvoiceLineItems(response.account.show_invoice_line_items)
                     setShowPickupAndDeliveryAddress(response.account.show_pickup_and_delivery_address)
-                    setStartDate(Date.parse(response.account.start_date))
+                    setStartDate(new Date(response.account.start_date))
                     setUseShippingForBillingAddress(response.account.billing_address_id === null)
 
                     if(response.billing_address)

@@ -34,7 +34,7 @@ root.render(
                 <ListsProvider>
                     <ThemeProvider theme={darkTheme}>
                         <ToastContainer theme='dark'/>
-                        <App history={history}/>
+                        <App />
                     </ThemeProvider>
                 </ListsProvider>
             </BrowserRouter>

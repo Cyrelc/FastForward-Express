@@ -108,7 +108,7 @@ export default function Bill(props) {
                         billDispatch({type: 'CONFIGURE_COPY', payload: data})
                         chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     }
-                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date})
                 }
 
                 billDispatch({type: 'SET_IS_LOADING', payload: false})
