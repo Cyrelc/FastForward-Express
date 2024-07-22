@@ -74,10 +74,14 @@ class AccountUserController extends Controller {
 
             $accountUser->delete();
 
+            // if that was the only account the user was linked to then we can delete the remaining data
+            if(AccountUser::where('contact_id', $contactId)->count() == 0) {
+                $contactService = new ContactService();
+                $contactService->delete($accountUser->contact_id);
+
+                User::find($accountUser->user_id)->delete();
+            }
             DB::commit();
-            $contactService = new ContactService();
-            $contactService->delete($accountUser->contact_id);
-            User::find($accountUser->user_id)->delete();
         }
         return response()->json([
             'success' => true
@@ -131,6 +135,10 @@ class AccountUserController extends Controller {
         $userRepo->LinkAccountUser($contactId, $accountId);
 
         DB::commit();
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function setPrimary(Request $req, $accountId, $contactId) {

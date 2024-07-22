@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class AccountUser extends Model
-{
+class AccountUser extends Model {
     use LogsActivity;
 
     public $primaryKey = 'contact_id';
@@ -29,5 +28,12 @@ class AccountUser extends Model
             ->logFillable()
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    // overrides
+    public function delete() {
+        return AccountUser::where('contact_id', $this->contact_id)
+            ->where('account_id', $this->account_id)
+            ->delete();
     }
 }
