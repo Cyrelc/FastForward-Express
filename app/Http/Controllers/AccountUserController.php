@@ -24,7 +24,8 @@ class AccountUserController extends Controller {
     public function checkIfAccountUserExists(Request $req) {
         $userRepo = new Repos\UserRepo();
         foreach($req->email_addresses as $email) {
-            $user = $userRepo->GetUserByPrimaryEmail($email['email']);
+            $emailAddress = trim($email['email']);
+            $user = $userRepo->GetUserByPrimaryEmail($emailAddress);
             if($user && $user->accountUsers) {
                 $accountRepo = new Repos\AccountRepo();
                 $contact = $user->accountUsers[0]->contact;
