@@ -80,8 +80,6 @@ export default function useEquation({conditional}) {
                 const isVariable = availableTestVariables.some(variable => variable.dbName == value)
                 const isValue = !isNaN(parseFloat(value))
 
-                console.log(unit, imperialToMetric[unit], Object.keys(imperialToMetric).includes(unit))
-
                 // it is neither a variable, nor a valid number we have an error
                 if(!isVariable && !isValue) {
                     setDemoResult('Invalid variable: ', value)
@@ -101,7 +99,6 @@ export default function useEquation({conditional}) {
             // varUnit: Captures any letters (a-z, A-Z) or dollar signs ($) following the variable
             const demoEquation = equation.replace(/(([\d.]+)\s*([a-zA-Z$]+)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s*([a-zA-Z$]*))/g, (match, _, number, unit, variable, varUnit) => {
                 if (variable) {
-                    console.log('variable found', variable)
                     let value = testVariables.find(v => v.dbName == variable)?.value
                     if (value) {
                         if (varUnit && imperialToMetric.hasOwnProperty(varUnit) && imperialToMetric[varUnit] != 1) {
@@ -110,7 +107,7 @@ export default function useEquation({conditional}) {
                                 value = math.unit(value, varUnit).toNumber(metricUnit);
                                 return `${value}`;
                             } catch (error) {
-                                console.log(error);
+                                console.error(error);
                                 return match;
                             }
                         } else {
@@ -160,7 +157,6 @@ export default function useEquation({conditional}) {
                     const {dbName, value} = variable
                     return {...accumulator, dbName: value}
                 }, {})
-                console.log(variables)
                 let result = math.evaluate(demoEquation, variables)
                 // Verify that the result is a number
                 if(isNaN(result)) {
