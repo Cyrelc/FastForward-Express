@@ -26,6 +26,7 @@ const ConditionalModal = props => {
         name,
         priority,
         queryTree,
+        reset,
         resultValue,
         serverEquationString,
         setAction,
@@ -62,6 +63,11 @@ const ConditionalModal = props => {
         setTestVariables(updatedVariables)
     }
 
+    const hideModal = () => {
+        reset()
+        props.onHide()
+    }
+
     const storeConditional = () => {
         try {
             const humanReadable = JSON.stringify(QbUtils.queryString(queryTree, config, true), undefined, 2)
@@ -86,7 +92,7 @@ const ConditionalModal = props => {
             api.post(`/ratesheets/conditional${conditional_id ? `/${conditional_id}` : ''}`, data).then(response => {
                 toast.success(`Successfully stored conditional "${name}"`)
                 props.reload()
-                props.onHide()
+                hideModal()
             })
         } catch (e) {
             console.log(e)
@@ -95,7 +101,7 @@ const ConditionalModal = props => {
     }
 
     return (
-        <Modal show={props.show} onHide={props.onHide} size='xl'>
+        <Modal show={props.show} onHide={hideModal} size='xl'>
             <Row>
                 <Col md={2}>
                     <ul>

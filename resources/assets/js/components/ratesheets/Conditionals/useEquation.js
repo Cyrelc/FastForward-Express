@@ -172,6 +172,15 @@ export default function useEquation({conditional}) {
             setServerEquationString(serverEquation)
         }, 500), [equationString, testVariables])
 
+    const reset = () => {
+        setDemoEquationString('')
+        setDemoResult('')
+        setEquationString('')
+        setResultValue(0)
+        setServerEquationString('')
+        setTestVariables(availableTestVariables)
+    }
+
     useEffect(() => {
         debouncedEvaluateEquationString()
     }, [equationString, testVariables])
@@ -187,7 +196,8 @@ export default function useEquation({conditional}) {
         //setters
         setEquationString,
         setTestVariables,
-        //functions
+        //functions,
+        reset,
     }
 }
 

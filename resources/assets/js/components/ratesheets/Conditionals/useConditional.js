@@ -33,6 +33,17 @@ export default function useConditional({conditional}) {
         setType(conditional?.type ? chargeTypes.find(chargeType => chargeType.value == conditional.type) : {})
     }, [conditional])
 
+    const reset = () => {
+        setName('')
+        setType('')
+        setPriority(0)
+        setQueryTree(QbUtils.checkTree(QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
+        setAction({value: 'charge', label: 'Charge'})
+        setValueType({value: 'amount', label: 'Amount'})
+        setResultValue(0)
+        equation.reset()
+    }
+
     return {
         ...equation,
         //getters
@@ -52,5 +63,6 @@ export default function useConditional({conditional}) {
         setType,
         setValueType,
         //functions
+        reset,
     }
 }
