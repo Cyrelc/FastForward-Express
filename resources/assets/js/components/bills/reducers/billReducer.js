@@ -235,7 +235,7 @@ export default function billReducer(state, action) {
                     isMall: delivery_address.is_mall,
                     personName: bill.delivery_person_name,
                     referenceValue: bill.delivery_reference_value,
-                    timeActual: new Date(bill.time_delivered),
+                    timeActual: bill.time_delivered ? new Date(bill.time_delivered) : '',
                     timeScheduled: new Date(bill.time_delivery_scheduled)
                 },
                 deliveryType: state.deliveryTypes.find(type => type.id === bill.delivery_type),
@@ -255,7 +255,7 @@ export default function billReducer(state, action) {
                     isMall: pickup_address.is_mall,
                     personName: bill.pickup_person_name,
                     referenceValue: bill.pickup_reference_value,
-                    timeActual: new Date(bill.time_picked_up),
+                    timeActual: bill.time_picked_up ? new Date(bill.time_picked_up) : '',
                     timeScheduled: new Date(bill.time_pickup_scheduled)
                 },
                 readOnly: permissions.viewBasic && !permissions.editBasic,
