@@ -96,14 +96,6 @@ export default function AccountsPayableReceivable(props) {
         enableBottomToolbar: false,
         enablePagination: false,
         initialState: {density: 'compact',},
-        muiTableBodyProps: {
-            sx: {
-                //stripe the rows, make odd rows a darker color
-                '& tr:nth-of-type(odd) > td': {
-                    backgroundColor: 'dimgrey',
-                },
-            },
-        },
         renderTopToolbarCustomActions: ({ table }) => (
             <Box
                 sx={{

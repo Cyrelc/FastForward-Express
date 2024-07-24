@@ -86,13 +86,6 @@ export default function ActivityLogTab(props) {
         renderDetailPanel: ({ row }) => (
             <ExpandableTable properties={row.original.properties} />
         ),
-        muiTableBodyProps: {
-            sx: {
-                '& tr:nth-of-type(odd) > td': {
-                    backgroundColor: 'dimgray',
-                },
-            },
-        },
     });
 
     return (

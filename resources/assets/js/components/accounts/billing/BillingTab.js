@@ -1,6 +1,6 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, Row} from 'react-bootstrap'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import AdjustAccountCreditModal from './AdjustAccountCreditModal'
 import LoadingSpinner from '../../partials/LoadingSpinner'
@@ -8,6 +8,7 @@ import ManagePaymentMethodsModal from './ManagePaymentMethodsModal'
 import PaymentTable from '../../partials/Payments/PaymentTable'
 import PaymentModal from '../../partials/Payments/PaymentModal'
 import {useAPI} from '../../../contexts/APIContext'
+import {CurrencyCellRenderer, LinkCellRenderer} from '../../../utils/table_cell_renderers'
 
 export default function BillingTab(props) {
     const [isLoading, setIsLoading] = useState(true)
@@ -17,42 +18,42 @@ export default function BillingTab(props) {
     const [showAdjustAccountCreditModal, setShowAdjustAccountCreditModal] = useState(false)
     const [showManagePaymentMethodsModal, setShowManagePaymentMethodsModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
-    const [table, setTable] = useState()
-
-    const tableRef = useRef()
 
     const api = useAPI()
 
     const invoiceColumns = [
-        {title: 'Invoice ID', field: 'invoice_id', formatter: props.canViewInvoices ? 'link' : 'none', formatterParams:{urlPrefix: '/app/invoices/'}, sorter: 'number'},
-        {title: 'Last Bill Date', field: 'bill_end_date'},
-        {title: 'Balance Owing', field: 'balance_owing', formatter: 'money',formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}},
-        {formatter: cell => {
-            return "<button class='btn btn-sm btn-success'><i class='fas fa-hand-holding-usd'></i></button>"
-        }, width: 50, hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, cellClick: (e, cell) => makePayment(cell)}
+        {
+            header: 'Invoice ID',
+            accessorKey: 'invoice_id',
+            Cell: ({renderedCellValue, row}) => (
+                <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='/invoices/' />
+            )
+        },
+        {header: 'Last Bill Date', accessorKey: 'bill_end_date'},
+        {
+            header: 'Balance Owing',
+            accessorKey: 'balance_owing',
+            Cell: CurrencyCellRenderer
+        },
+        {
+            header: 'Process Payment',
+            Cell: ({row}) => (
+            <Button className='success' onClick={() => makePayment(row)}><i className='fas fa-hand-holding-usd'></i></Button>
+            ),
+            size: 50,
+            enableSorting: false,
+            enableHiding: false
+        }
     ]
 
-    useEffect(() => {
-        if(tableRef.current && !table && !isLoading) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                data: outstandingInvoices,
-                columns: invoiceColumns,
-                maxHeight: '75vh',
-                layout: 'fitColumns',
-                pagination: 'local',
-                paginationSize: 10,
-                printAsHtml: true,
-                printStyled: true,
-            })
-
-            setTable(newTabulator)
+    const invoiceTable = useMaterialReactTable({
+        columns: invoiceColumns,
+        data: outstandingInvoices,
+        enableTopToolbar: false,
+        initialState: {
+            density: 'compact'
         }
-    }, [tableRef, table, isLoading])
-
-    useEffect(() => {
-        if(table)
-            table.setData(outstandingInvoices)
-    }, [outstandingInvoices, table])
+    })
 
     useEffect(() => {
         refreshModel()
@@ -103,7 +104,7 @@ export default function BillingTab(props) {
                         </Col>
                         <Col md={10}>
                             {isLoading && <LoadingSpinner />}
-                            <div ref={tableRef}></div>
+                            <MaterialReactTable table={invoiceTable} />
                         </Col>
                     </Row>
                     <hr/>

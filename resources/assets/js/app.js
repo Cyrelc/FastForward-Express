@@ -22,6 +22,17 @@ const root = ReactDOM.createRoot(document.getElementById('reactDiv'));
  */
 
 const darkTheme = createTheme({
+    components: {
+        MuiTableBody: {
+            styleOverrides: {
+                root: {
+                    '& tr:nth-of-type(odd) > td': {
+                        backgroundColor: 'dimgray'
+                    }
+                }
+            }
+        }
+    },
     palette: {
         mode: 'dark'
     }

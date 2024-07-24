@@ -4,9 +4,9 @@ import {DateTime} from 'luxon'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
 import {LinkContainer} from 'react-router-bootstrap'
-import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
+import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {useAPI} from '../../contexts/APIContext'
 
 const commonTableSettings = {
@@ -15,14 +15,6 @@ const commonTableSettings = {
     enablePagination: false,
     enableToolbarInternalActions: false,
     enableTopToolbar: false,
-    muiTableBodyProps: {
-        sx: {
-            //stripe the rows, make odd rows a darker color
-            '& tr:nth-of-type(odd) > td': {
-                backgroundColor: 'dimgrey',
-            },
-        },
-    },
 }
 
 export default function AdminDashboard(props) {
@@ -55,8 +47,6 @@ export default function AdminDashboard(props) {
         {accessorKey: 'employee_name', header: 'Employee'},
         {accessorKey: 'birthday', header: 'Birthday'}
     ], [])
-
-    console.log(employeeExpiries)
 
     const employeeBirthdayTable = useMaterialReactTable({
         ...commonTableSettings,
