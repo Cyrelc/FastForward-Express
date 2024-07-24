@@ -20,6 +20,7 @@ class PaymentResource extends JsonResource {
             'comment' => $this->comment,
             'date' => $this->date,
             'error' => $this->error,
+            'invoice_date' => $this->invoice ? $this->invoice->date : null,
             'invoice_id' => $this->invoice_id,
             'stripe_object_type' => $this->stripe_object_type,
             'stripe_status' => $this->stripe_status,

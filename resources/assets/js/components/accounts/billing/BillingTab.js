@@ -38,7 +38,7 @@ export default function BillingTab(props) {
         {
             header: 'Process Payment',
             Cell: ({row}) => (
-            <Button className='success' onClick={() => makePayment(row)}><i className='fas fa-hand-holding-usd'></i></Button>
+                <Button className='success' onClick={() => makePayment(row)} size='sm'><i className='fas fa-hand-holding-usd'></i></Button>
             ),
             size: 50,
             enableSorting: false,
@@ -59,8 +59,8 @@ export default function BillingTab(props) {
         refreshModel()
     }, [])
 
-    const makePayment = cell => {
-        setPaymentInvoice(cell.getData())
+    const makePayment = row => {
+        setPaymentInvoice(row.original)
         setShowPaymentModal(!showPaymentModal)
     }
 
