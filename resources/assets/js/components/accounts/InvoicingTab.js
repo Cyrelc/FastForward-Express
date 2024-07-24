@@ -1,6 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useMemo} from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row} from 'react-bootstrap'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
+import Checkbox from '@mui/material/Checkbox'
 import Select from 'react-select'
 
 const addressFormattingTooltip = 'Addresses will begin a new line on commas'
@@ -14,58 +15,59 @@ export default function InvoicingTab(props) {
         readOnly
     } = props
 
-    const [table, setTable] = useState()
-    const tableRef = useRef()
-
-    useEffect(() => {
-        if(tableRef.current && !table && !props.isLoading) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                columns: columns,
-                data: invoiceSortOrder,
-                height: '150px',
-                layout: 'fitColumns',
-                movableRows: !readOnly,
-                initialFilter: [{field: 'isValid', type:'=', value: true}],
-                initialSort: [{field: 'priority', dir: 'asc'}],
-            })
-
-            newTabulator.on('rowMoved', handleInvoiceSortOrderChange)
-
-            setTable(newTabulator)
+    const columns = useMemo(() => [
+        {header: 'Field Name', accessorKey: 'friendly_name'},
+        {
+            header: 'Subtotal By',
+            accessorKey: 'subtotal_by',
+            Cell: ({row}) => {
+                if(row.original.can_be_subtotaled)
+                    return <Checkbox checked={!!row.original.subtotal_by} onClick={() => handleSubtotalByChange(row)} />
+            }
         }
-    }, [tableRef, table])
+    ], [])
 
-    useEffect(() => {
-        if(table)
-            table.setData(invoiceSortOrder)
-    }, [invoiceSortOrder])
-
-    const columns = [
-        {rowHandle: true, formatter: 'handle', headerSort: false, frozen: true, width: 30, minWidth: 30},
-        {formatter: 'rownum', headerSort: false, width: 40, minWidth: 40},
-        {title: 'Field Name', field: 'friendly_name', headerHozAlign: 'center', headerSort: false},
-        {title: 'Database Field', field: 'database_field_name', headerSort: false, visible: false},
-        {title: 'InvoiceSortOptionId', field: 'invoice_sort_option_id', headerSort: false, visible: false},
-        {title: 'Contingent Field', field: 'contingent_field', headerSort: false, visible: false},
-        {title: 'Priority', field: 'priority', headerSort: false, visible: false},
-        {title: 'Subtotal By', field: 'subtotal_by', formatter: 'tickCross', formatterParams: {allowEmpty: true}, headerHozAlign: 'center', hozAlign: 'center', headerSort: false, cellClick: ((e, cell) => {
-            handleSubtotalByChange(cell)
-        })}
-    ]
-
-    const handleInvoiceSortOrderChange = row => {
-        const data = row.getTable().getData().map((option, index) => {
-            return {...option, priority: index}
+    const filteredData = useMemo(() => {
+        return invoiceSortOrder.filter(sortOption => {
+            if(sortOption.database_field_name == 'charge_reference_value' && !customTrackingField)
+                return false
+            if(sortOption.database_field_name == 'charge_account_id' && !canBeParent)
+                return false
+            return true
         })
-        props.setInvoiceSortOrder(data)
-    }
+    }, [invoiceSortOrder, customTrackingField, canBeParent])
 
-    const handleSubtotalByChange = cell => {
-        const data = cell.getRow().getData()
-        const tableData = cell.getRow().getTable().getData()
+    const invoiceSortOrderTable = useMaterialReactTable({
+        columns,
+        data: filteredData,
+        enableRowOrdering: true,
+        enableRowNumbers: true,
+        enableSorting: false,
+        enableTopToolbar: false,
+        enableBottomToolbar: false,
+        manualFiltering: true,
+        muiRowDragHandleProps: ({table}) => ({
+            onDragEnd: () => {
+                const {draggingRow, hoveredRow} = table.getState()
+                if(hoveredRow && draggingRow) {
+                    const newInvoiceSortOrder = [...invoiceSortOrder]
+                    newInvoiceSortOrder.splice(
+                        hoveredRow.index,
+                        0,
+                        newInvoiceSortOrder.splice(draggingRow.index, 1)[0]
+                    )
+                    props.setInvoiceSortOrder(newInvoiceSortOrder)
+                }
+            }
+        })
+    })
+
+    const handleSubtotalByChange = row => {
+        console.log(row, row.original)
+        const data = row.original
         if(!data.can_be_subtotaled)
             return
-        const newInvoiceSortOrder = tableData.map(option => {
+        const newInvoiceSortOrder = invoiceSortOrder.map(option => {
             if(option.database_field_name === data.database_field_name && option.can_be_subtotaled == '1')
                 return {...option, subtotal_by: option.subtotal_by ? 0 : 1}
             return {...option, subtotal_by: option.can_be_subtotaled == '1' ? false : null}
@@ -198,7 +200,7 @@ export default function InvoicingTab(props) {
                         <h5 className='text-muted'>Order Bills By</h5>
                     </Col>
                     <Col md={5} key={props.handleInvoiceSortOrderChange}>
-                        <div ref={tableRef}></div>
+                        <MaterialReactTable table={invoiceSortOrderTable} />
                     </Col>
                 </Row>
             </Card.Body>

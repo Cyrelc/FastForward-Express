@@ -88,7 +88,7 @@ export default function ActivityLogTab(props) {
         ),
         muiTableBodyProps: {
             sx: {
-                '& tr:nth-child(odd) > td': {
+                '& tr:nth-of-type(odd) > td': {
                     backgroundColor: 'dimgray',
                 },
             },

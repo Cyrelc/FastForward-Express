@@ -194,7 +194,7 @@ export default function Account(props) {
                 custom_field: customTrackingField,
                 invoice_comment: invoiceComment,
                 invoice_interval: invoiceInterval.value,
-                invoice_sort_order: invoiceSortOrder,
+                invoice_sort_order: invoiceSortOrder.map((sortOption, index) => ({...sortOption, priority: index})),
                 is_custom_field_mandatory: customFieldMandatory,
                 send_bills: sendBills,
                 send_email_invoices: sendEmailInvoices,

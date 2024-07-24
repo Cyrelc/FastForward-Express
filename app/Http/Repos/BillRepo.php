@@ -723,6 +723,8 @@ class BillRepo {
             foreach(Bill::$basicFields as $field)
                 if(
                     isset($bill[$field]) ||
+                    // This allows for certain fields to be nullable, as this list grows it will likely make more sense
+                    // to add some kind of nullable identifier to the arrays in Bill.php
                     ($field == 'pickup_account_id' && array_key_exists($field, $bill)) ||
                     ($field == 'delivery_account_id' && array_key_exists($field, $bill)) ||
                     ($field == 'description' && array_key_exists($field, $bill))
