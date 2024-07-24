@@ -1,78 +1,95 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {Button, Card, FormControl, InputGroup} from 'react-bootstrap'
 import queryString from 'query-string'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory, useLocation} from 'react-router-dom'
 import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
+
+import {LinkCellRenderer} from '../../utils/table_cell_renderers'
+
+const OtherFieldsRenderer = ({ row, searchTerm }) => {
+    const rowData = row.original;
+
+    const matches = Object.keys(rowData).map((key) => {
+        if (key === 'link' || key === 'object_id') return null;
+
+        if (rowData[key] && rowData[key].toString().includes(searchTerm)) {
+            const parts = rowData[key].toString().split(new RegExp(`(${searchTerm})`, 'gi'));
+            return (
+                <div key={key}>
+                    {parts.map((part, index) =>
+                        part.toLowerCase() === searchTerm.toLowerCase() ? (
+                            <span key={index} style={{ backgroundColor: 'lightgreen', color: 'black'}}>
+                                {part}
+                            </span>
+                        ) : (
+                                part
+                            )
+                    )}
+                </div>
+            );
+        }
+
+        return null;
+    }).filter((element) => element !== null);
+
+    return <div>{matches}</div>;
+};
 
 export default function Search(props) {
     const [searchTerm, setSearchTerm] = useState('')
     const [searchResults, setSearchResults] = useState([])
-    const [table, setTable] = useState()
 
     const api = useAPI()
     const history = useHistory();
     const location = useLocation();
-    const tableRef = useRef()
     const {authenticatedUser} = useUser()
 
-    useEffect(() => {
-        if(!table && tableRef.current) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                columns: tableColumns,
-                data: searchResults,
-                height: '85vh',
-                layout: 'fitDataStretch',
-                pagination: 'local',
-                paginationSize: 25,
-                placeholder: 'No results found matching your request. Please try a different query'
-            })
-
-            setTable(newTabulator)
-        }
-    }, [tableRef, table])
-
-    useEffect(() => {
-        if(table)
-            table.setData(searchResults)
-    }, [searchResults])
-
-    const otherFieldsFormatter = (cell) => {
-        const rowData = cell.getRow().getData()
-
-        const matches = Object.keys(rowData).map(key => {
-            if(key == 'link' || key == 'object_id')
-                return null
-            if(rowData[key] && rowData[key].toString().includes(searchTerm)) {
-                const reg = new RegExp(searchTerm, 'gi')
-                return rowData[key].toString().replace(reg, str => {return `<span style='background-color: yellow'>${str}</span>`})
-            }
-            return null
-        }).filter(element => element != null)
-        return '<div>' +
-            matches.map(match => {
-                return match
-            }) +
-        '</div>';
-    }
-
-    const tableColumns = [
-        {title: 'Result Type', field: 'type', width: '10%'},
+    const columns = useMemo(() => [
+        {header: 'Result Type', accessorKey: 'result_type', size: '10%'},
         ...authenticatedUser.employee ? [
-            {title: 'Object ID', field: 'object_id', width: '10%', ...configureFakeLink('', history.push, null, 'link')}
+            {
+                header: 'Object ID',
+                accessorKey: 'object_id',
+                size: '10%',
+                Cell: ({renderedCellValue, row}) => (
+                    <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='' redirectField='link' />
+                ),
+            }
         ] : [],
-        {title: 'Name', field: 'name', ...configureFakeLink('', history.push, null, 'link')},
-        {title: 'Other', field: 'other', formatter: otherFieldsFormatter, headerSort: false}
-    ]
+        {
+            header: 'Name',
+            accessorKey: 'name',
+            Cell: ({renderedCellValue, row}) => (
+                <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='' redirectField='link' />
+            ),
+        },
+        {
+            header: 'Other',
+            accessorKey: 'other',
+            Cell: ({renderedCellValue, row}) => (
+                <OtherFieldsRenderer renderedCellValue={renderedCellValue} row={row} searchTerm={searchTerm} />
+            ),
+            enableSorting: false
+        }
+    ], [searchTerm])
+
+    const searchTable = useMaterialReactTable({
+        columns,
+        data: searchResults,
+        initialState: {
+            density: 'compact'
+        }
+    })
 
     const updateSearchQuery = () => {
-        history.push({search: `term=${searchTerm}`})
+        history.push({search: `query=${searchTerm}`})
     }
 
     useEffect(() => {
         if(searchTerm != location.search)
-            setSearchTerm(queryString.parse(location.search)['term'])
+            setSearchTerm(queryString.parse(location.search)['query'])
         api.get(`/search${location.search}`).then(response => {
             if(response.length == 1)
                 history.push(response[0].link)
@@ -97,7 +114,7 @@ export default function Search(props) {
                 </InputGroup>
             </Card.Header>
             <Card.Body>
-                <div ref={tableRef}></div>
+                <MaterialReactTable table={searchTable} />
             </Card.Body>
         </Card>
     )

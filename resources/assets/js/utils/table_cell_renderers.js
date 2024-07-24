@@ -2,11 +2,14 @@ import React from 'react';
 
 import {useHistory} from 'react-router-dom'
 
-export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField = null}) => {
+export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField = null, redirectField = null}) => {
     const history = useHistory()
 
     const handleClick = () => {
-        history.push(`${urlPrefix}${renderedCellValue}`)
+        if(redirectField)
+            history.push(`${urlPrefix}${row.original[redirectField]}`)
+        else
+            history.push(`${urlPrefix}${renderedCellValue}`)
     }
 
     return (
