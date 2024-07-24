@@ -4,7 +4,7 @@ import {DateTime} from 'luxon'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
 import {LinkContainer} from 'react-router-bootstrap'
-import {LinkCellRenderer} from '../../utils/utils'
+import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'

@@ -5,8 +5,7 @@ import {useUser} from '../../contexts/UserContext'
 
 import Account from '../accounts/Account'
 import Accounts from '../accounts/Accounts'
-import AccountsPayable from '../admin/AccountsPayable'
-import AccountsReceivable from '../admin/AccountsReceivable'
+import AccountsPayableReceivable from '../admin/AccountsPayableReceivable'
 import AdminDashboard from '../dashboards/AdminDashboard'
 import AppSettings from '../admin/AppSettings'
 import Bill from '../bills/Bill'
@@ -53,10 +52,10 @@ export default function Router(props) {
                             <Route path='/accounts/:accountId' exact component={Account}></Route>
                         }
                         {frontEndPermissions.appSettings.edit &&
-                            <Route path='/accountsPayable' exact component={AccountsPayable}></Route>
+                            <Route path='/accountsPayable' exact render={routeProps => <AccountsPayableReceivable version='Payable' {...routeProps} />}></Route>
                         }
                         {frontEndPermissions.appSettings.edit &&
-                            <Route path='/accountsReceivable' exact component={AccountsReceivable}></Route>
+                            <Route path='/accountsReceivable' exact render={routeProps => <AccountsPayableReceivable version='Receivable' {...routeProps} />}></Route>
                         }
                         {frontEndPermissions.appSettings.edit &&
                             <Route path='/appSettings' exact component={AppSettings}></Route>

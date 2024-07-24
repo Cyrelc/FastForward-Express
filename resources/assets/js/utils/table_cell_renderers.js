@@ -19,3 +19,12 @@ export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField 
     );
 };
 
+export const CurrencyCellRenderer = ({cell}) => (
+    <div>
+        {new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+        }).format(cell.getValue())}
+    </div>
+)
+

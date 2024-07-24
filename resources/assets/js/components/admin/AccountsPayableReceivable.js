@@ -1,0 +1,181 @@
+import React, {useEffect, useState, useMemo} from 'react'
+import {Card, Col, InputGroup, Row} from 'react-bootstrap'
+import DatePicker from 'react-datepicker'
+import {Box, Button} from '@mui/material'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import {jsPDF} from 'jspdf'
+import autoTable from 'jspdf-autotable'
+
+import {CurrencyCellRenderer} from '../../utils/table_cell_renderers'
+import {useAPI} from '../../contexts/APIContext'
+
+
+export default function AccountsPayableReceivable(props) {
+    const {version} = props
+    const [accounts, setAccounts] = useState([])
+    const [startDate, setStartDate] = useState(new Date())
+    const [endDate, setEndDate] = useState(new Date())
+    const [sumTotalCost, setSumTotalCost] = useState(0)
+    const [sumBalanceOwing, setSumBalanceOwing] = useState(0)
+
+    useEffect(() => {
+        let sumTotalCost = 0
+        let sumBalanceOwing = 0
+
+        accounts.forEach(row => {
+            sumTotalCost += parseFloat(row.total_cost)
+            if(!isNaN(row.balance_owing))
+                sumBalanceOwing += parseFloat(row.balance_owing)
+        })
+
+        setSumTotalCost(sumTotalCost.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}))
+        setSumBalanceOwing(sumBalanceOwing.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'}))
+    }, [accounts])
+
+    const api = useAPI()
+
+    useEffect(() => {
+        getAccounts()
+    }, [])
+
+    useEffect(() => {
+        getAccounts()
+    }, [startDate, endDate])
+
+    const columns = useMemo(() => [
+        {header: 'Account', accessorKey: 'name'},
+        {header: 'Account #', accessorKey: 'account_number'},
+        {
+            header: 'Total',
+            accessorKey: 'total_cost',
+            Cell: CurrencyCellRenderer,
+            Header: () => <div>Total Cost: {sumTotalCost}</div>,
+            muiTableHeadCellProps: {
+                align: 'right'
+            },
+            muiTableBodyCellProps: {
+                align: 'right'
+            }
+        },
+        ...version === 'Receivable' ? [
+            {
+                header: 'Balance Owing',
+                accessorKey: 'balance_owing',
+                Cell: CurrencyCellRenderer,
+                Header: () => <div>Balance Owing: {sumBalanceOwing}</div>,
+                muiTableHeadCellProps: { align: 'right' },
+                muiTableBodyCellProps: { align: 'right' }
+            }
+        ] : [],
+    ], [version, sumTotalCost, sumBalanceOwing])
+
+    const handleExportRows = (rows) => {
+        const doc = new jsPDF();
+        const tableData = rows.map((row) => Object.values(row.original));
+        const tableHeaders = columns.map((c) => c.header);
+
+        autoTable(doc, {
+            head: [tableHeaders],
+            body: tableData,
+        });
+
+        const name = `Accounts_${version}_${startDate.toLocaleDateString().replace(/\//g, '-')}_${endDate.toLocaleDateString().replace(/\//g, '-')}.pdf`;
+
+        // Generate Blob from PDF
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+
+        // Open the Blob URL in a new tab
+        const newWindow = window.open(pdfUrl);
+    };
+
+    const table = useMaterialReactTable({
+        columns,
+        data: accounts,
+        enableBottomToolbar: false,
+        enablePagination: false,
+        initialState: {density: 'compact',},
+        muiTableBodyProps: {
+            sx: {
+                //stripe the rows, make odd rows a darker color
+                '& tr:nth-of-type(odd) > td': {
+                    backgroundColor: 'dimgrey',
+                },
+            },
+        },
+        renderTopToolbarCustomActions: ({ table }) => (
+            <Box
+                sx={{
+                    display: 'flex',
+                    gap: '16px',
+                    padding: '8px',
+                    flexWrap: 'wrap',
+                }}
+            >
+                <Button
+                    disabled={table.getPrePaginationRowModel().rows.length === 0}
+                    //export all rows, including from the next page, (still respects filtering and sorting)
+                    onClick={() =>
+                        handleExportRows(table.getPrePaginationRowModel().rows)
+                    }
+                    startIcon={<FileDownloadIcon />}
+                >
+                    Export All Rows
+              </Button>
+            </Box>
+        ),
+    })
+
+    const getAccounts = () => {
+        api.get(`/admin/getAccounts${version}/${startDate.toISOString()}/${endDate.toISOString()}`)
+            .then(response => {
+                setAccounts(response?.accounts_receivable ?? response.accounts_payable)
+            })
+    }
+
+    return (
+        <Row className='justify-content-md-center'>
+            <Col md={12} className='justify-content-center'>
+                <Card border='dark'>
+                    <Card.Header>
+                        <Row>
+                            <Col md={2}>
+                                <Card.Title>Accounts {version}</Card.Title>
+                            </Col>
+                            <Col md={3}>
+                                <InputGroup>
+                                    <InputGroup.Text>Start Month</InputGroup.Text>
+                                    <DatePicker
+                                        className='form-control'
+                                        dateFormat='MMMM, yyyy'
+                                        selected={startDate}
+                                        showMonthYearPicker
+                                        onChange={setStartDate}
+                                        wrapperClassName='form-control'
+                                    />
+                                </InputGroup>
+                            </Col>
+                            <Col md={3}>
+                                <InputGroup>
+                                    <InputGroup.Text>End Month</InputGroup.Text>
+                                    <DatePicker
+                                        className='form-control'
+                                        dateFormat='MMMM, yyyy'
+                                        selected={endDate}
+                                        showMonthYearPicker
+                                        onChange={setEndDate}
+                                        wrapperClassName='form-control'
+                                    />
+                                </InputGroup>
+                            </Col>
+                        </Row>
+                    </Card.Header>
+                    <Card.Body>
+                        <MaterialReactTable table={table} />
+                    </Card.Body>
+                </Card>
+            </Col>
+        </Row>
+    )
+}

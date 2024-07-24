@@ -57,6 +57,8 @@
         "convert-units": "^2.3.4",
         "cross-env": "^5.2.1",
         "history": "^4.10.1",
+        "jspdf": "^2.5.1",
+        "jspdf-autotable": "^3.8.2",
         "laravel-echo": "^1.10.0",
         "lodash": "^4.17.21",
         "luxon": "^3.4.4",
