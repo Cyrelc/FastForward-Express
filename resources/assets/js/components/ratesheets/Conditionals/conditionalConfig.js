@@ -1,4 +1,4 @@
-import {BootstrapConfig} from '@react-awesome-query-builder/bootstrap'
+import {MuiConfig} from '@react-awesome-query-builder/mui'
 
 const addressSubfields = (prefix) => {
     return {
@@ -63,9 +63,9 @@ const timeSubfields = (prefix) => {
 }
 
 const config = {
-    ...BootstrapConfig,
+    ...MuiConfig,
     settings: {
-        ...BootstrapConfig.settings,
+        ...MuiConfig.settings,
     },
     fields: {
         package: {

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {Button, ButtonGroup, Card, Col, Row, Table} from 'react-bootstrap'
+import {Button, ButtonGroup, Card, Col, Row} from 'react-bootstrap'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import ConditionalModal from './ConditionalModal'
@@ -19,14 +19,14 @@ export default function ConditionalsTab(props) {
         data: conditionals,
         columns: [
             {header: 'Actions', size: 120, Cell: ({row}) => (
-                    <ButtonGroup>
-                        <Button onClick={() => edit(row.original)} variant='primary' size='sm'>
-                            <i className='fas fa-edit'></i>
-                        </Button>
-                        <Button variant='danger' size='sm' onClick={() => deleteConditional(row.original)}>
-                            <i className='fas fa-trash'></i>
-                        </Button>
-                    </ButtonGroup>
+                <ButtonGroup>
+                    <Button onClick={() => edit(row.original)} variant='primary' size='sm'>
+                        <i className='fas fa-edit'></i>
+                    </Button>
+                    <Button variant='danger' size='sm' onClick={() => deleteConditional(row.original)}>
+                        <i className='fas fa-trash'></i>
+                    </Button>
+                </ButtonGroup>
             )},
             {header: 'Priority', accessorKey: 'priority', size: 120},
             {header: 'Conditional Type', accessorKey: 'type', size: 250, Cell: ({row}) => {

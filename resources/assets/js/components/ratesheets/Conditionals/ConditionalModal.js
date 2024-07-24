@@ -1,6 +1,6 @@
 import React, {Fragment, useState} from 'react'
 import {Button, Card, Col, InputGroup, FormControl, Modal, Row, Table} from 'react-bootstrap'
-import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/ui'
+import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/mui'
 import Select from 'react-select'
 import {toast} from 'react-toastify'
 
