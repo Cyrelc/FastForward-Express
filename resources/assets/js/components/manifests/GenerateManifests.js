@@ -1,21 +1,20 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
 import {DateTime} from 'luxon'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
 
 const columns = [
-    {title: 'Selected', field: 'isSelected', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
-    {title: 'Employee ID', field: 'employee_id'},
-    {title: 'Employee Number', field: 'employee_number'},
-    {title: 'Employee', field: 'label'},
-    {title: 'Valid Bills', field: 'valid_bill_count'},
-    {title: 'Legacy Bills', field: 'legacy_bill_count'},
-    {title: 'Incomplete Bills', field: 'incomplete_bill_count'}
+    {header: 'Employee ID', accessorKey: 'employee_id'},
+    {header: 'Employee Number', accessorKey: 'employee_number'},
+    {header: 'Employee', accessorKey: 'label'},
+    {header: 'Valid Bills', accessorKey: 'valid_bill_count'},
+    {header: 'Legacy Bills', accessorKey: 'legacy_bill_count'},
+    {header: 'Incomplete Bills', accessorKey: 'incomplete_bill_count'}
 ]
 
 export default function GenerateManifests(props) {
@@ -24,50 +23,34 @@ export default function GenerateManifests(props) {
     const [endDate, setEndDate] = useState(DateTime.now().minus({months: 1}).endOf('month').toJSDate())
     const [isLoading, setIsLoading] = useState(true)
     const [isStoring, setIsStoring] = useState(false)
-    const [table, setTable] = useState(null)
+    const [rowSelection, setRowSelection] = useState({})
 
     const api = useAPI();
     const history = useHistory()
-    const tableRef = useRef()
 
-    useEffect(() => {
-        if(tableRef.current && !table) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                columns: columns,
-                data: employees,
-                layout: 'fitColumns',
-                maxHeight: '80vh',
-                placeholder: 'No employees fit the selected criteria for generating a manifest',
-                selectableRows: true,
-                selectableRowsCheck: row => {
-                    return row.getData().valid_bill_count > 0
-                }
-            })
-
-            newTabulator.on('rowDeselected', row => {
-                row.update({isSelected: false})
-            })
-
-            newTabulator.on('rowSelected', row => {
-                row.update({isSelected: true})
-            })
-
-            setTable(newTabulator)
-        }
+    const table = useMaterialReactTable({
+        columns,
+        data: employees,
+        initialState: {
+            denisity: 'compact'
+        },
+        enableRowSelection: row => row.original.valid_bill_count > 0,
+        enableStickyHeader: true,
+        getRowId: row => row.employee_id,
+        enablePagination: false,
+        onRowSelectionChange: setRowSelection,
+        state: {rowSelection}
     })
 
     useEffect(() => {
-        if(table) {
-            table.setData(employees).then(() => {
-                table.getRows().map(row => {
-                    const data = row.getData()
-                    if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.legacy_bill_count === 0) {
-                        row.select()
-                        row.update({isSelected: true})
-                    }
-                })
-            })
-        }
+        const selectedRows = employees.filter(row => {
+            return row.valid_bill_count > 0 && row.incomplete_bill_count === 0 && row.legacy_bill_count === 0
+        }).reduce((acc, row) => {
+            acc[row.employee_id.toString()] = true
+            return acc
+        }, {})
+
+        setRowSelection(selectedRows)
     }, [employees])
 
     useEffect(() => {
@@ -91,16 +74,15 @@ export default function GenerateManifests(props) {
     const store = () => {
         if(isStoring)
             return
-        else
-            setIsStoring(true)
-
-            if(!table || table.getSelectedData().length === 0) {
+        else if(Object.keys(rowSelection).length < 1) {
             toast.error('Please select at least one driver to manifest')
             return
         }
 
+        setIsStoring(true)
+
         const data = {
-            employees: table.getSelectedData().map(employee => {return employee.employee_id}),
+            employees: Object.keys(rowSelection),
             start_date: startDate.toLocaleDateString(),
             end_date: endDate.toLocaleDateString()
         }
@@ -156,7 +138,7 @@ export default function GenerateManifests(props) {
                 </Row>
             </Card.Body>
             <Card.Footer>
-                <div ref={tableRef}></div>
+                <MaterialReactTable table={table} />
             </Card.Footer>
         </Card>
     )

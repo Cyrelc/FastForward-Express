@@ -9,7 +9,7 @@ import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
-import { LinkCellRenderer } from '../../utils/table_cell_renderers'
+import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 
 const ValidForInvoicingRenderer = ({row}) => {
     const data = row.original
