@@ -2,11 +2,21 @@ import React from 'react';
 
 import {useHistory} from 'react-router-dom'
 
-export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField = null, redirectField = null}) => {
+/**
+ * 
+ * @param {string} renderedCellValue the cell value as given by the material-table
+ * @param {row} row the row object, as given by the material-table
+ * @param {labelField} string a field name if you wish to label with a different value than the cell content
+ * @param {redirectField} string a field name if you wish to redirect to a different value than the cell content
+ * @param {url} string string representation of a string if you want to statically set the redirect
+ */
+export const LinkCellRenderer = ({renderedCellValue, row, urlPrefix, labelField = null, redirectField = null, url = null}) => {
     const history = useHistory()
 
     const handleClick = () => {
-        if(redirectField)
+        if(url)
+            history.push(url)
+        else if(redirectField)
             history.push(`${urlPrefix}${row.original[redirectField]}`)
         else
             history.push(`${urlPrefix}${renderedCellValue}`)

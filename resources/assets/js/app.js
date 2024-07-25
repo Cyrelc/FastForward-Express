@@ -27,14 +27,14 @@ const darkTheme = createTheme({
             styleOverrides: {
                 root: {
                     '& tr:nth-of-type(odd) > td': {
-                        backgroundColor: 'dimgray'
+                        backgroundColor: '#404040'
                     }
                 }
             }
         }
     },
     palette: {
-        mode: 'dark'
+        mode: 'dark',
     }
 })
 

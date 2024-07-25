@@ -18,7 +18,7 @@ export default function ConditionalsTab(props) {
     const table = useMaterialReactTable({
         data: conditionals,
         columns: [
-            {header: 'Actions', size: 120, Cell: ({row}) => (
+            {header: 'Actions', enableColumnActions: false, size: 100, Cell: ({row}) => (
                 <ButtonGroup>
                     <Button onClick={() => edit(row.original)} variant='primary' size='sm'>
                         <i className='fas fa-edit'></i>
@@ -28,16 +28,16 @@ export default function ConditionalsTab(props) {
                     </Button>
                 </ButtonGroup>
             )},
-            {header: 'Priority', accessorKey: 'priority', size: 120},
-            {header: 'Conditional Type', accessorKey: 'type', size: 250, Cell: ({row}) => {
+            {header: 'Priority', accessorKey: 'priority', size: 110, enableColumnActions: false},
+            {header: 'Conditional Type', accessorKey: 'type', size: 220, Cell: ({row}) => {
                 const chargeType = chargeTypes.find(chargeType => chargeType.value == row.original.type)
                 return chargeType.label
             }},
-            {accessorKey: 'name', header: 'Name', grow: true},
-            {header: 'Condition', accessorKey: 'human_readable', grow: true},
-            {accessorKey: 'action', header: 'Action', Cell: ({row}) => row.original.action.label},
-            {header: 'Value Type', accessorKey: 'value_type'},
-            {header: 'Value', accessorKey: 'value', Cell: ({row}) => {
+            {accessorKey: 'name', header: 'Name', grow: 1},
+            {header: 'Condition', accessorKey: 'human_readable', grow: 4},
+            {accessorKey: 'action', header: 'Action', Cell: ({row}) => row.original.action.label, size: 120},
+            {header: 'Value Type', accessorKey: 'value_type', size: 120},
+            {header: 'Value', accessorKey: 'value', size: 120, Cell: ({row}) => {
                 const {value_type, value} = row.original
                 if(value_type == 'amount')
                     return value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})

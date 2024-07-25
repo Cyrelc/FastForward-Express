@@ -1,109 +1,53 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {Button, Card, Col, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
 import DatePicker from 'react-datepicker'
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
 import {DateTime} from 'luxon'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
+import { LinkCellRenderer } from '../../utils/table_cell_renderers'
+
+const ValidForInvoicingRenderer = ({row}) => {
+    const data = row.original
+
+    if(data.valid_bill_count == 0) {
+        return (
+            <div style={{backgroundColor: 'lightCoral', textAlign: 'center'}}>
+                <i className='fas fa-times-circle'></i> No valid bills
+            </div>
+        )
+    } else if(data.incomplete_bill_count > 0 || data.skipped_bill_count > 0 || data.legacy_bill_count > 0) {
+        const incompleteBills = data.incomplete_bill_count > 0 ? `Incomplete Bills (${data.incomplete_bill_count})` : ''
+        const skippedBills = data.skipped_bill_count > 0 ? ` - Skipped Bills (${data.skipped_bill_count})` : ''
+        const legacyBills = data.legacy_bill_count > 0 ? ` - Legacy Bills (${data.legacy_bill_count})` : ''
+        return (
+            <div style={{backgroundColor: 'gold'}}>
+                Warning
+                {incompleteBills ?? null}
+                {skippedBills ?? null}
+                {legacyBills ?? null}
+            </div>
+        )
+    }
+
+    return <div style={{backgroundColor: 'mediumseagreen'}}>True</div>
+}
 
 export default function GenerateInvoices(props) {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
     const [startDate, setStartDate] = useState()
     const [endDate, setEndDate] = useState()
     const [pendingCreation, setPendingCreation] = useState([])
+    const [rowSelection, setRowSelection] = useState({})
     const [selectedInvoiceIntervals, setSelectedInvoiceIntervals] = useState([])
-    const [table, setTable] = useState(null)
 
     const api = useAPI()
     const lists = useLists()
-    const tableRef = useRef(null)
     const history = useHistory()
-
-    const columns = [
-        {
-            title: 'Selected',
-            field: 'isSelected',
-            formatter: 'tickCross',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            headerSort: false,
-            print: false,
-            width: 100,
-            headerClick: (event, col) => {
-                const table = col.getTable()
-                if(table.getSelectedData().length > 0) {
-                    const rows = table.getSelectedRows()
-                    rows.forEach(row => {
-                        row.deselect()
-                    })
-                } else {
-                    const rows = table.getRows()
-                    rows.forEach(row => {
-                        if(table.options.selectableRowsCheck(row)) {
-                            row.select()
-                        }
-                    })
-                }
-            }
-        },
-        {title: 'Valid', formatter: isValidForInvoicing},
-        {title: 'ID', field: 'id', sorter: 'number'},
-        {title: 'Number', field: 'number'},
-        {title: 'Account Name', field: 'name'},
-        {title: 'Bill Pickup Date', field: 'time_pickup_scheduled'},
-        {
-            title: 'Completed Bills',
-            field: 'valid_bill_count',
-            formatter: (cell) => {
-                if(cell.getValue() === 0)
-                    cell.getElement().style.backgroundColor = 'lightCoral'
-                return cell.getValue()
-            },
-            sorter: 'number'
-        },
-        {
-            title: 'Incomplete Bills',
-            field: 'incomplete_bill_count',
-            formatter: 'link',
-            formatterParams: {url: cell => {
-                const {id, type} = cell.getRow().getData()
-                if(type == 'account')
-                    return `/bills?filter[charge_account_id]=${id}&filter[percentage_complete]=,100`
-                return `/bills/${id}`
-            }},
-            sorter: 'number'
-        },
-        {
-            title: 'Skipped Bills',
-            field: 'skipped_bill_count',
-            formatter: 'link',
-            formatterParams: {url: cell => {
-                const {id, type} = cell.getRow().getData()
-                if(type == 'account')
-                    return `/bills?filter[charge_account_id]=${id}&filter[skip_invoicing]=1`
-                return `/bills/${id}`
-            }},
-            sorter: 'number'
-        },
-        {
-            title: 'Legacy Bills',
-            field: 'legacy_bill_count',
-            formatter: 'link',
-            formatterParams: {url: cell => {
-                const {id, type} = cell.getRow().getData()
-                if(type == 'account')
-                    return `/bills?filter[charge_account_id]=${id}&filter[time_pickup_scheduled]=,${startDate.toISOString().split('T')[0]}&filter[is_invoiced]=false`
-                return `/bills/${id}`
-            }},
-            sorter: 'number'
-        },
-        {title: 'Parent Account', field: 'parent_account', visible: false},
-        {title: 'group', field: 'group', visible: false}
-    ]
 
     useEffect(() => {
         document.title = 'Generate Invoices - Fast Forward Express'
@@ -117,50 +61,76 @@ export default function GenerateInvoices(props) {
         setInvoiceIntervals(options)
     }, [])
 
+    const columns = useMemo(() => [
+        {header: 'Valid', Cell: ValidForInvoicingRenderer},
+        {header: 'ID', accessorKey: 'id', sorter: 'number'},
+        {header: 'Number', accessorKey: 'number'},
+        {header: 'Account Name', accessorKey: 'name'},
+        {header: 'Bill Pickup Date', accessorKey: 'time_pickup_scheduled'},
+        {
+            header: 'Complete',
+            accessorKey: 'valid_bill_count',
+            size: 110,
+        },
+        {
+            header: 'Incomplete',
+            accessorKey: 'incomplete_bill_count',
+            size: 110,
+            Cell: ({renderedCellValue, row}) => {
+                const data = row.original
+                if(data.incomplete_bill_count == 0)
+                    return renderedCellValue
+                const url = data.type == 'account' ? `/bills?filter[charge_account_id]=${data.id}&filter[percentage_complete]=,100` : `/bills/${data.id}`
+                return <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} url={url} />
+            }
+        },
+        {
+            header: 'Skipped',
+            accessorKey: 'skipped_bill_count',
+            size: 110,
+            Cell: ({renderedCellValue, row}) => {
+                const data = row.original
+                if(data.skipped_bill_count == 0)
+                    return renderedCellValue
+                const url = data.type == 'account' ? `/bills?filter[charge_account_id]=${data.id}&filter[skip_invoicing]=1` : `/bills/${data.id}`
+                return <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} url={url} />
+            }
+        },
+        {
+            header: `Legacy`,
+            accessorKey: 'legacy_bill_count',
+            size: 110,
+            Cell: ({renderedCellValue, row}) => {
+                const data = row.original
+                if(data.legacy_bill_count == 0)
+                    return renderedCellValue
+                const url = data.type == 'account' ?
+                    `/bills?filter[charge_account_id]=${data.id}&filter[time_pickup_scheduled]=,${startDate.toISOString().split('T')[0]}&filter[is_invoiced]=false`
+                    :
+                    `/bills/${data.id}`
+                return <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} url={url} />
+            }
+        },
+        // {header: 'Parent Account', accessorKey: 'parent_account', visible: false},
+        // {header: 'group', accessorKey: 'group', visible: false}
+    ], [])
+
+    const table = useMaterialReactTable({
+        columns,
+        data: pendingCreation,
+        initialState: {
+            density: 'compact'
+        },
+        enableRowSelection: row => row.original.valid_bill_count > 0,
+        enableStickyHeader: true,
+        getRowId: row => row.id,
+        enablePagination: false,
+        onRowSelectionChange: setRowSelection,
+        state: {rowSelection},
+    })
+
     useEffect(() => {
-        if(tableRef.current && !table) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                placeholder: 'No accounts or charges fit the selected criteria for invoicing',
-                columns: columns,
-                data: pendingCreation,
-                initialSort: [{column: 'number', dir: 'asc'}],
-                groupBy: 'parent_account',
-                layout: 'fitColumns',
-                maxHeight: '65vh',
-                selectableRows: true,
-                selectableRowsCheck: row => {
-                    return row.getData().valid_bill_count > 0
-                },
-            })
-
-            newTabulator.on('rowDeselected', row => {
-                row.update({isSelected: false})
-            })
-
-            newTabulator.on('rowSelected', row => {
-                row.update({isSelected: true})
-            })
-
-            setTable(newTabulator)
-        }
-    }, [tableRef.current])
-
-    // Handle table data changes
-    useEffect(() => {
-        if(table)
-            table.setData(pendingCreation).then(() => {
-                table.getRows().map(row => {
-                    const data = row.getData()
-                    if(data.valid_bill_count > 0 && data.incomplete_bill_count === 0 && data.skipped_bill_count === 0 && data.legacy_bill_count === 0) {
-                        row.select()
-                        row.update({isSelected: true})
-                    }
-                })
-            })
-    }, [pendingCreation])
-
-    useEffect(() => {
-        if(selectedInvoiceIntervals === null || selectedInvoiceIntervals.length === 0 || !startDate || !endDate) {
+        if(!selectedInvoiceIntervals || selectedInvoiceIntervals.length === 0 || !startDate || !endDate) {
             setPendingCreation([])
             return
         }
@@ -173,10 +143,25 @@ export default function GenerateInvoices(props) {
         }
 
         api.post('/invoices/getUninvoiced', data).then(response => {
-            if(response.pending_creation)
+            if(response.pending_creation) {
                 setPendingCreation(Object.values(response.pending_creation))
+            } else {
+                setPendingCreation([])
+            }
         })
     }, [startDate, endDate, selectedInvoiceIntervals])
+
+    useEffect(() => {
+        const selectedRows = pendingCreation.filter(row => {
+            return row.valid_bill_count > 0 && row.incomplete_bill_count === 0 && row.skipped_bill_count === 0 && row.legacy_bill_count === 0
+        })
+        .reduce((acc, row) => {
+            acc[row.id.toString()] = true
+            return acc
+        }, {})
+
+        setRowSelection(selectedRows)
+    }, [pendingCreation])
 
     const selectAll = () => {
         let selected = []
@@ -187,12 +172,14 @@ export default function GenerateInvoices(props) {
     }
 
     const store = () => {
-        if(table?.getSelectedData().length === 0) {
+        if(Object.keys(rowSelection).length < 1) {
             toast.error('Please select at least one invoice to be created')
             return
         }
 
-        const selected = table.getSelectedData()
+        const selected = pendingCreation.filter(pendingInvoice => {
+            return pendingInvoice.id in rowSelection
+        })
 
         const data = {
             accounts: selected.filter(row => row.type == 'account').map(account => account.id),
@@ -211,23 +198,6 @@ export default function GenerateInvoices(props) {
         })
     }
 
-    function isValidForInvoicing(cell) {
-        const data = cell.getData()
-        if(data.valid_bill_count === 0) {
-            cell.getElement().style.backgroundColor = 'lightCoral'
-            return 'False - No valid bills'
-        } else if(data.incomplete_bill_count > 0 || data.skipped_bill_count > 0 || data.legacy_bill_count > 0) {
-            cell.getElement().style.backgroundColor = 'gold'
-            const incompleteBills = data.incomplete_bill_count > 0 ? ` - Incomplete Bills (${data.incomplete_bill_count})` : ''
-            const skippedBills = data.skipped_bill_count > 0 ? ` - Skipped Bills (${data.skipped_bill_count})` : ''
-            const legacyBills = data.legacy_bill_count > 0 ? ` - Legacy Bills (${data.legacy_bill_count})` : ''
-            return 'Warning' + incompleteBills + skippedBills + legacyBills
-        } else {
-            cell.getElement().style.backgroundColor = 'mediumseagreen'
-            return 'True'
-        }
-    }
-
     return (
         <Card>
             <Card.Header>
@@ -244,6 +214,7 @@ export default function GenerateInvoices(props) {
                                 options={invoiceIntervals}
                                 value={selectedInvoiceIntervals}
                                 onChange={setSelectedInvoiceIntervals}
+                                classNamePrefix='react-select'
                                 isMulti
                             />
                             <Button variant='primary' onClick={selectAll}>Select All</Button>
@@ -283,7 +254,7 @@ export default function GenerateInvoices(props) {
             </Card.Body>
             <Card.Footer>
                 <p>The following accounts and/or charges fit the selected criteria and have yet to be invoiced:</p>
-                <div ref={tableRef}></div>
+                <MaterialReactTable table={table} />
             </Card.Footer>
         </Card>
     )
