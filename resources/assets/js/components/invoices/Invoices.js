@@ -238,7 +238,7 @@ export default function Invoices(props) {
         indexName='invoice_id'
         initialSort={initialSort}
         pageTitle='Invoices'
-        selectable='highlight'
+        selectableRows='highlight'
         tableName='invoices'
         withSelected={withSelected}
     />

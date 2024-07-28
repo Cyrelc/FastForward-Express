@@ -45,6 +45,10 @@ class Payment extends Model {
         }
     }
 
+    public function invoice() {
+        return $this->hasOne(Invoice::class, 'invoice_id', 'invoice_id');
+    }
+
     public function payment_type() {
         return $this->hasOne(PaymentType::class, 'payment_type_id', 'payment_type_id');
     }

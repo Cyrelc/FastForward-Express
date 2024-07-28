@@ -233,8 +233,8 @@ export default function billReducer(state, action) {
                     isMall: delivery_address.is_mall,
                     personName: bill.delivery_person_name,
                     referenceValue: bill.delivery_reference_value,
-                    timeActual: Date.parse(bill.time_delivered),
-                    timeScheduled: Date.parse(bill.time_delivery_scheduled)
+                    timeActual: bill.time_delivered ? new Date(bill.time_delivered) : '',
+                    timeScheduled: new Date(bill.time_delivery_scheduled)
                 },
                 deliveryType: state.deliveryTypes.find(type => type.id === bill.delivery_type),
                 description: bill.description ? bill.description : '',
@@ -253,11 +253,11 @@ export default function billReducer(state, action) {
                     isMall: pickup_address.is_mall,
                     personName: bill.pickup_person_name,
                     referenceValue: bill.pickup_reference_value,
-                    timeActual: Date.parse(bill.time_picked_up),
-                    timeScheduled: Date.parse(bill.time_pickup_scheduled)
+                    timeActual: bill.time_picked_up ? new Date(bill.time_picked_up) : '',
+                    timeScheduled: new Date(bill.time_pickup_scheduled)
                 },
                 readOnly: permissions.viewBasic && !permissions.editBasic,
-                timeTenFoured: Date.parse(bill.time_ten_foured)
+                timeTenFoured: new Date(bill.time_ten_foured)
             }
 
             if(permissions.viewActivityLog)
@@ -269,13 +269,13 @@ export default function billReducer(state, action) {
                 newState.internalComments = bill.internal_comments ? bill.internal_comments : ''
                 newState.pickup.driver = bill.pickup_driver_id ? state.drivers.find(driver => driver.value === bill.pickup_driver_id) : ''
                 newState.pickup.driverCommission = bill.pickup_driver_commission
-                newState.timeDispatched = Date.parse(bill.time_dispatched)
-                newState.timeCallReceived = Date.parse(bill.time_call_received)
+                newState.timeDispatched = new Date(bill.time_dispatched)
+                newState.timeCallReceived = new Date(bill.time_call_received)
             }
 
             if(permissions.editBasic || permissions.editBilling || permissions.editDispatch) {
                 newState.incompleteFields = JSON.parse(bill.incomplete_fields)
-                newState.updatedAt = Date.parse(bill.updated_at)
+                newState.updatedAt = new Date(bill.updated_at)
             }
 
             if(permissions.viewBilling) {

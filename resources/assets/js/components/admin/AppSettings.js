@@ -32,7 +32,7 @@ export default function AppSettings(props) {
                 setPaymentTypes(response.payment_types)
                 setRatesheets(response.ratesheets)
                 const blockedDates = response.blocked_dates.map(blocked => {
-                    return {...blocked, date: Date.parse(blocked.value)}
+                    return {...blocked, date: new Date(blocked.value)}
                 })
                 setBlockedDates(blockedDates)
             })

@@ -1,10 +1,10 @@
-import React, {Fragment, useState} from 'react'
+import React, {Fragment, useMemo, useState} from 'react'
 import {Badge, Button, ButtonGroup, Card, FormControl, InputGroup, Modal,} from 'react-bootstrap'
-import {ReactTabulator} from 'react-tabulator'
-import ReactDOM from 'react-dom'
-import {useHistory} from 'react-router-dom'
+import {createRoot} from 'react-dom/client'
 import {toast} from 'react-toastify'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
+import {CurrencyCellRenderer, LinkCellRenderer} from '../../../utils/table_cell_renderers'
 import {useAPI} from '../../../contexts/APIContext'
 
 const parseTitle = (data) => {
@@ -17,55 +17,110 @@ const parseTitle = (data) => {
     return title
 }
 
+const PaymentIntentStatusRenderer = ({renderedCellValue, row}) => {
+    if(!renderedCellValue)
+        return ''
+
+    const element = document.createElement('div')
+    const root = createRoot(element)
+
+    const data = row.original
+    let status = data.is_stripe_transaction ? data.stripe_status : 'Succeeded'
+
+    if(status.includes('.'))
+        status = status.split('.')[1]
+    status = status.split('_').map(word => word.charAt(0).toUpperCase() + word.substring(1)).join(' ')
+    let variant = 'danger'
+    if(status == 'Succeeded' || status == 'Refunded')
+        variant = 'success'
+    else if(status == 'Processing')
+        variant = 'primary'
+
+    return (
+        <Fragment>
+            <Badge
+                bg={variant}
+                title={parseTitle(data)}
+                onClick={() => {
+                    if(window.location.protocol === 'https:') {
+                        if(data.stripe_object_type == 'payment_intent')
+                            navigator.clipboard.writeText(data.stripe_payment_intent_id)}
+                        else
+                            navigator.clipboard.writeText(data.stripe_refund_id)
+                        toast.success('Stripe ID copied to clipboard')
+                    }
+                }
+            >{status}</Badge>
+            {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
+        </Fragment>
+    )
+}
+
 export default function PaymentTable(props) {
     const [revertReason, setRevertReason] = useState('')
     const [revertRow, setRevertRow] = useState(null)
 
     const api = useAPI()
-    const history = useHistory()
 
-    const formatPaymentIntentStatus = cell => {
-        if(!cell.getValue())
-            return ''
+    const {canRevertPayments, showAccountFields, payments} = props
 
-        const element = document.createElement('div')
+    const columns = useMemo(() => [
+        ...canRevertPayments ? [
+            {
+                id: 'revert',
+                header: <i className='fas fa-undo'></i>,
+                Cell: ({row}) => {
+                    if(row.original.can_be_reverted)
+                        return <Button className='warning' size='sm' onClick={() => setRevertRow(row.original)}><i className='fas fa-undo'></i></Button>
+                    return ''
+                },
+                size: 50,
+                enableSorting: false,
+                enableHiding: false
+            }
+        ] : [],
+        ...showAccountFields ? [
+            {
+                header: 'Invoice ID',
+                accessorKey: 'invoice_id',
+                Cell: ({renderedCellValue, row}) => (
+                    <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='/invoices/' />
+                )
+            },
+            {header: 'Invoice Date', accessorKey: 'invoice_date'},
+        ] : [],
+        {header: 'Payment Received On', accessorKey: 'date'},
+        {header: 'Payment Method', accessorKey: 'payment_type', Cell: ({renderedCellValue, row}) => {
+            if(row.original.is_stripe_transaction)
+                return `${renderedCellValue} <i class='fab fa-stripe fa-lg fa-border' style='float: right'></i>`
+            return renderedCellValue
+        }},
+        {header: 'Reference Number', accessorKey: 'reference_value'},
+        {header: 'Comment', accessorKey: 'comment'},
+        {header: 'Amount', accessorKey: 'amount', Cell: CurrencyCellRenderer},
+        {header: 'Payment Status', accessorKey: 'stripe_status', Cell: PaymentIntentStatusRenderer},
+        {header: 'Error', accessorKey: 'error'},
+    ], [props.canRevertPayments, showAccountFields])
 
-        const data = cell.getRow().getData();
-        let status = data.is_stripe_transaction ? data.stripe_status : 'Succeeded'
-
-        if(status.includes('.'))
-            status = status.split('.')[1]
-        status = status.split('_').map(word => word.charAt(0).toUpperCase() + word.substring(1)).join(' ')
-        let variant = 'danger'
-        if(status == 'Succeeded' || status == 'Refunded')
-            variant = 'success'
-        else if(status == 'Processing')
-            variant = 'primary'
-
-        ReactDOM.render(
-            <Fragment>
-                <Badge
-                    bg={variant}
-                    title={parseTitle(data)}
-                    onClick={() => {
-                        if(window.location.protocol === 'https:') {
-                            if(data.stripe_object_type == 'payment_intent')
-                                navigator.clipboard.writeText(data.stripe_payment_intent_id)}
-                            else
-                                navigator.clipboard.writeText(data.stripe_refund_id)
-                            toast.success('Stripe ID copied to clipboard')
-                        }
-                    }
-                >{status}</Badge>
-                {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
-            </Fragment>
-        , element)
-
-        return element
-    }
+    const paymentsTable = useMaterialReactTable({
+        columns,
+        data: payments,
+        initialState: {
+            density: 'compact',
+            sorting: [{id: 'date', asc: true}],
+            columnOrder: [
+                ...canRevertPayments ? ['revert'] : [],
+                ...showAccountFields ? ['invoice_id', 'invoice_date'] : [],
+            ],
+            columnVisibility: {
+                invoice_date: false,
+                error: false
+            }
+        }
+    })
 
     const revertPayment = revertReason => {
-        if(!props.canRevertPayments) {
+        if(!canRevertPayments) {
             console.error("Does not have permission to revert payments")
             return
         }
@@ -78,76 +133,23 @@ export default function PaymentTable(props) {
             return
         }
 
-        const rowData = revertRow.getData()
-        if(!rowData.can_be_reverted) {
+        if(!revertRow.can_be_reverted) {
             console.error("This payment may not be reverted at this time.")
             return
         }
 
         const data = {reason: revertReason}
-        if(confirm(`Are you certain you would like to revert the payment from ${rowData.date.toLocaleString()} for ${rowData.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
-            api.delete(`/payments/${rowData.payment_id}`, data).then(response => {
+        if(confirm(`Are you certain you would like to revert the payment from ${revertRow.date.toLocaleString()} for ${revertRow.amount.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})}? \n\n This action can not be undone.`))
+            api.delete(`/payments/${revertRow.payment_id}`, data).then(response => {
                 setRevertRow(null)
                 setRevertReason('')
                 props.refresh()
             })
     }
 
-    const columns = [
-        ...props.canRevertPayments ? [
-            {
-                formatter: cell => {
-                    if(cell.getRow().getData().can_be_reverted)
-                        return "<button class='btn btn-sm btn-warning'><i class='fas fa-undo'></i></button>"
-                    return ''
-                },
-                titleFormatter: () => "<i class='fas fa-undo'></i>",
-                width: 50,
-                hozAlign: 'center',
-                headerHozAlign: 'center',
-                headerSort: false,
-                print: false,
-                cellClick: (e, cell) => setRevertRow(cell.getRow())
-            }
-        ] : [],
-        {title: 'Payment ID', field: 'payment_id', visible: false},
-        ...props.showAccountFields ? [
-            {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/invoices/', history.push), sorter: 'number', headerFilter: true},
-            {title: 'Invoice Date', field: 'invoice_date'},
-        ] : [],
-        {title: 'Payment Received On', field: 'date'},
-        {title: 'Payment Method', field: 'payment_type', headerFilter: true, formatter: cell => {
-            const data = cell.getRow().getData()
-            if(data.has_stripe_transaction)
-                return `${cell.getValue()}     <i class='fab fa-stripe fa-lg fa-border' style='float: right'></i>`
-            return cell.getValue()
-        }},
-        {title: 'Reference Number', field: 'reference_value', headerFilter: true},
-        {title: 'Comment', field: 'comment', formatter: 'textarea'},
-        {title: 'Amount', field: 'amount', formatter: 'money', formatterParams: {thousand: ',', symbol: '$'}, sorter: 'number'},
-        {title: 'Payment Status', field: 'stripe_status', formatter: formatPaymentIntentStatus},
-        {title: 'Error', field: 'error', visible: false},
-        {title: 'stripe_payment_intent_id', field: 'stripe_payment_intent_id', visible: false},
-        {title: 'stripe_refund_id', field: 'stripe_refund_id', visible: false},
-        {title: 'receipt_url', field: 'receipt_url', visible: false},
-        {title: 'can_be_reverted', field: 'can_be_reverted', visible: false},
-    ]
-
     return (
         <Card.Body>
-            <ReactTabulator
-                data={props.payments}
-                columns={columns}
-                initialSort={[{column: 'date', dir: 'desc'}]}
-                maxHeight='75vh'
-                options={{
-                    layout: 'fitColumns',
-                    pagination: 'local',
-                    paginationSize: 10
-                }}
-                printAsHtml={true}
-                printStyled={true}
-            />
+            <MaterialReactTable table={paymentsTable} />
             <Modal show={revertRow != null} onHide={() => setRevertRow(null)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Please select a reason</Modal.Title>

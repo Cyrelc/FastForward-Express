@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Card, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
-import {ReactTabulator} from 'react-tabulator'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -11,14 +11,12 @@ import {useAPI} from '../../contexts/APIContext'
  */
 
 const columns = [
-    {title: 'Selection Id', field: 'selection_id'},
-    {title: 'Name', field: 'name'},
-    {title: 'Value', field: 'value'},
-    {title: 'Type', field: 'type', formatter: cell => {
-        const data = cell.getData()
-        console.log(data.value)
+    {header: 'Selection Id', accessorKey: 'selection_id'},
+    {header: 'Name', accessorKey: 'name'},
+    {header: 'Value', accessorKey: 'value'},
+    {header: 'Type', accessorKey: 'type', Cell: ({row}) => {
+        const data = row.original
         const selectionType = selectionTypes.find(t => t.value == data.type)
-        console.log(selectionType)
         return selectionType?.label || data.type
     }}
 ]
@@ -41,6 +39,14 @@ export default function SelectionsTab(props) {
     const [selectionValue, setSelectionValue] = useState('')
 
     const api = useAPI()
+
+    const selectionsTable = useMaterialReactTable({
+        columns,
+        data: selections,
+        initialState: {
+            density: 'compact'
+        }
+    })
 
     useEffect(() => {
         const transformedName = selectionName.replace(/\W+/g, '_')
@@ -127,15 +133,7 @@ export default function SelectionsTab(props) {
                 </Row>
             </Card.Body>
             <Card.Body>
-                <ReactTabulator
-                    columns={columns}
-                    data={selections}
-                    options={{
-                        layout: 'fitColumns',
-                        pagination: 'local',
-                        paginationSize: 20
-                    }}
-                />
+                <MaterialReactTable table={selectionsTable} />
             </Card.Body>
         </Card>
     )

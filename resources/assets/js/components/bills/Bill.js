@@ -111,7 +111,7 @@ export default function Bill(props) {
                         billDispatch({type: 'CONFIGURE_COPY', payload: data})
                         chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     }
-                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date()})
+                    billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: new Date})
                 }
 
                 billDispatch({type: 'SET_IS_LOADING', payload: false})
@@ -313,6 +313,16 @@ export default function Bill(props) {
                 .then(response => {
                     if(billId) {
                         toast.success(`Bill ${billId} was successfully updated!`)
+                        if(response.warnings?.length)
+                            toast.warn(
+                                <ul>
+                                    {Object.keys(response.warnings).map(key => 
+                                        <li key={key}>
+                                            {response.warnings[key]}
+                                        </li>
+                                    )}
+                                </ul>
+                            )
                         configureBill()
                     } else {
                         toast.success(`Bill ${response.id} was successfully created`, {

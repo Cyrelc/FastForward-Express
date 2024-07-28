@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Button, Card, Col, FormControl, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 
 import Charge from './Charge'
 import useCharge from './hooks/useCharge'
@@ -58,6 +58,7 @@ export default function BillingTab({billState, chargeState}) {
     const [chargeAccount, setChargeAccount] = useState([])
     const [chargeType, setChargeType] = useState({})
     const [chargeEmployee, setChargeEmployee] = useState({})
+    const [tabulatorTable, setTabulatorTable] = useState()
 
     const {
         activeRatesheet,
@@ -95,6 +96,36 @@ export default function BillingTab({billState, chargeState}) {
             }
         }
     }, [chargeAccount])
+
+    const tabulatorTableRef = useRef()
+
+    useEffect(() => {
+        if(!tabulatorTable && tabulatorTableRef.current) {
+            const newTabulator = new Tabulator(tabulatorTableRef.current, {
+                columns: [
+                    {title: 'Name', field: 'name', headerSort: false},
+                    {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
+                ],
+                data: rateTable,
+                groupBy: 'type',
+                groupHeader: lineItemTypeGroupFormatter,
+                index: 'line_item_id',
+                maxHeight: '55vh',
+                movableRows: true,
+                movableRowsReceiver: false,
+                movableRowsSender: true,
+                movableRowsConnectedTables: ['#lineItemDestination'],
+                layout: 'fitColumns'
+            })
+
+            setTabulatorTable(newTabulator)
+        }
+    }, [tabulatorTableRef, tabulatorTable])
+
+    useEffect(() => {
+        if(tabulatorTable)
+            tabulatorTable.setData(rateTable)
+    }, [rateTable])
 
     useEffect(() => {
         if(!activeRatesheet)
@@ -323,27 +354,7 @@ export default function BillingTab({billState, chargeState}) {
                     <Card border='dark' style={{padding: '0px'}}>
                         <Card.Header><h4 className='text-muted'>Line Items</h4></Card.Header>
                         <Card.Body style={{padding: '0px'}}>
-                            {(activeRatesheet && rateTable?.length) &&
-                                <ReactTabulator
-                                    id='lineItemSource'
-                                    columns={[
-                                        {title: 'Name', field: 'name', headerSort: false},
-                                        {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
-                                    ]}
-                                    data={rateTable}
-                                    options={{
-                                        groupBy: 'type',
-                                        groupHeader: (value, count, data, group) => lineItemTypeGroupFormatter(value, count, data, group),
-                                        index: 'line_item_id',
-                                        maxHeight: '700px',
-                                        movableRows: true,
-                                        movableRowsReceiver: false,
-                                        movableRowsSender: true,
-                                        movableRowsConnectedTables: ['#lineItemDestination'],
-                                        layout: 'fitColumns'
-                                    }}
-                                />
-                            }
+                            <div ref={tabulatorTableRef} id='lineItemSource'></div>
                         </Card.Body>
                     </Card>
                 </Col>

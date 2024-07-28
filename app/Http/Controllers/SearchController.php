@@ -11,6 +11,8 @@ class SearchController extends Controller {
     public function search(Request $req) {
         $searchRepo = new Repos\SearchRepo();
         $searchTerms = explode(';', $req->input('query'));
+        if($searchTerms === '')
+            abort(400, 'Missing query');
         $searchResults = [];
 
         foreach($searchTerms as $searchTerm) {

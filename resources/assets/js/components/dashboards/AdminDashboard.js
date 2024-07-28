@@ -1,23 +1,33 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {Card, Col, Row} from 'react-bootstrap'
 import {DateTime} from 'luxon'
+import {LinkContainer} from 'react-router-bootstrap'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 import {ResponsiveCalendar} from '@nivo/calendar'
 import {ResponsiveLine} from '@nivo/line'
-import {ReactTabulator} from 'react-tabulator'
-import {LinkContainer} from 'react-router-bootstrap'
 
+import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {useAPI} from '../../contexts/APIContext'
+
+const commonTableSettings = {
+    enableBottomToolbar: false,
+    enableColumnActions: false,
+    enablePagination: false,
+    enableToolbarInternalActions: false,
+    enableTopToolbar: false,
+}
 
 export default function AdminDashboard(props) {
     const calendarEndDate = DateTime.now().startOf('year').toJSDate()
     const calendarStartDate = DateTime.now().endOf('year').minus({years: 1}).toJSDate()
 
     const [calendarHeatChart, setCalendarHeatChart] = useState([])
-    const [employeeBirthdays, setEmployeeBirthdays] = useState(undefined)
-    const [employeeExpiries, setEmployeeExpiries] = useState(undefined)
+    const [employeeBirthdays, setEmployeeBirthdays] = useState([])
+    const [employeeExpiries, setEmployeeExpiries] = useState([])
     const [loading, setLoading] = useState(true)
-    const [upcomingHolidays, setUpcomingHolidays] = useState(undefined)
+    const [upcomingHolidays, setUpcomingHolidays] = useState([])
     const [ytdChart, setYtdChart] = useState([])
+
     const api = useAPI()
 
     useEffect(() => {
@@ -28,44 +38,64 @@ export default function AdminDashboard(props) {
                 setEmployeeExpiries(response.employee_expiries)
                 setYtdChart(response.ytd_chart)
                 setUpcomingHolidays(response.upcoming_holidays)
+            }).finally(
                 setLoading(false)
-            })
+            )
     }, [])
 
-    const birthdayFormatter = cell => {
-        const date = Date.parse(cell.getValue())
-        const today = new Date()
-        if(date === today)
-            cell.getElement().style.backgroundColor = 'lightgreen'
-        return cell.getValue()
-    }
+    const employeeBirthdayColumns = useMemo(() => [
+        {accessorKey: 'employee_name', header: 'Employee'},
+        {accessorKey: 'birthday', header: 'Birthday'}
+    ], [])
 
-    const employeeBirthdayColumns = [
-        {title: 'Employee', field: 'employee_name', formatter: cell => birthdayFormatter(cell)},
-        {title: 'Birthday', field: 'birthday',formatter: cell => birthdayFormatter(cell)}
-    ]
+    const employeeBirthdayTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: employeeBirthdayColumns,
+        data: employeeBirthdays,
+        initialState: {
+            density: 'compact',
+        },
+    })
 
-    const employeeExpiryColumns = [
-        {title: 'Employee', field: 'employee_id', formatter: 'link', formatterParams: {labelField: 'employee_name', urlPrefix: '/app/employees/'}},
-        {title: 'Date', field: 'date', formatter: cell => {
-            const date = Date.parse(cell.getValue())
-            const today = new Date()
-            if(date < today)
-                cell.getElement().style.backgroundColor = 'salmon'
-            else
-                cell.getElement().style.backgroundColor = 'darkorange'
-            return cell.getValue()
-        }},
-        {title: 'Type', field: 'type', visible: false}
-    ]
+    const employeeExpiryColumns = useMemo(() => [
+        {
+            header: 'Employee',
+            accessorKey: 'employee_id',
+            Cell: ({renderedCellValue, row}) => (
+                <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} urlPrefix='/employees/' labelField='employee_name' />
+            ),
+            size: 130
+        },
+        {header: 'Date', accessorKey: 'date', size: 100, grow: false},
+        {header: 'Type', accessorKey: 'type', size: 130}
+    ])
 
-    const holidayColumns = [
-        {title: 'Name', field: 'name'},
-        {title: 'Date', field: 'value', formatter: row => (new Date(row.getData().value)).toDateString()}
-    ]
+    const employeeExpiriesTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: employeeExpiryColumns,
+        data: employeeExpiries,
+        initialState: {
+            density: 'compact',
+        }
+    })
+
+    const holidayColumns = useMemo(() => ([
+        {header: 'Name', accessorKey: 'name'},
+        {header: 'Date', accessorKey: 'value', Cell: props => (new Date(props.value)).toDateString()}
+    ]), [])
+
+    const holidayTable = useMaterialReactTable({
+        ...commonTableSettings,
+        columns: holidayColumns,
+        data: upcomingHolidays,
+        initialState: {
+            density: 'compact',
+            sorting: [{id: 'date', asc: true}]
+        }
+    })
 
     return (
-        <Row className='justify-content-md-center'>
+        <Row className='justify-content-md-center' style={{margin: 0}}>
             <Col md={12}>
                 <Card>
                     <Card.Header>
@@ -78,32 +108,20 @@ export default function AdminDashboard(props) {
                         <Card.Body>
                             <Row>
                                 <Col md={3}>
-                                    <h4>Employee Birthdays</h4>
-                                    <ReactTabulator
-                                        columns={employeeBirthdayColumns}
-                                        data={employeeBirthdays}
-                                    />
+                                    <h4 className='text-muted'>Employee Birthdays</h4>
+                                    <MaterialReactTable table={employeeBirthdayTable} />
                                     <hr/>
-                                    <h4>Employee Expiries</h4>
-                                    <ReactTabulator
-                                        columns={employeeExpiryColumns}
-                                        data={employeeExpiries}
-                                        options={{
-                                            groupBy: 'type'
-                                        }}
-                                    />
+                                    <h4 className='text-muted'>Employee Expiries</h4>
+                                    <MaterialReactTable table={employeeExpiriesTable} />
                                     <hr/>
                                     <LinkContainer to='/appSettings#scheduling'>
-                                        <a><h4>Upcoming Holidays</h4></a>
+                                        <a><h4 className='text-muted'>Upcoming Holidays</h4></a>
                                     </LinkContainer>
-                                    <ReactTabulator
-                                        columns={holidayColumns}
-                                        data={upcomingHolidays}
-                                    />
+                                    <MaterialReactTable table={holidayTable} />
                                 </Col>
                                 <Col md={9}>
                                     <h4>Bill Counts Per Day Year Over Year</h4>
-                                    <div style={{height: '50vh', width: '100%', marginTop: '-60px'}}>
+                                    <div style={{height: '50%', width: '100%', marginTop: '-80px'}}>
                                         <ResponsiveCalendar
                                             data={calendarHeatChart}
                                             from={calendarStartDate}
@@ -113,7 +131,7 @@ export default function AdminDashboard(props) {
                                     </div>
                                     <hr/>
                                     <h4>Income/Outgoing</h4>
-                                    <div style={{height: '50vh', width: '100%', marginTop: '-30px'}}>
+                                    <div style={{height: '40vh', width: '100%', marginTop: '-30px'}}>
                                         <ResponsiveLine
                                             animate={true}
                                             axisBottom={{

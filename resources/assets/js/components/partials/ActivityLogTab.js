@@ -1,98 +1,97 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Card, Table} from 'react-bootstrap';
-import {TabulatorFull as Tabulator} from 'tabulator-tables'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
-const transformAttributes = data => {
-    if(!data.attributes)
-        return data
-    return Object.keys(data.attributes).map(key => {
-        if(data.old)
-            return {key: key, new: data.attributes[key], old: data.old[key]}
-        return {key: key, new: data.attributes[key], old: null}
-    })
-}
+const ExpandableTable = ({ properties }) => {
+    const columns = useMemo(() => [
+        { accessorKey: 'key', header: 'Key' },
+        { accessorKey: 'oldValue', header: 'Old Value', enableHiding: !!properties.old },
+        { accessorKey: 'newValue', header: properties.old ? 'New Value' : 'Value' },
+    ].filter(col => col.accessorKey !== 'oldValue' || properties.old), [properties]);
 
-const activityLogColumns = [
-    {title: 'Date Modified', field: 'updated_at'},
-    // subject type is stored as the absolute location of the class in PHP, so generally App\Models\ClassName - additionally another \ is added when storing in the database to escape the backslash in the path name
-    {
-        title: 'Type',
-        field: 'subject_type',
-        formatter: cell => {
-            let value = cell.getValue().split('\\').slice(-1)[0]
+    const data = useMemo(() =>
+        Object.keys(properties.attributes).map(key => ({
+            key,
+            newValue: properties.attributes[key],
+            oldValue: properties?.old ? properties.old[key] : null
+        })), [properties]);
 
-            value = value.split('').map((char, index) => {
-                return (char === char.toUpperCase() && index !== 0) ? ' ' + char : char
-            }).join('')
-            return value
-        },
-        headerFilter: true,
-    },
-    {title: 'Subject ID', field: 'subject_id'},
-    {title: 'Action', field: 'description', headerFilter: true},
-    {title: 'Modified By', field: 'user_name', headerFilter: true},
-]
+    const table = useMaterialReactTable({
+        columns,
+        data,
+        enableSorting: true,
+        enableGlobalFilter: true,
+        initialState: {density: 'compact'},
+    });
+
+    return <MaterialReactTable table={table} />;
+};
 
 export default function ActivityLogTab(props) {
     const {activityLog} = props
-    const tableRef = useRef(null)
 
-    useEffect(() => {
-        if(tableRef.current) {
-            new Tabulator(tableRef.current, {
-                columns: activityLogColumns,
-                data: activityLog,
-                height: '70vh',
-                initialSort: 'updated_at',
-                layout: 'fitColumns',
-                pagination: 'local',
-                paginationSize: 5,
-                rowFormatter: row => {
-                    let data = row.getData().properties
-                    try {
-                        data = JSON.parse(row.getData().properties)
-                    } catch (error) {}
+    const columns = useMemo(() => [
+        { accessorKey: 'updated_at', header: 'Updated At' },
+        {
+            accessorKey: 'subject_type',
+            header: 'Subject Type',
+            Cell: ({row}) => {
+                let value = row.original.subject_type.split('\\').slice(-1)[0]
 
-                    data = transformAttributes(data)
-                    if(!data.length)
-                        return
-                    //create and style holder elements
-                    var holderEl = document.createElement("div");
-                    var tableEl = document.createElement("div");
+                value = value.split('').map((char, index) => {
+                    return (char === char.toUpperCase() && index !== 0) ? ' ' + char : char
+                }).join('')
+                return value
+            }
+        },
+        { accessorKey: 'subject_id', header: 'Subject ID' },
+        { accessorKey: 'description', header: 'Description' },
+        { accessorKey: 'user_name', header: 'User Name' },
+    ], []);
 
-                    holderEl.style.boxSizing = "border-box";
-                    holderEl.style.padding = "10px 30px 10px 10px";
-                    holderEl.style.borderTop = "1px solid #333";
-                    holderEl.style.borderBotom = "1px solid #333";
-
-                    tableEl.style.border = "1px solid #333";
-
-                    holderEl.appendChild(tableEl);
-
-                    row.getElement().appendChild(holderEl);
-
-                    new Tabulator(tableEl, {
-                        layout:'fitColumns',
-                        data: data,
-                        columns:[
-                            {title:"Attribute", field:"key"},
-                            {title:"New Value", field:"new"},
-                            ...data[0].old ? [{title:"Old Value", field:"old"}] : [],
-                        ],
-                        rowFormatter: row => {
-                            row.getElement().classList.add('table-dark')
-                            row.getElement().classList.add('bg-dark')
+    const table = useMaterialReactTable({
+        columns,
+        data: activityLog,
+        enableExpandAll: false,
+        filterFns: {
+            custom: (row, id, filterValue) => {
+                const rowString = Object.keys(row.original)
+                    .map(key => {
+                        const cellValue = row.original[key];
+                        if (typeof cellValue === 'object') {
+                            return JSON.stringify(cellValue);
                         }
+                        return String(cellValue);
                     })
-                },
-            })
-        }
-    }, [tableRef])
+                    .join(' ');
+                return rowString.toLowerCase().includes(filterValue.toLowerCase());
+            }
+        },
+        enableGlobalFilter: true,
+        globalFilterFn: 'custom',
+        initialState: {
+            density: 'compact',
+            sorting: [{id: 'updated_at', desc: true}],
+        },
+        muiDetailPanelProps: () => ({
+            sx: theme => ('rgba(255,210,244,0.1)'),
+        }),
+        muiExpandButtonProps: ({ row }) => ({
+            onClick: () => table.setExpanded({ [row.id]: !row.getIsExpanded() }),
+            sx: {
+                transform: row.getIsExpanded() ? 'rotate(180deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.2s',
+            },
+        }),
+        renderDetailPanel: ({ row }) => (
+            <ExpandableTable properties={row.original.properties} />
+        ),
+    });
 
     return (
         <Card border='dark'>
             <Card.Body>
-                <div ref={tableRef}/>
+                <MaterialReactTable table={table} />
             </Card.Body>
         </Card>
     )

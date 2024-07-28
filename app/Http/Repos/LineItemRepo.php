@@ -19,9 +19,10 @@ class LineItemRepo {
     }
 
     public function Delete($lineItemId) {
-        $lineItem = LineItem::where('line_item_id', $lineItemId)->first();
-        if($lineItem->pickup_manifest_id || $lineItem->delivery_manifest_id || $lineItem->invoice_id || $lineItem->paid)
+        $lineItem = LineItem::find($lineItemId);
+        if($lineItem->pickup_manifest_id || $lineItem->delivery_manifest_id || $lineItem->invoice_id || $lineItem->paid) {
             abort(403, 'Unable to delete line item after it has been invoiced, manifested, or paid');
+        }
 
         $lineItem->delete();
         return;
@@ -179,8 +180,8 @@ class LineItemRepo {
         return $old;
     }
 
-    public function UpdateAsBill($lineItem) {
-        $old = LineItem::where('line_item_id', $lineItem['line_item_id'])->first();
+    public function updateAsBill($lineItem) {
+        $old = LineItem::find($lineItem['line_item_id']);
 
         $old->delivery_driver_id = $lineItem['delivery_driver_id'];
         $old->driver_amount = $lineItem['driver_amount'];

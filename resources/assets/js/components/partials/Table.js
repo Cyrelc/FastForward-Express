@@ -85,18 +85,16 @@ export default function Table(props) {
                 printStyled: true,
                 initialSort: props.initialSort,
                 rowFormatter: props.rowFormatter ?? null,
-                selectable: props.selectable ?? false,
-                selectableCheck: () => {return props.selectable ? true : false}
-            })
-
-            newTabulator.on('dataSorted', (sorters, rows) => {
-                if(rows.length > 0) {
-                    setSortedList()
-                }
+                selectableRows: props.selectableRows ?? false,
+                selectableRowsCheck: () => {return props.selectableRows ? true : false}
             })
 
             newTabulator.on('tableBuilt', () => setTableBuilt(true))
-            newTabulator.on('dataSorted', (column, data) => setSortedList(column, data, 'dataSorted'))
+            newTabulator.on('dataSorted', (column, data) => {
+                if(data && props.indexName)
+                    localStorage.setItem(`${props.tableName}.sortedList`, data.map(row => row.getData()[props.indexName]))
+            }
+        )
 
             setTable(newTabulator)
         }
@@ -104,7 +102,7 @@ export default function Table(props) {
 
     // Handle table data changes
     useEffect(() => {
-        if(table)
+        if(table && !isLoading)
             table.setData(tableData)
     }, [tableData])
 
@@ -192,12 +190,6 @@ export default function Table(props) {
             setQueries(response)
             setQueryName('')
         })
-    }
-
-    // TODO: move to table "On data change" event
-    const setSortedList = (column, data, callingFunction) => {
-        if(data && props.indexName)
-            localStorage.setItem(`${props.tableName}.sortedList`, data.map(row => row.getData()[props.indexName]))
     }
 
     /**

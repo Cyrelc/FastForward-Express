@@ -17,7 +17,7 @@ export default function SchedulingTab(props) {
                 props.setBlockedDates(response.blocked_dates.map(date => {
                     return {
                         ...date,
-                        date: Date.parse(date.value)
+                        date: new Date(date.value)
                     }
                 }))
                 setBlockedDate(new Date())
@@ -31,7 +31,7 @@ export default function SchedulingTab(props) {
                 .then(response => {
 
                     const blockedDates = response.blocked_dates.map(blocked => {
-                        return {...blocked, date: Date.parse(blocked.value)}
+                        return {...blocked, date: new Date(blocked.value)}
                     })
                     props.setBlockedDates(blockedDates)
                 })

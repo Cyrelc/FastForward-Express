@@ -35,7 +35,7 @@ class PermissionModelFactory {
                 'editInvoicing' => $user->can('updateInvoicing', $account),
                 'editPaymentMethods' => $user->can('updatePaymentMethods', $account),
                 'editPayments' => $user->can('updatePayments', $account),
-                'revertPayments' => $user->can('undo', Payment::class),
+                'revertPayments' => $user->can('revertAny', Payment::class),
 
                 'impersonateAccountUsers' => $user->can('impersonateAccountUsers', $account),
     

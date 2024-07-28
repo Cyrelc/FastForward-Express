@@ -112,9 +112,12 @@ export default class ApiService {
                 default:
                     if(mostRecentToastId)
                         toast.dismiss(mostRecentToastId)
-                    mostRecentToastId = toast.error(displayErrorMessages(errorData.errors), {autoClose: false});
+                    if(errorData.errors)
+                        mostRecentToastId = toast.error(displayErrorMessages(errorData.errors), {autoClose: false});
+                    else
+                        mostRecentToastId = toast.error(errorData.message, {autoClose: false})
                     break
-            }
+                }
 
             throw new Error('Server responded with an error', {cause: errorData})
         }

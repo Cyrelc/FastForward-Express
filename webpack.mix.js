@@ -1,6 +1,5 @@
 let mix = require('laravel-mix');
-const path = require('path');
-const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
 /*
  |--------------------------------------------------------------------------
@@ -12,22 +11,13 @@ const webpack = require('webpack');
  | file for the application as well as bundling up all the JS files.
  |
  */
-// mix.webpackConfig({
-//    resolve: {
-//       alias: {
-//          '@': path.resolve(__dirname, 'resources/assets/js/components')
-//       },
-//       extensions: ['.js', '.jsx']
-//    }
-// })
-// mix.alias({
-//    '@': path.join(__dirname, 'resources/assets/js/components')
-// })
+
 mix.js('resources/assets/js/app.js', 'public/compiled_js')
    .react()
    .sass('resources/assets/sass/app.scss', 'public/css')
    .sass('resources/assets/sass/invoice_pdf.scss', 'public/css')
-   .sass('resources/assets/sass/manifest_pdf.scss', 'public/css');
+   .sass('resources/assets/sass/manifest_pdf.scss', 'public/css')
+   .sourceMaps();
 
 mix.scripts([
    'node_modules/bootstrap/dist/js/bootstrap.min.js',
@@ -44,4 +34,16 @@ mix.styles([
 
 if(mix.inProduction()) {
    mix.version();
+   mix.webpackConfig({
+      optimization: {
+         minimize: true,
+         minimizer: [new TerserPlugin({
+            terserOptions: {
+               compress: {
+                  drop_console: true,
+               }
+            }
+         })]
+      }
+   })
 }

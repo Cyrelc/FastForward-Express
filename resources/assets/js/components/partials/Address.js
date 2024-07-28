@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {Card, Col, FormCheck, FormControl, InputGroup, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
-import {Autocomplete, GoogleMap, LoadScript, Marker} from '@react-google-maps/api'
+import {Autocomplete, GoogleMap, Marker, LoadScript} from '@react-google-maps/api'
 import Select from 'react-select'
 
 const defaultCenter = {lat: 53.544389, lng: -113.49072669}
@@ -119,28 +119,23 @@ export default function Address(props) {
             <Card.Body>
                 <Row className='justify-content-md-center'>
                     {(showAddressSearch && clearAutoComplete) &&
-                        // <LoadScript
-                        //     googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
-                        //     libraries={['places', 'drawing', 'geometry']}
-                        // >
-                            <Col md={12} style={{display: type === 'Search' ? 'block' : 'none'}}>
-                                <InputGroup>
-                                    <InputGroup.Text>Search: </InputGroup.Text>
-                                    <Autocomplete
-                                        bounds={{north: mapCenter.lat + 1, south: mapCenter.lat - 1, east: mapCenter.lng + 1, west: mapCenter.lng - 1}}
-                                        className='form-control autocomplete-wrapper'
-                                        fields={['geometry', 'name', 'formatted_address', 'place_id']}
-                                        location={mapCenter}
-                                        onChange={console.log}
-                                        onLoad={setAutocomplete}
-                                        onPlaceChanged={updateAddress}
-                                        radius={100}
-                                    >
-                                        <FormControl type='text' readOnly={readOnly}/>
-                                    </Autocomplete>
-                                </InputGroup>
-                            </Col>
-                        // </LoadScript>
+                        <Col md={12} style={{display: type === 'Search' ? 'block' : 'none'}}>
+                            <InputGroup>
+                                <InputGroup.Text>Search: </InputGroup.Text>
+                                <Autocomplete
+                                    bounds={{north: mapCenter.lat + 1, south: mapCenter.lat - 1, east: mapCenter.lng + 1, west: mapCenter.lng - 1}}
+                                    className='form-control autocomplete-wrapper'
+                                    fields={['geometry', 'name', 'formatted_address', 'place_id']}
+                                    location={mapCenter}
+                                    onChange={console.log}
+                                    onLoad={setAutocomplete}
+                                    onPlaceChanged={updateAddress}
+                                    radius={100}
+                                >
+                                    <FormControl type='text' readOnly={readOnly}/>
+                                </Autocomplete>
+                            </InputGroup>
+                        </Col>
                     }
                     {type === 'Manual' ?
                         <Col md={12} style={{backgroundColor: 'orange', fontSize: 12}}>
@@ -203,24 +198,18 @@ export default function Address(props) {
                     </Col>
                     <br/>
                     <Col md={12}>
-                        {/* Disabling until the entire react component can be switched to GoogleMapAPI library as this interferes */}
-                        {/* <LoadScript
-                            googleMapsApiKey={process.env.MIX_APP_PLACES_API_KEY}
-                            libraries={['places', 'drawing', 'geometry']}
-                        > */}
-                            <GoogleMap
-                                center={mapCenter}
-                                loading='async'
-                                mapContainerStyle={{height: '250px', marginTop: 20}}
-                                onClick={handleMapClickEvent}
-                                options={{
-                                    disableDefaultUI: true
-                                }}
-                                zoom={zoom}
-                            >
-                                {markerCoords && <Marker position={markerCoords}/>}
-                            </GoogleMap>
-                        {/* </LoadScript> */}
+                        <GoogleMap
+                            center={mapCenter}
+                            loading='async'
+                            mapContainerStyle={{height: '250px', marginTop: 20}}
+                            onClick={handleMapClickEvent}
+                            options={{
+                                disableDefaultUI: true
+                            }}
+                            zoom={zoom}
+                        >
+                            {markerCoords && <Marker position={markerCoords}/>}
+                        </GoogleMap>
                     </Col>
                 </Row>
             </Card.Body>

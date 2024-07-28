@@ -7,6 +7,7 @@ use App\Http\Models\Permission\PermissionModelFactory;
 use App\Http\Models\User\UserModelFactory;
 use App\Http\Resources\PaymentResource;
 use App\Models\Account;
+use App\Models\Address;
 use App\Models\Payment;
 use App\Models\Permission;
 use App\Models\User;

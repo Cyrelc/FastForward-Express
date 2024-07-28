@@ -24,7 +24,8 @@ class AccountUserController extends Controller {
     public function checkIfAccountUserExists(Request $req) {
         $userRepo = new Repos\UserRepo();
         foreach($req->email_addresses as $email) {
-            $user = $userRepo->GetUserByPrimaryEmail($email['email']);
+            $emailAddress = trim($email['email']);
+            $user = $userRepo->GetUserByPrimaryEmail($emailAddress);
             if($user && $user->accountUsers) {
                 $accountRepo = new Repos\AccountRepo();
                 $contact = $user->accountUsers[0]->contact;
@@ -74,10 +75,14 @@ class AccountUserController extends Controller {
 
             $accountUser->delete();
 
+            // if that was the only account the user was linked to then we can delete the remaining data
+            if(AccountUser::where('contact_id', $contactId)->count() == 0) {
+                $contactService = new ContactService();
+                $contactService->delete($accountUser->contact_id);
+
+                User::find($accountUser->user_id)->delete();
+            }
             DB::commit();
-            $contactService = new ContactService();
-            $contactService->delete($accountUser->contact_id);
-            User::find($accountUser->user_id)->delete();
         }
         return response()->json([
             'success' => true
@@ -131,6 +136,10 @@ class AccountUserController extends Controller {
         $userRepo->LinkAccountUser($contactId, $accountId);
 
         DB::commit();
+
+        return response()->json([
+            'success' => true,
+        ]);
     }
 
     public function setPrimary(Request $req, $accountId, $contactId) {

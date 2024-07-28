@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {Button, ButtonGroup, Card, Col, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {useHistory} from 'react-router-dom'
-import {ReactTabulator} from 'react-tabulator'
+import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {toast} from 'react-toastify'
 
 import LinkLineItemModal from './modals/LinkLineItemModal'
@@ -81,9 +81,10 @@ export default function Charge(props) {
     const [showDetails, setShowDetails] = useState(false)
     const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
+    const [table, setTable] = useState()
 
     const api = useAPI()
-    const tableRef = useRef()
+    const tableRef = useRef(null)
     const history = useHistory()
 
     const {
@@ -96,8 +97,55 @@ export default function Charge(props) {
     } = props
 
     useEffect(() => {
-        if(tableRef?.current?.table)
-            tableRef.current.table.setGroupHeader(groupHeaderFormatter)
+        if(!table && tableRef.current) {
+            const newTabulator = new Tabulator(tableRef.current, {
+                columns: chargeTableColumns(charge.chargeType),
+                data: charge.lineItems,
+                groupBy: (data) => groupBy(data, charge),
+                groupHeader: groupHeaderFormatter,
+                initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+                layout: 'fitColumns',
+                movableRows: true,
+                movableRowsConnectedTables: ['#lineItemSource'],
+                movableRowsReceiver: 'add'
+            })
+
+            newTabulator.on('cellEdited', cell => {
+                const field = cell.getField()
+                const row = cell.getRow()
+                const rowData = row.getData()
+                if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
+                    row.update({driver_amount: cell.getValue()})
+                props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
+            })
+
+            newTabulator.on('rowAdded', row => {
+                row.getTable().setGroupBy(data => groupBy(data, charge))
+                const data = row.getTable().getData()
+                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+            })
+
+            newTabulator.on('rowDeleted', row => {
+                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+                const data = row.getTable().getData()
+                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+            })
+
+            setTable(newTabulator)
+        }
+    })
+
+    useEffect(() => {
+        if(table)
+            table.setData(charge.lineItems)
+    }, [charge.lineItems])
+
+    useEffect(() => {
+        if(table) {
+            table.setColumns(chargeTableColumns(charge.chargeType))
+            table.setGroupHeader(groupHeaderFormatter)
+        }
     }, [showDetails])
 
     const actionCellContextMenu = cell => {
@@ -345,42 +393,7 @@ export default function Charge(props) {
                     </Row>
                 </Card.Header>
                 <Card.Body>
-                    <ReactTabulator
-                        ref={tableRef}
-                        columns={chargeTableColumns(charge.chargeType)}
-                        data={charge.lineItems}
-                        events={{
-                            cellEdited: cell => {
-                                const field = cell.getField()
-                                const row = cell.getRow()
-                                const rowData = row.getData()
-                                if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
-                                    row.update({driver_amount: cell.getValue()})
-                                props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
-                            },
-                            rowAdded: row => {
-                                row.getTable().setGroupBy(data => groupBy(data, charge))
-                                const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                            },
-                            rowDeleted: row => {
-                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                                const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-                            }
-                        }}
-                        id='lineItemDestination'
-                        options={{
-                            groupBy: data => groupBy(data, charge),
-                            groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
-                            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                            layout: 'fitColumns',
-                            movableRows: true,
-                            movableRowsConnectedTables: ['#lineItemSource'],
-                            movableRowsReceiver: 'add',
-                        }}
-                />
+                    <div ref={tableRef} id='lineItemDestination'></div>
                 </Card.Body>
                 {showLinkLineItemModal &&
                     <LinkLineItemModal
