@@ -217,8 +217,6 @@ export default function billReducer(state, action) {
                 repeat_intervals
             } = payload
 
-            console.log(bill.time_delivered, new Date(bill.time_delivered))
-
             let newState = {
                 accounts: accounts,
                 billId: bill.bill_id,
