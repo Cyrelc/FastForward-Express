@@ -34,12 +34,8 @@ export default function EmergencyContacts (props) {
     }, [emergencyContacts, isLoading])
 
     const addEmergencyContact = () => {
-        fetch('/employees/emergencyContacts')
-        .then(response => {return response.json()})
-        .then(data => {
-            contact.setup(data)
-            setShowEmergencyContactModal(true)
-        })
+        contact.reset()
+        setShowEmergencyContactModal(true)
     }
 
     const deleteEmergencyContact = contactId => {

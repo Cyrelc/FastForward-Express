@@ -74,8 +74,8 @@ Route::middleware(['auth'])->controller(DispatchController::class)->prefix('disp
 });
 
 Route::middleware(['auth'])->controller(EmployeeController::class)->prefix('employees')->group(function() {
+    Route::get('/emergencyContacts/{id}', 'getEmergencyContact');
     Route::get('/{employeeId}/emergencyContacts', 'getEmergencyContacts');
-    Route::get('/emergencyContacts/{id?}', 'getEmergencyContact');
     Route::post('/{employeeId}/emergencyContacts', 'storeEmergencyContact');
     Route::delete('/{employeeId}/emergencyContacts/{contactId}', 'deleteEmergencyContact');
     Route::get('/create', 'getModel');
