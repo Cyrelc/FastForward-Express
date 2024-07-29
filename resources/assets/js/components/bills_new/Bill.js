@@ -30,7 +30,7 @@ export default function Bill(props) {
 
     const api = useAPI()
     const {authenticatedUser: {front_end_permissions: frontEndPermissions}} = useUser()
-    const {bill, charges, delivery, packages, pickup} = useBill()
+    const {bill, billing, delivery, packages, pickup} = useBill()
     const history = useHistory()
     // const lists = useLists()
     const location = useLocation()
@@ -362,7 +362,7 @@ export default function Bill(props) {
                     <Navbar.Brand style={{paddingLeft: '15px'}}>
                         <h4>{billId ? `Bill ID: B${billId}` : 'Create Bill'}</h4>
                     </Navbar.Brand>
-                    {/* {(billId && billState.charges) &&
+                    {/* {(billId && billing.charges) &&
                         <ListGroup.Item variant='warning'></ListGroup.Item>
                     } */}
                     {billId &&
@@ -489,7 +489,7 @@ export default function Bill(props) {
                     <Tab eventKey='#basic' title={<h4>Pickup/Delivery Info <i className='fas fa-map-pin'></i></h4>}>
                         <BasicTab
                             bill={bill}
-                            charges={charges}
+                            billing={billing}
                             delivery={delivery}
                             packages={packages}
                             pickup={pickup}
@@ -508,16 +508,18 @@ export default function Bill(props) {
                             />
                         </Tab>
                     }
-                    {/* {(billId ? permissions.viewBilling : permissions.createFull) &&
+                    {(billId ? permissions.viewBilling : permissions.createFull) &&
                         <Tab eventKey='#billing' title={<h4>Billing  <i className='fas fa-credit-card'></i></h4>}>
                             <BillingTab
-                                billDispatch={billDispatch}
-                                billState={billState}
-                                chargeState={chargeState}
-                                generateCharges={generateCharges}
+                                bill={bill}
+                                billing={billing}
+                                // billDispatch={billDispatch}
+                                // billState={billState}
+                                // chargeState={chargeState}
+                                // generateCharges={generateCharges}
                             />
                         </Tab>
-                    } */}
+                    }
                     {(permissions.viewActivityLog && bill.activityLog) &&
                         <Tab eventKey='#activity_log' title={<h4>Activity Log  <i className='fas fa-book-open'></i></h4>}>
                             <ActivityLogTab

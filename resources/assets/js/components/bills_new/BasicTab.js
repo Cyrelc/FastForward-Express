@@ -17,7 +17,7 @@ const filterDates = date => {
     return day !== 0 && day !== 6
 }
 
-export default function BasicTab({bill, charges, delivery, packages, pickup}) {
+export default function BasicTab({bill, billing, delivery, packages, pickup}) {
     const api = useAPI()
 
     const {
@@ -48,7 +48,7 @@ export default function BasicTab({bill, charges, delivery, packages, pickup}) {
         useImperial,
     } = packages
 
-    const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, invoiceIds} = charges
+    const {chargeAccount, chargeReferenceValue, chargeType, chargeTypes, invoiceIds} = billing
 
     const totalWeight = packageArray.reduce((acc, parcel) => acc + parcel.totalWeight ? parseFloat(parcel.totalWeight) : 0, 0)
     const totalCubedWeight = packageArray.reduce((acc, parcel) => acc + parcel.cubedWeight ? parseFloat(parcel.cubedWeight) : 0, 0)

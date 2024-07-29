@@ -3,14 +3,15 @@ import {toast} from 'react-toastify'
 
 function canChargeTableBeDeleted(charge) {
     // TODO - have to figure out how to get readOnly status
+    // oh... why not just check readOnly before calling the function? :think:
     // if(!charge || !!props.readOnly)
         return false
     return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
 }
 
-export default function useCharges({activeRatesheet}) {
-    // const [activeRatesheet, setActiveRatesheet] = useState({})
-    const [chargeAccount, setChargeAccount] = useState({})
+export default function useBilling({billId, permissions}) {
+    const [activeRatesheet, setActiveRatesheet] = useState({})
+    const [chargeAccount, setChargeAccount] = useState()
     const [charges, setCharges] = useState([])
     const [chargeReferenceValue, setChargeReferenceValue] = useState('')
     const [chargeType, setChargeType] = useState({})
@@ -26,14 +27,18 @@ export default function useCharges({activeRatesheet}) {
     const [isPickupManifested, setIsPickupManifested] = useState(false)
     const [manifestIds, setManifestIds] = useState([])
     const [ratesheets, setRatesheets] = useState([])
+    const [repeatInterval, setRepeatInterval] = useState()
+    const [repeatIntervals, setRepeatIntervals] = useState([])
+    const [skipInvoicing, setSkipInvoicing] = useState(false)
 
     useEffect(() => {
         let updatedInvoiceIds = []
         let updatedIsPickupManifested = false
         let updatedIsDeliveryManifested = false
         let updatedManifestIds = []
+        let updatedHasInterliner = false
         charges.forEach(charge => {
-            charge.line_items.forEach(lineItem => {
+            charge.lineItems.forEach(lineItem => {
                 if(lineItem.invoice_id && !updatedInvoiceIds.contains(lineItem.invoice_id))
                     updatedInvoiceIds.push(lineItem.invoice_id)
                 if(lineItem.pickup_manifest_id) {
@@ -46,12 +51,26 @@ export default function useCharges({activeRatesheet}) {
                     if(!manifestIds.contains(lineItem.delivery_manifest_id))
                         updatedManifestIds.push(lineItem.delivery_manifest_id)
                 }
+                if(lineItem.name === 'Interliner' && !lineItem.toBeDeleted)
+                    hasInterliner = true
             })
         })
         setInvoiceIds(updatedInvoiceIds)
         setIsPickupManifested(updatedIsPickupManifested)
         setIsDeliveryManifested(updatedIsDeliveryManifested)
+        setHasInterliner(updatedHasInterliner)
+        setIsInvoiced(updatedInvoiceIds.length)
     }, [charges])
+
+    // Set the ratesheet (for purposes of delivery type time primarily) - based on the currently selected charge Account on the basic page
+    useEffect(() => {
+        if(permissions.createBasic && billId && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
+            const ratesheet = ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
+            if(ratesheet) {
+                setActiveRatesheet(ratesheet)
+            }
+        }
+    }, [chargeAccount])
 
     const addCharge = () => {
         console.error('addCharge is not yet implemented')
@@ -187,17 +206,21 @@ export default function useCharges({activeRatesheet}) {
 
     const setup = data => {
         const {activeRatesheet, chargeAccount, chargeType, charges} = data
+        console.log(data)
 
-        console.log(charges, chargeTypes)
+        // console.log(charges, chargeTypes)
         setChargeTypes(data.charge_types)
         setInterliners(data.interliners)
         setRatesheets(data.ratesheets)
-        // setActiveRatesheet(activeRatesheet)
+        setActiveRatesheet(data.ratesheets[0])
+        setRepeatIntervals(data.repeat_intervals)
 
         if(data.bill?.bill_id) {
             // setChargeAccount(chargeAccount)
             // setChargeType(chargeType)
-            setCharges(charges)
+            setRepeatInterval(data.bill.repeat_interval ?? '')
+            setCharges(data.charges)
+            setSkipInvoicing(data.bill.skip_invoicing)
         }
     }
 
@@ -206,15 +229,29 @@ export default function useCharges({activeRatesheet}) {
         activeRatesheet,
         chargeAccount,
         charges,
+        chargeType,
         chargeTypes,
+        hasInterliner,
+        interliner,
+        interlinerActualCost,
+        interlinerReferenceValue,
+        interliners,
         invoiceIds,
         isPickupManifested,
         isDeliveryManifested,
+        isInvoiced,
         manifestIds,
+        ratesheets,
+        repeatInterval,
+        repeatIntervals,
         //setters
         setChargeAccount,
         setChargeType,
-        // setActiveRatesheet,
+        setActiveRatesheet,
+        setInterliner,
+        setInterlinerActualCost,
+        setInterlinerReferenceValue,
+        setRepeatInterval,
         //functions
         addCharge,
         deleteCharge,

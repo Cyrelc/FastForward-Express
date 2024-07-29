@@ -1,17 +1,22 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {Fragment, useEffect, useMemo, useState} from 'react'
 import {Button, ButtonGroup, Card, Col, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
 import {useHistory} from 'react-router-dom'
-import {ReactTabulator} from 'react-tabulator'
+// import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {toast} from 'react-toastify'
+import {InputLabel, ListSubheader, Menu, MenuItem, Select} from '@mui/material'
+import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
+import {CurrencyCellRenderer} from '../../utils/table_cell_renderers'
+import CurrencyEditor from '../partials/Table/CurrencyEditor'
 import LinkLineItemModal from './modals/LinkLineItemModal'
 import {useAPI} from '../../contexts/APIContext'
+import {useLists} from '../../contexts/ListsContext'
 // import PriceAdjustModal from './modals/PriceAdjustModal'
 // import ReassignChargesModal from './ReassignChargesModal'
 
-function canLineItemBeDeleted(row) {
-    const rowData = row.getData()
-    if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id)
+const canLineItemBeDeleted = row => {
+    const data = row.original
+    if(!data.invoice_id && !data.pickup_manifest_id && !data.delivery_manifest_id)
         return true
     return false
 }
@@ -65,15 +70,36 @@ const groupBy = (data, charge) => {
     }
 }
 
-function groupHeaderFormatter(key, count, data, group) {
-    const styledCount = `<span style="color:blue">(${count})</span>`
-    const value = data[0][key]
-    if(key === 'invoice_id')
-        return `${value ? `Invoice #${value}` : 'Not Yet Invoiced'}${styledCount}`
-    else if(key === 'manifest_id')
-        return `${value ? `Manifest #${value}` : 'Not Yet Manifested'}${styledCount}`
-    return false
+const LineItemTypeRenderer = ({row}) => {
+    switch(row.original.type) {
+        case 'commonRate':
+            return <i className='fas fa-infinity fa-lg' title='Common'></i>
+        case 'distanceRate':
+            return <i className='fas fa-route fa-lg' title='Distance'></i>
+        case 'legacyRate':
+            return <i className='fab fa-fort-awesome-alt fa-lg' title='Legacy'></i>
+        case 'miscellaneousRate':
+            return <i className='fas fa-comment-dollar fa-lg' title='Miscellaneous'></i>
+        case 'timeRate':
+            return <i className='fas fa-clock fa-lg' title='Time'></i>
+        case 'weightRate':
+            return <i className='fas fa-weight fa-lg' title='Weight'></i>
+        case 'conditionalRate':
+            return <i className='fas fa-code-branch' title='Conditional'></i>
+        default:
+            return <i className='fas fa-exclamation-triangle fa-lg'></i>
+    }
 }
+
+// function groupHeaderFormatter(key, count, data, group) {
+//     const styledCount = '<span style="color:blue">(' + count + ')</span>'
+//     const value = data[0][key]
+//     if(key === 'invoice_id')
+//         return `${value ? `Invoice #${value}` : 'Not Yet Invoiced'}${styledCount}`
+//     else if(key === 'manifest_id')
+//         return `${value ? `Manifest #${value}` : 'Not Yet Manifested'}${styledCount}`
+//     return false
+// }
 
 export default function Charge(props) {
     const [linkLineItemCell, setLinkLineItemCell] = useState('')
@@ -83,111 +109,228 @@ export default function Charge(props) {
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
 
     const api = useAPI()
-    const tableRef = useRef()
-    const history = useHistory()
+    const {employees} = useLists()
+
+    const drivers = employees.filter(employee => {
+        if(true)
+            return true
+    })
 
     const {
         charge,
         chargeCount,
-        drivers,
         index,
-        lineItemTypeFormatter,
+        rateTable,
         readOnly
     } = props
 
-    useEffect(() => {
-        if(tableRef?.current?.table)
-            tableRef.current.table.setGroupHeader(groupHeaderFormatter)
-    }, [showDetails])
+    const {lineItems} = charge
 
-    const actionCellContextMenu = cell => {
-        const data = cell.getRow().getData()
-        var menuItems = readOnly ? [] : data.line_item_id ? [
-            ... canLineItemBeDeleted(cell.getRow()) ? [
-                {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
-            ] : [],
-            ... data.invoice_is_finalized ? [] : data.invoice_id ? [
-                {label: `<i class="fas fa-unlink"></i> Remove Invoice Link (ID: ${data.invoice_id})`, action: () => removeLink(cell, 'Invoice'), disabled: data.finalized},
-            ] : [
-                {label: '<i class="fas fa-link"></i> Link To Invoice', action: (event, cell) => linkTo(cell, 'Invoice')}
-            ],
-            ... data.pickup_manifest_id ? [
-                {label: `<i class="fas fa-unlink"></i> Remove Pickup Manifest Link (ID: ${data.pickup_manifest_id})`, action: () => removeLink(cell, 'Pickup Manifest')},
-            ] : [
-                {label: '<i class="fas fa-link"></i> Link To Pickup Manifest', action: (event, cell) => linkTo(cell, 'Pickup Manifest')}
-            ],
-            ... data.delivery_manifest_id ? [
-                {label: `<i class="fas fa-unlink"></i> Remove Delivery Manifest Link (ID: ${data.delivery_manifest_id})`, action: () => removeLink(cell, 'Delivery Manifest')}
-            ] : [
-                {label: '<i class="fas fa-link"></i> Link To Delivery Manifest', action: (event, cell) => linkTo(cell, 'Delivery Manifest')}
-            ]
-        ] : [
-            {label: "<i class='fas fa-trash fa-sm'></i> Delete Line Item", action: (event, cell) => deleteLineItem(cell)}
-        ]
-        return menuItems
+    const ActionCellContextMenu = ({row}) => {
+        const [anchorElement, setAnchorElement] = useState(null)
+        const isOpen = Boolean(anchorElement)
+
+        const data = row.original
+
+        const handleClick = event => {
+            if(anchorElement)
+                handleClose()
+            else
+                setAnchorElement(event.currentTarget)
+        }
+
+        const handleClose = event => {
+            setAnchorElement(null)
+        }
+
+        if(readOnly) {
+            return <div></div>
+        }
+        if(data.line_item_id) {
+            return (
+                <div>
+                    <Button onClick={handleClick}><i className='fas fa-bars'></i></Button>
+                    <Menu open={isOpen} onClose={handleClose} anchorEl={anchorElement}>
+                        {canLineItemBeDeleted(row) &&
+                            <MenuItem onClick={() => deleteLineItem(row)}><i className='fas fa-trash'></i> Delete Line Item</MenuItem>
+                        }
+                        {!data.invoice_is_finalized && data.invoice_id ?
+                            <MenuItem onClick={() => removeLink(row, 'Invoice')} disabled={data.finalized}><i className='fas fa-unlink'></i>Remove Invoice Link (ID: {data.invoice_id})</MenuItem>
+                            :
+                            <MenuItem onClick={() => linkTo(row, 'Invoice')}><i className='fas fa-link'></i>{`\t`}Link To Invoice</MenuItem>
+                        }
+                        {data.pickup_manifest_id ?
+                            <MenuItem onClick={() => removeLink(row, 'Pickup Manifest')}><i className='fas fa-unlink'></i> Remove Pickup Manifest Link (ID: {data.pickup_manifest_id})</MenuItem>
+                            :
+                            <MenuItem onClick={() => linkTo(row, 'Pickup Manifest')}><i className='fas fa-link'></i> Link to Pickup Manifest</MenuItem>
+                        }
+                        {data.delivery_manifest_id ?
+                            <MenuItem onClick={() => removeLink(row, 'Delivery Manifest')}><i className='fas fa-unlink'></i> Remove Delivery Manifest Link (ID: {data.delivery_manifest_id})</MenuItem>
+                            :
+                            <MenuItem onClick={() => linkTo(row, 'Delivery Manifest')}><i className='fas fa-link'></i> Link to Delivery Manifest</MenuItem>
+                        }
+                    </Menu>
+                </div>
+            )
+        }
+
+        return (
+            <Menu open={isOpen} onClose={handleClose} anchorEl={anchorElement}>
+                <MenuItem onClick={() => deleteLineItem(row)}><i className='fas fa-trash'></i> Delete Line Item</MenuItem>
+            </Menu>
+        )
     }
 
-    const actionCellContextMenuFormatter = cell => {
-        return readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
-    }
-
-    const chargeTableColumns = chargeType => {
+    const columns = useMemo(() => {
         return [
             {
-                clickMenu: (event, cell) => actionCellContextMenu(cell),
-                formatter: (cell) => actionCellContextMenuFormatter(cell),
-                headerSort: false,
-                hozAlign: 'center',
-                print: false,
-                width: 45
+                enableColumnActions: false,
+                id: 'test',
+                Cell: ({row}) => <ActionCellContextMenu row={row} />,
+                Header: <div></div>,
+                size: 45,
+                enableEditing: false,
             },
-            {title: 'Line Item ID', field: 'line_item_id', visible: showDetails},
-            {title: 'Name', field: 'name', editor: 'input'},
-            {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), headerSort: false, hozAlign: 'center', width: 45},
-            {title: 'Price', field: 'price', ...moneyColumnStandardParams},
-            {title: 'Driver Amount', field: 'driver_amount', ...moneyColumnStandardParams},
-            ... chargeType.name === 'Account' ? [
-                {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (event, cell) => redirectToCellValue('invoices', cell)}
-            ] : chargeType.name === 'Employee' ? [
-                {title: 'Manifest ID', field: 'manifest_id', visible: showDetails, cellClick: (event, cell) => redirectToCellValue('manifests', cell)}
-            ] : [],
-            {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: showDetails, formatter: 'tickCross'},
+            {header: 'Line Item ID', accessorKey: 'line_item_id', enableEditing: false},
+            {header: 'Type', accessorKey: 'type', Cell: LineItemTypeRenderer, enableColumnActions: false, size: 45},
+            {header: 'Name', accessorKey: 'name'},
             {
-                editor:'select',
-                editorParams: {
-                    listItemFormatter: (value, title) => {
-                        return title
-                    },
-                    values: drivers
-                },
-                field: 'pickup_driver_id',
-                formatter: cell => {
-                    const driver = drivers.find(driver => driver.value === cell.getValue())
-                    return driver ? driver.label : null
-                },
-                title: 'Pickup Driver ID',
-                visible: showDetails,
+                header: 'Price',
+                accessorKey: 'price',
+                editVariant: 'custom',
+                Cell: CurrencyCellRenderer,
+                Edit: ({row, setData}) => <CurrencyEditor row={row} setData={setData} data={charge.lineItems} />
             },
-            {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
-            {
-                editor:'select',
-                editorParams: {
-                    listItemFormatter: (value, title) => {
-                        return title
-                    },
-                    values: drivers
-                },
-                field: 'delivery_driver_id',
-                formatter: cell => {
-                    const driver = drivers.find(driver => driver.value === cell.getValue())
-                    return driver ? driver.label : null
-                },
-                title: 'Delivery Driver ID',
-                visible: showDetails,
-            },
-            {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
-            {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('invoices', cell)}
+            {header: 'Driver Amount', accessorKey: 'driver_amount', Cell: CurrencyCellRenderer},
+            // ...charge.chargeType.name === 'Account' ? [
+            //     {header: 'Invoice ID', accessorKey: 'invoice_id', Cell: ({renderedCellValue, row}) => <LinkCellRenderer renderedCellValue={renderedCallValue} row={row} urlPrefix='/invoices/' />}
+            // ] : charge.chargeType.name === 'Employee' ? [
+            //     {header: 'Manifest ID', accessorKey: 'manifest_id', Cell: ({renderedCellValue, row}) => <LinkCellRenderer renderedCellValue={renderedCallValue} row={row} urlPrefix='/manifests/' />}
+            // ] : [],
+            // {header: 'Invoice Is Finalized', accessorKey: 'invoice_is_finalized'},
+            // {
+            //     editor:'select',
+            //     editorParams: {
+            //         listItemFormatter: (value, title) => {
+            //             return title
+            //         },
+            //         values: drivers
+            //     },
+            //     field: 'pickup_driver_id',
+            //     formatter: cell => {
+            //         const driver = drivers.find(driver => driver.value === cell.getValue())
+            //         return driver ? driver.label : null
+            //     },
+            //     title: 'Pickup Driver ID',
+            //     visible: showDetails,
+            // },
+            // {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
+            // {
+            //     editor:'select',
+            //     editorParams: {
+            //         listItemFormatter: (value, title) => {
+            //             return title
+            //         },
+            //         values: drivers
+            //     },
+            //     field: 'delivery_driver_id',
+            //     formatter: cell => {
+            //         const driver = drivers.find(driver => driver.value === cell.getValue())
+            //         return driver ? driver.label : null
+            //     },
+            //     title: 'Delivery Driver ID',
+            //     visible: showDetails,
+            // },
+            // {title: 'Delivery Manifest ID', field: 'delivery_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
+            // {title: 'Invoice ID', field: 'invoice_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('invoices', cell)}
         ]
+    }, [charge.chargeType])
+
+    const table = useMaterialReactTable({
+        columns,
+        data: charge.lineItems,
+        enableEditing: true,
+        editDisplayMode: 'cell',
+        initialState: {
+            density: 'compact',
+            columnVisibility: {
+                manifest_id: false,
+                invoice_id: false
+            }
+        }
+    })
+    // useEffect(() => {
+    //     if(!table && tableRef.current) {
+    //         const newTabulator = new Tabulator(tableRef.current, {
+    //             columns: chargeTableColumns(charge.chargeType),
+    //             data: charge.lineItems,
+    //             groupBy: (data) => groupBy(data, charge),
+    //             groupHeader: groupHeaderFormatter,
+    //             initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+    //             layout: 'fitColumns',
+    //             movableRows: true,
+    //             movableRowsConnectedTables: ['#lineItemSource'],
+    //             movableRowsReceiver: 'add'
+    //         })
+
+    //         newTabulator.on('cellEdited', cell => {
+    //             const field = cell.getField()
+    //             const row = cell.getRow()
+    //             const rowData = row.getData()
+    //             if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
+    //                 row.update({driver_amount: cell.getValue()})
+    //             props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
+    //         })
+
+    //         newTabulator.on('rowAdded', row => {
+    //             row.getTable().setGroupBy(data => groupBy(data, charge))
+    //             const data = row.getTable().getData()
+    //             props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+    //             props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+    //         })
+
+    //         newTabulator.on('rowDeleted', row => {
+    //             props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+    //             const data = row.getTable().getData()
+    //             props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+    //         })
+
+    //         setTable(newTabulator)
+    //     }
+    // })
+
+    // useEffect(() => {
+    //     if(table)
+    //         table.setData(charge.lineItems)
+    // }, [charge.lineItems])
+
+    // useEffect(() => {
+    //     if(table) {
+    //         table.setColumns(chargeTableColumns(charge.chargeType))
+    //         table.setGroupHeader(groupHeaderFormatter)
+    //     }
+    // }, [showDetails])
+
+    // const actionCellContextMenuFormatter = cell => {
+    //     return readOnly ? null : '<button class="btn btn-sm btn-dark"><i class="fas fa-bars"></i></button>'
+    // }
+
+    function canChargeTableBeDeleted(charge) {
+        if(!charge || !!props.readOnly)
+            return false
+        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
+    }
+
+    const deleteChargeTable = charge => {
+        if(!canChargeTableBeDeleted(charge)) {
+            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced or manifested'
+            toast.error(errorMessage)
+            console.log(errorMessage)
+            return
+        }
+        if(confirm('Are you sure you wish to delete this charge group?\n This action can not be undone')) {
+            props.chargeDispatch({type: 'DELETE_CHARGE_TABLE', payload: index})
+        }
     }
 
     const hidePriceAdjustModal = () => {
@@ -233,26 +376,26 @@ export default function Charge(props) {
         setShowPriceAdjustModal(true)
     }
 
-    const moneyColumnStandardParams = {
-        editor:'number',
-        editorParams: {
-            onWheel: (e) => e.target.blur(),
-            selectContents: true,
-            step: 0.01,
-            verticalNavigation: 'table',
-        },
-        formatter: 'money',
-        formatterParams: {thousand: ',', symbol: '$', selectContents: true},
-        hozAlign: 'right',
-        sorter: 'number',
-        topCalc: 'sum',
-        topCalcParams: {precision: 2},
-        topCalcFormatter: 'money',
-        topCalcFormatterParams: {thousand: ',', symbol: '$'},
-        editable: cell => {
-            return props.readOnly ? false : canLineItemBeEdited(cell.getRow())
-        }
-    }
+    // const moneyColumnStandardParams = {
+    //     editor:'number',
+    //     editorParams: {
+    //         onWheel: (e) => e.target.blur(),
+    //         selectContents: true,
+    //         step: 0.01,
+    //         verticalNavigation: 'table',
+    //     },
+    //     formatter: 'money',
+    //     formatterParams: {thousand: ',', symbol: '$', selectContents: true},
+    //     hozAlign: 'right',
+    //     sorter: 'number',
+    //     topCalc: 'sum',
+    //     topCalcParams: {precision: 2},
+    //     topCalcFormatter: 'money',
+    //     topCalcFormatterParams: {thousand: ',', symbol: '$'},
+    //     editable: cell => {
+    //         return props.readOnly ? false : canLineItemBeEdited(cell.getRow())
+    //     }
+    // }
 
     const redirectToCellValue = (path, cell) => {
         const value = cell.getValue()
@@ -282,15 +425,30 @@ export default function Charge(props) {
             <Card border='dark'>
                 <Card.Header style={{backgroundColor: charge.name == 'Accounts Payable' ? 'darksalmon' : null}}>
                     <Row>
-                        <Col md={8}>
+                        <Col md={6}>
                             <h5 className='text-muted'>{chargeTypeFormatter(charge.chargeType)} {charge.name}</h5>
                         </Col>
-                        <Col md={2}>
-                            <Button
-                                variant='warning'
-                                onClick={() => props.generateCharges(index)}
-                                disabled={props.readOnly}
-                            >Auto-price (BETA)</Button>
+                        <Col md={4}>
+                            {/* <InputGroup>
+                                <InputLabel>Line Items</InputLabel>
+                                <Select
+                                    label="Line Items"
+                                    value={[]}
+                                    onChange={console.log}
+                                >
+                                    {Object.keys(rateTable).map(lineItemType => {
+                                        return [
+                                            <ListSubheader>{lineItemType}</ListSubheader>,
+                                            ...rateTable[lineItemType].map(lineItem => <MenuItem value={lineItem}>{lineItem.name}</MenuItem>)
+                                        ]
+                                    })}
+                                </Select>
+                                <Button
+                                    variant='success'
+                                    onClick={() => props.generateCharges(index)}
+                                    disabled={props.readOnly}
+                                >Auto-price</Button>
+                            </InputGroup> */}
                         </Col>
                         <Col md={2}>
                             <Dropdown
@@ -316,8 +474,8 @@ export default function Charge(props) {
                                         {/* <Dropdown.Item onClick={() => reassignCharge(charge)}>
                                             <i className='fas fa-exchange-alt'></i> Reassign Charge
                                         </Dropdown.Item>} */}
-                                        {(charge.lineItems && charge.can_be_deleted) &&
-                                            <Dropdown.Item onClick={() => props.deleteChargeTable(index)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
+                                        {(charge.lineItems && canChargeTableBeDeleted(charge)) &&
+                                            <Dropdown.Item onClick={() => deleteChargeTable(charge)}><i className='fas fa-trash fa-sm'></i> Delete</Dropdown.Item>
                                         }
                                         {(charge.chargeType.type == 'prepaid' && charge.lineItems?.find(lineItem => lineItem.invoice_id == null)) ?
                                             <Dropdown.Item onClick={invoiceAsOneOff}>
@@ -345,51 +503,16 @@ export default function Charge(props) {
                     </Row>
                 </Card.Header>
                 <Card.Body>
-                    <ReactTabulator
-                        ref={tableRef}
-                        columns={chargeTableColumns(charge.chargeType)}
-                        data={charge.lineItems}
-                        events={{
-                            cellEdited: cell => {
-                                const field = cell.getField()
-                                const row = cell.getRow()
-                                const rowData = row.getData()
-                                if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
-                                    row.update({driver_amount: cell.getValue()})
-                                props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
-                            },
-                            rowAdded: row => {
-                                row.getTable().setGroupBy(data => groupBy(data, charge))
-                                const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                            },
-                            rowDeleted: row => {
-                                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                                const data = row.getTable().getData()
-                                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-                            }
-                        }}
-                        id='lineItemDestination'
-                        options={{
-                            groupBy: data => groupBy(data, charge),
-                            groupHeader: (value, count, data, group) => groupHeaderFormatter(value, count, data, group),
-                            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                            layout: 'fitColumns',
-                            movableRows: true,
-                            movableRowsConnectedTables: ['#lineItemSource'],
-                            movableRowsReceiver: 'add',
-                        }}
-                />
+                    <MaterialReactTable table={table} />
                 </Card.Body>
-                {showLinkLineItemModal &&
+                {/* {showLinkLineItemModal &&
                     <LinkLineItemModal
                         hide={hideLinkTo}
                         linkLineItemCell={linkLineItemCell}
                         linkLineItemToType={linkLineItemToType}
                         show={showLinkLineItemModal}
                     />
-                }
+                } */}
                 {/* {showPriceAdjustModal &&
                     <PriceAdjustModal
                         charge={charge}

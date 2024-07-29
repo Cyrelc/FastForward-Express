@@ -7,7 +7,7 @@ import {useLists} from '../../contexts/ListsContext'
 
 const getEmployeeEstimatedIncome = (charges, commission, employeeId) => {
     if(!charges || charges?.length == 0 || !commission || !employeeId)
-        return null
+        return ''
 
     const income = commission / 100 * charges.reduce((chargeTotal, charge) =>
         charge.charge_employee_id == employeeId ? chargeTotal :

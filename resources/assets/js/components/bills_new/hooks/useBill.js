@@ -3,7 +3,7 @@ import React, {useEffect, useState} from 'react'
 // import {useUser} from '../../../contexts/UserContext'
 import {DateTime} from 'luxon'
 
-import useCharges from './useCharges'
+import useBilling from './useBilling'
 import usePackages from './usePackages'
 import usePickupDelivery from './usePickupDelivery'
 import {useLists} from '../../../contexts/ListsContext'
@@ -24,58 +24,60 @@ const initialPersistFields = [
 export default function useBill() {
     const [acceptTermsAndConditions, setAcceptTermsAndConditions] = useState(false)
     const [accounts, setAccounts] = useState([])
-    const [activeRatesheet, setActiveRatesheet] = useState({})
     const [activityLog, setActivityLog] = useState([])
     const [applyRestrictions, setApplyRestrictions] = useState(true)
-    const [billId, setBillId] = useState(null)
+    const [billId, setBillId] = useState('')
+    const [billNumber, setBillNumber] = useState('')
     const [businessHoursMax, setBusinessHoursMax] = useState(DateTime.now())
     const [businessHoursMin, setBusinessHoursMin] = useState(DateTime.now())
-    const [deliveryType, setDeliveryType] = useState(null)
+    const [deliveryType, setDeliveryType] = useState('')
     const [deliveryTypes, setDeliveryTypes] = useState([])
     const [description, setDescription] = useState('')
     const [incompleteFields, setIncompleteFields] = useState([])
     const [internalComments, setInternalComments] = useState('')
     const [isTemplate, setIsTemplate] = useState(false)
-    const [percentComplete, setPercentComplete] = useState(null)
+    const [percentComplete, setPercentComplete] = useState(0)
     const [permissions, setPermissions] = useState([])
     const [persistFields, setPersistFields] = useState([])
     // TODO - statically set, needs logic
     const [readOnly, setReadOnly] = useState(false)
-    const [timeDispatched, setTimeDispatched] = useState()
-    const [timeCallReceived, setTimeCallReceived] = useState()
-    const [timeTenFoured, setTimeTenFoured] = useState()
+    const [timeDispatched, setTimeDispatched] = useState('')
+    const [timeCallReceived, setTimeCallReceived] = useState('')
+    const [timeTenFoured, setTimeTenFoured] = useState('')
     const [viewTermsAndConditions, setViewTermsAndConditions] = useState(false)
 
-    const charges = useCharges(activeRatesheet)
-    const delivery = usePickupDelivery({accounts, activeRatesheet, isPickup: false})
+    const billing = useBilling({billId, permissions})
+    const delivery = usePickupDelivery({accounts, activeRatesheet: billing.activeRatesheet, isPickup: false})
     const packages = usePackages()
-    const pickup = usePickupDelivery(accounts, activeRatesheet)
+    const pickup = usePickupDelivery({accounts, activeRatesheet: billing.activeRatesheet})
     const {employees} = useLists()
 
     // In the event a new pickup or delivery account has been set and there is no charge account, automatically populate the charge account
     useEffect(() => {
-        if(!billId && !charges.charges?.length && pickup.account?.account_id) {
-            charges.setChargeAccount(pickup.account)
-            charges.setChargeType(charges.chargeTypes.find(chargeType => chargeType.name === 'Account'))
-            charges.addCharge()
+        if(!billId && !billing.charges?.length && pickup.account?.account_id) {
+            billing.setChargeAccount(pickup.account)
+            billing.setChargeType(billing.chargeTypes.find(chargeType => chargeType.name === 'Account'))
+            billing.addCharge()
             if(pickup.account?.ratesheet_id && pickup.account?.ratesheet_id != activeRatesheet.ratesheet_id)
-                setActiveRatesheet(ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickup.account.ratesheet_id))
+                billing.setActiveRatesheet(billing.ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickup.account.ratesheet_id))
         }
     }, [pickup.account])
 
     useEffect(() => {
-        if(!billId && !charges.charges?.length && delivery.account?.account_id) {
-            charges.setChargeAccount(delivery.account)
-            charges.setChargeType(charges.chargeTypes.find(chargeType => chargeType.name === 'Account'))
-            charges.addCharge()
+        if(!billId && !billing.charges?.length && delivery.account?.account_id) {
+            billing.setChargeAccount(delivery.account)
+            billing.setChargeType(billing.chargeTypes.find(chargeType => chargeType.name === 'Account'))
+            billing.addCharge()
             if(delivery.account?.ratesheet_id && delivery.account?.ratesheet_id != activeRatesheet.ratesheet_id)
-                setActiveRatesheet(ratesheets.find(ratesheet => ratesheet.ratesheet_id == delivery.account.ratesheet_id))
+                billing.setActiveRatesheet(billing.ratesheets.find(ratesheet => ratesheet.ratesheet_id == delivery.account.ratesheet_id))
         }
     }, [delivery.account])
 
     useEffect(() => {
-        if(activeRatesheet?.delivery_types) {
-            const deliveryTypes = JSON.parse(activeRatesheet.delivery_types)
+        if(!billing.activeRatesheet)
+            return
+        if(billing.activeRatesheet?.delivery_types) {
+            const deliveryTypes = JSON.parse(billing.activeRatesheet.delivery_types)
             setDeliveryTypes(deliveryTypes)
             if(deliveryType) {
                 setDeliveryType(deliveryTypes.find(activeRatesheetDeliveryType => activeRatesheetDeliveryType.id == deliveryType.value))
@@ -83,11 +85,10 @@ export default function useBill() {
                 setDeliveryType(deliveryTypes[0])
             }
         }
-    }, [activeRatesheet])
+    }, [billing.activeRatesheet])
 
     const setup = data => {
         setAccounts(data.accounts)
-        setActiveRatesheet(data.ratesheets[0])
         setBusinessHoursMax(DateTime.fromISO(data.time_max))
         setBusinessHoursMin(DateTime.fromISO(data.time_min))
         // setDeliveryType(data.ratesheets[0].delivery_types[0])
@@ -95,12 +96,12 @@ export default function useBill() {
         // businessHoursMax: DateTime.fromISO(payload.time_max),
         // businessHoursMin: DateTime.fromISO(payload.time_min),
 
+        billing.setup(data)
         if(data.bill?.bill_id)
             setupExisting(data)
         else {
             const localPersistFields = localStorage.getItem('bill.persistFields')
             setPersistFields(localPersistFields ? JSON.parse(localPersistFields) : initialPersistFields)
-            charges.setup(data)
         }
     }
 
@@ -111,20 +112,18 @@ export default function useBill() {
 
     // internal function, never needs to be returned
     const setupExisting = data => {
-        // setActiveRatesheet()
         setActivityLog(data.activity_log)
         setBillId(data.bill.bill_id)
         setDeliveryType(data.delivery_types.find(deliveryType => deliveryType.value == data.bill.delivery_type))
-        setDescription(data.bill.description)
+        setDescription(data.bill.description ?? '')
         setIncompleteFields(JSON.parse(data.bill.incomplete_fields))
-        setInternalComments(data.bill.internal_comments)
+        setInternalComments(data.bill.internal_comments ?? '')
         setIsTemplate(data.bill.is_template)
         setPercentComplete(data.bill.percentage_complete)
         setTimeCallReceived(Date.parse(data.bill.time_call_received))
         setTimeDispatched(Date.parse(data.bill.time_dispatched))
-        setTimeTenFoured(Date.parse(data.bill.time_ten_foured))
+        setTimeTenFoured(data.bill.time_ten_foured ? Date.parse(data.bill.time_ten_foured) : '')
 
-        // charges.setup(data)
         packages.setup(data.bill)
         delivery.setup({
             account: data.accounts.find(account => account.account_id === data.bill.delivery_account_id),
@@ -176,6 +175,7 @@ export default function useBill() {
             activityLog,
             applyRestrictions,
             billId,
+            billNumber,
             businessHoursMax,
             businessHoursMin,
             deliveryType,
@@ -193,7 +193,7 @@ export default function useBill() {
             timeTenFoured,
             viewTermsAndConditions,
             //setters,
-            setActiveRatesheet,
+            setBillNumber,
             setDeliveryType,
             setDescription,
             setInternalComments,
@@ -206,7 +206,7 @@ export default function useBill() {
             toggleRestrictions,
             toggleViewTermsAndConditions,
         },
-        charges,
+        billing,
         delivery,
         packages,
         pickup,
