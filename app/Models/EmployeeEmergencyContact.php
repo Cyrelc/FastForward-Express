@@ -7,8 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class EmployeeEmergencyContact extends Model
-{
+class EmployeeEmergencyContact extends Model {
     use HasFactory, LogsActivity;
 
     public $primaryKey = 'contact_id';
@@ -21,7 +20,7 @@ class EmployeeEmergencyContact extends Model
     }
 
     public function employee() {
-        return $this->hasOne(Employee::class, 'employee_id');
+        return $this->hasOne(Employee::class, 'employee_id', 'employee_id');
     }
 
     public function getActivityLogOptions() : LogOptions {

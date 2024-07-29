@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Repos;
 use App\Http\Collectors;
+use App\Models\Contact;
 use App\Models\Employee;
 use App\Models\EmployeeEmergencyContact;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Resources\EmergencyContactListResource;
+use App\Http\Resources\ContactResource;
 use App\Http\Resources\CreateEmployeeResource;
 use App\Http\Resources\EmployeeResource;
 use App\Http\Resources\EmployeeListResource;
@@ -54,19 +56,14 @@ class EmployeeController extends Controller {
         ]);
     }
 
-    public function getEmergencyContact(Request $req, $contactId = null) {
-        if($contactId) {
-            $employee = EmployeeEmergencyContact::firstOrFail('contact_id', $contactId)->employee;
+    public function getEmergencyContact(Request $req, $contactId) {
+        $emergencyContact = EmployeeEmergencyContact::findOrFail($contactId);
+        $employee = $emergencyContact->employee;
 
-            $employeeRepo = new Repos\EmployeeRepo();
-            $emergencyContact = $employeeRepo->getEmergencyContactByContactId($contactId);
-            $employee = Employee::find($emergencyContact->employee_id);
-            if(!$employee || $req->user()->cannot('updateBasic', $employee))
-                abort(403);
+        if(!$employee || $req->user()->cannot('updateBasic', $employee))
+            abort(403);
 
-            $model = $contactModelFactory->GetEditModel($contactId, true);
-        } else
-            $model = $contactModelFactory->GetCreateModel();
+        $model = new ContactResource(\App\Models\Contact::find($contactId));
 
         return json_encode($model);
     }
