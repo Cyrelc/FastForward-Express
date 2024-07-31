@@ -67,6 +67,7 @@ export default class ApiService {
                 },
                 body: JSON.stringify(data)
             })
+
             return await this._handleResponse(response)
         } catch (error) {
             console.error('POST Request Error:', error)
@@ -85,6 +86,7 @@ export default class ApiService {
                 },
                 body: JSON.stringify(data)
             })
+
             return await this._handleResponse(response)
         } catch (error) {
             console.error('PUT Request Error:', error)
@@ -94,10 +96,12 @@ export default class ApiService {
 
     async _handleResponse(response) {
         if(!response.ok) {
+            if (response.status === 401 || response.message === 'CSRF token mismatch.') {
+                location.reload()
+            }
+
             const errorData = await response.json()
 
-            if(response.status === 401 || response.message === 'CSRF token mismatch.')
-                location.reload()
             switch(response.status) {
                 case 404:
                     history.push('/error404')
