@@ -86,6 +86,14 @@ export default function AccountsPayableReceivable(props) {
         doc.autoTable({
             columns: tableColumns,
             body: tableRows,
+            columnStyles: {
+                total_cost: {
+                    halign: 'right'
+                },
+                balance_owing: {
+                    halign: 'right'
+                }
+            }
         });
 
         const name = `Accounts_${version}_${startDate.toLocaleDateString().replace(/\//g, '-')}_${endDate.toLocaleDateString().replace(/\//g, '-')}.pdf`;
