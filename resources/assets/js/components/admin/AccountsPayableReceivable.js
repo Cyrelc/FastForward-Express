@@ -71,13 +71,21 @@ export default function AccountsPayableReceivable(props) {
     ], [version, sumTotalCost, sumBalanceOwing])
 
     const handleExportRows = (rows) => {
-        const doc = new jsPDF();
-        const tableData = rows.map((row) => Object.values(row.original));
-        const tableHeaders = columns.map((c) => c.header);
+        const doc = new jsPDF('p', 'pt');
+        const tableColumns = columns.map((c) => ({header: c.header, dataKey: c.accessorKey}));
+        const tableRows = rows.map((row) => ({
+            ...row.original,
+            total_cost: new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(row.original.total_cost),
+            ...version === 'Receivable' ? {
+                balance_owing: new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(row.original.balance_owing)
+            } : {}
+        }))
+        console.log(tableColumns)
+        console.log(tableRows)
 
-        autoTable(doc, {
-            head: [tableHeaders],
-            body: tableData,
+        doc.autoTable({
+            columns: tableColumns,
+            body: tableRows,
         });
 
         const name = `Accounts_${version}_${startDate.toLocaleDateString().replace(/\//g, '-')}_${endDate.toLocaleDateString().replace(/\//g, '-')}.pdf`;
