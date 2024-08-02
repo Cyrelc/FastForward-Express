@@ -92,7 +92,9 @@ export default function PaymentTable(props) {
         {header: 'Payment Received On', accessorKey: 'date'},
         {header: 'Payment Method', accessorKey: 'payment_type', Cell: ({renderedCellValue, row}) => {
             if(row.original.is_stripe_transaction)
-                return `${renderedCellValue} <i class='fab fa-stripe fa-lg fa-border' style='float: right'></i>`
+                return <div>
+                    {renderedCellValue} <i className='fab fa-stripe fa-lg fa-border' ></i>
+                </div>
             return renderedCellValue
         }},
         {header: 'Reference Number', accessorKey: 'reference_value'},
