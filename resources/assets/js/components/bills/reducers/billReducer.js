@@ -257,7 +257,7 @@ export default function billReducer(state, action) {
                     timeScheduled: new Date(bill.time_pickup_scheduled)
                 },
                 readOnly: permissions.viewBasic && !permissions.editBasic,
-                timeTenFoured: new Date(bill.time_ten_foured)
+                timeTenFoured: bill.time_ten_coured ? new Date(bill.time_ten_foured) : ''
             }
 
             if(permissions.viewActivityLog)
