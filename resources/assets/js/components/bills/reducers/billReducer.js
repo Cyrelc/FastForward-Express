@@ -269,7 +269,7 @@ export default function billReducer(state, action) {
                 newState.internalComments = bill.internal_comments ? bill.internal_comments : ''
                 newState.pickup.driver = bill.pickup_driver_id ? state.drivers.find(driver => driver.value === bill.pickup_driver_id) : ''
                 newState.pickup.driverCommission = bill.pickup_driver_commission
-                newState.timeDispatched = new Date(bill.time_dispatched)
+                newState.timeDispatched = bill.time_dispatched ? new Date(bill.time_dispatched) : null,
                 newState.timeCallReceived = new Date(bill.time_call_received)
             }
 
@@ -315,7 +315,7 @@ export default function billReducer(state, action) {
             if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
                 newCommission = payload ? parseInt(payload.delivery_commission) : 0
             return Object.assign({}, state, {
-                timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
+                timeDispatched: state.timeDispatched ?? new Date(),
                 delivery: {
                     ...state.delivery,
                     driver: payload,
@@ -383,7 +383,7 @@ export default function billReducer(state, action) {
             if(!state.delivery.driverCommission || state.delivery.driver.delivery_commission == state.delivery.driverCommission)
                 newDeliveryCommission = payload ? parseInt(payload.delivery_commission) : 0
             return Object.assign({}, state, {
-                timeDispatched: state.timeDispatched ? state.timeDispatched : new Date(),
+                timeDispatched: state.timeDispatched ?? new Date(),
                 pickup: {
                     ...state.pickup,
                     driver: payload,
