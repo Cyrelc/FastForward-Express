@@ -105,6 +105,7 @@ const SmallHighlighter = props => {
 export default function NavBar(props) {
     const [collapsed, setCollapsed] = useState(false)
     const [isLoadingSearch, setIsLoadingSearch] = useState(false)
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [searchResults, setSearchResults] = useState([])
 
     const api = useAPI()
@@ -144,6 +145,16 @@ export default function NavBar(props) {
             fontWeight: open ? 600 : undefined
         }
     }
+
+    useEffect(() => {
+        if(searchRef.current && isSearchOpen) {
+            // timeout makes sure the element is rendered before calling the searchRef
+            // effectively triggers on "next tick"
+            setTimeout(() => {
+                searchRef.current.focus()
+            }, 0)
+        }
+    }, [isSearchOpen, searchRef])
 
     useEffect(() => {
         setCollapsed(JSON.parse(localStorage.getItem('isNavBarCollapsed')) === true)
@@ -302,10 +313,8 @@ export default function NavBar(props) {
                             <SubMenu
                                 label='Search'
                                 icon={<i className='fas fa-search'></i>}
-                                onOpenChange={isOpen => {
-                                    if(isOpen)
-                                        searchRef.current?.focus()
-                                }}
+                                open={isSearchOpen}
+                                onClick={() => setIsSearchOpen(!isSearchOpen)}
                             >
                                 <MenuItem style={{padding: '20px'}}>
                                     <FFETypeAhead
