@@ -43,6 +43,7 @@ class AdminModelFactory{
         foreach($prepaidAccountsReceivable as $prepaid) {
             $model->accounts_receivable[] = [
                 'account_number' => $prepaid->payment_type_name,
+                'balance_owing' => 0,
                 'name' => $prepaid->payment_type_name,
                 'total_cost' => $prepaid->amount,
                 'type' => 'Prepaid'
