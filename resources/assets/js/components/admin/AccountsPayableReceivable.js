@@ -51,6 +51,7 @@ export default function AccountsPayableReceivable(props) {
             accessorKey: 'total_cost',
             Cell: CurrencyCellRenderer,
             Header: () => <div>Total Cost: {sumTotalCost}</div>,
+            Footer: () => <strong>{sumTotalCost}</strong>,
             muiTableHeadCellProps: {
                 align: 'right'
             },
@@ -64,6 +65,7 @@ export default function AccountsPayableReceivable(props) {
                 accessorKey: 'balance_owing',
                 Cell: CurrencyCellRenderer,
                 Header: () => <div>Balance Owing: {sumBalanceOwing}</div>,
+                Footer: () => <strong>{sumBalanceOwing}</strong>,
                 muiTableHeadCellProps: { align: 'right' },
                 muiTableBodyCellProps: { align: 'right' }
             }
@@ -83,6 +85,13 @@ export default function AccountsPayableReceivable(props) {
 
         const header = `Accounts ${version}: ${startDate.toLocaleString('default', {month: 'long', year: 'numeric'})} - ${endDate.toLocaleString('default', {month: 'long', year: 'numeric'})}`;
 
+        tableRows.push({})
+        tableRows.push({
+            name: 'Total',
+            total_cost: `${sumTotalCost}`,
+            balance_owing: `${sumBalanceOwing}`
+        })
+
         doc.autoTable({
             columns: tableColumns,
             body: tableRows,
@@ -98,6 +107,11 @@ export default function AccountsPayableReceivable(props) {
                 // Header
                 doc.setFontSize(12);
                 doc.text(header, data.settings.margin.left, 40);
+            },
+            didParseCell: data => {
+                if(data.row.index == tableRows.length - 1) {
+                    data.cell.styles.fontStyle = 'bold'
+                }
             },
             margin: { top: 60 }, // Adjust the top margin to accommodate the header
         });
@@ -186,7 +200,17 @@ export default function AccountsPayableReceivable(props) {
                         </Row>
                     </Card.Header>
                     <Card.Body>
-                        <MaterialReactTable table={table} />
+                        <MaterialReactTable
+                            table={table}
+                            muiTableFooterProps={{
+                                sx: {
+                                    '& .MuiTableRow-root:last-of-type td': {
+                                        fontWeight: 'bold',
+                                        textAlign: 'right'
+                                    }
+                                }
+                            }}
+                        />
                     </Card.Body>
                 </Card>
             </Col>
