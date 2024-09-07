@@ -9,6 +9,7 @@ use App\Http\Repos;
 use App\Http\Models;
 use App\Http\Collectors;
 use App\Http\Models\Payment\PaymentModelFactory;
+use App\Models\Account;
 use App\Models\Invoice;
 use App\Models\Payment;
 use \App\Http\Validation\Utils;
@@ -143,9 +144,7 @@ class PaymentController extends Controller {
             abort(403);
 
         $invoiceRepo = new Repos\InvoiceRepo();
-        $invoice = $invoiceRepo->GetById($invoiceId);
-        if(!$invoice)
-            abort(404, 'Invoice not found');
+        $invoice = Invoice::FindOrFail($invoiceId);
 
         $paymentRepo = new Repos\PaymentRepo();
         $paymentMethod = $paymentRepo->GetPaymentType($req->payment_method['payment_type_id']);
@@ -194,7 +193,7 @@ class PaymentController extends Controller {
         $paymentCollector = new Collectors\PaymentCollector();
 
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-        $account = $accountRepo->GetById($invoice->account_id);
+        $account = Account::FindOrFail($invoice->account_id);
         $stripePaymentMethod = $account->findPaymentMethod($req->payment_method['payment_method_id']);
 
         $paymentRepo = new Repos\PaymentRepo();

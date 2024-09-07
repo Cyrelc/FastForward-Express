@@ -42,10 +42,10 @@ class PaymentCollector {
         ];
     }
 
-    // // The default collection used for account Invoice payments - with or without a paymentIntent (Stripe transaction)
+    // The default collection used for account Invoice payments - with or without a paymentIntent (Stripe transaction)
     public function CollectCardOnFile($req, $invoice, $paymentIntent) {
         return [
-            'account_id' => $invoice->account_id,
+            'account_id' => $invoice->account->account_id,
             'amount' => $req->amount,
             'comment' => $req->comment == "" ? null : $req->comment,
             'date' => date('Y-m-d'),
