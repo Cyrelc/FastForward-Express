@@ -80,8 +80,8 @@ export default function AccountsPayableReceivable(props) {
                 balance_owing: new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(row.original.balance_owing)
             } : {}
         }))
-        console.log(tableColumns)
-        console.log(tableRows)
+
+        const header = `Accounts ${version}: ${startDate.toLocaleString('default', {month: 'long', year: 'numeric'})} - ${endDate.toLocaleString('default', {month: 'long', year: 'numeric'})}`;
 
         doc.autoTable({
             columns: tableColumns,
@@ -93,7 +93,13 @@ export default function AccountsPayableReceivable(props) {
                 balance_owing: {
                     halign: 'right'
                 }
-            }
+            },
+            didDrawPage: (data) => {
+                // Header
+                doc.setFontSize(12);
+                doc.text(header, data.settings.margin.left, 40);
+            },
+            margin: { top: 60 }, // Adjust the top margin to accommodate the header
         });
 
         const name = `Accounts_${version}_${startDate.toLocaleDateString().replace(/\//g, '-')}_${endDate.toLocaleDateString().replace(/\//g, '-')}.pdf`;
