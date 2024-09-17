@@ -153,7 +153,7 @@
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
         const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
-        
+
         const now = new Date()
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
         document.getElementById('pickup-time').value = now.toISOString().slice(0, 16)
@@ -165,27 +165,25 @@
                 headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
                 body: new URLSearchParams(data)
             })
-            .then(response => response.json())
             .then(response => {
+                if(response.status == 200)
+                    return response.json()
+                handleErrorResponse(response)
+                return Promise.reject('Errors handled, breaking the promise chain')
+            }).then(response => {
                 clearForm()
-                toastr.clear()
-                toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
-                    'progressBar' : true,
-                    'positionClass': 'toast-top-full-width',
-                    'showDuration': 300,
-                })
+                window.notyf.dismissAll()
+                window.notyf.success('Request successfully submitted, thank you! We will respond as soon as we are able')
             }).catch(error => {
-                handleErrorResponse(error)
+                window.notyf.error('An unknown error has occurred, please contact support')
+                console.error(error)
             })
         })
     })
 
-    function clearForm(){
-        $('#open-account-email').val('');
-        $('#open-account-phone').val('');
-        $('#open-account-company-name').val('');
-        $('#open-account-contact-name').val('');
-        $('#open-account-message').val('');
+    function clearForm() {
+        const form = document.getElementById('request-delivery-form');
+        form.querySelectorAll('input, textarea').forEach(field => field.value = '');
     }
 </script>
 @endsection

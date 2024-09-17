@@ -93,29 +93,6 @@ function stickyTabs() {
     })
 }
 
-function handleErrorResponse(response) {
-    var errorText = '';
-    var errorElements = document.querySelectorAll('.has-error');
-
-    // Remove 'has-error' class from all elements that have it
-    errorElements.forEach(function(element) {
-        element.classList.remove('has-error');
-    });
-
-    response.json().then(data => {
-        for (var key in data.errors) {
-            var inputElement = document.querySelector(`[name="${key}"]`);
-            if (inputElement) {
-                inputElement.parentElement.classList.add('has-error');
-                errorText += data.errors[key][0] + '<br>';
-            }
-        }
-
-        toastr.clear();
-        toastr.error(errorText, data.message, {'timeOut': 0, 'extendedTimeOut': 0});
-    });
-}
-
 function cleave() {
     $('.phone_number').toArray().forEach(function(field){
         new Cleave(field, {

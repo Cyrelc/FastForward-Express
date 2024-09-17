@@ -78,12 +78,8 @@
             .then(response => response.json())
             .then(response => {
                 clearForm();
-                toastr.clear();
-                toastr.success('Request successfully submitted, thank you! We will respond as soon as we are able', 'Success', {
-                    'progressBar' : true,
-                    'positionClass': 'toast-top-full-width',
-                    'showDuration': 300,
-                })
+                window.notyf.dismissAll()
+                window.notyf.success('Request successfully submitted, thank you! We will respond as soon as we are able')
             }).catch(error => {
                 handleErrorResponse(response)
             })
