@@ -44,6 +44,9 @@ class GuestController extends Controller {
         $this->validate($req, $temp['rules'], $temp['messages']);
 
         Mail::to('contactus@fastforwardexpress.ca')->send(new ContactUs($req->email, $req->phone, $req->subject, $req->message));
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function requestAccount(Request $req) {
@@ -53,6 +56,9 @@ class GuestController extends Controller {
         $this->validate($req, $temp['rules'], $temp['messages']);
 
         Mail::to('contactus@fastforwardexpress.ca')->send(new OpenAccountRequest($req));
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function requestDeliveryForm(Request $req) {
@@ -62,6 +68,9 @@ class GuestController extends Controller {
         $this->validate($req, $temp['rules'], $temp['messages']);
 
         Mail::to('dispatch@fastforwardexpress.ca')->send(new RequestDelivery($req));
+        return response()->json([
+            'success' => true
+        ]);
     }
 }
 

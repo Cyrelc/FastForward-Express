@@ -20,37 +20,37 @@
                         <div class='col-md-6'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-company-name'><strong>Company Name</strong></label>
-                                <input type='text' class='form-control' id='open-account-company-name' />
+                                <input type='text' class='form-control' id='open-account-company-name' name='companyName' />
                             </div>
                         </div>
                         <div class='col-md-6'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-contact-name'><strong>Contact Name</strong></label>
-                                <input type='text' class='form-control' id='open-account-contact-name' />
+                                <input type='text' class='form-control' id='open-account-contact-name' name='contactName' />
                             </div>
                         </div>
                         <div class='col-md-6'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-email'><strong>Email</strong></label>
-                                <input type='text' class='form-control' id='open-account-email' />
+                                <input type='text' class='form-control' id='open-account-email' name='email' />
                             </div>
                         </div>
                         <div class='col-md-6'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-phone'><strong>Phone</strong></label>
-                                <input type='text' class='form-control' id='open-account-phone' />
+                                <input type='text' class='form-control' id='open-account-phone' name='phone' />
                             </div>
                         </div>
                         <div class='col-md-6'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-phone'><strong>Estimated deliveries per month</strong></label>
-                                <input type='text' class='form-control' id='deliveries-per-month' />
+                                <input type='text' class='form-control' id='deliveries-per-month' name='deliveryCount' />
                             </div>
                         </div>
                         <div class='col-md-12'>
                             <div class='mb-3'>
                                 <label class='form-label' for='open-account-message'><strong>Message</strong></label>
-                                <textarea rows='10' class='form-control' id='open-account-message' placeholder='Tell us more about your needs, your company, and what services you are looking for'></textarea>
+                                <textarea rows='10' class='form-control' id='open-account-message' name='message' placeholder='Tell us more about your needs, your company, and what services you are looking for'></textarea>
                             </div>
                         </div>
                     </div>
@@ -68,14 +68,13 @@
         const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 
         document.getElementById('open-account-submit').addEventListener('click', function() {
-            const data = new FormData(document.getElementById('open-account-form'))
+            const data = new FormData(document.getElementById('open-account-form'));
 
             fetch('/requestAccount', {
                 method: 'POST',
                 headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
-                body: new URLSearchParams(data)
-            })
-            .then(response => {
+                body: data
+            }).then(response => {
                 if(response.status == 200)
                     return response.json()
                 handleErrorResponse(response)
@@ -92,12 +91,8 @@
     })
 
     function clearForm() {
-        $('#open-account-email').val('');
-        $('#open-account-phone').val('');
-        $('#open-account-company-name').val('');
-        $('#open-account-contact-name').val('');
-        $('#open-account-message').val('');
-        $('#deliveries-per-month').val('');
+        const form = document.getElementById('open-account-form');
+        form.querySelectorAll('input, textarea').forEach(field => field.value = '');
     }
 </script>
 @endsection

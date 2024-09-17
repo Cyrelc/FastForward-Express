@@ -19,6 +19,7 @@ class MailValidationRules {
 
     public function GetRequestAccountValidationRules() {
         $rules = [
+            'deliveryCount' => 'required',
             'email' => 'required|email',
             'phone' => 'required|alpha_dash',
             'message' => 'required|regex:/[a-zA-Z0-9\s]+/',
