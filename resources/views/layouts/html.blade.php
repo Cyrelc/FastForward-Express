@@ -38,7 +38,12 @@
             gtag('js', new Date());
 
             gtag('config', 'UA-211586883-1');
-            window.notyf = new Notyf({position: {y: 'top'}})
+            window.notyf = new Notyf({
+                duration: 8000,
+                position: {
+                    y: 'top'
+                }
+            })
 
             function handleErrorResponse(response) {
                 var errorText = '';
