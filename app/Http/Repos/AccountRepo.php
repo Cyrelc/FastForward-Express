@@ -126,6 +126,7 @@ class AccountRepo {
      */
     public function GetChildAccountList($accountId) {
         $account = Account::where('parent_account_id', $accountId)
+            ->where('active', true)
             ->select(
                 'name',
                 'account_id',
@@ -160,6 +161,7 @@ class AccountRepo {
         $accounts = Account::whereIn('account_id', $accountIds);
         if($withChildren)
             $accounts->orWhereIn('parent_account_id', $accountIds);
+        $accounts->where('active', true);
 
         return $accounts->pluck('account_id')->toArray();
     }
@@ -169,8 +171,12 @@ class AccountRepo {
         $accounts = [];
         foreach($accountUsers as $accountUser)
             $accounts[] = [
-                'account' => Account::where('account_id', $accountUser->account_id)->select('name', 'account_id', 'account_number')->first(),
-                'children' => Account::where('parent_account_id', $accountUser->account_id)->select('name', 'account_id', 'account_number')->get()
+                'account' => Account::where('account_id', $accountUser->account_id)
+                    ->where('active', true)
+                    ->select('name', 'account_id', 'account_number')->first(),
+                'children' => Account::where('parent_account_id', $accountUser->account_id)
+                    ->where('active', true)
+                    ->select('name', 'account_id', 'account_number')->get()
             ];
 
         return $accounts;
