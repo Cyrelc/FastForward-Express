@@ -24,23 +24,23 @@
                 <div class='col-md-6'>
                     <div class="mb-3">
                         <label class='form-label' for="comment-title"><strong>Email</strong></label>
-                        <input type="text" class="form-control" name='contact-us-email' id="contact-us-email" />
+                        <input type="text" class="form-control" name='email' id="email" />
                     </div>
                 </div>
                 <div class='col-md-6'>
                     <div class="mb-3">
                         <label class='form-label' for="comment-title"><strong>Phone</strong></label>
-                        <input type="text" class="form-control" name='contact-us-phone' id="contact-us-phone" />
+                        <input type="text" class="form-control" name='phone' id="phone" />
                     </div>
                 </div>
             </div>
             <div class="mb-3">
                 <label class='form-label' for="comment-text"><strong>Subject</strong></label>
-                <input type="text" class="form-control" name='contact-us-subject' id="contact-us-subject" />
+                <input type="text" class="form-control" name='subject' id="subject" />
             </div>
             <div class="mb-3">
                 <label class='form-label' for="comment-text"><strong>Message</strong></label>
-                <textarea rows="10" class="form-control" name="contact-us-message" id="contact-us-message"></textarea>
+                <textarea rows="10" class="form-control" name="message" id="message"></textarea>
             </div>
         </form>
         <button type="submit" class="btn btn-primary" id="contact-us-submit">Submit</button>
