@@ -100,7 +100,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 
-        document.getElementById('contact-us-submit').addEventListener(() => {
+        document.getElementById('contact-us-submit').addEventListener('click', () => {
             const data = new FormData(document.getElementById('contact-us-form'))
 
             fetch('/contact', {
