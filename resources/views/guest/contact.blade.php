@@ -107,13 +107,19 @@
                 method: 'POST',
                 headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
                 body: new URLSearchParams(data)
-            })
-            .then(response => response.json())
-            .then(response => {
+            }).then(response => {
+                if(response.status == 200)
+                    return response.json()
+                handleErrorResponse(response)
+                return Promise.reject('Errors handled, breaking the promise chain')
+            }).then(response => {
                 clearForm();
                 window.notyf.dismissAll()
                 window.notyf.success('Request successfully submitted, thank you! We will respond as soon as we are able')
-            }).catch(error => handleErrorResponse(error))
+            }).catch(error => {
+                window.notyf.error(error)
+                console.error(error)
+            })
         });
     });
 
