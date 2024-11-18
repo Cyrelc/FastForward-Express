@@ -21,7 +21,8 @@ class StripeRefundProcessor {
     ];
 
     public function processRefund($event) {
-        $refund = $event->object->refunds->data[0];
+        $refundObject = $event->data->object;
+        $refund = $refundObject->refunds->data[0];
         activity('jobs')->log('Processing refund for ' . $refund->id);
 
         DB::beginTransaction();
@@ -46,9 +47,9 @@ class StripeRefundProcessor {
             $paymentAmount = bcdiv($refund->amount, 100, 2);
 
             $payment->update([
-                'error' => $event->object->failure_message ?? null,
+                'error' => $refundObject->failure_message ?? null,
                 'stripe_status' => $refund->status,
-                'receipt_url' => $event->object->receipt_url,
+                'receipt_url' => $refundObject->receipt_url,
             ]);
 
             if($newStatus == 'succeeded') {
@@ -61,7 +62,7 @@ class StripeRefundProcessor {
                         'stripe_payment_intent_id' => $refund->id,
                         'webhook_status' => $refund->status,
                         'amount' => -$paymentAmount,
-                        'receipt_url' => $event->object->receipt_url
+                        'receipt_url' => $refundObject->receipt_url
                     ])->log('[processRefund] succeeded.');
 
                 $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
