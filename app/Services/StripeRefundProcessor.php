@@ -10,7 +10,7 @@ use App\Models\Invoice;
 use App\Http\Repos\InvoiceRepo;
 use Illuminate\Support\Facades\DB;
 
-class PaymentIntentProcessor {
+class StripeRefundProcessor {
     private $ORDERED_REFUND_STATUSES = [
         NULL,
         'pending', //custom status used when created, when there is no status from Stripe yet. As such receives lowest priority
