@@ -104,7 +104,7 @@ Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoi
     Route::get('/printPreview/{invoiceId}', 'printPreview');
     Route::post('/', 'store');
     Route::post('/createFromCharge', 'createFromCharge');
-    // Route::get('/invoices/regather/{invoiceId}', 'regather');
+    Route::get('/regather/{invoiceId}', 'regather');
 });
 
 Route::middleware(['auth'])->controller(ManifestController::class)->prefix('manifests')->group(function() {
