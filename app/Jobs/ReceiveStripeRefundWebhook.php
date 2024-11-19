@@ -10,9 +10,9 @@ use Illuminate\Queue\SerializesModels;
 
 use App\Services\StripeRefundProcessor;
 
-class ReceiveStripeRefundWebhook implements ShouldQueue
-{
+class ReceiveStripeRefundWebhook implements ShouldQueue, ShouldBeUnique {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
     public $tries = 5;
     public $uniqueFor = 600;
 
