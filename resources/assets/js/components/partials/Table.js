@@ -408,7 +408,7 @@ export default function Table(props) {
                         </Card.Body>
                     }
                     <Card.Footer>
-                        <div ref={tableRef}></div>
+                        <div ref={tableRef} style={{ fontSize: '0.85rem' }}></div>
                     </Card.Footer>
                 </Card>
             </Col>

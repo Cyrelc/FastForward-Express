@@ -24,12 +24,12 @@ export default function Accounts(props) {
     const {frontEndPermissions} = useUser()
 
     const basicColumns = [
-        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number'},
-        {title: 'Account Number', field: 'account_number'},
+        {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number', width: '120'},
+        {title: 'Account Number', field: 'account_number', width: '150'},
         {title: 'Parent Account', field: 'parent_name', ...configureFakeLink('/accounts/', history.push, null, 'parent_id')},
         {title: 'Account Name', field: 'name', ...configureFakeLink('/accounts/', history.push, null, 'account_id')},
         {title: 'Start Date', field: 'start_date', visible: false},
-        {title: 'Invoice Interval', field: 'invoice_interval'},
+        {title: 'Invoice Interval', field: 'invoice_interval', visible: false},
         {title: 'Ratesheet', field: 'ratesheet_name', formatter: (cell, row) => {
             const ratesheet_id = cell.getRow().getData().ratesheet_id
             if(ratesheet_id)
