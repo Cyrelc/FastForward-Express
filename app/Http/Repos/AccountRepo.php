@@ -331,7 +331,9 @@ class AccountRepo {
             ->leftJoin('phone_numbers', function($join) {
                 $join->on('phone_numbers.contact_id', '=', 'contacts.contact_id')
                 ->where('phone_numbers.is_primary', 1);
-            })->select(
+            })
+            ->leftJoin('ratesheets', 'ratesheets.ratesheet_id', 'accounts.ratesheet_id')
+            ->select(
                 'accounts.account_id',
                 'accounts.custom_field as custom_field',
                 'accounts.name',
@@ -341,6 +343,7 @@ class AccountRepo {
                 'accounts.active',
                 'invoice_intervals.name as invoice_interval',
                 'accounts.ratesheet_id',
+                'ratesheets.name as ratesheet_name',
                 'shipping_address.name as shipping_address_name',
                 'shipping_address.formatted as shipping_address',
                 'shipping_address.lat as shipping_address_lat',
@@ -366,7 +369,8 @@ class AccountRepo {
                 AllowedFilter::exact('active', 'accounts.active'),
                 AllowedFilter::custom('has_parent', new IsNull(), 'accounts.parent_account_id'),
                 AllowedFilter::exact('parent_id', 'accounts.parent_account_id'),
-                AllowedFilter::exact('invoice_interval')
+                AllowedFilter::exact('invoice_interval'),
+                AllowedFilter::exact('ratesheet_id')
             ]);
 
         return $filteredAccounts->get();

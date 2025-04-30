@@ -234,7 +234,7 @@ export default function Table(props) {
                             <Row>
                                 <Col>
                                     <Card.Title>{props.pageTitle}</Card.Title>
-                                    <h6>{table?.getDataCount()} results</h6>
+                                    <h6>{tableData.length} results</h6>
                                 </Col>
                                 {props.createObjectFunction &&
                                     <Col md={2}>

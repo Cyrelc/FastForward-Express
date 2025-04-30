@@ -11,6 +11,7 @@ export const ListsProvider = ({children}) => {
     const [invoiceIntervals, setInvoiceIntervals] = useState([])
     const [paymentTypes, setPaymentTypes] = useState([])
     const [phoneTypes, setPhoneTypes] = useState([])
+    const [ratesheets, setRatesheets] = useState([])
     const [repeatIntervals, setRepeatIntervals] = useState([])
     const [vehicleTypes, setVehicleTypes] = useState([])
 
@@ -25,8 +26,9 @@ export const ListsProvider = ({children}) => {
                 setEmailTypes(data.email_types)
                 setEmployees(data.employees)
                 setInvoiceIntervals(data.invoice_intervals ?? [])
-                setPaymentTypes(data.payment_types?? [])
+                setPaymentTypes(data.payment_types ?? [])
                 setPhoneTypes(data.phone_types)
+                setRatesheets(data.ratesheets ?? [])
                 setRepeatIntervals(data.repeat_intervals ?? [])
                 setVehicleTypes(data.vehicle_types ?? [])
             })
@@ -42,6 +44,7 @@ export const ListsProvider = ({children}) => {
             invoiceIntervals,
             paymentTypes,
             phoneTypes,
+            ratesheets,
             repeatIntervals,
             vehicleTypes,
         }}>

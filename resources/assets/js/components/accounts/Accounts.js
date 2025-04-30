@@ -30,6 +30,13 @@ export default function Accounts(props) {
         {title: 'Account Name', field: 'name', ...configureFakeLink('/accounts/', history.push, null, 'account_id')},
         {title: 'Start Date', field: 'start_date', visible: false},
         {title: 'Invoice Interval', field: 'invoice_interval'},
+        {title: 'Ratesheet', field: 'ratesheet_name', formatter: (cell, row) => {
+            const ratesheet_id = cell.getRow().getData().ratesheet_id
+            if(ratesheet_id)
+                return `${ratesheet_id} - ${cell.getValue()}`
+            else
+                return null
+        }},
         {title: 'Primary Contact', field: 'primary_contact_name'},
         {title: 'Primary Contact Phone', field: 'primary_contact_phone', headerSort: false, formatter: (cell) => {
             const cleaned = ('' + cell.getValue()).replace(/\D/g, '')
@@ -62,6 +69,7 @@ export default function Accounts(props) {
         {name: 'Account', db_field: 'account_id', selections: lists.accounts, type: 'SelectFilter', isMulti: true},
         {name: 'Active', db_field: 'active', type: 'BooleanFilter'},
         {name: 'Has Parent', db_field: 'has_parent', type: 'BooleanFilter'},
+        {isMulti: true, name: 'Ratesheet', selections: lists.ratesheets, type: 'SelectFilter', db_field: 'ratesheet_id'},
         {isMulti: true, name: 'Invoice Interval', selections: lists.invoice_intervals, type: 'SelectFilter', db_field: 'invoice_interval'},
         {isMulti: true, name: 'Parent Account', selections: lists.accounts.filter(account => account.can_be_parent), type: 'SelectFilter', db_field: 'parent_id'}
     ]

@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Account;
 use App\Models\Employee;
 use App\Models\PaymentType;
+use App\Models\Ratesheet;
 use App\Models\Selection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -28,12 +29,17 @@ class ListResource extends JsonResource {
         $authUser = $this;
 
         if($authUser->employee || $authUser->hasRole('superAdmin')) {
-            if($authUser->can('viewAll', Account::class) || $authUser->can('bills.view.basic'))
+            if($authUser->can('viewAll', Account::class) || $authUser->can('bills.view.basic')) {
                 $lists['accounts'] = Account::select(
                     DB::raw('concat(account_number, " - ", name) as label'),
                     'account_id as value',
                     'can_be_parent',
                 )->get();
+                $lists['ratesheets'] = Ratesheet::select(
+                    'name as label',
+                    'ratesheet_id as value'
+                )->get();
+            }
             if($authUser->can('viewAll', Account::class)) {
                 $lists['invoice_intervals'] = Selection::where('type', 'invoice_interval')->select('name as label', 'selection_id as value')->get();
                 $lists['parent_accounts'] = Account::where('can_be_parent', true)
