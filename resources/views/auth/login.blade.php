@@ -10,39 +10,48 @@
                     {{ csrf_field() }}
                     <input type='hidden' name='device_name' id='device_name'>
 
-                    <div class="mb-3{{ $errors->has('email') ? ' has-error' : '' }}">
+                    <div class="mb-3">
                         <div class="col-md-12">
-                            <div class='input-group'>
-                                <div class='input-group-prepend'>
-                                    <span class='input-group-text'>E-Mail Address</span>
-                                </div>
-                                <input type="email" class="form-control" name="email" value="{{ old('email') }}">
-
-                                @if ($errors->has('email'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('email') }}</strong>
-                                    </span>
-                                @endif
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">E‑Mail Address</span>
                             </div>
-                        </div>
-                    </div>
+                            <input
+                              type="email"
+                              name="email"
+                              value="{{ old('email') }}"
+                              class="form-control @error('email') is-invalid @enderror"
+                            >
+                          </div>
 
-                    <div class="mb-3{{ $errors->has('password') ? ' has-error' : '' }}">
+                          @error('email')
+                            <div class="invalid-feedback d-block mt-1">
+                              {{ $message }}
+                            </div>
+                          @enderror
+                        </div>
+                      </div>
+
+                      <div class="mb-3">
                         <div class="col-md-12">
-                            <div class='input-group'>
-                                <div class='input-group-prepend'>
-                                    <span class='input-group-text'>Password</span>
-                                </div>
-                                <input type="password" class="form-control" name="password">
-
-                                @if ($errors->has('password'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('password') }}</strong>
-                                    </span>
-                                @endif
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">Password</span>
                             </div>
+                            <input
+                              type="password"
+                              name="password"
+                              class="form-control @error('password') is-invalid @enderror"
+                            >
+                          </div>
+
+                          @error('password')
+                            <div class="invalid-feedback d-block mt-1">
+                              {{ $message }}
+                            </div>
+                          @enderror
                         </div>
-                    </div>
+                      </div>
 
                     {{-- <div class="mb-3">
                         <div class="col-md-6 col-md-offset-4">

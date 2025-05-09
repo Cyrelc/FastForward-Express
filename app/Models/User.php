@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -34,6 +35,17 @@ class User extends Authenticatable {
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function accounts(): BelongsToMany {
+        return $this->belongsToMany(
+            Account::class,
+            'account_users',   // your pivot table name
+            'user_id',         // foreign key on pivot for this model
+            'account_id'       // foreign key on pivot for the Account model
+        )
+        ->using(AccountUser::class)   // if you want to leverage your pivot model
+        ->withPivot('contact_id','is_primary');   // any pivot columns you care about
+    }
 
     public function accountUsers() {
         return $this->hasMany(AccountUser::class);

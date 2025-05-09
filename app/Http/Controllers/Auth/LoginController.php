@@ -60,6 +60,15 @@ class LoginController extends Controller
         $credentials = array_merge($credentials, ['is_enabled' => 1]);
 
         if (Auth::attempt($credentials)) {
+            // 3) Check the related account via your pivot:
+            //    (adjust account() / accounts() to whatever your relation is)
+            $user = Auth::user();
+            if ($user->accounts()->exists() && $user->accounts()->where('active', 1)->doesntExist()) {
+                Auth::logout();       // immediately log them back out
+                return back()->withErrors([
+                    'email' => 'Your company account is disabled. Please contact us to have it reinstated.'
+                ]);
+            }
             $req->session()->regenerate();
             activity('auth')->performedOn($req->user())
                 ->log('Successfully authenticated user');

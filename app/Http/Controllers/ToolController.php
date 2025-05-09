@@ -12,6 +12,7 @@ class ToolController extends Controller {
             ->where('stripe_object_type', 'payment_intent')
             ->whereNull('receipt_url')
             ->where('stripe_status', 'like', 'succeeded')
+            ->orWhere('stripe_status', 'like', 'pending')
             ->get();
 
         $successCount = 0;
@@ -21,7 +22,7 @@ class ToolController extends Controller {
                 $paymentIntent = $stripe->paymentIntents->retrieve($payment->stripe_payment_intent_id);
 
                 if($paymentIntent->charges->data[0]->receipt_url)
-                    $payment->update(['receipt_url' => $paymentIntent->charges->data[0]->receipt_url]);
+                    $payment->update(['receipt_url' => $paymentIntent->charges->data[0]->receipt_url, 'stripe_status' => 'succeded']);
                 $successCount++;
             } catch (\Exception $e) {
                 \Log::error("Error processing payment intent {$payment->stripe_payment_intent_id}: {$e->getMessage()}", [
