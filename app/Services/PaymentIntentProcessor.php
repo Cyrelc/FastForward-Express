@@ -83,8 +83,9 @@ class PaymentIntentProcessor {
                                 'receipt_url' => $paymentIntent->charges->data[0]->receipt_url
                             ])->log('[ReceiveStripeWebhook.handle] succeeded');
                         if($invoice->balance_owing == 0)
-                            throw new \Exception('Attempting to double pay invoice #' . $payment->invoice_id, $event);
-                        $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
+                            report(new \Exception('Attempting to double pay invoice #' . $payment->invoice_id));
+                        else
+                            $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
                     }
                 } else {
                     activity('jobs')
