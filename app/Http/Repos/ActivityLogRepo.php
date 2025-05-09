@@ -15,7 +15,7 @@ class ActivityLogRepo {
         $accountRepo = new AccountRepo();
         $userRepo = new UserRepo();
         $account = $accountRepo->GetById($accountId);
-        $activity = ActivityLog::where([['subject_type', 'App\Account'], ['subject_id', $accountId]])
+        $activity = ActivityLog::where([['subject_type', 'App\Models\Account'], ['subject_id', $accountId]])
             ->orWhere(function($addresses) use ($account) {
                 $addresses->where('subject_type', 'App\Models\Address');
                 $addresses->whereIn('subject_id', [$account->billing_address_id, $account->shipping_address_id]);
