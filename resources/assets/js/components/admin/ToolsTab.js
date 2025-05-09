@@ -10,7 +10,10 @@ export default function ToolsTab(props) {
     const refreshReceipts = () => {
         api.get('/api/tools/getStripeReceipts')
             .then(response => {
-                toast.success(`Successfully retrieved ${response.count} receipts`)
+                if(response.count == 0)
+                    toast.warning(`Found no receipts to refresh`)
+                else
+                    toast.success(`Successfully retrieved ${response.count} receipts`)
             })
     }
 
