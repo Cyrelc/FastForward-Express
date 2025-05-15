@@ -167,16 +167,15 @@ class AccountRepo {
     }
 
     public function GetMyAccountsStructured($user) {
+        $fields = ['active', 'account_id', 'account_number', 'name'];
         $accountUsers = $user->accountUsers;
         $accounts = [];
         foreach($accountUsers as $accountUser)
             $accounts[] = [
                 'account' => Account::where('account_id', $accountUser->account_id)
-                    ->where('active', true)
-                    ->select('name', 'account_id', 'account_number')->first(),
+                    ->select($fields)->first(),
                 'children' => Account::where('parent_account_id', $accountUser->account_id)
-                    ->where('active', true)
-                    ->select('name', 'account_id', 'account_number')->get()
+                    ->select($fields)->get()
             ];
 
         return $accounts;
