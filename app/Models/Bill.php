@@ -41,6 +41,7 @@ class Bill extends Model
         'pickup_manifest_id',
         'pickup_person_name',
         'pickup_reference_value',
+        'proof_of_delivery_required',
         'repeat_interval',
         'skip_invoicing',
         'time_pickup_scheduled',
