@@ -16,7 +16,7 @@ Route::middleware(['auth'])->group(function() {
 });
 
 Route::middleware(['auth'])->controller(AccountController::class)->prefix('accounts')->group(function() {
-    Route::get('/chart/{accountId}', 'getChart');
+    Route::post('/chart/{accountId}', 'getChart');
     Route::get('/toggleActive/{accountId}', 'toggleActive');
     Route::get('/getShippingAddress', 'getShippingAddress');
     Route::post('/adjustCredit', 'adjustAccountCredit');

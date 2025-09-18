@@ -25,7 +25,7 @@ export default function Charts(props) {
             start_date: startDate.toFormat('yyyy-MM-dd'),
             summationType
         }
-        api.get(`/accounts/chart/${accountId}`)
+        api.post(`/accounts/chart/${accountId}`, data)
             .then(response => {
                 if(response.bills)
                     setChartData(Object.values(response.bills).map(value => {return value}))
