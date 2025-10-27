@@ -7,8 +7,7 @@ use App\Models\User;
 use App\Http\Repos;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class AccountPolicy
-{
+class AccountPolicy {
     use HandlesAuthorization;
 
     private static $permissionsWhichConveyViewChildren = ['accounts.view.basic.children', 'accounts.edit.basic.children', 'accounts.edit.invoicing.children', 'payments.view.children', 'accountUsers.create.children', 'accountUsers.edit.children', 'accountUsers.editPermissions.children'];

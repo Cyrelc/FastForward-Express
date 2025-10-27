@@ -39,7 +39,7 @@ class EmployeePolicy {
      * @param  \App\Models\User  $user
      * @return mixed
      */
-    public function create(User $user, Employee $employee) {
+    public function create(User $user) {
         return $user->can('employees.create');
     }
 
