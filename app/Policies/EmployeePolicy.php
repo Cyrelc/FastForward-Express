@@ -6,8 +6,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class EmployeePolicy
-{
+class EmployeePolicy {
     use HandlesAuthorization;
     /**
      * Determine whether the user can view the model.
@@ -40,8 +39,7 @@ class EmployeePolicy
      * @param  \App\Models\User  $user
      * @return mixed
      */
-    public function create(User $user)
-    {
+    public function create(User $user, Employee $employee) {
         return $user->can('employees.create');
     }
 
