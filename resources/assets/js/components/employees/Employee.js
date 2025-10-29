@@ -57,6 +57,7 @@ export default function Employee(props) {
                     address.reset()
                     contact.reset()
                     employee.reset()
+                    employee.setupCreate(data)
                     setPermissions(data.permissions)
                     setIsLoading(false)
                 }

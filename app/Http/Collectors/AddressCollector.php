@@ -6,7 +6,7 @@ class AddressCollector {
         return [
             'name'=> $addressData['name'],
             'formatted'=> $addressData['formatted'],
-            'is_mall'=> array_key_exists('is_mall', $addressData) ? $addressData['is_mall'] : null,
+            'is_mall'=> array_key_exists('is_mall', $addressData) ? $addressData['is_mall'] : false,
             'lat'=> $addressData['lat'],
             'lng'=> $addressData['lng'],
             'place_id'=> $addressData['place_id'],

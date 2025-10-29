@@ -96,11 +96,16 @@ export default function useEmployee() {
         setVehicleTypes(employee.vehicle_types)
     }
 
+    const setupCreate = employee => {
+        setEmployeePermissions(employee.employee_permissions)
+    }
+
     return {
         collectAdvanced,
         collectDriver,
         reset,
         setup,
+        setupCreate,
         activityLog,
         birthDate,
         companyName,
