@@ -137,7 +137,7 @@ export default function Employee(props) {
                 address: address.collect(),
                 ...contact.collect(),
             },
-            employee_id: employeeId,
+            ...employeeId ? {employee_id: employeeId} : {},
             ... permissions.editAdvanced ? employee.collectAdvanced() : [],
             ...(permissions.editAdvanced && employee.isDriver) ? employee.collectDriver() : []
         }
