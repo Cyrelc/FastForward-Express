@@ -65,7 +65,7 @@ export default function Invoice(props) {
 
             setAccountId(response.invoice.account_id)
             setAmendments(response.amendments)
-            setBillCountWithMissedLineItems(response.bill_count_with_missed_line_items)
+            setBillCountWithMissedLineItems(response.invoice.bill_count_with_missed_line_items)
             setInvoice(response.invoice)
             setIsFinalized(response.invoice.finalized)
             setIsPrepaid(response.is_prepaid)
