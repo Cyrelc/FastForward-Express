@@ -392,6 +392,7 @@ export default function Invoice(props) {
                                     <thead>
                                         <tr>
                                             <td>Bill ID</td>
+                                            <td>Date</td>
                                             <td style={{textAlign: 'right'}}>Amount</td>
                                         </tr>
                                     </thead>
@@ -409,6 +410,7 @@ export default function Invoice(props) {
                                                             {amendment.line_items.map(lineItem =>
                                                                 <tr>
                                                                     <td>{lineItem.name}</td>
+                                                                    <td>{lineItem.time_pickup_scheduled}</td>
                                                                     <td style={{textAlign: 'right'}}>{parseFloat(lineItem.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                                                 </tr>
                                                             )}
