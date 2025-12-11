@@ -122,7 +122,7 @@ export default function Invoice(props) {
                 <Nav>
                     {(invoice && permissions.edit) &&
                         <Nav.Link onClick={regather} disabled={billCountWithMissedLineItems == 0}>
-                            <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{invoice.bill_count_with_missed_line_items}</Badge>
+                            <i className='fas fa-sync-alt'></i> {isFinalized ? 'Gather Amendments' : 'Regather Bills'} <Badge pill bg='secondary'>{billCountWithMissedLineItems}</Badge>
                         </Nav.Link>
                     }
                     {(permissions.processPayments && isFinalized && invoice.balance_owing > 0) &&
