@@ -404,13 +404,13 @@ export default function Invoice(props) {
                                                         <a>{amendment.bill_id}</a>
                                                     </LinkContainer>
                                                 </td>
+                                                <td>{lineItem.time_pickup_scheduled}</td>
                                                 <td style={{textAlign: showLineItems ? '' : 'right'}}>
                                                     {(showLineItems && amendment.line_items) ?
                                                         <Table bordered size='sm' striped>
                                                             {amendment.line_items.map(lineItem =>
                                                                 <tr>
                                                                     <td>{lineItem.name}</td>
-                                                                    <td>{lineItem.time_pickup_scheduled}</td>
                                                                     <td style={{textAlign: 'right'}}>{parseFloat(lineItem.price).toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
                                                                 </tr>
                                                             )}
