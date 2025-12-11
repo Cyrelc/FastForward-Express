@@ -404,7 +404,7 @@ export default function Invoice(props) {
                                                         <a>{amendment.bill_id}</a>
                                                     </LinkContainer>
                                                 </td>
-                                                <td>{lineItem.time_pickup_scheduled}</td>
+                                                <td>{amendment.time_pickup_scheduled}</td>
                                                 <td style={{textAlign: showLineItems ? '' : 'right'}}>
                                                     {(showLineItems && amendment.line_items) ?
                                                         <Table bordered size='sm' striped>
