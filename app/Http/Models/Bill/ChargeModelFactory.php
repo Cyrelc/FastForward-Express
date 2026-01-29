@@ -66,46 +66,61 @@ class ChargeModelFactory {
      * 
      * @param $pickupZone - the complete zone object wherein the pickup will occur
      * @param $deliveryZone - as pickup zone but for delivery location
-     * @param $zones - the list of zones pertaining to this ratesheet, as they have already been gathered by the calling function no need to make a second database call
      * @param $ratesheet - the ratesheet against which to check pricing
      * @param $deliveryType - the deliveryType to check against the ratesheet for pricing
      */
-    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheetId, $deliveryType) {
+    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheet, $deliveryType) {
         $ratesheetRepo = new Repos\RatesheetRepo();
-        $selectionsRepo = new Repos\SelectionsRepo();
+        $zones = $ratesheetRepo->GetMapZones($ratesheet->ratesheet_id)->toArray();
 
-        $zones = $ratesheetRepo->GetMapZones($ratesheetId);
+        // Build adjacency map: zone_id => [neighbour_ids]
+        $graph = [];
+        foreach ($zones as $zone) {
+            $graph[$zone['zone_id']] = !empty($zone['neighbours'])
+                ? json_decode($zone['neighbours'], true)
+                : [];
+        }
 
-        $unvisitedSet = $zones->toArray();
-        $startIndex = array_search($pickupZone->zone_id, array_column($unvisitedSet, 'zone_id'));
-        $visitedSet = array();
-        $visitedSet[] = $unvisitedSet[$startIndex];
-        $visitedSet[0]['distance'] = $distance = 1;
-        unset($unvisitedSet[$startIndex]);
+        $startId = $pickupZone->zone_id;
+        $targetId = $deliveryZone->zone_id;
 
-        while(!empty($unvisitedSet) && !in_array($deliveryZone->zone_id, array_column($visitedSet, 'zone_id'))) {
-            // activity('system_debug')->log('unvisitedset count:' . count($unvisitedSet));
-            foreach($visitedSet as $visitedZone)
-                if($visitedZone['distance'] === $distance && isset($visitedZone['neighbours'])) {
-                    foreach(json_decode($visitedZone['neighbours']) as $neighbourZoneId) {
-                        $neighbourZoneIndex = array_search($neighbourZoneId, array_column($unvisitedSet, 'zone_id'));
-                        if($neighbourZoneIndex) {
-                            $unvisitedSet[$neighbourZoneIndex]['distance'] = $distance + 1;
-                            $visitedSet[] = ($unvisitedSet[$neighbourZoneIndex]);
-                            unset($unvisitedSet[$neighbourZoneIndex]);
-                        }
-                    }
+        // BFS structures
+        $queue = [ $startId ];
+        $visited = [ $startId => 1 ]; // zone_id => distance
+
+        while (!empty($queue)) {
+            $currentId = array_shift($queue);
+            $currentDistance = $visited[$currentId];
+
+            if ($currentId === $targetId) {
+                $distance = $currentDistance;
+                break;
+            }
+
+            foreach ($graph[$currentId] ?? [] as $neighbourId) {
+                if (!isset($visited[$neighbourId])) {
+                    $visited[$neighbourId] = $currentDistance + 1;
+                    $queue[] = $neighbourId;
                 }
-            $distance++;
+            }
+        }
+
+        if (!isset($distance)) {
+            // No path exists
+            return null; // or throw / default / log
         }
 
         $zoneRates = json_decode($ratesheet->zone_rates);
         $zoneRateId = array_search($distance, array_column($zoneRates, 'zones'));
         $zoneRate = $zoneRates[$zoneRateId];
-        $deliveryTypeFriendlyName = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $deliveryType)->name;
-        $deliveryType .= '_cost';
 
-        return new LineItemModel($deliveryTypeFriendlyName . ' - ' . $distance . ' zones', 'distanceRate', $zoneRate->$deliveryType);
+        $deliveryTypeFriendlyName = $deliveryType->value . '_cost';
+
+        return new LineItemModel(
+            $deliveryTypeFriendlyName . ' - ' . $distance . ' zones',
+            'distanceRate',
+            $zoneRate->$deliveryTypeFriendlyName
+        );
     }
 
     private function EvaluateFunctionalEquation($conditional, $mockBill) {
@@ -188,7 +203,6 @@ class ChargeModelFactory {
 
     private function generateDistanceCharges($ratesheet, $bill) {
         $pointLocation = new MapLogic\PointLocation;
-
         /**
          * If one or both requests are outside of a programmed deliverable area, then we throw an exception: The system cannot automatically calculate the pricing, this must be done manually
          */
@@ -202,7 +216,7 @@ class ChargeModelFactory {
 
         if(in_array($bill->pickup_address->zone->type, $crossableZoneTypes) && in_array($bill->delivery_address->zone->type, $crossableZoneTypes))
             if(filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN))
-                $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $zones, $ratesheet, $deliveryType);
+                $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $ratesheet, $bill->delivery_type);
             else {
                 $deliveryTypes = json_decode($ratesheet->delivery_types);
                 $chargeDeliveryTypeIndex = array_search($bill->delivery_type->value, array_column($deliveryTypes, 'id'));

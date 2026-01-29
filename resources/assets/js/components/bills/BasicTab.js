@@ -53,16 +53,13 @@ export default function BasicTab(props) {
     const totalWeight = packageArray.reduce((acc, parcel) => {
         if(parcel.totalWeight && parcel.totalWeight != NaN)
             return acc + parseFloat(parcel.totalWeight)
-        console.log(parcel.totalWeight)
         return acc
     }, 0)
     const totalCubedWeight = packageArray.reduce((acc, parcel) => {
         if(parcel.cubedWeight && parcel.cubedWeight != NaN && parcel.cubedWeight != "")
             return acc + parseFloat(parcel.cubedWeight)
-        console.log(parcel.cubedWeight)
         return acc
     }, 0)
-    console.log(totalWeight, totalCubedWeight)
 
     const pickupTimeFilter = time => {
         const dateTime = DateTime.fromJSDate(time)

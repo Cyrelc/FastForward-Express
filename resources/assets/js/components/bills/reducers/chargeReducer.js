@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {toast} from 'react-toastify'
 
 const basicCharge = (chargeType) => {
@@ -12,6 +13,20 @@ const basicCharge = (chargeType) => {
 
 function canChargeTableBeDeleted(charge) {
     return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
+}
+
+export function useStableChargeState(chargeState) {
+    return useMemo(() => chargeState, [
+        chargeState.activeRatesheet,
+        chargeState.charges,
+        chargeState.chargeAccount,
+        chargeState.hasInterliner,
+        chargeState.invoiceIds,
+        chargeState.manifestIds,
+        chargeState.interliner,
+        chargeState.interlinerActualCost,
+        chargeState.interlinerReferenceValue,
+    ])
 }
 
 export const initialState = {

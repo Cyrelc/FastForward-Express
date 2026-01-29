@@ -6,7 +6,7 @@ import {debounce} from 'lodash'
 import {toast} from 'react-toastify'
 
 import BillReducer, {initialState as initialBillState} from './reducers/billReducer'
-import ChargeReducer, {initialState as initialChargeState} from './reducers/chargeReducer'
+import ChargeReducer, {initialState as initialChargeState, useStableChargeState} from './reducers/chargeReducer'
 import usePackages from './hooks/usePackages'
 
 import ActivityLogTab from '../partials/ActivityLogTab'
@@ -49,6 +49,10 @@ export default function Bill(props) {
     const queryParams = new URLSearchParams(location.search)
     const {authenticatedUser} = useUser()
     const {front_end_permissions: frontEndPermissions} = authenticatedUser
+
+    const firstCharge = charges?.[0];
+
+    const stableChargeState = useStableChargeState(chargeState)
 
     const configureBill = () => {
         billDispatch({type: 'SET_IS_LOADING', payload: true})
@@ -286,7 +290,7 @@ export default function Bill(props) {
                     repeat_interval: billState.repeatInterval?.selection_id,
                     skip_invoicing: billState.skipInvoicing
                 }
-                data.charges.forEach(charge => delete charge.tableRef)
+                data.charges = data.charges.map(({ tableRef, ...rest}) => rest)
 
                 const chargesPresent = data.charges ? data.charges.filter(charge => !charge.toBeDeleted).length > 0 : false
                 if(!chargesPresent && !confirm("This bill is being saved without any charges present.\n\nPress okay if this is intentional, or cancel to return and review the bill."))
@@ -436,7 +440,11 @@ export default function Bill(props) {
     }, [chargeAccount, permissions, accounts, chargeState.chargeType])
 
     useEffect(() => {
+        if(!firstCharge)
+            return
+
         let conditionsMet = false
+
         if(!!activeRatesheet.ratesheet_id && !billId && !!deliveryAddressLat && !!deliveryAddressLng && !!pickupAddressLat && !!pickupAddressLng && !!deliveryType && charges[0]) {
             if(packageIsMinimum) {
                 conditionsMet = true
@@ -629,7 +637,7 @@ export default function Bill(props) {
                                 billDispatch={billDispatch}
                                 billState={billState}
                                 chargeDispatch={chargeDispatch}
-                                chargeState={chargeState}
+                                chargeState={stableChargeState}
                                 generateCharges={generateCharges}
                             />
                         </Tab>

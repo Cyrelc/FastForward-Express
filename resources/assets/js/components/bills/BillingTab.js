@@ -54,7 +54,6 @@ function lineItemTypeGroupFormatter(value) {
 
 export default function BillingTab(props) {
     const [rateTable, setRateTable] = useState([])
-    const [tabulatorTable, setTabulatorTable] = useState()
 
     const {
         activeRatesheet,
@@ -84,34 +83,50 @@ export default function BillingTab(props) {
         skipInvoicing
     } = props.billState
 
-    const tabulatorTableRef = useRef()
+    const tabulatorTableRef = useRef(null)
+    const tabulatorRef = useRef(null)
+    const tableReadyRef = useRef(false)
 
     useEffect(() => {
-        if(!tabulatorTable && tabulatorTableRef.current) {
-            const newTabulator = new Tabulator(tabulatorTableRef.current, {
+        if (!tabulatorTableRef.current)
+            return
+        if (tabulatorRef.current)
+            return
+
+        const table = new Tabulator(tabulatorTableRef.current, {
                 columns: [
                     {title: 'Name', field: 'name', headerSort: false},
                     {title: 'Type', field: 'type', formatter: cell => lineItemTypeFormatter(cell.getValue()), hozAlign: 'center', width: 45, headerSort: false, visible: false}
                 ],
-                data: rateTable,
                 groupBy: 'type',
                 groupHeader: lineItemTypeGroupFormatter,
+                groupUpdateOnCellEdit: false,
                 index: 'line_item_id',
-                maxHeight: '55vh',
+                height: '55vh',
                 movableRows: true,
                 movableRowsReceiver: false,
                 movableRowsSender: true,
                 movableRowsConnectedTables: ['#lineItemDestination'],
-                layout: 'fitColumns'
-            })
+                layout: 'fitColumns',
+            });
 
-            setTabulatorTable(newTabulator)
-        }
-    }, [tabulatorTableRef, tabulatorTable])
+        table.on('tableBuilt', () => {
+            tableReadyRef.current = true
+
+            if(rateTable.length)
+                table.replaceData(rateTable)
+        })
+
+        tabulatorRef.current = table
+    }, [])
 
     useEffect(() => {
-        if(tabulatorTable)
-            tabulatorTable.setData(rateTable)
+        if (!tabulatorRef.current)
+            return
+        if (!tableReadyRef.current)
+            return
+
+        tabulatorRef.current.replaceData(rateTable)
     }, [rateTable])
 
     useEffect(() => {
@@ -273,7 +288,7 @@ export default function BillingTab(props) {
                 </Card.Body>
             }
             <Card.Body>
-                <Row> {/* Charges */}
+                <Row> 
                     <Col md={2}>
                         <h4 className='text-muted'>Charges</h4>
                     </Col>

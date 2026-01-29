@@ -76,6 +76,7 @@ function groupHeaderFormatter(key, count, data, group) {
 }
 
 export default function Charge(props) {
+    const [isTableReady, setIsTableReady] = useState(false)
     const [linkLineItemCell, setLinkLineItemCell] = useState('')
     const [linkLineItemToType, setLinkLineItemToType] = useState('')
     const [showDetails, setShowDetails] = useState(false)
@@ -85,6 +86,8 @@ export default function Charge(props) {
 
     const api = useAPI()
     const tableRef = useRef(null)
+    const tabulatorRef = useRef(null)
+    const tableReadyRef = useRef(false)
     const history = useHistory()
 
     const {
@@ -97,49 +100,61 @@ export default function Charge(props) {
     } = props
 
     useEffect(() => {
-        if(!table && tableRef.current) {
-            const newTabulator = new Tabulator(tableRef.current, {
-                columns: chargeTableColumns(charge.chargeType),
-                data: charge.lineItems,
-                groupBy: (data) => groupBy(data, charge),
-                groupHeader: groupHeaderFormatter,
-                initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
-                layout: 'fitColumns',
-                movableRows: true,
-                movableRowsConnectedTables: ['#lineItemSource'],
-                movableRowsReceiver: 'add'
-            })
+        if (tabulatorRef.current)
+            return
+        if (!tableRef.current)
+            return
 
-            newTabulator.on('cellEdited', cell => {
-                const field = cell.getField()
-                const row = cell.getRow()
-                const rowData = row.getData()
-                if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
-                    row.update({driver_amount: cell.getValue()})
-                props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
-            })
+        const newTabulator = new Tabulator(tableRef.current, {
+            columns: chargeTableColumns(charge.chargeType),
+            data: charge.lineItems,
+            groupBy: (data) => groupBy(data, charge),
+            groupHeader: groupHeaderFormatter,
+            initialFilter: [{field: 'toBeDeleted', type: '!=', value: true}],
+            layout: 'fitColumns',
+            movableRows: true,
+            movableRowsConnectedTables: ['#lineItemSource'],
+            movableRowsReceiver: 'add'
+        })
 
-            newTabulator.on('rowAdded', row => {
-                row.getTable().setGroupBy(data => groupBy(data, charge))
-                const data = row.getTable().getData()
-                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-            })
+        newTabulator.on('cellEdited', cell => {
+            const field = cell.getField()
+            const row = cell.getRow()
+            const rowData = row.getData()
+            if(field === 'price' && (!rowData['driver_amount'] || cell.getOldValue() === rowData['driver_amount']))
+                row.update({driver_amount: cell.getValue()})
+            props.chargeDispatch({'type': 'UPDATE_LINE_ITEMS', 'payload': {'data': row.getTable().getData(), index}})
+        })
 
-            newTabulator.on('rowDeleted', row => {
-                props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
-                const data = row.getTable().getData()
-                props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
-            })
+        newTabulator.on('rowAdded', row => {
+            row.getTable().setGroupBy(data => groupBy(data, charge))
+            const data = row.getTable().getData()
+            props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+            props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+        })
 
-            setTable(newTabulator)
-        }
+        newTabulator.on('rowDeleted', row => {
+            props.chargeDispatch({type: 'CHECK_FOR_INTERLINER'})
+            const data = row.getTable().getData()
+            props.chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {data, index}})
+        })
+
+        newTabulator.on('tableBuilt', () => {
+            tableReadyRef.current = true
+            setIsTableReady(true)
+        })
+
+        tabulatorRef.current = newTabulator;
     })
 
     useEffect(() => {
-        if(table)
-            table.setData(charge.lineItems)
-    }, [charge.lineItems])
+        if(!tabulatorRef.current)
+            return
+        if(!tableReadyRef.current)
+            return
+
+        tabulatorRef.current.replaceData(charge.lineItems)
+    }, [charge.lineItems, isTableReady])
 
     useEffect(() => {
         if(table) {
