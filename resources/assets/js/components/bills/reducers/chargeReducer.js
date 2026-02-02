@@ -20,6 +20,9 @@ export function useStableChargeState(chargeState) {
         chargeState.activeRatesheet,
         chargeState.charges,
         chargeState.chargeAccount,
+        chargeState.chargeType,
+        chargeState.chargeTypes,
+        chargeState.chargeEmployee,
         chargeState.hasInterliner,
         chargeState.invoiceIds,
         chargeState.manifestIds,
@@ -58,7 +61,7 @@ export default function chargeReducer(state, action) {
             if(!chargeType) {
                 toast.warn('Charge type selector may not be empty')
                 console.log('chargeType may not be empty. Aborting')
-                return
+                return state
             }
 
             let newCharge = basicCharge(chargeType)
@@ -67,7 +70,7 @@ export default function chargeReducer(state, action) {
                     if(!chargeAccount) {
                         toast.warn('Charge account can not be empty')
                         console.log('chargeAccount may not be empty. Aborting')
-                        return
+                        return state
                     }
                     newCharge = {
                         ...newCharge,
@@ -81,7 +84,7 @@ export default function chargeReducer(state, action) {
                     if(!chargeEmployee) {
                         toast.warn('Charge Employee may not be empty')
                         console.log('chargeEmployee may not be empty. Aborting')
-                        return
+                        return state
                     }
                     newCharge = {
                         ...newCharge,
