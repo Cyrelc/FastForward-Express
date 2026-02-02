@@ -20,12 +20,19 @@ export default function BasicRatesTab(props) {
     }
 
     const deleteMiscRate = deleteIndex => {
-        newMiscRates = miscRates.filter((miscRate, index) => index !== deleteIndex)
+        const newMiscRates = miscRates.filter((miscRate, index) => index !== deleteIndex)
         setMiscRates(newMiscRates)
     }
 
-    const handleDeliveryTypeChange = (index, field, value) => {
-        console.log(index, field, value)
+    const handleDeliveryTypeChange = (event, section, id) => {
+        const {name, value, type, checked} = event.target
+        const updated = deliveryTypes.map(dt => {
+            // id may be number or string depending on source; attempt loose equality
+            if(dt.id == id)
+                return type === 'checkbox' ? {...dt, [name]: checked} : {...dt, [name]: value}
+            return dt
+        })
+        setDeliveryTypes(updated)
     }
 
     const handleMiscRateChange = (index, field, value) =>  {

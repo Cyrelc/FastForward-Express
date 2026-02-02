@@ -70,6 +70,10 @@ export default function Ratesheet(props) {
                         mapState.createZone(null, mapZone)
                     }
                     mapState.setDrawingMap(100)
+                } else {
+                    // For a new ratesheet (create route) there are no mapZones to iterate;
+                    // ensure the drawing progress modal finishes.
+                    mapState.setDrawingMap(100)
                 }
             })
         }
