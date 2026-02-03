@@ -12,7 +12,7 @@ export default function UserPermissionTab(props) {
 
     const hasChildren = props.belongsTo.some(account => account.children.length > 0) || props.canBeParent
 
-    const {authenticatedUser} = useUser()
+    const {contact} = useUser()
 
     return (
         <Row>
@@ -35,7 +35,7 @@ export default function UserPermissionTab(props) {
                                     checked={props.accountUserPermissions.is_enabled}
                                     name='is_enabled'
                                     onChange={props.handlePermissionChange}
-                                    disabled={props.readOnly || authenticatedUser.contact.contact_id == props.contactId}
+                                    disabled={props.readOnly || contact?.contact_id == props.contactId}
                                 ></Form.Check>
                             </td>
                             {hasChildren == true && <td></td>}
