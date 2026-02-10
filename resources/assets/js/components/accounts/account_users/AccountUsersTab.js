@@ -37,7 +37,7 @@ export default function AccountUsersTab(props) {
         if(accountUsers.length <= 1)
             return
         // TODO - this account user length check is incorrect
-        if(confirm(`Are you sure you wish to ${accountUser.belongs_to_count > 1 ? 'delete' : 'unlink'} account user ${accountUser.name}?\nThis action can not be undone\n\n` + 
+        if(confirm(`Are you sure you wish to ${accountUser.belongs_to_count > 1 ? 'unlink' : 'delete'} account user ${accountUser.name}?\nThis action can not be undone\n\n` + 
             'WARNING - If this user belongs to more than one account, they will need to be deleted on each account separately')) {
             api.delete(`/accountUsers/${contactId}/${props.accountId}`)
                 .then(response => {
@@ -177,7 +177,7 @@ export default function AccountUsersTab(props) {
                                                                 variant='danger'
                                                                 title={user.belongs_to_count == 1 ? 'Delete' : 'Unlink'}
                                                         >
-                                                                <i className='fas fa-trash'></i> Delete
+                                                                <i className={`fas ${user.belongs_to_count == 1 ? 'fa-trash' : 'fa-unlink'}`}></i> {user.belongs_to_count == 1 ? 'Delete' : 'Unlink'}
                                                             </Dropdown.Item>
                                                         }
                                                         {props.canImpersonateAccountUsers &&

@@ -10,7 +10,7 @@ export default function UserPermissionTab(props) {
         '\t- View basic and invoicing information for the account\n' +
         '\t- View the list of account users, but not their details'
 
-    const hasChildren = props.belongsTo.some(account => account.children.length > 0) || props.canBeParent
+    const hasChildren = (props.belongsTo || []).some(({children}) => (children || []).length > 0) || props.canBeParent
 
     const {contact} = useUser()
 
@@ -139,16 +139,30 @@ export default function UserPermissionTab(props) {
                     </Card.Header>
                     <Card.Body>
                         <ul>
-                            {props.belongsTo.map(({account, children}) =>
-                                <li key={'parent_' + account.account_id} style={{color: account.active ? 'black' : 'red'}}>
-                                    {`${account.account_number} - ${account.name}`}
-                                    <ul key={account.account_id + '.children'}>
-                                        {children.map(({ account: child }) =>
-                                            <li key={'child_' + child.account_id} style={{color: child.active ? 'black' : 'red'}}>{`${child.account_number} - ${child.name}`}</li>
-                                        )}
-                                    </ul>
-                                </li>
-                            )}
+                            {(props.belongsTo || []).map(({account, children}) => {
+                                if (!account) {
+                                    throw new Error('UserPermissionTab: missing parent account in belongs_to payload.')
+                                }
+
+                                return (
+                                    <li key={'parent_' + account.account_id} style={{color: account.active ? 'black' : 'red'}}>
+                                        {`${account.account_number} - ${account.name}`}
+                                        <ul key={account.account_id + '.children'}>
+                                            {(children || []).map((childItem) => {
+                                                const child = childItem?.account ?? childItem
+
+                                                if (!child) {
+                                                    throw new Error('UserPermissionTab: missing child account in belongs_to payload.')
+                                                }
+
+                                                return (
+                                                    <li key={'child_' + child.account_id} style={{color: child.active ? 'black' : 'red'}}>{`${child.account_number} - ${child.name}`}</li>
+                                                )
+                                            })}
+                                        </ul>
+                                    </li>
+                                )
+                            })}
                         </ul>
                     </Card.Body>
                 </Card>
