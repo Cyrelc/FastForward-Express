@@ -8,6 +8,7 @@ import {ResponsiveLine} from '@nivo/line'
 
 import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {useAPI} from '../../contexts/APIContext'
+import WorkerStatusIndicator from '../partials/WorkerStatusIndicator'
 
 const commonTableSettings = {
     enableBottomToolbar: false,
@@ -98,8 +99,12 @@ export default function AdminDashboard(props) {
         <Row className='justify-content-md-center' style={{margin: 0}}>
             <Col md={12}>
                 <Card>
-                    <Card.Header>
+                    <Card.Header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Card.Title>Admin Dashboard</Card.Title>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                            <span style={{fontSize: '0.9em', color: '#666'}}>Worker Status:</span>
+                            <WorkerStatusIndicator refreshInterval={60000} size="large" />
+                        </div>
                     </Card.Header>
                     {loading ?
                         <Card.Body>

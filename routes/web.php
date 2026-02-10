@@ -205,4 +205,10 @@ Route::middleware(['guest'])->controller(GuestController::class)->group(function
     });
 });
 
+Route::middleware(['auth'])->controller(WorkerController::class)->prefix('api/workers')->group(function() {
+    Route::get('/status', 'getStatus');
+    Route::post('/restart', 'restart');
+    Route::get('/queue-stats', 'getQueueStats');
+});
+
 Route::auth();

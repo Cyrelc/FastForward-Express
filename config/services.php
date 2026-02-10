@@ -41,4 +41,11 @@ return [
         'stripe_payment_intent_secret' => env('STRIPE_PAYMENT_INTENT_SECRET'),
         'stripe_refund_secret' => env('STRIPE_REFUND_SECRET')
     ],
+
+    'supervisor' => [
+        'required' => [
+            'laravel-queue:laravel-queue_00',
+            'laravel-queue:laravel-queue_01',
+        ],
+    ],
 ];

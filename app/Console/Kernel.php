@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\GenerateRepeatingBills::class,
+        Commands\StoreWorkerHealth::class,
+        Commands\WorkerHealthCheck::class,
         // Commands\Inspire::class,
     ];
 
@@ -27,6 +29,17 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command(Commands\GenerateRepeatingBills::class)->dailyAt('5:00')->weekDays();
+
+        // Worker health monitoring - runs every 10 minutes
+        $schedule->command(Commands\WorkerHealthCheck::class)->everyTenMinutes();
+
+        // Preventative daily worker restart at 3 AM
+        $schedule->call(function() {
+            $workerGroup = env('LARAVEL_WORKER_GROUP', 'laravel-queue');
+            exec("sudo supervisorctl restart {$workerGroup}: 2>&1", $output, $exitCode);
+            activity('worker_maintenance')->log('Daily preventative worker restart completed');
+        })->dailyAt('03:00');
+
         $schedule->call(function() {
             activity('system_heartbeat')->log('system heartbeat');
         })->everyTenMinutes();

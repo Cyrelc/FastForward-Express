@@ -7,6 +7,7 @@ import {DateTime} from 'luxon'
 
 import Map from './Map'
 import BillTable from './BillTable'
+import WorkerStatusIndicator from '../partials/WorkerStatusIndicator'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 
@@ -220,7 +221,7 @@ export default function Dispatch(props) {
             </Col>
             <Col md={3}>
                 <Row>
-                    <Col md={12} className='text-center'>
+                    <Col md={8} className='text-center'>
                         <InputGroup>
                             <InputGroup.Text>Date</InputGroup.Text>
                             <DatePicker
@@ -231,6 +232,10 @@ export default function Dispatch(props) {
                                 wrapperClassName='form-control'
                             />
                         </InputGroup>
+                    </Col>
+                    <Col md={4} className='text-center' style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+                        <h5>Worker Status</h5>
+                        <WorkerStatusIndicator refreshInterval={600000} size="small" />
                     </Col>
                     <Col md={12} className='text-center'>
                         <h4 className='text-muted'>New Bills</h4>
