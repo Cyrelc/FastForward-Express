@@ -16,9 +16,9 @@ class WorkerController extends Controller
      */
     public function getStatus(Request $req)
     {
-        // Check if user is authenticated and has admin permission
-        if (!$req->user() || $req->user()->cannot('viewAny', \App\Models\User::class)) {
-            abort(403, 'Only administrators can view worker status');
+        // Check if user is authenticated and has appSettings permission
+        if (!$req->user() || !$req->user()->hasPermissionTo('appSettings.edit.*.*')) {
+            abort(403, 'Insufficient permissions to view worker status');
         }
 
         // Get cached health status
@@ -60,9 +60,9 @@ class WorkerController extends Controller
      */
     public function restart(Request $req)
     {
-        // Check if user is authenticated and has admin permission
-        if (!$req->user() || $req->user()->cannot('viewAny', \App\Models\User::class)) {
-            abort(403, 'Only administrators can restart workers');
+        // Check if user is authenticated and has appSettings permission
+        if (!$req->user() || !$req->user()->hasPermissionTo('appSettings.edit.*.*')) {
+            abort(403, 'Insufficient permissions to restart workers');
         }
 
         $reason = $req->input('reason', 'Manual restart by administrator');
