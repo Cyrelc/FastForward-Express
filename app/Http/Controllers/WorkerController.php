@@ -17,7 +17,7 @@ class WorkerController extends Controller
     public function getStatus(Request $req)
     {
         // Check if user is authenticated and has appSettings permission
-        if (!$req->user() || !$req->user()->hasPermissionTo('appSettings.edit.*.*')) {
+        if (!$req->user() || $req->user()->cannot('appSettings.edit.*.*')) {
             abort(403, 'Insufficient permissions to view worker status');
         }
 
@@ -61,7 +61,7 @@ class WorkerController extends Controller
     public function restart(Request $req)
     {
         // Check if user is authenticated and has appSettings permission
-        if (!$req->user() || !$req->user()->hasPermissionTo('appSettings.edit.*.*')) {
+        if (!$req->user() || $req->user()->cannot('appSettings.edit.*.*')) {
             abort(403, 'Insufficient permissions to restart workers');
         }
 
