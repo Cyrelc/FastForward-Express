@@ -7,7 +7,7 @@
 set -e
 
 # Configuration
-PROJECT_ROOT="/home/brandon/Desktop/FastForward-Express"
+PROJECT_ROOT="${PROJECT_ROOT:-/var/www/FastForward-Express}"
 DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 MAX_QUEUE_AGE_SECONDS=300  # 5 minutes - if oldest job is older than this, workers might be stuck
 CONSECUTIVE_FAILURES_THRESHOLD=2
@@ -53,7 +53,7 @@ log_to_laravel() {
     local status="$2"
     
     cd "$PROJECT_ROOT"
-    php artisan worker:health-store --status="$status" --message="$message" 2>/dev/null || true
+    sudo -u www-data php artisan worker:health-store --status="$status" --message="$message" 2>/dev/null || true
 }
 
 # Check 1: Supervisor process status
@@ -73,7 +73,7 @@ check_queue_processing() {
     cd "$PROJECT_ROOT"
     
     local oldest_job_age
-    oldest_job_age=$(php artisan tinker --execute="
+    oldest_job_age=$(sudo -u www-data php artisan tinker --execute="
         \$oldest = DB::table('jobs')->orderBy('created_at', 'asc')->first();
         if (\$oldest) {
             echo time() - \$oldest->created_at;
