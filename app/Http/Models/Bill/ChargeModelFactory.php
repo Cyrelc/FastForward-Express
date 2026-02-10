@@ -128,7 +128,17 @@ class ChargeModelFactory {
 
         $evaluator->variables = ['total_weight' => $mockBill->package->total_weight];
 
-        return $evaluator->execute($conditional->equation_string);
+        // Enable math functions to match frontend capabilities
+        $evaluator->functions = [
+            'max' => ['ref' => 'max', 'arc' => null],      // max(a, b, c, ...)
+            'min' => ['ref' => 'min', 'arc' => null],      // min(a, b, c, ...)
+            'round' => ['ref' => 'round', 'arc' => 2],     // round(number, precision)
+            'abs' => ['ref' => 'abs', 'arc' => 1],         // abs(number)
+            'sqrt' => ['ref' => 'sqrt', 'arc' => 1],       // sqrt(number)
+            'pow' => ['ref' => 'pow', 'arc' => 2],         // pow(base, exponent)
+        ];
+
+        return $evaluator->execute($conditional->original_equation_string);
     }
 
     /**
@@ -246,8 +256,25 @@ class ChargeModelFactory {
         $timeDeliveryScheduled = new \DateTime($timeDeliveryScheduled);
         foreach(json_decode($ratesheet->time_rates) as $timeRate)
             foreach($timeRate->brackets as $bracket) {
-                $startTime = date_timestamp_get(\DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->startTime));
-                $endTime = date_timestamp_get(\DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->endTime));
+                $startDate = \DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->startTime);
+                $endDate = \DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->endTime);
+
+                if(!$startDate || !$endDate) {
+                    $context = [
+                        'ratesheet_id' => $ratesheet->ratesheet_id ?? null,
+                        'time_rate_name' => $timeRate->name ?? null,
+                        'bracket' => $bracket,
+                        'startTime' => $bracket->startTime ?? null,
+                        'endTime' => $bracket->endTime ?? null,
+                    ];
+
+                    Log::error('Invalid time rate bracket datetime format', $context);
+                    Log::channel('discord')->error('Invalid time rate bracket datetime format', $context);
+                    continue;
+                }
+
+                $startTime = $startDate->getTimestamp();
+                $endTime = $endDate->getTimestamp();
                 $closestStart = clone $timePickupScheduled;
                 $closestStart->modify('-4 days')->modify('next ' . $bracket->startDayOfWeek->label)->setTime((int)date('H', $startTime), (int)date('i', $startTime));
                 $closestEnd = clone $timeDeliveryScheduled;
