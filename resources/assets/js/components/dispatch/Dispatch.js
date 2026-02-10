@@ -235,7 +235,7 @@ export default function Dispatch(props) {
                     </Col>
                     <Col md={4} className='text-center' style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
                         <h5>Worker Status</h5>
-                        <WorkerStatusIndicator refreshInterval={600000} size="small" />
+                        <WorkerStatusIndicator refreshInterval={300000} size="small" />
                     </Col>
                     <Col md={12} className='text-center'>
                         <h4 className='text-muted'>New Bills</h4>

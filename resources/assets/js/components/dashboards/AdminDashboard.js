@@ -103,7 +103,7 @@ export default function AdminDashboard(props) {
                         <Card.Title>Admin Dashboard</Card.Title>
                         <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
                             <span style={{fontSize: '0.9em', color: '#666'}}>Worker Status:</span>
-                            <WorkerStatusIndicator refreshInterval={60000} size="large" />
+                            <WorkerStatusIndicator refreshInterval={300000} size="large" />
                         </div>
                     </Card.Header>
                     {loading ?

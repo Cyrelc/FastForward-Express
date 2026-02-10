@@ -7,6 +7,7 @@ import AccountCreditBody from './AccountCreditBody'
 import CardOnFileBody from './CardOnFileBody'
 import PrepaidBody from './PrepaidBody'
 import StripePaymentBody from './StripePaymentBody'
+import WorkerStatusIndicator from '../WorkerStatusIndicator'
 import {useAPI} from '../../../contexts/APIContext'
 
 /**
@@ -117,8 +118,12 @@ const PaymentModal = props => {
 
     return (
         <Modal show={props.show} onHide={hideModal} size='xl'>
-            <Modal.Header closeButton>
+            <Modal.Header closeButton style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <Modal.Title>Payment On Invoice #{props.invoiceId}</Modal.Title>
+                <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginRight: '30px'}}>
+                    <span style={{fontSize: '0.9em', color: '#666'}}>Worker Status:</span>
+                    <WorkerStatusIndicator refreshInterval={60000} size="small" />
+                </div>
             </Modal.Header>
             <Modal.Header>
                 <Container>
