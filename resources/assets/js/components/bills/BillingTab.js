@@ -206,7 +206,11 @@ export default function BillingTab(props) {
                                         getOptionValue={ratesheet => ratesheet.ratesheet_id}
                                         options={ratesheets}
                                         value={activeRatesheet}
-                                        onChange={ratesheet => props.chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})}
+                                        onChange={ratesheet => {
+                                            props.chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                                            // Keep delivery time estimates in sync with ratesheet changes.
+                                            props.billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                                        }}
                                     />
                                 </InputGroup>
                             </Col>

@@ -403,8 +403,13 @@ export default function Bill(props) {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: pickupAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
-            if(pickupAccount?.ratesheet_id && pickupAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
-                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickupAccount.ratesheet_id)})
+        }
+        if(pickupAccount?.ratesheet_id && pickupAccount?.ratesheet_id != activeRatesheet.ratesheet_id) {
+            const ratesheet = ratesheets.find(ratesheet => ratesheet.ratesheet_id == pickupAccount.ratesheet_id)
+            if(ratesheet) {
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+            }
         }
     }, [pickupAccount, isLoading])
 
@@ -416,8 +421,13 @@ export default function Bill(props) {
             chargeDispatch({type: 'SET_CHARGE_ACCOUNT', payload: deliveryAccount})
             chargeDispatch({type: 'SET_CHARGE_TYPE', payload: chargeState.chargeTypes.find(chargeType => chargeType.name === 'Account')})
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
-            if(deliveryAccount?.ratesheet_id && deliveryAccount?.ratesheet_id != activeRatesheet.ratesheet_id)
-                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheets.find(ratesheet => ratesheet.ratesheet_id == deliveryAccount.ratesheet_id)})
+        }
+        if(deliveryAccount?.ratesheet_id && deliveryAccount?.ratesheet_id != activeRatesheet.ratesheet_id) {
+            const ratesheet = ratesheets.find(ratesheet => ratesheet.ratesheet_id == deliveryAccount.ratesheet_id)
+            if(ratesheet) {
+                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+                chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
+            }
         }
     }, [deliveryAccount, isLoading])
 

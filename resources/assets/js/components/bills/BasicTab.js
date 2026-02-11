@@ -119,7 +119,7 @@ export default function BasicTab(props) {
                         props.setPickupTimeExpected(new Date())
                 })
         }
-    }, [pickup.addressLat, pickup.addressLng])
+    }, [pickup.addressLat, pickup.addressLng, props.chargeState.activeRatesheet?.ratesheet_id])
 
     useEffect(() => {
         if(delivery.addressLat && delivery.addressLng && props.chargeState.activeRatesheet)
@@ -129,7 +129,7 @@ export default function BasicTab(props) {
                     if(!billId && applyRestrictions)
                         props.setPickupTimeExpected(new Date())
                 })
-    }, [delivery.addressLat, delivery.addressLng])
+    }, [delivery.addressLat, delivery.addressLng, props.chargeState.activeRatesheet?.ratesheet_id])
 
     return (
         <Card border='dark'>
