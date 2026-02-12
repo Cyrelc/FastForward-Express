@@ -13,6 +13,11 @@
 */ 
 
 export default function PolySnapper(opts){ 
+    // Prefer a global spatialIndex exposed on window (set by the app). Avoid require() here
+    var importSpatialIndex = null
+    try{
+        if(typeof window !== 'undefined' && window.spatialIndex) importSpatialIndex = window.spatialIndex
+    } catch(e){ importSpatialIndex = null }
 
     function extend(obj) {
 
@@ -57,6 +62,7 @@ export default function PolySnapper(opts){
     var _onEnabled  = ( defined(opts, 'onEnabled') )?   opts.onEnabled : function(){};
     var _onDisabled = ( defined(opts, 'onDisabled') )?  opts.onDisabled : function(){}; 
     var _onChange = ( defined(opts, 'onChange') )? opts.onChange : function(){};
+    var _onSnap = ( defined(opts, 'onSnap') )? opts.onSnap : function(){};
 
     var _polystyle  = ( defined(opts, 'polystyle') )? (JSON.parse(JSON.stringify(opts.polystyle))) : {};
     var _hidePOI    = ( defined(opts, 'hidePOI') )?   opts.hidePOI : false;
@@ -129,8 +135,8 @@ export default function PolySnapper(opts){
             if( _hidePOI ) _map.poi(false);
 
             var vertexMarker        = _marker;
-            var snapable_polys      = that.polys.filter( function(p){ return ( typeof p.snapable !== 'undefined' && p.snapable ) } );
-            var snapable_points     = snapable_polys.map( function(p){ return p.getPath().getArray() } ).reduce(function(a,b){ return a.concat(b) }, []);
+            // PolySnapper no longer maintains a full in-memory list of points; 
+            // we will query the spatial index for nearby candidates to avoid O(N) scans.
             var last_closest        = null;
             //the official Drawing Manager will not work!
             // _map.setOptions({draggableCursor:'crosshair'});
@@ -171,7 +177,10 @@ export default function PolySnapper(opts){
             */
             (function setAtRecurse(){
                 google.maps.event.addListenerOnce(that.currentpoly.getPath(), "set_at", function(idx){
-                    if(last_closest && (!_keyReq || _keyReq && _keyDown)) that.currentpoly.getPath().setAt(idx, last_closest);
+                    if(last_closest && (!_keyReq || _keyReq && _keyDown)) {
+                        that.currentpoly.getPath().setAt(idx, last_closest);
+                        _onSnap(that.currentpoly, idx, last_closest);
+                    }
                     setAtRecurse();
                     _onChange();
                 });
@@ -180,7 +189,10 @@ export default function PolySnapper(opts){
             //Same comments go for insert_at ...
             (function insertAtRecurse(){
                 google.maps.event.addListenerOnce(that.currentpoly.getPath(), "insert_at", function(idx){
-                    if(last_closest && (!_keyReq || _keyReq && _keyDown)) that.currentpoly.getPath().setAt(idx, last_closest);
+                    if(last_closest && (!_keyReq || _keyReq && _keyDown)) {
+                        that.currentpoly.getPath().setAt(idx, last_closest);
+                        _onSnap(that.currentpoly, idx, last_closest);
+                    }
                     insertAtRecurse();
                     _onChange();
                 });
@@ -207,14 +219,34 @@ export default function PolySnapper(opts){
 
                 var ll = new google.maps.LatLng(lat, lng);
 
-                //find the closest existing polygon point to the mousepointer that is within threshold
-                var closest = snapable_points.reduce((accumulator, currentValue) => {
-                    const currentDistance = google.maps.geometry.spherical.computeDistanceBetween(ll, currentValue)
-                    if(currentDistance < _thresh)
-                        if(accumulator === null || currentDistance < google.maps.geometry.spherical.computeDistanceBetween(ll, accumulator))
-                            return currentValue
-                    return accumulator
-                }, null);
+                // Query spatial index for candidates within threshold (meters)
+                var closest = null;
+                try{
+                    if(importSpatialIndex){
+                        const candidates = importSpatialIndex.queryNearby(lat, lng, _thresh)
+                        let bestDist = Infinity
+                        for(let i=0;i<candidates.length;i++){
+                            const it = candidates[i]
+                            const candLatLng = new google.maps.LatLng(it.lat, it.lng)
+                            const d = google.maps.geometry.spherical.computeDistanceBetween(ll, candLatLng)
+                            if(d < _thresh && d < bestDist){ bestDist = d; closest = candLatLng }
+                        }
+                    } else {
+                        // fallback to original linear scan if index not available
+                        const snapable_polys = that.polys.filter( function(p){ return ( typeof p.snapable !== 'undefined' && p.snapable ) } );
+                        const snapable_points = snapable_polys.map( function(p){ return p.getPath().getArray() } ).reduce(function(a,b){ return a.concat(b) }, []);
+                        closest = snapable_points.reduce((accumulator, currentValue) => {
+                            const currentDistance = google.maps.geometry.spherical.computeDistanceBetween(ll, currentValue)
+                            if(currentDistance < _thresh)
+                                if(accumulator === null || currentDistance < google.maps.geometry.spherical.computeDistanceBetween(ll, accumulator))
+                                    return currentValue
+                            return accumulator
+                        }, null);
+                    }
+                } catch(e){
+                    // on any error fallback to null
+                    closest = null
+                }
 
                 /* we could just use:
 

@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, useRef} from 'react'
 import PolySnapper from '../../../public/polysnapper-master/polysnapper.js'
 import Zone, {polyColours} from '../Classes/Zone'
+import spatialIndex from '../utils/spatialIndex'
 
 var nextPolygonIndex = 0;
 
@@ -15,7 +16,10 @@ export default function useMap() {
     const [mapZones, setMapZones] = useState([])
     const [mapZoom, setMapZoom] = useState(11)
     const [savingMap, setSavingMap] = useState(100)
-    const [snapPrecision, setSnapPrecision] = useState(100)
+    const [snapTolerance, setSnapTolerance] = useState(2) // meters
+    const polySnapperRef = useRef(null)
+    const copyBordersTimeoutRef = useRef(null)
+    const isCopyingBordersRef = useRef(false)
 
     useEffect(() => {
         const activeZone = mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)
@@ -29,14 +33,42 @@ export default function useMap() {
                 zone.polygon.setOptions({editable: false, snapable: true})
             }
         })
-        const polySnapper = new PolySnapper({
-            map: map,
-            threshold: snapPrecision,
-            polygons: mapZones.map(mapZone => mapZone.polygon),
-            hidePOI: true,
-        })
-        polySnapper.enable(activeZone.polygon.zIndex)
+        // ensure persistent PolySnapper exists and is configured
+        try{
+            if(!polySnapperRef.current || polySnapperRef.current._map !== map) {
+                polySnapperRef.current = new PolySnapper({ map: map, threshold: snapTolerance * 40, polygons: mapZones.map(mapZone => mapZone.polygon), hidePOI: true })
+                polySnapperRef.current._map = map
+            } else {
+                // recreate to update polygons/threshold
+                polySnapperRef.current = new PolySnapper({ map: map, threshold: snapTolerance * 40, polygons: mapZones.map(mapZone => mapZone.polygon), hidePOI: true })
+                polySnapperRef.current._map = map
+            }
+            polySnapperRef.current.enable(activeZone.polygon.zIndex)
+        } catch(e){ console.error('PolySnapper init error', e) }
     }, [editZoneZIndex])
+
+    // expose spatialIndex to PolySnapper via global window for use in the public script
+    useEffect(() => {
+        try{ if(typeof window !== 'undefined') window.spatialIndex = spatialIndex } catch(e){}
+    }, [spatialIndex])
+
+    // enable poly snapper when drawing mode changes on DrawingManager
+    useEffect(() => {
+        if(!drawingManager || !map) return
+        try{
+            // ensure PolySnapper instance exists
+            polySnapperRef.current = new PolySnapper({ map: map, threshold: snapTolerance * 20, polygons: mapZones.map(mapZone => mapZone.polygon), hidePOI: true })
+            polySnapperRef.current._map = map
+            drawingManager.addListener('drawingmode_changed', () => {
+                const mode = drawingManager.getDrawingMode()
+                if(mode === window.google.maps.drawing.OverlayType.POLYGON){
+                    try{ polySnapperRef.current.enable() } catch(e){}
+                } else {
+                    try{ polySnapperRef.current.disable() } catch(e){}
+                }
+            })
+        } catch(e){ console.error('DrawingManager hook error', e) }
+    }, [drawingManager, map, mapZones, snapTolerance])
 
     // const handleZoneTypeChange = (event, zIndex) => {
     //     const {value} = event.target
@@ -90,8 +122,15 @@ export default function useMap() {
                 zoneId: null,
             }
         } else {
-            mapZone.additionalCosts = JSON.parse(mapZone.additional_costs)
-            mapZone.additionalTime = parseFloat(mapZone.additional_time)
+            if(mapZone.zoneId === undefined && mapZone.zone_id !== undefined)
+                mapZone.zoneId = mapZone.zone_id
+            if(typeof mapZone.coordinates === 'string')
+                mapZone.coordinates = JSON.parse(mapZone.coordinates)
+
+            if(mapZone.additionalCosts === undefined) {
+                mapZone.additionalCosts = mapZone.additional_costs ? JSON.parse(mapZone.additional_costs) : {regular: '', rush: '', direct: '', direct_rush: ''}
+            }
+            mapZone.additionalTime = parseFloat(mapZone.additional_time ?? mapZone.additionalTime ?? 0)
         }
 
         mapZone.polygon = polygon ?? new google.maps.Polygon({
@@ -99,10 +138,14 @@ export default function useMap() {
             map: map,
             zIndex: zIndex
         })
+        if(polygon)
+            mapZone.polygon.setOptions({zIndex: zIndex})
         // we add the edit listener here so we can access this setState function
         mapZone.polygon.addListener('click', () => setEditZoneZIndex(zIndex))
         const newZone = new Zone(mapZone)
         setMapZones(prevMapZones => prevMapZones.concat(newZone))
+        // add to spatial index for snapping queries
+        try{ spatialIndex.addZone(newZone) } catch(e){ console.error('spatialIndex.addZone failed', e) }
         if(polygon)
             setEditZoneZIndex(zIndex)
     }
@@ -110,6 +153,8 @@ export default function useMap() {
     const deleteZone = (zIndex) => {
         const deleteZone = mapZones.find(zone => zone.polygon.zIndex == zIndex)
         if(confirm(`Are you sure you wish to delete zone "${deleteZone.name}"?\n This action can not be undone`)) {
+            // remove from spatial index then delete
+            try{ spatialIndex.removeZone(deleteZone) } catch(e){ /* ignore */ }
             deleteZone.delete()
             setMapZones(mapZones.filter(zone => zone.polygon.zIndex != zIndex))
         }
@@ -162,8 +207,8 @@ export default function useMap() {
         setMapZones,
         setMapZoom,
         setSavingMap,
-        setSnapPrecision,
-        snapPrecision,
+        setSnapTolerance,
+        snapTolerance,
     }
 }
 

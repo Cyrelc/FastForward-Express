@@ -103,18 +103,28 @@ export default function Ratesheet(props) {
             case 'mapZones':
                 importFromRatesheet.selectedImports.forEach(importZone => {
                     console.log(`attempting to parse new mapzone: ${importZone.name}`)
+                    const coordinates = Array.isArray(importZone.coordinates)
+                        ? importZone.coordinates
+                        : JSON.parse(importZone.coordinates ?? '[]')
                     const polygon = new google.maps.Polygon({
-                        paths: importZone.coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
+                        paths: coordinates.map(coord => {return {lat: parseFloat(coord.lat), lng: parseFloat(coord.lng)}})
                     })
                     polygon.setMap(mapState.map)
                     const oldZone = mapState.mapZones.find(zone => zone.name === importZone.name)
-                    if(oldZone && replace) {
-                        const temp_id = oldZone.zoneId;
-                        deleteZone(oldZone.zoneId, oldZone.name)
-                        // createZone(polygon, {...importZone, zone_id: temp_id})
-                    } else
-                        console.log('test')
-                        // createZone(polygon, {...importZone, name: oldZone ? `${importZone.name} (copy)` : importZone.name, zoneId: null})
+                    const shouldReplace = oldZone && replace
+                    if(shouldReplace)
+                        mapState.deleteZone(oldZone.polygon.zIndex)
+
+                    const normalizedZone = {
+                        ...importZone,
+                        name: shouldReplace ? importZone.name : (oldZone ? `${importZone.name} (copy)` : importZone.name),
+                        zoneId: shouldReplace ? oldZone.zoneId : null,
+                        coordinates: coordinates,
+                        additional_costs: importZone.additional_costs ?? (importZone.additionalCosts ? JSON.stringify(importZone.additionalCosts) : null),
+                        additional_time: importZone.additional_time ?? importZone.additionalTime ?? 0,
+                        neighbours: importZone.neighbours ?? []
+                    }
+                    mapState.createZone(polygon, normalizedZone)
                 })
                 break;
             case 'timeRates':
@@ -172,6 +182,7 @@ export default function Ratesheet(props) {
         }
         api.post('/ratesheets', data).then(response => {
             mapState.setSavingMap(100)
+            toast.dismiss()
             if(ratesheetState.ratesheetId) {
                 toast.success(`${ratesheetState.name} was successfully updated!`)
             } else {
