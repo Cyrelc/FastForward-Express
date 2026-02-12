@@ -1,0 +1,239 @@
+import RBush from "rbush";
+import * as turf from "@turf/turf";
+
+/**
+ * Normalize polygon boundaries by detecting shared segments and removing redundant points.
+ * @param {Array<Array<[number, number]>>} polygons - array of polygons, each polygon is array of [lat,lng]
+ * @param {number} toleranceMeters - snapping + collinearity tolerance in meters
+ * @returns {Array<Array<[number, number]>>} normalized polygons
+ */
+export function normalizePolygons(polygons, toleranceMeters) {
+  const toleranceDeg = metersToDegrees(toleranceMeters);
+
+  // ============================
+  // 1) SNAP POINTS (canonicalization)
+  // ============================
+  const pointMap = new Map(); // key -> canonical point
+  const canonicalPoints = [];
+
+  function getCanonicalPoint(lat, lng) {
+    const key = quantize(lat, lng, toleranceDeg);
+    if (!pointMap.has(key)) {
+      const point = { lat, lng, id: canonicalPoints.length };
+      canonicalPoints.push(point);
+      pointMap.set(key, point);
+      return point;
+    }
+
+    const candidates = pointMap.get(key);
+    if (distanceMeters(lat, lng, candidates.lat, candidates.lng) <= toleranceMeters) {
+      return candidates;
+    }
+
+    const point = { lat, lng, id: canonicalPoints.length };
+    canonicalPoints.push(point);
+    pointMap.set(key, point);
+    return point;
+  }
+
+  // Convert polygons to canonical vertex IDs
+  const polyVertices = polygons.map(poly =>
+    poly.map(([lat, lng]) => getCanonicalPoint(lat, lng))
+  );
+
+  // ============================
+  // 2) BUILD EDGES
+  // ============================
+  const edges = [];
+  let edgeId = 0;
+
+  polyVertices.forEach((poly, polyId) => {
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i];
+      const b = poly[(i + 1) % poly.length];
+
+      edges.push({
+        id: edgeId++,
+        polyId,
+        a,
+        b,
+        minX: Math.min(a.lng, b.lng),
+        minY: Math.min(a.lat, b.lat),
+        maxX: Math.max(a.lng, b.lng),
+        maxY: Math.max(a.lat, b.lat),
+      });
+    }
+  });
+
+  // ============================
+  // 3) SPATIAL INDEX (RBush)
+  // ============================
+  const tree = new RBush();
+  tree.load(edges);
+
+  // ============================
+  // 4) FIND SHARED SEGMENTS
+  // ============================
+  const splits = new Map(); // edgeId -> array of split points (canonical points)
+
+  function addSplit(edge, point) {
+    if (!splits.has(edge.id)) splits.set(edge.id, []);
+    splits.get(edge.id).push(point);
+  }
+
+  for (const edge of edges) {
+    const candidates = tree.search({
+      minX: edge.minX - toleranceDeg,
+      minY: edge.minY - toleranceDeg,
+      maxX: edge.maxX + toleranceDeg,
+      maxY: edge.maxY + toleranceDeg,
+    });
+
+    for (const other of candidates) {
+      if (edge.id >= other.id) continue; // avoid double work
+      if (edge.polyId === other.polyId) continue;
+
+      const overlap = computeOverlap(edge.a, edge.b, other.a, other.b, toleranceMeters);
+      if (!overlap) continue;
+
+      const S = getCanonicalPoint(overlap.start.lat, overlap.start.lng);
+      const E = getCanonicalPoint(overlap.end.lat, overlap.end.lng);
+
+      addSplit(edge, S);
+      addSplit(edge, E);
+      addSplit(other, S);
+      addSplit(other, E);
+    }
+  }
+
+  // ============================
+  // 5) SPLIT EDGES + REMOVE REDUNDANT POINTS
+  // ============================
+  const newPolygons = polyVertices.map(poly => [...poly]);
+
+  function insertSplits(poly, edgeIndex, points) {
+    const a = poly[edgeIndex];
+    const b = poly[(edgeIndex + 1) % poly.length];
+
+    const dir = directionVector(a, b);
+    const sorted = points
+      .map(p => ({ p, t: projectionParam(a, dir, p) }))
+      .filter(x => x.t > 0 && x.t < 1)
+      .sort((x, y) => x.t - y.t)
+      .map(x => x.p);
+
+    if (sorted.length === 0) return;
+
+    poly.splice(edgeIndex + 1, 0, ...sorted);
+  }
+
+  edges.forEach(edge => {
+    if (!splits.has(edge.id)) return;
+
+    const poly = newPolygons[edge.polyId];
+    const edgeIndex = poly.findIndex(p => p.id === edge.a.id);
+
+    insertSplits(poly, edgeIndex, splits.get(edge.id));
+  });
+
+  // ============================
+  // 6) REMOVE REDUNDANT COLLINEAR POINTS
+  // ============================
+  function simplifyPolygon(poly) {
+    const result = [];
+
+    for (let i = 0; i < poly.length; i++) {
+      const prev = poly[(i - 1 + poly.length) % poly.length];
+      const curr = poly[i];
+      const next = poly[(i + 1) % poly.length];
+
+      if (isCollinear(prev, curr, next, toleranceMeters)) {
+        continue; // drop redundant point
+      }
+
+      result.push(curr);
+    }
+
+    return result;
+  }
+
+  const simplified = newPolygons.map(simplifyPolygon);
+
+  // ============================
+  // 7) OUTPUT LAT/LNG
+  // ============================
+  return simplified.map(poly => poly.map(p => [p.lat, p.lng]));
+}
+
+/* ============================================================
+   GEOMETRY UTILITIES
+============================================================ */
+
+function metersToDegrees(meters) {
+  return meters / 111320; // approx at equator; acceptable for tolerance use
+}
+
+function distanceMeters(lat1, lng1, lat2, lng2) {
+  return turf.distance([lng1, lat1], [lng2, lat2], { units: "meters" });
+}
+
+function quantize(lat, lng, tol) {
+  return `${Math.round(lat / tol)},${Math.round(lng / tol)}`;
+}
+
+function directionVector(a, b) {
+  return { x: b.lng - a.lng, y: b.lat - a.lat };
+}
+
+function projectionParam(a, dir, p) {
+  const dx = p.lng - a.lng;
+  const dy = p.lat - a.lat;
+  const len2 = dir.x * dir.x + dir.y * dir.y;
+  return len2 === 0 ? 0 : (dx * dir.x + dy * dir.y) / len2;
+}
+
+function cross(ax, ay, bx, by) {
+  return ax * by - ay * bx;
+}
+
+function isCollinear(a, b, c, tolMeters) {
+  const area = Math.abs(
+    cross(b.lng - a.lng, b.lat - a.lat, c.lng - a.lng, c.lat - a.lat)
+  );
+  const base = distanceMeters(a.lat, a.lng, c.lat, c.lng);
+  const height = base === 0 ? 0 : area / base;
+  return height <= tolMeters;
+}
+
+/**
+ * Compute overlapping segment between two edges.
+ */
+function computeOverlap(a1, a2, b1, b2, tolMeters) {
+  const dirA = directionVector(a1, a2);
+
+  // collinearity test
+  const area =
+    Math.abs(cross(dirA.x, dirA.y, b1.lng - a1.lng, b1.lat - a1.lat));
+  const base = distanceMeters(a1.lat, a1.lng, a2.lat, a2.lng);
+  if (base > 0 && area / base > tolMeters) return null;
+
+  const t1 = projectionParam(a1, dirA, b1);
+  const t2 = projectionParam(a1, dirA, b2);
+
+  const startT = Math.max(0, Math.min(t1, t2));
+  const endT = Math.min(1, Math.max(t1, t2));
+
+  if (endT - startT <= 0) return null;
+
+  const start = {
+    lat: a1.lat + (a2.lat - a1.lat) * startT,
+    lng: a1.lng + (a2.lng - a1.lng) * startT,
+  };
+
+  const end = {
+    lat: a1.lat + (a2.lat - a1.lat) * endT,
+    lng: a1.lng + (a2.lng - a1.lng) * endT,
+  };
+
+  return { start, end };
+}
