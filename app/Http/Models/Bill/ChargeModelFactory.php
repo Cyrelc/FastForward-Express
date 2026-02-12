@@ -256,16 +256,23 @@ class ChargeModelFactory {
         $timeDeliveryScheduled = new \DateTime($timeDeliveryScheduled);
         foreach(json_decode($ratesheet->time_rates) as $timeRate)
             foreach($timeRate->brackets as $bracket) {
-                $startDate = \DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->startTime);
-                $endDate = \DateTime::createFromFormat('D M d Y H:i:s e+', $bracket->endTime);
+                try {
+                    $startDate = new \DateTime($bracket->startTime ?? null);
+                    $endDate = new \DateTime($bracket->endTime ?? null);
+                } catch (\Exception $e) {
+                    $startDate = false;
+                    $endDate = false;
+                }
 
-                if(!$startDate || !$endDate) {
+                if(!$startDate || !$endDate || empty($bracket->startDayOfWeek->label) || empty($bracket->endDayOfWeek->label)) {
                     $context = [
                         'ratesheet_id' => $ratesheet->ratesheet_id ?? null,
                         'time_rate_name' => $timeRate->name ?? null,
                         'bracket' => $bracket,
                         'startTime' => $bracket->startTime ?? null,
                         'endTime' => $bracket->endTime ?? null,
+                        'startDayOfWeek' => $bracket->startDayOfWeek ?? null,
+                        'endDayOfWeek' => $bracket->endDayOfWeek ?? null,
                     ];
 
                     Log::error('Invalid time rate bracket datetime format', $context);
