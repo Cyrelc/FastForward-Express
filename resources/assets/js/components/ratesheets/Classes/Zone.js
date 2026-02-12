@@ -1,6 +1,6 @@
 import polylabel from 'polylabel'
 import simplify from 'simplify'
-import spatialIndex from '../utils/spatialIndex'
+import spatialIndex from '../utils/spatialIndex.js'
 
 export const polyColours = {
     internalStroke : '#3651c9',

@@ -1,7 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react'
 import PolySnapper from '../../../public/polysnapper-master/polysnapper.js'
 import Zone, {polyColours} from '../Classes/Zone'
-import spatialIndex from '../utils/spatialIndex'
+import spatialIndex from '../utils/spatialIndex.js'
 
 var nextPolygonIndex = 0;
 

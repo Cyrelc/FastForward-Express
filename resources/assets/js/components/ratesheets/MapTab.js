@@ -4,7 +4,7 @@ import {polyColours} from './Classes/Zone'
 import MapZone from './MapZone'
 import Select from 'react-select'
 import {GoogleMap, DrawingManager, LoadScript} from '@react-google-maps/api'
-import topoSimplify from './utils/topoSimplify'
+import topoSimplify from './utils/topoSimplify.js'
 import { toast } from 'react-toastify'
 
 export default function MapTab(props) {
@@ -32,6 +32,8 @@ export default function MapTab(props) {
     const [singleZoneOnly, setSingleZoneOnly] = useState(true)
     const [refreshKey, setRefreshKey] = useState(0)
     const [isProcessing, setIsProcessing] = useState(false)
+    const [lastUndoSnapshot, setLastUndoSnapshot] = useState(null)
+    const [lastUndoLabel, setLastUndoLabel] = useState('')
     // Sync tolerance changes back to snapTolerance in parent state
     useEffect(() => {
         if(setSnapTolerance && tolerance !== snapTolerance) {
@@ -107,9 +109,12 @@ export default function MapTab(props) {
                     zone.polygon.setPath(coords)
             })
             setRefreshKey(prev => prev + 1)
-            toast.warn(`Simplify reverted for ${zone.name} because neighbour relationships changed.`)
+            toast.warn('Simplify reverted because neighbour relationships changed.')
             return
         }
+
+        setLastUndoSnapshot(snapshotCoords)
+        setLastUndoLabel(singleZoneOnly && editZone ? `Simplify (${editZone.name})` : 'Simplify')
 
         // Log AFTER state
         console.log('=== SIMPLIFY COMPLETE ===')
@@ -133,6 +138,20 @@ export default function MapTab(props) {
         toast.success(`Removed ${totalRemoved} coordinate${totalRemoved !== 1 ? 's' : ''} successfully`)
         // Force dropdown refresh
         setRefreshKey(prev => prev + 1)
+    }
+
+    const runUndo = () => {
+        if(!lastUndoSnapshot)
+            return
+        mapZones.forEach(zone => {
+            const coords = lastUndoSnapshot.get(zone.polygon.zIndex)
+            if(coords)
+                zone.polygon.setPath(coords)
+        })
+        setRefreshKey(prev => prev + 1)
+        toast.info(`${lastUndoLabel || 'Last action'} undone.`)
+        setLastUndoSnapshot(null)
+        setLastUndoLabel('')
     }
 
     const popover = (
@@ -245,13 +264,18 @@ export default function MapTab(props) {
                                 </Col>
                             </Row>
                             <Row style={{marginTop: '8px'}}>
-                                <Col md={6}>
+                                <Col md={2}>
                                     <Button onClick={runSimplify}>Simplify (run)</Button>
                                 </Col>
+                                <Col md={2}>
+                                    <Button variant='outline-secondary' onClick={runUndo} disabled={!lastUndoSnapshot}>Undo last action</Button>
+                                </Col>
+                            </Row>
+                            {/* <Row style={{marginTop: '8px'}}>
                                 <Col md={6}>
                                     <Button variant='warning' disabled title="Match/Join functionality disabled - use Simplify instead">Match / Join (disabled)</Button>
                                 </Col>
-                            </Row>
+                            </Row> */}
                         </div>
                     </Collapse>
                 </Col>
