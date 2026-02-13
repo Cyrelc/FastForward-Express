@@ -14,13 +14,18 @@ const daysOfTheWeek = [
 ]
 
 export default function TimeRate(props) {
+    const {readOnly} = props
 
     function addTimeBracket() {
+        if(readOnly)
+            return
         const brackets = props.timeRate.brackets.concat([{startDayOfWeek: null, startTime: new Date(), endDayOfWeek: null, endTime: new Date()}])
         props.handleTimeRateChange({...props.timeRate, brackets: brackets}, props.index)
     }
 
     function deleteTimeBracket(index) {
+        if(readOnly)
+            return
         if(index == 0)
             return
         const brackets = props.timeRate.brackets.filter((bracket, i) => i != index)
@@ -45,12 +50,13 @@ export default function TimeRate(props) {
         <Row>
             <Col md={3}>
                 <InputGroup size='sm'>
-                    <Button variant='danger' onClick={() => props.deleteTimeRate(props.index)}><i className='fas fa-trash'></i></Button>
+                    <Button variant='danger' onClick={() => props.deleteTimeRate(props.index)} disabled={readOnly}><i className='fas fa-trash'></i></Button>
                     <InputGroup.Text>Name</InputGroup.Text>
                     <FormControl
                         name='name'
                         value={props.timeRate.name}
                         onChange={handleTimeRateChange}
+                        readOnly={readOnly}
                     />
                 </InputGroup>
                 <InputGroup size='sm'>
@@ -62,6 +68,7 @@ export default function TimeRate(props) {
                         name='price'
                         value={props.timeRate.price}
                         onChange={handleTimeRateChange}
+                        readOnly={readOnly}
                     />
                 </InputGroup>
             </Col>
@@ -69,7 +76,7 @@ export default function TimeRate(props) {
                 <Table size='sm'>
                     <thead>
                         <tr>
-                            <th><Button variant='success' onClick={addTimeBracket} size='sm'><i className='fas fa-plus'></i></Button></th>
+                            <th><Button variant='success' onClick={addTimeBracket} size='sm' disabled={readOnly}><i className='fas fa-plus'></i></Button></th>
                             <th>Start Day/Time</th>
                             <th>End Day/Time</th>
                         </tr>
@@ -78,7 +85,7 @@ export default function TimeRate(props) {
                     {props.timeRate.brackets.map((bracket, index) => 
                         <tr key={props.timeRate.name + '.bracket.' + index}>
                             <td>
-                                <Button variant='danger' onClick={() => deleteTimeBracket(index)} size='sm'><i className='fas fa-trash'></i></Button>
+                                <Button variant='danger' onClick={() => deleteTimeBracket(index)} size='sm' disabled={readOnly}><i className='fas fa-trash'></i></Button>
                             </td>
                             <td>
                                 <InputGroup size='sm'>
@@ -89,6 +96,7 @@ export default function TimeRate(props) {
                                         value={bracket.startDayOfWeek}
                                         name='startDayOfWeek'
                                         isSearchable
+                                        isDisabled={readOnly}
                                         onChange={value => handleTimeRateChange({target: {name: 'startDayOfWeek', type: 'date', value: value, dataset: {timebracketindex: index}}})}
                                     />
                                     <DatePicker
@@ -99,6 +107,7 @@ export default function TimeRate(props) {
                                         dateFormat='h:mm aa'
                                         selected={bracket.startTime}
                                         value={bracket.startTime}
+                                        disabled={readOnly}
                                         onChange={datetime => handleTimeRateChange({target: {name: 'startTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
                                         className='form-control'
                                         wrapperClassName='form-control'
@@ -114,6 +123,7 @@ export default function TimeRate(props) {
                                         value={bracket.endDayOfWeek}
                                         name='endDayOfWeek'
                                         isSearchable
+                                        isDisabled={readOnly}
                                         onChange={value => handleTimeRateChange({target: {name: 'endDayOfWeek', type: 'date', value: value, dataset: {timebracketindex: index}}})}
                                     />
                                     <DatePicker
@@ -124,6 +134,7 @@ export default function TimeRate(props) {
                                         dateFormat='h:mm aa'
                                         selected={bracket.endTime}
                                         value={bracket.endTime}
+                                        disabled={readOnly}
                                         onChange={datetime => handleTimeRateChange({target: {name: 'endTime', type:'date', value: datetime, dataset: {timebracketindex: index}}})}
                                         className='form-control'
                                         wrapperClassName='form-control'

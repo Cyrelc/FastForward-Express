@@ -46,7 +46,7 @@ export default function Ratesheet(props) {
         if(mapState.map && mapState.drawingManager) {
             const {match: {params}} = props
             api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create').then(async(response) => {
-                var timeRates = response.timeRates.map(rate => {
+                var timeRates = (response.timeRates ?? []).map(rate => {
                     return {...rate, brackets: rate.brackets.map(bracket => {
                         return {...bracket, startTime: bracket.startTime ? new Date(bracket.startTime) : null, endTime: bracket.endTime ? new Date(bracket.endTime) : null}
                     })
@@ -169,6 +169,22 @@ export default function Ratesheet(props) {
 
     const store = () => {
         mapState.setSavingMap(0)
+        const normalizedTimeRates = ratesheetState.timeRates.map(timeRate => {
+            const brackets = (timeRate.brackets ?? []).map(bracket => {
+                const startTime = bracket.startTime instanceof Date ? bracket.startTime.toISOString() : bracket.startTime
+                const endTime = bracket.endTime instanceof Date ? bracket.endTime.toISOString() : bracket.endTime
+                return {
+                    ...bracket,
+                    startTime,
+                    endTime,
+                }
+            })
+
+            return {
+                ...timeRate,
+                brackets,
+            }
+        })
         var data = {
             name: ratesheetState.name,
             ratesheet_id: ratesheetState.ratesheetId,
@@ -177,7 +193,7 @@ export default function Ratesheet(props) {
             weightRates: ratesheetState.weightRates,
             zoneRates: ratesheetState.zoneRates,
             mapZones: mapState.mapZones.map(zone => zone.collect()),
-            timeRates: ratesheetState.timeRates,
+            timeRates: normalizedTimeRates,
             miscRates: ratesheetState.miscRates
         }
         api.post('/ratesheets', data).then(response => {
@@ -226,12 +242,15 @@ export default function Ratesheet(props) {
                             weightRates={ratesheetState.weightRates}
                         />
                     </Tab>
-                    <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
-                        <TimeRatesTab
-                            setTimeRates={ratesheetState.setTimeRates}
-                            timeRates={ratesheetState.timeRates}
-                        />
-                    </Tab>
+                    {!!(ratesheetState.timeRates && ratesheetState.timeRates.length) &&
+                        <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
+                            <TimeRatesTab
+                                readOnly
+                                setTimeRates={ratesheetState.setTimeRates}
+                                timeRates={ratesheetState.timeRates}
+                            />
+                        </Tab>
+                    }
                     {ratesheetState.ratesheetId &&
                         <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
                             <ConditionalsTab

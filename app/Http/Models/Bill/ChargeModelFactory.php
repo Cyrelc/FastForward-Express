@@ -21,7 +21,8 @@ class ChargeModelFactory {
 
         $distanceCharges = $this->generateDistanceCharges($ratesheet, $bill);
         $packageCharges = filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN) ? [] : $this->generatePackageCharges($ratesheet, $req->packages, $req->package_is_pallet, $req->use_imperial);
-        $timeCharges = $this->generateTimeCharges($ratesheet, $req->time_pickup_scheduled, $req->time_delivery_scheduled);
+        // $timeCharges = $this->generateTimeCharges($ratesheet, $req->time_pickup_scheduled, $req->time_delivery_scheduled);
+        $timeCharges = [];
 
         $currentCharges = array_merge($distanceCharges, $packageCharges, $timeCharges);
         $currentPrice = 0;

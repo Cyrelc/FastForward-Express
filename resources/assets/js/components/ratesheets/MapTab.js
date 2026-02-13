@@ -217,10 +217,6 @@ export default function MapTab(props) {
                     </Col>
                 </Row>
                 </Col>
-            {/* </Row>
-            <Row style={{alignItems: 'flex-start'}}>
-                <Col md={3}>
-                </Col> */}
                 <Col md={9}>
                     <Button variant='secondary' onClick={() => setShowSettings(!showSettings)} aria-controls='map-settings' aria-expanded={showSettings}>
                         {showSettings ? 'Hide Settings' : 'Show Settings'}
@@ -241,8 +237,8 @@ export default function MapTab(props) {
                                         <InputGroup.Text>(m)</InputGroup.Text>
                                     </InputGroup>
                                 </Col>
-                                <Col md={8}>
-                                    <InputGroup>
+                                {/* <Col md={8}>
+                                    <InputGroup style={{display: 'none'}}>
                                         <InputGroup.Text>Simplify Mode</InputGroup.Text>
                                         <Select
                                             options={[{value:'topo', label:'Topology (preserve shared edges)'},{value:'quick', label:'Quick (per-zone simplify)'}]}
@@ -250,7 +246,7 @@ export default function MapTab(props) {
                                             value={{value: simplifyMode, label: simplifyMode === 'topo' ? 'Topology (preserve shared edges)' : 'Quick (per-zone simplify)'}}
                                         />
                                     </InputGroup>
-                                </Col>
+                                </Col> */}
                             </Row>
                             <Row style={{marginTop: '8px'}}>
                                 <Col md={12}>
@@ -271,11 +267,6 @@ export default function MapTab(props) {
                                     <Button variant='outline-secondary' onClick={runUndo} disabled={!lastUndoSnapshot}>Undo last action</Button>
                                 </Col>
                             </Row>
-                            {/* <Row style={{marginTop: '8px'}}>
-                                <Col md={6}>
-                                    <Button variant='warning' disabled title="Match/Join functionality disabled - use Simplify instead">Match / Join (disabled)</Button>
-                                </Col>
-                            </Row> */}
                         </div>
                     </Collapse>
                 </Col>
