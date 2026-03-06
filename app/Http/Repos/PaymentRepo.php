@@ -82,7 +82,7 @@ class PaymentRepo {
     }
 
     public function Update($paymentId, $payment) {
-        $updatedPayment = Payment::firstOrFail($paymentId)->update($payment);
+        $updatedPayment = Payment::where('payment_id', $paymentId)->firstOrFail()->update($payment);
 
         return $updatedPayment;
     }
