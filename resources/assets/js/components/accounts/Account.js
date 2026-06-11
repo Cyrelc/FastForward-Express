@@ -126,6 +126,7 @@ export default function Account(props) {
                     setIsGstExempt(response.account.gst_exempt)
                     setMinInvoiceAmount(response.account.min_invoice_amount)
                     setParentAccount((response.account.parent_account_id && response.parent_accounts) ? response.parent_accounts.find(account => account.value === response.account.parent_account_id) : null)
+                    setSendBills(response.account.send_bills)
                     setSendEmailInvoices(response.account.send_email_invoices)
                     setSendPaperInvoices(response.account.send_paper_invoices)
                     shippingAddress.setup(response.shipping_address)
@@ -196,7 +197,6 @@ export default function Account(props) {
                 invoice_interval: invoiceInterval.value,
                 invoice_sort_order: invoiceSortOrder.map((sortOption, index) => ({...sortOption, priority: index})),
                 is_custom_field_mandatory: customFieldMandatory,
-                send_bills: sendBills,
                 send_email_invoices: sendEmailInvoices,
                 send_paper_invoices: sendPaperInvoices,
                 show_invoice_line_items: showInvoiceLineItems,
@@ -210,7 +210,9 @@ export default function Account(props) {
                 account_number: accountNumber,
                 can_be_parent: canBeParent,
                 discount: discount,
+                invoice_separately_from_parent: invoiceSeparatelyFromParent,
                 is_gst_exempt: isGstExempt,
+                send_bills: sendBills,
                 min_invoice_amount: minInvoiceAmount,
                 parent_account_id: parentAccount ? parentAccount.value : null,
                 ratesheet_id: ratesheet ? ratesheet.value : null,

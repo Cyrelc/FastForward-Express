@@ -79,7 +79,7 @@ class InvoiceRepo {
 
         foreach($accountIds as $accountId) {
             $account = $accountRepo->GetById($accountId);
-            $effectiveAccountId = isset($account->parent_account_id) ? $account->parent_account_id : $account->account_id;
+            $effectiveAccountId = (isset($account->parent_account_id) && !$account->invoice_separately_from_parent) ? $account->parent_account_id : $account->account_id;
 
             if(array_key_exists($effectiveAccountId, $invoices))
                 $invoice = $invoices[$effectiveAccountId];

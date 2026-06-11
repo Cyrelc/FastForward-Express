@@ -28,7 +28,7 @@ class Account extends Model
         'gst_exempt',
         'invoice_interval',
         'invoice_comment',
-        // 'invoice_separately_from_parent',
+        'invoice_separately_from_parent',
         'invoice_sort_order',
         'is_custom_field_mandatory',
         'min_invoice_amount',
@@ -75,6 +75,7 @@ class Account extends Model
         'discount',
         'gst_exempt',
         'can_be_parent',
+        'invoice_separately_from_parent',
         'send_bills'
     ];
     public static $basicFields = [
