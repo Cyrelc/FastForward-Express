@@ -321,7 +321,6 @@ export default function Account(props) {
                             customTrackingField={customTrackingField}
                             invoiceComment={invoiceComment}
                             invoiceInterval={invoiceInterval}
-                            invoiceSeparatelyFromParent={invoiceSeparatelyFromParent}
                             invoiceSortOrder={invoiceSortOrder}
                             isLoading={isLoading}
                             sendEmailInvoices={sendEmailInvoices}
@@ -338,7 +337,6 @@ export default function Account(props) {
                             setCustomTrackingField={setCustomTrackingField}
                             setInvoiceComment={setInvoiceComment}
                             setInvoiceInterval={setInvoiceInterval}
-                            setInvoiceSeparatelyFromParent={setInvoiceSeparatelyFromParent}
                             setInvoiceSortOrder={setInvoiceSortOrder}
                             setSendEmailInvoices={setSendEmailInvoices}
                             setSendPaperInvoices={setSendPaperInvoices}
@@ -356,6 +354,7 @@ export default function Account(props) {
                                 canBeParent={canBeParent}
                                 childAccountList={childAccountList}
                                 discount={discount}
+                                invoiceSeparatelyFromParent={invoiceSeparatelyFromParent}
                                 isGstExempt={isGstExempt}
                                 minInvoiceAmount={minInvoiceAmount}
                                 parentAccount={parentAccount}
@@ -370,6 +369,7 @@ export default function Account(props) {
                                 setCanBeParent={setCanBeParent}
                                 // setChildAccountList={setChildAccountList}
                                 setDiscount={setDiscount}
+                                setInvoiceSeparatelyFromParent={setInvoiceSeparatelyFromParent}
                                 setIsGstExempt={setIsGstExempt}
                                 setMinInvoiceAmount={setMinInvoiceAmount}
                                 setParentAccount={setParentAccount}
