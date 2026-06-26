@@ -26,53 +26,66 @@ class StripeRefundProcessor {
 
         DB::beginTransaction();
 
-        $payment = Payment::where('stripe_refund_id', $refund->id)->firstOrFail();
+        try {
+            $payment = Payment::where('stripe_refund_id', $refund->id)->firstOrFail();
 
-        $oldStatusIndex = array_search($payment->stripe_status, $this->ORDERED_REFUND_STATUSES);
-        $newStatusIndex = array_search($refund->status, $this->ORDERED_REFUND_STATUSES);
+            $oldStatusIndex = array_search($payment->stripe_status, $this->ORDERED_REFUND_STATUSES);
+            $newStatusIndex = array_search($refund->status, $this->ORDERED_REFUND_STATUSES);
 
-        if($oldStatusIndex == false || $newStatusIndex == false) {
-            activity('payment_intent')
-            ->performedOn($payment)
-            ->event('error')
-            ->withProperties([
-                'event' => $event,
-                'old_status' => $oldStatus,
-                'old_status_index' => $oldStatusIndex,
-                'new_status' => $paymentIntent->status ?? null,
-                'new_status_index' => $newStatusIndex
-            ])->log(['[StripeRefundProcessor.processRefund] invalid status found']);
-        } else if($newStatusIndex > $oldStatusIndex) {
-            $paymentAmount = bcdiv($refund->amount, 100, 2);
-
-            $payment->update([
-                'error' => $refund->failure_message ?? null,
-                'stripe_status' => $refund->status,
-            ]);
-
-            if($newStatus == 'succeeded') {
-                $invoice = Invoice::find($payment->invoice_id);
-                $invoiceRepo = new InvoiceRepo();
-
-                activity('stripe')
-                    ->performedOn($payment)
-                    ->withProperties([
-                        'stripe_payment_intent_id' => $refund->payment_intent,
-                        'webhook_status' => $refund->status,
-                        'amount' => -$paymentAmount,
-                        'refund_id' => $refund->id,
-                    ])->log('[processRefund] succeeded.');
-
-                $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
-            }
-        } else {
-            activity('jobs')
+            // Strict === false: a NULL prior status legitimately lives at index 0,
+            // which a loose == false would wrongly flag as "not found".
+            if($oldStatusIndex === false || $newStatusIndex === false) {
+                activity('payment_intent')
                 ->performedOn($payment)
-                ->withProperties(['stripe_payment_intent_id' => $paymentIntent->id, 'database_status' => $payment->stripe_status, 'webhook_status' => $paymentIntent->status])
-                ->log('[ReceiveStripeWebhook.handle] skipped.');
-        }
+                ->event('error')
+                ->withProperties([
+                    'event' => $event,
+                    'old_status' => $payment->stripe_status,
+                    'old_status_index' => $oldStatusIndex,
+                    'new_status' => $refund->status ?? null,
+                    'new_status_index' => $newStatusIndex
+                ])->log(['[StripeRefundProcessor.processRefund] invalid status found']);
+            } else if($newStatusIndex > $oldStatusIndex) {
+                $paymentAmount = bcdiv($refund->amount, 100, 2);
 
-        DB::commit();
+                $payment->update([
+                    'error' => $refund->failure_message ?? null,
+                    'stripe_status' => $refund->status,
+                ]);
+
+                if($refund->status == 'succeeded') {
+                    $invoice = Invoice::find($payment->invoice_id);
+                    $invoiceRepo = new InvoiceRepo();
+
+                    activity('stripe')
+                        ->performedOn($payment)
+                        ->withProperties([
+                            'stripe_payment_intent_id' => $refund->payment_intent,
+                            'webhook_status' => $refund->status,
+                            'amount' => -$paymentAmount,
+                            'refund_id' => $refund->id,
+                        ])->log('[processRefund] succeeded.');
+
+                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
+                }
+            } else {
+                activity('jobs')
+                    ->performedOn($payment)
+                    ->withProperties(['refund_id' => $refund->id, 'database_status' => $payment->stripe_status, 'webhook_status' => $refund->status])
+                    ->log('[processRefund] skipped.');
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            activity('jobs')
+                ->event('error')
+                ->withProperties(['refund_event' => $event])
+                ->log('[StripeRefundProcessor.processRefund] failed');
+
+            throw $e;
+        }
     }
 }
 

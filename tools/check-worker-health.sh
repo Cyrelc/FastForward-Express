@@ -3,6 +3,16 @@
 # Laravel Queue Worker Health Check & Auto-Recovery Script
 # Monitors supervisor workers, checks queue processing, and auto-restarts on failure
 #
+# REQUIRES passwordless sudo for supervisorctl, otherwise every recovery attempt
+# fails silently (the original cause of workers staying dead). On the prod server
+# add a sudoers drop-in, e.g. /etc/sudoers.d/laravel-worker:
+#
+#   www-data ALL=(root) NOPASSWD: /usr/bin/supervisorctl status laravel-queue\:, \
+#       /usr/bin/supervisorctl start laravel-queue\:, \
+#       /usr/bin/supervisorctl restart laravel-queue\:
+#
+# (use the actual user the scheduler/cron runs as, and `which supervisorctl`).
+#
 
 set -e
 
@@ -57,57 +67,65 @@ log_to_laravel() {
 }
 
 # Check 1: Supervisor process status
+# A FATAL/STOPPED program will NOT be revived by autorestart, so we treat
+# anything that isn't actively RUNNING/STARTING as down and let restart_workers
+# bring it back with `start` (which works from FATAL; `restart` alone may not).
 check_supervisor_workers() {
     local status
     status=$(sudo supervisorctl status ${WORKER_GROUP}: 2>/dev/null || echo "FATAL")
-    
+
     if echo "$status" | grep -qE "RUNNING|STARTING"; then
         return 0  # Workers are running
     else
-        return 1  # Workers are down
+        return 1  # Workers are down (DOWN/FATAL/STOPPED/EXITED/BACKOFF)
     fi
 }
 
-# Check 2: Queue age - verify workers are actually processing
+# Check 2: Queue age - verify workers are actually processing.
+# Uses the dedicated `queue:health` command (plain DB query) instead of
+# `tinker --execute`, which fails in production with a psysh permission error
+# and previously made this check silently always pass.
 check_queue_processing() {
     cd "$PROJECT_ROOT"
-    
+
     local oldest_job_age
-    oldest_job_age=$(php artisan tinker --execute="
-        \$oldest = DB::table('jobs')->orderBy('created_at', 'asc')->first();
-        if (\$oldest) {
-            echo time() - \$oldest->created_at;
-        } else {
-            echo 0;
-        }
-    " 2>/dev/null | tail -n1 | tr -d '\n')
-    
-    if [[ -z "$oldest_job_age" ]] || [[ "$oldest_job_age" -lt "$MAX_QUEUE_AGE_SECONDS" ]]; then
+    oldest_job_age=$(php artisan queue:health 2>/dev/null | tail -n1 | tr -d '[:space:]')
+
+    # Empty/non-numeric means the probe itself failed (DB down, app broken).
+    # Treat that as unhealthy rather than silently passing.
+    if ! [[ "$oldest_job_age" =~ ^[0-9]+$ ]]; then
+        return 1
+    fi
+
+    if [[ "$oldest_job_age" -lt "$MAX_QUEUE_AGE_SECONDS" ]]; then
         return 0  # Queue is being processed
     else
         return 1  # Queue appears stuck
     fi
 }
 
-# Action: Restart workers
+# Action: Restart workers.
+# Use `start` (not just `restart`) because a program in FATAL state is not
+# brought back by `restart`; `start` reliably moves it RUNNING again.
 restart_workers() {
     local reason="$1"
-    
+
     echo "Restarting workers: $reason"
-    
-    sudo supervisorctl restart ${WORKER_GROUP}: 2>&1 || {
+
+    if ! sudo supervisorctl start ${WORKER_GROUP}: 2>&1 \
+        && ! sudo supervisorctl restart ${WORKER_GROUP}: 2>&1; then
         echo "ERROR: Failed to restart workers via supervisor"
-        send_discord_alert "❌ **Failed to restart workers**\nReason: $reason\nAction required!" "error"
+        send_discord_alert "❌ **Failed to restart workers**\nReason: $reason\nCheck passwordless sudo for supervisorctl. Action required!" "error"
         log_to_laravel "Failed to restart workers: $reason" "error"
         return 1
-    }
-    
+    fi
+
     # Wait for workers to stabilize
     sleep 5
-    
+
     send_discord_alert "✅ **Workers restarted successfully**\nReason: $reason" "success"
     log_to_laravel "Workers restarted: $reason" "recovered"
-    
+
     return 0
 }
 

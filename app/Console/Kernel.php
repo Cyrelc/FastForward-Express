@@ -15,7 +15,9 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\GenerateRepeatingBills::class,
+        Commands\QueueHealth::class,
         Commands\StoreWorkerHealth::class,
+        Commands\WaitForDatabase::class,
         Commands\WorkerHealthCheck::class,
         // Commands\Inspire::class,
     ];
@@ -33,11 +35,23 @@ class Kernel extends ConsoleKernel
         // Worker health monitoring - runs every 10 minutes
         $schedule->command(Commands\WorkerHealthCheck::class)->everyTenMinutes();
 
-        // Preventative daily worker restart at 3 AM
+        // Preventative daily worker restart at 3 AM.
+        // Use the graceful queue:restart signal (cache-based) rather than a hard
+        // `supervisorctl restart`: workers finish their current job, exit, and are
+        // relaunched by Supervisor via tools/run-worker.sh (which waits for the DB).
+        // This needs no sudo and works regardless of how workers are supervised.
+        // NOTE: requires a non-database cache driver so the signal still works when
+        // MySQL is the thing being recovered.
         $schedule->call(function() {
-            $workerGroup = env('LARAVEL_WORKER_GROUP', 'laravel-queue');
-            exec("sudo supervisorctl restart {$workerGroup}: 2>&1", $output, $exitCode);
-            activity('worker_maintenance')->log('Daily preventative worker restart completed');
+            try {
+                \Artisan::call('queue:restart');
+                activity('worker_maintenance')->log('Daily preventative worker restart signalled (queue:restart)');
+            } catch (\Throwable $e) {
+                activity('worker_maintenance')
+                    ->event('error')
+                    ->withProperties(['error' => $e->getMessage()])
+                    ->log('Daily preventative worker restart FAILED to signal');
+            }
         })->dailyAt('03:00');
 
         $schedule->call(function() {
