@@ -32,17 +32,36 @@ class RatesheetRepo {
         $zones = Zone::where('ratesheet_id', $ratesheet_id)
             ->join('selections', 'selections.selection_id', '=', 'zones.type')
             ->select(
-                'additional_costs',
-                'additional_time',
                 'coordinates',
+                'delivery_type_modifiers',
                 'inherits_coordinates_from',
                 'zones.name',
                 'neighbours',
+                'region',
                 'selections.value as type',
+                'tags',
                 'zone_id'
             );
 
         return $zones->get();
+    }
+
+    public function GetMapZoneById($ratesheet_id, $zoneId) {
+        return Zone::where('ratesheet_id', $ratesheet_id)
+            ->where('zone_id', $zoneId)
+            ->join('selections', 'selections.selection_id', '=', 'zones.type')
+            ->select(
+                'coordinates',
+                'delivery_type_modifiers',
+                'inherits_coordinates_from',
+                'zones.name',
+                'neighbours',
+                'region',
+                'selections.value as type',
+                'tags',
+                'zone_id'
+            )
+            ->first();
     }
 
     public function Insert($ratesheet) {
@@ -109,6 +128,15 @@ class RatesheetRepo {
         return $zone;
     }
 
+    public function ListZoneRegions() {
+        return Zone::query()
+            ->whereNotNull('region')
+            ->where('region', '!=', '')
+            ->distinct()
+            ->orderBy('region')
+            ->pluck('region');
+    }
+
     public function Update($ratesheet) {
         $old = Ratesheet::where('ratesheet_id', $ratesheet['ratesheet_id'])->first();
 
@@ -127,11 +155,12 @@ class RatesheetRepo {
     public function UpdateZone($zone) {
         $old = Zone::find($zone['zone_id']);
 
-        $old->additional_costs = $zone['additional_costs'];
-        $old->additional_time = $zone['additional_time'];
+        $old->delivery_type_modifiers = $zone['delivery_type_modifiers'];
         $old->coordinates = $zone['coordinates'];
         $old->inherits_coordinates_from = $zone['inherits_coordinates_from'];
         $old->name = $zone['name'];
+        $old->region = $zone['region'];
+        $old->tags = $zone['tags'];
         $old->type = $zone['type'];
 
         $old->save();

@@ -6,6 +6,7 @@ import ConditionalsTab from './Conditionals/ConditionalsTab'
 import ImportRatesTab from './ImportRatesTab'
 import MapTab from './MapTab'
 import TimeRatesTab from './TimeRatesTab'
+import TimingConditionalsTab from './TimingConditionals/TimingConditionalsTab'
 import WeightRatesTab from './WeightRatesTab'
 import DistanceRatesTab from './DistanceRatesTab'
 // import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
@@ -23,6 +24,9 @@ export default function Ratesheet(props) {
     const api = useAPI()
     const importFromRatesheet = useImport()
     const mapState = useMap()
+    // Refs for child tabs to allow imperative reload
+    const conditionalsTabRef = React.useRef()
+    const timingConditionalsTabRef = React.useRef()
     const ratesheetState = useRatesheet()
 
     const [key, setKey] = useState('basic')
@@ -45,37 +49,51 @@ export default function Ratesheet(props) {
     useEffect(() => {
         if(mapState.map) {
             const {match: {params}} = props
-            api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create').then(async(response) => {
-                var timeRates = (response.timeRates ?? []).map(rate => {
-                    return {...rate, brackets: rate.brackets.map(bracket => {
-                        return {...bracket, startTime: bracket.startTime ? new Date(bracket.startTime) : null, endTime: bracket.endTime ? new Date(bracket.endTime) : null}
+            api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create')
+                .then(async(response) => {
+                    var timeRates = (response.timeRates ?? []).map(rate => {
+                        return {
+                            ...rate,
+                            brackets: rate.brackets.map(bracket => {
+                                return {
+                                    ...bracket,
+                                    startTime: bracket.startTime ? new Date(bracket.startTime) : null,
+                                    endTime: bracket.endTime ? new Date(bracket.endTime) : null
+                                }
+                            })
+                        }
                     })
-                }})
-                ratesheetState.setDeliveryTypes(response.deliveryTypes)
-                ratesheetState.setName(response.name)
-                ratesheetState.setMiscRates(response.miscRates ?? [])
-                ratesheetState.setPalletRate(response.palletRate)
-                importFromRatesheet.setRatesheets(response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId))
-                ratesheetState.setTimeRates(timeRates)
-                ratesheetState.setWeightRates(response.weightRates)
-                ratesheetState.setVolumeRates(response.volumeRates)
-                ratesheetState.setZoneRates(response.zoneRates)
-                ratesheetState.setUseInternalZonesCalc(response.useInternalZonesCalc)
-                if(params.ratesheetId) {
-                    const mapZonesLength = response.mapZones.length
-                    for (let index = 0; index < mapZonesLength; index++) {
-                        const mapZone = response.mapZones[index]
-                        const percentComplete = (index / mapZonesLength).toPrecision(2) * 100
-                        mapState.setDrawingMap(percentComplete)
-                        mapState.createZone(null, mapZone)
+                    ratesheetState.setDeliveryTypes(response.deliveryTypes)
+                    ratesheetState.setName(response.name)
+                    ratesheetState.setMiscRates(response.miscRates ?? [])
+                    ratesheetState.setPalletRate(response.palletRate)
+                    ratesheetState.setConditionals(response.conditionals ?? [])
+                    ratesheetState.setTimingConditionals(response.timingConditionals ?? [])
+                    importFromRatesheet.setRatesheets(response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId))
+                    ratesheetState.setTimeRates(timeRates)
+                    ratesheetState.setWeightRates(response.weightRates)
+                    ratesheetState.setVolumeRates(response.volumeRates)
+                    ratesheetState.setZoneRates(response.zoneRates)
+                    ratesheetState.setUseInternalZonesCalc(response.useInternalZonesCalc)
+                    if(params.ratesheetId) {
+                        const mapZonesLength = response.mapZones.length
+                        for (let index = 0; index < mapZonesLength; index++) {
+                            const mapZone = response.mapZones[index]
+                            const percentComplete = (index / mapZonesLength).toPrecision(2) * 100
+                            mapState.setDrawingMap(percentComplete)
+                            mapState.createZone(null, mapZone)
+                        }
+                        mapState.setDrawingMap(100)
+                    } else {
+                        // For a new ratesheet (create route) there are no mapZones to iterate;
+                        // ensure the drawing progress modal finishes.
+                        mapState.setDrawingMap(100)
                     }
+                })
+                .catch(error => {
+                    toast.error('Failed to load ratesheet. Please check the server or database. (' + (error?.cause?.message || error.message || 'Unknown error') + ')', {autoClose: false})
                     mapState.setDrawingMap(100)
-                } else {
-                    // For a new ratesheet (create route) there are no mapZones to iterate;
-                    // ensure the drawing progress modal finishes.
-                    mapState.setDrawingMap(100)
-                }
-            })
+                })
         }
     }, [mapState.map])
 
@@ -120,8 +138,8 @@ export default function Ratesheet(props) {
                         name: shouldReplace ? importZone.name : (oldZone ? `${importZone.name} (copy)` : importZone.name),
                         zoneId: shouldReplace ? oldZone.zoneId : null,
                         coordinates: coordinates,
-                        additional_costs: importZone.additional_costs ?? (importZone.additionalCosts ? JSON.stringify(importZone.additionalCosts) : null),
-                        additional_time: importZone.additional_time ?? importZone.additionalTime ?? 0,
+                        delivery_type_modifiers: importZone.delivery_type_modifiers
+                            ?? (importZone.deliveryTypeModifiers ? JSON.stringify(importZone.deliveryTypeModifiers) : null),
                         neighbours: importZone.neighbours ?? []
                     }
                     mapState.createZone(polygon, normalizedZone)
@@ -160,6 +178,30 @@ export default function Ratesheet(props) {
                         weightRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name})
                 })
                 ratesheetState.setWeightRates(weightRates)
+                break;
+            case 'conditionals':
+                api.post('/ratesheets/conditionals/import', {
+                    target_ratesheet_id: ratesheetState.ratesheetId,
+                    source_ratesheet_id: importFromRatesheet.importRatesheet.ratesheet_id,
+                    conditional_ids: importFromRatesheet.selectedImports.map(conditional => conditional.conditional_id),
+                    replace: replace
+                }).then(() => {
+                    if (conditionalsTabRef.current && conditionalsTabRef.current.reload) {
+                        conditionalsTabRef.current.reload()
+                    }
+                })
+                break;
+            case 'timingConditionals':
+                api.post('/ratesheets/time-conditionals/import', {
+                    target_ratesheet_id: ratesheetState.ratesheetId,
+                    source_ratesheet_id: importFromRatesheet.importRatesheet.ratesheet_id,
+                    timing_conditional_ids: importFromRatesheet.selectedImports.map(conditional => conditional.timing_conditional_id),
+                    replace: replace
+                }).then(() => {
+                    if (timingConditionalsTabRef.current && timingConditionalsTabRef.current.reload) {
+                        timingConditionalsTabRef.current.reload()
+                    }
+                })
                 break;
             default:
                 return
@@ -259,9 +301,20 @@ export default function Ratesheet(props) {
                             />
                         </Tab>
                     }
+                    {ratesheetState.ratesheetId &&
+                        <Tab eventKey='timing-conditionals' title={<h4><i className='fas fa-stopwatch'></i> Timing Conditionals{timingConditionalsTabRef.current && timingConditionalsTabRef.current.loadError ? ' !' : ''}</h4>}>
+                            <TimingConditionalsTab
+                                ref={timingConditionalsTabRef}
+                                deliveryTypes={ratesheetState.deliveryTypes}
+                                mapZones={mapState.mapZones}
+                                ratesheetId={ratesheetState.ratesheetId}
+                            />
+                        </Tab>
+                    }
                     <Tab eventKey='map' title={<h4><i className='fas fa-map'></i> Map</h4>}>
                         <MapTab
                             mapState={mapState}
+                            deliveryTypes={ratesheetState.deliveryTypes}
                         />
                     </Tab>
                     <Tab
@@ -274,7 +327,9 @@ export default function Ratesheet(props) {
                                 mapZones: mapState.mapZones,
                                 miscRates: ratesheetState.miscRates,
                                 timeRates: ratesheetState.timeRates,
-                                weightRates: ratesheetState.weightRates
+                                weightRates: ratesheetState.weightRates,
+                                conditionals: ratesheetState.conditionals ?? [],
+                                timingConditionals: ratesheetState.timingConditionals ?? []
                             }}
                             type='miscRates'
 

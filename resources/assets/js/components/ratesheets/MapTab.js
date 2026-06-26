@@ -1,13 +1,16 @@
-import React, {useState, useEffect} from 'react'
-import {Button, Card, Col, Collapse, FormControl, InputGroup, Popover, Row, ToggleButton, ToggleButtonGroup} from 'react-bootstrap'
+import React, {useMemo, useState, useEffect} from 'react'
+import {Button, Card, Col, Collapse, FormControl, InputGroup, Popover, Row} from 'react-bootstrap'
 import {polyColours} from './Classes/Zone'
 import MapZone from './MapZone'
 import Select from 'react-select'
 import {GoogleMap} from '@react-google-maps/api'
 import topoSimplify from './utils/topoSimplify.js'
 import { toast } from 'react-toastify'
+import {useLists} from '../../contexts/ListsContext'
+import {useAPI} from '../../contexts/APIContext'
 
 export default function MapTab(props) {
+    const api = useAPI()
     const {
         createZone,
         defaultZoneType,
@@ -28,14 +31,65 @@ export default function MapTab(props) {
         stopDrawing,
     } = props.mapState
 
+    const {zoneTypes} = useLists()
+    const {deliveryTypes} = props
+
     const [simplifyMode, setSimplifyMode] = useState('topo') // 'topo' or 'quick'
     const [tolerance, setTolerance] = useState(snapTolerance || 2) // meters - used for both snapping and simplification
     const [showSettings, setShowSettings] = useState(false)
     const [singleZoneOnly, setSingleZoneOnly] = useState(true)
     const [refreshKey, setRefreshKey] = useState(0)
+    const [regionOptions, setRegionOptions] = useState([])
     const [isProcessing, setIsProcessing] = useState(false)
     const [lastUndoSnapshot, setLastUndoSnapshot] = useState(null)
     const [lastUndoLabel, setLastUndoLabel] = useState('')
+    const zoneTypeOptions = useMemo(() => {
+        return (zoneTypes ?? []).map(zoneType => ({
+            value: zoneType.value,
+            label: zoneType.label
+        }))
+    }, [zoneTypes])
+
+    useEffect(() => {
+        if(!zoneTypeOptions.length)
+            return
+        if(!zoneTypeOptions.find(option => option.value === defaultZoneType))
+            setDefaultZoneType(zoneTypeOptions[0].value)
+    }, [zoneTypeOptions, defaultZoneType, setDefaultZoneType])
+
+    useEffect(() => {
+        let isMounted = true
+        api.get('/ratesheets/zone-regions').then((response) => {
+            if(!isMounted)
+                return
+            setRegionOptions((response ?? []).map(region => ({value: region, label: region})))
+        }).catch(() => {
+            if(isMounted)
+                setRegionOptions([])
+        })
+
+        return () => {
+            isMounted = false
+        }
+    }, [])
+
+    const regionOptionsWithCurrent = useMemo(() => {
+        const knownRegions = regionOptions.map(option => option.value)
+        const currentRegions = (mapZones ?? []).map(zone => zone.region).filter(region => !!region)
+        const uniqueRegions = Array.from(new Set([...knownRegions, ...currentRegions]))
+        return uniqueRegions.map(region => ({value: region, label: region}))
+    }, [regionOptions, mapZones])
+
+    const tagOptions = useMemo(() => {
+        const tags = []
+        ;(mapZones ?? []).forEach(zone => {
+            ;(zone.tags ?? []).forEach(tag => {
+                if(tag)
+                    tags.push(tag)
+            })
+        })
+        return Array.from(new Set(tags)).map(tag => ({value: tag, label: tag}))
+    }, [mapZones])
     // Sync tolerance changes back to snapTolerance in parent state
     useEffect(() => {
         if(setSnapTolerance && tolerance !== snapTolerance) {
@@ -174,34 +228,11 @@ export default function MapTab(props) {
                     <Col md={12}>
                     <InputGroup>
                         <InputGroup.Text>New Zone Type: </InputGroup.Text>
-                        <ToggleButtonGroup
-                            type='radio'
-                            name='defaultZoneType'
-                            onChange={value => setDefaultZoneType(value)}
-                            value={defaultZoneType}
-                        >
-                            <ToggleButton
-                                id={'defaultZoneType.internal'}
-                                variant='secondary'
-                                value='internal'
-                                key='internal'
-                                style={{backgroundColor: polyColours.internalFill, color: defaultZoneType === 'internal' ? 'black' : 'white'}}
-                            >Internal</ToggleButton>
-                            <ToggleButton
-                                variant='secondary'
-                                id='defaultZoneType.peripheral'
-                                value='peripheral'
-                                key='peripheral'
-                                style={{backgroundColor: polyColours.peripheralFill, color: defaultZoneType === 'peripheral' ? 'black' : 'white'}}
-                            >Peripheral</ToggleButton>
-                            <ToggleButton
-                                variant='secondary'
-                                id='defaultZoneType.outlying'
-                                value='outlying'
-                                key='outlying' 
-                                style={{backgroundColor: polyColours.outlyingFill, color: defaultZoneType === 'outlying' ? 'black' : 'white'}}
-                            >Outlying</ToggleButton>
-                        </ToggleButtonGroup>
+                        <Select
+                            options={zoneTypeOptions}
+                            value={zoneTypeOptions.find(option => option.value === defaultZoneType) ?? null}
+                            onChange={option => setDefaultZoneType(option?.value ?? defaultZoneType)}
+                        />
                     </InputGroup>
                     </Col>
                     <Col md={12} style={{marginTop: '8px'}}>
@@ -289,6 +320,10 @@ export default function MapTab(props) {
                             handleZoneChange={props.mapState.handleZoneChange}
                             // handleZoneTypeChange={props.mapState.handleZoneTypeChange}
                             mapZones={mapZones}
+                            deliveryTypes={deliveryTypes}
+                            regionOptions={regionOptionsWithCurrent}
+                            tagOptions={tagOptions}
+                            zoneTypes={zoneTypeOptions}
                             zone={editZone}
                         />
                     }

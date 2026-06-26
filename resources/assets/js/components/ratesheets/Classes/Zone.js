@@ -14,13 +14,14 @@ export const polyColours = {
 export default class Zone {
     constructor(mapZone) {
         const resolvedType = mapZone.type ?? 'internal'
-        this.additionalCosts = mapZone.additionalCosts ?? {regular: null, rush: null, direct_rush: null, direct: null}
-        this.additionalTime = mapZone.additionalTime
+        this.deliveryTypeModifiers = mapZone.deliveryTypeModifiers ?? {}
         this.fillColour = polyColours[`${resolvedType}Fill`] ?? polyColours.internalFill
         this.name = mapZone.name
         this.neighbours = mapZone.neighbours
         this.polygon = mapZone.polygon
+        this.region = mapZone.region ?? ''
         this.strokeColour = polyColours[`${resolvedType}Stroke`] ?? polyColours.internalStroke
+        this.tags = mapZone.tags ?? []
         this.type = resolvedType
         this.zoneId = mapZone.zoneId ?? null
 
@@ -39,14 +40,16 @@ export default class Zone {
     }
 
     collect = () => {
+        const normalizedTags = (this.tags ?? [])
+            .map(tag => `${tag}`.trim())
+            .filter(tag => !!tag)
+
         return {
-            additionalTime: this.additionalTime,
             coordinates: JSON.stringify(this.getCoordinates()),
-            directCost: this.additionalCosts.direct,
-            directRushCost: this.additionalCosts.direct_rush,
+            deliveryTypeModifiers: this.deliveryTypeModifiers,
             name: this.name,
-            regularCost: this.additionalCosts.regular,
-            rushCost: this.additionalCosts.rush,
+            region: this.region ? `${this.region}`.trim() : null,
+            tags: normalizedTags.length ? normalizedTags.join('|') : null,
             type: this.type,
             zoneId: this.zoneId,
         }

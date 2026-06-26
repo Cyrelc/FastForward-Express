@@ -20,7 +20,9 @@ export default function ImportRatesTab(props) {
         {label: 'Miscellanous', value: 'miscRates'},
         {label: 'Weight Rates', value: 'weightRates'},
         {label: 'Time Rates', value: 'timeRates'},
-        {label: 'Map Zones', value: 'mapZones'}
+        {label: 'Map Zones', value: 'mapZones'},
+        {label: 'Conditionals', value: 'conditionals'},
+        {label: 'Timing Conditionals', value: 'timingConditionals'}
     ]
 
     function getRatesheet(ratesheetId) {

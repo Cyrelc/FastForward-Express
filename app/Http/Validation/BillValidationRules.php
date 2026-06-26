@@ -133,13 +133,50 @@ class BillValidationRules {
 			$minDateTime = $currentDateTime;
 		$minDateTime = $minDateTime->format('Y-m-d H:i:s');
 
+		// Server-authoritative floor: the scheduled delivery must be at least the selected delivery
+		// type's computed minimum after pickup. The minimum is recomputed server-side from the
+		// account's ratesheet and the route, so a tampered client value cannot buy a faster service.
+		$minimumDeliveryGapRule = function($attribute, $value, $fail) use ($req) {
+			$chargeAccount = (new Repos\AccountRepo())->GetById($req->charge_account_id);
+			$ratesheetId = $chargeAccount->ratesheet_id ?? null;
+			if(!$ratesheetId)
+				return;
+
+			$ratesheet = (new Repos\RatesheetRepo())->GetById($ratesheetId);
+			$deliveryTypeId = is_array($req->delivery_type) ? ($req->delivery_type['id'] ?? null) : null;
+			if(!$ratesheet || $deliveryTypeId === null)
+				return;
+
+			$minimumHours = (new \App\Http\Models\Bill\ChargeModelFactory())->GetComputedDeliveryTime(
+				$ratesheet,
+				$req->pickup_address_lat, $req->pickup_address_lng,
+				$req->delivery_address_lat, $req->delivery_address_lng,
+				$deliveryTypeId
+			);
+			if($minimumHours === null)
+				return; // route can't be auto-resolved — leave it for staff to price/schedule
+
+			try {
+				$pickup = new \DateTime($req->time_pickup_scheduled);
+				$delivery = new \DateTime($value);
+			} catch(\Throwable $e) {
+				return;
+			}
+
+			$earliest = (clone $pickup)->modify('+' . (int) round($minimumHours * 60) . ' minutes');
+			if($delivery < $earliest) {
+				$readableHours = rtrim(rtrim(number_format($minimumHours, 2), '0'), '.');
+				$fail('The selected delivery type needs at least ' . $readableHours . ' hour(s) after pickup. Please choose a later delivery time or a faster delivery type.');
+			}
+		};
+
 		$rules = [
 			'accept_terms_and_conditions' => 'required|accepted',
 			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
 			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
 			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
 			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
-			'time_delivery_scheduled' => ['required', 'date', 'after:time_pickup_scheduled'],
+			'time_delivery_scheduled' => ['required', 'date', 'after:time_pickup_scheduled', $minimumDeliveryGapRule],
 			'time_pickup_scheduled' => ['required', 'date', 'after:' . $minDateTime],
 		];
 

@@ -24,6 +24,8 @@ class CreateZonesTable extends Migration
             $table->text('neighbours')->nullable();
             $table->unsignedInteger('ratesheet_id');
             $table->unsignedInteger('type');
+            $table->string('region')->nullable();
+            $table->string('tags')->nullable();
 
             $table->foreign('inherits_coordinates_from')->references('zone_id')->on('zones');
             $table->foreign('ratesheet_id')->references('ratesheet_id')->on('ratesheets');

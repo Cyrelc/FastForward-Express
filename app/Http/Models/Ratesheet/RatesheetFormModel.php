@@ -9,6 +9,11 @@ class RatesheetFormModel {
     public $mapZones;
     public $ratesheet;
     public $useInternalZonesCalc;
+    public $conditionals;
+    public $timingConditionals;
+    public $miscRates;
+    public $timeRates;
+    public $ratesheets;
 }
 
 ?>

@@ -1,21 +1,6 @@
 import {DateTime} from 'luxon'
 import {toast} from 'react-toastify'
 
-const getDeliveryEstimates = (deliveryTypes, pickupZone = null, deliveryZone = null) => {
-    return deliveryTypes.map(deliveryType => {
-        const originalTime = deliveryType.originalTime ? deliveryType.originalTime : parseFloat(deliveryType.time)
-        let time = originalTime
-        if(pickupZone?.additional_time)
-            time += parseFloat(pickupZone.additional_time)
-        if(deliveryZone?.additional_time)
-            time += parseFloat(deliveryZone.additional_time)
-        return {
-            ...deliveryType,
-            originalTime,
-            time
-        }}
-    )
-}
 
 const initialPersistFields = [
     // {name: 'chargeAccount', label: 'Charge Account', checked: false},
@@ -78,6 +63,7 @@ export const initialState = {
     timeCallReceived: null,
     timeDispatched: null,
     timeTenFoured: null,
+    deliveryTimesLoaded: false,
     updatedAt: ''
 }
 
@@ -132,13 +118,17 @@ export default function billReducer(state, action) {
             time = time.plus({minutes: 15})
 
         if(!time.hasSame(originalTime, 'day')) {
-            toast.warn(
-                'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
-                {
-                    position: 'top-center',
-                    toastId: `${state.billId}-insufficient-time-remaining`,
-                }
-            )
+            const insufficientTimeToastId = `${state.billId || 'new'}-insufficient-time-remaining`
+            if(!toast.isActive(insufficientTimeToastId)) {
+                toast.warn(
+                    'There is insufficient time remaining today to perform the delivery you have requested, so we have automatically assigned it to the next business day.\n\nIf you believe you are receiving this in error, please give us a call',
+                    {
+                        autoClose: 8000,
+                        position: 'top-center',
+                        toastId: insufficientTimeToastId,
+                    }
+                )
+            }
         }
 
         return time
@@ -288,11 +278,12 @@ export default function billReducer(state, action) {
         }
         case 'SET_ACTIVE_RATESHEET': {
             // CREDIT CARDS WILL USE THE RATESHEET OF THE ACCOUNT THEY ARE LINKED TO :-D
-            const deliveryTypes = getDeliveryEstimates(JSON.parse(payload.delivery_types))
+            const deliveryTypes = JSON.parse(payload.delivery_types)
             const deliveryType = state.deliveryType ? deliveryTypes.find(type => type.id === state.deliveryType.id) : deliveryTypes[0]
             return Object.assign({}, state, {
                 deliveryType,
-                deliveryTypes
+                deliveryTypes,
+                deliveryTimesLoaded: false
             })
         }
         case 'SET_BILL_NUMBER':
@@ -345,11 +336,9 @@ export default function billReducer(state, action) {
                 delivery: {...state.delivery, [payload.name]: payload.value}
             })
         case 'SET_DELIVERY_ZONE': {
-            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.pickup.zone)
             return Object.assign({}, state, {
                 delivery: {...state.delivery, zone: payload},
-                deliveryTypes: deliveryTypes,
-                deliveryType: deliveryTypes.find(type => type.id == state.deliveryType.id)
+                deliveryTimesLoaded: false
             })
         }
         case 'SET_DESCRIPTION':
@@ -426,11 +415,30 @@ export default function billReducer(state, action) {
         case 'SET_PICKUP_VALUE':
             return Object.assign({}, state, {pickup: {...state.pickup, [payload.name]: payload.value}})
         case 'SET_PICKUP_ZONE': {
-            const deliveryTypes = getDeliveryEstimates(state.deliveryTypes, payload, state.delivery.zone)
             return Object.assign({}, state, {
-                deliveryType: deliveryTypes.find(type => type.id == state.deliveryType.id),
-                deliveryTypes: deliveryTypes,
-                pickup: {...state.pickup, zone: payload}
+                pickup: {...state.pickup, zone: payload},
+                deliveryTimesLoaded: false
+            })
+        }
+        case 'SET_DELIVERY_ESTIMATES': {
+            const deliveryTypes = payload ?? []
+            let deliveryType = deliveryTypes.find(type => type.id == state.deliveryType.id)
+
+            // If restrictions apply and the current delivery type no longer fits today (per the
+            // server-computed feasibility), auto-switch to the fastest type that does fit.
+            if(state.applyRestrictions && deliveryType && deliveryTypes.length) {
+                if(deliveryType.fits_today === false) {
+                    const sorted = [...deliveryTypes].sort((a, b) => a.time - b.time)
+                    const fallback = sorted.find(type => type.fits_today !== false)
+                    if(fallback)
+                        deliveryType = fallback
+                }
+            }
+
+            return Object.assign({}, state, {
+                deliveryTypes,
+                deliveryType,
+                deliveryTimesLoaded: true
             })
         }
         case 'SET_PREV_BILL_ID':

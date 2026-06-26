@@ -11,7 +11,7 @@ class Zone extends Model
 
     public $primaryKey = 'zone_id';
 
-    protected $fillable = ['additional_costs', 'additional_time', 'coordinates', 'inherits_coordinates_from', 'name', 'neighbours', 'ratesheet_id', 'type'];
+    protected $fillable = ['coordinates', 'delivery_type_modifiers', 'inherits_coordinates_from', 'name', 'neighbours', 'ratesheet_id', 'region', 'tags', 'type'];
     public $timestamps = false;
 
     public function getActivityLogOptions() : LogOptions {

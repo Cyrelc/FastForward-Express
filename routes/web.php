@@ -50,6 +50,7 @@ Route::middleware(['auth'])->controller(BillController::class)->prefix('bills')-
     Route::get('/create', 'getModel');
     Route::get('/template/{billId}', 'template');
     Route::post('/manageLineItemLinks', 'manageLineItemLinks');
+    Route::post('/estimateDeliveryTimes', 'estimateDeliveryTimes');
     Route::post('/store', 'store');
     Route::post('/generateCharges', 'generateCharges');
     Route::get('/copy/{billId}', 'copyBill');
@@ -139,14 +140,22 @@ Route::middleware(['auth'])->controller(QueryController::class)->prefix('queries
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
     Route::get('/create', 'getModel');
+    Route::get('/zone-regions', 'listZoneRegions');
     Route::get('/{id?}', 'getModel');
     Route::get('/', 'buildTable');
     Route::post('/', 'store');
     Route::get('/{ratesheetId}/getZone', 'getZone');
+    Route::get('/{ratesheetId}/zonesCrossed', 'getZonesCrossed');
     Route::delete('/conditional/{id}', 'deleteConditional');
     Route::get('/conditional/{id}', 'getConditional');
     Route::post('/conditional/{id?}', 'storeConditional');
     Route::get('/conditionals/{ratesheetId}', 'listConditionals');
+    Route::post('/conditionals/import', 'importConditionals');
+    Route::delete('/time-conditional/{id}', 'deleteTimingConditional');
+    Route::get('/time-conditional/{id}', 'getTimingConditional');
+    Route::post('/time-conditional/{id?}', 'storeTimingConditional');
+    Route::get('/time-conditionals/{ratesheetId}', 'listTimingConditionals');
+    Route::post('/time-conditionals/import', 'importTimingConditionals');
 });
 
 Route::middleware(['auth'])->controller(SearchController::class)->group(function() {

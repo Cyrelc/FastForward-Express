@@ -181,10 +181,11 @@ export default function useMap() {
         const zIndex = nextPolygonIndex++
         if(!mapZone) {
             mapZone = {
-                additionalCosts: {regular: '', rush: '', direct: '', direct_rush: ''},
-                additionalTime: 0,
+                deliveryTypeModifiers: {},
                 name: `${defaultZoneType}_zone_${zIndex}`,
                 neighbours: [],
+                region: '',
+                tags: [],
                 type: defaultZoneType,
                 zoneId: null,
             }
@@ -194,10 +195,19 @@ export default function useMap() {
             if(typeof mapZone.coordinates === 'string')
                 mapZone.coordinates = JSON.parse(mapZone.coordinates)
 
-            if(mapZone.additionalCosts === undefined) {
-                mapZone.additionalCosts = mapZone.additional_costs ? JSON.parse(mapZone.additional_costs) : {regular: '', rush: '', direct: '', direct_rush: ''}
+            if(mapZone.deliveryTypeModifiers === undefined) {
+                mapZone.deliveryTypeModifiers = mapZone.delivery_type_modifiers
+                    ? JSON.parse(mapZone.delivery_type_modifiers)
+                    : {}
             }
-            mapZone.additionalTime = parseFloat(mapZone.additional_time ?? mapZone.additionalTime ?? 0)
+            mapZone.region = mapZone.region ?? ''
+            if(Array.isArray(mapZone.tags)) {
+                mapZone.tags = mapZone.tags.map(tag => `${tag}`.trim()).filter(tag => !!tag)
+            } else if(typeof mapZone.tags === 'string') {
+                mapZone.tags = mapZone.tags.split('|').map(tag => tag.trim()).filter(tag => !!tag)
+            } else {
+                mapZone.tags = []
+            }
         }
 
         mapZone.polygon = polygon ?? new google.maps.Polygon({
@@ -232,8 +242,11 @@ export default function useMap() {
         const {name, value} = event.target
         const updated = mapZones.map(zone => {
             if(zone.polygon.zIndex == zIndex) {
-                if(name.includes('additionalCosts.')) {
-                    zone.additionalCosts[name.split('.')[1]] = value
+                if(name == 'deliveryTypeModifiers') {
+                    zone.deliveryTypeModifiers = value ?? {}
+                }
+                else if(name == 'tags') {
+                    zone.tags = Array.isArray(value) ? value : []
                 }
                 else if(name == 'type') {
                     const fillColour = polyColours[`${value}Fill`]

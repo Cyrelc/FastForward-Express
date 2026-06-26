@@ -1,24 +1,34 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import {debounce} from 'lodash'
 import {
+    absDependencies,
     addDependencies,
     create,
     createUnitDependencies,
     divideDependencies,
     evaluateDependencies,
+    maxDependencies,
+    minDependencies,
     multiplyDependencies,
+    powDependencies,
     roundDependencies,
+    sqrtDependencies,
     subtractDependencies,
     unitDependencies,
 } from 'mathjs';
 
 const math = create({
+    abs: absDependencies,
     add: addDependencies,
     createUnit: createUnitDependencies,
     divide: divideDependencies,
     evaluate: evaluateDependencies,
+    max: maxDependencies,
+    min: minDependencies,
     multiply: multiplyDependencies,
+    pow: powDependencies,
     round: roundDependencies,
+    sqrt: sqrtDependencies,
     subtract: subtractDependencies,
     unit: unitDependencies,
 }, {
@@ -52,6 +62,18 @@ export default function useEquation({conditional}) {
     const [resultValue, setResultValue] = useState(0)
     const [serverEquationString, setServerEquationString] = useState('')
     const [testVariables, setTestVariables] = useState(availableTestVariables)
+    const [validationMessage, setValidationMessage] = useState('')
+
+    // Load equation when conditional changes (for editing)
+    useEffect(() => {
+        // Support both new (equation_string) and old (original_equation_string) field names
+        const equationValue = conditional?.equation_string || conditional?.original_equation_string
+        if(equationValue) {
+            setEquationString(equationValue)
+        } else {
+            setEquationString('')
+        }
+    }, [conditional?.conditional_id, conditional?.equation_string, conditional?.original_equation_string])
 
     // useEffect(() => {
     //     const foundVariables = availableTestVariables
@@ -62,11 +84,40 @@ export default function useEquation({conditional}) {
 
     const debouncedEvaluateEquationString = useCallback(
         debounce(() => {
-            // Ensure every number is followed by a unit or a variable by a bracket or operator
-            // Here we replace the leading dollar sign with a trailing CAD, which looks more like other units (and allows us to conform to "X UNITS" structure)
-            let equation = equationString.replace(/\$(\d+(\.\d+)?)/g, (match, value) => {
+            if (!equationString || equationString.trim() === '') {
+                setDemoResult('')
+                setValidationMessage('')
+                setServerEquationString('')
+                return
+            }
+
+            // Normalize the input: add spaces where needed
+            let normalized = equationString
+                // Add space between number and unit: 50lb → 50 lb
+                .replace(/(\d)([a-zA-Z])/g, '$1 $2')
+                // Add space around operators: 50+30 → 50 + 30
+                .replace(/(\d)([+\-*/])/g, '$1 $2')
+                .replace(/([+\-*/])(\d)/g, '$1 $2')
+                // Add space after closing paren before number/letter: )50 → ) 50
+                .replace(/\)(\d|[a-zA-Z])/g, ') $1')
+                // Add space before opening paren after number/letter: 50( → 50 (
+                .replace(/(\d|[a-zA-Z])\(/g, '$1 (')
+                // Clean up multiple spaces
+                .replace(/\s+/g, ' ')
+                .trim()
+
+            // Replace leading dollar sign with trailing CAD
+            let equation = normalized.replace(/\$(\d+(\.\d+)?)/g, (match, value) => {
                 return value + " CAD";
             });
+
+            // Track what we've recognized
+            const recognized = {
+                variables: [],
+                numbers: [],
+                units: [],
+                operators: []
+            }
 
             let regex = /(\b[a-zA-Z_][a-zA-Z0-9_]*\b|\d+(\.\d+)?)\s*(\b[a-zA-Z_][a-zA-Z0-9_]*\b)?/g;
             let match;
@@ -77,18 +128,46 @@ export default function useEquation({conditional}) {
                 const unit = match[3]
 
                 // check if it's a variable or a valid number
-                const isVariable = availableTestVariables.some(variable => variable.dbName == value)
+                const isVariable = availableTestVariables.some(variable => variable.dbName === value)
                 const isValue = !isNaN(parseFloat(value))
+
+                if (isVariable) {
+                    recognized.variables.push(value)
+                } else if (isValue) {
+                    recognized.numbers.push(value)
+                }
+
+                if (unit && Object.keys(imperialToMetric).includes(unit)) {
+                    recognized.units.push(unit)
+                }
 
                 // it is neither a variable, nor a valid number we have an error
                 if(!isVariable && !isValue) {
-                    setDemoResult('Invalid variable: ', value)
+                    setDemoResult('Invalid variable: ' + value)
+                    setValidationMessage('❌ Invalid variable: ' + value)
+                    return
                 }
                 // otherwise, the unit must either be in the imperial to metric conversion chart, or else be a metric unit already
                 // or we have another error
-                else if(!Object.keys(imperialToMetric).includes(unit) && imperialToMetric[unit] != 1) {
-                    setDemoResult(`Missing unit, invalid unit, or incorrect placement in equation near: ${value}`);
+                else if(unit && !Object.keys(imperialToMetric).includes(unit) && imperialToMetric[unit] !== 1) {
+                    setDemoResult(`Missing or invalid unit near: ${value}`);
+                    setValidationMessage(`❌ Missing or invalid unit near: ${value}`);
+                    return
                 }
+            }
+
+            // Set validation message showing what was recognized
+            const validationParts = []
+            if (recognized.variables.length > 0) {
+                validationParts.push(`Variables: ${recognized.variables.join(', ')}`)
+            }
+            if (recognized.units.length > 0) {
+                validationParts.push(`Units: ${recognized.units.join(', ')}`)
+            }
+            if (validationParts.length > 0) {
+                setValidationMessage('✓ Recognized: ' + validationParts.join(' | '))
+            } else {
+                setValidationMessage('⚠️ No variables or units detected')
             }
 
             // match: The entire matched substring
@@ -155,7 +234,7 @@ export default function useEquation({conditional}) {
             try {
                 const variables = testVariables.reduce((accumulator, variable) => {
                     const {dbName, value} = variable
-                    return {...accumulator, dbName: value}
+                    return {...accumulator, [dbName]: value}
                 }, {})
                 let result = math.evaluate(demoEquation, variables)
                 // Verify that the result is a number
@@ -193,6 +272,7 @@ export default function useEquation({conditional}) {
         resultValue,
         serverEquationString,
         testVariables,
+        validationMessage,
         //setters
         setEquationString,
         setTestVariables,

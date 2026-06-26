@@ -40,6 +40,23 @@ class RatesheetController extends Controller {
         ]);
     }
 
+    public function deleteTimingConditional(Request $req, $timingConditionalId) {
+        $timingConditionalRepo = new Repos\TimingConditionalRepo();
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $timingConditional = $timingConditionalRepo->GetById($timingConditionalId);
+        $ratesheet = $ratesheetRepo->GetById($timingConditional->ratesheet_id);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        $timingConditionalRepo->Delete($timingConditionalId);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
     public function getModel(Request $req, $ratesheetId = null) {
         $modelFactory = new Ratesheet\RatesheetModelFactory();
         if($req->user()->cannot('appSettings.edit.*.*'))
@@ -54,14 +71,29 @@ class RatesheetController extends Controller {
     }
 
     public function getConditional(Request $req, $conditionalId) {
+        $conditionalRepo = new Repos\ConditionalRepo();
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $conditional = $conditionalRepo->GetById($conditionalId);
+        $ratesheet = $ratesheetRepo->GetById($conditional->ratesheet_id);
+
         if($req->user()->cannot('update', $ratesheet))
             abort(403);
 
-        $conditionalRepo = new Repos\ConditionalRepo();
-
-        $conditional = $conditionalRepo->GetById($conditionalId);
-
         return json_encode($conditional);
+    }
+
+    public function getTimingConditional(Request $req, $timingConditionalId) {
+        $timingConditionalRepo = new Repos\TimingConditionalRepo();
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $timingConditional = $timingConditionalRepo->GetById($timingConditionalId);
+        $ratesheet = $ratesheetRepo->GetById($timingConditional->ratesheet_id);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        return json_encode($timingConditional);
     }
 
     public function getZone(Request $req, $ratesheetId) {
@@ -81,6 +113,32 @@ class RatesheetController extends Controller {
         return $chargeModelFactory->GetZone($ratesheetId, $req->lat, $req->lng);
     }
 
+    public function getZonesCrossed(Request $req, $ratesheetId) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('getChargesFrom', $ratesheet))
+            abort(403);
+
+        $this->validate($req, [
+            'pickup_zone_id' => 'required|numeric',
+            'delivery_zone_id' => 'required|numeric'
+        ]);
+
+        if(!filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN)) {
+            return response()->json([
+                'zones_crossed' => null
+            ]);
+        }
+
+        $chargeModelFactory = new ChargeModelFactory();
+        $zonesCrossed = $chargeModelFactory->GetZonesCrossed($ratesheetId, $req->pickup_zone_id, $req->delivery_zone_id);
+
+        return response()->json([
+            'zones_crossed' => $zonesCrossed
+        ]);
+    }
+
     public function listConditionals(Request $req, $ratesheetId) {
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
@@ -90,6 +148,115 @@ class RatesheetController extends Controller {
         $conditionals = $conditionalRepo->GetByRatesheetId($ratesheetId);
 
         return json_encode($conditionals);
+    }
+
+    public function listZoneRegions(Request $req) {
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        return response()->json($ratesheetRepo->ListZoneRegions()->values());
+    }
+
+    public function importConditionals(Request $req) {
+        $this->validate($req, [
+            'target_ratesheet_id' => 'required|numeric',
+            'source_ratesheet_id' => 'required|numeric',
+            'conditional_ids' => 'required|array'
+        ]);
+
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $targetRatesheet = $ratesheetRepo->GetById($req->target_ratesheet_id);
+
+        if($req->user()->cannot('update', $targetRatesheet))
+            abort(403);
+
+        $conditionalRepo = new Repos\ConditionalRepo();
+        $replace = filter_var($req->replace, FILTER_VALIDATE_BOOLEAN);
+
+        DB::beginTransaction();
+
+        foreach($req->conditional_ids as $conditionalId) {
+            $conditional = $conditionalRepo->GetById($conditionalId);
+            if(!$conditional || $conditional->ratesheet_id != $req->source_ratesheet_id)
+                continue;
+
+            if($replace) {
+                $existing = $conditionalRepo->GetByRatesheetIdAndName($req->target_ratesheet_id, $conditional->name);
+                if($existing)
+                    $conditionalRepo->Delete($existing->conditional_id);
+            }
+
+            $clone = $conditional->toArray();
+            unset($clone['conditional_id']);
+            $clone['ratesheet_id'] = $req->target_ratesheet_id;
+
+            $conditionalRepo->Insert($clone);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function listTimingConditionals(Request $req, $ratesheetId) {
+        $timingConditionalRepo = new Repos\TimingConditionalRepo();
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('appSettings.edit.*.*') && $req->user()->cannot('getChargesFrom', $ratesheet))
+            abort(403);
+
+        $timingConditionals = $timingConditionalRepo->GetByRatesheetId($ratesheetId);
+
+        return json_encode($timingConditionals);
+    }
+
+    public function importTimingConditionals(Request $req) {
+        $this->validate($req, [
+            'target_ratesheet_id' => 'required|numeric',
+            'source_ratesheet_id' => 'required|numeric',
+            'timing_conditional_ids' => 'required|array'
+        ]);
+
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $targetRatesheet = $ratesheetRepo->GetById($req->target_ratesheet_id);
+
+        if($req->user()->cannot('update', $targetRatesheet))
+            abort(403);
+
+        $timingConditionalRepo = new Repos\TimingConditionalRepo();
+        $replace = filter_var($req->replace, FILTER_VALIDATE_BOOLEAN);
+
+        DB::beginTransaction();
+
+        foreach($req->timing_conditional_ids as $timingConditionalId) {
+            $timingConditional = $timingConditionalRepo->GetById($timingConditionalId);
+            if(!$timingConditional || $timingConditional->ratesheet_id != $req->source_ratesheet_id)
+                continue;
+
+            if($replace) {
+                $existing = $timingConditionalRepo->GetByRatesheetIdAndName($req->target_ratesheet_id, $timingConditional->name);
+                if($existing)
+                    $timingConditionalRepo->Delete($existing->timing_conditional_id);
+            }
+
+            $clone = $timingConditional->toArray();
+            unset($clone['timing_conditional_id']);
+            $clone['ratesheet_id'] = $req->target_ratesheet_id;
+
+            $timingConditionalRepo->Insert($clone);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     public function store(Request $req) {
@@ -176,6 +343,40 @@ class RatesheetController extends Controller {
 
         return response()->json([
             'conditional_id' => $stored->conditional_id,
+            'success' => true
+        ]);
+    }
+
+    public function storeTimingConditional(Request $req, $timingConditionalId = null) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        $ratesheet = $ratesheetRepo->GetById($req->ratesheet_id);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $timingConditionalValidationRules = new Validation\TimingConditionalValidationRules();
+        $timingRules = $timingConditionalValidationRules->GetValidationRules($req, $timingConditionalId);
+        $this->validate($req, $timingRules['rules'], $timingRules['messages']);
+
+        $timingConditionalCollector = new Collectors\TimingConditionalCollector();
+
+        $timingConditional = $timingConditionalCollector->Collect($req, $timingConditionalId);
+
+        $timingConditionalRepo = new Repos\TimingConditionalRepo();
+
+        if($timingConditionalId) {
+            $stored = $timingConditionalRepo->Update($timingConditional);
+        } else {
+            $stored = $timingConditionalRepo->Insert($timingConditional);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'timing_conditional_id' => $stored->timing_conditional_id,
             'success' => true
         ]);
     }

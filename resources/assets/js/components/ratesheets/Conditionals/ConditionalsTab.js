@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState, forwardRef, useImperativeHandle} from 'react'
 import {Button, ButtonGroup, Card, Col, Row} from 'react-bootstrap'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
@@ -6,7 +6,9 @@ import ConditionalModal from './ConditionalModal'
 import {useAPI} from '../../../contexts/APIContext'
 import {useLists} from '../../../contexts/ListsContext'
 
-export default function ConditionalsTab(props) {
+
+
+const ConditionalsTab = forwardRef(function ConditionalsTab(props, ref) {
     const api = useAPI()
     const {chargeTypes} = useLists()
 
@@ -30,8 +32,8 @@ export default function ConditionalsTab(props) {
             )},
             {header: 'Priority', accessorKey: 'priority', size: 110, enableColumnActions: false},
             {header: 'Conditional Type', accessorKey: 'type', size: 220, Cell: ({row}) => {
-                const chargeType = chargeTypes.find(chargeType => chargeType.value == row.original.type)
-                return chargeType.label
+                const chargeType = chargeTypes.find(chargeType => chargeType.value === row.original.type)
+                return chargeType ? chargeType.label : 'Unknown'
             }},
             {accessorKey: 'name', header: 'Name', grow: 1},
             {header: 'Condition', accessorKey: 'human_readable', grow: 4},
@@ -39,9 +41,9 @@ export default function ConditionalsTab(props) {
             {header: 'Value Type', accessorKey: 'value_type', size: 120},
             {header: 'Value', accessorKey: 'value', size: 120, Cell: ({row}) => {
                 const {value_type, value} = row.original
-                if(value_type == 'amount')
+                if(value_type === 'amount')
                     return value.toLocaleString('en-CA', {style: 'currency', currency: 'CAD'})
-                else if(value_type == 'percent')
+                else if(value_type === 'percent')
                     return `${value}%`
                 return value
             }}
@@ -77,6 +79,8 @@ export default function ConditionalsTab(props) {
         })
     }
 
+    useImperativeHandle(ref, () => ({ reload }))
+
     useEffect(() => {
         reload()
     }, [])
@@ -95,7 +99,7 @@ export default function ConditionalsTab(props) {
                     </Col>
                     <Col md={10}>
                         <Card.Title>
-                            <h4 className='text-muted'>Conditionals</h4>
+                            <h4 className='text-muted'>Price Conditionals</h4>
                         </Card.Title>
                     </Col>
                 </Row>
@@ -113,4 +117,6 @@ export default function ConditionalsTab(props) {
             />
         </Card>
     )
-}
+})
+
+export default ConditionalsTab;

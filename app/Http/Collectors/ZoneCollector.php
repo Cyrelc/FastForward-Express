@@ -15,29 +15,29 @@ class ZoneCollector {
         }
 
         foreach($mapZones as $mapZone) {
+            $deliveryTypeModifiers = [];
+            foreach(($mapZone['deliveryTypeModifiers'] ?? []) as $deliveryTypeName => $modifier) {
+                if(!$deliveryTypeName)
+                    continue;
+                $cost = isset($modifier['cost']) && $modifier['cost'] !== '' ? $modifier['cost'] : 0;
+                $time = isset($modifier['time']) && $modifier['time'] !== '' ? $modifier['time'] : 0;
+                $deliveryTypeModifiers[$deliveryTypeName] = [
+                    'cost' => is_numeric($cost) ? (float) $cost : 0,
+                    'time' => is_numeric($time) ? (float) $time : 0,
+                ];
+            }
+
             $zone = [
                 'coordinates' => $mapZone['coordinates'],
+                'delivery_type_modifiers' => json_encode($deliveryTypeModifiers),
                 'inherits_coordinates_from' => null,
                 'name' => $mapZone['name'],
                 'ratesheet_id' => $ratesheetId,
-                'type' => $zoneTypes[$mapZone['type']],
+                'region' => isset($mapZone['region']) ? trim($mapZone['region']) : null,
+                'tags' => $mapZone['tags'] ?? null,
+                'type' => $zoneTypes[$mapZone['type']] ?? null,
                 'zone_id' => $mapZone['zoneId'] ? $mapZone['zoneId'] : null
             ];
-            if($mapZone['type'] === 'internal') {
-                $zone = array_merge($zone, ['additional_costs' => null, 'additional_time' => null]);
-            } else if($mapZone['type'] === 'peripheral') {
-                $zone = array_merge($zone, ['additional_costs' => json_encode(['regular' => (float) $mapZone['regularCost']]), 'additional_time' => $mapZone['additionalTime']]);
-            } else if ($mapZone['type'] === 'outlying') {
-                $zone = array_merge($zone, [
-                    'additional_costs' => json_encode([
-                        'direct' => (float) $mapZone['directCost'],
-                        'direct_rush' => (float) $mapZone['directRushCost'],
-                        'regular' => (float) $mapZone['regularCost'],
-                        'rush' => (float) $mapZone['rushCost']
-                    ]),
-                    'additional_time' => $mapZone['additionalTime']
-                ]);
-            }
 
             $zones = array_merge($zones, [$zone]);
         }

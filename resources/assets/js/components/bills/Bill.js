@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useReducer, useState} from 'react'
+import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react'
 import {Badge, Button, ButtonGroup, Col, Dropdown, FormCheck, Modal, Navbar, NavDropdown, OverlayTrigger, ProgressBar, Row, Tab, Tabs, Tooltip} from 'react-bootstrap'
 import {useHistory, useLocation} from 'react-router-dom'
 import {LinkContainer} from 'react-router-bootstrap'
@@ -119,6 +119,122 @@ export default function Bill(props) {
             })
     }
 
+    const estimateRequestIdRef = useRef(0)
+    // Cache of the latest merged quotes keyed by the payload they were fetched with, plus any
+    // charge generation that's waiting on a fresh fetch. The estimate (dropdown) and the charge
+    // line-item generation share one debounced fetch, so concurrent requests coalesce into a
+    // single backend call and the cached line items are reused when nothing has changed.
+    const latestQuotesRef = useRef({key: '', quotes: []})
+    const pendingChargeRef = useRef(null)
+
+    // Single source of truth for the merged estimate/charges payload. Both the delivery-type
+    // dropdown estimate and the charge line-item generation hit /bills/estimateDeliveryTimes,
+    // which returns time + price (+ line items) for every delivery type. Delivery type is
+    // intentionally omitted — the endpoint prices all types at once.
+    const buildPricingPayload = useCallback(() => ({
+        ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
+        pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
+        delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng, is_mall: deliveryAddressIsMall},
+        packages: packageIsMinimum ? [] : packageArray,
+        package_is_minimum: packageIsMinimum,
+        package_is_pallet: packageIsPallet,
+        time_pickup_scheduled: pickupTimeScheduled instanceof Date ? pickupTimeScheduled.toLocaleString('en-US') : null,
+        time_delivery_scheduled: deliveryTimeScheduled instanceof Date ? deliveryTimeScheduled.toLocaleString('en-US') : null,
+        use_imperial: useImperial,
+    }), [
+        activeRatesheet,
+        pickupAddressLat, pickupAddressLng, pickupAddressIsMall,
+        deliveryAddressLat, deliveryAddressLng, deliveryAddressIsMall,
+        packageIsMinimum, packageIsPallet, packageArray,
+        pickupTimeScheduled, deliveryTimeScheduled, useImperial,
+    ])
+
+    // Populate a charge's line items from a set of quotes (the selected delivery type's portion).
+    const distributeLineItems = useCallback((quotes, chargeIndex, overwrite) => {
+        const selected = (quotes ?? []).find(type => type.id == deliveryType.id)
+        if(!selected || selected.price == null) {
+            setAwaitingCharges(false)
+            toast.error(selected?.price_unavailable_reason || 'Unable to automatically price this delivery. Please price manually.', {
+                autoClose: 8000,
+                position: 'top-center',
+            })
+            return
+        }
+
+        const lineItems = selected.line_items ?? []
+        if(overwrite)
+            chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: lineItems}})
+        else
+            chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: lineItems}})
+        setAwaitingCharges(false)
+        if(!toast.isActive('bill-experimental-pricing')) {
+            toast.warn(
+                'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
+                {
+                    autoClose: 8000,
+                    position: 'top-center',
+                    toastId: 'bill-experimental-pricing',
+                }
+            )
+        }
+    }, [deliveryType, chargeDispatch])
+
+    // Shared debounced fetch. Reuses cached quotes when the payload is unchanged; otherwise makes
+    // one backend call, updates the dropdown, and fulfils any pending charge generation.
+    const debouncedFetchQuotes = useCallback(
+        debounce((payload) => {
+            const key = JSON.stringify(payload)
+
+            const flushPending = (quotes) => {
+                const pending = pendingChargeRef.current
+                if(!pending)
+                    return
+                pendingChargeRef.current = null
+                distributeLineItems(quotes, pending.chargeIndex, pending.overwrite)
+            }
+
+            // Already have quotes for this exact payload — reuse them, no second call.
+            if(latestQuotesRef.current.key === key && latestQuotesRef.current.quotes.length) {
+                flushPending(latestQuotesRef.current.quotes)
+                return
+            }
+
+            const requestId = ++estimateRequestIdRef.current
+            api.post('/bills/estimateDeliveryTimes', payload)
+                .then(response => {
+                    if(requestId !== estimateRequestIdRef.current)
+                        return
+                    const quotes = response ?? []
+                    latestQuotesRef.current = {key, quotes}
+                    // Dropdown only needs time + price per type; drop the per-type line items.
+                    billDispatch({type: 'SET_DELIVERY_ESTIMATES', payload: quotes.map(({line_items, ...rest}) => rest)})
+                    flushPending(quotes)
+                })
+                .catch(() => {
+                    setAwaitingCharges(false)
+                    pendingChargeRef.current = null
+                })
+        }, 500), [api, billDispatch, distributeLineItems]
+    )
+
+    // chargeState.activeRatesheet is the single source of truth for the active ratesheet.
+    // Re-estimate whenever any pricing input changes so the dropdown's time + price stay current.
+    useEffect(() => {
+        if(!activeRatesheet?.ratesheet_id)
+            return
+        if(!pickupAddressLat || !pickupAddressLng || !deliveryAddressLat || !deliveryAddressLng)
+            return
+
+        debouncedFetchQuotes(buildPricingPayload())
+    }, [
+        buildPricingPayload,
+        debouncedFetchQuotes,
+        pickupAddressLat,
+        pickupAddressLng,
+        deliveryAddressLat,
+        deliveryAddressLng,
+    ])
+
     const copyBill = () => {
         if(!billId) {
             toast.error("Can't copy a bill that doesn't exist... how did you even get this menu!?!?")
@@ -126,64 +242,6 @@ export default function Bill(props) {
         }
         history.push(`/bills/create?copy_from=${billId}`)
     }
-
-    const debouncedGenerateCharges = useCallback(
-        debounce((chargeIndex, overwrite = false) => {
-            const charge = charges[chargeIndex]
-
-            const data = {
-                charge_account_id: charge?.account_id,
-                delivery_address: {lat: deliveryAddressLat, lng: deliveryAddressLng, is_mall: deliveryAddressIsMall},
-                delivery_type_id: deliveryType.id,
-                package_is_minimum: packageIsMinimum,
-                package_is_pallet: packageIsPallet,
-                packages: packageIsMinimum ? [] : packageArray,
-                pickup_address: {lat: pickupAddressLat, lng: pickupAddressLng, is_mall: pickupAddressIsMall},
-                // TODO: replace this with ratesheet logic (mine > parents > default)
-                ratesheet_id: activeRatesheet ? activeRatesheet.ratesheet_id : null,
-                time_pickup_scheduled: pickupTimeScheduled.toLocaleString('en-US'),
-                time_delivery_scheduled: deliveryTimeScheduled.toLocaleString('en-US'),
-                use_imperial: useImperial
-            }
-            setAwaitingCharges(true)
-
-            api.post('/bills/generateCharges', data)
-                .then(response => {
-                    if(overwrite) {
-                        chargeDispatch({type: 'UPDATE_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                    } else {
-                        chargeDispatch({type: 'ADD_LINE_ITEMS', payload: {index: chargeIndex, data: response}})
-                    }
-                    setAwaitingCharges(false)
-                    toast.warn(
-                        'Automatic Pricing is currently experimental. Please review the charges generated carefully for any inconsistencies',
-                        {
-                            position: 'top-center',
-                            showDuration: 300,
-                            timeOut: 5000,
-                            extendedTImeout: 5000
-                        }
-                    )
-                })
-        }, 500), [
-            activeRatesheet,
-            chargeAccount,
-            charges,
-            deliveryAddressIsMall,
-            deliveryAddressLat,
-            deliveryAddressLng,
-            deliveryTimeScheduled,
-            deliveryType,
-            packageIsMinimum,
-            packageIsPallet,
-            packageArray,
-            pickupAddressIsMall,
-            pickupAddressLat,
-            pickupAddressLng,
-            pickupTimeScheduled,
-            useImperial,
-        ]
-    )
 
     const debounceSetPickupTimeExpected = useCallback(debounce((value) => {
         billDispatch({type: 'SET_PICKUP_TIME_EXPECTED', payload: value})
@@ -195,7 +253,17 @@ export default function Bill(props) {
 
         setAwaitingCharges(true)
 
-        debouncedGenerateCharges(chargeIndex, overwrite)
+        // If the current quotes already match the live inputs, distribute line items from cache
+        // (no backend call). Otherwise queue this charge and let the shared fetch fulfil it.
+        const payload = buildPricingPayload()
+        const key = JSON.stringify(payload)
+        if(latestQuotesRef.current.key === key && latestQuotesRef.current.quotes.length) {
+            distributeLineItems(latestQuotesRef.current.quotes, chargeIndex, overwrite)
+            return
+        }
+
+        pendingChargeRef.current = {chargeIndex, overwrite}
+        debouncedFetchQuotes(payload)
     }
 
     const getStoreButton = () => {
@@ -431,16 +499,15 @@ export default function Bill(props) {
         }
     }, [deliveryAccount, isLoading])
 
-    // Set the ratesheet (for purposes of delivery type time primarily) - based on the currently selected charge Account on the basic page
+    // Keep chargeState ratesheet in sync when the charge account implies a different one.
+    // Uses ratesheets from chargeState (the source of truth) — billState has no ratesheets list.
     useEffect(() => {
-        if(permissions.createBasic && billID && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
-            const ratesheet = billState.ratesheets.find(ratesheet => ratesheet.ratesheet_id === chargeAccount.ratesheet_id)
-            if(ratesheet) {
-                console.log('bill dispatch', ratesheet)
-                billDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
-            }
+        if(permissions.createBasic && billId && chargeAccount?.ratesheet_id != null && chargeAccount?.ratesheet_id != activeRatesheet?.ratesheet_id) {
+            const ratesheet = ratesheets.find(ratesheet => ratesheet.ratesheet_id == chargeAccount.ratesheet_id)
+            if(ratesheet)
+                chargeDispatch({type: 'SET_ACTIVE_RATESHEET', payload: ratesheet})
         }
-    }, [chargeAccount])
+    }, [chargeAccount, billId, permissions.createBasic, activeRatesheet?.ratesheet_id, ratesheets])
 
     // If the charge account changes, and it is the only valid option as a chargeType for this user (i.e. they only have one account so it is automatically locked currently)
     // then create a charge assigned to this account so that the submission will be successful

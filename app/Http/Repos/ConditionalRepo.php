@@ -33,6 +33,12 @@ class ConditionalRepo {
         return $conditionals->get();
     }
 
+    public function GetByRatesheetIdAndName($ratesheetId, $name) {
+        return Conditional::where('ratesheet_id', $ratesheetId)
+            ->where('name', $name)
+            ->first();
+    }
+
     public function Insert($conditional) {
         $new = new Conditional;
 

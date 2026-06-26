@@ -14,6 +14,7 @@ export const ListsProvider = ({children}) => {
     const [ratesheets, setRatesheets] = useState([])
     const [repeatIntervals, setRepeatIntervals] = useState([])
     const [vehicleTypes, setVehicleTypes] = useState([])
+    const [zoneTypes, setZoneTypes] = useState([])
 
     const api = useAPI()
 
@@ -31,6 +32,7 @@ export const ListsProvider = ({children}) => {
                 setRatesheets(data.ratesheets ?? [])
                 setRepeatIntervals(data.repeat_intervals ?? [])
                 setVehicleTypes(data.vehicle_types ?? [])
+                setZoneTypes(data.zone_types ?? [])
             })
     }, [])
 
@@ -47,6 +49,7 @@ export const ListsProvider = ({children}) => {
             ratesheets,
             repeatIntervals,
             vehicleTypes,
+            zoneTypes,
         }}>
             {children}
         </ListsContext.Provider>)

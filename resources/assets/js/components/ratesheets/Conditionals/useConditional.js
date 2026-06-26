@@ -6,7 +6,7 @@ import {Utils as QbUtils} from '@react-awesome-query-builder/ui'
 import {useLists} from '../../../contexts/ListsContext'
 
 export default function useConditional({conditional}) {
-    const [type, setType] = useState('')
+    const [type, setType] = useState(null)
     const [name, setName] = useState('')
     const [priority, setPriority] = useState(0)
     const [queryTree, setQueryTree] = useState(QbUtils.checkTree(QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
@@ -23,19 +23,23 @@ export default function useConditional({conditional}) {
         const tree = conditional ? QbUtils.loadFromJsonLogic(JSON.parse(conditional.json_logic), config) : QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}, config)
         setQueryTree(tree)
 
-        setName(conditional?.name)
+        setName(conditional?.name ?? '')
         setAction(conditional?.action ?? {value: 'charge', label: 'Charge'})
         setValueType(conditional?.value_type ? valueTypes.find(valueType => conditional.value_type == valueType.value) : {value: 'amount', label: 'Amount'})
         setResultValue(conditional?.value ?? 0)
-        // setEquationString(conditional?.value_type == 'equation' ? conditional.original_equation_string : '')
-        // setEquationString(conditional?.value_type == 'equation' ? conditional.equation_string : '')
         setPriority(conditional?.priority ?? 0)
-        setType(conditional?.type ? chargeTypes.find(chargeType => chargeType.value == conditional.type) : {})
+        setType(conditional?.type ? chargeTypes.find(chargeType => chargeType.value == conditional.type) : null)
+        
+        // Load equation string directly here
+        const equationValue = conditional?.equation_string || conditional?.original_equation_string
+        if(equationValue) {
+            equation.setEquationString(equationValue)
+        }
     }, [conditional])
 
     const reset = () => {
         setName('')
-        setType('')
+        setType(null)
         setPriority(0)
         setQueryTree(QbUtils.checkTree(QbUtils.loadTree({'id': QbUtils.uuid(), 'type': 'group'}), config))
         setAction({value: 'charge', label: 'Charge'})

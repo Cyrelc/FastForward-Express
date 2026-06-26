@@ -234,7 +234,11 @@ export default function chargeReducer(state, action) {
         case 'SET_CHARGE_ACCOUNT':
             return Object.assign({}, state, {
                 chargeAccount: payload,
-                activeRatesheet: payload.ratesheet_id ? state.ratesheets.find(ratesheet => ratesheet.ratesheet_id === payload.ratesheet_id) : state.activeRatesheet
+                // Use loose equality (==) to handle number/string type mismatches from the API.
+                // Fall back to the current ratesheet if no match is found rather than setting to undefined.
+                activeRatesheet: payload.ratesheet_id
+                    ? (state.ratesheets.find(ratesheet => ratesheet.ratesheet_id == payload.ratesheet_id) ?? state.activeRatesheet)
+                    : state.activeRatesheet
             })
         case 'SET_CHARGE_EMPLOYEE':
             return Object.assign({}, state, {

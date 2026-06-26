@@ -1,24 +1,63 @@
-import React from 'react'
+import React, {useMemo, useState} from 'react'
 import {Card, Col, Collapse, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
-import CurrencyInput from 'react-currency-input-field'
 import Select from 'react-select'
-
-const zoneTypes = [
-    {label: 'Internal', value: 'internal'},
-    {label: 'Peripheral', value: 'peripheral'},
-    {label: 'Outlying', value: 'outlying'}
-]
+import CreatableSelect from 'react-select/creatable'
 
 export default function MapZone(props) {
+    const deliveryTypes = props.deliveryTypes ?? []
     const {
-        additionalCosts,
-        additionalTime,
+        deliveryTypeModifiers,
         fillColour,
         name,
+        region,
+        tags,
         type,
     } = props.zone
-console.log(type)
     const {zIndex} = props.zone.polygon
+    const zoneTypes = props.zoneTypes ?? []
+    const regionOptions = props.regionOptions ?? []
+    const tagOptions = props.tagOptions ?? []
+    const [tagError, setTagError] = useState(null)
+
+    const selectedTagOptions = useMemo(() => {
+        return (tags ?? []).map(tag => ({value: tag, label: tag}))
+    }, [tags])
+
+    const serializedTagLength = useMemo(() => {
+        const normalizedTags = (tags ?? []).map(tag => `${tag}`.trim()).filter(tag => !!tag)
+        return normalizedTags.join('|').length
+    }, [tags])
+
+    const updateTags = (selectedOptions) => {
+        const normalizedTags = Array.from(new Set((selectedOptions ?? [])
+            .map(option => `${option.value}`.trim())
+            .filter(tag => !!tag)))
+
+        const serializedLength = normalizedTags.join('|').length
+        if(serializedLength > 255) {
+            setTagError(`Tags exceed max storage length (255). Current: ${serializedLength}`)
+            return
+        }
+
+        setTagError(null)
+        props.handleZoneChange({target: {name: 'tags', type: 'array', value: normalizedTags}}, zIndex)
+    }
+
+    const updateModifier = (deliveryType, field, rawValue) => {
+        const key = deliveryType.friendlyName
+        const updatedModifiers = {
+            ...(deliveryTypeModifiers ?? {})
+        }
+
+        const currentModifier = updatedModifiers[key] ?? {time: 0, cost: 0}
+        const parsedValue = rawValue === '' ? '' : Number(rawValue)
+        updatedModifiers[key] = {
+            ...currentModifier,
+            [field]: Number.isNaN(parsedValue) ? '' : parsedValue,
+        }
+
+        props.handleZoneChange({target: {name: 'deliveryTypeModifiers', type: 'object', value: updatedModifiers}}, zIndex)
+    }
 
     return(
         <Card>
@@ -67,90 +106,83 @@ console.log(type)
                         value={zoneTypes.find(zoneType => zoneType.value === props.zone.type)}
                     />
                 </InputGroup>
+                <InputGroup size='sm' style={{marginTop: '8px'}}>
+                    <InputGroup.Text>Region</InputGroup.Text>
+                    <CreatableSelect
+                        options={regionOptions}
+                        onChange={regionOption => props.handleZoneChange({target: {name: 'region', type: 'string', value: regionOption?.value ?? ''}}, zIndex)}
+                        value={region ? {value: region, label: region} : null}
+                        isClearable
+                        placeholder='Select or create a region'
+                    />
+                </InputGroup>
+                <InputGroup size='sm' style={{marginTop: '8px'}}>
+                    <InputGroup.Text>Tags</InputGroup.Text>
+                    <div style={{flex: 1}}>
+                        <CreatableSelect
+                            isMulti
+                            options={tagOptions}
+                            value={selectedTagOptions}
+                            onChange={updateTags}
+                            placeholder='Add one or more tags'
+                        />
+                        <small className={serializedTagLength > 255 ? 'text-danger' : 'text-muted'}>
+                            Serialized length: {serializedTagLength}/255
+                        </small>
+                        {tagError &&
+                            <small className='text-danger' style={{display: 'block'}}>{tagError}</small>
+                        }
+                    </div>
+                </InputGroup>
             </Card.Body>
-            {(type == 'peripheral' || type == 'outlying') &&
             <Collapse in={true}>
                 <Card.Body>
-                    <hr/>
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Additional Time: </InputGroup.Text>
-                        <FormControl type='number' step={0.1} min={0.00} name='additionalTime' value={additionalTime} onChange={event => props.handleZoneChange(event, zIndex)} />
-                        <InputGroup.Text> hours</InputGroup.Text>
-                    </InputGroup>
-                {type == 'peripheral' &&
-                    <InputGroup size='sm'>
-                        <InputGroup.Text>Additional Cost: </InputGroup.Text>
-                        <CurrencyInput
-                            decimalsLimit={2}
-                            decimalScale={2}
-                            min={0.01}
-                            name='regularCost'
-                            onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.regular', type: 'currency', value: value}}, zIndex)}
-                            prefix='$'
-                            step={0.01}
-                            value={additionalCosts.regular}
-                        />
-                    </InputGroup>
-                }
-                {type == 'outlying' &&
-                    <div>
-                        <InputGroup size='sm'>
-                            <InputGroup.Text>Regular Cost: </InputGroup.Text>
-                            <CurrencyInput
-                                decimalsLimit={2}
-                                decimalScale={2}
-                                min={0.01}
-                                name='regular'
-                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.regular', type: 'currency', value: value}}, zIndex)}
-                                prefix='$'
-                                step={0.01}
-                                value={additionalCosts.regular}
-                            />
-                        </InputGroup>
-                        <InputGroup size='sm'>
-                            <InputGroup.Text>Rush Cost: </InputGroup.Text>
-                            <CurrencyInput
-                                decimalsLimit={2}
-                                decimalScale={2}
-                                min={0.01}
-                                name='rush'
-                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.rush', type: 'currency', value: value}}, zIndex)}
-                                prefix='$'
-                                step={0.01}
-                                value={additionalCosts.rush}
-                            />
-                        </InputGroup>
-                        <InputGroup size='sm'>
-                            <InputGroup.Text>Direct Cost: </InputGroup.Text>
-                            <CurrencyInput
-                                decimalsLimit={2}
-                                decimalScale={2}
-                                min={0.01}
-                                name='direct'
-                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.direct', type: 'currency', value: value}}, zIndex)}
-                                prefix='$'
-                                step={0.01}
-                                value={additionalCosts.direct}
-                            />
-                        </InputGroup>
-                        <InputGroup size='sm'>
-                            <InputGroup.Text>Direct Rush Cost: </InputGroup.Text>
-                            <CurrencyInput
-                                decimalsLimit={2}
-                                decimalScale={2}
-                                min={0.01}
-                                name='directRush'
-                                onValueChange={value => props.handleZoneChange({target: {name: 'additionalCosts.direct_rush', type: 'currency', value: value}}, zIndex)}
-                                prefix='$'
-                                step={0.01}
-                                value={additionalCosts.direct_rush}
-                            />
-                        </InputGroup>
-                    </div>
-                }
+                    {type !== 'internal' && (
+                        <>
+                            <hr/>
+                            <table>
+                                <tr>
+                                    <td></td>
+                                    <td>Time (hours)</td>
+                                    <td>Cost</td>
+                                </tr>
+                                {deliveryTypes.map(deliveryType => {
+                                    const modifier = deliveryTypeModifiers?.[deliveryType.friendlyName] ?? {time: '', cost: ''}
+                                    return (
+                                        <tr key={deliveryType.id} style={{marginBottom: '6px'}}>
+                                            <td>
+                                                {deliveryType.friendlyName}
+                                            </td>
+                                            <td>
+                                                <InputGroup size='sm'>
+                                                    <FormControl
+                                                        type='number'
+                                                        step={0.1}
+                                                        min={0}
+                                                        value={modifier.time ?? ''}
+                                                        onChange={event => updateModifier(deliveryType, 'time', event.target.value)}
+                                                    />
+                                                </InputGroup>
+                                            </td>
+                                            <td>
+                                                <InputGroup size='sm'>
+                                                    <FormControl
+                                                        type='number'
+                                                        step={0.01}
+                                                        min={0}
+                                                        value={modifier.cost ?? ''}
+                                                        onChange={event => updateModifier(deliveryType, 'cost', event.target.value)}
+                                                    />
+                                                </InputGroup>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </table>
+                        </>
+                    )}
                 </Card.Body>
             </Collapse>
-            }
         </Card>
     )
 }

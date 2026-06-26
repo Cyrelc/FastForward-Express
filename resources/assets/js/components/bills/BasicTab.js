@@ -19,6 +19,8 @@ const filterDates = date => {
 
 export default function BasicTab(props) {
     const api = useAPI()
+    // chargeState.activeRatesheet is the source of truth — use it directly
+    const activeRatesheetId = props.chargeState.activeRatesheet?.ratesheet_id
 
     const {
         accounts,
@@ -30,6 +32,7 @@ export default function BasicTab(props) {
         delivery,
         deliveryType,
         deliveryTypes,
+        deliveryTimesLoaded,
         description,
         permissions,
         pickup,
@@ -111,25 +114,27 @@ export default function BasicTab(props) {
     }
 
     useEffect(() => {
-        if(pickup.addressLat && pickup.addressLng && props.chargeState.activeRatesheet) {
-            api.get(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`)
+        if(pickup.addressLat && pickup.addressLng && activeRatesheetId) {
+            api.get(`/ratesheets/${activeRatesheetId}/getZone?lat=${pickup.addressLat}&lng=${pickup.addressLng}`)
                 .then(response => {
                     props.billDispatch({type: 'SET_PICKUP_ZONE', payload: response})
                     if(!billId && applyRestrictions)
                         props.setPickupTimeExpected(new Date())
                 })
         }
-    }, [pickup.addressLat, pickup.addressLng, props.chargeState.activeRatesheet?.ratesheet_id])
+    }, [pickup.addressLat, pickup.addressLng, activeRatesheetId])
 
     useEffect(() => {
-        if(delivery.addressLat && delivery.addressLng && props.chargeState.activeRatesheet)
-            api.get(`/ratesheets/${props.chargeState.activeRatesheet.ratesheet_id}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`)
+        if(delivery.addressLat && delivery.addressLng && activeRatesheetId)
+            api.get(`/ratesheets/${activeRatesheetId}/getZone?lat=${delivery.addressLat}&lng=${delivery.addressLng}`)
                 .then(response => {
                     props.billDispatch({type: 'SET_DELIVERY_ZONE', payload: response})
                     if(!billId && applyRestrictions)
                         props.setPickupTimeExpected(new Date())
                 })
-    }, [delivery.addressLat, delivery.addressLng, props.chargeState.activeRatesheet?.ratesheet_id])
+    }, [delivery.addressLat, delivery.addressLng, activeRatesheetId])
+
+    // delivery time estimates are now computed server-side
 
     return (
         <Card border='dark'>
@@ -373,17 +378,27 @@ export default function BasicTab(props) {
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
                             <Select
                                 options={deliveryTypes.map((type, index) => {
+                                    // Feasibility is computed server-side (fits_today); the client just renders it.
+                                    const isDisabled = applyRestrictions && deliveryTimesLoaded && type.fits_today === false
+                                    // Show the price when available; once estimates have loaded, surface why it isn't.
+                                    const priceText = type.price != null
+                                        ? `, $${Number(type.price).toFixed(2)}`
+                                        : (deliveryTimesLoaded ? ', price unavailable' : '')
                                     return {
-                                        label: `${type.friendlyName} (Est. ~ ${type.time} hours)`,
+                                        label: `${type.friendlyName} (Est. ~ ${type.time}h${priceText}${isDisabled ? ', not avail. today' : ''})`,
                                         value: type.id,
-                                        key: index
+                                        key: index,
+                                        reason: type.price == null ? type.price_unavailable_reason : null,
+                                        isDisabled
                                     }
                                 })}
                                 value={{
-                                    label: `${deliveryType.friendlyName} (Est. ~${deliveryType.time} hours)`,
+                                    label: `${deliveryType.friendlyName} (Est. ~ ${deliveryType.time}h${deliveryType.price != null ? `, $${Number(deliveryType.price).toFixed(2)}` : (deliveryTimesLoaded ? ', price unavailable' : '')})`,
                                     value: deliveryType.id,
+                                    reason: deliveryType.price == null ? deliveryType.price_unavailable_reason : null,
                                     key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
                                 }}
+                                formatOptionLabel={option => <span title={option.reason || undefined}>{option.label}</span>}
                                 onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: deliveryTypes[item.key]})}
                                 isDisabled={readOnly || isInvoiced}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}

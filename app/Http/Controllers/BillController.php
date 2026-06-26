@@ -90,6 +90,30 @@ class BillController extends Controller {
         return json_encode($charges);
     }
 
+    public function estimateDeliveryTimes(Request $req) {
+        // Lenient on purpose: addresses are enough to return time + a base price per type.
+        // Packages/times are optional so estimates work before the full bill is filled in;
+        // price simply reflects whatever pricing inputs are available so far.
+        $this->validate($req, [
+            'ratesheet_id' => 'required|exists:ratesheets,ratesheet_id',
+            'pickup_address.lat' => 'required|numeric',
+            'pickup_address.lng' => 'required|numeric',
+            'delivery_address.lat' => 'required|numeric',
+            'delivery_address.lng' => 'required|numeric',
+            'packages' => 'nullable|array',
+        ]);
+
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($req->ratesheet_id);
+
+        if($req->user()->cannot('getChargesFrom', $ratesheet))
+            abort(403);
+
+        $chargeModelFactory = new \App\Http\Models\Bill\ChargeModelFactory();
+
+        return response()->json($chargeModelFactory->EstimateDeliveryQuotes($req));
+    }
+
     public function getModel(Request $req, $billId = null) {
         $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
         $permissionModelFactory = new Permission\PermissionModelFactory();
