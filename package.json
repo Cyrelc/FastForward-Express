@@ -92,6 +92,8 @@
         "snazzy-info-window": "^1.1.1",
         "source-map-explorer": "^2.5.3",
         "tabulator-tables": "^6.2.4",
+        "terra-draw": "^1.31.1",
+        "terra-draw-google-maps-adapter": "^1.6.1",
         "topojson-client": "^3.0.0",
         "topojson-server": "^3.0.0",
         "topojson-simplify": "^3.0.0",

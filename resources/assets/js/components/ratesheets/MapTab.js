@@ -3,7 +3,7 @@ import {Button, Card, Col, Collapse, FormControl, InputGroup, Popover, Row, Togg
 import {polyColours} from './Classes/Zone'
 import MapZone from './MapZone'
 import Select from 'react-select'
-import {GoogleMap, DrawingManager, LoadScript} from '@react-google-maps/api'
+import {GoogleMap} from '@react-google-maps/api'
 import topoSimplify from './utils/topoSimplify.js'
 import { toast } from 'react-toastify'
 
@@ -14,16 +14,18 @@ export default function MapTab(props) {
         deleteZone,
         editZoneZIndex,
         handleZoneEdit,
+        isDrawingMode,
         mapCenter,
         mapZones,
         mapZoom,
         setDefaultZoneType,
-        setDrawingManager,
         setDrawingMap,
         setEditZoneZIndex,
         setMap,
         setSnapTolerance,
         snapTolerance,
+        startDrawing,
+        stopDrawing,
     } = props.mapState
 
     const [simplifyMode, setSimplifyMode] = useState('topo') // 'topo' or 'quick'
@@ -202,6 +204,13 @@ export default function MapTab(props) {
                         </ToggleButtonGroup>
                     </InputGroup>
                     </Col>
+                    <Col md={12} style={{marginTop: '8px'}}>
+                        {isDrawingMode
+                            ? <Button variant='danger' onClick={stopDrawing}>Cancel Drawing</Button>
+                            : <Button variant='primary' onClick={startDrawing}>Draw Zone</Button>
+                        }
+                        {isDrawingMode && <small className='text-muted' style={{display: 'block', marginTop: '4px'}}>Click to add points &mdash; double-click to finish</small>}
+                    </Col>
                     <Col>
                         <Select
                             key={refreshKey}
@@ -296,26 +305,6 @@ export default function MapTab(props) {
                         }}
                         id='test_id'
                     >
-                        <DrawingManager
-                            onLoad={drawingManager => setDrawingManager(drawingManager)}
-                            options={{
-                                drawingControl: true,
-                                drawingControlOptions: {
-                                    position: window.google.maps.ControlPosition.TOP_CENTER,
-                                    drawingModes: [
-                                        window.google.maps.drawing.OverlayType.POLYGON
-                                    ]
-                                },
-                                polygonOptions: {
-                                    clickable: true,
-                                    editable: true,
-                                    fillColor: polyColours[`${defaultZoneType}Fill`],
-                                    strokeColor: polyColours[`${defaultZoneType}Stroke`],
-                                    zIndex: mapZones.length + 1
-                                }
-                            }}
-                            onPolygonComplete={createZone}
-                        />
                     </GoogleMap>
                 </Col>
             </Row>

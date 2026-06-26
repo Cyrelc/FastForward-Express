@@ -2,6 +2,8 @@ import React, {useEffect, useState, useRef} from 'react'
 import PolySnapper from '../../../public/polysnapper-master/polysnapper.js'
 import Zone, {polyColours} from '../Classes/Zone'
 import spatialIndex from '../utils/spatialIndex.js'
+import { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } from 'terra-draw'
+import { TerraDrawGoogleMapsAdapter } from 'terra-draw-google-maps-adapter'
 
 var nextPolygonIndex = 0;
 
@@ -12,14 +14,22 @@ export default function useMap() {
     const [latLngPrecision, setLatLngPrecision] = useState(5)
     const [map, setMap] = useState(undefined)
     const [mapCenter, setMapCenter] = useState(new google.maps.LatLng(53.544389, -113.4909266))
-    const [drawingManager, setDrawingManager] = useState(undefined)
+    const [isDrawingMode, setIsDrawingMode] = useState(false)
     const [mapZones, setMapZones] = useState([])
     const [mapZoom, setMapZoom] = useState(11)
     const [savingMap, setSavingMap] = useState(100)
     const [snapTolerance, setSnapTolerance] = useState(2) // meters
     const polySnapperRef = useRef(null)
+    const terraDrawRef = useRef(null)
+    const createZoneRef = useRef(null)
+    const defaultZoneTypeRef = useRef(defaultZoneType)
+    const mapRef = useRef(null)
     const copyBordersTimeoutRef = useRef(null)
     const isCopyingBordersRef = useRef(false)
+
+    // Keep refs in sync so TerraDraw callbacks always have the latest values
+    useEffect(() => { defaultZoneTypeRef.current = defaultZoneType }, [defaultZoneType])
+    useEffect(() => { mapRef.current = map }, [map])
 
     useEffect(() => {
         const activeZone = mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)
@@ -52,23 +62,80 @@ export default function useMap() {
         try{ if(typeof window !== 'undefined') window.spatialIndex = spatialIndex } catch(e){}
     }, [spatialIndex])
 
-    // enable poly snapper when drawing mode changes on DrawingManager
+    // Initialize TerraDraw when the map is ready
     useEffect(() => {
-        if(!drawingManager || !map) return
+        if(!map) return
+
+        // Destroy any existing instance before recreating
+        if(terraDrawRef.current) {
+            try{ terraDrawRef.current.stop() } catch(e){}
+            terraDrawRef.current = null
+        }
+
         try{
-            // ensure PolySnapper instance exists
-            polySnapperRef.current = new PolySnapper({ map: map, threshold: snapTolerance * 20, polygons: mapZones.map(mapZone => mapZone.polygon), hidePOI: true })
-            polySnapperRef.current._map = map
-            drawingManager.addListener('drawingmode_changed', () => {
-                const mode = drawingManager.getDrawingMode()
-                if(mode === window.google.maps.drawing.OverlayType.POLYGON){
-                    try{ polySnapperRef.current.enable() } catch(e){}
-                } else {
-                    try{ polySnapperRef.current.disable() } catch(e){}
-                }
+            const draw = new TerraDraw({
+                adapter: new TerraDrawGoogleMapsAdapter({ map, lib: google.maps }),
+                modes: [
+                    new TerraDrawPolygonMode(),
+                    new TerraDrawSelectMode(),
+                ],
             })
-        } catch(e){ console.error('DrawingManager hook error', e) }
-    }, [drawingManager, map, mapZones, snapTolerance])
+            draw.start()
+
+            draw.on('finish', (id, context) => {
+                if(context.action !== 'draw') return
+
+                const features = draw.getSnapshot()
+                const feature = features.find(f => f.id === id)
+                if(!feature) return
+
+                // Convert TerraDraw GeoJSON coordinates to google.maps.LatLng paths
+                const coords = feature.geometry.coordinates[0]
+                const paths = coords.slice(0, -1).map(([lng, lat]) => ({ lat, lng }))
+
+                // Remove TerraDraw's own rendering before we hand off to createZone
+                draw.removeFeatures([id])
+                draw.setMode('static')
+                setIsDrawingMode(false)
+
+                const currentZoneType = defaultZoneTypeRef.current
+                const polygon = new google.maps.Polygon({
+                    paths,
+                    map: mapRef.current,
+                    clickable: true,
+                    editable: true,
+                    fillColor: polyColours[`${currentZoneType}Fill`] ?? polyColours.internalFill,
+                    strokeColor: polyColours[`${currentZoneType}Stroke`] ?? polyColours.internalStroke,
+                })
+
+                createZoneRef.current(polygon)
+            })
+
+            terraDrawRef.current = draw
+
+            // Initialize PolySnapper alongside TerraDraw
+            polySnapperRef.current = new PolySnapper({ map, threshold: snapTolerance * 20, polygons: mapZones.map(z => z.polygon), hidePOI: true })
+            polySnapperRef.current._map = map
+        } catch(e){ console.error('TerraDraw init error', e) }
+    }, [map])
+
+    const startDrawing = () => {
+        if(!terraDrawRef.current) return
+        try{
+            terraDrawRef.current.setMode('polygon')
+            try{ polySnapperRef.current?.enable() } catch(e){}
+        } catch(e){ console.error('startDrawing error', e) }
+        setIsDrawingMode(true)
+    }
+
+    const stopDrawing = () => {
+        if(!terraDrawRef.current) return
+        try{
+            terraDrawRef.current.setMode('static')
+            try{ polySnapperRef.current?.disable() } catch(e){}
+        } catch(e){ console.error('stopDrawing error', e) }
+        setIsDrawingMode(false)
+    }
 
     // const handleZoneTypeChange = (event, zIndex) => {
     //     const {value} = event.target
@@ -149,6 +216,7 @@ export default function useMap() {
         if(polygon)
             setEditZoneZIndex(zIndex)
     }
+    createZoneRef.current = createZone
 
     const deleteZone = (zIndex) => {
         const deleteZone = mapZones.find(zone => zone.polygon.zIndex == zIndex)
@@ -187,10 +255,10 @@ export default function useMap() {
         createZone,
         defaultZoneType,
         deleteZone,
-        drawingManager,
         drawingMap,
         editZoneZIndex,
         handleZoneChange,
+        isDrawingMode,
         latLngPrecision,
         map,
         mapCenter,
@@ -199,7 +267,6 @@ export default function useMap() {
         savingMap,
         setDefaultZoneType,
         setDrawingMap,
-        setDrawingManager,
         setEditZoneZIndex,
         setLatLngPrecision,
         setMap,
@@ -209,6 +276,8 @@ export default function useMap() {
         setSavingMap,
         setSnapTolerance,
         snapTolerance,
+        startDrawing,
+        stopDrawing,
     }
 }
 

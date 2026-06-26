@@ -17,7 +17,7 @@
         </title>
 
         <script type='text/javascript' src='{{mix("/compiled_js/public.js")}}' defer></script>
-        <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,drawing,geometry" defer></script>
+        <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,geometry" defer></script>
         <script type='text/javascript' src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
         <!-- Fonts -->
         <link href='https://use.fontawesome.com/releases/v5.15.4/css/all.css' rel='stylesheet' type='text/css' />

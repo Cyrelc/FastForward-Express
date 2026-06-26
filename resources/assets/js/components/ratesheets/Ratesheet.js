@@ -43,7 +43,7 @@ export default function Ratesheet(props) {
     }, [location.hash])
 
     useEffect(() => {
-        if(mapState.map && mapState.drawingManager) {
+        if(mapState.map) {
             const {match: {params}} = props
             api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create').then(async(response) => {
                 var timeRates = (response.timeRates ?? []).map(rate => {
@@ -77,7 +77,7 @@ export default function Ratesheet(props) {
                 }
             })
         }
-    }, [mapState.map, mapState.drawingManager])
+    }, [mapState.map])
 
     // const handleChange = (event, section, id) => {
     //     const {name, value, type, checked} = event.target
