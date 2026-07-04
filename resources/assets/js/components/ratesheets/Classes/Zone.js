@@ -184,30 +184,6 @@ export default class Zone {
         // this.smooth()
     // }
 
-    // TODO - this feature may **never** work - Google attempts to match a path to the nearest roads, but it has a few limitations
-    // 1) This is meant to be for driven coordinates, and as such doesn't really fit polygons
-    // 2) It has a limit of 100 points
-    // snapToRoads = async () => {
-    //     const path = (this.getCoordinates()).map(point => `${point.lat},${point.lng}`).join('|')
-    //     const url = `https://roads.googleapis.com/v1/snapToRoads?path=${encodeURIComponent(path)}&key=AIzaSyBaijyvCruJ9RD1d40rahp8yYafw0xYH6U`
-
-    //     try {
-    //         const response = await fetch(url)
-    //         const json = await response.json()
-    //         const snappedCoordinates = json.snappedPoints.map(point => ({
-    //             lat: point.location.latitude,
-    //             lng: point.location.longitude
-    //         }))
-    //         if(snappedCoordinates)
-    //             this.polygon.setPath(snappedCoordinates)
-    //         else
-    //             console.error('error retrieving snapped coordinates')
-    //     } catch (error) {
-    //         console.error('Error snapping to roads: ', error)
-    //         return null
-    //     }
-    // }
-
     match = allMapZones => {
         const calculateDistance = (point1, point2) => {
             const deltaX = Math.abs(point2.lat - point1.lat)
