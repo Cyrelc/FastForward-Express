@@ -7,6 +7,29 @@ import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 import {CurrencyCellRenderer, LinkCellRenderer} from '../../../utils/table_cell_renderers'
 import {useAPI} from '../../../contexts/APIContext'
 
+const copyToClipboard = async (text) => {
+    try {
+        if(navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text)
+        } else {
+            // navigator.clipboard is unavailable on insecure origins (e.g. dev over http),
+            // so fall back to the legacy execCommand approach.
+            const textarea = document.createElement('textarea')
+            textarea.value = text
+            textarea.style.position = 'fixed'
+            textarea.style.opacity = '0'
+            document.body.appendChild(textarea)
+            textarea.focus()
+            textarea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textarea)
+        }
+        toast.success('Stripe ID copied to clipboard')
+    } catch (e) {
+        toast.error('Failed to copy Stripe ID')
+    }
+}
+
 const parseTitle = (data) => {
     let title = ''
     if(data.stripe_payment_intent_id)
@@ -42,14 +65,11 @@ const PaymentIntentStatusRenderer = ({renderedCellValue, row}) => {
                 bg={variant}
                 title={parseTitle(data)}
                 onClick={() => {
-                    if(window.location.protocol === 'https:') {
-                        if(data.stripe_object_type == 'payment_intent')
-                            navigator.clipboard.writeText(data.stripe_payment_intent_id)}
-                        else
-                            navigator.clipboard.writeText(data.stripe_refund_id)
-                        toast.success('Stripe ID copied to clipboard')
-                    }
-                }
+                    const id = data.stripe_object_type == 'payment_intent'
+                        ? data.stripe_payment_intent_id
+                        : data.stripe_refund_id
+                    copyToClipboard(id)
+                }}
             >{status}</Badge>
             {data.receipt_url && <Button size='sm' href={data.receipt_url} target='none' style={{float: 'right'}}><i className='fas fa-receipt' /></Button>}
         </Fragment>
