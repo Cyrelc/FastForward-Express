@@ -113,7 +113,7 @@ export default function GenerateInvoices(props) {
         },
         // {header: 'Parent Account', accessorKey: 'parent_account', visible: false},
         // {header: 'group', accessorKey: 'group', visible: false}
-    ], [])
+    ], [startDate])
 
     const table = useMaterialReactTable({
         columns,
