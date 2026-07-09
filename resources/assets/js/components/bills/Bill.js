@@ -218,21 +218,53 @@ export default function Bill(props) {
     )
 
     // chargeState.activeRatesheet is the single source of truth for the active ratesheet.
-    // Re-estimate whenever any pricing input changes so the dropdown's time + price stay current.
+    // Single reactive fetch for both the dropdown time estimate and the charge line items:
+    // whenever any pricing input changes we fetch quotes once. The response always refreshes
+    // the dropdown's time estimate, and when we're in an auto-pricing context (new bill,
+    // full-create permission, a charge to populate, and complete package info) the same
+    // response also populates the charge's line items — no second round-trip.
     useEffect(() => {
         if(!activeRatesheet?.ratesheet_id)
             return
         if(!pickupAddressLat || !pickupAddressLng || !deliveryAddressLat || !deliveryAddressLng)
             return
 
-        debouncedFetchQuotes(buildPricingPayload())
+        let shouldAutoPrice = false
+        if(permissions.createFull && !billId && !!deliveryType && firstCharge) {
+            if(packageIsMinimum) {
+                shouldAutoPrice = true
+            } else if(packageArray.length > 0) {
+                shouldAutoPrice = packageArray.reduce(currentPackage => {
+                    return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
+                })
+            }
+        }
+
+        // generateCharges runs the shared fetch and populates line items from the response;
+        // the dropdown-only branch runs the same fetch purely to refresh the time estimate.
+        if(shouldAutoPrice)
+            generateCharges(0, true)
+        else
+            debouncedFetchQuotes(buildPricingPayload())
     }, [
+        activeRatesheet,
+        billId,
         buildPricingPayload,
+        charges[0]?.chargeType,
+        charges[0]?.charge_account_id,
         debouncedFetchQuotes,
-        pickupAddressLat,
-        pickupAddressLng,
+        deliveryAddressIsMall,
         deliveryAddressLat,
         deliveryAddressLng,
+        deliveryType,
+        packageIsMinimum,
+        packageIsPallet,
+        packageArray,
+        permissions.createFull,
+        pickupAddressIsMall,
+        pickupAddressLat,
+        pickupAddressLng,
+        useImperial,
     ])
 
     const copyBill = () => {
@@ -515,44 +547,6 @@ export default function Bill(props) {
         if(charges?.length === 0 && permissions.createBasic && !permissions.createFull && !billId && accounts.length === 1 && chargeState.chargeType)
             chargeDispatch({type: 'ADD_CHARGE_TABLE'})
     }, [chargeAccount, permissions, accounts, chargeState.chargeType])
-
-    useEffect(() => {
-        if(!firstCharge)
-            return
-
-        let conditionsMet = false
-
-        if(!!activeRatesheet.ratesheet_id && !billId && !!deliveryAddressLat && !!deliveryAddressLng && !!pickupAddressLat && !!pickupAddressLng && !!deliveryType && charges[0]) {
-            if(packageIsMinimum) {
-                conditionsMet = true
-            } else {
-                if(packageArray.length > 0) {
-                    conditionsMet = packageArray.reduce(currentPackage => {
-                        return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
-                    })
-                }
-            }
-        }
-
-        if(permissions.createFull && conditionsMet)
-            generateCharges(0, true)
-    }, [
-        activeRatesheet,
-        billId,
-        charges[0]?.chargeType,
-        charges[0]?.charge_account_id,
-        deliveryAddressIsMall,
-        deliveryAddressLat,
-        deliveryAddressLng,
-        deliveryType,
-        packageIsMinimum,
-        packageIsPallet,
-        packageArray,
-        pickupAddressIsMall,
-        pickupAddressLat,
-        pickupAddressLng,
-        useImperial,
-    ])
 
     if(billState.isLoading)
         return <h4>Requesting data, please wait... <i className='fas fa-spinner fa-spin'></i></h4>

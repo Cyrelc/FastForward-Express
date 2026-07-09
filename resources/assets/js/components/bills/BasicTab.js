@@ -380,25 +380,19 @@ export default function BasicTab(props) {
                                 options={deliveryTypes.map((type, index) => {
                                     // Feasibility is computed server-side (fits_today); the client just renders it.
                                     const isDisabled = applyRestrictions && deliveryTimesLoaded && type.fits_today === false
-                                    // Show the price when available; once estimates have loaded, surface why it isn't.
-                                    const priceText = type.price != null
-                                        ? `, $${Number(type.price).toFixed(2)}`
-                                        : (deliveryTimesLoaded ? ', price unavailable' : '')
+                                    // Price estimate is intentionally hidden on the Pickup/Delivery tab; only the time estimate is shown here.
                                     return {
-                                        label: `${type.friendlyName} (Est. ~ ${type.time}h${priceText}${isDisabled ? ', not avail. today' : ''})`,
+                                        label: `${type.friendlyName} (Est. ~ ${type.time}h${isDisabled ? ', not avail. today' : ''})`,
                                         value: type.id,
                                         key: index,
-                                        reason: type.price == null ? type.price_unavailable_reason : null,
                                         isDisabled
                                     }
                                 })}
                                 value={{
-                                    label: `${deliveryType.friendlyName} (Est. ~ ${deliveryType.time}h${deliveryType.price != null ? `, $${Number(deliveryType.price).toFixed(2)}` : (deliveryTimesLoaded ? ', price unavailable' : '')})`,
+                                    label: `${deliveryType.friendlyName} (Est. ~ ${deliveryType.time}h)`,
                                     value: deliveryType.id,
-                                    reason: deliveryType.price == null ? deliveryType.price_unavailable_reason : null,
                                     key: deliveryTypes.findIndex(dt => dt.id === deliveryType.id)
                                 }}
-                                formatOptionLabel={option => <span title={option.reason || undefined}>{option.label}</span>}
                                 onChange={item => props.billDispatch({type: 'SET_DELIVERY_TYPE', payload: deliveryTypes[item.key]})}
                                 isDisabled={readOnly || isInvoiced}
                                 isOptionDisabled={option => applyRestrictions ? option.isDisabled : false}
