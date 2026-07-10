@@ -135,6 +135,11 @@ export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZone
         ...MuiConfig,
         settings: {
             ...MuiConfig.settings,
+            // Widen the field picker (a MUI Autocomplete, fixed 200px by
+            // default) so this config's long labels aren't truncated. Do NOT
+            // use showSearch:false to auto-size it — that MuiFieldSelect path
+            // infinite-loops on nested/!struct fields. (See conditionalConfig.js.)
+            defaultSelectWidth: '340px',
         },
         fields: {
             zones_same: {

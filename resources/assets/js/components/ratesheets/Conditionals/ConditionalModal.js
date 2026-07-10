@@ -251,12 +251,18 @@ const ConditionalModal = props => {
                                     </InputGroup>
                                 </Col>
                                 <Col md={6}>
-                                    <InputGroup>
+                                    <InputGroup style={{display: 'flex', width: '100%'}}>
                                         <InputGroup.Text>Type:</InputGroup.Text>
                                         <Select
                                             options={chargeTypes}
                                             value={type}
                                             onChange={setType}
+                                            styles={{
+                                                container: (baseStyles) => ({
+                                                    ...baseStyles,
+                                                    flexGrow: 1
+                                                })
+                                            }}
                                         />
                                     </InputGroup>
                                 </Col>

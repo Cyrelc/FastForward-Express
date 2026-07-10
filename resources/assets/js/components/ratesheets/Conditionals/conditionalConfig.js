@@ -1,14 +1,17 @@
 import {MuiConfig} from '@react-awesome-query-builder/mui'
 
-const addressSubfields = (prefix) => {
+// Labels are intentionally unprefixed: the parent struct ("Delivery Address" /
+// "Pickup Address") already supplies the context, so the field reads as
+// "Delivery Address / Is Mall" rather than the redundant
+// "Delivery Address / Delivery Address Is Mall".
+const addressSubfields = () => {
     return {
         zone: {
             type: '!struct',
             label: 'Zone',
-            label2: `${prefix} Zone`,
             subfields: {
                 name: {
-                    label: `${prefix} Zone Name`,
+                    label: 'Name',
                     type: 'text',
                     operators: [
                         'equal',
@@ -18,7 +21,7 @@ const addressSubfields = (prefix) => {
                     ]
                 },
                 type: {
-                    label: `${prefix} Zone Type`,
+                    label: 'Type',
                     type: 'select',
                     fieldSettings: {
                         listValues: [
@@ -31,9 +34,9 @@ const addressSubfields = (prefix) => {
             }
         },
         is_mall: {
-            label: `${prefix} Is Mall`,
+            label: 'Is Mall',
             type: 'boolean',
-            default: true
+            defaultValue: true
         }
     }
 }
@@ -66,6 +69,13 @@ const config = {
     ...MuiConfig,
     settings: {
         ...MuiConfig.settings,
+        // The field picker is a MUI Autocomplete whose width is fixed by this
+        // setting (library default: 200px), which truncated long field labels
+        // (e.g. "The longest side of the object"). Widen it to fit our labels.
+        // NB: do NOT switch this to a <Select> via customFieldSelectProps
+        // showSearch:false — that swaps in MuiFieldSelect, which infinite-loops
+        // when selecting these nested/!struct fields and freezes the tab.
+        defaultSelectWidth: '280px',
     },
     fields: {
         package: {
@@ -75,7 +85,7 @@ const config = {
                 is_pallet: {
                     label: 'Is Pallet',
                     type: 'boolean',
-                    default: true
+                    defaultValue: true
                 },
                 total_weight: {
                     label: 'Total Weight (kg)',
@@ -94,12 +104,12 @@ const config = {
         delivery_address: {
             type: '!struct',
             label: 'Delivery Address',
-            subfields: addressSubfields('Delivery Address')
+            subfields: addressSubfields()
         },
         pickup_address: {
             type: '!struct',
             label: 'Pickup Address',
-            subfields: addressSubfields('Pickup Address')
+            subfields: addressSubfields()
         },
         time_delivery_scheduled: {
             type: '!struct',
