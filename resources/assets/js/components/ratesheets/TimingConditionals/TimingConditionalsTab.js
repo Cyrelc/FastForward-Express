@@ -4,6 +4,7 @@ import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import TimingConditionalModal from './TimingConditionalModal'
 import {nextPriorityFor} from '../conditionalFieldShared'
+import RuleTesterModal from '../RuleTesterModal'
 import {useAPI} from '../../../contexts/APIContext'
 
 
@@ -13,6 +14,7 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
     const {deliveryTypes, mapZones, ratesheetId, zoneGroups} = props
 
     const [timingConditionals, setTimingConditionals] = useState([])
+    const [showRuleTester, setShowRuleTester] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [editTimingConditional, setEditTimingConditional] = useState(false)
     const [showTimingConditionalModal, setShowTimingConditionalModal] = useState(false)
@@ -133,6 +135,13 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
                                 <i className='fas fa-plus'></i> Create
                             </Button>
                             <Button
+                                variant='outline-primary'
+                                onClick={() => setShowRuleTester(true)}
+                                title='Price a pretend delivery against this ratesheet'
+                            >
+                                <i className='fas fa-vial'></i> Test a Delivery
+                            </Button>
+                            <Button
                                 variant='outline-secondary'
                                 onClick={props.openImport}
                                 title='Copy rules from another ratesheet'
@@ -151,8 +160,14 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
             <Card.Body>
                 <MaterialReactTable table={table} />
             </Card.Body>
+            <RuleTesterModal
+                show={showRuleTester}
+                ratesheetId={ratesheetId}
+                onHide={() => setShowRuleTester(false)}
+            />
             <TimingConditionalModal
                 conditional={editTimingConditional}
+                conditionals={timingConditionals}
                 nextPriority={nextPriorityFor(timingConditionals)}
                 deliveryTypes={deliveryTypeOptions}
                 mapZones={mapZones}

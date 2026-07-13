@@ -449,8 +449,64 @@ THEN Set Base Price = Field: Zone Crossing Cost (Selected Type)`}</Block>
                     </Accordion.Item>
 
                     {/* ---------------------------------------------------------------- */}
+                    <Accordion.Item eventKey='12'>
+                        <Accordion.Header><strong>12. Rules that refer to other rules</strong></Accordion.Header>
+                        <Accordion.Body>
+                            <p>
+                                <Code>Matched Rules</Code> is the list of other rules on this sheet whose
+                                conditions matched this delivery. It lets one rule be written{' '}
+                                <em>against</em> another, instead of restating its condition:
+                            </p>
+                            <Block>{`IF   Matched Rules  NOT CONTAINS  [Basic Weight 0-49 lb]
+AND  Total Weight (lbs)  <  99
+THEN Add Charge -> ...`}</Block>
+                            <p>
+                                Move the 49 lb boundary on the first rule and the second follows it
+                                automatically. It is matched with <Code>CONTAINS</Code>, exactly like tags
+                                and zone groups.
+                            </p>
+
+                            <h6 className='mt-3'>&ldquo;Matched&rdquo; means the condition was true</h6>
+                            <p>
+                                Not that the rule charged anything. A <Code>Set Base Price</Code> rule that
+                                matched but was skipped because a higher-ranked rule already took the base{' '}
+                                <strong>still counts as matched</strong>. The rule&apos;s condition was true;
+                                what the pricing engine then did with it is a separate question.
+                            </p>
+
+                            <h6 className='mt-3'>Order does not matter</h6>
+                            <p className='mb-0'>
+                                A condition only reads the delivery, never the running price, so a reference
+                                does not depend on what ran first. Rules are resolved in{' '}
+                                <strong>dependency order automatically</strong> &mdash; a rule may safely refer
+                                to one with a higher priority that runs later. <strong>Priority stays purely
+                                about pricing order and has nothing to do with references.</strong>
+                            </p>
+
+                            <Alert variant='warning' className='mt-3 mb-0'>
+                                <p className='mb-2'>
+                                    <strong>Two things are refused, on purpose.</strong>
+                                </p>
+                                <p className='mb-2'>
+                                    <strong>Circles.</strong> If A needs B and B needs A there is no answer, so
+                                    the rule is rejected when you save it &mdash; not discovered halfway through
+                                    pricing a customer&apos;s bill.
+                                </p>
+                                <p className='mb-0'>
+                                    <strong>Deleting a rule others refer to.</strong> This one is the reason the
+                                    guard exists at all: delete the middle weight bracket and the rule that said
+                                    &ldquo;<em>not</em> the middle bracket, and under 999&rdquo; would quietly
+                                    widen to cover the range that bracket used to own &mdash; no error, just a
+                                    wrong price on every bill in it. Rewrite the dependants first; the delete
+                                    tells you who they are.
+                                </p>
+                            </Alert>
+                        </Accordion.Body>
+                    </Accordion.Item>
+
+                    {/* ---------------------------------------------------------------- */}
                     <Accordion.Item eventKey='10'>
-                        <Accordion.Header><strong>12. When a rule doesn&apos;t fire</strong></Accordion.Header>
+                        <Accordion.Header><strong>13. When a rule doesn&apos;t fire</strong></Accordion.Header>
                         <Accordion.Body>
                             <p>Worth checking, roughly in the order these actually go wrong:</p>
                             <ul className='mb-0'>

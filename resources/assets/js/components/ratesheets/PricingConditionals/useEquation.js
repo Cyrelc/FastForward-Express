@@ -5,7 +5,6 @@ import {
     addDependencies,
     ceilDependencies,
     create,
-    createUnitDependencies,
     divideDependencies,
     evaluateDependencies,
     floorDependencies,
@@ -16,7 +15,6 @@ import {
     roundDependencies,
     sqrtDependencies,
     subtractDependencies,
-    unitDependencies,
 } from 'mathjs';
 
 const math = create({
@@ -26,7 +24,6 @@ const math = create({
     // discard the part-increment: floor((weight - 100) / 100) * 2. Without floor, 150 lbs would be
     // charged 0.5 of an increment.
     ceil: ceilDependencies,
-    createUnit: createUnitDependencies,
     divide: divideDependencies,
     evaluate: evaluateDependencies,
     floor: floorDependencies,
@@ -37,7 +34,6 @@ const math = create({
     round: roundDependencies,
     sqrt: sqrtDependencies,
     subtract: subtractDependencies,
-    unit: unitDependencies,
 }, {
     matrix: 'Array',
     number: 'number'
@@ -47,24 +43,27 @@ const math = create({
 // evaluator - an equation has to mean the same thing in the preview and on the server.
 export const EQUATION_FUNCTIONS = ['max', 'min', 'round', 'floor', 'ceil', 'abs', 'sqrt', 'pow']
 
-math.createUnit('CAD')
-math.createUnit('kgs', '1 kg')
+// Written for someone who is pricing freight, not writing code. floor's wording is doing real work: it
+// is the function every per-increment weight bracket needs and the one whose absence silently charges
+// a part-increment.
+export const EQUATION_FUNCTION_DESCRIPTIONS = {
+    max: 'The larger of the values — max(0, x) is how you stop a subtraction going negative',
+    min: 'The smaller of the values — min(x, 50) caps a charge at 50',
+    round: 'Round to the nearest — round(x, 2) for cents',
+    floor: 'Round DOWN to a whole number — needed to charge per whole 100 lb rather than part of one',
+    ceil: 'Round UP to a whole number — charges a full increment for any part of one',
+    abs: 'Drop the minus sign',
+    sqrt: 'Square root',
+    pow: 'Raise to a power — pow(x, 2) is x squared',
+}
 
 import {availableTestVariables} from './pricingConditionalConfig'
 
-const imperialToMetric = {
-    'lb': 'kg',
-    'lbs': 'kg',
-    'kgs': 'kg',
-    'kg': 1,
-    'oz': 'g',
-    'in': 'cm',
-    'ft': 'm',
-    'yd': 'm',
-    'mi': 'km',
-    'sqft': 'm2',
-    'CAD': 1
-}
+// Units were removed from equations entirely. They used to be written as suffixes ("total_weight lbs",
+// "2.5 CAD") and converted here before preview - but the server's evaluator has no notion of units, so
+// the preview and the real price were computed from different strings. The unit now lives in the
+// variable name (total_weight_kgs, total_weight_lbs), which is unambiguous and needs no conversion.
+// A suffix is now simply an error, reported below.
 
 export default function useEquation({conditional}) {
     const [demoEquationString, setDemoEquationString] = useState('')
@@ -104,7 +103,7 @@ export default function useEquation({conditional}) {
 
             // Normalize the input: add spaces where needed
             let normalized = equationString
-                // Add space between number and unit: 50lb → 50 lb
+                // Split a number stuck to a word (50lb) so the unit-suffix check below can see it
                 .replace(/(\d)([a-zA-Z])/g, '$1 $2')
                 // Add space around operators: 50+30 → 50 + 30
                 .replace(/(\d)([+\-*/])/g, '$1 $2')
@@ -135,7 +134,6 @@ export default function useEquation({conditional}) {
                 variables: [],
                 functions: [],
                 numbers: [],
-                units: [],
                 operators: []
             }
 
@@ -171,22 +169,22 @@ export default function useEquation({conditional}) {
                     return
                 }
 
-                // A unit suffix ("total_weight lbs", "100 lbs") is what broke equations before: the
-                // server's evaluator reads "total_weight lbs" as one token and throws. The unit now
-                // lives in the variable name instead - total_weight is kilograms, total_weight_lbs is
-                // pounds - so a suffix is both unnecessary and ambiguous.
+                // A unit written as a suffix ("total_weight_lbs lbs", "100 lbs") is read by the server's
+                // evaluator as part of the identifier - "total_weight_lbslbs" - and throws. The unit
+                // belongs in the variable name (total_weight_kgs vs total_weight_lbs), which is
+                // unambiguous, so a suffix is now simply wrong rather than converted.
                 if(unit) {
                     setDemoResult(`Remove "${unit}" after ${value}`)
                     setValidationMessage(
-                        `❌ Units are not used in equations. The unit is part of the variable: `
-                        + `total_weight is kg, total_weight_lbs is lbs. Write "total_weight_lbs - 100", not "${value} ${unit}".`
+                        `❌ Units are not written in equations - the unit is part of the variable name: `
+                        + `total_weight_kgs is kilograms, total_weight_lbs is pounds. `
+                        + `Write "total_weight_lbs - 100", not "${value} ${unit}".`
                     )
                     setServerEquationString('')
                     return
                 }
             }
 
-            // Set validation message showing what was recognized
             const validationParts = []
             if (recognized.variables.length > 0) {
                 validationParts.push(`Variables: ${recognized.variables.join(', ')}`)
@@ -194,56 +192,24 @@ export default function useEquation({conditional}) {
             if (recognized.functions.length > 0) {
                 validationParts.push(`Functions: ${recognized.functions.join(', ')}`)
             }
-            if (recognized.units.length > 0) {
-                validationParts.push(`Units: ${recognized.units.join(', ')}`)
-            }
             if (validationParts.length > 0) {
                 setValidationMessage('✓ Recognized: ' + validationParts.join(' | '))
             } else {
-                setValidationMessage('⚠️ No variables or units detected')
+                setValidationMessage('⚠️ No variables detected')
             }
 
-            // match: The entire matched substring
-            // _: This variable captures the entire group within the outer parentheses.
-            // number: Captures a sequence of digits and/or decimal points
-            // unit: Captures any letters (a-z, A-Z) or dollar signs ($) following the number
-            // variable: Captures a valid variable name (starting with a letter or underscore, followed by any alphanumeric characters or underscores)
-            // varUnit: Captures any letters (a-z, A-Z) or dollar signs ($) following the variable
-            const demoEquation = equation.replace(/(([\d.]+)\s*([a-zA-Z$]+)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s*([a-zA-Z$]*))/g, (match, _, number, unit, variable, varUnit) => {
-                if (variable) {
-                    let value = testVariables.find(v => v.dbName == variable)?.value
-                    if (value) {
-                        if (varUnit && imperialToMetric.hasOwnProperty(varUnit) && imperialToMetric[varUnit] != 1) {
-                            try {
-                                let metricUnit = imperialToMetric[varUnit];
-                                value = math.unit(value, varUnit).toNumber(metricUnit);
-                                return `${value}`;
-                            } catch (error) {
-                                console.error(error);
-                                return match;
-                            }
-                        } else {
-                            return `${value}`.trim();
-                        }
-                    } else {
-                        setDemoResult(`Unknown variable: ${variable}`);
-                        return match;
-                    }
-                } else {
-                    number = parseFloat(number);
-                    if (imperialToMetric.hasOwnProperty(unit) && imperialToMetric[unit] != 1) {
-                        try {
-                            let metricUnit = imperialToMetric[unit];
-                            let newValue = math.unit(number, unit).toNumber(metricUnit);
-                            return `${newValue}`;
-                        } catch (error) {
-                            return match;
-                        }
-                    } else {
-                        return `${number}`;
-                    }
-                }
-            });
+            // The preview substitutes each variable's test value so the author can see the arithmetic
+            // that produced the number. With units gone this is a plain word swap - it used to be a
+            // regex that also performed unit conversion, which is what let the preview and the server
+            // compute from two different strings.
+            const demoEquation = equation.replace(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g, token => {
+                if(EQUATION_FUNCTIONS.includes(token))
+                    return token
+
+                const variable = testVariables.find(testVariable => testVariable.dbName === token)
+
+                return variable ? `${variable.value}` : token
+            })
 
             // Nothing to translate any more: what you typed is what the server runs. The previous
             // version rewrote the string for the server (stripping "lbs" off total_weight, which
@@ -251,11 +217,7 @@ export default function useEquation({conditional}) {
             const serverEquation = equation
 
             try {
-                const variables = testVariables.reduce((accumulator, variable) => {
-                    const {dbName, value} = variable
-                    return {...accumulator, [dbName]: value}
-                }, {})
-                let result = math.evaluate(demoEquation, variables)
+                let result = math.evaluate(demoEquation)
                 // Verify that the result is a number
                 if(isNaN(result)) {
                     setDemoResult('Invalid equation');

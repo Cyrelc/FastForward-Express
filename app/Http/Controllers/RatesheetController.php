@@ -7,6 +7,7 @@ use DB;
 
 use App\Http\Collectors;
 use App\Http\Repos;
+use App\Http\Services;
 use App\Http\Models\Ratesheet;
 use \App\Http\Validation\Utils;
 use \App\Http\Validation;
@@ -33,11 +34,81 @@ class RatesheetController extends Controller {
         if($req->user()->cannot('update', $ratesheet))
             abort(403);
 
+        $this->guardAgainstDeletingAReferencedRule(
+            $conditionalRepo->GetByRatesheetId($conditional->ratesheet_id),
+            $conditionalId,
+            'conditional_id'
+        );
+
         $conditionalRepo->Delete($conditionalId);
 
         return response()->json([
             'success' => true
         ]);
+    }
+
+    /**
+     * Refuses to delete a rule that other rules are written against.
+     *
+     * Allowing it would not error - it would silently change what the survivors mean. Delete the
+     * middle weight bracket and the rule that said "not the middle bracket, and under 999" quietly
+     * widens to cover the range that bracket used to own, mispricing every bill in it with no warning.
+     * Rewrite or delete the dependents first.
+     */
+    private function guardAgainstDeletingAReferencedRule($allRules, $id, $idKey) {
+        $rules = [];
+        foreach($allRules as $rule)
+            // data_get, not (array): casting an Eloquent model exposes its internals, not its columns.
+            $rules[] = [
+                'id' => data_get($rule, $idKey),
+                'name' => data_get($rule, 'name'),
+                'json_logic' => data_get($rule, 'json_logic'),
+            ];
+
+        $dependents = Services\RuleReferences::Dependents($rules, $id);
+
+        if($dependents)
+            abort(400, 'This rule cannot be deleted: ' . implode(', ', array_map(fn($name) => '"' . $name . '"', $dependents))
+                . (count($dependents) === 1 ? ' refers to it.' : ' refer to it.')
+                . ' Change those rules first, or they would silently start covering this one\'s cases.');
+    }
+
+    /**
+     * Refuses a rule whose references would close a loop ("A needs B, B needs A").
+     *
+     * Caught here rather than at pricing time: a cycle has no answer, and the place to find that out
+     * is while writing the rule, not on a customer's bill. The rule being saved is folded into the
+     * sheet's existing rules first, so the check sees the graph as it would be.
+     */
+    private function guardAgainstCircularReferences($existingRules, $id, $jsonLogic, $name, $idKey) {
+        $references = [];
+        $names = [];
+
+        foreach($existingRules as $rule) {
+            $ruleId = (int) data_get($rule, $idKey);
+
+            // The version being saved replaces the stored one.
+            if($id && $ruleId === (int) $id)
+                continue;
+
+            $references[$ruleId] = Services\RuleReferences::ReferencedIds(data_get($rule, 'json_logic'));
+            $names[$ruleId] = data_get($rule, 'name');
+        }
+
+        // A new rule has no id yet, so it cannot be referenced and cannot close a loop - but it can
+        // still be checked for referring to itself once saved, which a placeholder id makes visible.
+        $pendingId = $id ? (int) $id : -1;
+        $references[$pendingId] = Services\RuleReferences::ReferencedIds($jsonLogic);
+        $names[$pendingId] = $name;
+
+        if(in_array($pendingId, $references[$pendingId], true))
+            abort(400, 'A rule cannot refer to itself.');
+
+        try {
+            Services\RuleReferences::DependencyOrder($references, $names);
+        } catch(\RuntimeException $e) {
+            abort(400, $e->getMessage());
+        }
     }
 
     public function deleteTimingConditional(Request $req, $timingConditionalId) {
@@ -49,6 +120,12 @@ class RatesheetController extends Controller {
 
         if($req->user()->cannot('update', $ratesheet))
             abort(403);
+
+        $this->guardAgainstDeletingAReferencedRule(
+            $timingConditionalRepo->GetByRatesheetId($timingConditional->ratesheet_id),
+            $timingConditionalId,
+            'timing_conditional_id'
+        );
 
         $timingConditionalRepo->Delete($timingConditionalId);
 
@@ -443,6 +520,14 @@ class RatesheetController extends Controller {
 
         $conditionalRepo = new Repos\ConditionalRepo();
 
+        $this->guardAgainstCircularReferences(
+            $conditionalRepo->GetByRatesheetId($req->ratesheet_id),
+            $conditionalId,
+            $req->json_logic,
+            $req->name,
+            'conditional_id'
+        );
+
         if($conditionalId) {
             $stored = $conditionalRepo->Update($conditional);
         } else {
@@ -476,6 +561,14 @@ class RatesheetController extends Controller {
         $timingConditional = $timingConditionalCollector->Collect($req, $timingConditionalId);
 
         $timingConditionalRepo = new Repos\TimingConditionalRepo();
+
+        $this->guardAgainstCircularReferences(
+            $timingConditionalRepo->GetByRatesheetId($req->ratesheet_id),
+            $timingConditionalId,
+            $req->json_logic,
+            $req->name,
+            'timing_conditional_id'
+        );
 
         if($timingConditionalId) {
             $stored = $timingConditionalRepo->Update($timingConditional);

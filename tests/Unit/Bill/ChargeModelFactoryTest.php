@@ -135,6 +135,17 @@ class ChargeModelFactoryTest extends TestCase {
         ]);
     }
 
+    /** As chargeRequest, but carrying real weight (kg) - is_minimum would zero it. */
+    private function weightedRequest($ratesheetId, $pickupPoint, $deliveryPoint, $kilograms) {
+        $request = $this->chargeRequest($ratesheetId, $pickupPoint, $deliveryPoint);
+        $request->merge([
+            'package_is_minimum' => false,
+            'packages' => [['count' => 1, 'totalWeight' => $kilograms, 'length' => 10, 'width' => 10, 'height' => 10]],
+        ]);
+
+        return $request;
+    }
+
     private function totalPrice($lineItems) {
         return array_reduce($lineItems, fn($carry, $item) => $carry + $item->getPrice(), 0);
     }
@@ -264,6 +275,232 @@ class ChargeModelFactoryTest extends TestCase {
     /** LineItemModel keeps its name private; the invoice reads it back through jsonSerialize. */
     private function lineItemNames($lineItems) {
         return array_map(fn($item) => json_decode(json_encode($item), true)['name'], $lineItems);
+    }
+
+    /**
+     * The imperial toggle must not change the weight the engine prices.
+     *
+     * The client converts to kilograms before sending (usePackages -> poundsToKilograms), and that
+     * converted value is what gets stored on the bill. The engine used to convert a SECOND time when
+     * use_imperial was set, treating those kilograms as pounds - so a 100 lb parcel was priced as 45 lb
+     * and every weight rule undercharged by 2.2x, for imperial users only, with nothing to show for it.
+     */
+    public function testImperialToggleDoesNotChangeTheWeightPriced() {
+        $fixture = $this->makeRatesheet(10, 25);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Over 50 lb', 'priority' => 1,
+            'json_logic' => json_encode(['>' => [['var' => 'package.total_weight_lbs'], 50]]),
+            'value_type' => 'amount', 'value' => '8',
+        ]);
+
+        $factory = new ChargeModelFactory();
+
+        // 45.36 kg is 100 lb - what the client sends for a 100 lb parcel, in either unit mode.
+        foreach([true, false] as $useImperial) {
+            $request = $this->weightedRequest($fixture['ratesheetId'], [5, 5], [25, 5], 45.36);
+            $request->merge(['use_imperial' => $useImperial]);
+
+            $charges = $factory->GenerateCharges($request);
+
+            $this->assertEquals(33, $this->totalPrice($charges),
+                'A 100 lb parcel must price the same with use_imperial=' . var_export($useImperial, true));
+        }
+    }
+
+    /**
+     * The pricing and timing breakdowns are the same structure, and must stay that way: the same UI
+     * renders both, and an author troubleshooting a rule should not have to learn two vocabularies for
+     * "this one didn't fire".
+     */
+    public function testPricingAndTimingBreakdownsShareTheSameShape() {
+        $fixture = $this->makeRatesheet(10, 25);
+
+        // One rule that fires, one that does not - so every row type appears.
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Fires', 'priority' => 1,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'amount', 'value' => '5',
+        ]);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Does not fire', 'priority' => 2,
+            'json_logic' => json_encode(['==' => [1, 2]]),
+            'value_type' => 'amount', 'value' => '7',
+        ]);
+        $this->insertTimingConditional($fixture['ratesheetId'], [
+            'name' => 'Timing fires', 'priority' => 1,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'hours', 'value' => '2',
+        ]);
+        $this->insertTimingConditional($fixture['ratesheetId'], [
+            'name' => 'Timing does not fire', 'priority' => 2,
+            'json_logic' => json_encode(['==' => [1, 2]]),
+            'value_type' => 'hours', 'value' => '3',
+        ]);
+
+        $request = $this->chargeRequest($fixture['ratesheetId'], [5, 5], [25, 5]);
+        $quotes = (new ChargeModelFactory())->EstimateDeliveryQuotes($request);
+        $quote = $quotes[0];
+
+        $keys = ['name', 'action', 'value', 'running_total', 'note'];
+
+        foreach(['price_breakdown', 'time_breakdown'] as $breakdownKey) {
+            $this->assertNotEmpty($quote[$breakdownKey], "$breakdownKey should not be empty");
+
+            foreach($quote[$breakdownKey] as $row)
+                foreach($keys as $key)
+                    $this->assertArrayHasKey($key, $row, "$breakdownKey rows must carry '$key'");
+
+            $actions = array_column($quote[$breakdownKey], 'action');
+            $this->assertContains('base', $actions, "$breakdownKey should open with the base row");
+            $this->assertContains('not_matched', $actions, "$breakdownKey must report rules that did NOT fire");
+        }
+    }
+
+    /** "matched_rules CONTAINS [id]" - the shape the query builder emits for a multiselect. */
+    private function ruleMatched($conditionalId) {
+        return ['some' => [
+            ['var' => 'matched_rules'],
+            ['in' => [['var' => ''], [$conditionalId]]],
+        ]];
+    }
+
+    private function ruleNotMatched($conditionalId) {
+        return ['!' => $this->ruleMatched($conditionalId)];
+    }
+
+    private function insertConditionalReturningId($ratesheetId, $overrides = []) {
+        $this->insertConditional($ratesheetId, $overrides);
+        return DB::table('conditionals')->max('conditional_id');
+    }
+
+    /**
+     * The chained-bracket case: rule B says "not rule A, and under 99 lb".
+     *
+     * A 30 lb parcel matches A, so B must not fire. This is the whole point of the feature - B never
+     * restates A's condition, so moving A's boundary moves B's with it.
+     */
+    public function testARuleCanBeGatedOnAnotherRuleNotMatching() {
+        $fixture = $this->makeRatesheet(10, 25);
+
+        $under50 = $this->insertConditionalReturningId($fixture['ratesheetId'], [
+            'name' => 'Under 50 lb', 'priority' => 10,
+            'json_logic' => json_encode(['<' => [['var' => 'package.total_weight_lbs'], 50]]),
+            'value_type' => 'amount', 'value' => '5',
+        ]);
+
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Under 99 lb, but not already caught', 'priority' => 20,
+            'json_logic' => json_encode(['and' => [
+                $this->ruleNotMatched($under50),
+                ['<' => [['var' => 'package.total_weight_lbs'], 99]],
+            ]]),
+            'value_type' => 'amount', 'value' => '9',
+        ]);
+
+        // ~30 lb: matches "Under 50", so the second bracket must stay out of it. 25 base + 5.
+        $light = (new ChargeModelFactory())->GenerateCharges(
+            $this->weightedRequest($fixture['ratesheetId'], [5, 5], [25, 5], 13.6)
+        );
+        $this->assertEquals(30, $this->totalPrice($light));
+
+        // ~150 lb: over both brackets, neither fires. Base only.
+        $heavy = (new ChargeModelFactory())->GenerateCharges(
+            $this->weightedRequest($fixture['ratesheetId'], [5, 5], [25, 5], 68)
+        );
+        $this->assertEquals(25, $this->totalPrice($heavy));
+
+        // ~70 lb: over 50 so "Under 50" does not match, which is what lets the second bracket in.
+        $middle = (new ChargeModelFactory())->GenerateCharges(
+            $this->weightedRequest($fixture['ratesheetId'], [5, 5], [25, 5], 31.8)
+        );
+        $this->assertEquals(34, $this->totalPrice($middle));
+    }
+
+    /**
+     * Rules are resolved in dependency order, so a rule may reference one that is authored later and
+     * runs later. Priority is about pricing order and has nothing to do with references.
+     */
+    public function testReferenceWorksRegardlessOfPriorityOrder() {
+        $fixture = $this->makeRatesheet(10, 25);
+
+        // The referenced rule has the HIGHER priority number, so it is evaluated last by the pricing
+        // loop - but its condition is still resolved first, because the other rule depends on it.
+        $late = $this->insertConditionalReturningId($fixture['ratesheetId'], [
+            'name' => 'Runs last', 'priority' => 99,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'amount', 'value' => '1',
+        ]);
+
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Runs first, but asks about the last one', 'priority' => 1,
+            'json_logic' => json_encode($this->ruleMatched($late)),
+            'value_type' => 'amount', 'value' => '4',
+        ]);
+
+        // 25 base + 4 (reference matched) + 1 = 30.
+        $charges = (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($fixture['ratesheetId'], [5, 5], [25, 5])
+        );
+        $this->assertEquals(30, $this->totalPrice($charges));
+    }
+
+    /**
+     * "Matched" means the condition was true, NOT that a charge was produced.
+     *
+     * A Set Base Price rule that loses first-set-wins still counts as matched. Defining it the other
+     * way would make a reference depend on evaluation order, which is exactly what this design avoids.
+     */
+    public function testASkippedSetRuleStillCountsAsMatched() {
+        $fixture = $this->makeRatesheet(10, 25);
+
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Winning base', 'priority' => 1,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'action' => json_encode(['value' => 'set']),
+            'value_type' => 'amount', 'value' => '40',
+        ]);
+
+        // Matches, but is skipped: 'Winning base' already took the base.
+        $skipped = $this->insertConditionalReturningId($fixture['ratesheetId'], [
+            'name' => 'Losing base', 'priority' => 2,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'action' => json_encode(['value' => 'set']),
+            'value_type' => 'amount', 'value' => '99',
+        ]);
+
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Asks about the skipped rule', 'priority' => 3,
+            'json_logic' => json_encode($this->ruleMatched($skipped)),
+            'value_type' => 'amount', 'value' => '3',
+        ]);
+
+        // 40 (winning base, flat 25 suppressed) + 3, because the skipped rule still MATCHED.
+        $charges = (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($fixture['ratesheetId'], [5, 5], [25, 5])
+        );
+        $this->assertEquals(43, $this->totalPrice($charges));
+    }
+
+    /** A circular reference has no answer; refuse the quote rather than looping forever. */
+    public function testCircularReferencesRefuseToPrice() {
+        $fixture = $this->makeRatesheet(10, 25);
+
+        $a = $this->insertConditionalReturningId($fixture['ratesheetId'], [
+            'name' => 'A', 'priority' => 1, 'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'amount', 'value' => '1',
+        ]);
+        $b = $this->insertConditionalReturningId($fixture['ratesheetId'], [
+            'name' => 'B', 'priority' => 2, 'json_logic' => json_encode($this->ruleMatched($a)),
+            'value_type' => 'amount', 'value' => '1',
+        ]);
+        // Close the loop behind the controller's back, as bad data would.
+        DB::table('conditionals')->where('conditional_id', $a)
+            ->update(['json_logic' => json_encode($this->ruleMatched($b))]);
+
+        $this->expectException(HttpException::class);
+        (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($fixture['ratesheetId'], [5, 5], [25, 5])
+        );
     }
 
     /**
@@ -400,14 +637,28 @@ class ChargeModelFactoryTest extends TestCase {
      * A request carrying use_imperial sends pounds and the engine stores kilograms, so these drive the
      * request in pounds and check that both fields describe the same parcel.
      */
+    /**
+     * A request carrying $weight in the author's unit, shaped the way the CLIENT actually sends it.
+     *
+     * That last part is the whole point. usePackages converts pounds to kilograms in the browser, so
+     * packages[].totalWeight is always metric no matter what the toggle says. This helper used to put
+     * raw pounds in totalWeight and let the engine convert - a payload the frontend never produces -
+     * which is how it managed to agree with an engine that was double-converting and undercharging
+     * every imperial user by 2.2x. A fixture that does not match the real request cannot catch that.
+     */
     private function weightRequest($ratesheetId, $weight, $useImperial, $isMinimum = false) {
+        // round(.., 2) mirrors usePackages' totalWeight.toFixed(2): the client stores kilograms to two
+        // decimals, and that rounding is load-bearing. Without it the lb -> kg -> lb round trip lands a
+        // 100 lb parcel on 99.999999, which fails a ">= 100 lb" bracket.
+        $kilograms = $useImperial ? round($weight * 0.45359237, 2) : $weight;
+
         return new Request([
             'ratesheet_id' => $ratesheetId,
             'delivery_type_id' => 'regular',
             'package_is_minimum' => $isMinimum,
             'package_is_pallet' => false,
             'use_imperial' => $useImperial,
-            'packages' => [['weight' => $weight, 'totalWeight' => $weight, 'count' => 1, 'length' => 1, 'width' => 1, 'height' => 1]],
+            'packages' => [['weight' => $weight, 'totalWeight' => $kilograms, 'count' => 1, 'length' => 1, 'width' => 1, 'height' => 1]],
             'pickup_address' => ['is_mall' => false, 'lat' => 5, 'lng' => 5],
             'delivery_address' => ['is_mall' => false, 'lat' => 5, 'lng' => 5],
             'time_pickup_scheduled' => '2026-07-10T09:00:00',

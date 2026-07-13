@@ -3,6 +3,7 @@ import {
     buildAddressSubfields,
     buildDeliveryTypeListValues,
     buildGroupListValues,
+    matchedRulesField,
     relationFlagFields,
     sharedQueryBuilderSettings,
 } from '../conditionalFieldShared'
@@ -30,7 +31,7 @@ const buildZoneTimeSubfields = (deliveryTypes) => {
     return subfields
 }
 
-export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZoneIds, zoneGroups}) => {
+export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZoneIds, zoneGroups, conditionals, timingConditionalId}) => {
     // Timing adds its per-type zone-time map alongside the shared zone/address fields.
     const zoneTimeSubfield = {
         zone_time: {
@@ -48,6 +49,9 @@ export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZone
         },
         fields: {
             ...relationFlagFields(),
+            // Timing rules reference only timing rules: a timing rule asking about a pricing rule
+            // would be a category error, and the ids would collide besides.
+            ...matchedRulesField(conditionals, timingConditionalId, 'timing_conditional_id'),
             zones_crossed: {
                 label: 'Zones Crossed',
                 type: 'number'

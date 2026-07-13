@@ -3,6 +3,7 @@ import {
     buildAddressSubfields,
     buildDeliveryTypeListValues,
     buildGroupListValues,
+    matchedRulesField,
     relationFlagFields,
     sharedQueryBuilderSettings,
 } from '../conditionalFieldShared'
@@ -34,7 +35,7 @@ const timeSubfields = (prefix) => ({
  * chosen from a dropdown (by id) rather than typed by name. Zone/address fields and the dropdown
  * value lists are shared with the timing builder via conditionalFieldShared.
  */
-export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZoneIds, zoneGroups}) => ({
+export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZoneIds, zoneGroups, conditionals, conditionalId}) => ({
     ...MuiConfig,
     settings: {
         ...MuiConfig.settings,
@@ -42,6 +43,7 @@ export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZon
     },
     fields: {
         ...relationFlagFields(),
+        ...matchedRulesField(conditionals, conditionalId, 'conditional_id'),
         // Road distance for the trip, from Google's recommended driving route - not straight-line, and
         // not the zone-crossing count. Empty when it could not be established, in which case any rule
         // that uses it refuses to price rather than treating the trip as 0 km.
@@ -167,6 +169,23 @@ export const actions = [
 export const REFUSE_ACTION = 'refuse'
 export const MESSAGE_VALUE_TYPE = 'message'
 
+// One line each, shown under the selector the author just used. Deliberately phrased as what the rule
+// will DO to this bill, not as what the option is called - the label already says that.
+export const actionDescriptions = {
+    add: 'Adds a line item to the bill. The usual choice: surcharges, weight, after hours.',
+    set: 'Replaces the base price. If an earlier rule (lower priority number) already set the base, this one is skipped rather than added on top.',
+    discount: 'Subtracts from the running total. Never takes the bill below $0.',
+    refuse: 'Produces no price at all. Shows your message and blocks the customer from submitting. Runs before every pricing rule, whatever its priority.',
+}
+
+export const valueTypeDescriptions = {
+    amount: 'A fixed dollar figure you type in.',
+    percent: 'A percentage of the rest of the bill. Percent rules always run last, on the accumulated total.',
+    field: 'A figure taken from the delivery itself - a zone\'s rate, or the shared group\'s crossing cost. Use this instead of retyping numbers that already live on the map.',
+    equation: 'A formula, e.g. floor(max(0, total_weight_lbs - 100) / 100) * 2 + 16.',
+    message: 'The text staff and customers are shown when this rule refuses the trip.',
+}
+
 export const valueTypes = [
     {value: 'amount', label: 'Amount'},
     {value: 'field', label: 'Field'},
@@ -189,15 +208,16 @@ export const valueTypes = [
  * so a name that leans on a value the trip lacks degrades to a shorter label instead of breaking.
  */
 export const nameVariables = [
-    {token: 'zones_crossed', label: 'Zones crossed'},
-    {token: 'crossing_group', label: 'Zone group that priced the crossing'},
-    {token: 'zones_crossed_cost', label: 'Crossing cost'},
-    {token: 'pickup_address.zone.name', label: 'Pickup zone name'},
-    {token: 'delivery_address.zone.name', label: 'Delivery zone name'},
-    {token: 'delivery_type.name', label: 'Delivery type'},
-    {token: 'package.total_weight_lbs', label: 'Total weight (lbs)'},
-    {token: 'distance_km', label: 'Distance travelled (km)'},
-    {token: 'package.total_weight', label: 'Total weight (kg)'},
+    {token: 'zones_crossed', label: 'Zones crossed', example: '4'},
+    {token: 'crossing_group', label: 'Zone group that priced the crossing', example: 'City of Edmonton'},
+    {token: 'zones_crossed_cost', label: 'Crossing cost', example: '10.30'},
+    {token: 'pickup_address.zone.name', label: 'Pickup zone name', example: 'Zone 1'},
+    {token: 'delivery_address.zone.name', label: 'Delivery zone name', example: 'Spruce Grove'},
+    {token: 'delivery_type.name', label: 'Delivery type', example: 'Regular'},
+    {token: 'package.total_weight_lbs', label: 'Total weight (lbs)', example: '150'},
+    {token: 'package.total_weight', label: 'Total weight (kg)', example: '68'},
+    {token: 'distance_km', label: 'Distance travelled (km)', example: '18.2'},
+    {token: 'drive_time_minutes', label: 'Drive time (minutes)', example: '24'},
 ]
 
 export const fieldValueOptions = [

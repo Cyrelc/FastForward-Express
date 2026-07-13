@@ -37,7 +37,7 @@ class ChargeModelFactory {
      *
      * @return array of LineItemModel
      */
-    private function buildChargesForType($ratesheet, $bill) {
+    private function buildChargesForType($ratesheet, $bill, &$breakdown = null) {
         $distanceCharges = $this->generateDistanceCharges($ratesheet, $bill);
 
         $distanceBasePrice = 0;
@@ -49,6 +49,12 @@ class ChargeModelFactory {
         // A 'set' conditional supplies its own base price (e.g. an origin zone's price), so the
         // default distance base is dropped to avoid double-charging; otherwise it is kept.
         $baseCharges = $conditionalResult['suppressBase'] ? [] : $distanceCharges;
+
+        // Handed back through a reference rather than the return value: GenerateCharges is public and
+        // its callers expect a plain list of line items.
+        $breakdown = $conditionalResult['breakdown'];
+        if($conditionalResult['suppressBase'] && isset($breakdown[0]))
+            $breakdown[0]['note'] = 'Dropped — a rule below set the base price instead';
 
         return array_merge($baseCharges, $conditionalResult['lineItems']);
     }
@@ -329,11 +335,12 @@ class ChargeModelFactory {
             $price = null;
             $reason = null;
             $lineItems = [];
+            $priceBreakdown = [];
 
             {
                 try {
                     $bill->delivery_type = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $typeId);
-                    $lineItems = $this->buildChargesForType($ratesheet, $bill);
+                    $lineItems = $this->buildChargesForType($ratesheet, $bill, $priceBreakdown);
                     $price = 0;
                     foreach($lineItems as $lineItem)
                         $price += $lineItem->getPrice();
@@ -342,6 +349,7 @@ class ChargeModelFactory {
                     $price = null;
                     $reason = $e->getMessage();
                     $lineItems = [];
+                    $priceBreakdown = [];
                 }
             }
 
@@ -355,9 +363,11 @@ class ChargeModelFactory {
                 'fits_today' => $feasibility['fits_today'],
                 'earliest_delivery' => $feasibility['earliest_delivery'],
                 'line_items' => $lineItems,
-                // Which timing rules fired, and what each did to the running total. Not stored on the
-                // bill - it is recomputed with every quote - but it is the only way to see why a
-                // delivery time came out the way it did, or which rule is wrongly (not) applying.
+                // Which rules fired, which were skipped and why, and which did not match at all. Not
+                // stored on the bill - both are recomputed with every quote - but they are the only way
+                // to see why a price or a time came out as it did, or which rule is wrongly (not)
+                // applying. Same shape for both engines.
+                'price_breakdown' => $priceBreakdown,
                 'time_breakdown' => $timeEntry['time_breakdown'] ?? [],
             ]);
         }
@@ -491,10 +501,15 @@ class ChargeModelFactory {
             'action' => 'base',
             'value' => (float) $originalTime,
             'running_total' => (float) $originalTime,
+            'note' => null,
         ]];
 
         if(!$timingConditionals || !count($timingConditionals))
             return ['time' => $originalTime, 'breakdown' => $breakdown];
+
+        // Same as pricing: resolve which timing rules' conditions match, so one timing rule can be
+        // written against another. Timing rules reference only timing rules.
+        $this->ResolveMatchedRules($timingConditionals, $timingContext);
 
         $currentTime = $originalTime;
         $timeWasSet = false;
@@ -510,7 +525,21 @@ class ChargeModelFactory {
             if(!$rules)
                 continue;
 
-            if(JsonLogic::apply($rules, $timingContext)) {
+            // Rules that did not match are listed too, as they are in the pricing breakdown. "Why
+            // didn't my rule fire?" is the question actually asked, and a list of the rules that DID
+            // fire cannot answer it.
+            if(!JsonLogic::apply($rules, $timingContext)) {
+                $breakdown[] = [
+                    'name' => $this->RenderConditionalName($conditional['name'] ?? '(unnamed rule)', $timingContext),
+                    'action' => 'not_matched',
+                    'value' => null,
+                    'running_total' => (float) $currentTime,
+                    'note' => 'Its conditions were not met by this delivery',
+                ];
+                continue;
+            }
+
+            {
                 $action = json_decode($conditional['action']);
                 $isAdd = $action && $action->value === 'add';
 
@@ -883,6 +912,40 @@ class ChargeModelFactory {
     }
 
     /**
+     * Writes matched_rules onto a context, given the sheet's rules in whatever shape their repo hands
+     * back (Eloquent models for pricing, arrays for timing).
+     *
+     * Pricing and timing rules are separate namespaces on purpose: a timing rule referencing a pricing
+     * rule would be a category error, and the ids would collide besides.
+     */
+    private function ResolveMatchedRules($conditionals, &$context) {
+        $rules = [];
+
+        foreach($conditionals as $conditional) {
+            // data_get, not (array) - casting an Eloquent model yields its NUL-prefixed internals,
+            // not its attributes, so every id would read as null and no rule would ever match.
+            // Pricing rules key on conditional_id, timing rules (plain arrays) on timing_conditional_id.
+            $id = data_get($conditional, 'conditional_id') ?? data_get($conditional, 'timing_conditional_id');
+            if($id === null)
+                continue;
+
+            $rules[] = [
+                'id' => $id,
+                'name' => data_get($conditional, 'name'),
+                'json_logic' => data_get($conditional, 'json_logic'),
+            ];
+        }
+
+        try {
+            return Services\RuleReferences::ResolveMatched($rules, $context);
+        } catch(\RuntimeException $e) {
+            // Cycles are rejected when a rule is saved, so reaching this means the data predates that
+            // check. Refuse the quote rather than looping: a circular reference has no answer.
+            abort(400, $e->getMessage() . '. Please price manually.');
+        }
+    }
+
+    /**
      * Calculates which conditional charges apply by creating an object and comparing against stored json_logic data
      * @param $ratesheet - standard ratesheet object pulled from database
      * @param $req - the request, which will be used to generate a standard object for comparisons
@@ -900,6 +963,15 @@ class ChargeModelFactory {
         $refusals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['message']);
 
         $context = $this->BuildPricingContext($ratesheet, $bill);
+
+        // Resolve which rules' conditions match, so a rule can be written against another rule
+        // ("matched_rules NOT CONTAINS [the 0-49lb bracket]"). Every rule on the sheet takes part,
+        // refusals included, and the result is written onto the context as matched_rules.
+        //
+        // Conditions are pure - they read the delivery, not the running price - so this pass produces
+        // the same answers the loops below will, and the loops need no change. It runs per delivery
+        // type because the conditions can read the delivery type.
+        $this->ResolveMatchedRules($conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id), $context);
 
         // Refusals run first, in their own pass, and priority does not enter into it. A rule that says
         // "we cannot carry this" is not competing for a slot in the pricing order - it decides whether
@@ -920,6 +992,17 @@ class ChargeModelFactory {
         $results = array();
         $suppressBase = false;
 
+        // Mirrors the timing engine's breakdown: what each rule did to the running price, and - just as
+        // importantly - what the rules that did nothing did not do. "Why didn't my rule fire?" is the
+        // question that actually gets asked, and a list of the charges that happened cannot answer it.
+        $breakdown = [[
+            'name' => 'Base price for this delivery type',
+            'action' => 'base',
+            'value' => (float) $distanceBasePrice,
+            'running_total' => (float) $currentPrice,
+            'note' => null,
+        ]];
+
         usort($amountConditionals, function($a, $b) {
             return (isset($a->priority) ? (int) $a->priority : 0) <=> (isset($b->priority) ? (int) $b->priority : 0);
         });
@@ -927,17 +1010,36 @@ class ChargeModelFactory {
         foreach($amountConditionals as $conditional) {
             $rules = json_decode($conditional->json_logic, true);
 
-            if(JsonLogic::apply($rules, $context)) {
-                $action = json_decode($conditional->action)->value;
+            if(!JsonLogic::apply($rules, $context)) {
+                $breakdown[] = [
+                    'name' => $this->RenderConditionalName($conditional->name, $context),
+                    'action' => 'not_matched',
+                    'value' => null,
+                    'running_total' => (float) $currentPrice,
+                    'note' => 'Its conditions were not met by this delivery',
+                ];
+                continue;
+            }
 
-                // First 'set' wins: base selection is a ranking, expressed as priority. A later 'set'
-                // is a lower-ranked candidate for the same slot, so it is skipped rather than added on
-                // top (which would double-charge). This is what lets a map say "use the home hub's
-                // price if the trip touches it, else the hub's, else the zone-crossing rate" without
-                // short-circuiting the surcharges that must still run afterwards.
-                if($action == 'set' && $suppressBase)
-                    continue;
+            $action = json_decode($conditional->action)->value;
 
+            // First 'set' wins: base selection is a ranking, expressed as priority. A later 'set'
+            // is a lower-ranked candidate for the same slot, so it is skipped rather than added on
+            // top (which would double-charge). This is what lets a map say "use the home hub's
+            // price if the trip touches it, else the hub's, else the zone-crossing rate" without
+            // short-circuiting the surcharges that must still run afterwards.
+            if($action == 'set' && $suppressBase) {
+                $breakdown[] = [
+                    'name' => $this->RenderConditionalName($conditional->name, $context),
+                    'action' => 'skipped',
+                    'value' => null,
+                    'running_total' => (float) $currentPrice,
+                    'note' => 'Matched, but an earlier rule already set the base price',
+                ];
+                continue;
+            }
+
+            {
                 $value = $this->ResolvePricingValue($conditional, $context);
                 $label = $this->RenderConditionalName($conditional->name, $context);
 
@@ -956,7 +1058,17 @@ class ChargeModelFactory {
                     $results[] = new LineItemModel($label, 'conditionalRate', $value);
                 }
 
-                if(!$this->ParseContinueOn($conditional->continue_on ?? null))
+                $stopped = !$this->ParseContinueOn($conditional->continue_on ?? null);
+
+                $breakdown[] = [
+                    'name' => $label,
+                    'action' => $action == 'set' ? 'set' : ($action == 'discount' ? 'discount' : 'add'),
+                    'value' => (float) $value,
+                    'running_total' => (float) $currentPrice,
+                    'note' => $stopped ? 'Stopped here — no later rules were considered' : null,
+                ];
+
+                if($stopped)
                     break;
             }
         }
@@ -964,19 +1076,40 @@ class ChargeModelFactory {
         foreach($percentConditionals as $conditional) {
             $rules = json_decode($conditional->json_logic, true);
 
-            if(JsonLogic::apply($rules, $context)) {
-                $action = json_decode($conditional->action)->value;
-                $value = $conditional->value;
-
-                $price = round($value / 100 * $currentPrice, 2);
-                if($action == 'discount')
-                    $price *= -1;
-
-                $results[] = new LineItemModel($this->RenderConditionalName($conditional->name, $context), 'conditionalRate', $price);
+            if(!JsonLogic::apply($rules, $context)) {
+                $breakdown[] = [
+                    'name' => $this->RenderConditionalName($conditional->name, $context),
+                    'action' => 'not_matched',
+                    'value' => null,
+                    'running_total' => (float) $currentPrice,
+                    'note' => 'Its conditions were not met by this delivery',
+                ];
+                continue;
             }
+
+            $action = json_decode($conditional->action)->value;
+            $value = $conditional->value;
+
+            $price = round($value / 100 * $currentPrice, 2);
+            if($action == 'discount')
+                $price *= -1;
+
+            $label = $this->RenderConditionalName($conditional->name, $context);
+            $results[] = new LineItemModel($label, 'conditionalRate', $price);
+
+            // Percent rules do not feed back into the running total - they are each a percentage of the
+            // total the amount rules produced, not of one another - so running_total is left where the
+            // amount pass left it, and the row shows the dollars this rule actually added.
+            $breakdown[] = [
+                'name' => $label,
+                'action' => 'percent',
+                'value' => (float) $price,
+                'running_total' => (float) $currentPrice,
+                'note' => $value . '% of ' . number_format($currentPrice, 2),
+            ];
         }
 
-        return ['lineItems' => $results, 'suppressBase' => $suppressBase];
+        return ['lineItems' => $results, 'suppressBase' => $suppressBase, 'breakdown' => $breakdown];
     }
 
     /**
@@ -1137,10 +1270,16 @@ class ChargeModelFactory {
             ]
         ];
 
-        if($req->use_imperial) {
-            $weight = new Mass($bill->package->total_weight, 'pounds');
-            $bill->package->total_weight = $weight->toUnit('kg');
-        }
+        // Weight is NOT converted here, despite use_imperial being on the request.
+        //
+        // The client converts already: usePackages runs poundsToKilograms before it ever leaves the
+        // browser, so packages[].totalWeight is kilograms whatever the toggle says - and that same value
+        // is what gets stored on the bill. Converting again here treated those kilograms as pounds and
+        // converted a second time, so with the imperial toggle on, a 100 lb parcel was priced as 45 lb:
+        // every weight rule undercharged by a factor of 2.2, silently, for imperial users only.
+        //
+        // use_imperial remains on the request because it still describes what the author typed; it just
+        // has no bearing on a value that arrives already metric.
 
         // Road distance is resolved here, not in BuildPricingContext, because this runs once per
         // route while BuildPricingContext runs once per delivery type. Distance does not depend on the

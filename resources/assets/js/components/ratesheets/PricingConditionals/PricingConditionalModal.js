@@ -1,12 +1,30 @@
-import React, {Fragment, useMemo, useState} from 'react'
-import {Badge, Button, Card, Col, InputGroup, FormCheck, FormControl, Modal, Row, Table} from 'react-bootstrap'
+import React, {Fragment, useCallback, useMemo, useState} from 'react'
+import {Button, Card, Col, InputGroup, FormCheck, FormControl, Modal, Row, Table} from 'react-bootstrap'
 import {Query, Builder, Utils as QbUtils} from '@react-awesome-query-builder/mui'
 import Select from 'react-select'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
-import {buildPricingConditionalConfig, availableTestVariables, valueTypes, actions, fieldValueOptions, nameVariables, REFUSE_ACTION} from './pricingConditionalConfig'
-import {EQUATION_FUNCTIONS} from './useEquation'
+import {
+    buildPricingConditionalConfig,
+    availableTestVariables,
+    valueTypes,
+    actions,
+    actionDescriptions,
+    valueTypeDescriptions,
+    fieldValueOptions,
+    nameVariables,
+    REFUSE_ACTION,
+} from './pricingConditionalConfig'
+import {EQUATION_FUNCTIONS, EQUATION_FUNCTION_DESCRIPTIONS} from './useEquation'
+import {
+    useTokenAutocomplete,
+    SuggestionList,
+    matchIdentifier,
+    matchPlaceholder,
+    spliceIdentifier,
+    splicePlaceholder,
+} from '../TokenAutocomplete'
 import usePricingConditional from './usePricingConditional'
 import {useLists} from '../../../contexts/ListsContext'
 import {extractZoneIdsFromLogic} from '../conditionalFieldShared'
@@ -19,59 +37,61 @@ const renderBuilder = (props) => (
     </div>
 )
 
-// Syntax highlighter for equation input
-const HighlightedEquationInput = ({value, onChange, placeholder}) => {
-    const imperialToMetric = {
-        'lb': true, 'lbs': true, 'kg': true, 'kgs': true, 'oz': true, 'g': true,
-        'in': true, 'ft': true, 'cm': true, 'm': true, 'yd': true, 'mi': true, 'km': true,
-        'sqft': true, 'm2': true, 'CAD': true
-    }
-    
-    const functions = ['max', 'min', 'round', 'floor', 'ceil', 'abs', 'sqrt', 'pow']
-    
+/**
+ * Equation input with live syntax highlighting.
+ *
+ * Units used to be highlighted as valid (kg, lbs, CAD...). They are not: the server reads
+ * "total_weight_lbs lbs" as one token and refuses to price. Colouring them blue told the author a
+ * broken equation was fine, which is precisely how the three unusable weight rules got written. An
+ * unrecognised word is now red, whatever it is.
+ */
+const HighlightedEquationInput = ({value, onChange, placeholder, inputRef, onKeyDown, onKeyUp, onClick, onBlur}) => {
     const highlightSyntax = (text) => {
         if (!text) return null
-        
+
         const tokens = []
         const regex = /(\d+\.?\d*)|([a-zA-Z_][a-zA-Z0-9_]*)|([+\-*/^()$])|(\s+)/g
         let match
         let currentPos = 0
-        
+
         while ((match = regex.exec(text)) !== null) {
             const [fullMatch, number, word, operator, space] = match
             const isVariable = availableTestVariables.some(v => v.dbName === word)
-            const isFunction = functions.includes(word?.toLowerCase())
-            const isUnit = imperialToMetric[word]
-            
+            const isFunction = EQUATION_FUNCTIONS.includes(word?.toLowerCase())
+
             let style = {}
-            
+
             if (number) {
                 style = {color: '#0066cc', fontWeight: '500'}
             } else if (isVariable) {
                 style = {color: '#22863a', fontWeight: '600', backgroundColor: '#e6f7ff', padding: '0 2px', borderRadius: '2px'}
             } else if (isFunction) {
                 style = {color: '#6f42c1', fontWeight: '600'}
-            } else if (isUnit) {
-                style = {color: '#005cc5', fontWeight: '500'}
             } else if (operator) {
                 style = {color: '#d73a49', fontWeight: '600'}
             } else if (word && !space) {
-                // Error: unrecognized word
+                // Unrecognised word - including a unit suffix, which is the whole point.
                 style = {color: '#fff', backgroundColor: '#dc3545', fontWeight: '600', borderRadius: '3px', padding: '1px 4px'}
             }
-            
+
             tokens.push(<span key={currentPos} style={style}>{fullMatch}</span>)
             currentPos = match.index + fullMatch.length
         }
-        
+
         return tokens
     }
-    
+
     return (
         <div style={{position: 'relative'}}>
             {/* Actual input */}
             <FormControl
+                ref={inputRef}
                 onChange={onChange}
+                onKeyDown={onKeyDown}
+                onKeyUp={onKeyUp}
+                onClick={onClick}
+                onBlur={onBlur}
+                autoComplete='off'
                 value={value}
                 placeholder={placeholder}
                 style={{
@@ -124,8 +144,11 @@ const PricingConditionalModal = props => {
     }, [props.conditional?.json_logic])
 
     const config = useMemo(() => {
-        return buildPricingConditionalConfig({mapZones, deliveryTypes, extraZoneIds, zoneGroups})
-    }, [mapZones, deliveryTypes, extraZoneIds, zoneGroups])
+        return buildPricingConditionalConfig({
+            mapZones, deliveryTypes, extraZoneIds, zoneGroups,
+            conditionals: props.conditionals, conditionalId: conditional_id,
+        })
+    }, [mapZones, deliveryTypes, extraZoneIds, zoneGroups, props.conditionals, conditional_id])
 
     const {
         action,
@@ -161,6 +184,57 @@ const PricingConditionalModal = props => {
     const selectedFieldValueOption = useMemo(() => {
         return fieldValueOptions.find(option => option.value === resultValue) ?? null
     }, [resultValue])
+
+    // Type-ahead for the name's {{...}} placeholders. Triggers on "{{", so it is out of the way until
+    // it is wanted.
+    const nameAutocomplete = useTokenAutocomplete({
+        value: name,
+        onChange: setName,
+        matchToken: matchPlaceholder,
+        buildSuggestions: useCallback(query => nameVariables
+            .filter(variable => variable.token.toLowerCase().includes(query.toLowerCase()))
+            .map(variable => ({
+                insert: variable.token,
+                label: variable.token,
+                description: `${variable.label} — e.g. "${variable.example}"`,
+            })), []),
+        applyToken: splicePlaceholder,
+    })
+
+    // Type-ahead for the equation. Suggests the variables and the functions, and only ever replaces the
+    // identifier under the caret - it cannot rewrite a working equation into a broken one.
+    const equationAutocomplete = useTokenAutocomplete({
+        value: equationString,
+        onChange: setEquationString,
+        matchToken: matchIdentifier,
+        buildSuggestions: useCallback(query => {
+            const lowered = query.toLowerCase()
+
+            const variables = availableTestVariables
+                .filter(variable => variable.dbName.toLowerCase().includes(lowered))
+                .map(variable => ({
+                    insert: variable.dbName,
+                    label: variable.dbName,
+                    kind: 'variable',
+                    description: `${variable.description} (${variable.unit})`,
+                }))
+
+            const functions = EQUATION_FUNCTIONS
+                .filter(equationFunction => equationFunction.toLowerCase().includes(lowered))
+                .map(equationFunction => ({
+                    // Insert the opening bracket too and park the caret inside it: nobody wants to type
+                    // "floor" and then go back for the "(".
+                    insert: `${equationFunction}(`,
+                    caretOffset: equationFunction.length + 1,
+                    label: `${equationFunction}()`,
+                    kind: 'function',
+                    description: EQUATION_FUNCTION_DESCRIPTIONS[equationFunction],
+                }))
+
+            return [...variables, ...functions]
+        }, []),
+        applyToken: spliceIdentifier,
+    })
 
     const api = useAPI()
     const {chargeTypes} = useLists()
@@ -302,30 +376,34 @@ const PricingConditionalModal = props => {
                                     </h4>
                                 </Col>
                                 <Col md={8}>
-                                    <InputGroup>
-                                        <InputGroup.Text>Name: </InputGroup.Text>
-                                        <FormControl
-                                            name='name'
-                                            value={name}
-                                            onChange={event => setName(event.target.value)}
+                                    <div style={{position: 'relative'}}>
+                                        <InputGroup>
+                                            <InputGroup.Text>Name: </InputGroup.Text>
+                                            <FormControl
+                                                name='name'
+                                                ref={nameAutocomplete.inputRef}
+                                                value={name}
+                                                onChange={nameAutocomplete.handleChange}
+                                                onKeyDown={nameAutocomplete.handleKeyDown}
+                                                onKeyUp={nameAutocomplete.handleCaretMove}
+                                                onClick={nameAutocomplete.handleCaretMove}
+                                                onBlur={nameAutocomplete.close}
+                                                autoComplete='off'
+                                            />
+                                        </InputGroup>
+                                        <SuggestionList
+                                            open={nameAutocomplete.open}
+                                            items={nameAutocomplete.items}
+                                            activeIndex={nameAutocomplete.activeIndex}
+                                            onPick={nameAutocomplete.accept}
+                                            onHover={nameAutocomplete.setActiveIndex}
                                         />
-                                    </InputGroup>
-                                    <div className='mt-1' style={{fontSize: '0.8rem'}}>
-                                        <span className='text-muted me-1'>Insert into name:</span>
-                                        {nameVariables.map(variable => (
-                                            <Badge
-                                                key={variable.token}
-                                                bg='light'
-                                                text='dark'
-                                                className='me-1'
-                                                title={variable.label}
-                                                style={{cursor: 'pointer', fontWeight: 'normal'}}
-                                                onClick={() => setName(`${name ?? ''}{{${variable.token}}}`)}
-                                            >
-                                                {variable.label}
-                                            </Badge>
-                                        ))}
                                     </div>
+                                    <small className='text-muted'>
+                                        Type <code>{'{{'}</code> to put a value from the delivery into the
+                                        name &mdash; e.g. <code>{'{{zones_crossed}} zones crossed'}</code> prints
+                                        as &ldquo;4 zones crossed&rdquo; on the invoice.
+                                    </small>
                                 </Col>
                                 <Col md={6}>
                                     <InputGroup style={{display: 'flex', width: '100%'}}>
@@ -397,6 +475,21 @@ const PricingConditionalModal = props => {
                                         />
                                     </Col>
                                 }
+                                {/* Explains only what is currently selected. A permanent table of every
+                                    action and every value type would say the same things, but would say
+                                    them all the time - and be ignored all the time. */}
+                                <Col md={12} className='mt-2'>
+                                    {actionDescriptions[action?.value] &&
+                                        <small className='text-muted d-block'>
+                                            <strong>{action.label}:</strong> {actionDescriptions[action.value]}
+                                        </small>
+                                    }
+                                    {!isRefusal && valueTypeDescriptions[valueType?.value] &&
+                                        <small className='text-muted d-block'>
+                                            <strong>{valueType.label}:</strong> {valueTypeDescriptions[valueType.value]}
+                                        </small>
+                                    }
+                                </Col>
                                 {/* A refusal produces no charge - it stops the quote and shows this to
                                     staff, exactly as an address outside every zone does. It is checked
                                     before any pricing rule, whatever its priority. */}
@@ -467,30 +560,37 @@ const PricingConditionalModal = props => {
                                         <Col md={10}>
                                             <Row>
                                                 <Col md={12} style={{paddingBottom: 15}}>
-                                                    <HighlightedEquationInput
-                                                        onChange={event => setEquationString(event.target.value)}
-                                                        value={equationString}
-                                                        placeholder="Example: floor(max(0, total_weight_lbs - 100) / 100) * 2 + 16"
-                                                    />
+                                                    <div style={{position: 'relative'}}>
+                                                        <HighlightedEquationInput
+                                                            inputRef={equationAutocomplete.inputRef}
+                                                            onChange={equationAutocomplete.handleChange}
+                                                            onKeyDown={equationAutocomplete.handleKeyDown}
+                                                            onKeyUp={equationAutocomplete.handleCaretMove}
+                                                            onClick={equationAutocomplete.handleCaretMove}
+                                                            onBlur={equationAutocomplete.close}
+                                                            value={equationString}
+                                                            placeholder="Example: floor(max(0, total_weight_lbs - 100) / 100) * 2 + 16"
+                                                        />
+                                                        <SuggestionList
+                                                            open={equationAutocomplete.open}
+                                                            items={equationAutocomplete.items}
+                                                            activeIndex={equationAutocomplete.activeIndex}
+                                                            onPick={equationAutocomplete.accept}
+                                                            onHover={equationAutocomplete.setActiveIndex}
+                                                        />
+                                                    </div>
                                                     {validationMessage && (
                                                         <small style={{color: validationMessage.startsWith('✓') ? '#28a745' : validationMessage.startsWith('❌') ? '#dc3545' : '#ffc107', display: 'block', marginTop: '5px'}}>
                                                             {validationMessage}
                                                         </small>
                                                     )}
-                                                    <small style={{color: '#6c757d', display: 'block', marginTop: '5px'}}>
-                                                        Operators: + - * / ^ ( )
-                                                    </small>
-                                                    <small style={{color: '#6c757d', display: 'block', marginTop: '5px'}}>
-                                                        Functions: {EQUATION_FUNCTIONS.map(equationFunction => `${equationFunction}()`).join(' ')}
-                                                    </small>
-                                                    {/* Listed from the one source the validator and the server both read, so this
-                                                        cannot drift out of date the way the old hardcoded list did. */}
-                                                    <small style={{color: '#6c757d', display: 'block', marginTop: '5px'}}>
-                                                        Variables: {availableTestVariables.map(variable => variable.dbName).join(', ')}
-                                                    </small>
-                                                    <small style={{color: '#6c757d', display: 'block', marginTop: '5px'}}>
-                                                        No unit suffixes &mdash; the unit is part of the variable name
-                                                        (<code>total_weight_kgs</code> vs <code>total_weight_lbs</code>).
+                                                    {/* The four reference lines that used to live here are gone: the type-ahead is
+                                                        the reference now, and it is in the author's way at exactly the moment it
+                                                        helps rather than taking up the modal permanently. */}
+                                                    <small className='text-muted' style={{display: 'block', marginTop: '5px'}}>
+                                                        Start typing to autocomplete variables and functions. Operators: + - * / ^ ( ).
+                                                        Units are never written in the equation &mdash; they are part of the variable
+                                                        name (<code>total_weight_kgs</code> vs <code>total_weight_lbs</code>).
                                                     </small>
                                                 </Col>
                                                 <Col md={12}>

@@ -145,6 +145,32 @@ export const relationFlagFields = () => ({
 })
 
 /**
+ * "Matched Rules" - which other rules on this sheet matched this delivery. Lets one rule be written
+ * against another ("NOT CONTAINS [the 0-49lb bracket] AND under 99 lb") instead of restating its
+ * condition, so moving a boundary moves it everywhere.
+ *
+ * A multiselect, matched with CONTAINS - deliberately the same shape as tags and zone groups, so the
+ * builder needs no custom operator and the saved logic is the one shape the engine already knows.
+ *
+ * "Matched" is the rule's CONDITION being true, not it producing a charge: a Set Base Price rule that
+ * loses first-set-wins still counts. That keeps a reference a function of the delivery rather than of
+ * run order, which is why references need no priority juggling.
+ *
+ * @param currentId - the rule being edited, excluded so it cannot refer to itself
+ */
+export const matchedRulesField = (conditionals, currentId, idKey = 'conditional_id') => ({
+    matched_rules: {
+        label: 'Matched Rules',
+        type: 'multiselect',
+        fieldSettings: {
+            listValues: (conditionals ?? [])
+                .filter(conditional => conditional?.[idKey] != null && conditional[idKey] != currentId)
+                .map(conditional => ({value: conditional[idKey], title: conditional.name})),
+        },
+    },
+})
+
+/**
  * The nested zone/address fields both builders share. `prefix` is the human label prefix
  * ("Pickup"/"Delivery"); `extraSubfields` lets each builder add engine-specific fields
  * (pricing: is_mall; timing: zone_time). Note: there is intentionally no free-text zone name

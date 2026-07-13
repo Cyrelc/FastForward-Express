@@ -60,8 +60,11 @@ const TimingConditionalModal = props => {
     }, [props.conditional?.json_logic])
 
     const config = useMemo(() => {
-        return buildTimingConditionalConfig({mapZones, deliveryTypes, extraZoneIds, zoneGroups})
-    }, [mapZones, deliveryTypes, extraZoneIds, zoneGroups])
+        return buildTimingConditionalConfig({
+            mapZones, deliveryTypes, extraZoneIds, zoneGroups,
+            conditionals: props.conditionals, timingConditionalId: timing_conditional_id,
+        })
+    }, [mapZones, deliveryTypes, extraZoneIds, zoneGroups, props.conditionals, timing_conditional_id])
 
     const timingValueOptions = useMemo(() => {
         const options = [

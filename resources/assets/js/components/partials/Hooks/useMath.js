@@ -13,6 +13,10 @@ export default function useMath() {
         return +(inches * 2.54).toFixed(3)
     }
 
+    function centimetersToInches(centimeters) {
+        return +(centimeters / 2.54).toFixed(3)
+    }
+
     function getCubedWeightFromInches(length, width, height) {
         return getCubedWeightFromCentimeters(inchesToCentimeters(length), inchesToCentimeters(width), inchesToCentimeters(height))
     }
@@ -26,6 +30,8 @@ export default function useMath() {
     return {
         poundsToKilograms,
         kilogramsToPounds,
+        inchesToCentimeters,
+        centimetersToInches,
         getCubedWeightFromCentimeters,
         getCubedWeightFromInches,
     }

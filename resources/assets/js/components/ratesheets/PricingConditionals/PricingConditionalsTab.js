@@ -8,6 +8,7 @@ import {exportConditionalString, parseConditionalString} from './pricingConditio
 import {useAPI} from '../../../contexts/APIContext'
 import {useLists} from '../../../contexts/ListsContext'
 import {nextPriorityFor} from '../conditionalFieldShared'
+import RuleTesterModal from '../RuleTesterModal'
 
 
 
@@ -16,6 +17,7 @@ const PricingConditionalsTab = forwardRef(function PricingConditionalsTab(props,
     const {chargeTypes} = useLists()
 
     const [conditionals, setConditionals] = useState([])
+    const [showRuleTester, setShowRuleTester] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [editConditional, setEditConditional] = useState(false)
     const [showConditionalModal, setShowConditionalModal] = useState(false)
@@ -144,6 +146,15 @@ const PricingConditionalsTab = forwardRef(function PricingConditionalsTab(props,
                             >
                                 <i className='fas fa-plus'></i> Create
                             </Button>
+                            {/* Sits with the rules rather than on its own tab: the loop that matters is
+                                write a rule -> see what it does -> fix it, without leaving the page. */}
+                            <Button
+                                variant='outline-primary'
+                                onClick={() => setShowRuleTester(true)}
+                                title='Price a pretend delivery against this ratesheet'
+                            >
+                                <i className='fas fa-vial'></i> Test a Delivery
+                            </Button>
                             {/* Two different imports: paste a single exported rule, or copy rules
                                 across from another ratesheet. */}
                             <Button
@@ -172,8 +183,14 @@ const PricingConditionalsTab = forwardRef(function PricingConditionalsTab(props,
             <Card.Body>
                 <MaterialReactTable table={table} />
             </Card.Body>
+            <RuleTesterModal
+                show={showRuleTester}
+                ratesheetId={props.ratesheetId}
+                onHide={() => setShowRuleTester(false)}
+            />
             <PricingConditionalModal
                 conditional={editConditional}
+                conditionals={conditionals}
                 nextPriority={nextPriorityFor(conditionals)}
                 deliveryTypes={props.deliveryTypes}
                 mapZones={props.mapZones}
