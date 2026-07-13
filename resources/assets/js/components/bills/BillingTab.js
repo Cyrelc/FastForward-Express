@@ -135,47 +135,52 @@ export default function BillingTab(props) {
         const miscRates = activeRatesheet.misc_rates
             ? JSON.parse(activeRatesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price, paid: false}})
             : []
-        const timeRates = activeRatesheet.time_rates
-            ? JSON.parse(activeRatesheet.time_rates).map(rate => {return {...rate, type: 'timeRate', driver_amount: rate.price, paid: false}})
-            : []
-        const weightRates = activeRatesheet.weight_rates
-            ? JSON.parse(activeRatesheet.weight_rates).map(rate => {return {...rate, type: 'weightRate', driver_amount: rate.price, paid: false}})
-            : []
         const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0, paid: false}})
+        // Zone-crossing rates are per zone group now (they used to be one flat table on the
+        // ratesheet), so a map with several groups offers each group's rates, labelled by group.
+        const deliveryTypes = activeRatesheet.delivery_types
+            ? JSON.parse(activeRatesheet.delivery_types)
+            : []
+        const zoneGroups = activeRatesheet.zone_groups ?? []
+        const multipleGroups = zoneGroups.length > 1
+
         const distanceRates = []
-        if(activeRatesheet.distance_rates) {
-            JSON.parse(activeRatesheet.distance_rates).map(rate => {
-                distanceRates.push({
-                    name: `Regular${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
-                    price: rate.regular_cost,
-                    type: 'distanceRate',
-                    driver_amount: rate.regular_cost,
-                    paid: false
+        zoneGroups.forEach(zoneGroup => {
+            ;(zoneGroup.zone_rates ?? []).forEach(rate => {
+                deliveryTypes.forEach(deliveryType => {
+                    const cost = rate?.[deliveryType.friendlyName]?.cost
+                    if(cost === undefined || cost === null || cost === '')
+                        return
+
+                    const zoneLabel = `${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}`
+                    const groupLabel = multipleGroups ? ` (${zoneGroup.name})` : ''
+
+                    distanceRates.push({
+                        name: `${deliveryType.friendlyName} - ${zoneLabel}${groupLabel}`,
+                        price: cost,
+                        type: 'distanceRate',
+                        driver_amount: cost,
+                        paid: false
+                    })
                 })
-                distanceRates.push({
-                    name: `Rush${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
-                    price: rate.rush_cost,
-                    type: 'distanceRate',
-                    driver_amount: rate.rush_cost,
-                    paid: false
-                })
-                distanceRates.push({
-                    name: `Direct${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
-                    price: rate.direct_cost,
-                    type: 'distanceRate',
-                    driver_amount: rate.direct_cost,
-                    paid: false
-                })
-                distanceRates.push({
-                    name: `Direct Rush${activeRatesheet.use_internal_zones_calc ? ` - ${rate.zones}${rate.zones == 1 ? ' zone' : ' zones'}` : ''}`,
-                    price: rate.direct_rush_cost,
-                    type: 'distanceRate',
-                    driver_amount: rate.direct_rush_cost,
-                    paid: false
-                })
-            });
-        }
-        setRateTable(commonRates.concat(miscRates, timeRates, weightRates, distanceRates))
+            })
+        })
+
+        // Every delivery type's flat base is pickable too — it is the base for any trip whose zones
+        // do not share a group.
+        deliveryTypes.forEach(deliveryType => {
+            if(deliveryType.cost === undefined || deliveryType.cost === null || deliveryType.cost === '')
+                return
+            distanceRates.push({
+                name: deliveryType.friendlyName,
+                price: deliveryType.cost,
+                type: 'distanceRate',
+                driver_amount: deliveryType.cost,
+                paid: false
+            })
+        })
+
+        setRateTable(commonRates.concat(miscRates, distanceRates))
     }, [activeRatesheet])
 
     return (

@@ -6,6 +6,7 @@ import {toast} from 'react-toastify'
 
 import {useAPI} from '../../../contexts/APIContext'
 import {buildTimingConditionalConfig, timeActions, timeValueTypes} from './timingConditionalConfig'
+import {extractZoneIdsFromLogic, flattenConditionFields} from '../conditionalFieldShared'
 import useTimingConditional from './useTimingConditional'
 
 const renderBuilder = (props) => (
@@ -28,97 +29,23 @@ const valueTypeDescriptions = {
 
 const conditionFieldDescriptions = {
     zones_same: 'True when pickup and delivery resolve to the exact same zone id.',
-    zones_crossed: 'Number of zones crossed between pickup and delivery when internal-zone crossing logic applies.',
-    both_internal: 'True when both pickup and delivery zones are internal.',
-    both_external: 'True when both pickup and delivery zones are external (non-internal types).',
-    one_internal_one_external: 'True when one zone is internal and the other is external.',
-    'ratesheet.use_internal_zones_calc': 'Whether this ratesheet calculates timing/charges using internal zone crossing distance.',
+    zones_crossed: 'How many zones lie between pickup and delivery, counted within the group they share. Empty when they share no group.',
+    same_group: 'True when the pickup and delivery zones belong to a common zone group.',
+    'timing_inputs.zones_crossed_time': 'How long the zone crossing takes, from the shared group\'s crossing rates, for the selected delivery type. Pair with "Set Base Time" and a "Share a Zone Group" condition.',
     'base_time.default': 'Default time for the currently selected delivery type before conditional adjustments.',
-    'timing_inputs.external_zone_time_total': 'Combined pickup + delivery external zone time modifiers for the selected delivery type.',
-    'timing_inputs.default_plus_external_zone_time_total': 'Base delivery time plus the combined external zone time modifiers.',
-    'timing_inputs.internal_zone_distance_time': 'Time derived from internal zone crossing distance and zone-rate configuration.',
     'timing_inputs.pickup_zone_selected_type_time': 'Pickup zone time modifier for the selected delivery type.',
     'timing_inputs.delivery_zone_selected_type_time': 'Delivery zone time modifier for the selected delivery type.',
     delivery_type: 'The currently selected delivery type id (Regular, Rush, Direct, etc).',
-    'pickup_address.zone_id': 'Resolved pickup zone id from pickup coordinates and the active ratesheet map.',
-    'pickup_address.zone_type': 'Resolved pickup zone type (internal/outlying/peripheral).',
-    'pickup_address.is_internal': 'True when pickup zone type is internal.',
-    'pickup_address.is_external': 'True when pickup zone type is not internal.',
-    'pickup_address.zone.name': 'Resolved pickup zone name.',
-    'pickup_address.zone.region': 'Resolved pickup zone region string.',
-    'pickup_address.zone.tags_text': 'Raw pickup zone tags as pipe-delimited text.',
+    'pickup_address.zone.zone_id': 'Resolved pickup zone id from pickup coordinates and the active ratesheet map.',
+    'pickup_address.zone.groups': 'The zone groups the pickup zone belongs to.',
     'pickup_address.zone.tags': 'Pickup zone tags as a normalized list.',
-    'delivery_address.zone_id': 'Resolved delivery zone id from delivery coordinates and the active ratesheet map.',
-    'delivery_address.zone_type': 'Resolved delivery zone type (internal/outlying/peripheral).',
-    'delivery_address.is_internal': 'True when delivery zone type is internal.',
-    'delivery_address.is_external': 'True when delivery zone type is not internal.',
-    'delivery_address.zone.name': 'Resolved delivery zone name.',
-    'delivery_address.zone.region': 'Resolved delivery zone region string.',
-    'delivery_address.zone.tags_text': 'Raw delivery zone tags as pipe-delimited text.',
+    'delivery_address.zone.zone_id': 'Resolved delivery zone id from delivery coordinates and the active ratesheet map.',
+    'delivery_address.zone.groups': 'The zone groups the delivery zone belongs to.',
     'delivery_address.zone.tags': 'Delivery zone tags as a normalized list.',
 }
 
-const flattenConditionFields = (fields, prefix = '') => {
-    const values = []
-
-    Object.entries(fields ?? {}).forEach(([key, field]) => {
-        const path = prefix ? `${prefix}.${key}` : key
-        if(field?.type === '!struct') {
-            values.push(...flattenConditionFields(field.subfields ?? {}, path))
-            return
-        }
-
-        values.push({
-            path,
-            label: field?.label ?? path,
-            description: conditionFieldDescriptions[path] ?? 'Context value available for query conditions.'
-        })
-    })
-
-    return values
-}
-
-const extractZoneIdsFromLogic = (jsonLogic) => {
-    const zoneIds = new Set()
-
-    const isZoneVar = (node) => {
-        return node?.var === 'pickup_address.zone_id' || node?.var === 'delivery_address.zone_id'
-    }
-
-    const walk = (node) => {
-        if(Array.isArray(node)) {
-            node.forEach(walk)
-            return
-        }
-
-        if(!node || typeof node !== 'object')
-            return
-
-        if(isZoneVar(node))
-            return
-
-        Object.entries(node).forEach(([key, value]) => {
-            if(Array.isArray(value)) {
-                const hasZoneVar = value.some(item => isZoneVar(item))
-                if(hasZoneVar) {
-                    value.forEach(item => {
-                        if(typeof item === 'number')
-                            zoneIds.add(item)
-                        if(typeof item === 'string' && !isNaN(Number(item)))
-                            zoneIds.add(Number(item))
-                    })
-                }
-            }
-            walk(value)
-        })
-    }
-
-    walk(jsonLogic)
-    return [...zoneIds]
-}
-
 const TimingConditionalModal = props => {
-    const {conditional: {timing_conditional_id} = null, ratesheetId, deliveryTypes, mapZones, zoneTypes} = props
+    const {conditional: {timing_conditional_id} = null, ratesheetId, deliveryTypes, mapZones, zoneGroups} = props
     const extraZoneIds = useMemo(() => {
         if(!props.conditional?.json_logic)
             return []
@@ -133,8 +60,8 @@ const TimingConditionalModal = props => {
     }, [props.conditional?.json_logic])
 
     const config = useMemo(() => {
-        return buildTimingConditionalConfig({mapZones, deliveryTypes, extraZoneIds, zoneTypes})
-    }, [mapZones, deliveryTypes, extraZoneIds, zoneTypes])
+        return buildTimingConditionalConfig({mapZones, deliveryTypes, extraZoneIds, zoneGroups})
+    }, [mapZones, deliveryTypes, extraZoneIds, zoneGroups])
 
     const timingValueOptions = useMemo(() => {
         const options = [
@@ -144,19 +71,16 @@ const TimingConditionalModal = props => {
                 description: 'Uses the selected delivery type default time as the result value.'
             },
             {
-                value: 'timing_inputs.internal_zone_distance_time',
-                label: 'Internal Zone Distance Time',
-                description: 'Uses internally calculated zone-crossing distance time from zone rates.'
-            },
-            {
-                value: 'timing_inputs.external_zone_time_total',
-                label: 'External Zone Time Total',
-                description: 'Uses pickup + delivery external zone time modifiers combined.'
-            },
-            {
-                value: 'timing_inputs.default_plus_external_zone_time_total',
-                label: 'Default + External Zone Time Total',
-                description: 'Uses base delivery type time plus the total external zone time modifiers.'
+                // The counterpart of the pricing side's zones_crossed_cost. Without this the group's
+                // own crossing table is unreachable from the timing rules: only the per-ZONE modifiers
+                // were offered, so there was no way to say "take the time the group charges for
+                // crossing this many zones" - which is the whole point of a group having a rate table.
+                value: 'timing_inputs.zones_crossed_time',
+                label: 'Zone Crossing Time (Selected Type)',
+                description: 'How long the crossing takes, taken from the shared zone group\'s crossing '
+                    + 'table: the row for the number of zones actually crossed, in the column for the '
+                    + 'currently selected delivery type. Pair with a "Share a Zone Group" condition. If '
+                    + 'the zones share more than one group, the fastest crossing is used.'
             },
             {
                 value: 'timing_inputs.pickup_zone_selected_type_time',
@@ -187,7 +111,7 @@ const TimingConditionalModal = props => {
     }, [deliveryTypes])
 
     const conditionReferenceRows = useMemo(() => {
-        return flattenConditionFields(config?.fields ?? {})
+        return flattenConditionFields(config?.fields ?? {}, conditionFieldDescriptions)
     }, [config])
 
     const {
@@ -203,10 +127,12 @@ const TimingConditionalModal = props => {
         setName,
         setPriority,
         setQueryTree,
+        isDirty,
+        markSaved,
         setResultValue,
         setValueType,
         valueType,
-    } = useTimingConditional({conditional: props.conditional, config})
+    } = useTimingConditional({conditional: props.conditional, config, nextPriority: props.nextPriority})
 
     const selectedTimingValueOption = useMemo(() => {
         return timingValueOptions.find(option => option.value === resultValue) ?? null
@@ -214,6 +140,13 @@ const TimingConditionalModal = props => {
 
     const api = useAPI()
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Rules save one at a time, so clicking away from an edited rule would otherwise bin the edit.
+    const requestClose = () => {
+        if(isDirty && !confirm('This rule has unsaved changes. Close anyway and lose them?'))
+            return
+        hideModal()
+    }
 
     const hideModal = () => {
         reset()
@@ -266,6 +199,7 @@ const TimingConditionalModal = props => {
 
             api.post(`/ratesheets/time-conditional${timing_conditional_id ? `/${timing_conditional_id}` : ''}`, data).then(response => {
                 toast.success(`Successfully stored timing conditional "${name}"`)
+                markSaved()
                 props.reload()
                 hideModal()
             }).catch(error => {
@@ -280,7 +214,7 @@ const TimingConditionalModal = props => {
     }
 
     return (
-        <Modal show={props.show} onHide={hideModal} size='xl' dialogClassName='modal-90w'>
+        <Modal show={props.show} onHide={requestClose} size='xl' dialogClassName='modal-90w'>
             <Card>
                 <Card.Header>
                     <Row>

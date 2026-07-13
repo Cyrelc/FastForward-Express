@@ -1,15 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {Button, Col, Modal, ProgressBar, Row, Tabs, Tab} from 'react-bootstrap'
+import {Prompt} from 'react-router-dom'
 import {toast} from 'react-toastify'
 import BasicRatesTab from './BasicRatesTab'
-import ConditionalsTab from './Conditionals/ConditionalsTab'
-import ImportRatesTab from './ImportRatesTab'
+import DocumentationTab from './DocumentationTab'
+import PricingConditionalsTab from './PricingConditionals/PricingConditionalsTab'
+import ImportFromRatesheetModal from './ImportFromRatesheetModal'
 import MapTab from './MapTab'
-import TimeRatesTab from './TimeRatesTab'
 import TimingConditionalsTab from './TimingConditionals/TimingConditionalsTab'
-import WeightRatesTab from './WeightRatesTab'
-import DistanceRatesTab from './DistanceRatesTab'
-// import ZoneDistanceRatesTab from './ZoneDistanceRatesTab'
 import useImport from './Hooks/useImportFromRatesheet'
 import useMap from './Hooks/useMap'
 import useRatesheet from './Hooks/useRatesheet'
@@ -46,23 +44,26 @@ export default function Ratesheet(props) {
             setKey('basic')
     }, [location.hash])
 
+    // Zones and groups save individually now, so it is possible to edit several and save none of
+    // them. Closing the tab with unsaved map changes should not silently bin them.
+    useEffect(() => {
+        const warn = (event) => {
+            if(!mapState.hasUnsavedChanges)
+                return
+            event.preventDefault()
+            event.returnValue = ''
+            return ''
+        }
+
+        window.addEventListener('beforeunload', warn)
+        return () => window.removeEventListener('beforeunload', warn)
+    }, [mapState.hasUnsavedChanges])
+
     useEffect(() => {
         if(mapState.map) {
             const {match: {params}} = props
             api.get(params.ratesheetId ? `/ratesheets/${params.ratesheetId}` : '/ratesheets/create')
                 .then(async(response) => {
-                    var timeRates = (response.timeRates ?? []).map(rate => {
-                        return {
-                            ...rate,
-                            brackets: rate.brackets.map(bracket => {
-                                return {
-                                    ...bracket,
-                                    startTime: bracket.startTime ? new Date(bracket.startTime) : null,
-                                    endTime: bracket.endTime ? new Date(bracket.endTime) : null
-                                }
-                            })
-                        }
-                    })
                     ratesheetState.setDeliveryTypes(response.deliveryTypes)
                     ratesheetState.setName(response.name)
                     ratesheetState.setMiscRates(response.miscRates ?? [])
@@ -70,11 +71,10 @@ export default function Ratesheet(props) {
                     ratesheetState.setConditionals(response.conditionals ?? [])
                     ratesheetState.setTimingConditionals(response.timingConditionals ?? [])
                     importFromRatesheet.setRatesheets(response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId))
-                    ratesheetState.setTimeRates(timeRates)
-                    ratesheetState.setWeightRates(response.weightRates)
                     ratesheetState.setVolumeRates(response.volumeRates)
-                    ratesheetState.setZoneRates(response.zoneRates)
-                    ratesheetState.setUseInternalZonesCalc(response.useInternalZonesCalc)
+                    // Groups must land before the zones are drawn: a zone with no colour of its own
+                    // renders in its group's colour.
+                    mapState.setZoneGroups(response.zoneGroups ?? [])
                     if(params.ratesheetId) {
                         const mapZonesLength = response.mapZones.length
                         for (let index = 0; index < mapZonesLength; index++) {
@@ -140,22 +140,14 @@ export default function Ratesheet(props) {
                         coordinates: coordinates,
                         delivery_type_modifiers: importZone.delivery_type_modifiers
                             ?? (importZone.deliveryTypeModifiers ? JSON.stringify(importZone.deliveryTypeModifiers) : null),
-                        neighbours: importZone.neighbours ?? []
+                        neighbours: importZone.neighbours ?? [],
+                        // Groups belong to the ratesheet that owns them, so membership cannot travel
+                        // with an imported zone: the source sheet's ids are meaningless here and could
+                        // collide with a real group on this one. Re-assign the group by hand.
+                        groupIds: [],
                     }
                     mapState.createZone(polygon, normalizedZone)
                 })
-                break;
-            case 'timeRates':
-                let timeRates = ratesheetState.timeRates
-                importFromRatesheet.selectedImports.forEach(importRate => {
-                    const oldRateIndex = timeRates.findIndex(timeRate => timeRate.name === importRate.name)
-                    const brackets = importRate.brackets.map(bracket => { return {...bracket, startTime: new Date(bracket.startTime), endTime: new Date(bracket.endTime)}})
-                    if(oldRateIndex >= 0 && replace) {
-                        timeRates[oldRateIndex] = {...importRate, brackets: brackets}
-                    } else
-                        timeRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name, brackets: brackets})
-                })
-                ratesheetState.setTimeRates(timeRates)
                 break;
             case 'miscRates':
                 let miscRates = ratesheetState.miscRates
@@ -168,17 +160,6 @@ export default function Ratesheet(props) {
                 })
                 ratesheetState.setMiscRates(miscRates)
                 break
-            case 'weightRates':
-                let weightRates = ratesheetState.weightRates
-                importFromRatesheet.selectedImports.forEach(importRate => {
-                    const oldRateIndex = weightRates.findIndex(weightRate => weightRate.name === importRate.name)
-                    if(oldRateIndex >= 0 && replace) {
-                        weightRates[oldRateIndex] = importRate
-                    } else
-                        weightRates.push({...importRate, name: oldRateIndex >= 0 ? `${importRate.name} (copy)` : importRate.name})
-                })
-                ratesheetState.setWeightRates(weightRates)
-                break;
             case 'conditionals':
                 api.post('/ratesheets/conditionals/import', {
                     target_ratesheet_id: ratesheetState.ratesheetId,
@@ -209,36 +190,33 @@ export default function Ratesheet(props) {
         importFromRatesheet.reset()
     }
 
-    const store = () => {
+    /**
+     * Saves the ratesheet itself, then whatever the map has outstanding.
+     *
+     * The ratesheet save no longer carries zones or groups: they are addressed individually, and only
+     * the changed ones are sent. The old behaviour ("here is every zone; delete anything not in this
+     * list") meant a partial payload could silently wipe a map, and two people editing one map meant
+     * last-save-wins.
+     */
+    const store = async () => {
         mapState.setSavingMap(0)
-        const normalizedTimeRates = ratesheetState.timeRates.map(timeRate => {
-            const brackets = (timeRate.brackets ?? []).map(bracket => {
-                const startTime = bracket.startTime instanceof Date ? bracket.startTime.toISOString() : bracket.startTime
-                const endTime = bracket.endTime instanceof Date ? bracket.endTime.toISOString() : bracket.endTime
-                return {
-                    ...bracket,
-                    startTime,
-                    endTime,
-                }
-            })
 
-            return {
-                ...timeRate,
-                brackets,
-            }
-        })
         var data = {
             name: ratesheetState.name,
             ratesheet_id: ratesheetState.ratesheetId,
-            useInternalZonesCalc: ratesheetState.useInternalZonesCalc,
             deliveryTypes: ratesheetState.deliveryTypes,
-            weightRates: ratesheetState.weightRates,
-            zoneRates: ratesheetState.zoneRates,
-            mapZones: mapState.mapZones.map(zone => zone.collect()),
-            timeRates: normalizedTimeRates,
             miscRates: ratesheetState.miscRates
         }
-        api.post('/ratesheets', data).then(response => {
+
+        try {
+            const response = await api.post('/ratesheets', data)
+            // A brand new ratesheet has no id until now, and its zones need one to save against.
+            const ratesheetId = ratesheetState.ratesheetId ?? response.ratesheet_id
+            if(!ratesheetState.ratesheetId)
+                ratesheetState.setRatesheetId(ratesheetId)
+
+            await mapState.saveMap(api, ratesheetId)
+
             mapState.setSavingMap(100)
             toast.dismiss()
             if(ratesheetState.ratesheetId) {
@@ -249,13 +227,28 @@ export default function Ratesheet(props) {
                     autoClose: 5000,
                 })
             }
-        }, errorResponse => {
+        } catch(error) {
             mapState.setSavingMap(100)
-        })
+        }
     }
 
     return (
         <Row className='justify-content-md-center'>
+            {/*
+              * Navigating away inside the app does not fire beforeunload, so leaving the ratesheet
+              * with unsaved zones would silently bin them.
+              *
+              * The tabs navigate by assigning window.location.hash, which the router also sees as a
+              * location change - so only a real change of page is blocked, or every tab switch would
+              * nag about unsaved work.
+              */}
+            <Prompt
+                when={mapState.hasUnsavedChanges}
+                message={location => location.pathname === props.location.pathname
+                    ? true
+                    : 'This ratesheet has unsaved map changes. Leave anyway and lose them?'
+                }
+            />
             <Modal show={mapState.drawingMap < 100}>
                 <h4>Drawing map, please wait... <i className='fas fa-spinner fa-spin'></i></h4>
                 <ProgressBar now={mapState.drawingMap} />
@@ -268,36 +261,17 @@ export default function Ratesheet(props) {
                     <Tab eventKey='basic' title={<h4><i className='fas fa-cog'></i> Basic</h4>}>
                         <BasicRatesTab
                             ratesheetState={ratesheetState}
+                            openImport={() => importFromRatesheet.setImportType('miscRates')}
                         />
                     </Tab>
-                    {ratesheetState.useInternalZonesCalc &&
-                        <Tab eventKey='distance' title={<h4><i className='fas fa-map'></i>Distance Rates</h4>}>
-                            <DistanceRatesTab
-                                ratesheetState={ratesheetState}
-                                // handleZoneRateChange={handleZoneRateChange}
-                            />
-                        </Tab>
-                    }
-                    <Tab eventKey='weight' title={<h4><i className='fas fa-weight'></i> Weight Rates</h4>}>
-                        <WeightRatesTab
-                            setWeightRates={ratesheetState.setWeightRates}
-                            weightRates={ratesheetState.weightRates}
-                        />
-                    </Tab>
-                    {!!(ratesheetState.timeRates && ratesheetState.timeRates.length) &&
-                        <Tab eventKey='time' title={<h4><i className='fas fa-clock'></i> Time Rates</h4>}>
-                            <TimeRatesTab
-                                readOnly
-                                setTimeRates={ratesheetState.setTimeRates}
-                                timeRates={ratesheetState.timeRates}
-                            />
-                        </Tab>
-                    }
                     {ratesheetState.ratesheetId &&
-                        <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Conditionals</h4>}>
-                            <ConditionalsTab
+                        <Tab eventKey='conditionals' title={<h4><i className='fas fa-code-branch'></i> Pricing Conditionals</h4>}>
+                            <PricingConditionalsTab
+                                deliveryTypes={ratesheetState.deliveryTypes}
                                 mapZones={mapState.mapZones}
                                 ratesheetId={ratesheetState.ratesheetId}
+                                zoneGroups={mapState.zoneGroups}
+                                openImport={() => importFromRatesheet.setImportType('conditionals')}
                             />
                         </Tab>
                     }
@@ -308,6 +282,8 @@ export default function Ratesheet(props) {
                                 deliveryTypes={ratesheetState.deliveryTypes}
                                 mapZones={mapState.mapZones}
                                 ratesheetId={ratesheetState.ratesheetId}
+                                zoneGroups={mapState.zoneGroups}
+                                openImport={() => importFromRatesheet.setImportType('timingConditionals')}
                             />
                         </Tab>
                     }
@@ -315,28 +291,31 @@ export default function Ratesheet(props) {
                         <MapTab
                             mapState={mapState}
                             deliveryTypes={ratesheetState.deliveryTypes}
+                            ratesheetId={ratesheetState.ratesheetId}
+                            openImport={() => importFromRatesheet.setImportType('mapZones')}
                         />
                     </Tab>
-                    <Tab
-                        eventKey='import'
-                        title={<h4><i className='fas fa-solid fa-file-import' /> Import</h4>}
-                    >
-                        <ImportRatesTab
-                            importFromRatesheet={importFromRatesheet}
-                            originalRates={{
-                                mapZones: mapState.mapZones,
-                                miscRates: ratesheetState.miscRates,
-                                timeRates: ratesheetState.timeRates,
-                                weightRates: ratesheetState.weightRates,
-                                conditionals: ratesheetState.conditionals ?? [],
-                                timingConditionals: ratesheetState.timingConditionals ?? []
-                            }}
-                            type='miscRates'
-
-                            handleImport={handleImport}
-                        />
+                    <Tab eventKey='documentation' title={<h4><i className='fas fa-book'></i> Documentation</h4>}>
+                        <DocumentationTab />
                     </Tab>
                 </Tabs>
+                {/*
+                  * One modal, opened from whichever tab owns the thing being imported. Lives here
+                  * rather than in each tab because handleImport writes into this component's state.
+                  */}
+                <ImportFromRatesheetModal
+                    show={!!importFromRatesheet.importType}
+                    importType={importFromRatesheet.importType}
+                    onHide={() => importFromRatesheet.reset()}
+                    importFromRatesheet={importFromRatesheet}
+                    handleImport={handleImport}
+                    originalRates={{
+                        mapZones: mapState.mapZones,
+                        miscRates: ratesheetState.miscRates,
+                        conditionals: ratesheetState.conditionals ?? [],
+                        timingConditionals: ratesheetState.timingConditionals ?? [],
+                    }}
+                />
                 <Row className='justify-content-md-center'>
                     <Col md={1}>
                         <Button onClick={store}>Save</Button>

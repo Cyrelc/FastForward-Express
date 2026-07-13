@@ -2,30 +2,82 @@ import polylabel from 'polylabel'
 import simplify from 'simplify'
 import spatialIndex from '../utils/spatialIndex.js'
 
-export const polyColours = {
-    internalStroke : '#3651c9',
-    internalFill: '#8491c9',
-    outlyingStroke: '#d16b0c',
-    outlyingFill: '#e8a466',
-    peripheralStroke:'#2c9122',
-    peripheralFill: '#3bd82d'
+// Zone colour used to be derived from zone type. Type is gone, so colour is stored per zone (and
+// per group). This is only the fallback for a zone that has neither.
+export const DEFAULT_ZONE_COLOUR = '#8491c9'
+
+/**
+ * A grouped zone always shows its group's colour - that is the point of a group being visible on the
+ * map, and it means group membership is never ambiguous at a glance. A zone's own colour is therefore
+ * only used when it belongs to no group (e.g. shading the outlying towns individually).
+ *
+ * The stroke is the fill darkened, so only one colour is ever stored or picked.
+ */
+export const resolveZoneColour = (zone, zoneGroups = []) => {
+    const groupId = (zone?.groupIds ?? [])[0]
+    const group = groupId !== undefined
+        ? zoneGroups.find(zoneGroup => zoneGroup.zoneGroupId === groupId)
+        : null
+
+    if(group?.colour)
+        return group.colour
+
+    return zone?.colour ?? DEFAULT_ZONE_COLOUR
+}
+
+export const darkenColour = (colour, amount = 0.35) => {
+    const hex = `${colour ?? DEFAULT_ZONE_COLOUR}`.replace('#', '')
+    if(hex.length !== 6)
+        return DEFAULT_ZONE_COLOUR
+
+    const channels = [0, 2, 4].map(offset => {
+        const value = parseInt(hex.slice(offset, offset + 2), 16)
+        return Math.max(0, Math.round(value * (1 - amount)))
+    })
+
+    return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+export const randomZoneColour = () => {
+    // Pleasant mid-tone: fixed saturation/lightness, random hue.
+    const hue = Math.floor(Math.random() * 360)
+    const [red, green, blue] = hslToRgb(hue / 360, 0.45, 0.65)
+    return `#${[red, green, blue].map(channel => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+const hslToRgb = (h, s, l) => {
+    const chroma = (1 - Math.abs(2 * l - 1)) * s
+    const x = chroma * (1 - Math.abs(((h * 6) % 2) - 1))
+    const m = l - chroma / 2
+    const sector = Math.floor(h * 6) % 6
+    const [r, g, b] = [
+        [chroma, x, 0], [x, chroma, 0], [0, chroma, x],
+        [0, x, chroma], [x, 0, chroma], [chroma, 0, x],
+    ][sector]
+
+    return [r, g, b].map(channel => Math.round((channel + m) * 255))
 }
 
 export default class Zone {
     constructor(mapZone) {
-        const resolvedType = mapZone.type ?? 'internal'
         this.deliveryTypeModifiers = mapZone.deliveryTypeModifiers ?? {}
-        this.fillColour = polyColours[`${resolvedType}Fill`] ?? polyColours.internalFill
+        this.colour = mapZone.colour ?? null
+        this.groupIds = mapZone.groupIds ?? []
         this.name = mapZone.name
         this.neighbours = mapZone.neighbours
         this.polygon = mapZone.polygon
-        this.region = mapZone.region ?? ''
-        this.strokeColour = polyColours[`${resolvedType}Stroke`] ?? polyColours.internalStroke
         this.tags = mapZone.tags ?? []
-        this.type = resolvedType
         this.zoneId = mapZone.zoneId ?? null
 
+        this.fillColour = mapZone.fillColour ?? resolveZoneColour(this, mapZone.zoneGroups ?? [])
+        this.strokeColour = darkenColour(this.fillColour)
+
         this.polygon.setOptions({strokeColor: this.strokeColour, fillColor: this.fillColour})
+
+        // A zone drawn in the browser has no id yet, so it is dirty from birth - it does not exist
+        // server-side until someone saves it.
+        this.isDirty = mapZone.zoneId ? false : true
+        this.onDirty = null
 
         const coordinates = this.getCoordinates().map(coordinatePair => {
             return [coordinatePair.lat, coordinatePair.lng]
@@ -37,6 +89,45 @@ export default class Zone {
             position: {lat: neighbourLabelPosition[0], lng: neighbourLabelPosition[1]},
         })
         google.maps.event.addListener(this.polygon, 'rightclick', (point) => this.deletePolyPoint(point));
+
+        this.watchPath()
+    }
+
+    /**
+     * Dragging a vertex mutates the Google Maps path directly - React never hears about it - so
+     * geometry changes have to be observed on the path itself, or a zone could be edited on the map
+     * and silently not be saved.
+     *
+     * The listeners bind to the path's MVCArray, and setPath() swaps that array for a new one, so
+     * they must be re-bound every time the path is replaced (see setPath below).
+     */
+    watchPath = () => {
+        const path = this.polygon.getPath()
+
+        this.pathListeners?.forEach(listener => google.maps.event.removeListener(listener))
+        this.pathListeners = ['set_at', 'insert_at', 'remove_at'].map(event =>
+            google.maps.event.addListener(path, event, () => this.markDirty())
+        )
+    }
+
+    markDirty = () => {
+        this.isDirty = true
+        // Lets the map re-render its unsaved-changes indicators; a Zone is not React state.
+        this.onDirty?.(this)
+    }
+
+    markClean = () => {
+        this.isDirty = false
+    }
+
+    /**
+     * The single way a zone's geometry is replaced. Marks the zone dirty and re-binds the path
+     * watchers, so no code path can rewrite a polygon without the zone noticing.
+     */
+    setPath = (path) => {
+        this.polygon.setPath(path)
+        this.markDirty()
+        this.watchPath()
     }
 
     collect = () => {
@@ -45,14 +136,21 @@ export default class Zone {
             .filter(tag => !!tag)
 
         return {
+            colour: this.colour,
             coordinates: JSON.stringify(this.getCoordinates()),
             deliveryTypeModifiers: this.deliveryTypeModifiers,
+            groupIds: this.groupIds ?? [],
             name: this.name,
-            region: this.region ? `${this.region}`.trim() : null,
             tags: normalizedTags.length ? normalizedTags.join('|') : null,
-            type: this.type,
             zoneId: this.zoneId,
         }
+    }
+
+    /** Re-applies the zone's effective colour (its own, else its group's) to the polygon. */
+    applyColour = (zoneGroups = []) => {
+        this.fillColour = resolveZoneColour(this, zoneGroups)
+        this.strokeColour = darkenColour(this.fillColour)
+        this.polygon.setOptions({strokeColor: this.strokeColour, fillColor: this.fillColour})
     }
 
     delete = () => {
@@ -301,7 +399,7 @@ export default class Zone {
                 } else {
                     newPath = Array.prototype.concat(newRotatedPath.slice(origPos), newRotatedPath.slice(0, origPos))
                 }
-                zone.polygon.setPath(newPath)
+                zone.setPath(newPath)
         }
 
         allMapZones.forEach(zone => {
@@ -355,7 +453,7 @@ export default class Zone {
             }
             if(keep) filtered.push(pt)
         }
-        this.polygon.setPath(filtered)
+        this.setPath(filtered)
         try{ spatialIndex.updateZone(this) } catch(e){}
     }
 
@@ -392,7 +490,7 @@ export default class Zone {
 
         // convert back to lat/lng
         const path = simplified.map(p => ({ lat: p.x, lng: p.y / lngScale }))
-        this.polygon.setPath(path)
+        this.setPath(path)
         try{ spatialIndex.updateZone(this) } catch(e){}
     }
 
@@ -793,7 +891,7 @@ export default class Zone {
 
         // Replace polygon path with simplified points
         try{
-            this.polygon.setPath(out)
+            this.setPath(out)
         } catch(e){
             console.error('simplifyStreaming setPath error', e)
         }

@@ -27,14 +27,8 @@ class RatesheetModelFactory {
 
         $model->name = '';
         $model->deliveryTypes = array_map(array($this, 'PrepareDeliveryType'), $deliveryTypes->toArray());
-        // $model->timeRates = array(['name' => 'Evenings', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])],
-        //                         ['name' => 'Weekends', 'price' => '', 'brackets' => array(['startTime' => '', 'endTime' => '', 'startDayOfWeek' => '', 'endDayOfWeek' => ''])]);
-        $model->timeRates = array();
-        $model->weightRates = array(['name' => 'Basic Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])],
-                                    ['name' => 'Pallet Weight Rate', 'brackets' => array(['lbmax' => '', 'kbmax' => '', 'additionalXKgs' => '', 'additionalXLbs' => '', 'price' => ''])]);
-        $model->zoneRates = array([$this->PrepareZoneRate(0, 1, $model->deliveryTypes)]);
         $model->miscRates = array();
-        $model->useInternalZonesCalc = false;
+        $model->zoneGroups = array();
         $model->conditionals = array();
 
         return $model;
@@ -43,22 +37,31 @@ class RatesheetModelFactory {
     public function GetEditModel($ratesheetId) {
         $ratesheetRepo = new Repos\RatesheetRepo();
         $conditionalRepo = new Repos\ConditionalRepo();
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
 
         $ratesheet = $ratesheetRepo->GetById($ratesheetId);
         $model = new RatesheetFormModel();
         $model->name = $ratesheet->name;
-        $model->useInternalZonesCalc = filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN);
         $model->deliveryTypes = json_decode($ratesheet->delivery_types);
-        $model->timeRates = json_decode($ratesheet->time_rates);
-        $model->weightRates = json_decode($ratesheet->weight_rates);
-        $decodedZoneRates = json_decode($ratesheet->zone_rates, true) ?? [];
-        $model->zoneRates = array_map(function($zoneRate, $index) use ($model) {
-            return $this->PrepareZoneRate($zoneRate['id'] ?? $index, $zoneRate['zones'] ?? ($index + 1), $model->deliveryTypes, $zoneRate);
-        }, $decodedZoneRates, array_keys($decodedZoneRates));
         $model->mapZones = $ratesheetRepo->GetMapZones($ratesheetId);
         $model->miscRates = json_decode($ratesheet->misc_rates);
         $model->ratesheets = $ratesheetRepo->ListAll();
         $model->conditionals = $conditionalRepo->GetByRatesheetId($ratesheetId);
+
+        // Zone-crossing rates moved off the ratesheet and onto the group that is crossed.
+        $model->zoneGroups = $zoneGroupRepo->GetByRatesheetId($ratesheetId)->map(function($zoneGroup) use ($model, $zoneGroupRepo) {
+            $decoded = json_decode($zoneGroup->zone_rates, true) ?? [];
+
+            return [
+                'zoneGroupId' => $zoneGroup->zone_group_id,
+                'name' => $zoneGroup->name,
+                'colour' => $zoneGroup->colour,
+                'zoneIds' => $zoneGroupRepo->GetZoneIds($zoneGroup->zone_group_id),
+                'zoneRates' => array_map(function($zoneRate, $index) use ($model) {
+                    return $this->PrepareZoneRate($zoneRate['id'] ?? $index, $zoneRate['zones'] ?? ($index + 1), $model->deliveryTypes, $zoneRate);
+                }, $decoded, array_keys($decoded)),
+            ];
+        });
 
         foreach($model->mapZones as $mapZone)
             $mapZone->coordinates = json_decode($mapZone->coordinates);

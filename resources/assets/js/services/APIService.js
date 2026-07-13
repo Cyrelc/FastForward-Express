@@ -24,6 +24,7 @@ export default class ApiService {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'delete',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -43,6 +44,7 @@ export default class ApiService {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'GET',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -60,6 +62,7 @@ export default class ApiService {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
@@ -79,6 +82,7 @@ export default class ApiService {
         try {
             const response = await fetch(`${endpoint}`, {
                 method: 'PUT',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',

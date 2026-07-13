@@ -227,6 +227,13 @@ export default function PolySnapper(opts){
                         let bestDist = Infinity
                         for(let i=0;i<candidates.length;i++){
                             const it = candidates[i]
+                            /* The index holds every zone's vertices, including those of the polygon
+                               being edited - and the nearest point to a vertex you have just picked up
+                               is its own old position, so without this the drag snaps straight back to
+                               where it started. The linear scan below never had the problem because it
+                               honours `snapable`, which the app clears on the polygon it hands to
+                               enable(); the index knows nothing about that flag, so exclude by polygon. */
+                            if(that.currentpoly && it.zoneZIndex === that.currentpoly.zIndex) continue
                             const candLatLng = new google.maps.LatLng(it.lat, it.lng)
                             const d = google.maps.geometry.spherical.computeDistanceBetween(ll, candLatLng)
                             if(d < _thresh && d < bestDist){ bestDist = d; closest = candLatLng }

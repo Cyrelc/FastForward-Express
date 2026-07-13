@@ -125,12 +125,7 @@ class RatesheetController extends Controller {
             'delivery_zone_id' => 'required|numeric'
         ]);
 
-        if(!filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN)) {
-            return response()->json([
-                'zones_crossed' => null
-            ]);
-        }
-
+        // No ratesheet-level switch any more: a count exists whenever the two zones share a group.
         $chargeModelFactory = new ChargeModelFactory();
         $zonesCrossed = $chargeModelFactory->GetZonesCrossed($ratesheetId, $req->pickup_zone_id, $req->delivery_zone_id);
 
@@ -148,15 +143,6 @@ class RatesheetController extends Controller {
         $conditionals = $conditionalRepo->GetByRatesheetId($ratesheetId);
 
         return json_encode($conditionals);
-    }
-
-    public function listZoneRegions(Request $req) {
-        if($req->user()->cannot('appSettings.edit.*.*'))
-            abort(403);
-
-        $ratesheetRepo = new Repos\RatesheetRepo();
-
-        return response()->json($ratesheetRepo->ListZoneRegions()->values());
     }
 
     public function importConditionals(Request $req) {
@@ -281,7 +267,6 @@ class RatesheetController extends Controller {
         $this->validate($req, $ratesheetRules['rules'], $ratesheetRules['messages']);
 
         $ratesheetCollector = new Collectors\RatesheetCollector();
-        $zoneCollector = new Collectors\ZoneCollector();
         $ratesheet = $ratesheetCollector->Collect($req);
 
         if($isEdit)
@@ -289,28 +274,153 @@ class RatesheetController extends Controller {
         else
             $ratesheetId = $ratesheetRepo->Insert($ratesheet)->ratesheet_id;
 
-        // handle zone changes
-        $zones = $zoneCollector->Collect($req->mapZones, $ratesheetId);
-        $zonesToBeDeleted = $ratesheetRepo->GetMapZones($ratesheetId)->toArray();
-
-        foreach($zones as $zone)
-            if($zone['zone_id']) {
-                $zonesToBeDeleted = array_filter($zonesToBeDeleted, function($mapZone) use ($zone) {
-                    return $zone['zone_id'] != $mapZone['zone_id'];
-                });
-                $ratesheetRepo->UpdateZone($zone);
-            } else
-                $ratesheetRepo->InsertZone($zone);
-
-        foreach($zonesToBeDeleted as $deleteZone)
-            $ratesheetRepo->DeleteZone($deleteZone['zone_id']);
-
-        $this->updateNeighbours($ratesheetId);
-
         DB::commit();
         return response()->json([
             'success' => true,
+            'ratesheet_id' => $ratesheetId,
         ]);
+    }
+
+    /**
+     * Saves one zone. Zones used to be saved only as part of the whole ratesheet, where the payload
+     * was the complete zone list and anything missing from it was deleted - so a partial or buggy
+     * payload silently destroyed zones, and two people editing one map meant last-save-wins. Zones
+     * are now addressed individually and deletion is explicit (see destroyZone).
+     *
+     * @param $zoneId - null to create
+     * @return the saved zone_id, so the client can stop treating a newly drawn zone as new
+     */
+    public function storeZone(Request $req, $ratesheetId, $zoneId = null) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        $validation = new Validation\RatesheetValidationRules();
+        $zoneRules = $validation->GetZoneValidationRules($req);
+        $this->validate($req, $zoneRules['rules'], $zoneRules['messages']);
+
+        DB::beginTransaction();
+
+        $zoneCollector = new Collectors\ZoneCollector();
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
+
+        $collected = $zoneCollector->Collect([$req->zone], $ratesheetId);
+        $zone = $collected[0];
+        $zone['zone_id'] = $zoneId ?: null;
+
+        $groupIds = $zone['group_ids'];
+        unset($zone['group_ids']);
+
+        $saved = $zone['zone_id']
+            ? $ratesheetRepo->UpdateZone($zone)
+            : $ratesheetRepo->InsertZone($zone);
+
+        $zoneGroupRepo->SetZoneGroups($saved->zone_id, $this->resolveGroupIds($groupIds, $ratesheetId));
+
+        // Adjacency is symmetric geometry, so moving one zone can make or break its neighbours' links
+        // as well as its own. Only this zone's row of the adjacency matrix can have changed, so the
+        // recompute is scoped to it rather than sweeping the whole map.
+        $this->updateNeighboursForZone($ratesheetId, $saved->zone_id);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'zone_id' => $saved->zone_id,
+        ]);
+    }
+
+    public function destroyZone(Request $req, $ratesheetId, $zoneId) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $ratesheetRepo->DeleteZone($zoneId);
+        // The zone is gone from every neighbour list it appeared in.
+        $this->pruneNeighbour($ratesheetId, $zoneId);
+
+        DB::commit();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Saves one zone group (name, colour, and its zone-crossing rate table).
+     *
+     * @param $zoneGroupId - null to create
+     */
+    public function storeZoneGroup(Request $req, $ratesheetId, $zoneGroupId = null) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        $validation = new Validation\ZoneGroupValidationRules();
+        $zoneGroupRules = $validation->GetValidationRules($req, json_decode($ratesheet->delivery_types, true) ?? []);
+        $this->validate($req, $zoneGroupRules['rules'], $zoneGroupRules['messages']);
+
+        DB::beginTransaction();
+
+        $zoneGroupCollector = new Collectors\ZoneGroupCollector();
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
+
+        $collected = $zoneGroupCollector->Collect([$req->zoneGroup], $ratesheetId);
+        $zoneGroup = $collected[0];
+        $zoneGroup['zone_group_id'] = $zoneGroupId ?: null;
+
+        $saved = $zoneGroup['zone_group_id']
+            ? $zoneGroupRepo->Update($zoneGroup)
+            : $zoneGroupRepo->Insert($zoneGroup);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'zone_group_id' => $saved->zone_group_id,
+        ]);
+    }
+
+    public function destroyZoneGroup(Request $req, $ratesheetId, $zoneGroupId) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+        $ratesheet = $ratesheetRepo->GetById($ratesheetId);
+
+        if($req->user()->cannot('update', $ratesheet))
+            abort(403);
+
+        DB::beginTransaction();
+
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
+        $zoneIds = $zoneGroupRepo->GetZoneIds($zoneGroupId);
+        $zoneGroupRepo->Delete($zoneGroupId);
+
+        // Losing a group can leave its former members ungrouped, and an ungrouped zone is never
+        // traversable, so their adjacency has to be rebuilt.
+        foreach($zoneIds as $zoneId)
+            $this->updateNeighboursForZone($ratesheetId, $zoneId);
+
+        DB::commit();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Maps the client's group ids to real ones. A group created in the browser carries a negative
+     * placeholder id until it is saved; by the time a zone references it, it must be real.
+     */
+    private function resolveGroupIds($groupIds, $ratesheetId) {
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
+        $realIds = $zoneGroupRepo->GetByRatesheetId($ratesheetId)->pluck('zone_group_id')->all();
+
+        return array_values(array_filter($groupIds, function($groupId) use ($realIds) {
+            return in_array($groupId, $realIds);
+        }));
     }
 
     public function storeConditional(Request $req, $conditionalId = null) {
@@ -385,34 +495,89 @@ class RatesheetController extends Controller {
      * Private functions
      */
 
-    private function updateNeighbours($ratesheetId) {
+    /**
+     * Recomputes adjacency for a single zone, and fixes up the other side of every link it gains or
+     * loses. Adjacency is symmetric, so only this zone's row of the matrix can have changed when only
+     * this zone moved - which makes the work O(zones) instead of the O(zones^2) whole-map sweep.
+     *
+     * An ungrouped zone can never be traversed, so it holds no adjacency at all.
+     */
+    private function updateNeighboursForZone($ratesheetId, $zoneId) {
         $ratesheetRepo = new Repos\RatesheetRepo();
-        $selectionsRepo = new Repos\SelectionsRepo();
 
         $mapZones = $ratesheetRepo->GetMapZones($ratesheetId);
-        $neighbours = array();
-        foreach($mapZones as $zone1) {
-            if($zone1->type === 'internal' || $zone1->type === 'peripheral') {
-                foreach($mapZones as $zone2) {
-                    if($zone2->type === 'internal' || $zone2->type === 'peripheral') {
-                        if($zone1->zone_id === $zone2->zone_id || (array_key_exists($zone1->zone_id, $neighbours) && in_array($zone2->zone_id, $neighbours[$zone1->zone_id])) || (array_key_exists($zone2->zone_id, $neighbours) && in_array($zone1->zone_id, $neighbours[$zone2->zone_id])))
-                            continue;
-                        $count = 0;
-                        foreach(json_decode($zone1->coordinates) as $coord1) {
-                            foreach(json_decode($zone2->coordinates) as $coord2) {
-                                if($coord1->lat === $coord2->lat && $coord1->lng === $coord2->lng) {
-                                    array_key_exists($zone1->zone_id, $neighbours) ? $neighbours[$zone1->zone_id][] = $zone2->zone_id : $neighbours[$zone1->zone_id] = [$zone2->zone_id];
-                                    array_key_exists($zone2->zone_id, $neighbours) ? $neighbours[$zone2->zone_id][] = $zone1->zone_id : $neighbours[$zone2->zone_id] = [$zone1->zone_id];
-                                    break 2;
-                                }
-                            }
-                        }
-                    }
-                }
+        $zone = $mapZones->firstWhere('zone_id', $zoneId);
+
+        if(!$zone)
+            return;
+
+        $isGrouped = !empty($zone->group_ids);
+        $coordinates = json_decode($zone->coordinates);
+
+        $newNeighbourIds = [];
+        if($isGrouped)
+            foreach($mapZones as $other) {
+                if($other->zone_id === $zone->zone_id || empty($other->group_ids))
+                    continue;
+
+                if($this->zonesTouch($coordinates, json_decode($other->coordinates)))
+                    $newNeighbourIds[] = $other->zone_id;
             }
+
+        $ratesheetRepo->SetZoneNeighbours($zoneId, $newNeighbourIds ? json_encode($newNeighbourIds) : null);
+
+        // Mirror the change onto everyone else: add this zone to its new neighbours, and remove it
+        // from anyone it is no longer touching.
+        foreach($mapZones as $other) {
+            if($other->zone_id === $zone->zone_id)
+                continue;
+
+            $otherNeighbours = !empty($other->neighbours) ? json_decode($other->neighbours, true) : [];
+            $shouldContain = in_array($other->zone_id, $newNeighbourIds);
+            $doesContain = in_array($zoneId, $otherNeighbours);
+
+            if($shouldContain === $doesContain)
+                continue;
+
+            if($shouldContain)
+                $otherNeighbours[] = (int) $zoneId;
+            else
+                $otherNeighbours = array_values(array_filter($otherNeighbours, function($neighbourId) use ($zoneId) {
+                    return (int) $neighbourId !== (int) $zoneId;
+                }));
+
+            $ratesheetRepo->SetZoneNeighbours($other->zone_id, $otherNeighbours ? json_encode($otherNeighbours) : null);
         }
-        foreach($mapZones as $key => $zone)
-            if($zone->type === 'internal' || $zone->type === 'peripheral')
-                $ratesheetRepo->SetZoneNeighbours($zone->zone_id, array_key_exists($zone->zone_id, $neighbours) ? json_encode($neighbours[$zone->zone_id]) : null);
+    }
+
+    /**
+     * Drops a deleted zone out of every neighbour list that still mentions it.
+     */
+    private function pruneNeighbour($ratesheetId, $zoneId) {
+        $ratesheetRepo = new Repos\RatesheetRepo();
+
+        foreach($ratesheetRepo->GetMapZones($ratesheetId) as $zone) {
+            $neighbours = !empty($zone->neighbours) ? json_decode($zone->neighbours, true) : [];
+            if(!in_array($zoneId, $neighbours))
+                continue;
+
+            $neighbours = array_values(array_filter($neighbours, function($neighbourId) use ($zoneId) {
+                return (int) $neighbourId !== (int) $zoneId;
+            }));
+
+            $ratesheetRepo->SetZoneNeighbours($zone->zone_id, $neighbours ? json_encode($neighbours) : null);
+        }
+    }
+
+    /**
+     * Two zones are neighbours if they share at least one polygon vertex.
+     */
+    private function zonesTouch($coordinates, $otherCoordinates) {
+        foreach($coordinates as $coordinate)
+            foreach($otherCoordinates as $otherCoordinate)
+                if($coordinate->lat === $otherCoordinate->lat && $coordinate->lng === $otherCoordinate->lng)
+                    return true;
+
+        return false;
     }
 }

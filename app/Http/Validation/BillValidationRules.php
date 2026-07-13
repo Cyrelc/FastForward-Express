@@ -170,11 +170,33 @@ class BillValidationRules {
 			}
 		};
 
+		// A ratesheet can refuse a booking outright ("exceeds trailer capacity - please call us"). The
+		// quote screen already shows the message, but nothing stopped a customer submitting anyway:
+		// BillController::store takes its line items from the request and never re-prices. This is the
+		// backstop, and it lives here - in the ACCOUNT USER rules - on purpose. Employees get the
+		// relaxed rule set, so a refusal stays advisory for them: to staff it reads as "cannot be
+		// auto-priced", and they must still be able to book it and price it by hand.
+		$refusalRule = function($attribute, $value, $fail) use ($req) {
+			$chargeAccount = (new Repos\AccountRepo())->GetById($req->charge_account_id);
+			$ratesheetId = $chargeAccount->ratesheet_id ?? null;
+			if(!$ratesheetId)
+				return;
+
+			$ratesheet = (new Repos\RatesheetRepo())->GetById($ratesheetId);
+			if(!$ratesheet)
+				return;
+
+			$reason = (new \App\Http\Models\Bill\ChargeModelFactory())->GetRefusalReason($ratesheet, $req);
+			if($reason)
+				$fail($reason);
+		};
+
 		$rules = [
 			'accept_terms_and_conditions' => 'required|accepted',
 			'charge_account_id' => 'exclude_unless:charge_type.payment_type_id,' . $accountPaymentTypeId . '|required',
 			'charge_type.payment_type_id' => ['required', 'integer', Rule::in([$accountPaymentTypeId])],
 			'delivery_account_id' => ['exclude_unless:delivery_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
+			'delivery_type' => ['required', $refusalRule],
 			'pickup_account_id' => ['exclude_unless:pickup_address_type,Account', 'required', 'integer', Rule::in($validAccountIds)],
 			'time_delivery_scheduled' => ['required', 'date', 'after:time_pickup_scheduled', $minimumDeliveryGapRule],
 			'time_pickup_scheduled' => ['required', 'date', 'after:' . $minDateTime],

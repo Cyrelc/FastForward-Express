@@ -5,6 +5,7 @@ namespace App\Http\Models\Bill;
 use App\Http\Models;
 use App\Http\Repos;
 use App\Http\MapLogic;
+use App\Http\Services;
 use Illuminate\Support\Facades\Log;
 use JWadhams\JsonLogic;
 
@@ -19,36 +20,37 @@ class ChargeModelFactory {
 
         $bill = $this->mockBill($req);
 
-        $packageCharges = filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN) ? [] : $this->generatePackageCharges($ratesheet, $req->packages, $req->package_is_pallet, $req->use_imperial);
-
-        return $this->buildChargesForType($ratesheet, $bill, $packageCharges);
+        return $this->buildChargesForType($ratesheet, $bill);
     }
 
     /**
      * Computes the full line-item set for a single bill (with $bill->delivery_type already set).
-     * Package charges are passed in because they are delivery-type independent and can be
-     * computed once when pricing many types at once (see EstimateDeliveryQuotes).
+     *
+     * Weight is no longer charged here. It used to come from generatePackageCharges, reading the
+     * ratesheet's weight brackets - which only ever applied a bracket's flat base price, ignored the
+     * per-increment columns entirely, and threw a fatal for anything above the top bracket. Weight is
+     * now priced by conditionals like everything else (see the 2026_07_12_000005 backfill), which is
+     * what lets a rule charge "$2 for every whole 100 lb over 100".
      *
      * @param $ratesheet - standard ratesheet object
      * @param $bill - mock bill object with delivery_type set to the type being priced
-     * @param $packageCharges - pre-computed package line items (delivery-type independent)
      *
      * @return array of LineItemModel
      */
-    private function buildChargesForType($ratesheet, $bill, $packageCharges) {
+    private function buildChargesForType($ratesheet, $bill) {
         $distanceCharges = $this->generateDistanceCharges($ratesheet, $bill);
-        // $timeCharges = $this->generateTimeCharges($ratesheet, $req->time_pickup_scheduled, $req->time_delivery_scheduled);
-        $timeCharges = [];
 
-        $currentCharges = array_merge($distanceCharges, $packageCharges, $timeCharges);
-        $currentPrice = 0;
-        foreach($currentCharges as $charge) {
-            $currentPrice += $charge->getPrice();
-        }
+        $distanceBasePrice = 0;
+        foreach($distanceCharges as $charge)
+            $distanceBasePrice += $charge->getPrice();
 
-        $conditionalCharges = $this->generateConditionalCharges($ratesheet, $bill, null, $currentPrice);
+        $conditionalResult = $this->generateConditionalCharges($ratesheet, $bill, null, $distanceBasePrice, $distanceBasePrice);
 
-        return array_merge($distanceCharges, $packageCharges, $timeCharges, $conditionalCharges);
+        // A 'set' conditional supplies its own base price (e.g. an origin zone's price), so the
+        // default distance base is dropped to avoid double-charging; otherwise it is kept.
+        $baseCharges = $conditionalResult['suppressBase'] ? [] : $distanceCharges;
+
+        return array_merge($baseCharges, $conditionalResult['lineItems']);
     }
 
     /**
@@ -75,9 +77,25 @@ class ChargeModelFactory {
         }
     }
 
-    public function GetZonesCrossed($ratesheetId, $pickupZoneId, $deliveryZoneId) {
+    /**
+     * Counts the zones crossed between two zones, traversing only within a single zone group.
+     *
+     * zones.neighbours is pure geometry (which zones physically touch), computed for every grouped
+     * zone regardless of group. The group is the mask applied here: a zone may belong to several
+     * groups, so a BFS through group A must never route through a zone that is only in group B.
+     * Passing no $zoneGroupId traverses the raw geometric graph (used by the zonesCrossed endpoint).
+     *
+     * A zone is 1 zone from itself, preserving the original semantics.
+     */
+    public function GetZonesCrossed($ratesheetId, $pickupZoneId, $deliveryZoneId, $zoneGroupId = null) {
         $ratesheetRepo = new Repos\RatesheetRepo();
         $zones = $ratesheetRepo->GetMapZones($ratesheetId)->toArray();
+
+        $traversable = null;
+        if($zoneGroupId !== null) {
+            $zoneGroupRepo = new Repos\ZoneGroupRepo();
+            $traversable = array_flip($zoneGroupRepo->GetZoneIds($zoneGroupId));
+        }
 
         // Build adjacency map: zone_id => [neighbour_ids]
         $graph = [];
@@ -93,6 +111,9 @@ class ChargeModelFactory {
         if(!$startId || !$targetId)
             return null;
 
+        if($traversable !== null && (!isset($traversable[$startId]) || !isset($traversable[$targetId])))
+            return null;
+
         // BFS structures
         $queue = [ $startId ];
         $visited = [ $startId => 1 ]; // zone_id => distance
@@ -106,14 +127,111 @@ class ChargeModelFactory {
             }
 
             foreach ($graph[$currentId] ?? [] as $neighbourId) {
-                if (!isset($visited[$neighbourId])) {
-                    $visited[$neighbourId] = $currentDistance + 1;
-                    $queue[] = $neighbourId;
-                }
+                if (isset($visited[$neighbourId]))
+                    continue;
+                if ($traversable !== null && !isset($traversable[$neighbourId]))
+                    continue;
+
+                $visited[$neighbourId] = $currentDistance + 1;
+                $queue[] = $neighbourId;
             }
         }
 
         return null;
+    }
+
+    /**
+     * For every group the pickup and delivery zones have in common, works out what crossing that
+     * group would cost and take for the given delivery type. A group only produces a candidate if
+     * the BFS finds a route AND the group's rate table has a row for that many zones.
+     *
+     * A group existing does not mean crossing applies - these are just the numbers a conditional may
+     * choose to reference via the zones_crossed_cost / zones_crossed_time fields.
+     *
+     * The BFS does not depend on the delivery type, so candidates are built once per route and the
+     * per-type cost/time are read off the carried rate row by SelectCandidate.
+     *
+     * @return array of ['zone_group_id', 'name', 'zones_crossed', 'rate']
+     */
+    private function BuildZoneCrossingCandidates($ratesheetId, $pickupZone, $deliveryZone) {
+        if(!$pickupZone || !$deliveryZone)
+            return [];
+
+        $sharedGroupIds = array_values(array_intersect(
+            $this->NormalizeGroupIds($pickupZone),
+            $this->NormalizeGroupIds($deliveryZone)
+        ));
+
+        if(!$sharedGroupIds)
+            return [];
+
+        $zoneGroupRepo = new Repos\ZoneGroupRepo();
+        $candidates = [];
+
+        foreach($sharedGroupIds as $zoneGroupId) {
+            $zoneGroup = $zoneGroupRepo->GetById($zoneGroupId);
+            if(!$zoneGroup)
+                continue;
+
+            $zonesCrossed = $this->GetZonesCrossed($ratesheetId, $pickupZone->zone_id, $deliveryZone->zone_id, $zoneGroupId);
+            if($zonesCrossed === null)
+                continue;
+
+            $zoneRate = $this->GetZoneRateByDistance($zoneGroup->zone_rates, $zonesCrossed);
+            if(!$zoneRate)
+                continue;
+
+            $candidates[] = [
+                'zone_group_id' => $zoneGroupId,
+                'name' => $zoneGroup->name,
+                'zones_crossed' => $zonesCrossed,
+                'rate' => $zoneRate,
+            ];
+        }
+
+        return $candidates;
+    }
+
+    /**
+     * Picks the candidate a context should use, for one delivery type. Pickup and delivery can share
+     * more than one group; pricing takes the cheapest crossing and timing takes the fastest, each on
+     * its own (timing runs in contexts where nothing is priced at all, so it cannot defer to the
+     * price winner).
+     *
+     * A candidate whose figure is null - the group has a row for this distance but nothing entered
+     * for this delivery type - is not eligible. null means "not configured", not "free", and a rule
+     * that asks for an unconfigured crossing aborts rather than quietly charging nothing.
+     *
+     * @return array{value: float, zones_crossed: int, zone_group_id: int, name: string}|null
+     */
+    private function SelectCandidate($candidates, $deliveryTypeName, $field) {
+        $eligible = [];
+
+        foreach($candidates as $candidate) {
+            $value = $this->GetZoneRateTypedValue($candidate['rate'], $deliveryTypeName, $field);
+            if($value === null)
+                continue;
+
+            $eligible[] = array_merge($candidate, ['value' => $value]);
+        }
+
+        if(!$eligible)
+            return null;
+
+        usort($eligible, function($a, $b) {
+            return $a['value'] <=> $b['value'];
+        });
+
+        return $eligible[0];
+    }
+
+    private function NormalizeGroupIds($zone) {
+        $groupIds = $zone->group_ids ?? [];
+
+        if(is_string($groupIds))
+            $groupIds = json_decode($groupIds, true) ?: [];
+
+        return array_map('intval', (array) $groupIds);
     }
 
     /**
@@ -140,22 +258,24 @@ class ChargeModelFactory {
         $deliveryTypes = json_decode($ratesheet->delivery_types, true) ?? [];
         $timingConditionals = $timingConditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id)->toArray();
 
-        $useInternalZonesCalc = filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN);
-        $pickupZoneId = $pickupZone->zone_id ?? null;
-        $deliveryZoneId = $deliveryZone->zone_id ?? null;
-        $zonesCrossed = ($useInternalZonesCalc && $pickupZoneId && $deliveryZoneId)
-            ? $this->GetZonesCrossed($ratesheet->ratesheet_id, $pickupZoneId, $deliveryZoneId)
-            : null;
+        // Crossing candidates depend only on the route, not the delivery type — built once. Having a
+        // candidate does not mean crossing applies; a timing conditional decides that by referencing
+        // timing_inputs.zones_crossed_time.
+        $candidates = $this->BuildZoneCrossingCandidates($ratesheet->ratesheet_id, $pickupZone, $deliveryZone);
 
-        // Type-independent zone context (zone types, tags, names, zone-time maps) — built once.
-        $zoneContext = $this->BuildZoneContext($pickupZone, $deliveryZone, $deliveryTypes, $zonesCrossed, $useInternalZonesCalc);
+        // Type-independent zone context (tags, names, groups, zone-time maps) — built once.
+        $zoneContext = $this->BuildZoneContext($pickupZone, $deliveryZone, $deliveryTypes, $candidates);
 
         $results = [];
         foreach($deliveryTypes as $deliveryType) {
             $defaultTime = isset($deliveryType['time']) ? (float) $deliveryType['time'] : 0;
-            $timingContext = $this->BuildTimingContext($deliveryType, $zoneContext, $ratesheet, $zonesCrossed, $defaultTime);
+            $timingContext = $this->BuildTimingContext($deliveryType, $zoneContext, $candidates, $defaultTime);
 
-            $deliveryType['time'] = $this->ApplyTimingConditionals($defaultTime, $timingConditionals, $timingContext);
+            $timing = $this->ApplyTimingConditionals($defaultTime, $timingConditionals, $timingContext);
+
+            $deliveryType['time'] = $timing['time'];
+            // How the time was arrived at, so staff can see which rules fired (and which did not).
+            $deliveryType['time_breakdown'] = $timing['breakdown'];
             $results[] = $deliveryType;
         }
 
@@ -200,17 +320,6 @@ class ChargeModelFactory {
             $pickupDateTime = null;
         }
 
-        // Package charges are delivery-type independent — compute once and reuse for every type.
-        $packageError = null;
-        $packageCharges = [];
-        try {
-            $packageCharges = filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN)
-                ? []
-                : $this->generatePackageCharges($ratesheet, $req->packages ?? [], $req->package_is_pallet, $req->use_imperial);
-        } catch (\Throwable $e) {
-            $packageError = $e->getMessage();
-        }
-
         $results = [];
         foreach($deliveryTypes as $deliveryType) {
             $typeId = $deliveryType['id'] ?? null;
@@ -218,13 +327,13 @@ class ChargeModelFactory {
             $fallbackTime = isset($deliveryType['time']) ? (float) $deliveryType['time'] : null;
 
             $price = null;
-            $reason = $packageError;
+            $reason = null;
             $lineItems = [];
 
-            if($packageError === null) {
+            {
                 try {
                     $bill->delivery_type = $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $typeId);
-                    $lineItems = $this->buildChargesForType($ratesheet, $bill, $packageCharges);
+                    $lineItems = $this->buildChargesForType($ratesheet, $bill);
                     $price = 0;
                     foreach($lineItems as $lineItem)
                         $price += $lineItem->getPrice();
@@ -246,6 +355,10 @@ class ChargeModelFactory {
                 'fits_today' => $feasibility['fits_today'],
                 'earliest_delivery' => $feasibility['earliest_delivery'],
                 'line_items' => $lineItems,
+                // Which timing rules fired, and what each did to the running total. Not stored on the
+                // bill - it is recomputed with every quote - but it is the only way to see why a
+                // delivery time came out the way it did, or which rule is wrongly (not) applying.
+                'time_breakdown' => $timeEntry['time_breakdown'] ?? [],
             ]);
         }
 
@@ -275,6 +388,76 @@ class ChargeModelFactory {
     }
 
     /**
+     * The message of the first refusal rule that matches this bill, or null if none do.
+     *
+     * A refusal means "we cannot carry this - call us", and it has to be enforced where the booking is
+     * actually accepted, not just where it is quoted: BillController::store takes its line items from
+     * the request and never re-prices, so a customer who saw the refusal on the quote screen could
+     * still submit the bill with no charges on it.
+     *
+     * Deliberately NOT applied to employees. A refusal reads to staff as "this cannot be auto-priced",
+     * and staff are supposed to be able to book that bill and price it by hand - the same escape hatch
+     * they already have for an address outside every zone. See BillValidationRules, which picks a
+     * relaxed rule set for employees and the restricted one for account users.
+     *
+     * @param $req - the bill submit request (flat *_address_lat fields), not a pricing request
+     */
+    public function GetRefusalReason($ratesheet, $req) {
+        $conditionalRepo = new Repos\ConditionalRepo();
+        $refusals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['message']);
+
+        if(!count($refusals))
+            return null;
+
+        $deliveryTypeId = is_array($req->delivery_type)
+            ? ($req->delivery_type['id'] ?? null)
+            : $req->delivery_type;
+
+        if($deliveryTypeId === null)
+            return null;
+
+        // The pricing context is built from a quote-shaped request, so the bill's flat fields are
+        // mapped onto that shape rather than duplicating how the context is assembled.
+        $quoteRequest = new \Illuminate\Http\Request([
+            'ratesheet_id' => $ratesheet->ratesheet_id,
+            'delivery_type_id' => $deliveryTypeId,
+            'packages' => $req->packages ?? [],
+            'package_is_pallet' => $req->is_pallet ?? false,
+            'package_is_minimum' => $req->is_min_weight_size ?? false,
+            'use_imperial' => $req->use_imperial ?? false,
+            'pickup_address' => [
+                'is_mall' => $req->pickup_address_is_mall ?? false,
+                'lat' => $req->pickup_address_lat,
+                'lng' => $req->pickup_address_lng,
+            ],
+            'delivery_address' => [
+                'is_mall' => $req->delivery_address_is_mall ?? false,
+                'lat' => $req->delivery_address_lat,
+                'lng' => $req->delivery_address_lng,
+            ],
+            'time_pickup_scheduled' => $req->time_pickup_scheduled,
+            'time_delivery_scheduled' => $req->time_delivery_scheduled,
+        ]);
+
+        try {
+            $context = $this->BuildPricingContext($ratesheet, $this->mockBill($quoteRequest));
+        } catch (\Throwable $e) {
+            // The trip could not be resolved at all (an address outside every zone, say). That is a
+            // different problem with its own handling; it is not this rule's job to reject it.
+            return null;
+        }
+
+        foreach($refusals as $refusal) {
+            $rules = json_decode($refusal->json_logic, true);
+
+            if(JsonLogic::apply($rules, $context))
+                return $refusal->value ?: $refusal->name;
+        }
+
+        return null;
+    }
+
+    /**
      * Server-authoritative minimum delivery time (hours) for a single delivery type on a route,
      * resolved from addresses. Used by submit-side validation so the chosen delivery time can be
      * checked against a value the client cannot tamper with. Returns null when the route cannot be
@@ -292,11 +475,29 @@ class ChargeModelFactory {
         return null;
     }
 
+    /**
+     * Applies the timing rules and records HOW it got to the answer.
+     *
+     * A delivery time is now the product of rules rather than a single number on the ratesheet, so
+     * "why is this 4 hours?" needs an answer. The breakdown lists every rule that fired, what it did,
+     * and the running total afterwards - which is what makes it possible to see a rule applying that
+     * should not be, or not applying when it should.
+     *
+     * @return array{time: float, breakdown: array}
+     */
     private function ApplyTimingConditionals($originalTime, $timingConditionals, $timingContext) {
+        $breakdown = [[
+            'name' => 'Base time for this delivery type',
+            'action' => 'base',
+            'value' => (float) $originalTime,
+            'running_total' => (float) $originalTime,
+        ]];
+
         if(!$timingConditionals || !count($timingConditionals))
-            return $originalTime;
+            return ['time' => $originalTime, 'breakdown' => $breakdown];
 
         $currentTime = $originalTime;
+        $timeWasSet = false;
 
         usort($timingConditionals, function($a, $b) {
             $priorityA = isset($a['priority']) ? (int) $a['priority'] : 0;
@@ -311,34 +512,51 @@ class ChargeModelFactory {
 
             if(JsonLogic::apply($rules, $timingContext)) {
                 $action = json_decode($conditional['action']);
-                $value = $this->ResolveTimingValue($conditional, $timingContext);
+                $isAdd = $action && $action->value === 'add';
 
-                if($action && $action->value === 'add')
-                    $currentTime += $value;
-                else
-                    $currentTime = $value;
-
-                $continueOnValue = $conditional['continue_on'] ?? null;
-                if($continueOnValue === null) {
-                    $continueOn = 1;
-                } else {
-                    $parsed = filter_var($continueOnValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-                    $continueOn = $parsed === null ? ((int) $continueOnValue === 1 ? 1 : 0) : ($parsed ? 1 : 0);
+                // First 'set' wins, matching the pricing engine: priority ranks which rule owns the
+                // time, and a lower-ranked one is skipped rather than overwriting the winner.
+                if(!$isAdd && $timeWasSet) {
+                    $breakdown[] = [
+                        'name' => $this->RenderConditionalName($conditional['name'] ?? '(unnamed rule)', $timingContext),
+                        'action' => 'skipped',
+                        'value' => null,
+                        'running_total' => (float) $currentTime,
+                        'note' => 'Matched, but an earlier rule already set the time',
+                    ];
+                    continue;
                 }
 
-                if(!$continueOn)
-                    return $currentTime;
+                $value = $this->ResolveTimingValue($conditional, $timingContext);
+
+                if($isAdd) {
+                    $currentTime += $value;
+                } else {
+                    $currentTime = $value;
+                    $timeWasSet = true;
+                }
+
+                $stopped = !$this->ParseContinueOn($conditional['continue_on'] ?? null);
+
+                $breakdown[] = [
+                    'name' => $this->RenderConditionalName($conditional['name'] ?? '(unnamed rule)', $timingContext),
+                    'action' => $isAdd ? 'add' : 'set',
+                    'value' => (float) $value,
+                    'running_total' => (float) $currentTime,
+                    'note' => $stopped ? 'Stopped here — no later rules were considered' : null,
+                ];
+
+                if($stopped)
+                    return ['time' => $currentTime, 'breakdown' => $breakdown];
             }
         }
 
-        return $currentTime;
+        return ['time' => $currentTime, 'breakdown' => $breakdown];
     }
 
     private function ResolveTimingValue($conditional, $timingContext) {
-        if(($conditional['value_type'] ?? null) === 'field') {
-            $resolved = $this->GetValueByPath($timingContext, $conditional['value'] ?? '');
-            return is_numeric($resolved) ? (float) $resolved : 0;
-        }
+        if(($conditional['value_type'] ?? null) === 'field')
+            return $this->ResolveFieldValue($timingContext, $conditional['value'] ?? '', $conditional['name'] ?? '');
 
         return is_numeric($conditional['value']) ? (float) $conditional['value'] : 0;
     }
@@ -371,61 +589,79 @@ class ChargeModelFactory {
      * (zone types/names/tags, the per-type zone-time maps, zone-crossing count). Built once per
      * route and reused across every delivery type.
      */
-    private function BuildZoneContext($pickupZone, $deliveryZone, $deliveryTypes, $zonesCrossed, $useInternalZonesCalc) {
-        $pickupZoneId = $pickupZone ? $pickupZone->zone_id : null;
-        $deliveryZoneId = $deliveryZone ? $deliveryZone->zone_id : null;
-        $zonesSame = $pickupZoneId && $deliveryZoneId ? $pickupZoneId === $deliveryZoneId : false;
+    /**
+     * Computes the zone-relationship flags shared by the pricing and timing contexts from two resolved
+     * zone objects. Single source of truth so both engines agree on what "same zone" and "same group"
+     * mean. (Zone type is gone entirely: a rule that wants what internal/external used to say now asks
+     * about the tag or the group directly.)
+     */
+    private function ComputeZoneRelationFlags($pickupZone, $deliveryZone) {
+        $pickupZoneId = $pickupZone->zone_id ?? null;
+        $deliveryZoneId = $deliveryZone->zone_id ?? null;
 
-        $pickupZoneType = $pickupZone ? $pickupZone->type : null;
-        $deliveryZoneType = $deliveryZone ? $deliveryZone->type : null;
-        $pickupIsInternal = $pickupZoneType === 'internal';
-        $deliveryIsInternal = $deliveryZoneType === 'internal';
-        $pickupIsExternal = $pickupZoneType && $pickupZoneType !== 'internal';
-        $deliveryIsExternal = $deliveryZoneType && $deliveryZoneType !== 'internal';
+        $sharedGroupIds = array_values(array_intersect(
+            $this->NormalizeGroupIds($pickupZone),
+            $this->NormalizeGroupIds($deliveryZone)
+        ));
 
         return [
-            'zones_same' => $zonesSame,
-            'zones_crossed' => $useInternalZonesCalc ? $zonesCrossed : null,
-            'both_internal' => $pickupIsInternal && $deliveryIsInternal,
-            'both_external' => $pickupIsExternal && $deliveryIsExternal,
-            'one_internal_one_external' => ($pickupIsInternal && $deliveryIsExternal) || ($pickupIsExternal && $deliveryIsInternal),
-            'ratesheet' => [
-                'use_internal_zones_calc' => (bool) $useInternalZonesCalc
-            ],
+            'zones_same' => $pickupZoneId && $deliveryZoneId ? $pickupZoneId === $deliveryZoneId : false,
+            'same_group' => (bool) $sharedGroupIds,
+            'shared_group_ids' => $sharedGroupIds,
+        ];
+    }
+
+    /**
+     * The nested per-side zone shape shared by the pricing and timing contexts.
+     */
+    private function BuildZoneNode($zone) {
+        return [
+            'zone_id' => $zone->zone_id ?? null,
+            'name' => $zone->name ?? null,
+            'tags' => $this->NormalizeZoneTags($zone->tags ?? null),
+            'groups' => array_values((array) ($zone->groups ?? [])),
+            'group_ids' => $this->NormalizeGroupIds($zone),
+        ];
+    }
+
+    /**
+     * Parses a raw continue_on value (from an array or object conditional) into a bool. Defaults to
+     * true (continue) when unset. Shared by the pricing and timing engines.
+     */
+    private function ParseContinueOn($continueOnValue) {
+        if($continueOnValue === null)
+            return true;
+
+        $parsed = filter_var($continueOnValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        return $parsed === null ? ((int) $continueOnValue === 1) : $parsed;
+    }
+
+    private function BuildZoneContext($pickupZone, $deliveryZone, $deliveryTypes, $candidates) {
+        $flags = $this->ComputeZoneRelationFlags($pickupZone, $deliveryZone);
+
+        return [
+            'zones_same' => $flags['zones_same'],
+            'same_group' => $flags['same_group'],
             'delivery_address' => [
-                'zone_id' => $deliveryZoneId,
-                'zone_type' => $deliveryZoneType,
-                'is_internal' => $deliveryIsInternal,
-                'is_external' => $deliveryIsExternal,
-                'zone' => [
-                    'name' => $deliveryZone ? $deliveryZone->name : null,
-                    'region' => $deliveryZone ? $deliveryZone->region : null,
-                    'tags' => $this->NormalizeZoneTags($deliveryZone ? $deliveryZone->tags : null),
-                    'tags_text' => $deliveryZone && $deliveryZone->tags ? $deliveryZone->tags : '',
-                ],
+                'zone' => $this->BuildZoneNode($deliveryZone),
                 'zone_time' => $this->BuildZoneTime($deliveryZone, $deliveryTypes)
             ],
             'pickup_address' => [
-                'zone_id' => $pickupZoneId,
-                'zone_type' => $pickupZoneType,
-                'is_internal' => $pickupIsInternal,
-                'is_external' => $pickupIsExternal,
-                'zone' => [
-                    'name' => $pickupZone ? $pickupZone->name : null,
-                    'region' => $pickupZone ? $pickupZone->region : null,
-                    'tags' => $this->NormalizeZoneTags($pickupZone ? $pickupZone->tags : null),
-                    'tags_text' => $pickupZone && $pickupZone->tags ? $pickupZone->tags : '',
-                ],
+                'zone' => $this->BuildZoneNode($pickupZone),
                 'zone_time' => $this->BuildZoneTime($pickupZone, $deliveryTypes)
             ]
         ];
     }
 
     /**
-     * Merges the type-independent zone context with the fields that depend on the delivery type
-     * being priced (base time, selected-type zone times, internal-zone-distance time).
+     * Merges the type-independent zone context with the fields that depend on the delivery type being
+     * timed (base time, selected-type zone times, zone-crossing time).
+     *
+     * zones_crossed and zones_crossed_time come from the fastest shared group for this delivery type.
+     * Both are null when no group produces a routable, configured crossing — a timing rule that
+     * references a null crossing aborts rather than silently timing the trip at zero.
      */
-    private function BuildTimingContext($deliveryType, $zoneContext, $ratesheet, $zonesCrossed, $defaultTime) {
+    private function BuildTimingContext($deliveryType, $zoneContext, $candidates, $defaultTime) {
         $selectedTypeKey = 'type_' . ($deliveryType['id'] ?? '');
         $pickupZoneTime = $zoneContext['pickup_address']['zone_time'];
         $deliveryZoneTime = $zoneContext['delivery_address']['zone_time'];
@@ -433,24 +669,18 @@ class ChargeModelFactory {
         $pickupSelectedTypeTime = is_numeric($pickupZoneTime[$selectedTypeKey] ?? null) ? (float) $pickupZoneTime[$selectedTypeKey] : 0;
         $deliverySelectedTypeTime = is_numeric($deliveryZoneTime[$selectedTypeKey] ?? null) ? (float) $deliveryZoneTime[$selectedTypeKey] : 0;
 
-        $externalZoneTimeTotal = 0;
-        if($zoneContext['pickup_address']['is_external'])
-            $externalZoneTimeTotal += $pickupSelectedTypeTime;
-        if($zoneContext['delivery_address']['is_external'])
-            $externalZoneTimeTotal += $deliverySelectedTypeTime;
-
         $friendlyName = $deliveryType['friendlyName'] ?? $deliveryType['name'] ?? null;
-        $internalZoneDistanceTime = $this->ResolveInternalZoneDistanceTime($ratesheet, $zonesCrossed, $friendlyName);
+        $fastest = $this->SelectCandidate($candidates, $friendlyName, 'time');
 
         return array_merge($zoneContext, [
             'delivery_type' => $deliveryType['id'] ?? null,
+            'zones_crossed' => $fastest ? $fastest['zones_crossed'] : null,
+            'crossing_group' => $fastest ? $fastest['name'] : null,
             'base_time' => [
                 'default' => (float) $defaultTime,
             ],
             'timing_inputs' => [
-                'external_zone_time_total' => $externalZoneTimeTotal,
-                'default_plus_external_zone_time_total' => (float) $defaultTime + $externalZoneTimeTotal,
-                'internal_zone_distance_time' => $internalZoneDistanceTime,
+                'zones_crossed_time' => $fastest ? $fastest['value'] : null,
                 'pickup_zone_selected_type_time' => $pickupSelectedTypeTime,
                 'delivery_zone_selected_type_time' => $deliverySelectedTypeTime,
             ],
@@ -478,17 +708,6 @@ class ChargeModelFactory {
         return array_values(array_filter(array_map('trim', explode('|', $tags))));
     }
 
-    private function ResolveInternalZoneDistanceTime($ratesheet, $zonesCrossed, $deliveryTypeFriendlyName) {
-        if(!$ratesheet || !$deliveryTypeFriendlyName || !is_numeric($zonesCrossed) || !$ratesheet->zone_rates)
-            return 0;
-
-        $zoneRate = $this->GetZoneRateByDistance($ratesheet->zone_rates, $zonesCrossed);
-        if(!$zoneRate)
-            return 0;
-
-        return $this->GetZoneRateTypedValue($zoneRate, $deliveryTypeFriendlyName, 'time');
-    }
-
     private function GetZoneRateByDistance($zoneRatesJson, $zonesCrossed) {
         $zoneRates = json_decode($zoneRatesJson, true);
         if(!is_array($zoneRates))
@@ -501,13 +720,17 @@ class ChargeModelFactory {
         return null;
     }
 
+    /**
+     * Returns null (not 0) when this delivery type has no figure on the rate row, so that an
+     * unconfigured crossing is distinguishable from a free one.
+     */
     private function GetZoneRateTypedValue($zoneRate, $deliveryTypeFriendlyName, $field) {
         $typedRate = $zoneRate[$deliveryTypeFriendlyName] ?? null;
         if(!is_array($typedRate))
-            return 0;
+            return null;
 
         $value = $typedRate[$field] ?? null;
-        return is_numeric($value) ? (float) $value : 0;
+        return is_numeric($value) ? (float) $value : null;
     }
 
     private function BuildZoneTime($zone, $deliveryTypes) {
@@ -533,51 +756,130 @@ class ChargeModelFactory {
     }
 
     /**
-     * If using internal zone crossed calculation, we must calculate how many zones have been crossed
-     * We do this by creating a list of all zones as unvisited, then one that has been visited, and place the pickup location in the visited
-     * Then systematically, we remove adjacent zones and add them to the visited list until we reach the destination,
-     * at which point we can return the distance (number of zones required to be crossed)
-     * 
-     * @param $pickupZone - the complete zone object wherein the pickup will occur
-     * @param $deliveryZone - as pickup zone but for delivery location
-     * @param $ratesheet - the ratesheet against which to check pricing
-     * @param $deliveryType - the deliveryType to check against the ratesheet for pricing
+     * Resolves a zone's per-delivery-type cost from its delivery_type_modifiers, for the given
+     * delivery type friendly name. Returns 0 when the zone has no modifier for that type. Works
+     * for any zone type (internal zones may carry a base price here too).
      */
-    private function countZonesCrossed($pickupZone, $deliveryZone, $ratesheet, $deliveryType) {
-        $distance = $this->GetZonesCrossed($ratesheet->ratesheet_id, $pickupZone->zone_id, $deliveryZone->zone_id);
-        if($distance === null)
-            return null;
+    private function ResolveZoneModifierCost($zone, $deliveryTypeName) {
+        if(!$zone || !$deliveryTypeName)
+            return 0;
 
-        $zoneRate = $this->GetZoneRateByDistance($ratesheet->zone_rates, $distance);
-        if(!$zoneRate)
-            return null;
+        $modifiers = (array) ($zone->delivery_type_modifiers ?? []);
+        $modifier = $modifiers[$deliveryTypeName] ?? null;
 
-        $deliveryTypeFriendlyName = $deliveryType->name;
-        $cost = $this->GetZoneRateTypedValue($zoneRate, $deliveryTypeFriendlyName, 'cost');
+        return $modifier && isset($modifier->cost) && is_numeric($modifier->cost) ? (float) $modifier->cost : 0;
+    }
 
-        return new LineItemModel(
-            $deliveryTypeFriendlyName . ' - ' . $distance . ' zones',
-            'distanceRate',
-            $cost
-        );
+    /**
+     * Augments the mock bill with the fields pricing conditionals evaluate against. The nested
+     * bill shape (pickup_address.zone.type, package.total_weight, time_*.day_of_the_week, ...) is
+     * preserved so existing saved conditionals keep working; the resolved per-side, per-selected-
+     * type zone costs are added on top so rules can pull the relevant delivery type's price.
+     *
+     * Because pricing is computed once per delivery type (bill->delivery_type is already set), the
+     * "selected type" costs are resolved here rather than left as a lookup for the rule author.
+     */
+    private function BuildPricingContext($ratesheet, $bill) {
+        $deliveryTypeName = $bill->delivery_type->name ?? null;
+
+        $pickupZone = $bill->pickup_address->zone ?? null;
+        $deliveryZone = $bill->delivery_address->zone ?? null;
+
+        $pickupCost = $this->ResolveZoneModifierCost($pickupZone, $deliveryTypeName);
+        $deliveryCost = $this->ResolveZoneModifierCost($deliveryZone, $deliveryTypeName);
+
+        // Shared zone-relationship flags (same_group, zones_same) so pricing rules can gate on the same
+        // conditions timing offers.
+        $flags = $this->ComputeZoneRelationFlags($pickupZone, $deliveryZone);
+        $bill->zones_same = $flags['zones_same'];
+        $bill->same_group = $flags['same_group'];
+
+        // Zone crossing: resolved from the cheapest group the two zones share, for the delivery type
+        // currently being priced. A group merely makes this computable — a conditional referencing
+        // zones_crossed_cost is what actually applies it.
+        $candidates = $this->BuildZoneCrossingCandidates($ratesheet->ratesheet_id, $pickupZone, $deliveryZone);
+        $cheapest = $this->SelectCandidate($candidates, $deliveryTypeName, 'cost');
+
+        $bill->zones_crossed = $cheapest ? $cheapest['zones_crossed'] : null;
+        $bill->zones_crossed_cost = $cheapest ? $cheapest['value'] : null;
+        $bill->crossing_group = $cheapest ? $cheapest['name'] : null;
+
+        $bill->pickup_zone_selected_type_cost = $pickupCost;
+        $bill->delivery_zone_selected_type_cost = $deliveryCost;
+
+        // The same weight, in the other unit. See KilogramsToPounds for why this is a second field
+        // rather than a conversion applied when a rule is loaded or saved.
+        if(isset($bill->package))
+            $bill->package->total_weight_lbs = $this->KilogramsToPounds($bill->package->total_weight ?? 0);
+
+        return $bill;
+    }
+
+    /**
+     * Weight is stored in kilograms, always. Pounds are offered alongside as a second, derived view of
+     * the same number, so a rule can be authored in whichever unit its author thinks in.
+     *
+     * Deliberately not a display-time conversion. A conditional's value may be a free-form equation
+     * ("max(10, total_weight_kgs * 0.5)"), and reinterpreting a variable inside a formula would mean
+     * rewriting the author's coefficients - 0.5 per kg is 0.2268 per lb, while the 10 stays put. There
+     * is no safe general transform for that. Exposing both units instead keeps every stored rule
+     * explicit about which unit it means, and converts nothing on save or load.
+     */
+    private function KilogramsToPounds($kilograms) {
+        if(!is_numeric($kilograms))
+            return 0;
+
+        return (new Mass($kilograms, 'kg'))->toUnit('pounds');
     }
 
     private function EvaluateFunctionalEquation($conditional, $mockBill) {
         $evaluator = new Evaluator();
 
-        $evaluator->variables = ['total_weight' => $mockBill->package->total_weight];
+        $totalWeight = $mockBill->package->total_weight;
+
+        // The unit is part of the variable name, never a suffix in the formula: an equation says
+        // total_weight_kgs or total_weight_lbs, so it records which unit it means and nothing has to be
+        // reinterpreted. (The kg variable was once just "total_weight", which invited "total_weight lbs"
+        // - a single token to the evaluator, and an instant Unknown variable.)
+        $evaluator->variables = [
+            'total_weight_kgs' => $totalWeight,
+            'total_weight_lbs' => $this->KilogramsToPounds($totalWeight),
+        ];
+
+        // Only offered when they actually resolved. A variable present-but-null is worse than absent:
+        // Matex would read it as 0, and "$0.18 * 0 km" is a fuel surcharge that silently vanishes.
+        // Left out, Matex raises Unknown variable, which becomes the same "please price manually"
+        // refusal a missing field gets - the equation fails loudly or not at all.
+        if($mockBill->distance_km !== null)
+            $evaluator->variables['distance_km'] = $mockBill->distance_km;
+        if(($mockBill->drive_time_minutes ?? null) !== null)
+            $evaluator->variables['drive_time_minutes'] = $mockBill->drive_time_minutes;
 
         // Enable math functions to match frontend capabilities
         $evaluator->functions = [
             'max' => ['ref' => 'max', 'arc' => null],      // max(a, b, c, ...)
             'min' => ['ref' => 'min', 'arc' => null],      // min(a, b, c, ...)
             'round' => ['ref' => 'round', 'arc' => 2],     // round(number, precision)
+            // Weight brackets charge per WHOLE increment ("$2 per 100 lbs"), so a rule needs to be
+            // able to throw away the part-increment: floor((total_weight_lbs - 100) / 100) * 2 + 16.
+            // Without floor, a 150 lb parcel would be charged half an increment.
+            'floor' => ['ref' => 'floor', 'arc' => 1],     // floor(number)
+            'ceil' => ['ref' => 'ceil', 'arc' => 1],       // ceil(number)
             'abs' => ['ref' => 'abs', 'arc' => 1],         // abs(number)
             'sqrt' => ['ref' => 'sqrt', 'arc' => 1],       // sqrt(number)
             'pow' => ['ref' => 'pow', 'arc' => 2],         // pow(base, exponent)
         ];
 
-        return $evaluator->execute($conditional->original_equation_string);
+        // Matex reports an unresolvable variable by throwing, which would otherwise surface as a 500.
+        // Turn it into the same 400 an unresolvable field gets: the author named something this trip
+        // does not have (distance with no route, or simply a typo), and the honest answer is to refuse
+        // to price rather than guess.
+        try {
+            return $evaluator->execute($conditional->original_equation_string);
+        } catch(\Throwable $e) {
+            abort(400, 'Rule "' . $conditional->name . '" could not be worked out for this trip ('
+                . $e->getMessage() . '). Please price manually.');
+        }
     }
 
     /**
@@ -587,39 +889,82 @@ class ChargeModelFactory {
      *
      * @return $results - an array of charges to add to the bill
      */
-    private function generateConditionalCharges($ratesheet, $bill, $req, $currentPrice) {
+    private function generateConditionalCharges($ratesheet, $bill, $req, $currentPrice, $distanceBasePrice = 0) {
         $conditionalRepo = new Repos\ConditionalRepo();
 
-        $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['amount', 'equation']);
+        // Amount-family (amount/equation/field) rules run in priority order and can add to, set, or
+        // discount the running price. Percent rules run afterward on the accumulated total so their
+        // long-standing "percent of everything else" behavior is preserved.
+        $amountConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['amount', 'equation', 'field'])->all();
         $percentConditionals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['percent']);
+        $refusals = $conditionalRepo->GetByRatesheetId($ratesheet->ratesheet_id, ['message']);
+
+        $context = $this->BuildPricingContext($ratesheet, $bill);
+
+        // Refusals run first, in their own pass, and priority does not enter into it. A rule that says
+        // "we cannot carry this" is not competing for a slot in the pricing order - it decides whether
+        // there is a price at all. Ordering it with the rest would mean accumulating charges only to
+        // throw them away, and would make the outcome depend on where the author happened to put it.
+        //
+        // The refusal surfaces the same way as an address outside every zone: a 400 that the UI shows
+        // as "please price manually", carrying the author's own message.
+        foreach($refusals as $refusal) {
+            $rules = json_decode($refusal->json_logic, true);
+
+            // The message is interpolated too: "We cannot carry {{package.total_weight_lbs}} lb" tells
+            // the customer what actually tripped the rule.
+            if(JsonLogic::apply($rules, $context))
+                abort(400, $this->RenderConditionalName($refusal->value ?: $refusal->name, $context));
+        }
 
         $results = array();
+        $suppressBase = false;
+
+        usort($amountConditionals, function($a, $b) {
+            return (isset($a->priority) ? (int) $a->priority : 0) <=> (isset($b->priority) ? (int) $b->priority : 0);
+        });
 
         foreach($amountConditionals as $conditional) {
             $rules = json_decode($conditional->json_logic, true);
 
-            if(JsonLogic::apply($rules, $bill)) {
+            if(JsonLogic::apply($rules, $context)) {
                 $action = json_decode($conditional->action)->value;
-                $valueType = $conditional->value_type;
-                $value = $valueType == 'equation' ? $this->EvaluateFunctionalEquation($conditional, $bill) : $conditional->value;
+
+                // First 'set' wins: base selection is a ranking, expressed as priority. A later 'set'
+                // is a lower-ranked candidate for the same slot, so it is skipped rather than added on
+                // top (which would double-charge). This is what lets a map say "use the home hub's
+                // price if the trip touches it, else the hub's, else the zone-crossing rate" without
+                // short-circuiting the surcharges that must still run afterwards.
+                if($action == 'set' && $suppressBase)
+                    continue;
+
+                $value = $this->ResolvePricingValue($conditional, $context);
+                $label = $this->RenderConditionalName($conditional->name, $context);
 
                 if($action == 'discount') {
-                    if(($currentPrice - $value) > 0)
-                        $currentPrice -= $value;
-                    else
-                        $currentPrice = 0;
-                }
-                else
+                    $currentPrice = ($currentPrice - $value) > 0 ? $currentPrice - $value : 0;
+                    $results[] = new LineItemModel($label, 'conditionalRate', $value);
+                } else if($action == 'set') {
+                    // This rule supplies the base price, so drop the default distance base.
+                    $currentPrice -= $distanceBasePrice;
+                    $suppressBase = true;
                     $currentPrice += $value;
+                    $results[] = new LineItemModel($label, 'conditionalRate', $value);
+                } else {
+                    // 'add' — the "Add Charge" action (and legacy 'charge', treated identically)
+                    $currentPrice += $value;
+                    $results[] = new LineItemModel($label, 'conditionalRate', $value);
+                }
 
-                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $value);
+                if(!$this->ParseContinueOn($conditional->continue_on ?? null))
+                    break;
             }
         }
 
         foreach($percentConditionals as $conditional) {
             $rules = json_decode($conditional->json_logic, true);
 
-            if(JsonLogic::apply($rules, $bill)) {
+            if(JsonLogic::apply($rules, $context)) {
                 $action = json_decode($conditional->action)->value;
                 $value = $conditional->value;
 
@@ -627,12 +972,89 @@ class ChargeModelFactory {
                 if($action == 'discount')
                     $price *= -1;
 
-                $results[] = new LineItemModel($conditional->name, 'conditionalRate', $price);
+                $results[] = new LineItemModel($this->RenderConditionalName($conditional->name, $context), 'conditionalRate', $price);
             }
         }
 
-        return $results;
+        return ['lineItems' => $results, 'suppressBase' => $suppressBase];
     }
+
+    /**
+     * Interpolates {{context.path}} placeholders in a rule's name.
+     *
+     * A line item is named after the rule that produced it, which describes the rule rather than the
+     * trip: every crossing on the sheet reads "Zone Crossing Base Price". Naming a rule
+     * "{{zones_crossed}} zones crossed" lets it describe the delivery in front of it instead, the way
+     * the old hardcoded engine's labels did.
+     *
+     * These names go on invoices, so an unresolvable placeholder must never reach the customer as
+     * braces: it renders as nothing and the surrounding whitespace is collapsed, degrading the label
+     * ("zones crossed") rather than breaking it. Interpolation is not a way to charge - the price
+     * still comes from value/value_type - so a missing value is cosmetic and must not abort, unlike
+     * ResolveFieldValue.
+     */
+    private function RenderConditionalName($name, $context) {
+        if(!is_string($name) || strpos($name, '{{') === false)
+            return $name;
+
+        $rendered = preg_replace_callback('/\{\{\s*([A-Za-z0-9_.]+)\s*\}\}/', function($match) use ($context) {
+            return $this->FormatContextValue($this->GetValueByPath($context, $match[1]));
+        }, $name);
+
+        return trim(preg_replace('/\s{2,}/', ' ', $rendered));
+    }
+
+    /** Renders a context value the way a customer should read it on an invoice line. */
+    private function FormatContextValue($value) {
+        if($value === null || $value === '')
+            return '';
+
+        if(is_bool($value))
+            return $value ? 'yes' : 'no';
+
+        if(is_array($value))
+            return implode(', ', array_map([$this, 'FormatContextValue'], $value));
+
+        // Trailing zeros read as false precision on an invoice: 24.00 -> 24, 11.0231 -> 11.02.
+        if(is_numeric($value) && !is_string($value))
+            return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
+
+        return (string) $value;
+    }
+
+    /**
+     * Resolves the numeric value a pricing conditional contributes, by value_type:
+     *   - equation : evaluated against package inputs
+     *   - field    : pulled from the pricing context by path (e.g. pickup_zone_selected_type_cost)
+     *   - amount   : the literal stored value
+     */
+    private function ResolvePricingValue($conditional, $context) {
+        if($conditional->value_type === 'equation')
+            return $this->EvaluateFunctionalEquation($conditional, $context);
+
+        if($conditional->value_type === 'field')
+            return $this->ResolveFieldValue($context, $conditional->value ?? '', $conditional->name);
+
+        return is_numeric($conditional->value) ? (float) $conditional->value : 0;
+    }
+
+    /**
+     * Resolves a 'field' conditional's value from the context by path.
+     *
+     * A rule that fires but whose field cannot be resolved to a number is a misconfiguration, not a
+     * zero: a zone-crossing rule on a map whose adjacency graph has no route, or whose rate table has
+     * no figure for this delivery type, would otherwise quietly price the trip at $0. Refuse to price
+     * it instead, the same as an address that falls outside every zone.
+     */
+    private function ResolveFieldValue($context, $path, $conditionalName) {
+        $resolved = $this->GetValueByPath($context, $path);
+
+        if(!is_numeric($resolved))
+            abort(400, 'Rule "' . $conditionalName . '" needs ' . $path . ', which could not be worked out for this trip. Please price manually.');
+
+        return (float) $resolved;
+    }
+
 
     /**
      * Calculates distance charges based on ratesheet specifications in two primary modes
@@ -660,160 +1082,20 @@ class ChargeModelFactory {
         else if (!$bill->delivery_address->zone)
             abort(400, 'Requested delivery was not in a designated zone! Please price manually');
 
+        // The flat delivery-type cost is the default base for every trip. Everything that used to
+        // branch here is now a conditional: zone crossing (a 'set' rule reading zones_crossed_cost,
+        // which replaces this base) and outlying surcharges (an 'add' rule reading the zone's
+        // per-delivery-type modifier cost). A trip whose zones share no group, or whose map has no
+        // crossing rule, simply keeps this base.
         $results = array();
-        $crossableZoneTypes = ['internal', 'peripheral'];
 
-        $bothCrossable = in_array($bill->pickup_address->zone->type, $crossableZoneTypes)
-            && in_array($bill->delivery_address->zone->type, $crossableZoneTypes);
+        $deliveryTypes = json_decode($ratesheet->delivery_types);
+        $chargeDeliveryTypeIndex = array_search($bill->delivery_type->value, array_column($deliveryTypes, 'id'));
+        $chargeDeliveryType = $chargeDeliveryTypeIndex !== false ? $deliveryTypes[$chargeDeliveryTypeIndex] : null;
 
-        if($bothCrossable) {
-            // Both zones are internal/peripheral — use zone-crossing distance rate
-            if(filter_var($ratesheet->use_internal_zones_calc, FILTER_VALIDATE_BOOLEAN)) {
-                $results[] = $this->countZonesCrossed($bill->pickup_address->zone, $bill->delivery_address->zone, $ratesheet, $bill->delivery_type);
-            } else {
-                $deliveryTypes = json_decode($ratesheet->delivery_types);
-                $chargeDeliveryTypeIndex = array_search($bill->delivery_type->value, array_column($deliveryTypes, 'id'));
-                $chargeDeliveryType = $chargeDeliveryTypeIndex !== false ? $deliveryTypes[$chargeDeliveryTypeIndex] : null;
-                if($chargeDeliveryType)
-                    $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost);
-            }
-        } else {
-            // At least one zone is outlying — always charge the flat delivery type base cost,
-            // since there is no zone-crossing rate to fall back to. Zone modifier surcharges
-            // (below) handle the additional cost for the non-internal zone.
-            $deliveryTypes = json_decode($ratesheet->delivery_types);
-            $chargeDeliveryTypeIndex = array_search($bill->delivery_type->value, array_column($deliveryTypes, 'id'));
-            $chargeDeliveryType = $chargeDeliveryTypeIndex !== false ? $deliveryTypes[$chargeDeliveryTypeIndex] : null;
-            if($chargeDeliveryType)
-                $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost);
-        }
+        if($chargeDeliveryType)
+            $results[] = new LineItemModel($bill->delivery_type->name, 'distanceRate', $chargeDeliveryType->cost ?? 0);
 
-        /**
-         * If the pickup or delivery is in a peripheral or outlying zone, additional surcharges apply
-         */
-        if($bill->pickup_address->zone->type != 'internal') {
-            $pickupModifiers = (array) ($bill->pickup_address->zone->delivery_type_modifiers ?? []);
-            $pickupModifier = $pickupModifiers[$bill->delivery_type->name] ?? null;
-            $pickupCost = $pickupModifier && isset($pickupModifier->cost) && is_numeric($pickupModifier->cost)
-                ? (float) $pickupModifier->cost
-                : 0;
-            if($pickupCost > 0)
-                $results[] = new LineItemModel(ucfirst($bill->pickup_address->zone->type) . ' Zone: ' . $bill->pickup_address->zone->name, 'distanceRate', $pickupCost);
-        }
-
-        if($bill->delivery_address->zone->type != 'internal') {
-            $deliveryModifiers = (array) ($bill->delivery_address->zone->delivery_type_modifiers ?? []);
-            $deliveryModifier = $deliveryModifiers[$bill->delivery_type->name] ?? null;
-            $deliveryCost = $deliveryModifier && isset($deliveryModifier->cost) && is_numeric($deliveryModifier->cost)
-                ? (float) $deliveryModifier->cost
-                : 0;
-            if($deliveryCost > 0)
-                $results[] = new LineItemModel(ucfirst($bill->delivery_address->zone->type) . ' Zone: ' . $bill->delivery_address->zone->name, 'distanceRate', $deliveryCost);
-        }
-
-        return $results;
-    }
-
-    private function generateTimeCharges($ratesheet, $timePickupScheduled, $timeDeliveryScheduled) {
-        $results = array();
-        $timePickupScheduled = new \DateTime($timePickupScheduled);
-        $timeDeliveryScheduled = new \DateTime($timeDeliveryScheduled);
-        foreach(json_decode($ratesheet->time_rates) as $timeRate)
-            foreach($timeRate->brackets as $bracket) {
-                try {
-                    $startDate = new \DateTime($bracket->startTime ?? null);
-                    $endDate = new \DateTime($bracket->endTime ?? null);
-                } catch (\Exception $e) {
-                    $startDate = false;
-                    $endDate = false;
-                }
-
-                if(!$startDate || !$endDate || empty($bracket->startDayOfWeek->label) || empty($bracket->endDayOfWeek->label)) {
-                    $context = [
-                        'ratesheet_id' => $ratesheet->ratesheet_id ?? null,
-                        'time_rate_name' => $timeRate->name ?? null,
-                        'bracket' => $bracket,
-                        'startTime' => $bracket->startTime ?? null,
-                        'endTime' => $bracket->endTime ?? null,
-                        'startDayOfWeek' => $bracket->startDayOfWeek ?? null,
-                        'endDayOfWeek' => $bracket->endDayOfWeek ?? null,
-                    ];
-
-                    Log::error('Invalid time rate bracket datetime format', $context);
-                    Log::channel('discord')->error('Invalid time rate bracket datetime format', $context);
-                    continue;
-                }
-
-                $startTime = $startDate->getTimestamp();
-                $endTime = $endDate->getTimestamp();
-                $closestStart = clone $timePickupScheduled;
-                $closestStart->modify('-4 days')->modify('next ' . $bracket->startDayOfWeek->label)->setTime((int)date('H', $startTime), (int)date('i', $startTime));
-                $closestEnd = clone $timeDeliveryScheduled;
-                $closestEnd->modify('-4 days')->modify('next ' . $bracket->endDayOfWeek->label)->setTime((int)date('H', $endTime), (int)date('i', $endTime));
-                // $results[] = [
-                //     'timePickupScheduled' => $timePickupScheduled,
-                //     'timeDeliveryScheduled' => $timeDeliveryScheduled,
-                //     'closestStart' => $closestStart,
-                //     'closestEnd' => $closestEnd,
-                //     'startDayOfWeek' => $bracket->startDayOfWeek->label,
-                //     'endDayOfWeek' => $bracket->endDayOfWeek->label,
-                //     'pickupTime <= closestStart' => $timePickupScheduled >= $closestStart,
-                //     'pickupTime >= closestEnd' => $timePickupScheduled <= $closestEnd,
-                //     'deliveryTime <= closestStart' => $timeDeliveryScheduled >= $closestStart,
-                //     'deliveryTime >= closestEnd' => $timeDeliveryScheduled <= $closestEnd,
-                //     'startTime' => $startTime,
-                //     'endTime' => $endTime
-                // ];
-                if(($timePickupScheduled >= $closestStart && $timePickupScheduled <= $closestEnd) || ($timeDeliveryScheduled >= $closestStart && $timeDeliveryScheduled <= $closestEnd)) {
-                    $results[] = new LineItemModel($timeRate->name, 'timeRate', $timeRate->price);
-                }
-            }
-
-        return $results;
-    }
-
-    /**
-     * Package charges includes such things as weight rates, pallet rates, etc.
-     * ALL calculations are done in terms of kilograms, so weight is converted to kilograms if entered in lbs
-     */
-    private function generatePackageCharges($ratesheet, $packages, $packageIsPallet, $useImperial) {
-        $weightRates = json_decode($ratesheet->weight_rates);
-        $basicWeightRateIndex = array_search('Basic Weight Rate', array_column($weightRates, 'name'));
-        $palletWeightRateIndex = array_search('Pallet Weight Rate', array_column($weightRates, 'name'));
-        $weightRate = filter_var($packageIsPallet, FILTER_VALIDATE_BOOLEAN) ? $weightRates[$palletWeightRateIndex] : $weightRates[$basicWeightRateIndex];
-
-        $totalWeight = 0;
-        $results = array();
-        $maxWidth = 0;
-        $maxLength = 0;
-        $maxHeight = 0;
-
-        foreach($packages as $package) {
-            $maxLength = $package['length'] > $maxLength ? $package['length'] : $maxLength;
-            $maxWidth = $package['width'] > $maxWidth ? $package['width'] : $maxWidth;
-            $maxHeight = $package['height'] > $maxHeight ? $package['height'] : $maxHeight;
-
-            $totalWeight += ($package['weight'] * $package['count']);
-        }
-
-        if(filter_var($useImperial, FILTER_VALIDATE_BOOLEAN))
-            $totalWeight *= 0.453592;
-
-        foreach($weightRate->brackets as $key => $bracket) {
-            $kgmin = $key ? $weightRate->brackets[$key - 1]->kgmax : 0;
-            if($totalWeight > $kgmin && $totalWeight < $bracket->kgmax) {
-                $results[] = new LineItemModel($weightRate->name, 'weightRate', $bracket->basePrice);
-                break;
-            }
-            if($bracket->additionalXKgs && $key == count($weightRate->brackets) - 1) {
-                $overageWeight = $totalWeight - $bracket['kgmax'];
-                $overageCharge = $overageWeight / $bracket->additionalXKgs * $bracket->incrementalPrice;
-                $results[] = new LineItemModel($weightRate->name, 'weightRate', $bracket->basePrice + $overageCharge);
-                break;
-            }
-            if($key == count($weightRate->brackets))
-                abort(400, 'Weight exceeds available limits, or was input incorrectly. Please price manually');
-        }
         return $results;
     }
 
@@ -836,6 +1118,9 @@ class ChargeModelFactory {
             'delivery_type' => $selectionsRepo->GetSelectionByTypeAndValue('delivery_type', $req->delivery_type_id),
             'package' => (object) [
                 'is_pallet' => filter_var($req->package_is_pallet, FILTER_VALIDATE_BOOLEAN),
+                // Already drives whether weight is charged at all (see GenerateCharges); exposed here
+                // so a rule can also condition on it.
+                'is_minimum' => filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN),
                 'total_weight' => $req->packages ? array_reduce($req->packages, function($carry, $package) {return $carry + $package['totalWeight'];}, 0) : 0
             ],
             'pickup_address' => (object) [
@@ -857,6 +1142,23 @@ class ChargeModelFactory {
             $bill->package->total_weight = $weight->toUnit('kg');
         }
 
+        // Road distance is resolved here, not in BuildPricingContext, because this runs once per
+        // route while BuildPricingContext runs once per delivery type. Distance does not depend on the
+        // delivery type, so resolving it there would mean four identical lookups per quote - and the
+        // quote endpoint fires on a debounce as the bill is typed.
+        //
+        // Null when it cannot be established (no key, API down, no drivable route). A rule that
+        // references it then refuses to price; a sheet that does not reference it is unaffected.
+        $route = (new Services\RouteDistanceService())->Between(
+            $req->pickup_address['lat'] ?? null,
+            $req->pickup_address['lng'] ?? null,
+            $req->delivery_address['lat'] ?? null,
+            $req->delivery_address['lng'] ?? null
+        );
+
+        $bill->distance_km = $route['km'] ?? null;
+        $bill->drive_time_minutes = $route['minutes'] ?? null;
+
         return $bill;
     }
 
@@ -864,10 +1166,13 @@ class ChargeModelFactory {
         return (object) [
             'zone_id' => $zone->zone_id,
             'name' => $zone->name,
-            'delivery_type_modifiers' => json_decode($zone->delivery_type_modifiers),
-            'region' => $zone->region ?? null,
-            'tags' => $zone->tags ?? null,
-            'type' => $zone->type,
+            'delivery_type_modifiers' => json_decode($zone->delivery_type_modifiers ?? '{}'),
+            // Must be a list, not the raw pipe-delimited string: tag rules are authored as CONTAINS,
+            // which compiles to json-logic "some" and quietly matches nothing against a scalar.
+            'tags' => $this->NormalizeZoneTags($zone->tags ?? null),
+            'colour' => $zone->colour ?? null,
+            'groups' => $zone->groups ?? [],
+            'group_ids' => $zone->group_ids ?? [],
             'neighbours' => $zone->neighbours
         ];
     }

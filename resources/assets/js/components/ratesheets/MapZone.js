@@ -1,23 +1,48 @@
 import React, {useMemo, useState} from 'react'
-import {Card, Col, Collapse, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
+import {Button, Card, Col, Collapse, Dropdown, FormControl, InputGroup, Row} from 'react-bootstrap'
 import Select from 'react-select'
 import CreatableSelect from 'react-select/creatable'
+import {DEFAULT_ZONE_COLOUR, resolveZoneColour} from './Classes/Zone'
+import {menuPortalProps} from './selectMenuPortal'
+
+// Two separate ceilings. TAG_STORAGE_LIMIT is imposed by the database - tags live pipe-joined in a
+// varchar(255) - and applies to all of a zone's tags together. TAG_MAX_LENGTH is a house rule on any
+// single tag, to keep them short enough to read in a dropdown; the longest in use is "peripheral".
+const TAG_STORAGE_LIMIT = 255
+const TAG_MAX_LENGTH = 12
 
 export default function MapZone(props) {
     const deliveryTypes = props.deliveryTypes ?? []
     const {
         deliveryTypeModifiers,
         fillColour,
+        groupIds,
         name,
-        region,
         tags,
-        type,
     } = props.zone
     const {zIndex} = props.zone.polygon
-    const zoneTypes = props.zoneTypes ?? []
-    const regionOptions = props.regionOptions ?? []
+    const zoneGroups = props.zoneGroups ?? []
     const tagOptions = props.tagOptions ?? []
     const [tagError, setTagError] = useState(null)
+
+    const groupOptions = useMemo(() => {
+        return zoneGroups.map(zoneGroup => ({value: zoneGroup.zoneGroupId, label: zoneGroup.name}))
+    }, [zoneGroups])
+
+    const selectedGroupOptions = useMemo(() => {
+        return groupOptions.filter(option => (groupIds ?? []).includes(option.value))
+    }, [groupOptions, groupIds])
+
+    // Exactly what the zone is painted on the map: its group's colour if it has one, else its own.
+    // Resolved rather than read off `colour` so the swatch can never disagree with the map.
+    const effectiveColour = resolveZoneColour(props.zone, zoneGroups) ?? DEFAULT_ZONE_COLOUR
+
+    const updateGroups = (selectedOptions) => {
+        props.handleZoneChange(
+            {target: {name: 'groupIds', type: 'array', value: (selectedOptions ?? []).map(option => option.value)}},
+            zIndex
+        )
+    }
 
     const selectedTagOptions = useMemo(() => {
         return (tags ?? []).map(tag => ({value: tag, label: tag}))
@@ -28,14 +53,32 @@ export default function MapZone(props) {
         return normalizedTags.join('|').length
     }, [tags])
 
+    // The longest tag that would still fit: the budget, less what is already stored, less the
+    // separator the new tag brings with it (only needed if it is not the first).
+    const remainingTagLength = useMemo(() => {
+        const separator = (tags ?? []).length ? 1 : 0
+        return TAG_STORAGE_LIMIT - serializedTagLength - separator
+    }, [serializedTagLength, tags])
+
+    // A tag has to clear both ceilings: its own length, and what the zone has left of the 255.
+    const maxNewTagLength = Math.min(TAG_MAX_LENGTH, remainingTagLength)
+
+    const tagFits = (tag) => {
+        const trimmed = `${tag}`.trim()
+        return !!trimmed && trimmed.length <= maxNewTagLength
+    }
+
     const updateTags = (selectedOptions) => {
         const normalizedTags = Array.from(new Set((selectedOptions ?? [])
             .map(option => `${option.value}`.trim())
             .filter(tag => !!tag)))
 
+        // The select will not offer a tag that overflows, so this only catches a tag arriving by some
+        // other route (a paste, a zone loaded with tags saved before the limit was enforced). Removing
+        // tags must always be allowed, or an over-budget zone could never be brought back under it.
         const serializedLength = normalizedTags.join('|').length
-        if(serializedLength > 255) {
-            setTagError(`Tags exceed max storage length (255). Current: ${serializedLength}`)
+        if(serializedLength > TAG_STORAGE_LIMIT && normalizedTags.length >= (tags ?? []).length) {
+            setTagError(`Tags exceed max storage length (${TAG_STORAGE_LIMIT}). Current: ${serializedLength}`)
             return
         }
 
@@ -75,6 +118,18 @@ export default function MapZone(props) {
                         </InputGroup>
                     </Col>
                     <Col md='auto'>
+                        <Button
+                            size='sm'
+                            variant={props.zone.isDirty ? 'warning' : 'outline-secondary'}
+                            disabled={!props.zone.isDirty || props.isSaving}
+                            onClick={() => props.saveZone(props.zone)}
+                            title={props.zone.isDirty ? 'Save this zone' : 'No unsaved changes'}
+                            style={{marginRight: '4px'}}
+                        >
+                            <i className='fas fa-save' /> {props.zone.isDirty ? 'Save' : 'Saved'}
+                        </Button>
+                    </Col>
+                    <Col md='auto'>
                         <Dropdown>
                             <Dropdown.Toggle size='sm' variant='secondary' id='zone-options'>
                                 <i className='fas fa-bars'></i>
@@ -98,24 +153,58 @@ export default function MapZone(props) {
                 </Row>
             </Card.Header>
             <Card.Body>
+                {/*
+                  * Help text sits below the InputGroup, never inside it: an input group stretches its
+                  * children to a common height, so a label beside a taller-than-the-input column grows
+                  * to match the whole column.
+                  */}
                 <InputGroup size='sm'>
-                    <InputGroup.Text>Zone Type</InputGroup.Text>
-                    <Select
-                        options={zoneTypes}
-                        onChange={zoneType => props.handleZoneChange({target: {name: 'type', type: 'string', value: zoneType.value}}, zIndex)}
-                        value={zoneTypes.find(zoneType => zoneType.value === props.zone.type)}
-                    />
+                    <InputGroup.Text>Groups</InputGroup.Text>
+                    <div style={{flex: 1}}>
+                        <Select
+                            isMulti
+                            options={groupOptions}
+                            value={selectedGroupOptions}
+                            onChange={updateGroups}
+                            placeholder='Not in any group'
+                            {...menuPortalProps}
+                        />
+                    </div>
                 </InputGroup>
-                <InputGroup size='sm' style={{marginTop: '8px'}}>
-                    <InputGroup.Text>Region</InputGroup.Text>
-                    <CreatableSelect
-                        options={regionOptions}
-                        onChange={regionOption => props.handleZoneChange({target: {name: 'region', type: 'string', value: regionOption?.value ?? ''}}, zIndex)}
-                        value={region ? {value: region, label: region} : null}
-                        isClearable
-                        placeholder='Select or create a region'
-                    />
-                </InputGroup>
+                <small className='text-muted d-block' style={{marginTop: '4px'}}>
+                    Zones in the same group can have their crossing counted between them.
+                </small>
+                {/*
+                  * A grouped zone takes its group's colour, so there is nothing to pick here - showing
+                  * a picker that the group overrides would just lie about what the map will do.
+                  */}
+                {selectedGroupOptions.length > 0
+                    ? <InputGroup size='sm' style={{marginTop: '8px'}}>
+                        <InputGroup.Text>Colour</InputGroup.Text>
+                        <div className='form-control d-flex align-items-center' style={{gap: '8px'}}>
+                            <span
+                                style={{
+                                    backgroundColor: effectiveColour,
+                                    border: '1px solid rgba(0,0,0,.2)',
+                                    borderRadius: '3px',
+                                    display: 'inline-block',
+                                    height: '14px',
+                                    width: '14px',
+                                }}
+                            />
+                            <small className='text-muted'>from {selectedGroupOptions[0].label}</small>
+                        </div>
+                    </InputGroup>
+                    : <InputGroup size='sm' style={{marginTop: '8px'}}>
+                        <InputGroup.Text>Colour</InputGroup.Text>
+                        <FormControl
+                            type='color'
+                            value={effectiveColour}
+                            title='Zone colour on the map'
+                            onChange={event => props.handleZoneChange({target: {name: 'colour', type: 'string', value: event.target.value}}, zIndex)}
+                        />
+                    </InputGroup>
+                }
                 <InputGroup size='sm' style={{marginTop: '8px'}}>
                     <InputGroup.Text>Tags</InputGroup.Text>
                     <div style={{flex: 1}}>
@@ -125,21 +214,42 @@ export default function MapZone(props) {
                             value={selectedTagOptions}
                             onChange={updateTags}
                             placeholder='Add one or more tags'
+                            {...menuPortalProps}
+                            // No "Create ..." entry for a tag that will not fit, and no existing tag
+                            // offered that will not fit either - the limit is a thing you cannot cross
+                            // rather than an error you are told about after crossing it.
+                            isValidNewOption={inputValue => tagFits(inputValue)}
+                            isOptionDisabled={option => !tagFits(option.value)}
+                            // Say which ceiling was hit, since "no options" on its own reads as a bug.
+                            noOptionsMessage={({inputValue}) => {
+                                if(!inputValue || tagFits(inputValue))
+                                    return 'No tags'
+                                return inputValue.trim().length > TAG_MAX_LENGTH
+                                    ? `Tags are limited to ${TAG_MAX_LENGTH} characters`
+                                    : `Not enough room left — ${remainingTagLength} character${remainingTagLength === 1 ? '' : 's'} of ${TAG_STORAGE_LIMIT}`
+                            }}
                         />
-                        <small className={serializedTagLength > 255 ? 'text-danger' : 'text-muted'}>
-                            Serialized length: {serializedTagLength}/255
-                        </small>
-                        {tagError &&
-                            <small className='text-danger' style={{display: 'block'}}>{tagError}</small>
-                        }
                     </div>
                 </InputGroup>
+                <small
+                    className={`d-block ${serializedTagLength > TAG_STORAGE_LIMIT ? 'text-danger' : 'text-muted'}`}
+                    style={{marginTop: '4px'}}
+                >
+                    Max {TAG_MAX_LENGTH} characters per tag. Serialized length: {serializedTagLength}/{TAG_STORAGE_LIMIT}
+                </small>
+                {tagError &&
+                    <small className='text-danger d-block'>{tagError}</small>
+                }
             </Card.Body>
             <Collapse in={true}>
                 <Card.Body>
-                    {type !== 'internal' && (
+                    {(
                         <>
                             <hr/>
+                            <small className='text-muted' style={{display: 'block', marginBottom: '6px'}}>
+                                Per-delivery-type cost/time for this zone. A conditional decides how it is
+                                used &mdash; as this zone's base price, or as a surcharge added on top.
+                            </small>
                             <table>
                                 <tr>
                                     <td></td>

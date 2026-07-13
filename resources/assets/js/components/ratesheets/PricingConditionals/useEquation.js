@@ -3,10 +3,12 @@ import {debounce} from 'lodash'
 import {
     absDependencies,
     addDependencies,
+    ceilDependencies,
     create,
     createUnitDependencies,
     divideDependencies,
     evaluateDependencies,
+    floorDependencies,
     maxDependencies,
     minDependencies,
     multiplyDependencies,
@@ -20,9 +22,14 @@ import {
 const math = create({
     abs: absDependencies,
     add: addDependencies,
+    // Weight brackets charge per whole increment ("$2 per 100 lbs"), so a rule has to be able to
+    // discard the part-increment: floor((weight - 100) / 100) * 2. Without floor, 150 lbs would be
+    // charged 0.5 of an increment.
+    ceil: ceilDependencies,
     createUnit: createUnitDependencies,
     divide: divideDependencies,
     evaluate: evaluateDependencies,
+    floor: floorDependencies,
     max: maxDependencies,
     min: minDependencies,
     multiply: multiplyDependencies,
@@ -36,10 +43,14 @@ const math = create({
     number: 'number'
 });
 
+// Kept in step with the functions registered on `math` above, and with the backend's Matex
+// evaluator - an equation has to mean the same thing in the preview and on the server.
+export const EQUATION_FUNCTIONS = ['max', 'min', 'round', 'floor', 'ceil', 'abs', 'sqrt', 'pow']
+
 math.createUnit('CAD')
 math.createUnit('kgs', '1 kg')
 
-import config, {availableTestVariables} from './conditionalConfig'
+import {availableTestVariables} from './pricingConditionalConfig'
 
 const imperialToMetric = {
     'lb': 'kg',
@@ -106,14 +117,23 @@ export default function useEquation({conditional}) {
                 .replace(/\s+/g, ' ')
                 .trim()
 
-            // Replace leading dollar sign with trailing CAD
-            let equation = normalized.replace(/\$(\d+(\.\d+)?)/g, (match, value) => {
-                return value + " CAD";
-            });
+            // The server evaluates the string exactly as it is stored, with a different expression
+            // engine (Matex) that understands neither "$" nor unit suffixes. Anything the preview
+            // accepts but the server cannot run is a rule that throws at pricing time, so the editor
+            // now refuses both rather than quietly diverging.
+            if(equationString.includes('$')) {
+                setDemoResult('Remove the $ — the result is always dollars')
+                setValidationMessage('❌ Remove the $ — an equation always produces a dollar amount, so write 16, not $16')
+                setServerEquationString('')
+                return
+            }
+
+            let equation = normalized
 
             // Track what we've recognized
             const recognized = {
                 variables: [],
+                functions: [],
                 numbers: [],
                 units: [],
                 operators: []
@@ -127,31 +147,41 @@ export default function useEquation({conditional}) {
                 const value = match[1]
                 const unit = match[3]
 
-                // check if it's a variable or a valid number
+                // check if it's a variable, a function name, or a valid number
                 const isVariable = availableTestVariables.some(variable => variable.dbName === value)
                 const isValue = !isNaN(parseFloat(value))
+                // A function name is an identifier too, and the tokeniser cannot tell them apart - so
+                // without this, "floor(...)" (or "max(...)", which the editor has always claimed to
+                // support) is reported as an invalid variable and the equation will not validate.
+                const isFunction = EQUATION_FUNCTIONS.includes(value)
 
                 if (isVariable) {
                     recognized.variables.push(value)
                 } else if (isValue) {
                     recognized.numbers.push(value)
+                } else if (isFunction) {
+                    recognized.functions.push(value)
                 }
 
-                if (unit && Object.keys(imperialToMetric).includes(unit)) {
-                    recognized.units.push(unit)
-                }
-
-                // it is neither a variable, nor a valid number we have an error
-                if(!isVariable && !isValue) {
+                // it is not a variable, a function, or a valid number - that is an error
+                if(!isVariable && !isValue && !isFunction) {
                     setDemoResult('Invalid variable: ' + value)
                     setValidationMessage('❌ Invalid variable: ' + value)
+                    setServerEquationString('')
                     return
                 }
-                // otherwise, the unit must either be in the imperial to metric conversion chart, or else be a metric unit already
-                // or we have another error
-                else if(unit && !Object.keys(imperialToMetric).includes(unit) && imperialToMetric[unit] !== 1) {
-                    setDemoResult(`Missing or invalid unit near: ${value}`);
-                    setValidationMessage(`❌ Missing or invalid unit near: ${value}`);
+
+                // A unit suffix ("total_weight lbs", "100 lbs") is what broke equations before: the
+                // server's evaluator reads "total_weight lbs" as one token and throws. The unit now
+                // lives in the variable name instead - total_weight is kilograms, total_weight_lbs is
+                // pounds - so a suffix is both unnecessary and ambiguous.
+                if(unit) {
+                    setDemoResult(`Remove "${unit}" after ${value}`)
+                    setValidationMessage(
+                        `❌ Units are not used in equations. The unit is part of the variable: `
+                        + `total_weight is kg, total_weight_lbs is lbs. Write "total_weight_lbs - 100", not "${value} ${unit}".`
+                    )
+                    setServerEquationString('')
                     return
                 }
             }
@@ -160,6 +190,9 @@ export default function useEquation({conditional}) {
             const validationParts = []
             if (recognized.variables.length > 0) {
                 validationParts.push(`Variables: ${recognized.variables.join(', ')}`)
+            }
+            if (recognized.functions.length > 0) {
+                validationParts.push(`Functions: ${recognized.functions.join(', ')}`)
             }
             if (recognized.units.length > 0) {
                 validationParts.push(`Units: ${recognized.units.join(', ')}`)
@@ -212,24 +245,10 @@ export default function useEquation({conditional}) {
                 }
             });
 
-            const serverEquation = equation.replace(/(([\d.]+)\s*([a-zA-Z$]+)|(\b[a-zA-Z_][a-zA-Z0-9_]*\b)\s*([a-zA-Z$]*))/g, (match, _, number, unit, variable, varUnit) => {
-                if (variable) {
-                    return variable;
-                } else {
-                    number = parseFloat(number);
-                    if (imperialToMetric.hasOwnProperty(unit) && imperialToMetric[unit] != 1) {
-                        try {
-                            let metricUnit = imperialToMetric[unit];
-                            let newValue = math.unit(number, unit).toNumber(metricUnit);
-                            return `${newValue}`;
-                        } catch (error) {
-                            return match;
-                        }
-                    } else {
-                        return `${number}`;
-                    }
-                }
-            });
+            // Nothing to translate any more: what you typed is what the server runs. The previous
+            // version rewrote the string for the server (stripping "lbs" off total_weight, which
+            // silently turned a pounds formula into a kilograms one) and then never saved it anyway.
+            const serverEquation = equation
 
             try {
                 const variables = testVariables.reduce((accumulator, variable) => {

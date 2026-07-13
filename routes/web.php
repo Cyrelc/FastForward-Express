@@ -140,12 +140,17 @@ Route::middleware(['auth'])->controller(QueryController::class)->prefix('queries
 
 Route::middleware(['auth'])->controller(RatesheetController::class)->prefix('ratesheets')->group(function() {
     Route::get('/create', 'getModel');
-    Route::get('/zone-regions', 'listZoneRegions');
     Route::get('/{id?}', 'getModel');
     Route::get('/', 'buildTable');
     Route::post('/', 'store');
     Route::get('/{ratesheetId}/getZone', 'getZone');
     Route::get('/{ratesheetId}/zonesCrossed', 'getZonesCrossed');
+    // Zones and zone groups save individually. The ratesheet save no longer touches them, so a
+    // payload can never again implicitly delete a zone by omitting it.
+    Route::post('/{ratesheetId}/zone/{zoneId?}', 'storeZone');
+    Route::delete('/{ratesheetId}/zone/{zoneId}', 'destroyZone');
+    Route::post('/{ratesheetId}/zone-group/{zoneGroupId?}', 'storeZoneGroup');
+    Route::delete('/{ratesheetId}/zone-group/{zoneGroupId}', 'destroyZoneGroup');
     Route::delete('/conditional/{id}', 'deleteConditional');
     Route::get('/conditional/{id}', 'getConditional');
     Route::post('/conditional/{id?}', 'storeConditional');

@@ -2,14 +2,44 @@
 namespace App\Http\Validation;
 
 class RatesheetValidationRules {
+    // Kept in step with TAG_STORAGE_LIMIT / TAG_MAX_LENGTH in MapZone.js. The storage limit is the
+    // zones.tags varchar(255) the pipe-joined tags are written to; the length limit is a house rule on
+    // any single tag, so the browser cap is a convenience and this is the one that actually holds.
+    const TAG_STORAGE_LIMIT = 255;
+    const TAG_MAX_LENGTH = 12;
+
+    /**
+     * Rules for one zone's pipe-joined tag string: the whole thing has to fit the column, and no one
+     * tag may exceed the per-tag limit.
+     */
+    private function TagRules() {
+        return ['nullable', 'string', 'max:' . self::TAG_STORAGE_LIMIT, function($attribute, $value, $fail) {
+            foreach(explode('|', (string) $value) as $tag) {
+                $tag = trim($tag);
+                if(strlen($tag) > self::TAG_MAX_LENGTH)
+                    $fail('Tag "' . $tag . '" is longer than ' . self::TAG_MAX_LENGTH . ' characters');
+            }
+        }];
+    }
+
+    /**
+     * Rules for the single-zone save the map uses (storeZone), as opposed to the whole-ratesheet save.
+     */
+    public function GetZoneValidationRules($req) {
+        $zoneName = $req->zone['name'] ?? 'zone';
+
+        return [
+            'rules' => ['zone.tags' => $this->TagRules()],
+            'messages' => [
+                'zone.tags.max' => 'Zone ' . $zoneName . ' tags cannot exceed ' . self::TAG_STORAGE_LIMIT . ' characters total',
+            ],
+        ];
+    }
+
     public function GetValidationRules($req) {
         $rules = [
             'name' => 'required|min:3|max:255|unique:ratesheets,name,' . $req->ratesheet_id . ',ratesheet_id',
             'deliveryTypes.*.time' => 'required|numeric',
-            'weightRates' => 'required|array|min:2',
-            'weightRates.*.name' => 'required',
-            'timeRates.*.name' => 'required',
-            'timeRates.*.price' => 'required|min:0'
         ];
 
         $messages = [
@@ -17,68 +47,28 @@ class RatesheetValidationRules {
             'name.unique' => 'Ratesheet Name is already taken. Please try another',
         ];
 
-        if($req->useInternalZonesCalc) {
-            foreach($req->zoneRates as $key => $rate)
-            if($key != sizeOf($req->zoneRates) - 1) {
-                foreach($req->deliveryTypes as $deliveryType) {
-                    $friendlyName = $deliveryType['friendlyName'] ?? null;
-                    if(!$friendlyName)
-                        continue;
-
-                    $pathPrefix = 'zoneRates.' . $key . '.' . $friendlyName;
-                    $labelPrefix = $rate['zones'] . ' Zone(s) ' . $friendlyName;
-
-                    $rules[$pathPrefix . '.cost'] = 'required|numeric|min:0';
-                    $rules[$pathPrefix . '.time'] = 'required|numeric|min:0';
-
-                    $messages[$pathPrefix . '.cost.required'] = $labelPrefix . ' cost can not be blank';
-                    $messages[$pathPrefix . '.cost.numeric'] = $labelPrefix . ' cost must be a numeric value';
-                    $messages[$pathPrefix . '.cost.min'] = $labelPrefix . ' cost must be at least 0';
-
-                    $messages[$pathPrefix . '.time.required'] = $labelPrefix . ' time can not be blank';
-                    $messages[$pathPrefix . '.time.numeric'] = $labelPrefix . ' time must be a numeric value';
-                    $messages[$pathPrefix . '.time.min'] = $labelPrefix . ' time must be at least 0';
-                }
-            }
-        } else {
-            foreach($req->deliveryTypes as $key => $deliveryType) {
-                $rules['deliveryTypes.' . $key . '.time'] = 'required|numeric|min:0';
-                $rules['deliveryTypes.' . $key . '.cost'] = 'required|numeric|min:0';
-                $messages['deliveryTypes.' . $key . '.time.required'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' requires a default price';
-                $messages['deliveryTypes.' . $key . '.time.min'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' cost must be greater than 0';
-                $messages['deliveryTypes.' . $key . '.cost.required'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' additional cost cannot be blank';
-                $messages['deliveryTypes.' . $key . '.cost.min'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' additional cost must be at least 0';
-            }
+        // Every ratesheet now needs a flat delivery-type cost: it is the base for any trip that does
+        // not have a 'Set Base Price' conditional covering it (which is every trip on a map with no
+        // zone-crossing rule at all).
+        foreach($req->deliveryTypes as $key => $deliveryType) {
+            $rules['deliveryTypes.' . $key . '.time'] = 'required|numeric|min:0';
+            $rules['deliveryTypes.' . $key . '.cost'] = 'required|numeric|min:0';
+            $messages['deliveryTypes.' . $key . '.time.required'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' requires a default price';
+            $messages['deliveryTypes.' . $key . '.time.min'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' cost must be greater than 0';
+            $messages['deliveryTypes.' . $key . '.cost.required'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' additional cost cannot be blank';
+            $messages['deliveryTypes.' . $key . '.cost.min'] = 'Delivery type ' . $deliveryType['friendlyName'] . ' additional cost must be at least 0';
         }
 
-        foreach($req->weightRates as $key => $weightRate) {
-            foreach($weightRate['brackets'] as $bracketIndex => $bracket) {
-                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.kgmax'] = 'required|numeric|min:' . ($bracketIndex > 0 ? $weightRate['brackets'][$bracketIndex - 1]['kgmax'] : '0');
-                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.basePrice'] = 'required|numeric|min:0';
-                $rules['weightRates.' . $key . '.brackets.' . $bracketIndex . '.additionalXKgs'] = 'required|numeric|min:0|max:' . ($bracketIndex > 0 ? $bracket['kgmax'] - $weightRate['brackets'][$bracketIndex - 1]['kgmax'] : $bracket['kgmax']);
-                $messages['weightRates.' . $key . '.brackets.' . $bracketIndex . '.kgmax.required'] = $weightRate['name'] . ' kgmax ' . $bracketIndex . ' is required';
-                $messages['weightRates.' . $key . '.brackets.' . $bracketIndex . '.basePrice.required'] = $weightRate['name'] . ' base price ' . $bracketIndex . ' is required';
-            }
-        }
 
-        foreach($req->timeRates as $key => $timeRate) {
-            foreach($timeRate['brackets'] as $bracketIndex => $bracket) {
-                $rules['timeRates.' . $key . '.brackets.' . $bracketIndex . '.startDayOfWeek'] = 'required|min:0|max:6';
-                $rules['timeRates.' . $key . '.brackets.' . $bracketIndex . '.endDayOfWeek'] = 'required|min:0|max:6';
-                $rules['timeRates.' . $key . '.' . $bracketIndex . '.startTime'] = 'date';
-                $rules['timeRates.' . $key . '.' . $bracketIndex . '.endTime'] = 'date';
-            }
-        }
 
         $count = array('internal' => 0, 'peripheral' => 0, 'outlying' => 0);
         if($req->mapZones)
             foreach($req->mapZones as $key => $zone) {
                 $rules['mapZones.' . $key . '.name'] = 'required';
                 $rules['mapZones.' . $key . '.coordinates'] = 'required|min:3';
-                $rules['mapZones.' . $key . '.region'] = 'nullable|string|max:255';
-                $rules['mapZones.' . $key . '.tags'] = 'nullable|string|max:255';
+                $rules['mapZones.' . $key . '.tags'] = $this->TagRules();
                 $messages['mapZones.' . $key . '.name.required'] = 'You must enter a name for new map zone #' . ($key + 1);
-                $messages['mapZones.' . $key . '.tags.max'] = 'Zone ' . ($zone['name'] ?? ('#' . ($key + 1))) . ' tags cannot exceed 255 characters total';
+                $messages['mapZones.' . $key . '.tags.max'] = 'Zone ' . ($zone['name'] ?? ('#' . ($key + 1))) . ' tags cannot exceed ' . self::TAG_STORAGE_LIMIT . ' characters total';
                 if($zone['type'] !== 'internal') {
                     $rules['mapZones.' . $key . '.deliveryTypeModifiers'] = 'nullable|array';
                     $rules['mapZones.' . $key . '.deliveryTypeModifiers.*.time'] = 'nullable|numeric|min:0';

@@ -7,6 +7,7 @@ class ConditionalCollector {
         return [
             'action' => json_encode($req->action),
             'conditional_id' => $conditionalId,
+            'continue_on' => filter_var($req->continue_on ?? true, FILTER_VALIDATE_BOOLEAN),
             'human_readable' => $req->human_readable,
             'json_logic' => $req->json_logic,
             'name' => $req->name,

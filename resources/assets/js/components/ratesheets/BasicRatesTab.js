@@ -11,8 +11,6 @@ export default function BasicRatesTab(props) {
         name,
         setName,
         setMiscRates,
-        useInternalZonesCalc,
-        setUseInternalZonesCalc
     } = props.ratesheetState
 
     const addMiscRate = () => {
@@ -58,20 +56,8 @@ export default function BasicRatesTab(props) {
                             <FormControl type='text' placeholder='Ratesheet Name' name='ratesheetName' value={name} onChange={event => setName(event.target.value)}/>
                         </InputGroup>
                     </Col>
-                    <Col md={4}>
-                        <strong>
-                            <Form.Check
-                                type='checkbox'
-                                name='useInternalZonesCalc'
-                                label='Use Internal Zones Crossed to Calculate Pricing'
-                                checked={useInternalZonesCalc}
-                                onChange={event => setUseInternalZonesCalc(event.target.checked)}
-                            />
-                        </strong>
-                    </Col>
                 </Row>
             </Card.Header>
-            {!useInternalZonesCalc &&
                 <Card.Body>
                     <Row>
                         <Col md={2}>
@@ -102,7 +88,6 @@ export default function BasicRatesTab(props) {
                         </Col>
                     </Row>
                 </Card.Body>
-            }
             <Card.Footer>
                 <Row>
                     <Col md={2}>
@@ -115,6 +100,9 @@ export default function BasicRatesTab(props) {
                                     <th>
                                         <Button variant='success' onClick={addMiscRate} size='sm'>
                                             <i className='fas fa-plus'></i>
+                                        </Button>{' '}
+                                        <Button variant='outline-secondary' size='sm' onClick={props.openImport} title='Copy miscellaneous rates from another ratesheet'>
+                                            <i className='fas fa-file-import'></i>
                                         </Button>
                                     </th>
                                     <th>Name</th>

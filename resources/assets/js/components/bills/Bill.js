@@ -234,9 +234,9 @@ export default function Bill(props) {
             if(packageIsMinimum) {
                 shouldAutoPrice = true
             } else if(packageArray.length > 0) {
-                shouldAutoPrice = packageArray.reduce(currentPackage => {
-                    return !!currentPackage.count && !!currentPackage.weight && !!currentPackage.length && !!currentPackage.width && !!currentPackage.height
-                })
+                shouldAutoPrice = packageArray.every(parcel =>
+                    !!parcel.count && !!parcel.weight && !!parcel.length && !!parcel.width && !!parcel.height
+                )
             }
         }
 

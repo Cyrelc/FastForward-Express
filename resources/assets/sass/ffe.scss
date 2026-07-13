@@ -72,3 +72,24 @@
 .bg-gainsboro {
     background-color: white!important
 }
+
+/*
+ * Conditional query builder — field picker width.
+ *
+ * The field picker holds long nested paths ("Pickup Address / Zone / Zone Groups"), which the
+ * library's fixed-width select truncates. Give the field column a floor of 40% of the rule row and
+ * let the select fill it.
+ *
+ * This has to be CSS rather than the library's `defaultSelectWidth` setting: that widget applies its
+ * value as BOTH `width` and `min-width` inline, so it can only pin an exact width, never a floor.
+ * Overriding an inline style is what the !important is for.
+ */
+.query-builder .rule--field {
+    min-width: 40%;
+}
+
+.query-builder .rule--field .MuiAutocomplete-root,
+.query-builder .rule--field .MuiFormControl-root {
+    width: 100% !important;
+    min-width: 0 !important;
+}

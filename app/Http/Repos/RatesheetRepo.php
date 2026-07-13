@@ -28,40 +28,55 @@ class RatesheetRepo {
         return $ratesheet;
     }
 
+    private $zoneFields = [
+        'colour',
+        'coordinates',
+        'delivery_type_modifiers',
+        'inherits_coordinates_from',
+        'zones.name',
+        'neighbours',
+        'tags',
+        'zone_id',
+    ];
+
     public function GetMapZones($ratesheet_id) {
         $zones = Zone::where('ratesheet_id', $ratesheet_id)
-            ->join('selections', 'selections.selection_id', '=', 'zones.type')
-            ->select(
-                'coordinates',
-                'delivery_type_modifiers',
-                'inherits_coordinates_from',
-                'zones.name',
-                'neighbours',
-                'region',
-                'selections.value as type',
-                'tags',
-                'zone_id'
-            );
+            ->select($this->zoneFields)
+            ->get();
 
-        return $zones->get();
+        return $this->attachGroups($zones, $ratesheet_id);
     }
 
     public function GetMapZoneById($ratesheet_id, $zoneId) {
-        return Zone::where('ratesheet_id', $ratesheet_id)
+        $zone = Zone::where('ratesheet_id', $ratesheet_id)
             ->where('zone_id', $zoneId)
-            ->join('selections', 'selections.selection_id', '=', 'zones.type')
-            ->select(
-                'coordinates',
-                'delivery_type_modifiers',
-                'inherits_coordinates_from',
-                'zones.name',
-                'neighbours',
-                'region',
-                'selections.value as type',
-                'tags',
-                'zone_id'
-            )
+            ->select($this->zoneFields)
             ->first();
+
+        if(!$zone)
+            return null;
+
+        return $this->attachGroups(collect([$zone]), $ratesheet_id)->first();
+    }
+
+    /**
+     * Hangs each zone's group membership off the zone as `group_ids` / `groups` (names). Zones are
+     * many-to-many with groups, so this cannot be a join without fanning out rows.
+     */
+    private function attachGroups($zones, $ratesheet_id) {
+        $zoneGroupRepo = new ZoneGroupRepo();
+        $groupIdsByZone = $zoneGroupRepo->GetGroupIdsByZone($ratesheet_id);
+        $groupNamesById = $zoneGroupRepo->GetByRatesheetId($ratesheet_id)->pluck('name', 'zone_group_id');
+
+        foreach($zones as $zone) {
+            $groupIds = $groupIdsByZone[$zone->zone_id] ?? [];
+            $zone->group_ids = array_values($groupIds);
+            $zone->groups = array_values(array_filter(array_map(function($groupId) use ($groupNamesById) {
+                return $groupNamesById[$groupId] ?? null;
+            }, $groupIds)));
+        }
+
+        return $zones;
     }
 
     public function Insert($ratesheet) {
@@ -90,8 +105,9 @@ class RatesheetRepo {
 
     public function GetForBillsPage($accountId = null, $children = false) {
         $fieldArray = array('name', 'ratesheet_id', 'delivery_types');
-        if(Auth::user()->can('createFull', Bill::class) || Auth::user()->can('viewBilling', Bill::class))
-            $fieldArray = array_merge($fieldArray, array('zone_rates as distance_rates', 'misc_rates', 'weight_rates', 'time_rates', 'use_internal_zones_calc'));
+        $canSeeRates = Auth::user()->can('createFull', Bill::class) || Auth::user()->can('viewBilling', Bill::class);
+        if($canSeeRates)
+            $fieldArray = array_merge($fieldArray, array('misc_rates'));
 
         $ratesheets = Ratesheet::select($fieldArray);
 
@@ -107,7 +123,23 @@ class RatesheetRepo {
             $ratesheets->whereIn('ratesheet_id', $ratesheetIds);
         }
 
-        return $ratesheets->get();
+        $ratesheets = $ratesheets->get();
+
+        // The manual rate picker offers zone-crossing rates as pickable line items. They used to come
+        // from ratesheets.zone_rates; they now belong to each zone group.
+        if($canSeeRates) {
+            $zoneGroupRepo = new ZoneGroupRepo();
+            foreach($ratesheets as $ratesheet)
+                $ratesheet->zone_groups = $zoneGroupRepo->GetByRatesheetId($ratesheet->ratesheet_id)
+                    ->map(function($zoneGroup) {
+                        return [
+                            'name' => $zoneGroup->name,
+                            'zone_rates' => json_decode($zoneGroup->zone_rates, true) ?? [],
+                        ];
+                    });
+        }
+
+        return $ratesheets;
     }
 
     public function GetRatesheetSelectList() {
@@ -128,25 +160,18 @@ class RatesheetRepo {
         return $zone;
     }
 
-    public function ListZoneRegions() {
-        return Zone::query()
-            ->whereNotNull('region')
-            ->where('region', '!=', '')
-            ->distinct()
-            ->orderBy('region')
-            ->pluck('region');
-    }
-
     public function Update($ratesheet) {
         $old = Ratesheet::where('ratesheet_id', $ratesheet['ratesheet_id'])->first();
 
         $old->name = $ratesheet['name'];
-        $old->time_rates = $ratesheet['time_rates'];
         $old->delivery_types = $ratesheet['delivery_types'];
-        $old->weight_rates = $ratesheet['weight_rates'];
-        $old->zone_rates = $ratesheet['zone_rates'];
         $old->misc_rates = $ratesheet['misc_rates'];
-        $old->use_internal_zones_calc = $ratesheet['use_internal_zones_calc'];
+        // weight_rates is not written: weight is priced by conditionals now. The column is left as-is
+        // so it still holds the old brackets for a rollback (and for ratesheets:rebuild-weight-conditionals).
+        // zone_rates is not written: zone-crossing rates belong to zone_groups now. The column is
+        // left as-is so it still holds the old rates for a rollback.
+        // use_internal_zones_calc is retired (zone crossing is now opt-in per conditional). The
+        // column is left untouched so it still reads true for a rollback.
 
         $old->save();
         return $old;
@@ -155,13 +180,12 @@ class RatesheetRepo {
     public function UpdateZone($zone) {
         $old = Zone::find($zone['zone_id']);
 
+        $old->colour = $zone['colour'];
         $old->delivery_type_modifiers = $zone['delivery_type_modifiers'];
         $old->coordinates = $zone['coordinates'];
         $old->inherits_coordinates_from = $zone['inherits_coordinates_from'];
         $old->name = $zone['name'];
-        $old->region = $zone['region'];
         $old->tags = $zone['tags'];
-        $old->type = $zone['type'];
 
         $old->save();
 

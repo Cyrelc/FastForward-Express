@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect} from 'react'
-import {Button, Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Row, Table, Tooltip} from 'react-bootstrap'
+import {Button, Card, Col, FormControl, FormCheck, InputGroup, OverlayTrigger, Popover, Row, Table, Tooltip} from 'react-bootstrap'
 import Select from 'react-select'
 import {DateTime} from 'luxon'
 import DatePicker from 'react-datepicker'
@@ -376,6 +376,53 @@ export default function BasicTab(props) {
                     <Col md={4}>
                         <InputGroup>
                             <InputGroup.Text>Delivery Type:</InputGroup.Text>
+                            {/*
+                              * A delivery time is the product of timing rules now, not a number on the
+                              * ratesheet, so "why is this 4 hours?" needs an answer. This shows every
+                              * rule that fired, what it did, and the running total after it - which is
+                              * what makes a rule that should not be applying (or one that should be and
+                              * is not) visible. Recomputed with every quote; nothing is stored.
+                              */}
+                            {deliveryTimesLoaded && (deliveryType.time_breakdown ?? []).length > 0 &&
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    placement='bottom'
+                                    overlay={
+                                        <Popover style={{maxWidth: '420px'}}>
+                                            <Popover.Header>How this time was worked out</Popover.Header>
+                                            <Popover.Body style={{padding: '8px'}}>
+                                                <Table size='sm' style={{marginBottom: 0}}>
+                                                    <tbody>
+                                                        {deliveryType.time_breakdown.map((step, index) =>
+                                                            <tr key={index} className={step.action === 'skipped' ? 'text-muted' : ''}>
+                                                                <td>
+                                                                    {step.name}
+                                                                    {step.note &&
+                                                                        <div><small className='text-muted'>{step.note}</small></div>
+                                                                    }
+                                                                </td>
+                                                                <td style={{whiteSpace: 'nowrap', textAlign: 'right'}}>
+                                                                    {step.action === 'add' && `+${step.value}h`}
+                                                                    {step.action === 'set' && `set to ${step.value}h`}
+                                                                    {step.action === 'base' && `${step.value}h`}
+                                                                    {step.action === 'skipped' && '—'}
+                                                                </td>
+                                                                <td style={{whiteSpace: 'nowrap', textAlign: 'right'}}>
+                                                                    <strong>{step.running_total}h</strong>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </Table>
+                                            </Popover.Body>
+                                        </Popover>
+                                    }
+                                >
+                                    <InputGroup.Text style={{cursor: 'help'}}>
+                                        <i className='fas fa-circle-info' />
+                                    </InputGroup.Text>
+                                </OverlayTrigger>
+                            }
                             <Select
                                 options={deliveryTypes.map((type, index) => {
                                     // Feasibility is computed server-side (fits_today); the client just renders it.

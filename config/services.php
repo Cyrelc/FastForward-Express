@@ -15,7 +15,13 @@ return [
     */
 
     'google' => [
-        'places_api_key' => env('MIX_APP_PLACES_API_KEY')
+        'places_api_key' => env('MIX_APP_PLACES_API_KEY'),
+
+        // Deliberately NOT prefixed MIX_: Laravel Mix compiles MIX_* variables into the public JS
+        // bundle, and this key must never reach a browser. Road distance sets a price, so it is
+        // resolved server-side - a distance posted by the client would be a customer editing their
+        // own fuel surcharge. Restrict this key by server IP, and enable only the Routes API on it.
+        'routes_api_key' => env('GOOGLE_ROUTES_API_KEY'),
     ],
 
     'mailgun' => [

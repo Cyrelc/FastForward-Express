@@ -3,15 +3,14 @@ import {Button, ButtonGroup, Card, Col, Row} from 'react-bootstrap'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import TimingConditionalModal from './TimingConditionalModal'
+import {nextPriorityFor} from '../conditionalFieldShared'
 import {useAPI} from '../../../contexts/APIContext'
-import {useLists} from '../../../contexts/ListsContext'
 
 
 
 const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, ref) {
     const api = useAPI()
-    const {deliveryTypes, mapZones, ratesheetId} = props
-    const {zoneTypes} = useLists()
+    const {deliveryTypes, mapZones, ratesheetId, zoneGroups} = props
 
     const [timingConditionals, setTimingConditionals] = useState([])
     const [isLoading, setIsLoading] = useState(true)
@@ -39,7 +38,17 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
                     </Button>
                 </ButtonGroup>
             )},
-            {header: 'Priority', accessorKey: 'priority', size: 110, enableColumnActions: false},
+            {header: 'Priority', accessorKey: 'priority', size: 110, enableColumnActions: false,
+                // Priority is the order the engine runs rules in, and ties are common (the value is
+                // free-form), so the id breaks them - which puts equal-priority rules in the order they
+                // were created. Sorted numerically too: the default comparator is alphanumeric, which
+                // would put 100 before 9.
+                sortingFn: (rowA, rowB) => {
+                    const priority = row => Number(row.original.priority ?? 0)
+                    const id = row => Number(row.original.timing_conditional_id ?? 0)
+
+                    return (priority(rowA) - priority(rowB)) || (id(rowA) - id(rowB))
+                }},
             {accessorKey: 'name', header: 'Name', grow: 1},
             {header: 'Condition', accessorKey: 'human_readable', grow: 4},
             {accessorKey: 'action', header: 'Action', Cell: ({row}) => row.original.action.label, size: 150},
@@ -51,6 +60,9 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
             }}
         ],
         layoutMode: 'grid-no-grow',
+        initialState: {
+            sorting: [{id: 'priority', desc: false}],
+        },
         state: {
             isLoading
         }
@@ -113,12 +125,21 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
             <Card.Header>
                 <Row>
                     <Col md={2}>
-                        <Button
-                            variant='success'
-                            onClick={() => setShowTimingConditionalModal(true)}
-                        >
-                            <i className='fas fa-plus'></i> Create
-                        </Button>
+                        <ButtonGroup>
+                            <Button
+                                variant='success'
+                                onClick={() => setShowTimingConditionalModal(true)}
+                            >
+                                <i className='fas fa-plus'></i> Create
+                            </Button>
+                            <Button
+                                variant='outline-secondary'
+                                onClick={props.openImport}
+                                title='Copy rules from another ratesheet'
+                            >
+                                <i className='fas fa-file-import'></i> Import
+                            </Button>
+                        </ButtonGroup>
                     </Col>
                     <Col md={10}>
                         <Card.Title>
@@ -132,9 +153,10 @@ const TimingConditionalsTab = forwardRef(function TimingConditionalsTab(props, r
             </Card.Body>
             <TimingConditionalModal
                 conditional={editTimingConditional}
+                nextPriority={nextPriorityFor(timingConditionals)}
                 deliveryTypes={deliveryTypeOptions}
                 mapZones={mapZones}
-                zoneTypes={zoneTypes}
+                zoneGroups={zoneGroups}
                 onHide={hideModal}
                 ratesheetId={ratesheetId}
                 reload={reload}

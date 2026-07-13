@@ -1,6 +1,6 @@
 import React from 'react'
 import CurrencyInput from 'react-currency-input-field'
-import {FormControl, InputGroup} from 'react-bootstrap'
+import {Button, FormControl, InputGroup} from 'react-bootstrap'
 
 export default function ZoneRate(props) {
     const {zoneRate, deliveryTypes = []} = props
@@ -41,6 +41,13 @@ export default function ZoneRate(props) {
                     </td>
                 )
             })}
+            {props.onRemove &&
+                <td>
+                    <Button size='sm' variant='outline-danger' onClick={props.onRemove} title='Remove this zone count'>
+                        <i className='fas fa-trash' />
+                    </Button>
+                </td>
+            }
         </tr>
     )
 }

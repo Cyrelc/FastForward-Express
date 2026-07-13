@@ -294,7 +294,7 @@ export default function Charge(props) {
         }
 
         if(charge.lineItems.find(lineItem => lineItem.line_item_id == null)) {
-            taostr.warning('Selected charge has unsaved line items. Please save the bill then try again')
+            toast.warn('Selected charge has unsaved line items. Please save the bill then try again')
             return
         }
 

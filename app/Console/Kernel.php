@@ -15,7 +15,10 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\GenerateRepeatingBills::class,
+        Commands\NormalizeRatesheetTimeRates::class,
         Commands\QueueHealth::class,
+        Commands\PrintLegacyRates::class,
+        Commands\RebuildWeightConditionals::class,
         Commands\StoreWorkerHealth::class,
         Commands\WaitForDatabase::class,
         Commands\WorkerHealthCheck::class,

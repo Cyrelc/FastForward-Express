@@ -11,8 +11,12 @@ class Zone extends Model
 
     public $primaryKey = 'zone_id';
 
-    protected $fillable = ['coordinates', 'delivery_type_modifiers', 'inherits_coordinates_from', 'name', 'neighbours', 'ratesheet_id', 'region', 'tags', 'type'];
+    protected $fillable = ['colour', 'coordinates', 'delivery_type_modifiers', 'inherits_coordinates_from', 'name', 'neighbours', 'ratesheet_id', 'tags'];
     public $timestamps = false;
+
+    public function zoneGroups() {
+        return $this->belongsToMany(ZoneGroup::class, 'zone_group_zone', 'zone_id', 'zone_group_id');
+    }
 
     public function getActivityLogOptions() : LogOptions {
         return LogOptions::defaults()

@@ -1,27 +1,41 @@
 import React, {useMemo, useState, useEffect} from 'react'
-import {Button, Card, Col, Collapse, FormControl, InputGroup, Popover, Row} from 'react-bootstrap'
-import {polyColours} from './Classes/Zone'
+import {Button, Card, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
+import {randomZoneColour} from './Classes/Zone'
 import MapZone from './MapZone'
+import ZoneGroupModal from './ZoneGroupModal'
+import ZoneGroupsPanel from './ZoneGroupsPanel'
 import Select from 'react-select'
+import {menuPortalProps} from './selectMenuPortal'
 import {GoogleMap} from '@react-google-maps/api'
 import topoSimplify from './utils/topoSimplify.js'
 import { toast } from 'react-toastify'
-import {useLists} from '../../contexts/ListsContext'
 import {useAPI} from '../../contexts/APIContext'
+
+// The map and the control column are both pinned to this, so neither can push the other off screen.
+const MAP_HEIGHT = '85vh'
 
 export default function MapTab(props) {
     const api = useAPI()
     const {
         createZone,
-        defaultZoneType,
+        defaultZoneGroupId,
+        setDefaultZoneGroupId,
+        zoneGroups,
+        setZoneGroups,
         deleteZone,
+        deleteZoneGroup: deleteZoneGroupFromMap,
+        hasUnsavedChanges,
+        dirtyZones,
+        dirtyZoneGroupIds,
+        markZoneGroupDirty,
+        pendingZoneDeletions,
+        saveZone: saveZoneToServer,
         editZoneZIndex,
         handleZoneEdit,
         isDrawingMode,
         mapCenter,
         mapZones,
         mapZoom,
-        setDefaultZoneType,
         setDrawingMap,
         setEditZoneZIndex,
         setMap,
@@ -31,54 +45,105 @@ export default function MapTab(props) {
         stopDrawing,
     } = props.mapState
 
-    const {zoneTypes} = useLists()
-    const {deliveryTypes} = props
+    const {deliveryTypes, ratesheetId} = props
 
     const [simplifyMode, setSimplifyMode] = useState('topo') // 'topo' or 'quick'
     const [tolerance, setTolerance] = useState(snapTolerance || 2) // meters - used for both snapping and simplification
     const [showSettings, setShowSettings] = useState(false)
     const [singleZoneOnly, setSingleZoneOnly] = useState(true)
     const [refreshKey, setRefreshKey] = useState(0)
-    const [regionOptions, setRegionOptions] = useState([])
     const [isProcessing, setIsProcessing] = useState(false)
     const [lastUndoSnapshot, setLastUndoSnapshot] = useState(null)
     const [lastUndoLabel, setLastUndoLabel] = useState('')
-    const zoneTypeOptions = useMemo(() => {
-        return (zoneTypes ?? []).map(zoneType => ({
-            value: zoneType.value,
-            label: zoneType.label
-        }))
-    }, [zoneTypes])
+    const [editZoneGroupId, setEditZoneGroupId] = useState(null)
 
-    useEffect(() => {
-        if(!zoneTypeOptions.length)
-            return
-        if(!zoneTypeOptions.find(option => option.value === defaultZoneType))
-            setDefaultZoneType(zoneTypeOptions[0].value)
-    }, [zoneTypeOptions, defaultZoneType, setDefaultZoneType])
+    const zoneGroupOptions = useMemo(() => {
+        return (zoneGroups ?? []).map(zoneGroup => ({value: zoneGroup.zoneGroupId, label: zoneGroup.name}))
+    }, [zoneGroups])
 
-    useEffect(() => {
-        let isMounted = true
-        api.get('/ratesheets/zone-regions').then((response) => {
-            if(!isMounted)
-                return
-            setRegionOptions((response ?? []).map(region => ({value: region, label: region})))
-        }).catch(() => {
-            if(isMounted)
-                setRegionOptions([])
-        })
+    const editedZoneGroup = (zoneGroups ?? []).find(zoneGroup => zoneGroup.zoneGroupId === editZoneGroupId) ?? null
 
-        return () => {
-            isMounted = false
+    // A group created here has no id until it is saved, so it gets a negative placeholder that the
+    // zones reference; the server maps it to the real id on save.
+    const createZoneGroup = (name) => {
+        const nextId = Math.min(0, ...(zoneGroups ?? []).map(zoneGroup => zoneGroup.zoneGroupId)) - 1
+        const zoneGroup = {
+            zoneGroupId: nextId,
+            name: name || `Group ${(zoneGroups ?? []).length + 1}`,
+            colour: randomZoneColour(),
+            zoneRates: [],
         }
-    }, [])
+        setZoneGroups([...(zoneGroups ?? []), zoneGroup])
+        setDefaultZoneGroupId(nextId)
+        markZoneGroupDirty(nextId)
+        setEditZoneGroupId(nextId)
+    }
 
-    const regionOptionsWithCurrent = useMemo(() => {
-        const knownRegions = regionOptions.map(option => option.value)
-        const currentRegions = (mapZones ?? []).map(zone => zone.region).filter(region => !!region)
-        const uniqueRegions = Array.from(new Set([...knownRegions, ...currentRegions]))
-        return uniqueRegions.map(region => ({value: region, label: region}))
-    }, [regionOptions, mapZones])
+    const updateZoneGroup = (updated) => {
+        setZoneGroups((zoneGroups ?? []).map(zoneGroup =>
+            zoneGroup.zoneGroupId === updated.zoneGroupId ? updated : zoneGroup
+        ))
+        markZoneGroupDirty(updated.zoneGroupId)
+        // A group's colour is inherited by any of its zones that have none of their own.
+        mapZones.forEach(zone => zone.applyColour(
+            (zoneGroups ?? []).map(zoneGroup => zoneGroup.zoneGroupId === updated.zoneGroupId ? updated : zoneGroup)
+        ))
+    }
+
+    const saveZone = async (zone) => {
+        setIsProcessing(true)
+        try {
+            // A zone can reference a group that has never been saved, so its group must exist
+            // server-side before the zone can point at it.
+            for(const groupId of zone.groupIds ?? []) {
+                if(groupId > 0)
+                    continue
+                const zoneGroup = (zoneGroups ?? []).find(group => group.zoneGroupId === groupId)
+                if(zoneGroup)
+                    await props.mapState.saveZoneGroup(api, ratesheetId, zoneGroup)
+            }
+
+            await saveZoneToServer(api, ratesheetId, zone)
+            toast.success(`Zone "${zone.name}" saved`)
+        } catch(error) {
+            toast.error(`Could not save zone "${zone.name}"`)
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
+    const saveZoneGroup = async (zoneGroup) => {
+        setIsProcessing(true)
+        try {
+            await props.mapState.saveZoneGroup(api, ratesheetId, zoneGroup)
+            toast.success(`Group "${zoneGroup.name}" saved`)
+        } catch(error) {
+            toast.error(`Could not save group "${zoneGroup.name}"`)
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
+    const deleteZoneGroup = async (deleted) => {
+        const memberCount = mapZones.filter(zone => (zone.groupIds ?? []).includes(deleted.zoneGroupId)).length
+        const warning = memberCount
+            ? `\n\n${memberCount} zone${memberCount === 1 ? '' : 's'} will leave this group, and any conditional that prices by crossing it will stop applying.`
+            : ''
+
+        if(!confirm(`Delete zone group "${deleted.name}"?${warning}`))
+            return
+
+        setIsProcessing(true)
+        try {
+            await deleteZoneGroupFromMap(api, ratesheetId, deleted.zoneGroupId)
+            setEditZoneGroupId(null)
+            toast.success(`Group "${deleted.name}" deleted`)
+        } catch(error) {
+            toast.error(`Could not delete group "${deleted.name}"`)
+        } finally {
+            setIsProcessing(false)
+        }
+    }
 
     const tagOptions = useMemo(() => {
         const tags = []
@@ -210,129 +275,97 @@ export default function MapTab(props) {
         setLastUndoLabel('')
     }
 
-    const popover = (
-        <Popover id='map-info-popover' title='How to Create a Great RateMap'>
-            <strong>Map Zones</strong> come in two varieties:<br/>
-            <strong>Internal</strong> and <strong>Peripheral</strong><br/><br/>
-            <strong>Peripheral Zones</strong> are areas outside of your regular delivery service area. They have additional costs, and time requirements associated with them.<br/><br/>
-            <strong>Internal Zones</strong> are areas within your regular delivery service area. You can either have <strong>one</strong> internal zone, in which case there will be no associated charge with crossing that zone, or you can have <strong>many</strong> internal zones. If you choose to have many, then define them on the map and the map will be able to automatically calculate how many zones were crossed for a delivery, and charge the correct rate.<br/><br/>
-            <strong>Note: for internal zones to be considered adjacent to one another, they must share (snap to) a minimum of one point.</strong>
-        </Popover>
-    )
-
     return (
         <Card style={{padding: '0px'}}>
-            <Row style={{alignItems: 'flex-start'}}>
-                <Col md={3} className='justify-content-md-center' style={{display: 'flex'}}>
-                <Row>
-                    <Col md={12}>
-                    <InputGroup>
-                        <InputGroup.Text>New Zone Type: </InputGroup.Text>
-                        <Select
-                            options={zoneTypeOptions}
-                            value={zoneTypeOptions.find(option => option.value === defaultZoneType) ?? null}
-                            onChange={option => setDefaultZoneType(option?.value ?? defaultZoneType)}
-                        />
-                    </InputGroup>
-                    </Col>
-                    <Col md={12} style={{marginTop: '8px'}}>
-                        {isDrawingMode
-                            ? <Button variant='danger' onClick={stopDrawing}>Cancel Drawing</Button>
-                            : <Button variant='primary' onClick={startDrawing}>Draw Zone</Button>
-                        }
-                        {isDrawingMode && <small className='text-muted' style={{display: 'block', marginTop: '4px'}}>Click to add points &mdash; double-click to finish</small>}
-                    </Col>
-                    <Col>
+            {/*
+              * One row, two columns. The control column scrolls inside its own height so a long zone
+              * editor can never push the map down the page - the map keeps a fixed 85vh and stays
+              * fully visible. (This used to be two stacked rows, which meant the tall control column
+              * reserved matching dead height beside it and shoved the map below the fold.)
+              */}
+            <Row style={{alignItems: 'flex-start'}} className='g-2'>
+                <Col md={3} style={{maxHeight: MAP_HEIGHT, overflowY: 'auto', overflowX: 'hidden', paddingRight: '12px'}}>
+                    {isDrawingMode
+                        ? <Button variant='danger' onClick={stopDrawing}>Cancel Drawing</Button>
+                        : <Button variant='primary' onClick={startDrawing}>Draw Zone</Button>
+                    }
+                    {!isDrawingMode &&
+                        <Button
+                            variant='outline-secondary'
+                            style={{marginLeft: '4px'}}
+                            onClick={props.openImport}
+                            title='Copy zones from another ratesheet'
+                        >
+                            <i className='fas fa-file-import' /> Import
+                        </Button>
+                    }
+                    {isDrawingMode &&
+                        <small className='text-muted' style={{display: 'block', marginTop: '4px'}}>
+                            Click to add points &mdash; double-click to finish
+                        </small>
+                    }
+
+                    <ZoneGroupsPanel
+                        createZoneGroup={createZoneGroup}
+                        defaultZoneGroupId={defaultZoneGroupId}
+                        editZoneGroup={setEditZoneGroupId}
+                        mapZones={mapZones}
+                        setDefaultZoneGroupId={setDefaultZoneGroupId}
+                        zoneGroups={zoneGroups}
+                    />
+
+                    {hasUnsavedChanges &&
+                        <div className='text-warning' style={{marginTop: '8px', fontSize: '0.85em'}}>
+                            <i className='fas fa-exclamation-triangle' />{' '}
+                            Unsaved: {dirtyZones.length} zone{dirtyZones.length === 1 ? '' : 's'}
+                            {dirtyZoneGroupIds.length > 0 && `, ${dirtyZoneGroupIds.length} group${dirtyZoneGroupIds.length === 1 ? '' : 's'}`}
+                            {pendingZoneDeletions.length > 0 && `, ${pendingZoneDeletions.length} deletion${pendingZoneDeletions.length === 1 ? '' : 's'}`}
+                        </div>
+                    }
+
+                    <div style={{marginTop: '8px'}}>
                         <Select
                             key={refreshKey}
                             options={mapZones}
-                            getOptionLabel={zone => {
-                                return `${zone.name} (${zone.type}) (${zone.getCoordinateCount()} points)`
-                            }}
+                            getOptionLabel={zone => `${zone.name} (${zone.getCoordinateCount()} points)`}
                             getOptionValue={zone => zone.polygon.zIndex}
-                            value={mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex)}
+                            value={mapZones.find(zone => zone.polygon.zIndex == editZoneZIndex) ?? null}
                             onChange={zone => setEditZoneZIndex(zone.polygon.zIndex)}
+                            placeholder='Select a zone to edit'
                             isSearchable
+                            {...menuPortalProps}
                         />
-                    </Col>
-                </Row>
-                </Col>
-                <Col md={9}>
-                    <Button variant='secondary' onClick={() => setShowSettings(!showSettings)} aria-controls='map-settings' aria-expanded={showSettings}>
-                        {showSettings ? 'Hide Settings' : 'Show Settings'}
-                    </Button>
-                    <Collapse in={showSettings}>
-                        <div id='map-settings' style={{padding: '8px', marginTop: '8px'}}>
-                            <Row>
-                                <Col md={4}>
-                                    <InputGroup>
-                                        <InputGroup.Text>Tolerance</InputGroup.Text>
-                                        <FormControl
-                                            type='number'
-                                            step='0.1'
-                                            name='tolerance'
-                                            value={tolerance}
-                                            onChange={event => setTolerance(parseFloat(event.target.value) || 0.1)}
-                                        />
-                                        <InputGroup.Text>(m)</InputGroup.Text>
-                                    </InputGroup>
-                                </Col>
-                                {/* <Col md={8}>
-                                    <InputGroup style={{display: 'none'}}>
-                                        <InputGroup.Text>Simplify Mode</InputGroup.Text>
-                                        <Select
-                                            options={[{value:'topo', label:'Topology (preserve shared edges)'},{value:'quick', label:'Quick (per-zone simplify)'}]}
-                                            onChange={opt => setSimplifyMode(opt.value)}
-                                            value={{value: simplifyMode, label: simplifyMode === 'topo' ? 'Topology (preserve shared edges)' : 'Quick (per-zone simplify)'}}
-                                        />
-                                    </InputGroup>
-                                </Col> */}
-                            </Row>
-                            <Row style={{marginTop: '8px'}}>
-                                <Col md={12}>
-                                    <InputGroup>
-                                        <InputGroup.Checkbox 
-                                            checked={singleZoneOnly}
-                                            onChange={e => setSingleZoneOnly(e.target.checked)}
-                                        />
-                                        <InputGroup.Text>Apply only to selected zone ({editZone ? editZone.name : 'none selected'})</InputGroup.Text>
-                                    </InputGroup>
-                                </Col>
-                            </Row>
-                            <Row style={{marginTop: '8px'}}>
-                                <Col md={2}>
-                                    <Button onClick={runSimplify}>Simplify (run)</Button>
-                                </Col>
-                                <Col md={2}>
-                                    <Button variant='outline-secondary' onClick={runUndo} disabled={!lastUndoSnapshot}>Undo last action</Button>
-                                </Col>
-                            </Row>
-                        </div>
-                    </Collapse>
-                </Col>
-            </Row>
-            <Row>
-                <Col md={3}>
+                    </div>
+
                     {editZone &&
-                        <MapZone
-                            deleteZone={props.mapState.deleteZone}
-                            // editZone={props.editZone}
-                            handleZoneChange={props.mapState.handleZoneChange}
-                            // handleZoneTypeChange={props.mapState.handleZoneTypeChange}
-                            mapZones={mapZones}
-                            deliveryTypes={deliveryTypes}
-                            regionOptions={regionOptionsWithCurrent}
-                            tagOptions={tagOptions}
-                            zoneTypes={zoneTypeOptions}
-                            zone={editZone}
-                        />
+                        <div style={{marginTop: '8px'}}>
+                            <MapZone
+                                deleteZone={props.mapState.deleteZone}
+                                saveZone={saveZone}
+                                isSaving={isProcessing}
+                                handleZoneChange={props.mapState.handleZoneChange}
+                                mapZones={mapZones}
+                                deliveryTypes={deliveryTypes}
+                                tagOptions={tagOptions}
+                                zoneGroups={zoneGroups}
+                                zone={editZone}
+                            />
+                        </div>
                     }
-                    Note: Due to technical constraints, snapping currently only occurs on zone edit, not on create. Recommendation is to create a simple polygon, and then edit it to fit your desired dimensions
                 </Col>
-                <Col md={9}>
+                <Col md={9} style={{position: 'relative'}}>
+                    {/* Overlaid on the map rather than stacked above it, so it costs no vertical space. */}
+                    <Button
+                        size='sm'
+                        variant='light'
+                        onClick={() => setShowSettings(true)}
+                        style={{position: 'absolute', top: '8px', right: '20px', zIndex: 1, boxShadow: '0 1px 4px rgba(0,0,0,.3)'}}
+                    >
+                        <i className='fas fa-sliders-h' /> Map Tools
+                    </Button>
                     <GoogleMap
                         center={mapCenter}
-                        mapContainerStyle={{height: '85vh', width: '100%'}}
+                        mapContainerStyle={{height: MAP_HEIGHT, width: '100%'}}
                         options={{disableDefaultUI: true}}
                         zoom={mapZoom}
                         onLoad={map => {
@@ -343,6 +376,64 @@ export default function MapTab(props) {
                     </GoogleMap>
                 </Col>
             </Row>
+
+            <Modal show={showSettings} onHide={() => setShowSettings(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Map Tools</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <InputGroup>
+                        <InputGroup.Text>Tolerance</InputGroup.Text>
+                        <FormControl
+                            type='number'
+                            step='0.1'
+                            name='tolerance'
+                            value={tolerance}
+                            onChange={event => setTolerance(parseFloat(event.target.value) || 0.1)}
+                        />
+                        <InputGroup.Text>(m)</InputGroup.Text>
+                    </InputGroup>
+                    <InputGroup style={{marginTop: '8px'}}>
+                        <InputGroup.Checkbox
+                            checked={singleZoneOnly}
+                            onChange={e => setSingleZoneOnly(e.target.checked)}
+                        />
+                        <InputGroup.Text>
+                            Apply only to selected zone ({editZone ? editZone.name : 'none selected'})
+                        </InputGroup.Text>
+                    </InputGroup>
+                    <div style={{marginTop: '12px', display: 'flex', gap: '8px'}}>
+                        <Button onClick={runSimplify}>Simplify (run)</Button>
+                        <Button variant='outline-secondary' onClick={runUndo} disabled={!lastUndoSnapshot}>
+                            Undo last action
+                        </Button>
+                    </div>
+                    <hr/>
+                    <small className='text-muted'>
+                        Points snap to nearby zone vertices both while drawing and while editing, so a
+                        new zone can be traced straight onto its neighbours' borders. Tolerance is the
+                        snap distance on the ground; zoom in far enough for it to be more than a pixel
+                        or two, or snapping falls back to whatever sits under the cursor.
+                    </small>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant='secondary' onClick={() => setShowSettings(false)}>Close</Button>
+                </Modal.Footer>
+            </Modal>
+
+            {editedZoneGroup &&
+                <ZoneGroupModal
+                    deliveryTypes={deliveryTypes}
+                    zoneGroup={editedZoneGroup}
+                    zoneCount={mapZones.filter(zone => (zone.groupIds ?? []).includes(editedZoneGroup.zoneGroupId)).length}
+                    isDirty={dirtyZoneGroupIds.includes(editedZoneGroup.zoneGroupId)}
+                    isSaving={isProcessing}
+                    onChange={updateZoneGroup}
+                    onSave={saveZoneGroup}
+                    onDelete={deleteZoneGroup}
+                    onClose={() => setEditZoneGroupId(null)}
+                />
+            }
         </Card>
     )
 }
