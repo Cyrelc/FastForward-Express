@@ -269,6 +269,43 @@ class ChargeModelFactoryTest extends TestCase {
         $this->assertEquals(35, $this->totalPrice($charges));
     }
 
+    /** "NOT (this zone has tag X)" - the shape the types->tags migration rewrites "type != X" into. */
+    private function lacksTagViaSome($side, $tag) {
+        return ['!' => $this->hasTagViaSome($side, $tag)];
+    }
+
+    /**
+     * A PERIPHERAL zone still gets the zone surcharge.
+     *
+     * The old engine's test was literally `type != 'internal'`, so peripheral zones - which are neither
+     * internal nor outlying - were surcharged. Rewriting that as "has the OUTLYING tag" silently drops
+     * them, and they carry a real $6-$10 modifier on every ratesheet. The correct rewrite is "does NOT
+     * have the internal tag", which is what the migration now produces.
+     */
+    public function testPeripheralZoneStillGetsTheSurcharge() {
+        $ratesheetId = $this->makeRatesheetRow('Peripheral Test', [
+            ['id' => 'regular', 'name' => 'Regular', 'friendlyName' => 'Regular', 'cost' => 25, 'time' => 2],
+        ]);
+        $this->makeZone($ratesheetId, 'Central', 'internal', 0);
+        // Neither internal nor outlying - exactly the case the tag rewrite can lose.
+        $this->makeZone($ratesheetId, 'Fringe', 'peripheral', 20, 6, 1);
+
+        $this->insertConditional($ratesheetId, [
+            'name' => 'Non-internal Zone Surcharge - Delivery', 'priority' => 100,
+            'json_logic' => json_encode($this->lacksTagViaSome('delivery', 'internal')),
+            'action' => json_encode(['value' => 'add']),
+            'value_type' => 'field', 'value' => 'delivery_zone_selected_type_cost',
+        ]);
+
+        $charges = (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($ratesheetId, [5, 5], [25, 5])
+        );
+
+        // Flat base 25 + the peripheral zone's $6 modifier.
+        $this->assertEquals(31, $this->totalPrice($charges),
+            'A peripheral zone is not internal, so the non-internal surcharge must apply to it');
+    }
+
     /** LineItemModel keeps its name private; the invoice reads it back through jsonSerialize. */
     private function lineItemNames($lineItems) {
         return array_map(fn($item) => json_decode(json_encode($item), true)['name'], $lineItems);

@@ -69,6 +69,23 @@ class MigrateZoneTypesToTags extends Migration
         });
     }
 
+    /**
+     * "this zone has any of these tags", in the EXACT shape the query builder emits for a multiselect
+     * CONTAINS - not the equivalent-but-different {"in": [tag, {"var": path}]}.
+     *
+     * The shape matters as much as the meaning. Both forms evaluate identically in the engine, but the
+     * builder can only load back the one it writes: given the other, it renders the rule with a blank
+     * condition, and the first person to open and re-save it silently replaces the rule with whatever
+     * they rebuilt by hand. A migrated rule nobody can edit without destroying it is not migrated.
+     */
+    private function hasAnyTag($tagsPath, array $tags)
+    {
+        return ['some' => [
+            ['var' => $tagsPath],
+            ['in' => [['var' => ''], array_values($tags)]],
+        ]];
+    }
+
     private function rewriteConditionals($table, $keyColumn)
     {
         foreach(DB::table($table)->get() as $conditional) {
@@ -104,20 +121,23 @@ class MigrateZoneTypesToTags extends Migration
             if(!$tagsPath)
                 continue;
 
-            // 'in' against a zone-type var means "type is one of [...]" -> OR of tag tests.
+            // 'in' against a zone-type var means "type is one of [...]" -> has any of those tags.
             if($operator === 'in') {
                 if(!is_array($right))
                     continue;
-                return ['or' => array_map(function($typeValue) use ($tagsPath) {
-                    return ['in' => [$typeValue, ['var' => $tagsPath]]];
-                }, $right)];
+
+                return $this->hasAnyTag($tagsPath, $right);
             }
 
             if(!is_string($right))
                 continue;
 
-            $hasTag = ['in' => [$right, ['var' => $tagsPath]]];
+            $hasTag = $this->hasAnyTag($tagsPath, [$right]);
 
+            // != 'internal' becomes NOT(has the internal tag) - NOT "has the outlying tag". Those are
+            // different sets: a peripheral zone is neither internal nor outlying, and the old engine
+            // surcharged it (its test was literally type != 'internal'). Peripheral zones carry a real
+            // $6-$10 modifier on every ratesheet, so getting this wrong silently drops that charge.
             return $operator === '==' ? $hasTag : ['!' => $hasTag];
         }
 
