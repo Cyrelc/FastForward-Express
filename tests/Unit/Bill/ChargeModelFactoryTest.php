@@ -46,13 +46,10 @@ class ChargeModelFactoryTest extends TestCase {
     private function makeRatesheetRow($name, $deliveryTypes) {
         return DB::table('ratesheets')->insertGetId([
             'delivery_types' => json_encode($deliveryTypes),
-            'holiday_rate' => 0,
             'name' => $name,
-            'pallet_rate' => '[]',
             'time_rates' => '[]',
             'use_internal_zones_calc' => false,
             'weight_rates' => '[]',
-            'weekend_rate' => 0,
             'zone_rates' => '[]',
         ], 'ratesheet_id');
     }

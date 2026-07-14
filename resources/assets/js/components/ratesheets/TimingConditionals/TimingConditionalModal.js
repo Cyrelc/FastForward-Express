@@ -7,6 +7,7 @@ import {toast} from 'react-toastify'
 import {useAPI} from '../../../contexts/APIContext'
 import {buildTimingConditionalConfig, timeActions, timeValueTypes} from './timingConditionalConfig'
 import {extractZoneIdsFromLogic, flattenConditionFields} from '../conditionalFieldShared'
+import RuleHelp from '../RuleHelp'
 import useTimingConditional from './useTimingConditional'
 
 const renderBuilder = (props) => (
@@ -321,49 +322,22 @@ const TimingConditionalModal = props => {
                                 </InputGroup>
                             )}
                         </Col>
-                        <Col md={12}>
-                            <Card style={{marginTop: '12px'}}>
-                                <Card.Body style={{padding: '12px 15px'}}>
-                                    <Row>
-                                        <Col md={12}>
-                                            <h6 className='text-muted'>Rule Explanation</h6>
-                                            <ul style={{marginBottom: '10px'}}>
-                                                <li><strong>Action:</strong> {actionDescriptions[action?.value] ?? 'Controls whether this rule sets or adds time.'}</li>
-                                                <li><strong>Value Type:</strong> {valueTypeDescriptions[valueType?.value] ?? 'Controls whether the result comes from a fixed number or a context field.'}</li>
-                                                {valueType?.value === 'field' &&
-                                                    <li><strong>Selected Field:</strong> {selectedTimingValueOption?.description ?? 'Field-based value selected from timing context.'}</li>
-                                                }
-                                            </ul>
-                                        </Col>
-                                        <Col md={6}>
-                                            <h6 className='text-muted'>Condition Fields</h6>
-                                            <div style={{maxHeight: '220px', overflowY: 'auto'}}>
-                                                <ul style={{marginBottom: 0}}>
-                                                    {conditionReferenceRows.map(row =>
-                                                        <li key={row.path}>
-                                                            <strong>{row.label}</strong>: {row.description}
-                                                        </li>
-                                                    )}
-                                                </ul>
-                                            </div>
-                                        </Col>
-                                        <Col md={6}>
-                                            <h6 className='text-muted'>Then Value Fields</h6>
-                                            <div style={{maxHeight: '220px', overflowY: 'auto'}}>
-                                                <ul style={{marginBottom: 0}}>
-                                                    {timingValueOptions.map(option =>
-                                                        <li key={option.value}>
-                                                            <strong>{option.label}</strong>: {option.description}
-                                                        </li>
-                                                    )}
-                                                </ul>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                </Card.Body>
-                            </Card>
-                        </Col>
                     </Row>
+                    {/* Same shape as the pricing modal, from the same component: one line for whatever
+                        is selected, and the condition-field reference behind a disclosure rather than
+                        permanently open. The old always-on card said everything, all the time, and so
+                        was read once and then ignored - while eating the height the query builder needs.
+
+                        The "Then Value Fields" list it also carried is gone: picking a field now
+                        explains that field, which is the only one the author cares about. */}
+                    <RuleHelp
+                        action={action}
+                        actionDescriptions={actionDescriptions}
+                        valueType={valueType}
+                        valueTypeDescriptions={valueTypeDescriptions}
+                        selectedValueOption={valueType?.value === 'field' ? selectedTimingValueOption : null}
+                        conditionFields={conditionReferenceRows}
+                    />
                 </Card.Body>
                 <Card.Footer style={{textAlign: 'center'}}>
                     <Button

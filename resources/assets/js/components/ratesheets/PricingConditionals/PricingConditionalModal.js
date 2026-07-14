@@ -14,6 +14,7 @@ import {
     valueTypeDescriptions,
     fieldValueOptions,
     nameVariables,
+    conditionFieldDescriptions,
     REFUSE_ACTION,
 } from './pricingConditionalConfig'
 import {EQUATION_FUNCTIONS, EQUATION_FUNCTION_DESCRIPTIONS} from './useEquation'
@@ -27,7 +28,8 @@ import {
 } from '../TokenAutocomplete'
 import usePricingConditional from './usePricingConditional'
 import {useLists} from '../../../contexts/ListsContext'
-import {extractZoneIdsFromLogic} from '../conditionalFieldShared'
+import {extractZoneIdsFromLogic, flattenConditionFields} from '../conditionalFieldShared'
+import RuleHelp from '../RuleHelp'
 
 const renderBuilder = (props) => (
     <div className='query-builder-container' style={{padding: '10px'}}>
@@ -184,6 +186,12 @@ const PricingConditionalModal = props => {
     const selectedFieldValueOption = useMemo(() => {
         return fieldValueOptions.find(option => option.value === resultValue) ?? null
     }, [resultValue])
+
+    // Flattened from the live config, so a field added to the builder shows up here automatically
+    // rather than needing to be remembered in a second list.
+    const conditionReferenceRows = useMemo(() => {
+        return flattenConditionFields(config?.fields ?? {}, conditionFieldDescriptions)
+    }, [config])
 
     // Type-ahead for the name's {{...}} placeholders. Triggers on "{{", so it is out of the way until
     // it is wanted.
@@ -475,21 +483,6 @@ const PricingConditionalModal = props => {
                                         />
                                     </Col>
                                 }
-                                {/* Explains only what is currently selected. A permanent table of every
-                                    action and every value type would say the same things, but would say
-                                    them all the time - and be ignored all the time. */}
-                                <Col md={12} className='mt-2'>
-                                    {actionDescriptions[action?.value] &&
-                                        <small className='text-muted d-block'>
-                                            <strong>{action.label}:</strong> {actionDescriptions[action.value]}
-                                        </small>
-                                    }
-                                    {!isRefusal && valueTypeDescriptions[valueType?.value] &&
-                                        <small className='text-muted d-block'>
-                                            <strong>{valueType.label}:</strong> {valueTypeDescriptions[valueType.value]}
-                                        </small>
-                                    }
-                                </Col>
                                 {/* A refusal produces no charge - it stops the quote and shows this to
                                     staff, exactly as an address outside every zone does. It is checked
                                     before any pricing rule, whatever its priority. */}
@@ -541,14 +534,16 @@ const PricingConditionalModal = props => {
                                     />
                                 </Col>
                             </Row>
-                            {valueType.value === 'field' && selectedFieldValueOption &&
-                                <Row>
-                                    <Col md={2}></Col>
-                                    <Col md={10}>
-                                        <small className='text-muted'>{selectedFieldValueOption.description}</small>
-                                    </Col>
-                                </Row>
-                            }
+                            {/* Help goes UNDER the row, never between the selectors: a full-width column
+                                mid-row wraps everything after it onto a new line. */}
+                            <RuleHelp
+                                action={action}
+                                actionDescriptions={actionDescriptions}
+                                valueType={isRefusal ? null : valueType}
+                                valueTypeDescriptions={valueTypeDescriptions}
+                                selectedValueOption={!isRefusal && valueType.value === 'field' ? selectedFieldValueOption : null}
+                                conditionFields={conditionReferenceRows}
+                            />
                         </Card.Body>
                             {valueType.value === 'equation' &&
                                 <Card.Body>

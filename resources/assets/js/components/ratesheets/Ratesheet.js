@@ -67,7 +67,6 @@ export default function Ratesheet(props) {
                     ratesheetState.setDeliveryTypes(response.deliveryTypes)
                     ratesheetState.setName(response.name)
                     ratesheetState.setMiscRates(response.miscRates ?? [])
-                    ratesheetState.setPalletRate(response.palletRate)
                     ratesheetState.setConditionals(response.conditionals ?? [])
                     ratesheetState.setTimingConditionals(response.timingConditionals ?? [])
                     importFromRatesheet.setRatesheets(response.ratesheets.filter(ratesheet => ratesheet.ratesheet_id != params.ratesheetId))

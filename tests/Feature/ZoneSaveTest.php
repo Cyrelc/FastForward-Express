@@ -50,9 +50,8 @@ class ZoneSaveTest extends TestCase {
         $this->ratesheetId = DB::table('ratesheets')->insertGetId([
             'delivery_types' => json_encode([
                 ['id' => 'regular', 'name' => 'Regular', 'friendlyName' => 'Regular', 'cost' => 25, 'time' => 2],
-            ]),
-            'holiday_rate' => 0, 'name' => 'Zone Save Test', 'pallet_rate' => '[]', 'time_rates' => '[]',
-            'use_internal_zones_calc' => false, 'weight_rates' => '[]', 'weekend_rate' => 0, 'zone_rates' => '[]',
+            ]), 'name' => 'Zone Save Test', 'time_rates' => '[]',
+            'use_internal_zones_calc' => false, 'weight_rates' => '[]', 'zone_rates' => '[]',
         ], 'ratesheet_id');
     }
 

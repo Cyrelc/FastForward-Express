@@ -219,7 +219,9 @@ export default function RuleTesterModal(props) {
                             {quotes.map(quote => (
                                 <React.Fragment key={quote.id}>
                                     <tr>
-                                        <td><strong>{quote.name}</strong></td>
+                                        {/* The ratesheet's delivery types carry friendlyName, not name -
+                                            the quote is the raw type object with the price merged onto it. */}
+                                        <td><strong>{quote.friendlyName ?? quote.name ?? quote.id}</strong></td>
                                         <td className='text-end'>
                                             {quote.price === null
                                                 ? <span className='text-danger'>{quote.price_unavailable_reason ?? 'Cannot price'}</span>
