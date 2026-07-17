@@ -65,8 +65,13 @@ export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZon
                 // so a rule records which one it means, rather than being converted on the way in and
                 // out - see ChargeModelFactory::KilogramsToPounds.
                 total_weight_lbs: {label: 'Total Weight (lbs)', type: 'number'},
-                largest_dimension: {label: 'The longest side of the object', type: 'number'},
-                cubed_weight: {label: 'The total cubed weight', type: 'number'},
+                // Dimensional weight and longest side, each in both units. These used to be offered as a
+                // single unitless field apiece and were never populated by the engine at all, so any rule
+                // that used them silently never fired; they are wired in now, unit-explicit like weight.
+                cubed_weight_kgs: {label: 'Cubed Weight (kg)', type: 'number'},
+                cubed_weight_lbs: {label: 'Cubed Weight (lbs)', type: 'number'},
+                largest_dimension_cm: {label: 'Longest Side (cm)', type: 'number'},
+                largest_dimension_in: {label: 'Longest Side (in)', type: 'number'},
             }
         },
         delivery_address: {
@@ -129,12 +134,36 @@ export const availableTestVariables = [
         unit: 'lbs'
     },
     {
-        dbName: 'longest_side',
-        description: 'The longest dimension of the largest package',
-        name: 'Longest Side',
+        dbName: 'cubed_weight_kgs',
+        description: 'Dimensional (volumetric) weight of all packages, in kilograms',
+        name: 'Cubed Weight (kg)',
         type: 'number',
-        value: '3',
-        unit: 'm'
+        value: '30',
+        unit: 'kg'
+    },
+    {
+        dbName: 'cubed_weight_lbs',
+        description: 'Dimensional (volumetric) weight of all packages, in pounds',
+        name: 'Cubed Weight (lbs)',
+        type: 'number',
+        value: '66',
+        unit: 'lbs'
+    },
+    {
+        dbName: 'largest_dimension_cm',
+        description: 'The single longest side across every package, in centimetres',
+        name: 'Longest Side (cm)',
+        type: 'number',
+        value: '120',
+        unit: 'cm'
+    },
+    {
+        dbName: 'largest_dimension_in',
+        description: 'The single longest side across every package, in inches',
+        name: 'Longest Side (in)',
+        type: 'number',
+        value: '47',
+        unit: 'in'
     },
     {
         dbName: 'distance_km',

@@ -143,6 +143,84 @@ class ChargeModelFactoryTest extends TestCase {
         return $request;
     }
 
+    /** A request carrying explicit package dimensions, in the given unit. */
+    private function dimensionRequest($ratesheetId, $packages, $useImperial = false) {
+        $request = $this->chargeRequest($ratesheetId, [5, 5], [25, 5]);
+        $request->merge(['package_is_minimum' => false, 'use_imperial' => $useImperial, 'packages' => $packages]);
+
+        return $request;
+    }
+
+    /**
+     * A rule can gate on the longest side of any package.
+     *
+     * These fields (largest_dimension, cubed_weight) used to be offered in the query builder but never
+     * populated by the engine, so a rule using them silently never fired. They are wired in now.
+     */
+    public function testLongestSideReachesARule() {
+        $fixture = $this->makeRatesheet(10, 25);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Oversize', 'priority' => 1,
+            'json_logic' => json_encode(['>' => [['var' => 'package.largest_dimension_cm'], 200]]),
+            'value_type' => 'amount', 'value' => '15',
+        ]);
+
+        // Longest side is 250 cm (in the second box), across all packages -> fires. Base 25 + 15.
+        $over = (new ChargeModelFactory())->GenerateCharges($this->dimensionRequest($fixture['ratesheetId'], [
+            ['count' => 1, 'totalWeight' => 5, 'length' => 30, 'width' => 20, 'height' => 10],
+            ['count' => 1, 'totalWeight' => 5, 'length' => 250, 'width' => 5, 'height' => 5],
+        ]));
+        $this->assertEquals(40, $this->totalPrice($over));
+
+        // Nothing over 200 cm -> does not fire. Base only.
+        $under = (new ChargeModelFactory())->GenerateCharges($this->dimensionRequest($fixture['ratesheetId'], [
+            ['count' => 1, 'totalWeight' => 5, 'length' => 30, 'width' => 20, 'height' => 10],
+        ]));
+        $this->assertEquals(25, $this->totalPrice($under));
+    }
+
+    /**
+     * Dimensions convert on the SERVER (opposite to weight, which the client pre-converts). A 100 inch
+     * side must read as 254 cm, and the imperial and metric inputs must agree. Getting the direction
+     * backwards here is the mirror image of the weight double-conversion bug.
+     */
+    public function testDimensionsConvertServerSideAndAgreeAcrossUnits() {
+        $fixture = $this->makeRatesheet(10, 25);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Over 2 metres', 'priority' => 1,
+            'json_logic' => json_encode(['>' => [['var' => 'package.largest_dimension_cm'], 200]]),
+            'value_type' => 'amount', 'value' => '15',
+        ]);
+
+        // 100 inches = 254 cm, entered in imperial -> the server converts -> over 200 cm -> fires.
+        $imperial = (new ChargeModelFactory())->GenerateCharges($this->dimensionRequest($fixture['ratesheetId'], [
+            ['count' => 1, 'totalWeight' => 5, 'length' => 100, 'width' => 5, 'height' => 5],
+        ], true));
+        $this->assertEquals(40, $this->totalPrice($imperial));
+
+        // The same 254 cm entered directly in metric -> identical result.
+        $metric = (new ChargeModelFactory())->GenerateCharges($this->dimensionRequest($fixture['ratesheetId'], [
+            ['count' => 1, 'totalWeight' => 5, 'length' => 254, 'width' => 12.7, 'height' => 12.7],
+        ], false));
+        $this->assertEquals(40, $this->totalPrice($metric));
+    }
+
+    /** Cubed (volumetric) weight is summed across lines and reaches a rule, as a weight in kg. */
+    public function testCubedWeightReachesARule() {
+        $fixture = $this->makeRatesheet(10, 25);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Bulky', 'priority' => 1,
+            'json_logic' => json_encode(['>' => [['var' => 'package.cubed_weight_kgs'], 50]]),
+            'value_type' => 'amount', 'value' => '20',
+        ]);
+
+        // 100x100x100 cm = 1e6 cm3 * 0.0283168466 / 20 ~= 1415 kg cubed -> well over 50 -> fires.
+        $charges = (new ChargeModelFactory())->GenerateCharges($this->dimensionRequest($fixture['ratesheetId'], [
+            ['count' => 1, 'totalWeight' => 5, 'length' => 100, 'width' => 100, 'height' => 100],
+        ]));
+        $this->assertEquals(45, $this->totalPrice($charges));
+    }
+
     private function totalPrice($lineItems) {
         return array_reduce($lineItems, fn($carry, $item) => $carry + $item->getPrice(), 0);
     }

@@ -836,10 +836,16 @@ class ChargeModelFactory {
         $bill->pickup_zone_selected_type_cost = $pickupCost;
         $bill->delivery_zone_selected_type_cost = $deliveryCost;
 
-        // The same weight, in the other unit. See KilogramsToPounds for why this is a second field
-        // rather than a conversion applied when a rule is loaded or saved.
-        if(isset($bill->package))
+        // Each measurement, in the other unit. See KilogramsToPounds for why these are second fields
+        // rather than a conversion applied when a rule is loaded or saved: the same reasoning holds for
+        // dimensions (0.5 per cm is not 1.27 per inch inside a free-form equation).
+        if(isset($bill->package)) {
             $bill->package->total_weight_lbs = $this->KilogramsToPounds($bill->package->total_weight ?? 0);
+            $bill->package->cubed_weight_lbs = $this->KilogramsToPounds($bill->package->cubed_weight ?? 0);
+            // Store cubed_weight under its unit-explicit name too, matching total_weight_kgs in equations.
+            $bill->package->cubed_weight_kgs = $bill->package->cubed_weight ?? 0;
+            $bill->package->largest_dimension_in = round(($bill->package->largest_dimension_cm ?? 0) / self::CM_PER_INCH, 2);
+        }
 
         return $bill;
     }
@@ -861,6 +867,47 @@ class ChargeModelFactory {
         return (new Mass($kilograms, 'kg'))->toUnit('pounds');
     }
 
+    const CM_PER_INCH = 2.54;
+
+    // Volumetric weight factor, kept identical to the frontend's useMath.getCubedWeightFromCentimeters:
+    // (L*W*H in cm) / 20 * 0.0283168466. The /20 divisor is a known-wonky constant (the frontend comment
+    // admits it conflates cubic feet and cubic metres); it is reproduced here rather than corrected so
+    // the engine and the on-screen figure agree. Fixing the formula is a separate, deliberate change.
+    const CUBED_WEIGHT_FACTOR = 0.0283168466 / 20;
+
+    /**
+     * Reduces the package lines to the two dimension aggregates the pricing context exposes, both in
+     * canonical metric units.
+     *
+     *   cubed_weight_kg      - volumetric weight, per line (L*W*H*count), summed. A weight.
+     *   largest_dimension_cm - the single longest side across every package. A length. Count is
+     *                          irrelevant: a dimension is a property of one physical parcel.
+     *
+     * @param $useImperial - whether the stored length/width/height are inches (true) or centimetres.
+     *                       This is the ONE place use_imperial legitimately drives a conversion, because
+     *                       dimensions - unlike weight - are not pre-converted by the client.
+     */
+    private function PackageDimensionAggregates($packages, $useImperial) {
+        $cubedKg = 0;
+        $largestCm = 0;
+        $toCm = $useImperial ? self::CM_PER_INCH : 1;
+
+        foreach($packages ?? [] as $package) {
+            $length = (float) ($package['length'] ?? 0) * $toCm;
+            $width = (float) ($package['width'] ?? 0) * $toCm;
+            $height = (float) ($package['height'] ?? 0) * $toCm;
+            $count = max(1, (int) ($package['count'] ?? 1));
+
+            $cubedKg += $length * $width * $height * self::CUBED_WEIGHT_FACTOR * $count;
+            $largestCm = max($largestCm, $length, $width, $height);
+        }
+
+        return [
+            'cubed_weight_kg' => round($cubedKg, 2),
+            'largest_dimension_cm' => round($largestCm, 2),
+        ];
+    }
+
     private function EvaluateFunctionalEquation($conditional, $mockBill) {
         $evaluator = new Evaluator();
 
@@ -873,6 +920,12 @@ class ChargeModelFactory {
         $evaluator->variables = [
             'total_weight_kgs' => $totalWeight,
             'total_weight_lbs' => $this->KilogramsToPounds($totalWeight),
+            // Dimensional weight and the longest side, each offered in both units for the same reason as
+            // weight - a coefficient in a free-form equation cannot be safely reinterpreted between units.
+            'cubed_weight_kgs' => $mockBill->package->cubed_weight ?? 0,
+            'cubed_weight_lbs' => $this->KilogramsToPounds($mockBill->package->cubed_weight ?? 0),
+            'largest_dimension_cm' => $mockBill->package->largest_dimension_cm ?? 0,
+            'largest_dimension_in' => round(($mockBill->package->largest_dimension_cm ?? 0) / self::CM_PER_INCH, 2),
         ];
 
         // Only offered when they actually resolved. A variable present-but-null is worse than absent:
@@ -1243,6 +1296,15 @@ class ChargeModelFactory {
     private function mockBill($req) {
         $selectionsRepo = new Repos\SelectionsRepo();
 
+        // Canonical metric aggregates for the dimensions. Unlike totalWeight - which the client already
+        // converts to kilograms - the raw length/width/height arrive in the ENTERED unit, so use_imperial
+        // matters here and the conversion happens on THIS side. Getting that backwards is the mirror of
+        // the weight double-conversion bug, so the two are kept deliberately far apart.
+        $dimensions = $this->PackageDimensionAggregates(
+            $req->packages,
+            filter_var($req->use_imperial, FILTER_VALIDATE_BOOLEAN)
+        );
+
         $bill = (object) [
             'delivery_address' => (object) [
                 'is_mall' => filter_var($req->delivery_address['is_mall'], FILTER_VALIDATE_BOOLEAN),
@@ -1254,7 +1316,14 @@ class ChargeModelFactory {
                 // Already drives whether weight is charged at all (see GenerateCharges); exposed here
                 // so a rule can also condition on it.
                 'is_minimum' => filter_var($req->package_is_minimum, FILTER_VALIDATE_BOOLEAN),
-                'total_weight' => $req->packages ? array_reduce($req->packages, function($carry, $package) {return $carry + $package['totalWeight'];}, 0) : 0
+                'total_weight' => $req->packages ? array_reduce($req->packages, function($carry, $package) {return $carry + $package['totalWeight'];}, 0) : 0,
+                // Volumetric ("dimensional") weight, summed across lines, in kilograms - the twin of
+                // total_weight. Computed here from the dimensions rather than trusting a client-computed
+                // cubedWeight, so the rule tester (which sends dimensions, not a cubed weight) works too.
+                'cubed_weight' => $dimensions['cubed_weight_kg'],
+                // The single longest side across every package, in centimetres (canonical). The oversize
+                // check: "is anything too long to handle".
+                'largest_dimension_cm' => $dimensions['largest_dimension_cm'],
             ],
             'pickup_address' => (object) [
                 'is_mall' => filter_var($req->pickup_address['is_mall'], FILTER_VALIDATE_BOOLEAN),

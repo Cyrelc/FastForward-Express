@@ -133,6 +133,9 @@ export default function RuleTesterModal(props) {
     const [pickupIsMall, setPickupIsMall] = useState(false)
     const [deliveryIsMall, setDeliveryIsMall] = useState(false)
     const [weight, setWeight] = useState('10')
+    const [length, setLength] = useState('10')
+    const [width, setWidth] = useState('10')
+    const [height, setHeight] = useState('10')
     const [useImperial, setUseImperial] = useState(false)
     const [isPallet, setIsPallet] = useState(false)
     const [isMinimum, setIsMinimum] = useState(false)
@@ -161,7 +164,15 @@ export default function RuleTesterModal(props) {
             ratesheet_id: props.ratesheetId,
             pickup_address: {lat: pickup.lat, lng: pickup.lng, is_mall: pickupIsMall},
             delivery_address: {lat: delivery.lat, lng: delivery.lng, is_mall: deliveryIsMall},
-            packages: isMinimum ? [] : [{count: 1, totalWeight: kilograms, length: 10, width: 10, height: 10}],
+            // Dimensions go in the ENTERED unit (unlike weight, which is pre-converted to kg above):
+            // use_imperial tells the engine whether these are inches or centimetres, and it converts.
+            packages: isMinimum ? [] : [{
+                count: 1,
+                totalWeight: kilograms,
+                length: Number(length) || 0,
+                width: Number(width) || 0,
+                height: Number(height) || 0,
+            }],
             package_is_minimum: isMinimum,
             package_is_pallet: isPallet,
             use_imperial: useImperial,
@@ -220,6 +231,14 @@ export default function RuleTesterModal(props) {
                             >
                                 {useImperial ? 'lbs' : 'kg'}
                             </Button>
+                        </InputGroup>
+                        {/* Dimensions drive the longest-side and cubed-weight rules. Their unit follows
+                            the same kg/lbs toggle: metric is cm, imperial is inches. */}
+                        <InputGroup className='mb-2' size='sm'>
+                            <InputGroup.Text>{useImperial ? 'L×W×H (in)' : 'L×W×H (cm)'}</InputGroup.Text>
+                            <FormControl type='number' value={length} disabled={isMinimum} onChange={event => setLength(event.target.value)}/>
+                            <FormControl type='number' value={width} disabled={isMinimum} onChange={event => setWidth(event.target.value)}/>
+                            <FormControl type='number' value={height} disabled={isMinimum} onChange={event => setHeight(event.target.value)}/>
                         </InputGroup>
                         <FormCheck
                             inline
