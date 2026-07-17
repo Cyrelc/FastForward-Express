@@ -687,6 +687,55 @@ class ChargeModelFactoryTest extends TestCase {
     }
 
     /**
+     * The metered Routes API must NOT be called for a sheet with no distance rule.
+     *
+     * The call used to be unconditional in mockBill, so every quote on every ratesheet spent a Routes
+     * lookup (cached, but still one per unseen coordinate pair) even where nothing read the result.
+     */
+    public function testDistanceApiIsNotCalledWhenNoRuleUsesIt() {
+        config(['services.google.routes_api_key' => 'test-key']);
+        Http::fake(['routes.googleapis.com/*' => Http::response([
+            'routes' => [['distanceMeters' => 20000, 'duration' => '1200s']],
+        ], 200)]);
+
+        // A sheet with an ordinary surcharge but nothing referencing distance.
+        $fixture = $this->makeRatesheet(10, 25);
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Flat surcharge', 'priority' => 1,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'amount', 'value' => '5',
+        ]);
+
+        (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($fixture['ratesheetId'], [5, 5], [5, 6])
+        );
+
+        Http::assertNothingSent();
+    }
+
+    /** ...but a sheet that references distance (even only in a rule's name) still triggers the call. */
+    public function testDistanceApiIsCalledWhenARuleReferencesIt() {
+        config(['services.google.routes_api_key' => 'test-key']);
+        Http::fake(['routes.googleapis.com/*' => Http::response([
+            'routes' => [['distanceMeters' => 20000, 'duration' => '1200s']],
+        ], 200)]);
+
+        $fixture = $this->makeRatesheet(10, 25);
+        // Distance appears only in the line-item name via interpolation - the loosest reference.
+        $this->insertConditional($fixture['ratesheetId'], [
+            'name' => 'Surcharge ({{distance_km}} km)', 'priority' => 1,
+            'json_logic' => json_encode(['==' => [1, 1]]),
+            'value_type' => 'amount', 'value' => '5',
+        ]);
+
+        (new ChargeModelFactory())->GenerateCharges(
+            $this->chargeRequest($fixture['ratesheetId'], [5, 5], [5, 6])
+        );
+
+        Http::assertSentCount(1);
+    }
+
+    /**
      * An unresolvable placeholder must degrade, not leak braces onto a customer's invoice. The rule
      * still fires and still charges - interpolation is cosmetic - so the label just loses the value.
      */

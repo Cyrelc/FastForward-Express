@@ -6,6 +6,7 @@ use App\Http\Models;
 use App\Http\Repos;
 use App\Http\MapLogic;
 use App\Http\Services;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use JWadhams\JsonLogic;
 
@@ -1355,19 +1356,48 @@ class ChargeModelFactory {
         // delivery type, so resolving it there would mean four identical lookups per quote - and the
         // quote endpoint fires on a debounce as the bill is typed.
         //
-        // Null when it cannot be established (no key, API down, no drivable route). A rule that
-        // references it then refuses to price; a sheet that does not reference it is unaffected.
-        $route = (new Services\RouteDistanceService())->Between(
-            $req->pickup_address['lat'] ?? null,
-            $req->pickup_address['lng'] ?? null,
-            $req->delivery_address['lat'] ?? null,
-            $req->delivery_address['lng'] ?? null
-        );
+        // Gated on the ratesheet actually using distance: the Routes API is metered, so a sheet with
+        // no distance rule must not spend a call resolving a value nothing reads. When skipped, distance
+        // stays null - identical to "the API could not answer" - which is exactly what a sheet that does
+        // not reference distance expects. Null when it cannot be established (no key, API down, no
+        // drivable route); a rule that references it then refuses to price.
+        $route = $this->RatesheetUsesDistance($req->ratesheet_id)
+            ? (new Services\RouteDistanceService())->Between(
+                $req->pickup_address['lat'] ?? null,
+                $req->pickup_address['lng'] ?? null,
+                $req->delivery_address['lat'] ?? null,
+                $req->delivery_address['lng'] ?? null
+            )
+            : null;
 
         $bill->distance_km = $route['km'] ?? null;
         $bill->drive_time_minutes = $route['minutes'] ?? null;
 
         return $bill;
+    }
+
+    /**
+     * Does any pricing rule on this sheet actually reference road distance?
+     *
+     * The gate on the metered Routes API call. distance_km / drive_time_minutes can be used three ways -
+     * as a condition (in json_logic), inside an equation (original_equation_string), or interpolated
+     * into a line-item name ({{distance_km}}) - so all three columns are scanned. A LIKE match is
+     * deliberately generous: a false positive costs one unnecessary (cached) API call, while a false
+     * negative would leave a real distance rule unable to price. Only pricing rules are checked because
+     * distance never reaches the timing context.
+     *
+     * One indexed exists() per quote, which replaces a network round-trip for every sheet that does not
+     * use distance - i.e. almost all of them.
+     */
+    private function RatesheetUsesDistance($ratesheetId) {
+        return DB::table('conditionals')
+            ->where('ratesheet_id', $ratesheetId)
+            ->where(function($query) {
+                foreach(['json_logic', 'original_equation_string', 'name'] as $column)
+                    foreach(['distance_km', 'drive_time_minutes'] as $token)
+                        $query->orWhere($column, 'like', '%' . $token . '%');
+            })
+            ->exists();
     }
 
     private function prepareZone($zone) {
