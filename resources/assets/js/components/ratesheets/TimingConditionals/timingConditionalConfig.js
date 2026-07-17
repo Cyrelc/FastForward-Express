@@ -1,5 +1,6 @@
 import {MuiConfig} from '@react-awesome-query-builder/mui'
 import {
+    applyLeafLabel2,
     buildAddressSubfields,
     buildDeliveryTypeListValues,
     buildGroupListValues,
@@ -47,7 +48,8 @@ export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZone
             ...MuiConfig.settings,
             ...sharedQueryBuilderSettings,
         },
-        fields: {
+        // applyLeafLabel2 renders a saved condition by its own label rather than its full dotted path.
+        fields: applyLeafLabel2({
             ...relationFlagFields(),
             // Timing rules reference only timing rules: a timing rule asking about a pricing rule
             // would be a category error, and the ids would collide besides.
@@ -95,6 +97,6 @@ export const buildTimingConditionalConfig = ({mapZones, deliveryTypes, extraZone
                 label: 'Delivery Address',
                 subfields: buildAddressSubfields('Delivery', {mapZones, extraZoneIds, zoneGroups, extraSubfields: zoneTimeSubfield})
             }
-        }
+        })
     }
 }

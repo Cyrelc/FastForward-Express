@@ -247,3 +247,26 @@ export const flattenConditionFields = (fields, descriptions = {}, prefix = '') =
     })
     return values
 }
+
+/**
+ * Makes the query builder render a nested field by its own label instead of its full dotted path.
+ *
+ * Left alone, queryString shows a rule's condition as "Delivery Address.Delivery Zone.Delivery Zone
+ * Tags CONTAINS [outlying]" - the parent-struct labels prepended to the leaf. The library uses a
+ * field's `label2` verbatim when it is set (see core/export/queryString: fieldDefinition.label2 ||
+ * fieldFullLabel), and our leaf labels are already self-contained ("Delivery Zone Tags"), so setting
+ * label2 = label on every leaf collapses that to "Delivery Zone Tags CONTAINS [outlying]".
+ *
+ * Done to the config rather than by rewriting the saved string, so it needs no parsing (a naive split
+ * on "." would trip over decimal values like 1.5) and it stays truthful - the text is still generated
+ * from the rule's own tree, only more readably.
+ */
+export const applyLeafLabel2 = (fields) => {
+    Object.values(fields ?? {}).forEach(field => {
+        if(field?.type === '!struct')
+            applyLeafLabel2(field.subfields ?? {})
+        else if(field?.label && field.label2 === undefined)
+            field.label2 = field.label
+    })
+    return fields
+}

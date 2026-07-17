@@ -1,5 +1,6 @@
 import {MuiConfig} from '@react-awesome-query-builder/mui'
 import {
+    applyLeafLabel2,
     buildAddressSubfields,
     buildDeliveryTypeListValues,
     buildGroupListValues,
@@ -41,7 +42,9 @@ export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZon
         ...MuiConfig.settings,
         ...sharedQueryBuilderSettings,
     },
-    fields: {
+    // applyLeafLabel2 makes the saved condition read "Delivery Zone Tags CONTAINS [outlying]" rather
+    // than the full "Delivery Address.Delivery Zone.Delivery Zone Tags ..." path.
+    fields: applyLeafLabel2({
         ...relationFlagFields(),
         ...matchedRulesField(conditionals, conditionalId, 'conditional_id'),
         // Road distance for the trip, from Google's recommended driving route - not straight-line, and
@@ -113,7 +116,7 @@ export const buildPricingConditionalConfig = ({mapZones, deliveryTypes, extraZon
             label: 'Pickup Time',
             subfields: timeSubfields('Pickup')
         }
-    }
+    })
 })
 
 export const availableTestVariables = [
