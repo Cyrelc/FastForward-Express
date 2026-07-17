@@ -67,7 +67,7 @@ const BreakdownTable = ({rows, unit}) => {
     )
 }
 
-const AddressPicker = ({label, address, onPick}) => {
+const AddressPicker = ({label, address, onPick, time, onTimeChange, isMall, onMallChange}) => {
     const [autocomplete, setAutocomplete] = useState(null)
 
     const pick = () => {
@@ -83,18 +83,44 @@ const AddressPicker = ({label, address, onPick}) => {
     }
 
     return (
-        <InputGroup className='mb-2'>
-            <InputGroup.Text style={{width: 90}}>{label}</InputGroup.Text>
-            <Autocomplete
-                className='form-control autocomplete-wrapper'
-                fields={['geometry', 'name', 'formatted_address']}
-                onLoad={setAutocomplete}
-                onPlaceChanged={pick}
-            >
-                <FormControl type='text' placeholder='Search an address...' defaultValue={address?.formatted ?? ''}/>
-            </Autocomplete>
-        </InputGroup>
+        <div className='mb-3'>
+            <InputGroup className='mb-1'>
+                <InputGroup.Text style={{width: 90}}>{label}</InputGroup.Text>
+                <Autocomplete
+                    className='form-control autocomplete-wrapper'
+                    fields={['geometry', 'name', 'formatted_address']}
+                    onLoad={setAutocomplete}
+                    onPlaceChanged={pick}
+                >
+                    <FormControl type='text' placeholder='Search an address...' defaultValue={address?.formatted ?? ''}/>
+                </Autocomplete>
+            </InputGroup>
+            <InputGroup size='sm'>
+                {/* Time drives after-hours / weekend / day-of-week rules. It defaults to now, so a
+                    rule that only fires at certain times shows nothing until the time is set to match. */}
+                <InputGroup.Text style={{width: 90}}>{label} time</InputGroup.Text>
+                <FormControl
+                    type='datetime-local'
+                    value={time}
+                    onChange={event => onTimeChange(event.target.value)}
+                />
+                <InputGroup.Text>
+                    <FormCheck
+                        label='Mall'
+                        checked={isMall}
+                        onChange={() => onMallChange(!isMall)}
+                    />
+                </InputGroup.Text>
+            </InputGroup>
+        </div>
     )
+}
+
+/** datetime-local wants "YYYY-MM-DDTHH:mm" in LOCAL time - toISOString would shift it to UTC. */
+const nowForInput = () => {
+    const now = new Date()
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
+    return now.toISOString().slice(0, 16)
 }
 
 export default function RuleTesterModal(props) {
@@ -102,6 +128,10 @@ export default function RuleTesterModal(props) {
 
     const [pickup, setPickup] = useState(null)
     const [delivery, setDelivery] = useState(null)
+    const [pickupTime, setPickupTime] = useState(nowForInput)
+    const [deliveryTime, setDeliveryTime] = useState(nowForInput)
+    const [pickupIsMall, setPickupIsMall] = useState(false)
+    const [deliveryIsMall, setDeliveryIsMall] = useState(false)
     const [weight, setWeight] = useState('10')
     const [useImperial, setUseImperial] = useState(false)
     const [isPallet, setIsPallet] = useState(false)
@@ -129,14 +159,15 @@ export default function RuleTesterModal(props) {
 
         api.post('/bills/estimateDeliveryTimes', {
             ratesheet_id: props.ratesheetId,
-            pickup_address: {lat: pickup.lat, lng: pickup.lng, is_mall: false},
-            delivery_address: {lat: delivery.lat, lng: delivery.lng, is_mall: false},
+            pickup_address: {lat: pickup.lat, lng: pickup.lng, is_mall: pickupIsMall},
+            delivery_address: {lat: delivery.lat, lng: delivery.lng, is_mall: deliveryIsMall},
             packages: isMinimum ? [] : [{count: 1, totalWeight: kilograms, length: 10, width: 10, height: 10}],
             package_is_minimum: isMinimum,
             package_is_pallet: isPallet,
             use_imperial: useImperial,
-            time_pickup_scheduled: new Date().toLocaleString('en-US'),
-            time_delivery_scheduled: new Date().toLocaleString('en-US'),
+            // datetime-local yields "YYYY-MM-DDTHH:mm", which PHP's DateTime parses directly.
+            time_pickup_scheduled: pickupTime,
+            time_delivery_scheduled: deliveryTime,
         }).then(response => {
             setQuotes(response ?? [])
             setExpanded(null)
@@ -161,8 +192,18 @@ export default function RuleTesterModal(props) {
 
                 <Row>
                     <Col md={7}>
-                        <AddressPicker label='Pickup' address={pickup} onPick={setPickup}/>
-                        <AddressPicker label='Delivery' address={delivery} onPick={setDelivery}/>
+                        <AddressPicker
+                            label='Pickup'
+                            address={pickup} onPick={setPickup}
+                            time={pickupTime} onTimeChange={setPickupTime}
+                            isMall={pickupIsMall} onMallChange={setPickupIsMall}
+                        />
+                        <AddressPicker
+                            label='Delivery'
+                            address={delivery} onPick={setDelivery}
+                            time={deliveryTime} onTimeChange={setDeliveryTime}
+                            isMall={deliveryIsMall} onMallChange={setDeliveryIsMall}
+                        />
                     </Col>
                     <Col md={5}>
                         <InputGroup className='mb-2'>
