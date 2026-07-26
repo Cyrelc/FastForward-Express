@@ -64,6 +64,13 @@ export default function BasicTab(props) {
         return acc
     }, 0)
 
+    // The number of hours a full business day allows for a delivery. A delivery type is only truly
+    // unavailable if it can't fit *any* business day - not merely today's remaining hours. A type
+    // that doesn't fit in today's leftover time still fits a future date, and selecting it bounces
+    // the pickup to the next business day (see SET_DELIVERY_TYPE in billReducer). Disabling on
+    // "doesn't fit today" instead blocks that entirely valid future-dated booking.
+    const fullBusinessDayHours = businessHoursMax.diff(businessHoursMin, 'hours').hours
+
     const pickupTimeFilter = time => {
         const dateTime = DateTime.fromJSDate(time)
         // If requested time is in the past
@@ -425,11 +432,15 @@ export default function BasicTab(props) {
                             }
                             <Select
                                 options={deliveryTypes.map((type, index) => {
-                                    // Feasibility is computed server-side (fits_today); the client just renders it.
-                                    const isDisabled = applyRestrictions && deliveryTimesLoaded && type.fits_today === false
+                                    // A type is only unselectable if it can't be completed within a full
+                                    // business day (it would never fit any date, and picking it would send
+                                    // getValidPickupTime into an endless search). Types that simply don't fit
+                                    // the rest of today stay selectable and bounce the pickup to the next
+                                    // business day, so a future-dated booking is always possible.
+                                    const isDisabled = applyRestrictions && type.time > fullBusinessDayHours
                                     // Price estimate is intentionally hidden on the Pickup/Delivery tab; only the time estimate is shown here.
                                     return {
-                                        label: `${type.friendlyName} (Est. ~ ${type.time}h${isDisabled ? ', not avail. today' : ''})`,
+                                        label: `${type.friendlyName} (Est. ~ ${type.time}h${isDisabled ? ', exceeds a business day' : ''})`,
                                         value: type.id,
                                         key: index,
                                         isDisabled
