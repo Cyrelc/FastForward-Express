@@ -204,8 +204,11 @@ class InvoiceRepo {
                 'send_paper_invoices'
             )->groupBy('invoices.invoice_id');
 
-        if($myAccounts)
+        if($myAccounts) {
             $invoices->whereIn('invoices.account_id', $myAccounts);
+            // Account users may only ever see finalized invoices (mirrors InvoicePolicy::view)
+            $invoices->where('invoices.finalized', true);
+        }
 
         $filteredInvoices = QueryBuilder::for($invoices)
             ->allowedFilters([
