@@ -316,6 +316,10 @@ export default function billReducer(state, action) {
         case 'SET_DELIVERY_TIME_EXPECTED':
             return Object.assign({}, state, {delivery: {...state.delivery, timeScheduled: payload}})
         case 'SET_DELIVERY_TYPE':
+            // Dispatched only from the delivery-type dropdown's onChange, i.e. an explicit user
+            // change. In that case it's fine to re-run the next-day/feasibility scheduling even on
+            // an existing bill; what we don't want (handled in SET_DELIVERY_ESTIMATES) is a silent
+            // recalculation triggered automatically when a bill is merely reopened.
             if(state.applyRestrictions) {
                 const pickupTimeScheduled = getValidPickupTime(state.pickup.timeScheduled, [payload], state.timeCallReceived)
                 return Object.assign({}, state, {
@@ -385,6 +389,9 @@ export default function billReducer(state, action) {
                 }
             })
         case 'SET_PICKUP_TIME_EXPECTED': {
+            // Dispatched from the pickup-time field's onChange (explicit user change); on load it
+            // only fires for new bills. So re-running the scheduling here is intended — the silent
+            // on-reopen recalculation we guard against lives in SET_DELIVERY_ESTIMATES.
             if(state.applyRestrictions) {
                 const {businessHoursMax, deliveryTypes} = state
                 // round to nearest 15 minutes
@@ -426,7 +433,11 @@ export default function billReducer(state, action) {
 
             // If restrictions apply and the current delivery type no longer fits today (per the
             // server-computed feasibility), auto-switch to the fastest type that does fit.
-            if(state.applyRestrictions && deliveryType && deliveryTypes.length) {
+            // This runs from the automatic estimate refetch (including on load), so it must NOT
+            // fire for an existing bill: reopening a bill later in the day, when its saved type no
+            // longer "fits today", must keep the saved type. Explicit type changes still recompute
+            // (see SET_DELIVERY_TYPE). New bills auto-switch as before.
+            if(state.applyRestrictions && !state.billId && deliveryType && deliveryTypes.length) {
                 if(deliveryType.fits_today === false) {
                     const sorted = [...deliveryTypes].sort((a, b) => a.time - b.time)
                     const fallback = sorted.find(type => type.fits_today !== false)
