@@ -154,9 +154,15 @@ export default function Bill(props) {
         const selected = (quotes ?? []).find(type => type.id == deliveryType.id)
         if(!selected || selected.price == null) {
             setAwaitingCharges(false)
-            toast.error(selected?.price_unavailable_reason || 'Unable to automatically price this delivery. Please price manually.', {
+            const reason = selected?.price_unavailable_reason || 'Unable to automatically price this delivery. Please price manually.'
+            // Key the toast by its message so repeat fires of the same warning collapse into one
+            // box instead of stacking (an edit re-runs pricing and can fulfil from both the cached
+            // and freshly-fetched paths). Distinct reasons — pickup vs delivery zone, a different
+            // failing rule — get distinct ids and still surface on their own.
+            toast.error(reason, {
                 autoClose: 8000,
                 position: 'top-center',
+                toastId: `price-unavailable-${reason}`,
             })
             return
         }
