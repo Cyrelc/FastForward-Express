@@ -158,12 +158,14 @@ export default function Bill(props) {
             // Key the toast by its message so repeat fires of the same warning collapse into one
             // box instead of stacking (an edit re-runs pricing and can fulfil from both the cached
             // and freshly-fetched paths). Distinct reasons — pickup vs delivery zone, a different
-            // failing rule — get distinct ids and still surface on their own.
-            toast.error(reason, {
-                autoClose: 8000,
-                position: 'top-center',
-                toastId: `price-unavailable-${reason}`,
-            })
+            // failing rule — get distinct ids and still surface on their own. When the same warning
+            // is already showing, refresh it in place so its auto-close timer resets to the latest
+            // fire rather than expiring on the first one's clock.
+            const toastId = `price-unavailable-${reason}`
+            if(toast.isActive(toastId))
+                toast.update(toastId, {autoClose: 8000})
+            else
+                toast.error(reason, {autoClose: 8000, position: 'top-center', toastId})
             return
         }
 
