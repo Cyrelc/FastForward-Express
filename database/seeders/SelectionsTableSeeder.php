@@ -158,6 +158,11 @@ class SelectionsTableSeeder extends Seeder
             'value' => 'weightRate',
             'type' => 'charge_type'
         ]);
+        DB::table('selections')->insert([
+            'name' => 'Conditional Rate',
+            'value' => 'conditionalRate',
+            'type' => 'charge_type'
+        ]);
 // Vehicle Types
         DB::table('selections')->insert([
             'name' => '1/4 Ton Truck or Van',
