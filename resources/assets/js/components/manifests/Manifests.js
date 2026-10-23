@@ -3,6 +3,7 @@ import {useHistory} from 'react-router-dom'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
@@ -55,6 +56,8 @@ export default function Manifests(props) {
     const {frontEndPermissions} = useUser()
 
     const api = useAPI()
+    const lists = useLists()
+    const drivers = lists.employees.filter(employee => employee.is_driver)
     const columns= [
         {
             formatter: cell => cellContextMenuFormatter(cell),
@@ -77,8 +80,8 @@ export default function Manifests(props) {
     ]
 
     const filters= [
-        ...props.drivers?.length > 0 ? [{
-            selections: props.drivers,
+        ...drivers.length > 0 ? [{
+            selections: drivers,
             isMulti: true,
             name: 'Driver',
             type: 'SelectFilter',
