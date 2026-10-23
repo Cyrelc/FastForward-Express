@@ -70,6 +70,21 @@ export default function Table(props) {
         }, () => {setIsLoading(false)})
     }, [location.search, props.triggerReload])
 
+    // Filter definitions can arrive/change after the initial setup effect has run (e.g. a
+    // SelectFilter whose selections are loaded asynchronously from a context). Merge the latest
+    // definitions in, preserving the active/value state of filters that are already present so we
+    // don't clobber the user's current selections.
+    useEffect(() => {
+        const queryStrings = queryString.parse(location.search)
+        setFilters(current => props.filters.map(filter => {
+            const existing = current.find(existingFilter => existingFilter.db_field == filter.db_field)
+            if(existing)
+                return {...filter, active: existing.active, value: existing.value}
+            const value = queryStrings[`filter[${filter.db_field}]`]
+            return {...filter, active: value != undefined, value: value}
+        }))
+    }, [props.filters])
+
     // Initialize datatable
     useEffect(() => {
         if(tableRef.current && !table && !isLoading) {
