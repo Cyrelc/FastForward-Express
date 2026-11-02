@@ -4,6 +4,7 @@ import {ResponsiveBar} from '@nivo/bar'
 import DatePicker from 'react-datepicker'
 import Select from 'react-select'
 import {useAPI} from '../../contexts/APIContext'
+import {formatCalendarDate} from '../../utils/dates'
 
 const dateGroupOptions = [
     {label: 'Year', value: 'year'},
@@ -40,9 +41,9 @@ export default function Charts(props) {
     const fetchChart = async () =>  {
         const queryString = new URLSearchParams({
             dateGroupBy: dateGroupBy.value,
-            endDate: endDate.toLocaleDateString(),
+            endDate: formatCalendarDate(endDate),
             groupBy: groupBy ? groupBy.value : null,
-            startDate: startDate.toLocaleDateString(),
+            startDate: formatCalendarDate(startDate),
             summationType: summationType.value
         }).toString()
 

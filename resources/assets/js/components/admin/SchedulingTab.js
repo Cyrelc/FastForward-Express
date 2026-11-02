@@ -3,6 +3,7 @@ import {Button, Card, Col, FormControl, InputGroup, Row, Table} from 'react-boot
 import DatePicker from 'react-datepicker'
 
 import {useAPI} from '../../contexts/APIContext'
+import {formatCalendarDate, parseCalendarDate} from '../../utils/dates'
 
 export default function SchedulingTab(props) {
     const [blockedDate, setBlockedDate] = useState(new Date())
@@ -11,13 +12,13 @@ export default function SchedulingTab(props) {
     const api = useAPI()
 
     const addBlockedDate = () => {
-        const data = {date: blockedDate.toLocaleString('en-CA'), name: blockedDateName}
+        const data = {date: formatCalendarDate(blockedDate), name: blockedDateName}
         api.post(`/appsettings/scheduling/blockedDates`, data)
             .then(response => {
                 props.setBlockedDates(response.blocked_dates.map(date => {
                     return {
                         ...date,
-                        date: new Date(date.value)
+                        date: parseCalendarDate(date.value)
                     }
                 }))
                 setBlockedDate(new Date())
@@ -31,7 +32,7 @@ export default function SchedulingTab(props) {
                 .then(response => {
 
                     const blockedDates = response.blocked_dates.map(blocked => {
-                        return {...blocked, date: new Date(blocked.value)}
+                        return {...blocked, date: parseCalendarDate(blocked.value)}
                     })
                     props.setBlockedDates(blockedDates)
                 })

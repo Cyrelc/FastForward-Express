@@ -128,11 +128,6 @@ class BillModelFactory{
 		if($model->bill === null)
 			abort(404, 'Invalid ID: Unable to find the bill requested');
 
-		// Stored as server wall-clock time; send with the server's offset so the browser converts to the user's local time
-		foreach(['time_call_received', 'time_delivered', 'time_delivery_scheduled', 'time_dispatched', 'time_picked_up', 'time_pickup_scheduled', 'time_ten_foured'] as $field)
-			if($model->bill->$field)
-				$model->bill->$field = (new \DateTime($model->bill->$field))->format(\DateTime::ATOM);
-
 		if($permissions['viewActivityLog']) {
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
 			foreach($model->activity_log as $key => $log) {

@@ -5,6 +5,7 @@ import {toast} from 'react-toastify'
 
 import {Button, Col, Dropdown, Modal, Row, Table} from 'react-bootstrap'
 import {useAPI} from '../../../contexts/APIContext'
+import {parseCalendarDate} from '../../../utils/dates'
 
 const stripePromise = loadStripe(process.env.MIX_STRIPE_KEY)
 
@@ -50,7 +51,7 @@ export default function ManagePaymentMethodsModal(props) {
             .then(response => {
                 if(response.payment_methods?.length)
                     setPaymentMethods(response.payment_methods.map(paymentMethod => {
-                        return {...paymentMethod, expiry_date: new Date(paymentMethod.expiry_date)}
+                        return {...paymentMethod, expiry_date: parseCalendarDate(paymentMethod.expiry_date)}
                     }))
                 else
                     setShowCreatePaymentMethod(true)
@@ -127,8 +128,8 @@ export default function ManagePaymentMethodsModal(props) {
                                             </td>
                                             <td style={{textAlign: 'center'}}>{getCardIcon(card.brand)}</td>
                                             <td>{card.is_default && <i className='fas fa-star fa-lg'></i>}</td>
-                                            <td style={card.expired ? {color: 'red'} : {}}>{card.name}</td>
-                                            <td style={card.expired ? {color: 'red'} : {}}>{card.expiry_date.toLocaleDateString('en-US', {month: '2-digit', year: 'numeric'})}</td>
+                                            <td style={card.is_expired ? {color: 'red'} : {}}>{card.name}</td>
+                                            <td style={card.is_expired ? {color: 'red'} : {}}>{card.expiry_date.toLocaleDateString('en-US', {month: '2-digit', year: 'numeric'})}</td>
                                         </tr>
                                     )}
                                 </tbody>

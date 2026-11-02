@@ -254,7 +254,7 @@ class InvoiceController extends Controller {
             'accounts' => 'array',
             'prepaid' => 'array',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:' . $req->start_date
+            'end_date' => 'required|date|after_or_equal:' . $req->start_date
         ];
 
         $validationMessages = ['accounts.required_if' => 'You must select at least one item to invoice'];

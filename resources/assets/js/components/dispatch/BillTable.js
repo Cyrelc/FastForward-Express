@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react'
 import {TabulatorFull as Tabulator} from 'tabulator-tables'
 import {Card} from 'react-bootstrap'
 import {DateTime} from 'luxon'
+import {formatInstant, parseInstant} from '../../utils/dates'
 
 export default function BillTable(props) {
     const [table, setTable] = useState(null)
@@ -42,8 +43,8 @@ export default function BillTable(props) {
             cellClick: (event, cell) => props.toggleBillView(cell),
             headerClick: (event, column) => props.toggleTableBillView(column.getTable().element.getAttribute('data-employeeid'))
         },
-        {title: 'Picked Up', field: 'time_picked_up', visible: false},
-        {title: 'Delivered', field: 'time_delivered', visible: false},
+        {title: 'Picked Up', field: 'time_picked_up', visible: false, formatter: cell => formatInstant(cell.getValue())},
+        {title: 'Delivered', field: 'time_delivered', visible: false, formatter: cell => formatInstant(cell.getValue())},
         {title: 'Current Time', field: 'current_time', visible: false}
     ]
 
@@ -74,8 +75,8 @@ export default function BillTable(props) {
 
     const pickupDeliveryTimeFormatter = (cell, timeScheduled, actualTime) => {
         if(actualTime)
-            actualTime = DateTime.fromSQL(actualTime)
-        const timeRemaining = DateTime.fromSQL(timeScheduled).diffNow().shiftTo('days', 'hours', 'minutes')
+            actualTime = parseInstant(actualTime)
+        const timeRemaining = parseInstant(timeScheduled).diffNow().shiftTo('days', 'hours', 'minutes')
         const color = props.getBackgroundColour(timeRemaining, actualTime)
         cell.getElement().style.backgroundColor = color
     

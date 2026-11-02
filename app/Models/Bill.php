@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\ServerDateTime;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -12,6 +13,16 @@ class Bill extends Model
 
     public $primaryKey = "bill_id";
     public $timestamps = true;
+
+    protected $casts = [
+        'time_call_received' => ServerDateTime::class,
+        'time_delivered' => ServerDateTime::class,
+        'time_delivery_scheduled' => ServerDateTime::class,
+        'time_dispatched' => ServerDateTime::class,
+        'time_picked_up' => ServerDateTime::class,
+        'time_pickup_scheduled' => ServerDateTime::class,
+        'time_ten_foured' => ServerDateTime::class,
+    ];
 
     protected $fillable = [
         'bill_number',

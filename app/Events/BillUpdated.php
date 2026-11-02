@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Casts\ServerDateTime;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -28,8 +29,8 @@ class BillUpdated implements ShouldBroadcast
     {
         activity('system_debug')->log('Bill updated: ' . $bill->bill_id);
         $this->bill_id = $bill->bill_id;
-        $this->time_pickup_scheduled = $bill->time_pickup_scheduled;
-        $this->time_delivery_scheduled = $bill->time_delivery_scheduled;
+        $this->time_pickup_scheduled = ServerDateTime::toIso($bill->time_pickup_scheduled);
+        $this->time_delivery_scheduled = ServerDateTime::toIso($bill->time_delivery_scheduled);
         $this->pickup_driver_id = $bill->pickup_driver_id;
         $this->delivery_driver_id = $bill->delivery_driver_id;
     }

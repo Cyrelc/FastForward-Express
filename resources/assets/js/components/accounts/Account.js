@@ -16,6 +16,7 @@ import BillingTab from './billing/BillingTab'
 import useAddress from '../partials/Hooks/useAddress'
 import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
+import {formatCalendarDate, parseCalendarDate} from '../../utils/dates'
 
 export default function Account(props) {
     const [accountId, setAccountId] = useState('')
@@ -132,7 +133,7 @@ export default function Account(props) {
                     shippingAddress.setup(response.shipping_address)
                     setShowInvoiceLineItems(response.account.show_invoice_line_items)
                     setShowPickupAndDeliveryAddress(response.account.show_pickup_and_delivery_address)
-                    setStartDate(new Date(response.account.start_date))
+                    setStartDate(parseCalendarDate(response.account.start_date))
                     setUseShippingForBillingAddress(response.account.billing_address_id === null)
 
                     if(response.billing_address)
@@ -216,7 +217,7 @@ export default function Account(props) {
                 min_invoice_amount: minInvoiceAmount,
                 parent_account_id: parentAccount ? parentAccount.value : null,
                 ratesheet_id: ratesheet ? ratesheet.value : null,
-                start_date: startDate.toLocaleString(),
+                start_date: formatCalendarDate(startDate),
             }
 
         api.post('/accounts', data)

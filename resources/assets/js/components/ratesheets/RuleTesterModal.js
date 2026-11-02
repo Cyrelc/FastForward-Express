@@ -176,9 +176,9 @@ export default function RuleTesterModal(props) {
             package_is_minimum: isMinimum,
             package_is_pallet: isPallet,
             use_imperial: useImperial,
-            // datetime-local yields "YYYY-MM-DDTHH:mm", which PHP's DateTime parses directly.
-            time_pickup_scheduled: pickupTime,
-            time_delivery_scheduled: deliveryTime,
+            // datetime-local yields local "YYYY-MM-DDTHH:mm"; send the instant so the server can convert to its own time.
+            time_pickup_scheduled: pickupTime ? new Date(pickupTime).toISOString() : null,
+            time_delivery_scheduled: deliveryTime ? new Date(deliveryTime).toISOString() : null,
         }).then(response => {
             setQuotes(response ?? [])
             setExpanded(null)

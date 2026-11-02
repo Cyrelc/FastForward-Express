@@ -185,7 +185,7 @@ Route::group(['middleware' => ['auth']],
         Route::get('/getDashboard', 'HomeController@getDashboard');
 
         Route::get('/admin/getAccountsReceivable/{startDate}/{endDate}', 'AdminController@getAccountsReceivable');
-        Route::get('/admin/getAccountsPayable', 'AdminController@getAccountsPayable');
+        Route::get('/admin/getAccountsPayable/{startDate}/{endDate}', 'AdminController@getAccountsPayable');
 
         Route::get('/logout', 'Auth\LoginController@logout');
 

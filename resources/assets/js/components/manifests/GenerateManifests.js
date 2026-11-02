@@ -7,6 +7,7 @@ import {DateTime} from 'luxon'
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {useAPI} from '../../contexts/APIContext'
+import {formatCalendarDate} from '../../utils/dates'
 
 const columns = [
     {header: 'Employee ID', accessorKey: 'employee_id'},
@@ -60,8 +61,8 @@ export default function GenerateManifests(props) {
     const refreshEmployees = () => {
         setIsLoading(true)
         const queryString = new URLSearchParams({
-            start_date: startDate.toLocaleDateString(),
-            end_date: endDate.toLocaleDateString()
+            start_date: formatCalendarDate(startDate),
+            end_date: formatCalendarDate(endDate)
         }).toString()
 
         api.get(`/manifests/getDriversToManifest?${queryString}`)
@@ -83,8 +84,8 @@ export default function GenerateManifests(props) {
 
         const data = {
             employees: Object.keys(rowSelection),
-            start_date: startDate.toLocaleDateString(),
-            end_date: endDate.toLocaleDateString()
+            start_date: formatCalendarDate(startDate),
+            end_date: formatCalendarDate(endDate)
         }
         api.post('/manifests/store', data)
             .then(response => {

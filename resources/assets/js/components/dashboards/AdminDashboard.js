@@ -8,6 +8,7 @@ import {ResponsiveLine} from '@nivo/line'
 
 import {LinkCellRenderer} from '../../utils/table_cell_renderers'
 import {useAPI} from '../../contexts/APIContext'
+import {parseCalendarDate} from '../../utils/dates'
 import WorkerStatusIndicator from '../partials/WorkerStatusIndicator'
 
 const commonTableSettings = {
@@ -82,7 +83,7 @@ export default function AdminDashboard(props) {
 
     const holidayColumns = useMemo(() => ([
         {header: 'Name', accessorKey: 'name'},
-        {header: 'Date', accessorKey: 'value', Cell: props => (new Date(props.value)).toDateString()}
+        {header: 'Date', accessorKey: 'value', Cell: ({cell}) => parseCalendarDate(cell.getValue())?.toDateString()}
     ]), [])
 
     const holidayTable = useMaterialReactTable({

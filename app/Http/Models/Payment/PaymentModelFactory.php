@@ -65,7 +65,8 @@ class PaymentModelFactory {
             $result = array();
 
             foreach($paymentMethods as $paymentMethod) {
-                $expiryDate = \DateTime::createFromFormat('Y/m', $paymentMethod->card->exp_year . '/' . $paymentMethod->card->exp_month);
+                // '!' zeroes the unparsed fields - without it the day and time are taken from now, so e.g. 2027/02 on the 30th rolls into March
+                $expiryDate = \DateTime::createFromFormat('!Y/m', $paymentMethod->card->exp_year . '/' . $paymentMethod->card->exp_month);
 
                 $paymentType = $paymentRepo->GetPaymentTypeByName($paymentMethod->card->brand);
                 if(!$paymentType)
@@ -73,9 +74,10 @@ class PaymentModelFactory {
 
                 $result[] = [
                     'brand' => $paymentMethod->card->brand,
-                    'expiry_date' => $expiryDate->format(\DateTime::ATOM),
+                    'expiry_date' => $expiryDate->format('Y-m-d'),
                     'is_default' => $defaultPaymentMethod ? $paymentMethod->id == $defaultPaymentMethod->id : false,
-                    'is_expired' => new \DateTime() > $expiryDate,
+                    // Cards are valid through the end of their expiry month
+                    'is_expired' => new \DateTime() >= (clone $expiryDate)->modify('first day of next month'),
                     'last_four' => $paymentMethod->card->last4,
                     'name' => '**** **** **** ' . $paymentMethod->card->last4,
                     'payment_method_id' => $paymentMethod->id,

@@ -2,6 +2,8 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Card, Table} from 'react-bootstrap';
 import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
+import {formatInstant} from '../../utils/dates'
+
 const ExpandableTable = ({ properties }) => {
     const columns = useMemo(() => [
         { accessorKey: 'key', header: 'Key' },
@@ -31,7 +33,7 @@ export default function ActivityLogTab(props) {
     const {activityLog} = props
 
     const columns = useMemo(() => [
-        { accessorKey: 'updated_at', header: 'Updated At' },
+        { accessorKey: 'updated_at', header: 'Updated At', Cell: ({cell}) => formatInstant(cell.getValue(), 'yyyy-MM-dd HH:mm:ss') },
         {
             accessorKey: 'subject_type',
             header: 'Subject Type',

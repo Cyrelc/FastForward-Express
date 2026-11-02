@@ -5,6 +5,7 @@ import {useHistory} from 'react-router-dom'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
+import {formatInstant} from '../../utils/dates'
 
 const defaultFilterQuery = '?filter[active]=true'
 /**
@@ -61,7 +62,7 @@ export default function Accounts(props) {
             else
                 return "<button class='btn btn-sm btn-success' title='Activate'><i class='far fa-check-circle'></i></button>"
         }, field: 'active', width: 50, hozAlign: 'center', cellClick:(e, cell) => toggleAccountActive(cell), headerSort: false, print: false},
-        {title: 'Created On', field: 'created_at', visible: false}
+        {title: 'Created On', field: 'created_at', visible: false, formatter: cell => formatInstant(cell.getValue())}
     ] : [];
 
     const columns = Array.prototype.concat(adminColumns, basicColumns)

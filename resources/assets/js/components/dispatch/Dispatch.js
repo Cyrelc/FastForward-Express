@@ -10,6 +10,7 @@ import BillTable from './BillTable'
 import WorkerStatusIndicator from '../partials/WorkerStatusIndicator'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
+import {parseInstant} from '../../utils/dates'
 
 const getBackgroundColour = (timeRemaining, actualTime = null) => {
     if(actualTime != null)
@@ -25,9 +26,6 @@ const getBackgroundColour = (timeRemaining, actualTime = null) => {
     return 'gainsboro'
 }
 
-// /bills/{id} sends times as ISO with the server's offset; the rest of this page works in server wall-clock SQL format
-const toServerSQL = time => time ? DateTime.fromISO(time, {setZone: true}).toFormat('yyyy-MM-dd HH:mm:ss') : time
-
 const formatBill = data => {
     return {
         bill_id: data.bill.bill_id,
@@ -38,10 +36,10 @@ const formatBill = data => {
         delivery_address_lng: data.delivery_address.lng,
         pickup_driver_id: data.bill.pickup_driver_id,
         delivery_driver_id: data.bill.delivery_driver_id,
-        time_picked_up: toServerSQL(data.bill.time_picked_up),
-        time_delivered: toServerSQL(data.bill.time_delivered),
-        time_pickup_scheduled: toServerSQL(data.bill.time_pickup_scheduled),
-        time_delivery_scheduled: toServerSQL(data.bill.time_delivery_scheduled),
+        time_picked_up: data.bill.time_picked_up,
+        time_delivered: data.bill.time_delivered,
+        time_pickup_scheduled: data.bill.time_pickup_scheduled,
+        time_delivery_scheduled: data.bill.time_delivery_scheduled,
         view: true
     }
 }
@@ -68,8 +66,8 @@ export default function Dispatch(props) {
 
     handleBillEventRef.current = billEvent => {
         const currentDate = DateTime.fromJSDate(billDate)
-        const timePickupScheduled = DateTime.fromSQL(billEvent.time_pickup_scheduled)
-        const timeDeliveryScheduled = DateTime.fromSQL(billEvent.time_delivery_scheduled)
+        const timePickupScheduled = parseInstant(billEvent.time_pickup_scheduled)
+        const timeDeliveryScheduled = parseInstant(billEvent.time_delivery_scheduled)
         const existingBill = bills.find(bill => bill.bill_id === billEvent.bill_id)
         const matchesCurrentDate = currentDate.hasSame(timePickupScheduled, 'day') || currentDate.hasSame(timeDeliveryScheduled, 'day')
         // Potential cases:
@@ -166,7 +164,7 @@ export default function Dispatch(props) {
     }
 
     const submitActualTime = () => {
-        const actualTime = DateTime.fromJSDate(timeModalActualTime).toSQL()
+        const actualTime = timeModalActualTime.toISOString()
         const data = {bill_id: timeModalBillId, type: timeModalField, time: actualTime}
         api.post('/dispatch/setBillPickupOrDeliveryTime', data)
             .then(response => {

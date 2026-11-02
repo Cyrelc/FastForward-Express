@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable'
 
 import {CurrencyCellRenderer} from '../../utils/table_cell_renderers'
 import {useAPI} from '../../contexts/APIContext'
+import {formatCalendarDate} from '../../utils/dates'
 
 
 export default function AccountsPayableReceivable(props) {
@@ -156,7 +157,7 @@ export default function AccountsPayableReceivable(props) {
     })
 
     const getAccounts = () => {
-        api.get(`/admin/getAccounts${version}/${startDate.toISOString()}/${endDate.toISOString()}`)
+        api.get(`/admin/getAccounts${version}/${formatCalendarDate(startDate)}/${formatCalendarDate(endDate)}`)
             .then(response => {
                 setAccounts(response?.accounts_receivable ?? response.accounts_payable)
             })

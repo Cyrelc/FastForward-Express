@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Casts\ServerDateTime;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -27,8 +28,8 @@ class BillCreated implements ShouldBroadcast
     {
         activity('system_debug')->log('Bill created: ' . $bill->bill_id);
         $this->bill_id = $bill->bill_id;
-        $this->time_pickup_scheduled = $bill->time_pickup_scheduled;
-        $this->time_delivery_scheduled = $bill->time_delivery_scheduled;
+        $this->time_pickup_scheduled = ServerDateTime::toIso($bill->time_pickup_scheduled);
+        $this->time_delivery_scheduled = ServerDateTime::toIso($bill->time_delivery_scheduled);
     }
 
     /**

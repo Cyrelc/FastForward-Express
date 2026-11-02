@@ -6,6 +6,7 @@ import Table from '../partials/Table'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
+import {formatInstant} from '../../utils/dates'
 
 const baseGroupByOptions = [
     {
@@ -112,8 +113,8 @@ export default function Bills(props) {
             {title: 'Charge Type', field: 'charge_type_name', visible: false},
             {title: 'Pickup Address', field: 'pickup_address_formatted', visible: false},
             {title: 'Pickup Address Name', field: 'pickup_address_name', visible: false},
-            {title: 'Scheduled Pickup', field: 'time_pickup_scheduled'},
-            {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false},
+            {title: 'Scheduled Pickup', field: 'time_pickup_scheduled', formatter: cell => formatInstant(cell.getValue())},
+            {title: 'Scheduled Delivery', field: 'time_delivery_scheduled', visible: false, formatter: cell => formatInstant(cell.getValue())},
             {title: 'Delivery Type', field: 'type'},
             {title: 'Price', field: 'price', formatter: 'money', formatterParams: {thousand:',', symbol: '$'}, sorter: 'number', topCalc: 'sum', topCalcParams:{precision: 2}, topCalcFormatter: 'money', topCalcFormatterParams: {thousand: ',', symbol: '$'}},
             {title: 'Percent Complete', field: 'percentage_complete', formatter: 'progress', formatterParams:{min:0, max:100, legend: value => {return value + ' %'}, color: value => {

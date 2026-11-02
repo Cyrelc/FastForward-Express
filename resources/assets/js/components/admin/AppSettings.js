@@ -11,6 +11,7 @@ import SelectionsTab from './SelectionsTab'
 import ToolsTab from './ToolsTab'
 
 import {useAPI} from '../../contexts/APIContext'
+import {parseCalendarDate} from '../../utils/dates'
 
 export default function AppSettings(props) {
     const [activeKey, setActiveKey] = useState('accounting')
@@ -32,7 +33,7 @@ export default function AppSettings(props) {
                 setPaymentTypes(response.payment_types)
                 setRatesheets(response.ratesheets)
                 const blockedDates = response.blocked_dates.map(blocked => {
-                    return {...blocked, date: new Date(blocked.value)}
+                    return {...blocked, date: parseCalendarDate(blocked.value)}
                 })
                 setBlockedDates(blockedDates)
             })

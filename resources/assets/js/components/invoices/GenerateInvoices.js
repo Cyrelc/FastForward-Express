@@ -10,6 +10,7 @@ import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {LinkCellRenderer} from '../../utils/table_cell_renderers'
+import {formatCalendarDate} from '../../utils/dates'
 
 const ValidForInvoicingRenderer = ({row}) => {
     const data = row.original
@@ -105,7 +106,7 @@ export default function GenerateInvoices(props) {
                 if(data.legacy_bill_count == 0)
                     return renderedCellValue
                 const url = data.type == 'account' ?
-                    `/bills?filter[charge_account_id]=${data.id}&filter[time_pickup_scheduled]=,${startDate.toISOString().split('T')[0]}&filter[is_invoiced]=false`
+                    `/bills?filter[charge_account_id]=${data.id}&filter[time_pickup_scheduled]=,${formatCalendarDate(startDate)}&filter[is_invoiced]=false`
                     :
                     `/bills/${data.id}`
                 return <LinkCellRenderer renderedCellValue={renderedCellValue} row={row} url={url} />
@@ -138,8 +139,8 @@ export default function GenerateInvoices(props) {
         const data = {
             invoice_intervals: selectedInvoiceIntervals.filter(interval => interval.type == 'invoice_interval').map(interval => {return interval.value}),
             prepaid_types: selectedInvoiceIntervals.filter(interval => interval.type == 'prepaid_type').map(interval => {return interval.value}),
-            start_date: startDate.toLocaleString('en-US'),
-            end_date: endDate.toLocaleString('en-US')
+            start_date: formatCalendarDate(startDate),
+            end_date: formatCalendarDate(endDate)
         }
 
         api.post('/invoices/getUninvoiced', data).then(response => {
@@ -184,8 +185,8 @@ export default function GenerateInvoices(props) {
         const data = {
             accounts: selected.filter(row => row.type == 'account').map(account => account.id),
             prepaid: selected.filter(row => row.type == 'prepaid').map(bill => bill.charge_id),
-            start_date: startDate.toLocaleString('en-US'),
-            end_date: endDate.toLocaleString('en-US')
+            start_date: formatCalendarDate(startDate),
+            end_date: formatCalendarDate(endDate)
         }
 
         api.post('/invoices', data).then(response => {

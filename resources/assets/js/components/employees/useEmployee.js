@@ -1,5 +1,7 @@
 import React, {useState} from 'react'
 
+import {formatCalendarDate, parseCalendarDate} from '../../utils/dates'
+
 export default function useEmployee() {
     const [activityLog, setActivityLog] = useState(undefined)
     const [birthDate, setBirthDate] = useState(new Date())
@@ -24,13 +26,13 @@ export default function useEmployee() {
 
     const collectAdvanced = () => {
         return {
-            birth_date: birthDate.toISOString(),
+            birth_date: formatCalendarDate(birthDate),
             employee_number: employeeNumber,
             is_driver: isDriver,
             is_enabled: isEnabled,
             permissions: employeePermissions,
             sin: SIN,
-            start_date: startDate.toISOString()
+            start_date: formatCalendarDate(startDate)
         }
     }
 
@@ -38,12 +40,12 @@ export default function useEmployee() {
         return {
             company_name: companyName,
             delivery_commission: deliveryCommission,
-            drivers_license_expiration_date: driversLicenseExpirationDate.toISOString(),
+            drivers_license_expiration_date: formatCalendarDate(driversLicenseExpirationDate),
             drivers_license_number: driversLicenseNumber,
-            insurance_expiration_date: insuranceExpirationDate.toISOString(),
+            insurance_expiration_date: formatCalendarDate(insuranceExpirationDate),
             insurance_number: insuranceNumber,
             license_plate_number: licensePlateNumber,
-            license_plate_expiration_date: licensePlateExpirationDate.toISOString(),
+            license_plate_expiration_date: formatCalendarDate(licensePlateExpirationDate),
             pickup_commission: pickupCommission,
             vehicle_type: vehicleType
         }
@@ -75,22 +77,22 @@ export default function useEmployee() {
         setActivityLog(employee.activity_log.map(log => {
             return {...log, properties: JSON.parse(log.properties)}
         }))
-        setBirthDate(new Date(employee.dob))
+        setBirthDate(parseCalendarDate(employee.dob))
         setEmployeeId(employee.employee_id)
         setEmployeeNumber(employee.employee_number)
         setIsDriver(!!employee.is_driver)
         setIsEnabled(!!employee.is_enabled)
         setSIN(employee.sin)
-        setStartDate(new Date(employee.start_date))
+        setStartDate(parseCalendarDate(employee.start_date))
         setCompanyName(employee.company_name ?? '')
         setDeliveryCommission(employee.delivery_commission)
         setDriversLicenseNumber(employee.drivers_license_number)
-        setDriversLicenseExpirationDate(new Date(employee.drivers_license_expiration_date))
+        setDriversLicenseExpirationDate(parseCalendarDate(employee.drivers_license_expiration_date))
         setEmployeePermissions(employee.employee_permissions)
         setInsuranceNumber(employee.insurance_number)
-        setInsuranceExpirationDate(new Date(employee.insurance_expiration_date))
+        setInsuranceExpirationDate(parseCalendarDate(employee.insurance_expiration_date))
         setLicensePlateNumber(employee.license_plate_number)
-        setLicensePlateExpirationDate(new Date(employee.license_plate_expiration_date))
+        setLicensePlateExpirationDate(parseCalendarDate(employee.license_plate_expiration_date))
         setPickupCommission(employee.pickup_commission)
         setVehicleType(employee.vehicle_types.find(type => type.selection_id == employee.vehicle_type))
         setVehicleTypes(employee.vehicle_types)

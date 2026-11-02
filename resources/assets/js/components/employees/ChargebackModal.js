@@ -4,6 +4,7 @@ import Select from 'react-select'
 import DatePicker from 'react-datepicker'
 
 import {useAPI} from '../../contexts/APIContext'
+import {formatCalendarDate, parseCalendarDate} from '../../utils/dates'
 
 const initialState = {
     chargebackId: '',
@@ -40,7 +41,7 @@ export default function ChargebackModal(props) {
         setDescription(props.chargeback.description ?? '')
         setGlCode(props.chargeback?.gl_code ?? '')
         setSelectedEmployees(props.chargeback?.employee_id ? [props.employees.find(employee => employee.value == props.chargeback.employee_id)] : [])
-        setStartDate(props.chargeback?.chargeback_start_date ? new Date(props.chargeback.chargeback_start_date) : new Date())
+        setStartDate(props.chargeback?.chargeback_start_date ? parseCalendarDate(props.chargeback.chargeback_start_date) : new Date())
     }, [props.chargeback])
 
     const storeChargeback = () => {
@@ -50,7 +51,7 @@ export default function ChargebackModal(props) {
             count_remaining: countRemaining,
             continuous: continuous,
             gl_code: glCode,
-            start_date: startDate.toLocaleString('en-us'),
+            start_date: formatCalendarDate(startDate),
             description: description,
             employee_ids: selectedEmployees.map(employee => {return employee.value}),
             name: chargebackName
