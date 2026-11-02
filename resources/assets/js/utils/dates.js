@@ -29,3 +29,16 @@ export const formatInstant = (value, format = 'yyyy-MM-dd HH:mm') => {
     const instant = parseInstant(value)
     return instant?.isValid ? instant.toFormat(format) : ''
 }
+
+/** The browser's own IANA timezone name, e.g. 'America/Edmonton' */
+export const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
+
+/**
+ * True when this browser's timezone rules disagree with the server's (see AuthenticatedUserResource::timeZoneReference).
+ * The server is the authority; a mismatch means the browser's bundled timezone data is out of date, so it will show
+ * times off by the difference and save times the user picks shifted by it.
+ */
+export const isBrowserTimeZoneDataStale = reference => (reference ?? []).some(({time_zone, timestamp, offset}) => {
+    const browserTime = DateTime.fromSeconds(timestamp, {zone: time_zone})
+    return browserTime.isValid && browserTime.offset !== offset
+})

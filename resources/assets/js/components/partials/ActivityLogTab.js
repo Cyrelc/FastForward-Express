@@ -4,6 +4,10 @@ import {MaterialReactTable, useMaterialReactTable} from 'material-react-table'
 
 import {formatInstant} from '../../utils/dates'
 
+// Logged values that carry a UTC offset are instants - show them in the user's local time like the rest of the page
+const displayValue = value =>
+    typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/.test(value) ? formatInstant(value, 'yyyy-MM-dd HH:mm:ss') : value
+
 const ExpandableTable = ({ properties }) => {
     const columns = useMemo(() => [
         { accessorKey: 'key', header: 'Key' },
@@ -14,8 +18,8 @@ const ExpandableTable = ({ properties }) => {
     const data = useMemo(() =>
         Object.keys(properties.attributes).map(key => ({
             key,
-            newValue: properties.attributes[key],
-            oldValue: properties?.old ? properties.old[key] : null
+            newValue: displayValue(properties.attributes[key]),
+            oldValue: properties?.old ? displayValue(properties.old[key]) : null
         })), [properties]);
 
     const table = useMaterialReactTable({

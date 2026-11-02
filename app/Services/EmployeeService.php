@@ -102,6 +102,9 @@ class EmployeeService {
 
         $contact = $this->contactService->update($employeeData['contact']);
 
+        // updated_at is only sent for the "modified since you loaded it" check - if it reached fill() Laravel would keep
+        // the client's value instead of stamping a fresh one, and every later save would pass the check
+        unset($employeeData['updated_at']);
         $employee->update($employeeData);
         if($employee->user->email != $employee->contact->primary_email)
             $employee->user->update(['email' => $employee->contact->primary_email->email]);

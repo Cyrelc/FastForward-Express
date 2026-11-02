@@ -28,7 +28,7 @@ class BillCollector {
 		if(!$req->bill_id)
 			$collectedBill = array_merge($collectedBill, ['time_call_received' => new \DateTime('now')]);
 
-		if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editDispatch']) && $permissions['editDispatch']))
+		if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editDispatch']) && $permissions['editDispatch'])) {
 			$collectedBill = array_merge($collectedBill, [
 				'bill_number' => $req->bill_number == "" ? null : $req->bill_number,
 				'delivery_driver_commission' => $req->delivery_driver_commission == "" ? null : $req->delivery_driver_commission / 100,
@@ -42,8 +42,12 @@ class BillCollector {
 				'time_delivered' => $req->time_delivered == "" ? null : (new \DateTime($req->time_delivered))->format('Y-m-d H:i:s'),
 				'time_dispatched' => $req->time_dispatched == "" ? null : (new \DateTime($req->time_dispatched))->format('Y-m-d H:i:s'),
 				'time_picked_up' => $req->time_picked_up == "" ? null : (new \DateTime($req->time_picked_up))->format('Y-m-d H:i:s'),
-				'time_ten_foured' => empty($req->time_ten_foured) ? null : (new \DateTime($req->time_ten_foured))->format('Y-m-d H:i:s')
 			]);
+			// Set by the driver's 10-4 and read-only on the bill page, so only touch it when a client actually sends it -
+			// otherwise every dispatch save from the bill page would wipe it
+			if($req->has('time_ten_foured'))
+				$collectedBill['time_ten_foured'] = empty($req->time_ten_foured) ? null : (new \DateTime($req->time_ten_foured))->format('Y-m-d H:i:s');
+		}
 
 		if((!$req->bill_id && $permissions['createFull']) || (isset($permissions['editBilling']) && $permissions['editBilling']))
 			$collectedBill = array_merge($collectedBill, [

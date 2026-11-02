@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react'
 import {useAPI} from '../contexts/APIContext'
+import {browserTimeZone, isBrowserTimeZoneDataStale} from '../utils/dates'
 
 const UserContext = createContext()
 
@@ -9,18 +10,20 @@ export function UserProvider ({children}) {
     const [frontEndPermissions, setFrontEndPermissions] = useState({})
     const [homePage, setHomePage] = useState('')
     const [settings, setSettings] = useState([])
+    const [timeZoneDataIsStale, setTimeZoneDataIsStale] = useState(false)
 
     const api = useAPI()
 
     useEffect(() => {
         async function fetchUser() {
-            await api.get('/users/getConfiguration')
+            await api.get(`/users/getConfiguration?${new URLSearchParams({time_zone: browserTimeZone()})}`)
             .then(data => {
                 data = data.data
                 setAuthenticatedUser(data)
                 setContact(data.contact)
                 setFrontEndPermissions(data.front_end_permissions)
                 setSettings(data.user_settings)
+                setTimeZoneDataIsStale(isBrowserTimeZoneDataStale(data.time_zone_reference))
                 if(data.front_end_permissions.appSettings.edit)
                     setHomePage('/adminDashboard')
                 else if(data.employee)
@@ -41,6 +44,7 @@ export function UserProvider ({children}) {
             frontEndPermissions,
             homePage,
             settings,
+            timeZoneDataIsStale,
         }}>
             {children}
         </UserContext.Provider>

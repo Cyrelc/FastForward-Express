@@ -2,6 +2,7 @@
 
 namespace App\Http\Models\Bill;
 
+use App\Casts\ServerDateTime;
 use App\Models\Address;
 use App\Models\Bill;
 use App\Http\Models;
@@ -130,8 +131,17 @@ class BillModelFactory{
 
 		if($permissions['viewActivityLog']) {
 			$model->activity_log = $activityLogRepo->GetBillActivityLog($model->bill->bill_id);
+			// Bill times are logged as server wall-clock time; add the server's offset (correct for the date logged) so they
+			// display in the user's local time like the rest of the page
+			$serverDateTimeFields = array_keys(array_filter((new Bill())->getCasts(), fn($cast) => $cast === ServerDateTime::class));
 			foreach($model->activity_log as $key => $log) {
-				$model->activity_log[$key]->properties = json_decode($log->properties);
+				$properties = json_decode($log->properties);
+				if($log->subject_type === Bill::class && $properties)
+					foreach(['attributes', 'old'] as $set)
+						foreach($serverDateTimeFields as $field)
+							if(isset($properties->$set->$field))
+								$properties->$set->$field = ServerDateTime::toIso($properties->$set->$field);
+				$model->activity_log[$key]->properties = $properties;
 			}
 		}
 
