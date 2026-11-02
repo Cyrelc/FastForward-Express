@@ -25,6 +25,9 @@ const getBackgroundColour = (timeRemaining, actualTime = null) => {
     return 'gainsboro'
 }
 
+// /bills/{id} sends times as ISO with the server's offset; the rest of this page works in server wall-clock SQL format
+const toServerSQL = time => time ? DateTime.fromISO(time, {setZone: true}).toFormat('yyyy-MM-dd HH:mm:ss') : time
+
 const formatBill = data => {
     return {
         bill_id: data.bill.bill_id,
@@ -35,10 +38,10 @@ const formatBill = data => {
         delivery_address_lng: data.delivery_address.lng,
         pickup_driver_id: data.bill.pickup_driver_id,
         delivery_driver_id: data.bill.delivery_driver_id,
-        time_picked_up: data.bill.time_picked_up,
-        time_delivered: data.bill.time_delivered,
-        time_pickup_scheduled: data.bill.time_pickup_scheduled,
-        time_delivery_scheduled: data.bill.time_delivery_scheduled,
+        time_picked_up: toServerSQL(data.bill.time_picked_up),
+        time_delivered: toServerSQL(data.bill.time_delivered),
+        time_pickup_scheduled: toServerSQL(data.bill.time_pickup_scheduled),
+        time_delivery_scheduled: toServerSQL(data.bill.time_delivery_scheduled),
         view: true
     }
 }

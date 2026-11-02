@@ -62,6 +62,8 @@ class DispatchController extends Controller {
         if($req->user()->cannot('updateDispatch', $bill))
             abort(403);
 
+        $this->convertToServerTime($req, ['time']);
+
         DB::beginTransaction();
 
         $billRepo->SetBillPickupOrDeliveryTime($req->bill_id, $req->type, new \DateTime($req->time));

@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Auth;
 use Validator;
 
 class BillController extends Controller {
+    private const BILL_TIME_FIELDS = ['time_call_received', 'time_delivered', 'time_delivery_scheduled', 'time_dispatched', 'time_picked_up', 'time_pickup_scheduled', 'time_ten_foured'];
+
     public function __construct() {
         $this->middleware('auth');
 
@@ -79,6 +81,7 @@ class BillController extends Controller {
      * @return charges an array of charges applicable to the bill
      */
     public function generateCharges(Request $req) {
+        $this->convertToServerTime($req, self::BILL_TIME_FIELDS);
         $chargeValidation = new \App\Http\Validation\ChargeValidationRules();
 
         $temp = $chargeValidation->GenerateChargesValidationRules($req);
@@ -91,6 +94,7 @@ class BillController extends Controller {
     }
 
     public function estimateDeliveryTimes(Request $req) {
+        $this->convertToServerTime($req, self::BILL_TIME_FIELDS);
         // Lenient on purpose: addresses are enough to return time + a base price per type.
         // Packages/times are optional so estimates work before the full bill is filled in;
         // price simply reflects whatever pricing inputs are available so far.
@@ -233,6 +237,7 @@ class BillController extends Controller {
     }
 
     public function store(Request $req) {
+        $this->convertToServerTime($req, self::BILL_TIME_FIELDS);
         $billRepo = new Repos\BillRepo();
         $oldBill = $billRepo->getById($req->bill_id);
         $warnings = [];

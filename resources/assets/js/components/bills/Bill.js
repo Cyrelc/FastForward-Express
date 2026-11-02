@@ -138,8 +138,8 @@ export default function Bill(props) {
         packages: packageIsMinimum ? [] : packageArray,
         package_is_minimum: packageIsMinimum,
         package_is_pallet: packageIsPallet,
-        time_pickup_scheduled: pickupTimeScheduled instanceof Date ? pickupTimeScheduled.toLocaleString('en-US') : null,
-        time_delivery_scheduled: deliveryTimeScheduled instanceof Date ? deliveryTimeScheduled.toLocaleString('en-US') : null,
+        time_pickup_scheduled: pickupTimeScheduled instanceof Date ? pickupTimeScheduled.toISOString() : null,
+        time_delivery_scheduled: deliveryTimeScheduled instanceof Date ? deliveryTimeScheduled.toISOString() : null,
         use_imperial: useImperial,
     }), [
         activeRatesheet,
@@ -360,9 +360,9 @@ export default function Bill(props) {
                     pickup_address_place_id: billState.pickup.addressPlaceId,
                     pickup_address_type: billState.pickup.addressType,
                     pickup_reference_value: billState.pickup.referenceValue,
-                    time_delivery_scheduled: billState.delivery.timeScheduled.toLocaleString("en-US"),
-                    time_pickup_scheduled: billState.pickup.timeScheduled.toLocaleString("en-US"),
-                    updated_at: billState.updatedAt.toLocaleString("en-US"),
+                    time_delivery_scheduled: billState.delivery.timeScheduled.toISOString(),
+                    time_pickup_scheduled: billState.pickup.timeScheduled.toISOString(),
+                    updated_at: billState.updatedAt,
                 }
 
             if(!billId && permissions.createBasic && !permissions.createFull)
@@ -383,10 +383,10 @@ export default function Bill(props) {
                     pickup_driver_id: billState.pickup.driver?.value,
                     pickup_driver_commission: billState.pickup.driverCommission,
                     pickup_person_name: billState.pickup.personName,
-                    time_call_received: billState.timeCallReceived ? billState.timeCallReceived.toLocaleString("en-US") : new Date().toLocaleString("en-US"),
-                    time_delivered: billState.delivery.timeActual ? billState.delivery.timeActual.toLocaleString("en-US") : null,
-                    time_dispatched: billState.timeDispatched ? billState.timeDispatched.toLocaleString("en-US") : null,
-                    time_picked_up: billState.pickup.timeActual ? billState.pickup.timeActual.toLocaleString("en-US") : null,
+                    time_call_received: billState.timeCallReceived ? billState.timeCallReceived.toISOString() : new Date().toISOString(),
+                    time_delivered: billState.delivery.timeActual ? billState.delivery.timeActual.toISOString() : null,
+                    time_dispatched: billState.timeDispatched ? billState.timeDispatched.toISOString() : null,
+                    time_picked_up: billState.pickup.timeActual ? billState.pickup.timeActual.toISOString() : null,
                 }
 
             if(billId ? permissions.editBilling : permissions.createFull) {

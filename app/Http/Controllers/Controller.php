@@ -31,6 +31,26 @@ class Controller extends BaseController {
         return $data;
     }
 
+    /**
+     * The browser submits datetimes as absolute instants (ISO 8601 with an offset), so a client whose
+     * timezone rules differ from the server's can't shift them. Convert those to server wall-clock time
+     * here so validation, pricing and storage all see a single timezone. Values with no offset are
+     * already server wall-clock and pass through unchanged; unparseable values are left for validation.
+     */
+    protected function convertToServerTime(\Illuminate\Http\Request $req, array $fields) {
+        $timezone = config('app.timezone');
+        foreach($fields as $field) {
+            $value = $req->input($field);
+            if(!is_string($value) || $value === '')
+                continue;
+            try {
+                $req->merge([$field => \Carbon\Carbon::parse($value)->setTimezone($timezone)->format('Y-m-d H:i:s')]);
+            } catch(\Throwable $e) {
+                continue;
+            }
+        }
+    }
+
     protected function getDataFilter($bill, $startDate) {
         return strtotime($bill->date) > $startDate;
     }

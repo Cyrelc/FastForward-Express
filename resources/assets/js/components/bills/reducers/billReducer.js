@@ -247,7 +247,7 @@ export default function billReducer(state, action) {
                     timeScheduled: new Date(bill.time_pickup_scheduled)
                 },
                 readOnly: permissions.viewBasic && !permissions.editBasic,
-                timeTenFoured: bill.time_ten_coured ? new Date(bill.time_ten_foured) : ''
+                timeTenFoured: bill.time_ten_foured ? new Date(bill.time_ten_foured) : ''
             }
 
             if(permissions.viewActivityLog)
@@ -265,7 +265,7 @@ export default function billReducer(state, action) {
 
             if(permissions.editBasic || permissions.editBilling || permissions.editDispatch) {
                 newState.incompleteFields = JSON.parse(bill.incomplete_fields)
-                newState.updatedAt = new Date(bill.updated_at)
+                newState.updatedAt = bill.updated_at
             }
 
             if(permissions.viewBilling) {
