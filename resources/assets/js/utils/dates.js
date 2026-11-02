@@ -33,12 +33,26 @@ export const formatInstant = (value, format = 'yyyy-MM-dd HH:mm') => {
 /** The browser's own IANA timezone name, e.g. 'America/Edmonton' */
 export const browserTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
+// A browser that picked up the computer's timezone properly reports a location ('America/Edmonton'). A bare offset
+// ('Etc/GMT+7', shown as "GMT-07:00"), UTC or an unknown zone means it is running on a stale zone it cached earlier.
+const LOCATION_ZONE = /^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Canada|Europe|Indian|Pacific|US)\//
+
 /**
- * True when this browser's timezone rules disagree with the server's (see AuthenticatedUserResource::timeZoneReference).
- * The server is the authority; a mismatch means the browser's bundled timezone data is out of date, so it will show
- * times off by the difference and save times the user picks shifted by it.
+ * True when this browser's timezone can't be trusted, so it will show times off and save times the user picks shifted:
+ *  - its zone isn't a location (see LOCATION_ZONE), or
+ *  - the offset Date objects actually use disagrees with the zone it reports, or
+ *  - its rules disagree with the server's, which are the authority (see AuthenticatedUserResource::timeZoneReference)
  */
-export const isBrowserTimeZoneDataStale = reference => (reference ?? []).some(({time_zone, timestamp, offset}) => {
-    const browserTime = DateTime.fromSeconds(timestamp, {zone: time_zone})
-    return browserTime.isValid && browserTime.offset !== offset
-})
+export const isBrowserTimeZoneDataStale = (reference, timeZone = browserTimeZone(), dateOffset = -new Date().getTimezoneOffset()) => {
+    if(!timeZone || !LOCATION_ZONE.test(timeZone))
+        return true
+
+    const reportedZoneNow = DateTime.now().setZone(timeZone)
+    if(reportedZoneNow.isValid && reportedZoneNow.offset !== dateOffset)
+        return true
+
+    return (reference ?? []).some(({time_zone, timestamp, offset}) => {
+        const browserTime = DateTime.fromSeconds(timestamp, {zone: time_zone})
+        return browserTime.isValid && browserTime.offset !== offset
+    })
+}
