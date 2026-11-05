@@ -4,14 +4,13 @@ import ChangePasswordModal from '../partials/ChangePasswordModal'
 import LoadingSpinner from '../partials/LoadingSpinner'
 import Router from './Router'
 import NavBar from './NavBar'
-import TimeZoneWarning from './TimeZoneWarning'
 import {useUser} from '../../contexts/UserContext'
 
 export default function App(props) {
     const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
     const [loading, setLoading] = useState(true)
 
-    const {authenticatedUser, homePage, timeZoneDataIsStale} = useUser()
+    const {authenticatedUser, homePage} = useUser()
 
     useEffect(() => {
         if(loading && homePage) {
@@ -27,21 +26,18 @@ export default function App(props) {
         return <LoadingSpinner />
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', height: '100vh', maxHeight: '100vh'}}>
-            {timeZoneDataIsStale && <TimeZoneWarning />}
-            <div style={{display: 'flex', flex: 1, minHeight: 0, direction: 'ltr'}}>
-                <NavBar
-                    toggleChangePasswordModal={toggleChangePasswordModal}
-                />
-                <Router
-                    homePage={homePage}
-                />
-                <ChangePasswordModal
-                    show={showChangePasswordModal}
-                    userId={authenticatedUser.user_id}
-                    toggleModal={toggleChangePasswordModal}
-                />
-            </div>
+        <div style={{display: 'flex', height: '100vh', maxHeight: '100vh', direction: 'ltr'}}>
+            <NavBar
+                toggleChangePasswordModal={toggleChangePasswordModal}
+            />
+            <Router
+                homePage={homePage}
+            />
+            <ChangePasswordModal
+                show={showChangePasswordModal}
+                userId={authenticatedUser.user_id}
+                toggleModal={toggleChangePasswordModal}
+            />
         </div>
     )
 }
