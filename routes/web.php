@@ -225,4 +225,4 @@ Route::middleware(['auth'])->controller(WorkerController::class)->prefix('api/wo
     Route::get('/queue-stats', 'getQueueStats');
 });
 
-Route::auth();
+Route::auth(['register' => false]);
