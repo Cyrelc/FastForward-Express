@@ -12,14 +12,14 @@
         <!--Global Scripts-->
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
         <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,geometry&loading=async"></script>
-        <script src="{{asset('/compiled_js/public.js')}}?{{config('view.version')}}"></script>
+        <script src='{{mix("/compiled_js/public.js")}}'></script>
 
         <!-- Fonts -->
         <link href='https://use.fontawesome.com/releases/v5.15.4/css/all.css' rel='stylesheet' type='text/css' />
         <link href='https://fonts.googleapis.com/css?family=Lato:100,300,400,700' rel='stylesheet' type='text/css' />
 
         <!-- Styles -->
-        <link href="{{asset('css/app.css')}}?{{config('view.version')}}" rel='stylesheet' />
+        <link href='{{mix("/css/app.css")}}' rel='stylesheet' />
 
         @yield('head')
     </head>
@@ -44,6 +44,6 @@
             });
         });
         </script>
-        <script type='text/javascript' src='{{mix("compiled_js/app.js")}}'></script>
+        <script type='text/javascript' src='{{mix("/compiled_js/app.js")}}'></script>
     </footer>
 </html>

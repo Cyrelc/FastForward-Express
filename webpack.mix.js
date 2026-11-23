@@ -33,6 +33,10 @@ mix.styles([
 if(mix.inProduction()) {
    mix.version();
    mix.webpackConfig({
+      output: {
+         // mix.version() only covers entry files, so lazy-loaded chunks need their own content hash
+         chunkFilename: 'compiled_js/[name].[contenthash].js'
+      },
       optimization: {
          minimize: true,
          minimizer: [new TerserPlugin({
