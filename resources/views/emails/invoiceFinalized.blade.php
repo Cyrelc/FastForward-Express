@@ -36,7 +36,7 @@
 </head>
 <body>
     <div class="header">
-        <img src='https://www.fastforwardexpress.ca/images/pexels-norma-mortenson-4391470-resized.jpg' alt='Landing Page Image' style='width: 100%; height: auto;'>
+        <img src='{{ asset('images/pexels-norma-mortenson-4391470-resized.jpg') }}' alt='Landing Page Image' style='width: 100%; height: auto;'>
     </div>
 
     <div class="content">
@@ -45,7 +45,7 @@
         <p>We are pleased to inform you that your invoice has been finalized and is now available for viewing. </p>
         <p>Please log in to your account to see the details, or to print a copy of your invoice</p>
         <p>
-            <a href="{{ url('/invoices/' . $invoiceId) }}" class="button">View Invoice</a>
+            <a href="{{ url('/app/invoices/' . $invoiceId) }}" class="button">View Invoice</a>
         </p>
     </div>
 

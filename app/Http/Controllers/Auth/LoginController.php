@@ -73,7 +73,7 @@ class LoginController extends Controller
             activity('auth')->performedOn($req->user())
                 ->log('Successfully authenticated user');
 
-            return redirect()->intended('/');
+            return redirect()->intended('/app');
         }
 
         return back()->withErrors([

@@ -180,7 +180,6 @@ Route::middleware(['auth'])->controller(UserController::class)->prefix('users')-
 // Authenticated views
 Route::group(['middleware' => ['auth']],
     function() {
-        Route::get('/', 'HomeController@index');
         Route::get('/lists', 'HomeController@getLists');
         Route::get('/getDashboard', 'HomeController@getDashboard');
 
@@ -204,10 +203,12 @@ Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
 });
 
 //Guest views web
+Route::permanentRedirect('/home', '/');
+
 Route::middleware(['guest'])->controller(GuestController::class)->group(function() {
+    Route::get('/', 'home');
     Route::get('/about', 'about');
     Route::get('/contact', 'contact');
-    Route::get('/home', 'home');
     Route::get('/requestDelivery', 'requestDelivery');
     Route::get('requestQuote', 'requestQuote');
     Route::get('/services', 'services');

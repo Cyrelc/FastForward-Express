@@ -75,7 +75,7 @@ body table {
                         </div>
                         <div style='width: 20%; float: right'>
                             <div class='visible-print'>
-                                {!! QrCode::size(85)->generate('https://fastforwardexpress.ca/app/bills/' . $bill['bill_id']); !!}
+                                {!! QrCode::size(85)->generate(url('/app/bills/' . $bill['bill_id'])); !!}
                             </div>
                         </div>
                     </div>
