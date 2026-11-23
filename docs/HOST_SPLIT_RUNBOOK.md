@@ -16,9 +16,10 @@ the code and flipping the switch are separate steps.
 
 Facts as of 2026-11-23:
 - `fastforwardexpress.ca` and `www` are A records to `209.89.8.97` (Apache 2.4.58, no proxy in front).
-- The TLS certificate is a Sectigo wildcard (`*.fastforwardexpress.ca` + `fastforwardexpress.ca`)
-  that **expires 2026-12-08**. It already covers `app.`, but must be replaced (Let's Encrypt) by then
-  regardless of this work.
+- TLS is a Let's Encrypt certificate from Certbot (`--cert-name fastforwardexpress.ca`) covering
+  `fastforwardexpress.ca`, `www.`, `app.`, `fastforwardexpress.com` and `www.fastforwardexpress.com`.
+  It renews automatically and reloads Apache through a deploy hook. It replaced the Sectigo
+  wildcard on 2026-11-23.
 
 ---
 
@@ -77,7 +78,7 @@ sudo systemctl reload apache2
 curl -sI https://app.fastforwardexpress.ca/login | head -1    # expect HTTP/1.1 200
 ```
 
-The wildcard certificate covers `app.`, so HTTPS works straight away. Nothing is split yet:
+The certificate covers `app.`, so HTTPS works straight away. Nothing is split yet:
 `app.` simply shows the same site as the bare domain.
 
 ### A3. Outside services that care about the hostname
@@ -219,12 +220,24 @@ In the `fastforwardexpress.ca` hosted zone, edit **only**:
 
 Leave the `app` record on `209.89.8.97`. Leave MX/TXT/NS alone.
 
-The marketing host is then responsible for the bare-domain and `www` certificates. The app server
-only needs a certificate for `app.fastforwardexpress.ca`.
+The marketing host is then responsible for the bare-domain and `www` certificates.
+
+**Right after this change, reissue the app server's certificate without those two names.** A
+Let's Encrypt renewal fails if any name on the certificate fails its check, and they now point
+somewhere else:
+
+```bash
+sudo certbot certonly --apache --cert-name fastforwardexpress.ca \
+  -d app.fastforwardexpress.ca -d fastforwardexpress.com -d www.fastforwardexpress.com
+sudo certbot renew --dry-run
+```
+
+Certbot asks you to confirm removing the names. The certificate name stays the same, so Apache's
+certificate paths don't change. Drop the `.com` names as well if they move with the marketing site.
 
 ### B4. Clean up the app server
 
 - Apache: make `app.fastforwardexpress.ca` the `ServerName` and drop the bare domain and `www`
-  from that vhost. Narrow the certificate to `app.` when it's next renewed.
+  from that vhost.
 - Code: remove the guest Blade views, the marketing page routes and `GuestController`'s page
   methods. Keep its three form methods, which the public API uses.
