@@ -63,6 +63,10 @@
                         }
                     }
 
+                    // Responses without field errors (e.g. rate limited) still carry a message
+                    if(!errorText)
+                        errorText = `<strong>${data.message || 'Something went wrong, please try again or give us a call'}</strong>`;
+
                     if(window.notyf) {
                         window.notyf.dismissAll()
 

@@ -12,6 +12,7 @@
     <div class='col-md-12 request-delivery-form' style='text-align: center'>
         <h3 style='color: grey; background: linear-gradient(to right, white, grey, white) bottom no-repeat; padding-top: 20px; background-size: 50% 2px'>Request Delivery</h3>
         <form id='request-delivery-form'>
+            <input type='text' name='website' tabindex='-1' autocomplete='off' aria-hidden='true' style='position: absolute; left: -10000px'>
             <div class='row justify-content-center' style='padding-top:20px'>
                 <div class='col-md-3'>
                     <h4 class='text-muted'>Contact Info</h4>
@@ -152,17 +153,15 @@
 @section('footer')
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
-        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
-
         const now = new Date()
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
         document.getElementById('pickup-time').value = now.toISOString().slice(0, 16)
 
         document.getElementById('request-delivery-submit').addEventListener('click', function() {
             const data = new FormData(document.getElementById('request-delivery-form'));
-            fetch('/requestDelivery', {
+            fetch('/api/public/requestDelivery', {
                 method: 'POST',
-                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                headers: {'Accept': 'application/json'},
                 body: new URLSearchParams(data)
             })
             .then(response => {

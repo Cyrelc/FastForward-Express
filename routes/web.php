@@ -207,11 +207,8 @@ Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
 Route::middleware(['guest'])->controller(GuestController::class)->group(function() {
     Route::get('/about', 'about');
     Route::get('/contact', 'contact');
-    Route::post('/contact', 'submitContactForm');
     Route::get('/home', 'home');
-    Route::post('/requestAccount', 'requestAccount');
     Route::get('/requestDelivery', 'requestDelivery');
-    Route::post('/requestDelivery', 'requestDeliveryForm');
     Route::get('requestQuote', 'requestQuote');
     Route::get('/services', 'services');
     Route::get('/testExceptions', function() {

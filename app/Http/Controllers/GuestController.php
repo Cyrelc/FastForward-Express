@@ -38,6 +38,9 @@ class GuestController extends Controller {
     }
 
     public function submitContactForm(Request $req) {
+        if($this->isHoneypotFilled($req))
+            return response()->json(['success' => true]);
+
         $mailValidation = new MailValidationRules();
         $temp = $mailValidation->GetContactUsValidationRules();
 
@@ -50,6 +53,9 @@ class GuestController extends Controller {
     }
 
     public function requestAccount(Request $req) {
+        if($this->isHoneypotFilled($req))
+            return response()->json(['success' => true]);
+
         $mailValidation = new MailValidationRules();
         $temp = $mailValidation->GetRequestAccountValidationRules();
 
@@ -62,6 +68,9 @@ class GuestController extends Controller {
     }
 
     public function requestDeliveryForm(Request $req) {
+        if($this->isHoneypotFilled($req))
+            return response()->json(['success' => true]);
+
         $mailValidation = new MailValidationRules();
         $temp = $mailValidation->GetRequestDeliveryValidationRules();
 
@@ -71,6 +80,14 @@ class GuestController extends Controller {
         return response()->json([
             'success' => true
         ]);
+    }
+
+    /**
+     * The public forms include a hidden "website" field that people never see. Bots that fill in
+     * every input get a fake success response so they don't retry, and no email is sent.
+     */
+    private function isHoneypotFilled(Request $req) {
+        return filled($req->input('website'));
     }
 }
 

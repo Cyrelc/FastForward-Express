@@ -68,6 +68,14 @@ class RouteServiceProvider extends ServiceProvider
             // Apply the limit based on the user ID or IP address for unauthenticated users
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
+
+        // Public contact/quote/delivery forms send email, so keep them well below the general API limit
+        RateLimiter::for('public-forms', function (Request $request) {
+            return [
+                Limit::perMinute(5)->by('minute:' . $request->ip()),
+                Limit::perDay(30)->by('day:' . $request->ip()),
+            ];
+        });
     }
 
     /**

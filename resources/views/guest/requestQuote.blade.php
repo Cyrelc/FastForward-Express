@@ -16,6 +16,7 @@
         <div class='row justify-content-center'>
             <div class='col col-md-8'>
                 <form id='open-account-form'>
+                    <input type='text' name='website' tabindex='-1' autocomplete='off' aria-hidden='true' style='position: absolute; left: -10000px'>
                     <div class='row'>
                         <div class='col-md-6'>
                             <div class='mb-3'>
@@ -65,14 +66,12 @@
 @section('footer')
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
-        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
-
         document.getElementById('open-account-submit').addEventListener('click', function() {
             const data = new FormData(document.getElementById('open-account-form'));
 
-            fetch('/requestAccount', {
+            fetch('/api/public/requestAccount', {
                 method: 'POST',
-                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                headers: {'Accept': 'application/json'},
                 body: data
             }).then(response => {
                 if(response.status == 200)

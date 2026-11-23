@@ -20,6 +20,7 @@
     <div class='col-md-6 offset-md-1'>
         <h3 style='color: grey; background: linear-gradient(to right, grey, white) left bottom no-repeat; background-size: 50% 2px'>General Inquiries</h3>
         <form id='contact-us-form'>
+            <input type='text' name='website' tabindex='-1' autocomplete='off' aria-hidden='true' style='position: absolute; left: -10000px'>
             <div class='row'>
                 <div class='col-md-6'>
                     <div class="mb-3">
@@ -98,14 +99,12 @@
 @section('footer')
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", () => {
-        const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
-
         document.getElementById('contact-us-submit').addEventListener('click', () => {
             const data = new FormData(document.getElementById('contact-us-form'))
 
-            fetch('/contact', {
+            fetch('/api/public/contact', {
                 method: 'POST',
-                headers: {'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json'},
+                headers: {'Accept': 'application/json'},
                 body: new URLSearchParams(data)
             }).then(response => {
                 if(response.status == 200)
