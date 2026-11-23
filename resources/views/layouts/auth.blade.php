@@ -17,13 +17,20 @@
     <body class='bg-light'>
         <main class='container' style='max-width: 480px; padding-top: 10vh'>
             <div class='text-center mb-4'>
-                <img src='/images/fast_forward_full_logo_transparent_cropped.png' alt='Fast Forward Express' width='260'>
+                <a href='{{ config('branding.marketing_url') }}'>
+                    <img src='/images/fast_forward_full_logo_transparent_cropped.png' alt='Fast Forward Express' width='260'>
+                </a>
             </div>
             <div class='card shadow-sm'>
                 <div class='card-body p-4'>
                     <h1 class='h4 mb-4'>@yield('title')</h1>
                     @yield('content')
                 </div>
+            </div>
+            <div class='text-center mt-3'>
+                <a href='{{ config('branding.marketing_url') }}' class='text-muted'>
+                    <i class='fas fa-arrow-left'></i> Back to Fast Forward Express
+                </a>
             </div>
         </main>
 
