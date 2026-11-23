@@ -13,15 +13,15 @@
     <div class='row'>
         <div class='col-md-12'>
             <nav class='navbar navbar-dark bg-dark' style='padding: 0rem 1rem'>
-                <a class='nav-item nav-link' style='padding: 0rem' href='/' alt='Fast Forward Express Logo'>
-                    <img src='images/fast_forward_full_logo_transparent_cropped.png' width='260px' height='100px' alt='fast-forward-full-logo-transparent'>
+                <a class='nav-item nav-link' style='padding: 0rem' href='/'>
+                    <img src='/images/fast_forward_full_logo_transparent_cropped.png' width='260' height='100' alt='Fast Forward Express'>
                     <span class='sr-only'>Fast Forward Express Home</span>
                 </a>
-                <a class='nav-item nav-link' href='/about'><h4>About</h4><a>
-                <a class='nav-item nav-link' href='/services'><h4>Services</h4><a>
-                <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4><a>
-                <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4><a>
-                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4><a>
+                <a class='nav-item nav-link' href='/about'><h4>About</h4></a>
+                <a class='nav-item nav-link' href='/services'><h4>Services</h4></a>
+                <a class='nav-item nav-link' href='/requestDelivery'><h4>Request Delivery</h4></a>
+                <a class='nav-item nav-link' href='/requestQuote'><h4>Request Quote</h4></a>
+                <a class='nav-item nav-link' href='/contact'><h4>Contact</h4></a>
                 <a class='nav-item nav-link' href='/login'><h4><i class='fas fa-sign-in-alt'></i> Sign In</h4></a>
             </nav>
         </div>
@@ -38,9 +38,9 @@
                 <h4 class='footerLabel'>Address</h4>
                 <h4>201 - 18 Rayborn Crescent<br>St.Albert, AB T8N 4B1</h4>
                 <h4 class='footerLabel'>Phone Number</h4>
-                <h4>780-458-1074</h4>
+                <h4><a href='tel:+17804581074'>780-458-1074</a></h4>
                 <h4 class='footerLabel'>Email</h4>
-                <h4>fastfex@telus.net</h4>
+                <h4><a href='mailto:fastfex@telus.net'>fastfex@telus.net</a></h4>
             </div>
             <div class='col-md-8'>
                 <h4 style='padding-top:110px; padding-right: 50px'>

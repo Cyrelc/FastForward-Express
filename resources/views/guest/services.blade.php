@@ -1,9 +1,12 @@
 @extends('layouts.app')
 
+@section('title', 'Courier Services')
+@section('description', 'Same-day and overnight local delivery, after-hours emergency service, door-to-door courier and hot shot delivery across Alberta from Fast Forward Express.')
+
 @section('content')
 <div class='row'>
     <div class='col-md-12'>
-        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg); position:relative; height: 300px;' alt='Landing Page Image'>
+        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; background-size: cover; background-position: left center; position:relative; height: 300px;'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
                 <h1 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white; text-align: left'>Services</h1>
             </div>
@@ -40,7 +43,7 @@
     <div class='col-md-12'>
         <div class='row'>
             <div class='col-md-6' style='padding-right: 0px'>
-                <div style='background: url({{URL::to("/")}}/images/services.jpg) no-repeat; height: 500px; position: relative' alt='Landing Page Image' ></div>
+                <div style='background: url({{URL::to("/")}}/images/services.jpg) no-repeat; height: 500px; position: relative' ></div>
             </div>
             <div class='col-md-6' style='padding-left: 0px'>
                 <div style='background: grey; color: white; padding: 40px; height: 500px'>

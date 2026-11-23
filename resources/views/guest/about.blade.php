@@ -1,9 +1,12 @@
 @extends('layouts.app')
 
+@section('title', 'About Us')
+@section('description', 'Meet the family behind Fast Forward Express, a locally owned Edmonton-area courier since 1992 running cars, vans, pickup trucks and flat deck trailers.')
+
 @section('content')
 <div class='row'>
     <div class='col-md-12'>
-        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
+        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; background-size: cover; background-position: left center; position:relative; height: 300px;'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
                 <h1 style='padding-left:130px; padding-top:100px; color:white; text-align: left'>About Us</h1>
             </div>

@@ -7,14 +7,44 @@
         <meta name='apple-mobile-web-app-capable' content='yes'>
         <meta name='mobile-web-app-capable' content='yes'>
         <meta name='csrf-token' content='{{ csrf_token() }}'>
-        <meta name='description' content='Fast Forward Express offers reliable delivery services with realistic timelines and over 32 years of experience. We prioritize customer satisfaction.'>
-        <link rel='icon' type='image/x-icon' href='/images/fast_forward_short_logo_transparent.png'>
-        <title>
-            Fast Forward Express - Reliable Delivery Services in Alberta
-            @if(array_key_exists('title', View::getSections()))
-                - @yield('title')
-            @endif
-        </title>
+        <meta name='description' content='@yield('description', 'Fast Forward Express is a family-run courier serving Edmonton, St. Albert and the surrounding area since 1992, with same-day, overnight, after-hours and hot shot delivery.')'>
+        <link rel='canonical' href='{{ url()->current() }}'>
+        <link rel='icon' type='image/png' href='/images/fast_forward_short_logo_transparent.png'>
+        <title>{{ View::hasSection('title') ? trim(View::getSection('title')) . ' | Fast Forward Express' : 'Fast Forward Express - Reliable Delivery Services in Alberta' }}</title>
+        @php
+            $localBusiness = [
+                '@context' => 'https://schema.org',
+                '@type' => 'LocalBusiness',
+                'name' => 'Fast Forward Express',
+                'description' => 'Locally owned, family-run courier and delivery service in the Edmonton area.',
+                'url' => url('/'),
+                'logo' => url('/images/fast_forward_full_logo_transparent_cropped.png'),
+                'image' => url('/images/fast_forward_full_logo_transparent_cropped.png'),
+                'telephone' => '+1-780-458-1074',
+                'email' => 'contactus@fastforwardexpress.ca',
+                'foundingDate' => '1992',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => '201 - 18 Rayborn Crescent',
+                    'addressLocality' => 'St. Albert',
+                    'addressRegion' => 'AB',
+                    'postalCode' => 'T8N 4B1',
+                    'addressCountry' => 'CA',
+                ],
+                'areaServed' => [
+                    ['@type' => 'City', 'name' => 'Edmonton'],
+                    ['@type' => 'City', 'name' => 'St. Albert'],
+                    ['@type' => 'AdministrativeArea', 'name' => 'Alberta'],
+                ],
+                'openingHoursSpecification' => [[
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+                    'opens' => '08:00',
+                    'closes' => '17:00',
+                ]],
+            ];
+        @endphp
+        <script type='application/ld+json'>{!! json_encode($localBusiness, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 
         <script type='text/javascript' src='{{mix("/compiled_js/public.js")}}' defer></script>
         <script type='text/javascript' src="https://maps.googleapis.com/maps/api/js?key={{config('services.google.places_api_key')}}&libraries=places,geometry" defer></script>
@@ -83,9 +113,6 @@
             }
         </script>
         @yield('body')
-    </body>
-
-    <footer>
         @yield('footer')
-    </footer>
+    </body>
 </html>

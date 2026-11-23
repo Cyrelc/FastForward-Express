@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
+@section('description', 'Fast Forward Express is a family-run courier serving Edmonton, St. Albert and the surrounding area since 1992, with same-day, overnight, after-hours and hot shot delivery.')
+
 @section('content')
 <div class='row'>
     <div class='col-md-12' style='padding-bottom: 70px;'>
-        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
+        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; background-size: cover; background-position: left center; position:relative; height: 300px;'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
                 <h3 style='padding-left:130px; padding-top:100px; color:white'>We're big enough to handle it<br/>but small enough to care</h3>
             </div>
@@ -11,21 +13,21 @@
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/requestDelivery'>
-            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Landing-Request-Delivery' loading='lazy'>
+            <img src='{{URL::to("/")}}/images/landing-request-delivery.jpg' class='img-fluid' alt='Request a delivery' loading='lazy'>
             <h3>Request Delivery</h3>
             <h5>Easily request your delivery using our online tool or by giving us a call</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/services'>
-            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Landing-Services' loading='lazy'>
+            <img src='{{URL::to("/")}}/images/landing-services.jpg' class='img-fluid' alt='Our courier services' loading='lazy'>
             <h3>Services</h3>
             <h5>Whether you need it delivered now, tomorrow, or next week, we've got your back!</h5>
         </a>
     </div>
     <div class='col-md-4 home-tile'>
         <a href='/contact'>
-            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='Get-In-Touch' loading='lazy'>
+            <img src='{{URL::to("/")}}/images/landing-get-in-touch.jpg' class='img-fluid' alt='Get in touch with us' loading='lazy'>
             <h3>Get In Touch</h3>
             <h5>Have a question or want to connect with us? Drop us a line or call us at 780-458-1074</h5>
         </a>

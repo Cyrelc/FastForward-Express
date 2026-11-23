@@ -1,9 +1,12 @@
 @extends('layouts.app')
 
+@section('title', 'Contact Us')
+@section('description', 'Contact Fast Forward Express in St. Albert at 780-458-1074 or by email. Office hours are Monday to Friday, 8am to 5pm, with after-hours emergency service.')
+
 @section('content')
 <div class='row'>
     <div class='col-md-12'>
-        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; position:relative; height: 300px;' alt='Landing Page Image'>
+        <div style='background: url({{URL::to("/")}}/images/pexels-norma-mortenson-4391470-resized.jpg) no-repeat; background-size: cover; background-position: left center; position:relative; height: 300px;'>
             <div style='background: rgba(7, 122, 177, 0.40); width: 100%; height: 100%'>
                 <h1 class='panel-heading' style='padding-left:130px; padding-top:100px; color:white; text-align: left'>Contact Us</h1>
             </div>
@@ -49,15 +52,15 @@
     <div class='col-md-4' style='text-align: right'>
         <h3 style='color: grey; background: linear-gradient(to right, white, grey) right bottom no-repeat; background-size: 50% 2px'>Get in Touch</h3>
         <h4><i>Phone Number</i></h4>
-        <h5>780-458-1074</h5>
+        <h5><a href='tel:+17804581074'>780-458-1074</a></h5>
         <br/>
         <h4><i>Emergency/After Office Hours</i></h4>
-        <h5>780-668-1074</h5>
+        <h5><a href='tel:+17806681074'>780-668-1074</a></h5>
         <br/>
         <h4><i>Email</i></h4>
-        <h5>contactus@fastforwardexpress.ca</h5>
-        <h5>dispatch@fastforwardexpress.ca</h5>
-        <h5>fastfex@telus.net</h5>
+        <h5><a href='mailto:contactus@fastforwardexpress.ca'>contactus@fastforwardexpress.ca</a></h5>
+        <h5><a href='mailto:dispatch@fastforwardexpress.ca'>dispatch@fastforwardexpress.ca</a></h5>
+        <h5><a href='mailto:fastfex@telus.net'>fastfex@telus.net</a></h5>
         <br/>
         <h4><i>Office Hours</i></h4>
         <table class='office-hours'>
