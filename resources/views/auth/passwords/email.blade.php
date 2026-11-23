@@ -1,47 +1,35 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
-<!-- Main Content -->
+@section('title', 'Reset Password')
+
 @section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Reset Password</div>
-                <div class="panel-body">
-                    @if (session('status'))
-                        <div class="alert alert-success">
-                            <?php echo session('status') ?>
-                        </div>
-                    @endif
+@if (session('status'))
+    <div class='alert alert-success'>{{ session('status') }}</div>
+@endif
 
-                    <form class="form-horizontal" role="form" method="POST" action="{{ url('/password/email') }}">
-                        {{ csrf_field() }}
+<form role='form' method='POST' action='{{ url('/password/email') }}'>
+    {{ csrf_field() }}
 
-                        <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
-                            <label for="email" class="col-md-4 control-label">E-Mail Address</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}">
-
-                                @if ($errors->has('email'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('email') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="col-md-6 col-md-offset-4">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fa fa-btn fa-envelope"></i> Send Password Reset Link
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div class='mb-4'>
+        <label for='email' class='form-label'>E-Mail Address</label>
+        <input
+            type='email'
+            id='email'
+            name='email'
+            value='{{ old('email') }}'
+            class='form-control @error('email') is-invalid @enderror'
+            autofocus
+        >
+        @error('email')
+            <div class='invalid-feedback'>{{ $message }}</div>
+        @enderror
     </div>
-</div>
+
+    <div class='d-flex justify-content-between align-items-center'>
+        <button type='submit' class='btn btn-primary'>
+            <i class='fas fa-envelope'></i> Send Password Reset Link
+        </button>
+        <a href='{{ url('/login') }}'>Back to login</a>
+    </div>
+</form>
 @endsection

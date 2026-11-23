@@ -1,83 +1,50 @@
-@extends('layouts.app')
+@extends('layouts.auth')
+
+@section('title', 'Login')
 
 @section('content')
-<div class="d-flex justify-content-center">
-    <div class="col-md-6">
-        <div class="card" style="margin: 20px">
-            <div class="card-header"><h1 class='card-title'>Login</h1></div>
-            <div class="card-body">
-                <form class="form-horizontal" role="form" method="POST" action="{{ url('/login') }}">
-                    {{ csrf_field() }}
-                    <input type='hidden' name='device_name' id='device_name'>
+<form role='form' method='POST' action='{{ url('/login') }}'>
+    {{ csrf_field() }}
+    <input type='hidden' name='device_name' id='device_name'>
 
-                    <div class="mb-3">
-                        <div class="col-md-12">
-                          <div class="input-group">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">E‑Mail Address</span>
-                            </div>
-                            <input
-                              type="email"
-                              name="email"
-                              value="{{ old('email') }}"
-                              class="form-control @error('email') is-invalid @enderror"
-                            >
-                          </div>
-
-                          @error('email')
-                            <div class="invalid-feedback d-block mt-1">
-                              {{ $message }}
-                            </div>
-                          @enderror
-                        </div>
-                      </div>
-
-                      <div class="mb-3">
-                        <div class="col-md-12">
-                          <div class="input-group">
-                            <div class="input-group-prepend">
-                              <span class="input-group-text">Password</span>
-                            </div>
-                            <input
-                              type="password"
-                              name="password"
-                              class="form-control @error('password') is-invalid @enderror"
-                            >
-                          </div>
-
-                          @error('password')
-                            <div class="invalid-feedback d-block mt-1">
-                              {{ $message }}
-                            </div>
-                          @enderror
-                        </div>
-                      </div>
-
-                    {{-- <div class="mb-3">
-                        <div class="col-md-6 col-md-offset-4">
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" name="remember"> Remember Me
-                                </label>
-                            </div>
-                        </div>
-                    </div> --}}
-
-                    <div class="mb-3">
-                        <div class="col-md-6 col-md-offset-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-btn fa-sign-in"></i> Login
-                            </button>
-
-                            <a class="btn btn-link" href="{{ url('/password/reset') }}">Forgot Your Password?</a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div class='mb-3'>
+        <label for='email' class='form-label'>E-Mail Address</label>
+        <input
+            type='email'
+            id='email'
+            name='email'
+            value='{{ old('email') }}'
+            class='form-control @error('email') is-invalid @enderror'
+            autofocus
+        >
+        @error('email')
+            <div class='invalid-feedback'>{{ $message }}</div>
+        @enderror
     </div>
-</div>
 
+    <div class='mb-4'>
+        <label for='password' class='form-label'>Password</label>
+        <input
+            type='password'
+            id='password'
+            name='password'
+            class='form-control @error('password') is-invalid @enderror'
+        >
+        @error('password')
+            <div class='invalid-feedback'>{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class='d-flex justify-content-between align-items-center'>
+        <button type='submit' class='btn btn-primary'>
+            <i class='fas fa-sign-in-alt'></i> Login
+        </button>
+        <a href='{{ url('/password/reset') }}'>Forgot your password?</a>
+    </div>
+</form>
+@endsection
+
+@section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Get the computer name
