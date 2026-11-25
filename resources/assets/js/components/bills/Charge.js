@@ -225,14 +225,14 @@ export default function Charge(props) {
                 editor:'select',
                 editorParams: {
                     listItemFormatter: (value, title) => {
-                        return title
+                        return escapeHtml(title)
                     },
                     values: drivers
                 },
                 field: 'pickup_driver_id',
                 formatter: cell => {
                     const driver = drivers.find(driver => driver.value === cell.getValue())
-                    return driver ? driver.label : null
+                    return driver ? escapeHtml(driver.label) : null
                 },
                 title: 'Pickup Driver ID',
                 visible: showDetails,
@@ -242,14 +242,14 @@ export default function Charge(props) {
                 editor:'select',
                 editorParams: {
                     listItemFormatter: (value, title) => {
-                        return title
+                        return escapeHtml(title)
                     },
                     values: drivers
                 },
                 field: 'delivery_driver_id',
                 formatter: cell => {
                     const driver = drivers.find(driver => driver.value === cell.getValue())
-                    return driver ? driver.label : null
+                    return driver ? escapeHtml(driver.label) : null
                 },
                 title: 'Delivery Driver ID',
                 visible: showDetails,

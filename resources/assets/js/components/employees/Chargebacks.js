@@ -10,7 +10,7 @@ const groupBy = {
     label: 'Employee ID',
     value: 'employee_id',
     groupHeader: (value, count, data, group) => {
-        return `${data[0].employee_number} - ${data[0].employee_name} <span style="color: navy">${count}</span>`;
+        return `${escapeHtml(data[0].employee_number)} - ${escapeHtml(data[0].employee_name)} <span style="color: navy">${count}</span>`;
     }
 }
 const groupByOptions = [
@@ -18,7 +18,7 @@ const groupByOptions = [
         label: 'Employee ID',
         value: 'employee_id',
         groupHeader: (value, count, data, group) => {
-            return `${data[0].employee_number} - ${data[0].employee_name} <span style="color: navy">${count}</span>`;
+            return `${escapeHtml(data[0].employee_number)} - ${escapeHtml(data[0].employee_name)} <span style="color: navy">${count}</span>`;
     }}
 ]
 

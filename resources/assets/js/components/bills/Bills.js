@@ -17,14 +17,14 @@ const baseGroupByOptions = [
         label: 'Account ID',
         value: 'charge_account_number',
         groupHeader: (value, count, data, group) => {
-            return `${data[0].charge_account_number} - ${data[0].charge_account_name} <span style="color: red">\t(${count})</span>`
+            return `${escapeHtml(data[0].charge_account_number)} - ${escapeHtml(data[0].charge_account_name)} <span style="color: red">\t(${count})</span>`
         }
     },
     {
         label: 'Delivery Address',
         value: 'delivery_address_formatted',
         groupHeader: (value, count, data, group) => {
-            return `${data[0].delivery_address_name ? data[0].delivery_address_name : value} <span style="color: red">\t(${count})</span>`}
+            return `${escapeHtml(data[0].delivery_address_name ? data[0].delivery_address_name : value)} <span style="color: red">\t(${count})</span>`}
     },
     {
         label: 'Parent Account',
@@ -41,7 +41,7 @@ const baseGroupByOptions = [
         label: 'Pickup Address',
         value: 'pickup_address_formatted',
         groupHeader: (value, count, data, group) => {
-            return `${data[0].pickup_address_name ? data[0].pickup_address_name : value} <span style="color: red">\t(${count})</span>`
+            return `${escapeHtml(data[0].pickup_address_name ? data[0].pickup_address_name : value)} <span style="color: red">\t(${count})</span>`
         }
     }
 ]
@@ -255,7 +255,7 @@ export default function Bills(props) {
             {
                 label: 'Pickup Employee',
                 value: 'pickup_driver_id',
-                groupHeader: (value, count, data, group) => `${value} - ${data[0].pickup_employee_name}<span style="color: red">\t(${count})</span>`
+                groupHeader: (value, count, data, group) => `${escapeHtml(value)} - ${escapeHtml(data[0].pickup_employee_name)}<span style="color: red">\t(${count})</span>`
             }
         ] : [])
 
@@ -303,7 +303,7 @@ export default function Bills(props) {
             rowData.charges.forEach(charge => {
                 const row = tbody.insertRow(0)
                 chargeColumns.forEach((column, index) => {
-                    row.insertCell(index).innerHTML = charge[column.field]
+                    row.insertCell(index).textContent = charge[column.field] ?? ''
                 })
             })
         }

@@ -65,7 +65,7 @@ export default function Employees(props) {
             const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
             if (match)
                 return `(${match[1]}) ${match[2]}-${match[3]}`
-            return cell.getValue()
+            return escapeHtml(cell.getValue())
         }},
         {title: 'Primary Email', field: 'primary_email'},
     ]

@@ -128,6 +128,22 @@ Date.prototype.addDays = function(days) {
     return date;
 }
 
+/**
+ * Escape a value for safe interpolation into an HTML string.
+ * Tabulator inserts string returns from formatters / groupHeaders via innerHTML,
+ * so any user-controlled value placed in one must go through this first.
+ */
+function escapeHtml(value) {
+    if(value === null || value === undefined)
+        return ''
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+}
+
 function configureFakeLink(url, redirectFunction, altDisplayField = null, altRedirectField = null) {
     return {
         cellClick: (e, cell) => {
@@ -139,7 +155,7 @@ function configureFakeLink(url, redirectFunction, altDisplayField = null, altRed
         formatter: (cell) => {
             const displayValue = altDisplayField ? cell.getRow().getData()[altDisplayField] : cell.getValue()
             if(displayValue)
-                return `<a href="javascript::void(0)">${displayValue}</a>`
+                return `<a href="javascript::void(0)">${escapeHtml(displayValue)}</a>`
             return ''
         }
     }

@@ -13,7 +13,7 @@ const defaultFilterQuery = '?filter[active]=true'
  */
 const groupByOptions = [
     {label: 'None', value: null},
-    {label: 'Parent Account', value: 'parent_id', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].parent_name}},
+    {label: 'Parent Account', value: 'parent_id', groupHeader: (value, count, data, group) => {return escapeHtml(value) + ' - ' + escapeHtml(data[0].parent_name)}},
 ]
 
 const initialSort = [{column: 'account_id', dir: 'asc'}]
@@ -34,7 +34,7 @@ export default function Accounts(props) {
         {title: 'Ratesheet', field: 'ratesheet_name', formatter: (cell, row) => {
             const ratesheet_id = cell.getRow().getData().ratesheet_id
             if(ratesheet_id)
-                return `${ratesheet_id} - ${cell.getValue()}`
+                return `${escapeHtml(ratesheet_id)} - ${escapeHtml(cell.getValue())}`
             else
                 return null
         }},
@@ -44,7 +44,7 @@ export default function Accounts(props) {
             const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/)
             if (match)
                 return `(${match[1]}) ${match[2]}-${match[3]}`
-            return cell.getValue()
+            return escapeHtml(cell.getValue())
         }},
         {title: 'Shipping Address Name', field: 'shipping_address_name', visible: false},
         {title: 'Shipping Address', field: 'shipping_address', visible: false},

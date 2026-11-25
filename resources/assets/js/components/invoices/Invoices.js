@@ -38,7 +38,7 @@ function printInvoices(selectedRows, options) {
 
 const groupByOptions = [
     {label: 'None', value: null},
-    {label: 'Account', value: 'account_number', groupHeader: (value, count, data, group) => {return value + ' - ' + data[0].account_name}},
+    {label: 'Account', value: 'account_number', groupHeader: (value, count, data, group) => {return escapeHtml(value) + ' - ' + escapeHtml(data[0].account_name)}},
     {label: 'Last Bill Date', value: 'bill_end_date'}
 ]
 
@@ -129,8 +129,8 @@ export default function Invoices(props) {
         {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
         {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/invoices/', history.push), sorter: 'number'},
         {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number'},
-        {title: 'Account Number', field: 'account_id', ...configureFakeLink('/accounts/', history.push), visible: false, formatter: cell => {return cell.getRow().getData().account_number}},
-        {title: 'Account', field: 'account_id', ...configureFakeLink('/accounts/', history.push), formatter: cell => {return cell.getRow().getData().account_name}},
+        {title: 'Account Number', field: 'account_id', ...configureFakeLink('/accounts/', history.push), visible: false, formatter: cell => {return escapeHtml(cell.getRow().getData().account_number)}},
+        {title: 'Account', field: 'account_id', ...configureFakeLink('/accounts/', history.push), formatter: cell => {return escapeHtml(cell.getRow().getData().account_name)}},
         {title: 'First Bill Date', field: 'bill_start_date', visible: false},
         {title: 'Last Bill Date', field: 'bill_end_date'},
         {title: 'Payment Types', field: 'payment_type_list', visible: false},
