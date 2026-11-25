@@ -66,7 +66,8 @@ class StripeRefundProcessor {
                             'refund_id' => $refund->id,
                         ])->log('[processRefund] succeeded.');
 
-                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, -$paymentAmount);
+                    // A refund puts the money back on the invoice, the same as reverting a non-Stripe payment
+                    $invoiceRepo->AdjustBalanceOwing($payment->invoice_id, $paymentAmount);
                 }
             } else {
                 activity('jobs')

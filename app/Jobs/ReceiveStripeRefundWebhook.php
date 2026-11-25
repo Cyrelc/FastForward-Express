@@ -35,6 +35,14 @@ class ReceiveStripeRefundWebhook implements ShouldQueue, ShouldBeUnique {
         $processor->processRefund($this->event);
     }
 
+    /**
+     * Stripe can deliver the refund webhook before revertPayment has saved our refund row. Without a backoff
+     * the five tries are spent immediately, all failing to find that row.
+     */
+    public function backoff() {
+        return [5, 15, 30, 60];
+    }
+
     public function uniqueId() {
         return $this->event->data->object->id;
     }

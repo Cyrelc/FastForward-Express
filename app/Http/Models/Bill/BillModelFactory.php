@@ -195,12 +195,9 @@ class BillModelFactory{
 		$pickupAddress = $addressRepo->GetById($bill->pickup_address_id);
 
 		$billCost = 0;
-		$unpaid = 0;
 		foreach($charges as $charge) {
 			foreach($charge->lineItems as $lineItem) {
 				$billCost += $lineItem->price;
-				if(!filter_var($lineItem->paid, FILTER_VALIDATE_BOOLEAN))
-					$unpaid += $lineItem->price;
 			}
 		}
 		$tax = $billCost * config('ffe_config.gst') / 100;
