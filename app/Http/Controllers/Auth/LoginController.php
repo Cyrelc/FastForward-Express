@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -56,10 +53,18 @@ class LoginController extends Controller
          * @return \Illuminate\Http\Response
          */
 
+        // Overriding the trait's login() skips its lockout, so apply it here ($maxAttempts per
+        // $decayMinutes, keyed on email + IP). Throws a validation error back to the form when locked.
+        if($this->hasTooManyLoginAttempts($req)) {
+            $this->fireLockoutEvent($req);
+            return $this->sendLockoutResponse($req);
+        }
+
         $credentials = $req->only('email', 'password');
         $credentials = array_merge($credentials, ['is_enabled' => 1]);
 
         if (Auth::attempt($credentials)) {
+            $this->clearLoginAttempts($req);
             // 3) Check the related account via your pivot:
             //    (adjust account() / accounts() to whatever your relation is)
             $user = Auth::user();
@@ -76,39 +81,10 @@ class LoginController extends Controller
             return redirect()->intended('/app');
         }
 
+        $this->incrementLoginAttempts($req);
+
         return back()->withErrors([
             'email' => 'Your credentials are invalid, or your account has been disabled. Please contact your account administrator if you believe this to be in error.'
-        ]);
-    }
-
-    public function getSanctumToken(Request $req) {
-        $req->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'device_name' => 'required'
-        ]);
-
-        $user = User::where('email', $req->email)->first();
-
-        if(!$user->hasRole('superAdmin')) {}
-        else if(!$user || !$user->employee || !Hash::check($req->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect']
-            ]);
-        } else if(!$user->is_enabled) {
-            throw ValidationException::withMessages([
-                'email' => ['Your user account is disabled. Please speak with an account administrator if you believe this to be an error.']
-            ]);
-        }
-
-        // Delete any old tokens for this device before issuing a new one
-        $user->tokens()->where('name', $req->device_name)->delete();
-
-        return response()->json([
-            'display_name' => $user->displayName(),
-            'employee_id' => $user->employee->employee_id,
-            'sanctum_token' => $user->createToken($req->device_name)->plainTextToken,
-            'success' => true,
         ]);
     }
 }

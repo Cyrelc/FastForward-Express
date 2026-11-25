@@ -43,6 +43,13 @@ return [
     'url' => env('APP_URL', 'https://localhost'),
 
     /*
+    | Extra domains (comma-separated) the app may be reached on in production, beyond APP_URL and
+    | MARKETING_URL - e.g. TRUSTED_HOSTS=fastforwardexpress.com if that domain is served by the app
+    | rather than redirected by Apache. Subdomains of each are trusted too. See App\Http\Middleware\TrustHosts.
+    */
+    'trusted_hosts' => array_values(array_filter(array_map('trim', explode(',', env('TRUSTED_HOSTS', ''))))),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

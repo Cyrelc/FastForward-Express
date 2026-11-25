@@ -73,9 +73,11 @@ export default function EditAccountUser(props) {
         } else
             api.post('/accountUsers/checkIfExists', data)
                 .then(response => {
-                    if(response.email_in_use) {
+                    if(response.email_in_use && !response.contact_id)
+                        alert('This email address is already in use by another user. Please contact Fast Forward Express if they should be added to this account.')
+                    else if(response.email_in_use) {
                         if(confirm(`This email is already in use by another user: ${response.name} \n\n On accounts:\n ${response.accounts.map(account => `\t${account.account_number} - ${account.label}`)} \n\n Would you instead like to link the existing user to this account?`))
-                            api.get(`/accountUsers/link/${response.contact_id}/${props.accountId}`)
+                            api.post(`/accountUsers/link/${response.contact_id}/${props.accountId}`, {})
                                 .then(response => {
                                     props.refreshAccountUsers()
                                 })

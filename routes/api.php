@@ -15,9 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['guest'])->post(
-    '/login', 'Auth\LoginController@getSanctumToken'
-);
+// Token login for the (paused) driver mobile app was removed: it issued tokens without checking the
+// password. Rebuild it - verifying the password and throttling attempts - when the mobile work resumes.
 
 // Public site forms. Stateless and CORS-enabled (config/cors.php) so a marketing site on another host can post to them
 Route::middleware('throttle:public-forms')->controller(GuestController::class)->prefix('public')->group(function() {
@@ -37,7 +36,5 @@ Route::controller(WebhookController::class)->prefix('webhooks')->group(function(
     Route::post('/stripe/receiveRefundUpdate', 'receiveRefundUpdate');
 });
 
-Route::controller(ToolController::class)->prefix('tools')->group(function() {
-    Route::get('/getStripeReceipts', 'getStripeReceipts');
-});
+// /api/tools/getStripeReceipts moved to routes/web.php so it runs behind the session login
 

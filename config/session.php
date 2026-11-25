@@ -148,7 +148,8 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', null),
+    // Defaults on in production (served over HTTPS only) and off elsewhere, so dev on http://localhost keeps working
+    'secure' => env('SESSION_SECURE_COOKIE', in_array(env('APP_ENV'), ['prod', 'production'])),
 
     /*
     |--------------------------------------------------------------------------
@@ -162,5 +163,18 @@ return [
     */
 
     'http_only' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Same-Site Cookies
+    |--------------------------------------------------------------------------
+    |
+    | "lax" keeps the session on normal links and redirects into the app (including Stripe's 3-D Secure
+    | return) but withholds it from cross-site POSTs and embedded requests. Supported: "lax", "strict",
+    | "none", null.
+    |
+    */
+
+    'same_site' => env('SESSION_SAME_SITE', 'lax'),
 
 ];

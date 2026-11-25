@@ -22,7 +22,9 @@ class AccountPolicy {
     }
 
     public function createAccountUsers(User $user, Account $account) {
-        if($user->can('accountUsers.create.*'))
+        // 'accountUsers.create.*.*' is the permission staff are actually granted (see PermissionSeeder /
+        // Employee::$permissionsMap); this used to check 'accountUsers.create.*', which does not exist
+        if($user->can('accountUsers.create.*.*'))
             return true;
         else if($user->accountUsers && $user->hasAnyPermission('accountUsers.create.my', 'accountUsers.create.children')) {
             $accountRepo = new Repos\AccountRepo();

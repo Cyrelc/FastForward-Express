@@ -301,7 +301,7 @@ class AccountRepo {
     }
 
     public function IsNameUnique($accountNumber) {
-        $result = \DB::select('select name from accounts where account_number ="' . $accountNumber . '";');
+        $result = \DB::select('select name from accounts where account_number = ?', [$accountNumber]);
         return $result;
     }
 

@@ -506,6 +506,10 @@ class BillRepo {
     }
 
     public function GetManifestOverviewById($manifestId) {
+        // Concatenated into the raw selects below, so it must be a plain integer. MySQL coerces
+        // "5 and <anything>" to 5 when looking the manifest up, so an unchecked route value would
+        // pass the existence and permission checks and then run as SQL here.
+        $manifestId = (int) $manifestId;
         $bills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->where('pickup_manifest_id', $manifestId)

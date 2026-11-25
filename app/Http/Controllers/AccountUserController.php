@@ -22,31 +22,58 @@ use DB;
 
 class AccountUserController extends Controller {
     public function checkIfAccountUserExists(Request $req) {
-        $userRepo = new Repos\UserRepo();
-        foreach($req->email_addresses as $email) {
-            $emailAddress = trim($email['email']);
-            $user = $userRepo->GetUserByPrimaryEmail($emailAddress);
-            if($user && $user->accountUsers) {
-                $accountRepo = new Repos\AccountRepo();
-                $contact = $user->accountUsers[0]->contact;
-                $accounts = array();
-                foreach($user->accountUsers as $accountUser) {
-                    $account = $accountRepo->GetById($accountUser->account_id);
-                    array_push($accounts, [
-                        'account_number' => $account->account_number,
-                        'label' => $account->name,
-                        'value' => $account->account_id,
-                    ]);
-                }
+        $accountRepo = new Repos\AccountRepo();
+        $account = $accountRepo->GetById($req->account_id);
+        if(!$account)
+            abort(404);
+        // Only someone who could add a user to this account has any reason to ask
+        if($req->user()->cannot('createAccountUsers', $account))
+            abort(403);
 
+        $userRepo = new Repos\UserRepo();
+        foreach($req->email_addresses ?? [] as $email) {
+            $emailAddress = trim($email['email'] ?? '');
+            $user = $userRepo->GetUserByPrimaryEmail($emailAddress);
+            if(!$user)
+                continue;
+
+            // The address is taken, but only reveal who holds it (name, contact, accounts) to someone
+            // allowed to link that user. Otherwise this would map any email to a person and their company.
+            if($user->accountUsers->isEmpty() || $req->user()->cannot('linkUser', $user))
                 return response()->json([
                     'success' => true,
                     'email_in_use' => true,
-                    'contact_id' => $contact ? $contact->contact_id : null,
-                    'name' => $contact ? $contact->displayName() : null,
-                    'accounts' => $accounts
+                    'contact_id' => null,
+                    'name' => null,
+                    'accounts' => []
+                ]);
+
+            // Staff see every account the user belongs to; a customer admin sees only the ones within
+            // their own scope, not other companies the same person also works with
+            $visibleAccountIds = $req->user()->can('accountUsers.create.*.*')
+                ? null
+                : $accountRepo->GetMyAccountIds($req->user(), $req->user()->can('accountUsers.create.children'));
+
+            $contact = $user->accountUsers[0]->contact;
+            $accounts = array();
+            foreach($user->accountUsers as $accountUser) {
+                if($visibleAccountIds !== null && !in_array($accountUser->account_id, $visibleAccountIds))
+                    continue;
+                $userAccount = $accountRepo->GetById($accountUser->account_id);
+                array_push($accounts, [
+                    'account_number' => $userAccount->account_number,
+                    'label' => $userAccount->name,
+                    'value' => $userAccount->account_id,
                 ]);
             }
+
+            return response()->json([
+                'success' => true,
+                'email_in_use' => true,
+                'contact_id' => $contact ? $contact->contact_id : null,
+                'name' => $contact ? $contact->displayName() : null,
+                'accounts' => $accounts
+            ]);
         }
 
         return response()->json([
@@ -122,9 +149,20 @@ class AccountUserController extends Controller {
     }
 
     public function linkAccountUser(Request $req, $contactId, $accountId) {
+        $accountRepo = new Repos\AccountRepo();
+        $account = $accountRepo->GetById($accountId);
+        if(!$account)
+            abort(404);
+        // linkUser only checks that the user being linked is one of mine; the account they are being
+        // linked INTO must be one I can add users to as well, or anyone could join any account
+        if($req->user()->cannot('createAccountUsers', $account))
+            abort(403);
+
         $userRepo = new Repos\UserRepo();
         $contact = Contact::findOrFail($contactId);
-        $targetUser = $userRepo->GetUserByPrimaryEmail($contact->primary_email->email);
+        $targetUser = $contact->primary_email ? $userRepo->GetUserByPrimaryEmail($contact->primary_email->email) : null;
+        if(!$targetUser)
+            abort(404);
         if($req->user()->cannot('linkUser', $targetUser))
             abort(403);
         else if($userRepo->GetAccountUser($contactId, $accountId) != null)
@@ -162,7 +200,15 @@ class AccountUserController extends Controller {
         $userRepo = new Repos\UserRepo();
 
         $account = $accountRepo->GetById($req->account_id);
+        if(!$account)
+            abort(404);
         $originalAccountUser = $userRepo->GetAccountUser($req->contact_id, $req->account_id);
+
+        // A contact_id is only valid when editing a user of this account. Without this, any contact
+        // in the system (staff included) could be passed in and overwritten, authorized only by the
+        // caller's rights over their own account.
+        if($req->contact_id && !$originalAccountUser)
+            abort(403);
 
         if($originalAccountUser ? $req->user()->cannot('updateBasic', $originalAccountUser) : $req->user()->cannot('createAccountUsers', $account))
             abort(403);

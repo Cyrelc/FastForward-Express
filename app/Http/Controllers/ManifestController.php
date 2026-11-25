@@ -43,7 +43,7 @@ class ManifestController extends Controller {
     }
 
     public function download(Request $req, $manifestIds) {
-        $manifestIds = explode(',', $manifestIds);
+        $manifestIds = $this->parseManifestIds($manifestIds);
 
         if(count($manifestIds) > 50)
             abort(413, 'Currently unable to package more than 50 manifests at a time. Please select 50 or fewer and try again. Aplogies for any inconvenience');
@@ -113,7 +113,7 @@ class ManifestController extends Controller {
     }
 
     public function print(Request $req, $manifestIds) {
-        $manifestIds = explode(',', $manifestIds);
+        $manifestIds = $this->parseManifestIds($manifestIds);
 
         if(count($manifestIds) > 50)
             abort(413, 'Currently unable to package more than 50 manifests at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
@@ -192,6 +192,19 @@ class ManifestController extends Controller {
         return !is_dir($this->storagePath);
     }
 
+    /**
+     * Turns the comma-separated id list from the URL into integers, rejecting anything else.
+     * The routes already constrain the pattern; this keeps the controller safe on its own.
+     */
+    private function parseManifestIds($manifestIds) {
+        $ids = array_filter(explode(',', $manifestIds), fn($id) => $id !== '');
+        foreach($ids as $id)
+            if(!ctype_digit($id))
+                abort(404);
+
+        return array_values(array_map('intval', $ids));
+    }
+
     private function preparePdfs(Request $req, $manifestIds) {
         $manifestModelFactory = new Manifest\ManifestModelFactory();
 
@@ -200,11 +213,17 @@ class ManifestController extends Controller {
         $files = array();
         mkdir($this->storagePath, 0777, true);
 
-        foreach($manifestIds as $manifestId) {
-            $model = $manifestModelFactory->GetById($req->user(), $manifestId);
+        $manifestRepo = new Repos\ManifestRepo();
 
-            if($req->user()->cannot('view', $model->manifest))
+        foreach($manifestIds as $manifestId) {
+            // Authorize before building the model - building it runs the overview queries
+            $manifest = $manifestRepo->GetById($manifestId);
+            if(!$manifest)
+                abort(404);
+            if($req->user()->cannot('view', $manifest))
                 abort(403);
+
+            $model = $manifestModelFactory->GetById($req->user(), $manifestId);
 
             $fileName = $model->employee->contact->first_name . '_' . $model->employee->contact->last_name . '-' . $model->manifest->manifest_id;
             $fileName = preg_replace('/\s+/', '_', $fileName);

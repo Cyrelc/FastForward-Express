@@ -9,6 +9,10 @@ use \Stripe;
 
 class ToolController extends Controller {
     public function getStripeReceipts(Request $req) {
+        // Re-processes every pending Stripe payment and calls the Stripe API once per payment
+        if($req->user()->cannot('appSettings.edit.*.*'))
+            abort(403);
+
         $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
         $payments = Payment::whereNotNull('stripe_payment_intent_id')
         ->where('stripe_object_type', 'payment_intent')

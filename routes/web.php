@@ -33,7 +33,9 @@ Route::middleware(['auth'])->controller(AccountUserController::class)->prefix('a
     Route::get('/{accountId}/{contactId?}', 'getAccountUserModel');
     Route::delete('/{accountId}/{contactId}', 'delete');
     Route::post('/checkIfExists', 'checkIfAccountUserExists');
-    Route::get('/link/{accountId}/{contactId}', 'linkAccountUser');
+    // POST so Laravel's CSRF check applies: as a GET, a staff admin clicking a crafted link would
+    // link the attacker's contact into any account
+    Route::post('/link/{contactId}/{accountId}', 'linkAccountUser');
     Route::get('/setPrimary/{account_id}/{contact_id}', 'setPrimary');
 });
 
@@ -110,13 +112,13 @@ Route::middleware(['auth'])->controller(InvoiceController::class)->prefix('invoi
 
 Route::middleware(['auth'])->controller(ManifestController::class)->prefix('manifests')->group(function() {
     Route::get('/getDriversToManifest', 'getDriversToManifest');
-    Route::get('/{manifest_id}', 'getModel');
+    Route::get('/{manifest_id}', 'getModel')->whereNumber('manifest_id');
     Route::post('/store', 'store');
-    Route::delete('/{id}', 'delete');
-    Route::get('/download/{manifestIds}', 'download');
-    Route::get('/print/{manifestIds}', 'print');
+    Route::delete('/{id}', 'delete')->whereNumber('id');
+    Route::get('/download/{manifestIds}', 'download')->where('manifestIds', '[0-9]+(,[0-9]+)*');
+    Route::get('/print/{manifestIds}', 'print')->where('manifestIds', '[0-9]+(,[0-9]+)*');
     Route::get('/', 'index');
-    Route::get('/regather/{invoiceId}', 'regather');
+    Route::get('/regather/{invoiceId}', 'regather')->whereNumber('invoiceId');
 });
 
 Route::middleware(['auth'])->controller(PaymentController::class)->prefix('payments')->group(function() {
@@ -215,6 +217,12 @@ Route::middleware(['guest'])->controller(GuestController::class)->group(function
     Route::get('/testExceptions', function() {
         throw new \Exception('THIS exception IS a TEST');
     });
+});
+
+// Kept at its old /api/... URL so the admin Tools tab needs no change; it used to be in routes/api.php
+// with no authentication at all
+Route::middleware(['auth'])->controller(ToolController::class)->prefix('api/tools')->group(function() {
+    Route::get('/getStripeReceipts', 'getStripeReceipts');
 });
 
 Route::middleware(['auth'])->controller(WorkerController::class)->prefix('api/workers')->group(function() {
