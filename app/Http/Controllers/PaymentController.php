@@ -100,6 +100,9 @@ class PaymentController extends Controller {
         $paymentIntent = $stripe->paymentIntents->create([
             'amount' => $paymentAmount,
             'currency' => config('services.stripe.currency'),
+            // Cards only. API versions since 2023-08-16 otherwise turn on every payment method enabled in the
+            // Dashboard, and the Payment Element would offer them - but payment recording assumes a card.
+            'payment_method_types' => ['card'],
             'description' => 'Payment on FastForward Invoice #' . $invoice->invoice_id,
         ]);
         DB::beginTransaction();
@@ -131,7 +134,7 @@ class PaymentController extends Controller {
             abort(403);
 
         $stripeId = $account->createOrGetStripeCustomer();
-        $setupIntent = $account->createSetupIntent(['customer' => $stripeId]);
+        $setupIntent = $account->createSetupIntent(['customer' => $stripeId, 'payment_method_types' => ['card']]);
 
         return response()->json([
             'success' => true,
@@ -254,7 +257,7 @@ class PaymentController extends Controller {
         if($req->user()->cannot('updatePaymentMethods', $account))
             abort(403);
 
-        $paymentMethods = $account->paymentMethods();
+        $paymentMethods = $account->paymentMethods('card');
         $newDefault = $account->findPaymentMethod($req->payment_method_id);
 
         $account->updateDefaultPaymentMethod($req->payment_method_id);

@@ -54,13 +54,14 @@ class PaymentModelFactory {
         $paymentRepo = new Repos\PaymentRepo();
 
         try {
-            if(!$account->hasDefaultPaymentMethod() && $account->hasPaymentMethod()) {
-                $paymentMethods = $account->paymentMethods();
+            // Cashier 15 returns every payment method type unless asked for one; everything below reads ->card
+            if(!$account->hasDefaultPaymentMethod() && $account->hasPaymentMethod('card')) {
+                $paymentMethods = $account->paymentMethods('card');
                 $account->updateDefaultPaymentMethod($paymentMethods[0]->id);
             }
 
             $defaultPaymentMethod = $account->hasDefaultPaymentMethod() ? $account->defaultPaymentMethod() : null;
-            $paymentMethods = $account->paymentMethods();
+            $paymentMethods = $account->paymentMethods('card');
 
             $result = array();
 

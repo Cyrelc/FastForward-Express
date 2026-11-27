@@ -122,12 +122,10 @@ class StripeRefundTest extends TestCase {
         $refundRow = $payment->replicate();
         $refundRow->fill(['amount' => -40, 'stripe_object_type' => 'refund', 'stripe_refund_id' => 're_789', 'stripe_status' => 'pending'])->save();
 
-        $event = (object)['data' => (object)['object' => Refund::constructFrom([
+        (new StripeRefundProcessor())->apply(Refund::constructFrom([
             'id' => 're_789', 'object' => 'refund', 'status' => 'succeeded', 'amount' => 4000,
             'payment_intent' => $payment->stripe_payment_intent_id,
-        ])]];
-
-        (new StripeRefundProcessor())->processRefund($event);
+        ]));
 
         $this->assertEquals(100, Invoice::find($invoiceId)->balance_owing);
         $this->assertSame('succeeded', $refundRow->fresh()->stripe_status);

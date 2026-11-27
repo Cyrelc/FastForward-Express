@@ -23,6 +23,7 @@ class Payment extends Model {
         'amount',
         'comment',
         'date',
+        'error',
         'invoice_id',
         'payment_type_id',
         'receipt_url',

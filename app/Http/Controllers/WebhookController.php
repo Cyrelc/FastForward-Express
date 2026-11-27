@@ -15,8 +15,11 @@ class WebhookController extends Controller {
         } catch (\Exception $e) {
             return response()->json(['error' => 'Webhook signature verification failed'], 403);
         }
-        // If the event is valid, dispatch it to a job for further processing
-        ReceiveStripeWebhook::dispatch($event);
+        // Only the ID is queued: the job reads the PaymentIntent's current state from Stripe, which makes duplicate
+        // and out-of-order events harmless. Events about other objects, if the endpoint sends any, are ignored.
+        $object = $event->data->object;
+        if(($object->object ?? null) === 'payment_intent')
+            ReceiveStripeWebhook::dispatch($object->id, $event->id);
 
         //Acknowledge that the request was received and successfully queued
         return response()->json(['success' => 'Webhook received and queued'], 200);
@@ -29,7 +32,10 @@ class WebhookController extends Controller {
             return response()->json(['error' => 'Webhook signature verification failed'], 403);
         }
 
-        ReceiveStripeRefundWebhook::dispatch($event);
+        // As above. Both refund.* and charge.refund.* events carry the Refund; charge.refunded carries the Charge.
+        $object = $event->data->object;
+        if(($object->object ?? null) === 'refund')
+            ReceiveStripeRefundWebhook::dispatch($object->id, $event->id);
 
         return response()->json(['success' => 'Webhook received and queued'], 200);
     }

@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -11,28 +11,22 @@ use Illuminate\Queue\SerializesModels;
 
 use App\Services\StripeRefundProcessor;
 
-class ReceiveStripeRefundWebhook implements ShouldQueue, ShouldBeUnique {
+/**
+ * Syncs one Refund from Stripe. See ReceiveStripeWebhook for why it carries only IDs and is unique until processing.
+ */
+class ReceiveStripeRefundWebhook implements ShouldQueue, ShouldBeUniqueUntilProcessing {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 5;
     public $uniqueFor = 600;
 
-    protected $event;
-
-    /**
-     * Create a new job instance.
-     */
-    public function __construct($event) {
-        activity('jobs')->log('Creating pending job for Stripe refund ' . $event->data->object->id);
-        $this->event = $event;
+    public function __construct(public string $refundId, public ?string $eventId = null) {
+        activity('jobs')->log('Creating pending job for Stripe refund ' . $refundId);
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(StripeRefundProcessor $processor): void {
-        activity('jobs')->log('Handling pending job for Stripe refund: ' . $this->event->data->object->id);
-        $processor->processRefund($this->event);
+        activity('jobs')->log('Handling pending job for Stripe refund: ' . $this->refundId);
+        $processor->sync($this->refundId);
     }
 
     /**
@@ -44,6 +38,6 @@ class ReceiveStripeRefundWebhook implements ShouldQueue, ShouldBeUnique {
     }
 
     public function uniqueId() {
-        return $this->event->data->object->id;
+        return $this->refundId;
     }
 }

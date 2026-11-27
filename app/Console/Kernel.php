@@ -19,6 +19,7 @@ class Kernel extends ConsoleKernel
         Commands\QueueHealth::class,
         Commands\PrintLegacyRates::class,
         Commands\RebuildWeightConditionals::class,
+        Commands\ReconcileStripePayments::class,
         Commands\StoreWorkerHealth::class,
         Commands\WaitForDatabase::class,
         Commands\WorkerHealthCheck::class,
@@ -34,6 +35,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command(Commands\GenerateRepeatingBills::class)->dailyAt('5:00')->weekDays();
+
+        // Catches Stripe payments and refunds whose webhook never arrived or never got processed
+        $schedule->command(Commands\ReconcileStripePayments::class)->everyFifteenMinutes()->withoutOverlapping();
 
         // Worker health monitoring - runs every 10 minutes
         $schedule->command(Commands\WorkerHealthCheck::class)->everyTenMinutes();
