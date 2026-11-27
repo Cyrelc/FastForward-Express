@@ -37,7 +37,7 @@
     "require-dev": {
         "mockery/mockery": "^1.4.4",
         "symfony/css-selector": "5.0.*",
-        "symfony/dom-crawler": "5.0.*",
+        "symfony/dom-crawler": "5.4.*",
         "filp/whoops": "~2.0",
         "phpunit/phpunit": "^10.1"
     },
