@@ -21,13 +21,9 @@ class InvoiceRepo {
         if(gettype($amount) == 'string')
             $amount = floatval($amount);
 
+        // Whether an invoice (and so its line items) is paid lives only here, in balance_owing: payments, reverts
+        // and refunds just move it. Line items used to carry their own `paid` flag, which nothing un-set again.
         $invoice->balance_owing += $amount;
-
-        if($invoice->balance_owing == 0) {
-            $lineItemRepo = new LineItemRepo();
-
-            $lineItemRepo->PayOffLineItemsByInvoiceId($invoiceId);
-        }
 
         $invoice->save();
 

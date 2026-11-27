@@ -11,7 +11,6 @@ class Chargeback extends Model
     use LogsActivity;
 
     public $primaryKey = "chargeback_id";
-    public $timestamps = false;
 
     protected $fillable = [
         'employee_id',
@@ -22,7 +21,9 @@ class Chargeback extends Model
         'description',
         'continuous',
         'count_remaining',
-        'start_date'
+        'start_date',
+        'bill_id',
+        'source_chargeback_id',
     ];
 
     public function getActivityLogOptions() : LogOptions {

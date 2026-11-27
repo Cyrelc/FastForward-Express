@@ -40,7 +40,6 @@ export default function PriceAdjustModal(props) {
         const adjustment = {
             driver_amount: driverPriceAdjustment,
             name: 'Adjustment',
-            paid: false,
             price: priceAdjustment,
             type: 'miscellaneousRate',
         }

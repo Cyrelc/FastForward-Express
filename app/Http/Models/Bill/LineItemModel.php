@@ -10,16 +10,14 @@ use JsonSerializable;
 class LineItemModel implements JsonSerializable {
     private $driverAmount;
     private $name;
-    private $paid;
     private $price;
     private $type;
 
-    public function __construct($name, $type, $price, $driverAmount = null, $paid = false) {
+    public function __construct($name, $type, $price, $driverAmount = null) {
         $this->name = $name;
         $this->type = $type;
         $this->price = $price;
         $this->driverAmount = $driverAmount ? $driverAmount : $price;
-        $this->paid = $paid;
     }
 
     public function getPrice() {

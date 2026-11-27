@@ -123,6 +123,10 @@ class ChargebackRepo {
             $new->name = $chargeback->name;
             $new->description = $chargeback->description;
             $new->employee_id = $chargeback->employee_id;
+            // Lets a bill find the manifest(s) its chargeback was deducted on
+            $new->bill_id = $chargeback->bill_id;
+            // Lets deleting the manifest hand this deduction back to the chargeback it came from
+            $new->source_chargeback_id = $chargeback->chargeback_id;
             $new->save();
             if($chargeback->continuous == false) {
                 $chargeback->count_remaining--;
