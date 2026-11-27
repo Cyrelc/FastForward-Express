@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Button, ButtonGroup, Col, FormControl, InputGroup, Modal, Row} from 'react-bootstrap'
 import {useAPI} from '../../contexts/APIContext'
 import {toast} from 'react-toastify'
+import {generatePassphrase} from '../../utils/passphrase'
 
 export default function ChangePasswordModal(props) {
     const [newPassword, setNewPassword] = useState('')
@@ -15,15 +16,11 @@ export default function ChangePasswordModal(props) {
             generatePassword()
     }, [props.show])
 
-    const generatePassword = async () => {
-        await fetch('https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2&minCh=20', {
-                method: 'GET',
-        }).then(response => {return response.json()})
-        .then(data => {
-            setNewPassword(data.pws[0])
-            setConfirmPassword(data.pws[0])
-            setViewPassword(true)
-        })
+    const generatePassword = () => {
+        const passphrase = generatePassphrase()
+        setNewPassword(passphrase)
+        setConfirmPassword(passphrase)
+        setViewPassword(true)
     }
 
     const sendResetPasswordEmail = async() => {

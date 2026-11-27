@@ -12,18 +12,12 @@ class UserService {
     }
 
     public function create($userData) {
-        $user = User::create($userData);
-
-        $makeMeAPassword = 'https://makemeapassword.ligos.net/api/v1/passphrase/json?wc=4&whenUp=StartOfWord&ups=2&minCh=20';
-        $curl = curl_init($makeMeAPassword);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HEADER, false);
-
-        $response = curl_exec($curl);
-        curl_close($curl);
-        $data = json_decode($response, true);
-        $password = empty($data['pws']) ? \Hash::make(Str::random(15)) : $password = \Hash::make($data['pws'][0]);
-        $user->update(['password', $password]);
+        // A placeholder no one knows: new users set their own through a password reset. (This used to fetch one from
+        // a third-party site, then failed to save it - update(['password', ...]) is a list, not a key - leaving the
+        // password blank, which no login accepts either.) password is guarded, so it is set directly.
+        $user = new User($userData);
+        $user->password = \Hash::make(Str::random(40));
+        $user->save();
 
         return $user;
     }
