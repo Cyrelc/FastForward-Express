@@ -205,6 +205,8 @@ Route::group(['prefix' => 'app', 'middleware' => 'auth'], function() {
 
 //Guest views web
 Route::permanentRedirect('/home', '/');
+// Leftover URLs from the previous website that Google still crawls
+Route::permanentRedirect('/en/{any?}', '/')->where('any', '.*');
 
 Route::middleware(['guest'])->controller(GuestController::class)->group(function() {
     Route::get('/', 'home');

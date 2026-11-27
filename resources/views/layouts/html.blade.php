@@ -8,7 +8,7 @@
         <meta name='mobile-web-app-capable' content='yes'>
         <meta name='csrf-token' content='{{ csrf_token() }}'>
         <meta name='description' content='@yield('description', 'Fast Forward Express is a family-run courier serving Edmonton, St. Albert and the surrounding area since 1992, with same-day, overnight, after-hours and hot shot delivery.')'>
-        <link rel='canonical' href='{{ url()->current() }}'>
+        <link rel='canonical' href='{{ request()->is('/') ? url('/') . '/' : url()->current() }}'>
         <link rel='icon' type='image/png' href='/images/fast_forward_short_logo_transparent.png'>
         <title>{{ View::hasSection('title') ? trim(View::getSection('title')) . ' | Fast Forward Express' : 'Fast Forward Express - Reliable Delivery Services in Alberta' }}</title>
         @php
