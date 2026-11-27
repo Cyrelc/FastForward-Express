@@ -1,7 +1,7 @@
 # Laravel 10 → 11 upgrade runbook
 
-Status: **planned, not started.** Prod is on 10.50.2 (PHP 8.4). Target: Laravel 11.57.x.
-**Prerequisite:** [STRIPE_UPGRADE.md](STRIPE_UPGRADE.md) deployed first (Cashier 15, stripe-php 16).
+Status: **done on branch `laravel-11`, not deployed.** Prod is on 10.50.5 (PHP 8.4). Target: Laravel 11.57.2.
+**Prerequisite:** [STRIPE_UPGRADE.md](STRIPE_UPGRADE.md), deployed 2026-11-27 (Cashier 15, stripe-php 16).
 Next steps after this is stable: 11 → 12, then 12 → 13 (separate runbooks).
 
 ## How this was verified (2026-11-25)
@@ -50,9 +50,18 @@ Next steps after this is stable: 11 → 12, then 12 → 13 (separate runbooks).
 | spatie/browsershot | 4 → 5 would happen | Avoid the extra variable: pin to `^4.0` (change 1). spatie/laravel-pdf accepts both. |
 | symfony/* | 6.x → 7.x | Only the explicitly required `symfony/postmark-mailer` and `symfony/http-client` need their constraints raised |
 
-## Changes to make (on a branch: `laravel-11`)
+## Re-check on the branch (2026-11-27)
 
-Branch from master after `stripe-upgrade` has merged.
+- Re-checked the guide items against everything merged since the first check (chargebacks, Stripe, PDF download,
+  passphrases): still no `diffIn*`, no new `change()`, no model `casts()`.
+- Updated only the packages below and what they need (`composer update <names> -W`), not everything. Every version
+  change is listed under "What moved".
+- Full suite: **272 tests pass.** The 2 deprecations come from Laravel's own `config/database.php` on PHP 8.5
+  (`PDO::MYSQL_ATTR_SSL_CA`) and don't occur on prod's PHP 8.4.
+- Booted: `artisan --version` = 11.57.2, 148 routes.
+- PDFs, by hand: invoice print (merged), invoice download (zip), invoice bills and manifest print all render.
+
+## Changes made (branch `laravel-11`)
 
 **1. composer.json**
 
@@ -71,9 +80,33 @@ Branch from master after `stripe-upgrade` has merged.
 +        "laravel/framework": "^11.0",
 +        "nunomaduro/collision": "^8.1",
 +        "spatie/browsershot": "^4.0",
+ require-dev:
+-        "symfony/css-selector": "5.0.*",
+ config:
++        "platform": {"php": "8.4.0"}
 ```
 
-Also **remove `composer.lock` from `.gitignore` and commit it.** Right now prod resolves its own versions (prod is on 10.50.2 while dev's lock is 10.48.4), so what we test is not what we deploy. The repo is public, but the lock only lists package versions, so nothing sensitive leaks.
+- `symfony/css-selector` was pinned to 5.0 since 2016, for the long-removed DomCrawler. Only Laravel's mail CSS
+  inliner (`tijsverkoyen/css-to-inline-styles`) needs it now, so its version follows that package.
+- `platform.php` makes Composer resolve for prod's PHP 8.4 even when run on dev's 8.5. Raise it when prod's PHP moves.
+- `composer.lock` is already committed (since the Stripe upgrade), so prod installs exactly what was tested.
+
+### What moved
+
+Majors: laravel/framework 10.50.5 → 11.57.2, laravel/sanctum 3 → 4, spatie/laravel-permission 5.11 → 6.25,
+nesbot/carbon 2 → 3, laravel/serializable-closure 1 → 2, nunomaduro/collision 7 → 8, nunomaduro/termwind 1 → 2,
+carbonphp/carbon-doctrine-types 2 → 3, and the Symfony components 6 → 7 (console, error-handler, finder,
+http-client, http-foundation, http-kernel, mailer, mime, postmark-mailer, process, routing, uid, var-dumper) or
+7 → 8 (event-dispatcher, string, translation, css-selector). Laravel 11.57 accepts Symfony 8 for those; Symfony 8
+needs PHP 8.4.
+
+Minor: brick/math, filp/whoops (dev), laravel/prompts, league/commonmark, spatie/browsershot 4.0.1 → 4.4.0 (still 4),
+spatie/temporary-directory, tijsverkoyen/css-to-inline-styles.
+
+Added: league/uri, league/uri-interfaces, symfony/clock, symfony/polyfill-php85, symfony/polyfill-time.
+Removed: doctrine/dbal and its doctrine/cache, doctrine/deprecations, doctrine/event-manager, psr/cache.
+
+Unchanged: Stripe, Cashier, the PDF merger, Pusher, query builder, activity log and everything else not listed.
 
 **2. Host-rejection test:** `SecurityFixesTest.php:70` → `->assertStatus(400)`. Update the "404" wording in the `TrustHosts` docblock and in the `handle()` comment.
 
@@ -82,14 +115,14 @@ Also **remove `composer.lock` from `.gitignore` and commit it.** Right now prod 
 ## Verify on dev
 
 ```bash
-composer update -W
-DB_USERNAME=test_user vendor/bin/phpunit         # expect all green after change 5
-php artisan --version                            # 11.x
+composer install --no-scripts && php artisan package:discover && php artisan config:clear
+vendor/bin/phpunit                               # 272 pass; never with a cached config (it would hit the dev DB)
+php artisan --version                            # 11.57.2
 ```
 
 Then by hand:
 - log in and out; trigger the lockout
-- invoice PDF and manifest PDF (Browsershot)
+- invoice PDF and manifest PDF (Browsershot). Done on dev: print, download, bills, manifest
 - one Stripe test payment end to end (`stripe listen`), as a smoke test of the payment stack on the new framework
 - check the queue workers process jobs; check the activity log for errors
 
@@ -101,15 +134,18 @@ php -v                                    # 8.4
 php -m | grep -E '^curl$'
 cd /var/www/FastForward-Express
 git rev-parse HEAD > ~/pre-l11-commit.txt
-tar czf ~/pre-l11-vendor.tgz vendor composer.lock   # fast rollback (no lock in git yet)
+tar czf ~/pre-l11-vendor.tgz vendor                 # fast rollback: the old vendor, no composer run needed
 mysqldump FastForwardExpress | gzip > ~/pre-l11-db.sql.gz
 
 php artisan down
-# Drain the queue so no job is serialized under one framework version and run under another
-php artisan tinker --execute="echo DB::table('jobs')->count();"   # wait for 0
+# Drain the queue so no job is serialized under one framework version and run under another.
+# Workers pause in maintenance mode, so stop them and drain by hand with --force.
 sudo supervisorctl stop 'laravel-queue:*'
+php artisan queue:work --force --stop-when-empty
+php artisan tinker --execute="echo DB::table('jobs')->count();"   # must be 0
 
 git pull
+composer check-platform-reqs --lock                # every line must say success
 composer install --no-dev --optimize-autoloader   # post-install runs `artisan optimize`
 php artisan migrate:status                        # expect nothing pending
 php artisan optimize:clear && php artisan optimize
@@ -121,4 +157,4 @@ php artisan --version                             # Laravel Framework 11.x
 
 Afterwards, watch the activity log and the Discord channel for a day.
 
-**Rollback:** `php artisan down`, `git checkout $(cat ~/pre-l11-commit.txt)`, restore `~/pre-l11-vendor.tgz`, `php artisan optimize:clear && php artisan optimize`, restart the workers, `php artisan up`. No schema changes are involved, so the DB doesn't need restoring.
+**Rollback:** `php artisan down`, `git checkout $(cat ~/pre-l11-commit.txt)`, `rm -rf vendor && tar xzf ~/pre-l11-vendor.tgz`, `php artisan optimize:clear && php artisan optimize`, restart the workers, `php artisan up`. No schema changes are involved, so the DB doesn't need restoring.

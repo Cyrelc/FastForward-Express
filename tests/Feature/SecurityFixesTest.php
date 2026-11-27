@@ -68,7 +68,7 @@ class SecurityFixesTest extends TestCase {
         $this->app['env'] = 'prod';
         config(['app.url' => 'https://fastforwardexpress.ca', 'branding.marketing_url' => '/']);
 
-        $this->get('https://evil.example/password/reset')->assertNotFound();
+        $this->get('https://evil.example/password/reset')->assertStatus(400); // Laravel 11 answers a bad host with 400 (10 used 404)
 
         // Our own domain and its subdomains must still get through
         $this->assertNotEquals(404, $this->get('https://fastforwardexpress.ca/password/reset')->getStatusCode());
