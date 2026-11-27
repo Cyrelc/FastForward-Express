@@ -6,7 +6,7 @@ use Illuminate\Http\Middleware\TrustHosts as Middleware;
 use Illuminate\Http\Request;
 
 /**
- * Rejects requests whose Host header is not one of ours (Laravel answers 404 "Bad hostname").
+ * Rejects requests whose Host header is not one of ours (Laravel answers 400 "Bad hostname"; it was 404 before Laravel 11).
  *
  * Without it, links the app builds from the request - password reset emails above all - point at
  * whatever host the caller sent, so a forged Host header turns a reset email into a token-stealing
@@ -33,7 +33,7 @@ class TrustHosts extends Middleware {
         if($this->shouldSpecifyTrustedHosts()) {
             Request::setTrustedHosts(array_filter($this->hosts()));
             // Symfony only checks the Host when something reads it - often mid-render, surfacing as a 500.
-            // Read it now so a forged Host is rejected up front (Laravel renders that as a 404).
+            // Read it now so a forged Host is rejected up front (Laravel renders that as a 400).
             $request->getHost();
         }
 
