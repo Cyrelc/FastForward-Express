@@ -157,7 +157,8 @@ class InvoiceController extends Controller {
     }
 
     public function print(Request $req, $invoiceIds) {
-        $invoiceIds = array_filter(explode(',', $invoiceIds));
+        // Integers only: preparePdfs keys by ID, and PDFService names its temp files after the keys
+        $invoiceIds = array_values(array_filter(array_map('intval', explode(',', $invoiceIds))));
         if(count($invoiceIds) > 50)
             abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
@@ -193,27 +194,22 @@ class InvoiceController extends Controller {
             ->header('Content-Type', 'application/pdf');
     }
 
-    // public function download(Request $req, $invoiceIds) {
-    //     $invoiceIds = explode(',', $invoiceIds);
-    //     if(count($invoiceIds) > 50)
-    //         abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
+    /**
+     * A zip with one PDF per invoice (Invoice_<id>.pdf), as manifests download. print() merges them into one PDF.
+     */
+    public function download(Request $req, $invoiceIds) {
+        $invoiceIds = array_values(array_filter(array_map('intval', explode(',', $invoiceIds))));
+        if(count($invoiceIds) > 50)
+            abort(413, 'Currently unable to package more than 50 invoices at a time. Please select 50 or fewer and try again. Apologies for any inconvenience');
 
-    //     $files = $this->preparePdfs($invoiceIds, $req);
+        $views = [];
+        foreach($this->preparePdfs($invoiceIds, $req) as $invoiceId => $view)
+            $views['Invoice_' . $invoiceId] = $view;
 
-    //     $zipArchive = new ZipArchive();
-    //     $tempDir = sys_get_temp_dir();
-    //     $tempFile = tempnam($tempDir, 'zip');
-    //     $zipArchive->open($tempFile, ZipArchive::CREATE);
+        $zipPath = (new PDFService())->createZip($views);
 
-    //     foreach($files as $name => $file)
-    //         $zipArchive->addFile($file, $name);
-
-    //     $zipArchive->close();
-
-    //     $this->cleanPdfs($files);
-
-    //     return response()->download($tempFile, 'invoices-' . time() . '.zip')->deleteFileAfterSend(true);
-    // }
+        return response()->download($zipPath, 'invoices-' . time() . '.zip')->deleteFileAfterSend(true);
+    }
 
     public function printPreview(Request $req, $invoiceId) {
         $invoiceRepo = new Repos\InvoiceRepo();
@@ -316,7 +312,7 @@ class InvoiceController extends Controller {
             $showLineItems = isset($req->show_line_items) ? filter_var($req->show_line_items, FILTER_VALIDATE_BOOLEAN) : $account->show_invoice_line_items;
             $showPickupAndDeliveryAddress = isset($req->show_pickup_and_delivery_address) ? filter_var($req->show_pickup_and_delivery_address) : $account->show_pickup_and_delivery_address;
 
-            $files[] = [
+            $files[$invoiceId] = [
                 'body' => view('invoices.invoice_table', [
                     'model' => $model,
                     'amendmentsOnly' => $amendmentsOnly,
