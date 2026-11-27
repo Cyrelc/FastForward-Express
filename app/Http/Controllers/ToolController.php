@@ -5,46 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Services\PaymentIntentProcessor;
 use Illuminate\Http\Request;
-use \Stripe;
 
 class ToolController extends Controller {
     public function getStripeReceipts(Request $req) {
-        // Re-processes every pending Stripe payment and calls the Stripe API once per payment
+        // Re-syncs every Stripe payment still missing its receipt, one Stripe API call per payment
         if($req->user()->cannot('appSettings.edit.*.*'))
             abort(403);
 
-        $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
-        $payments = Payment::whereNotNull('stripe_payment_intent_id')
-        ->where('stripe_object_type', 'payment_intent')
-        ->whereNull('receipt_url')
-        ->whereIn('stripe_status', ['succeeded', 'pending'])
-        ->get();
+        $paymentIntentIds = Payment::whereNotNull('stripe_payment_intent_id')
+            ->where('stripe_object_type', 'payment_intent')
+            ->whereNull('receipt_url')
+            ->whereIn('stripe_status', ['succeeded', 'pending'])
+            ->pluck('stripe_payment_intent_id')
+            ->unique();
 
+        $processor = app(PaymentIntentProcessor::class);
         $successCount = 0;
 
-        foreach($payments as $payment) {
+        foreach($paymentIntentIds as $paymentIntentId) {
             try {
-                $paymentIntent = $stripe->paymentIntents->retrieve($payment->stripe_payment_intent_id);
-
-                $fakeEvent = (object)[
-                    'data' => (object)[
-                        'object' => $paymentIntent
-                    ]
-                ];
-
-                $processor = app(PaymentIntentProcessor::class);
-                try {
-                    $processor->ProcessPaymentIntent($fakeEvent);
-                } catch (\Throwable $e) {
-                    \Log::error("Processing refresh for {$payment->stripe_payment_intent_id} failed: {$e->getMessage()}");
-                    continue;
-                }
+                $processor->sync($paymentIntentId);
                 $successCount++;
-            } catch (\Exception $e) {
-                \Log::error("Error processing payment intent {$payment->stripe_payment_intent_id}: {$e->getMessage()}", [
-                    'exception' => $e
-                ]);
-                continue;
+            } catch (\Throwable $e) {
+                \Log::error("Re-syncing Stripe payment intent {$paymentIntentId} failed: {$e->getMessage()}", ['exception' => $e]);
             }
         }
 
@@ -53,5 +36,4 @@ class ToolController extends Controller {
             'count' => $successCount,
         ]);
     }
-
 }

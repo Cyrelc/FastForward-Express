@@ -133,9 +133,9 @@ export default function BillingTab(props) {
         if(!activeRatesheet)
             return []
         const miscRates = activeRatesheet.misc_rates
-            ? JSON.parse(activeRatesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price, paid: false}})
+            ? JSON.parse(activeRatesheet.misc_rates).map(rate => {return {...rate, type: 'miscellaneousRate', driver_amount: rate.price}})
             : []
-        const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0, paid: false}})
+        const commonRates = commonRateNames.map(name => {return {name: name, price: 0, type: 'commonRate', driver_amount: 0}})
         // Zone-crossing rates are per zone group now (they used to be one flat table on the
         // ratesheet), so a map with several groups offers each group's rates, labelled by group.
         const deliveryTypes = activeRatesheet.delivery_types
@@ -160,7 +160,6 @@ export default function BillingTab(props) {
                         price: cost,
                         type: 'distanceRate',
                         driver_amount: cost,
-                        paid: false
                     })
                 })
             })
@@ -176,7 +175,6 @@ export default function BillingTab(props) {
                 price: deliveryType.cost,
                 type: 'distanceRate',
                 driver_amount: deliveryType.cost,
-                paid: false
             })
         })
 

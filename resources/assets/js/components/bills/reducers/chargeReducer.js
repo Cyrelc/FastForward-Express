@@ -12,7 +12,7 @@ const basicCharge = (chargeType) => {
 }
 
 function canChargeTableBeDeleted(charge) {
-    return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.paid) ? true : false)
+    return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
 }
 
 export function useStableChargeState(chargeState) {

@@ -100,6 +100,9 @@ class PaymentController extends Controller {
         $paymentIntent = $stripe->paymentIntents->create([
             'amount' => $paymentAmount,
             'currency' => config('services.stripe.currency'),
+            // Cards only. API versions since 2023-08-16 otherwise turn on every payment method enabled in the
+            // Dashboard, and the Payment Element would offer them - but payment recording assumes a card.
+            'payment_method_types' => ['card'],
             'description' => 'Payment on FastForward Invoice #' . $invoice->invoice_id,
         ]);
         DB::beginTransaction();
@@ -131,7 +134,7 @@ class PaymentController extends Controller {
             abort(403);
 
         $stripeId = $account->createOrGetStripeCustomer();
-        $setupIntent = $account->createSetupIntent(['customer' => $stripeId]);
+        $setupIntent = $account->createSetupIntent(['customer' => $stripeId, 'payment_method_types' => ['card']]);
 
         return response()->json([
             'success' => true,
@@ -254,7 +257,7 @@ class PaymentController extends Controller {
         if($req->user()->cannot('updatePaymentMethods', $account))
             abort(403);
 
-        $paymentMethods = $account->paymentMethods();
+        $paymentMethods = $account->paymentMethods('card');
         $newDefault = $account->findPaymentMethod($req->payment_method_id);
 
         $account->updateDefaultPaymentMethod($req->payment_method_id);
@@ -275,26 +278,39 @@ class PaymentController extends Controller {
         DB::beginTransaction();
 
         if($payment->isStripeTransaction()) {
-            $stripe = new Stripe\StripeClient(config('services.stripe.secret'));
+            $stripe = app(Stripe\StripeClient::class);
+
+            $refundParams = [
+                'payment_intent' => $payment->stripe_payment_intent_id,
+                // Shown under Metadata on the refund in the Stripe Dashboard. Values are strings of at most 500 characters.
+                'metadata' => [
+                    'reason' => mb_substr((string)$req->reason, 0, 500),
+                    'invoice_id' => (string)$payment->invoice_id,
+                ],
+            ];
+            // Stripe's own `reason` only accepts these values and rejects the whole refund for anything else,
+            // so free text from "Other" travels in the metadata above (and in our record's comment) only
+            if(in_array($req->reason, ['duplicate', 'fraudulent', 'requested_by_customer']))
+                $refundParams['reason'] = $req->reason;
 
             try {
-                $refund = $stripe->refunds->create([
-                    'payment_intent' => $payment->stripe_payment_intent_id,
-                    'reason' => $req->reason,
-                ]);
-
-                $refundPayment = $payment->replicate();
-                $refundPayment['amount'] = -$payment->amount;
-                $refundPayment['comment'] = $request->reason;
-                $refundPayment['stripe_object_type'] = 'refund';
-                $refundPayment['stripe_refund_id'] = $refund->id;
-                $refundPayment['stripe_status'] = 'pending';
-                $refundPayment->save();
-            } catch (\Exception $e) {
+                $refund = $stripe->refunds->create($refundParams);
+            } catch (Stripe\Exception\ApiErrorException $e) {
+                DB::rollBack();
                 return response()->json(['errors' => [
                     'stripe_error' => [$e->getMessage()]
                 ]], 400);
             }
+
+            // The money has moved at Stripe from here on. A failure below must not be reported as "refund failed"
+            // (it was once, for every refund: see the $request typo fixed here), so let it surface as an error.
+            $refundPayment = $payment->replicate();
+            $refundPayment['amount'] = -$payment->amount;
+            $refundPayment['comment'] = $req->reason;
+            $refundPayment['stripe_object_type'] = 'refund';
+            $refundPayment['stripe_refund_id'] = $refund->id;
+            $refundPayment['stripe_status'] = 'pending';
+            $refundPayment->save();
         } else {
             $payment->update(['comment' => $req->reason]);
 
