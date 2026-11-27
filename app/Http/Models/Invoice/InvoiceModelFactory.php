@@ -5,7 +5,6 @@ namespace App\Http\Models\Invoice;
 use App\Http\Repos;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Http\Models\Payment\PaymentModelFactory;
 use App\Http\Models\Permission\PermissionModelFactory;
 use App\Http\Resources\PaymentResource;
 
@@ -66,10 +65,12 @@ class InvoiceModelFactory{
 					$billSubTable->total = $billSubTable->subtotal + $billSubTable->tax;
 				}
 			}
+			// One query for the whole invoice rather than one per bill
+			$lineItemsByBill = $lineItemRepo->GetByInvoiceIdGroupedByBill($model->invoice->invoice_id);
 			foreach($model->tables as $index => $table) {
 				$table->headers = array('Date' => 'time_pickup_scheduled', 'Bill ID' => 'bill_id', 'Waybill Number' => 'bill_number');
 				foreach($table->bills as $key => $bill)
-					$model->tables[$index]->bills[$key]->line_items = $lineItemRepo->GetByBillAndInvoiceId($bill->bill_id, $model->invoice->invoice_id);
+					$model->tables[$index]->bills[$key]->line_items = $lineItemsByBill->get($bill->bill_id, collect());
 				if($subtotalBy != NULL && $subtotalBy->database_field_name == 'charge_account_id') {
 					$customField = $accountRepo->GetById($table->bills[0]->charge_account_id)->custom_field;
 					if($customField)
@@ -90,10 +91,8 @@ class InvoiceModelFactory{
 			if($req->user()->can('viewPayments', $model->parent))
 				$model->payments = PaymentResource::collection(Payment::where('invoice_id', $invoiceId)->get());
 
-			if($req->user()->can('processPayments', $model->parent)) {
-				$paymentModelFactory = new PaymentModelFactory();
-				$model->cards_on_file = $paymentModelFactory->GetAccountStripePaymentMethods($model->parent);
-			}
+			// Saved cards aren't loaded here: the payment modal fetches them itself (GET /payments/{invoiceId}) when it
+			// opens. Loading them on every invoice view cost several Stripe API calls that nothing read.
 		// Otherwise the model belongs to a prepaid, one off invoice
 		} else {
 			$paymentRepo = new Repos\PaymentRepo();

@@ -9,13 +9,20 @@ use App\Models\Employee;
 class ManifestModelFactory{
     public function ListAll($req, $employeeId = null) {
         $chargebackRepo = new Repos\ChargebackRepo;
-        $lineItemRepo = new Repos\LineItemRepo();
         $manifestRepo = new Repos\ManifestRepo();
 
         $manifests = $manifestRepo->ListAll($req, $employeeId);
+
+        // Totals for every listed manifest at once, rather than two queries per manifest
+        $manifestIds = $manifests->pluck('manifest_id')->all();
+        $totals = $manifestRepo->GetListTotals($manifestIds);
+        $chargebackTotals = $chargebackRepo->GetChargebackTotalsByManifestIds($manifestIds);
+
         foreach($manifests as $manifest) {
-            $manifest->driver_gross = $lineItemRepo->GetDriverTotalByManifestId($manifest->manifest_id);
-            $manifest->driver_chargeback_amount = $chargebackRepo->GetChargebackTotalByManifestId($manifest->manifest_id);
+            $total = $totals->get($manifest->manifest_id);
+            $manifest->bill_count = $total ? (int)$total->bill_count : 0;
+            $manifest->driver_gross = $total?->driver_gross;
+            $manifest->driver_chargeback_amount = $chargebackTotals->get($manifest->manifest_id, 0);
             $manifest->driver_income = $manifest->driver_gross - $manifest->driver_chargeback_amount;
         }
 

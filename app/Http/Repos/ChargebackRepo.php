@@ -104,6 +104,17 @@ class ChargebackRepo {
         return $chargebacks->get();
     }
 
+    // manifest_id => total deducted, for many manifests in one query
+    public function GetChargebackTotalsByManifestIds($manifestIds) {
+        if(!$manifestIds)
+            return collect();
+
+        return Chargeback::whereIn('manifest_id', $manifestIds)
+            ->groupBy('manifest_id')
+            ->select('manifest_id', DB::raw('sum(amount) as amount'))
+            ->pluck('amount', 'manifest_id');
+    }
+
     public function GetChargebackTotalByManifestId($manifestId) {
         $amount = Chargeback::where('chargebacks.manifest_id', $manifestId)
             ->sum('amount');

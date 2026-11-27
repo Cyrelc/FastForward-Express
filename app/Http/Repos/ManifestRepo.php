@@ -112,11 +112,7 @@ class ManifestRepo {
                 'manifest_id',
                 'employees.employee_id',
                 DB::raw('concat(first_name, " ", last_name) as employee_name'),
-                DB::raw('(select count(distinct bill_id) from line_items
-                    left join charges on charges.charge_id = line_items.charge_id
-                    where pickup_manifest_id = manifests.manifest_id or
-                    delivery_manifest_id = manifests.manifest_id)
-                as bill_count'),
+                // bill_count comes from GetListTotals - a per-manifest subquery here scanned every line item once per manifest
                 DB::raw('date_format(date_run, "%Y") as year'),
                 'date_run',
                 'manifests.start_date',
@@ -134,6 +130,35 @@ class ManifestRepo {
             ]);
 
         return $filteredManifests->get();
+    }
+
+    /**
+     * Bill count and driver gross for many manifests in one query, keyed by manifest_id - the same numbers as
+     * BillRepo::CountByManifestId and LineItemRepo::GetDriverTotalByManifestId give for one.
+     *
+     * A line item can be on a manifest as the pickup, the delivery, or both. Matching
+     * "pickup_manifest_id = X OR delivery_manifest_id = X" can't use either column's index, so each side is read
+     * separately (UNION ALL keeps a line item that is both, so its two commissions both count) and then grouped.
+     */
+    public function GetListTotals($manifestIds) {
+        $manifestIds = array_values(array_map('intval', $manifestIds));
+        if(!$manifestIds)
+            return collect();
+
+        $placeholders = implode(',', array_fill(0, count($manifestIds), '?'));
+        $side = fn($side) => "select line_items.{$side}_manifest_id as manifest_id, charges.bill_id,
+                round(line_items.driver_amount * bills.{$side}_driver_commission, 2) as driver_amount
+            from line_items
+            join charges on charges.charge_id = line_items.charge_id
+            left join bills on bills.bill_id = charges.bill_id
+            where line_items.{$side}_manifest_id in ($placeholders)";
+
+        return collect(DB::select(
+            "select manifest_id, count(distinct bill_id) as bill_count, sum(driver_amount) as driver_gross
+                from ({$side('pickup')} union all {$side('delivery')}) as manifest_line_items
+                group by manifest_id",
+            array_merge($manifestIds, $manifestIds)
+        ))->keyBy('manifest_id');
     }
 
     public function Regather($manifestId) {

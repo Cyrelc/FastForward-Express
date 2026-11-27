@@ -47,6 +47,15 @@ class LineItemRepo {
         return $lineItems->get();
     }
 
+    // GetByBillAndInvoiceId for every bill on the invoice in one query, keyed by bill_id
+    public function GetByInvoiceIdGroupedByBill($invoiceId) {
+        return LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+            ->where('invoice_id', $invoiceId)
+            ->where('amendment_number', null)
+            ->get()
+            ->groupBy('bill_id');
+    }
+
     public function GetByBillId($billId) {
         $lineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->where('bill_id', $billId)
