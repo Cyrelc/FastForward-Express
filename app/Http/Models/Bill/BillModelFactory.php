@@ -17,13 +17,14 @@ class BillModelFactory{
 		$chargeRepo = new Repos\ChargeRepo();
 
 		$bills = $billRepo->ListAll($req);
-		if(count($bills) > 5000)
+		if(count($bills) > Repos\BillRepo::LIST_LIMIT)
 			abort(413, 'Maximum result limit exceeded. Please limit your search and try again');
+
+		$chargesByBill = $chargeRepo->GetByBillIds($bills->pluck('bill_id')->all());
 
 		$model = [];
 		foreach($bills as $bill) {
-			$charges = $chargeRepo->GetByBillId($bill->bill_id);
-			$bill->charges = $charges ? $charges : null;
+			$bill->charges = $chargesByBill->get($bill->bill_id);
 			$model[] = $bill;
 		}
 

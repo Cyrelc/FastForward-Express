@@ -28,8 +28,10 @@ class Charge extends Model {
         return $this->belongsTo(Bill::class, 'bill_id');
     }
 
+    // charges has no price column, so a price attribute only exists when the query already selected
+    // SUM(line_items.price) - use it rather than running another query for every charge serialized
     public function getPriceAttribute() {
-        return $this->lineItems()->sum('price');
+        return $this->attributes['price'] ?? $this->lineItems()->sum('price');
     }
 
     public function lineItems() {

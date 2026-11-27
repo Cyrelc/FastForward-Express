@@ -36,8 +36,29 @@ class ChargeRepo {
     }
 
     public function GetByBillId($billId) {
-        $charges = Charge::where('bill_id', $billId)
-            ->leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
+        return $this->chargeDetailQuery()->where('bill_id', $billId)->get();
+    }
+
+    /**
+     * Charges for many bills at once, grouped by bill_id, for the bills list - one query per chunk rather than one per bill.
+     * Returns plain rows rather than Charge models: the list only serializes them, and skipping hydration matters at tens of thousands of rows.
+     */
+    public function GetByBillIds($billIds) {
+        $charges = collect();
+        foreach(array_chunk($billIds, 5000) as $chunk)
+            $charges = $charges->concat(
+                $this->chargeDetailQuery()
+                    ->addSelect('charges.bill_id')
+                    ->whereIn('charges.bill_id', $chunk)
+                    ->toBase()
+                    ->get()
+            );
+
+        return $charges->groupBy('bill_id');
+    }
+
+    private function chargeDetailQuery() {
+        $charges = Charge::leftJoin('line_items', 'line_items.charge_id', '=', 'charges.charge_id')
             ->leftJoin('payment_types', 'payment_types.payment_type_id', '=', 'charges.charge_type_id')
             ->leftJoin('accounts', 'accounts.account_id', '=', 'charges.charge_account_id')
             ->leftJoin('employees', 'employees.employee_id', '=', 'charges.charge_employee_id')
@@ -66,7 +87,7 @@ class ChargeRepo {
         if($this->myAccounts)
             $charges->whereIn('charges.charge_account_id', $this->myAccounts);
 
-        return $charges->groupBy('charges.charge_id')->get();
+        return $charges->groupBy('charges.charge_id');
     }
 
     public function GetById($chargeId) {

@@ -17,6 +17,11 @@ use DB;
 use Illuminate\Support\Facades\Auth;
 
 class BillRepo {
+    // Most bills the list page will return in one response. Measured Nov 2026: 38k bills took ~5s and ~290MB of PHP memory,
+    // so expect ~7s and ~400MB at this limit - PHP's memory_limit must allow that
+
+    public const LIST_LIMIT = 50000;
+
     private $myAccounts;
     private $employeeId;
 
@@ -666,8 +671,11 @@ class BillRepo {
             $bills->whereIn('charges.charge_account_id', $this->myAccounts);
         }
         else if($this->employeeId && Auth::user()->cannot('viewAll', Bill::class)) {
-            $bills->where('bills.pickup_driver_id', $this->employeeId)
-                ->orWhere('bills.delivery_driver_id', $this->employeeId);
+            // Grouped so the OR can't escape the filters QueryBuilder appends below
+            $bills->where(function($query) {
+                $query->where('bills.pickup_driver_id', $this->employeeId)
+                    ->orWhere('bills.delivery_driver_id', $this->employeeId);
+            });
         }
 
         $filteredBills = QueryBuilder::for($bills)
@@ -693,7 +701,9 @@ class BillRepo {
                 AllowedFilter::exact('repeat_interval')
             ]);
 
-        return $filteredBills->groupBy('bill_id')->limit(5001)->get();
+        // Ordered so the same filters always return rows in the same order (the table sorts client-side, and ties keep this order).
+        // One past the limit so BuildTable can tell the result was truncated.
+        return $filteredBills->groupBy('bill_id')->orderBy('bills.bill_id')->limit(self::LIST_LIMIT + 1)->get();
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {
