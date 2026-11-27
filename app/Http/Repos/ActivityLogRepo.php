@@ -64,33 +64,52 @@ class ActivityLogRepo {
         return $activity->get();
     }
 
+    /**
+     * Charges and line items log only the fields that changed (logOnlyDirty), so an "updated" entry usually doesn't say
+     * which bill or charge it belongs to - they have to be found by subject_id. Only "created"/"deleted" entries carry
+     * every field, so once a charge or line item is gone, its "deleted" entry is the only way back to it.
+     *
+     * So: collect the subject IDs first (current rows from their tables, deleted ones from their "deleted" entries),
+     * then fetch every entry for those IDs. Every lookup uses the activity_log subject / subject_description indexes;
+     * an earlier version text-searched all charge and line item entries for the parent ID, which scanned the whole
+     * table on every bill load (~5.5s) and never found "updated" entries at all.
+     */
     public function GetBillActivityLog($billId) {
+        $billId = (int)$billId;
+        $user = auth()->user();
         $billRepo = new BillRepo();
         $chargeRepo = new ChargeRepo();
 
         $bill = $billRepo->GetById($billId);
-        $charges = $chargeRepo->GetByBillId($billId);
 
-        // Each subject in a closure of its own. Since Laravel 11, orWhere([[...], [...]]) joins the array's conditions
-        // with OR, so `subject_type = Address OR subject_id = X` returned every address, charge and line item ever
-        // logged - hundreds of thousands of rows, exhausting memory on every bill load.
-        // An ID in properties must end at , or } so that bill 123 doesn't also match bill 1234.
-        $hasId = fn($query, $key, $id) => $query->where(function($id_) use ($key, $id) {
-            $id_->where('properties', 'like', '%"' . $key . '":' . $id . ',%')
-                ->orWhere('properties', 'like', '%"' . $key . '":' . $id . '}%');
-        });
+        // Same scoping as before: GetByBillId limits account users to their own accounts' charges. Deleted charges
+        // get the same rule, using the account recorded in their "deleted" entry.
+        $myAccounts = $user->accountUsers ? (new AccountRepo())->GetMyAccountIds($user, $user->can('bills.view.basic.children')) : null;
+        $chargeIds = $chargeRepo->GetByBillId($billId)->pluck('charge_id')->all();
+
+        $deletedChargeIds = $this->deletedSubjects('App\Models\Charge', 'bill_id', [$billId])
+            ->filter(fn($old) => !$myAccounts || in_array($old->charge_account_id ?? null, $myAccounts))
+            ->keys()->all();
+        $allChargeIds = array_merge($chargeIds, $deletedChargeIds);
+
+        $lineItemIds = $allChargeIds ? DB::table('line_items')->whereIn('charge_id', $allChargeIds)->pluck('line_item_id')->all() : [];
+        $deletedLineItemIds = $this->deletedSubjects('App\Models\LineItem', 'charge_id', $allChargeIds)->keys()->all();
+
+        $subjects = [
+            'App\Models\Bill' => [$billId],
+            'App\Models\Address' => array_filter([$bill->pickup_address_id, $bill->delivery_address_id]),
+            'App\Models\Charge' => $allChargeIds,
+            'App\Models\LineItem' => array_merge($lineItemIds, $deletedLineItemIds),
+        ];
 
         $activity = ActivityLog::leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->where('log_name', '!=', 'system_debug')
-            // Nested so the log_name filter applies to every subject, not only the bill's own entries
-            ->where(function($subjects) use ($billId, $bill, $charges, $hasId) {
-                $subjects->where(fn($q) => $q->where('subject_type', 'App\Models\Bill')->where('subject_id', $billId))
-                    ->orWhere(fn($q) => $q->where('subject_type', 'App\Models\Address')
-                        ->whereIn('subject_id', array_filter([$bill->pickup_address_id, $bill->delivery_address_id])))
-                    ->orWhere(fn($q) => $hasId($q->where('subject_type', 'App\Models\Charge'), 'bill_id', (int)$billId));
-
-                foreach($charges as $charge)
-                    $subjects->orWhere(fn($q) => $hasId($q->where('subject_type', 'App\Models\LineItem'), 'charge_id', (int)$charge->charge_id));
+            // Each subject in a closure of its own, nested so the log_name filter applies to all of them. Since
+            // Laravel 11, orWhere([[...], [...]]) joins the array's conditions with OR, which once returned every
+            // address, charge and line item ever logged.
+            ->where(function($query) use ($subjects) {
+                foreach(array_filter($subjects) as $type => $ids)
+                    $query->orWhere(fn($q) => $q->where('subject_type', $type)->whereIn('subject_id', array_unique($ids)));
             });
 
         $activity->select(
@@ -103,6 +122,35 @@ class ActivityLogRepo {
         )->orderBy('activity_log.updated_at', 'desc');
 
         return $activity->get();
+    }
+
+    /**
+     * Deleted rows of $subjectType whose parent ($parentKey) is one of $parentIds, found from their "deleted" log
+     * entries, which hold every field - under "old" in current entries, "attributes" in ones logged by older versions
+     * of the package. Returns subject_id => those values.
+     *
+     * The LIKE narrows the search in SQL (the subject_description index keeps it to "deleted" entries only); an ID
+     * must end at , or } so that 123 doesn't also match 1234. The decoded value is then checked exactly.
+     */
+    private function deletedSubjects($subjectType, $parentKey, $parentIds) {
+        $parentIds = array_map('intval', $parentIds);
+        if(!$parentIds)
+            return collect();
+
+        return DB::table('activity_log')
+            ->where('subject_type', $subjectType)
+            ->where('description', 'deleted')
+            ->where(function($query) use ($parentKey, $parentIds) {
+                foreach($parentIds as $id)
+                    $query->orWhere('properties', 'like', '%"' . $parentKey . '":' . $id . ',%')
+                        ->orWhere('properties', 'like', '%"' . $parentKey . '":' . $id . '}%');
+            })
+            ->get(['subject_id', 'properties'])
+            ->mapWithKeys(function($log) {
+                $properties = json_decode($log->properties);
+                return [$log->subject_id => $properties->old ?? $properties->attributes ?? null];
+            })
+            ->filter(fn($old) => $old && in_array((int)($old->$parentKey ?? 0), $parentIds, true));
     }
 
     public function GetEmployeeActivityLog($employeeId) {
