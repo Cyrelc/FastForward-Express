@@ -30,7 +30,7 @@ class InvoicePolicy
      * @return mixed
      */
     public function view(User $user, Invoice $invoice) {
-        if($user->can('invoices.view.*', 'invoices.edit.*'))
+        if($user->hasAnyPermission('invoices.view.*', 'invoices.edit.*'))
             return true;
         else if($user->accountUsers && $user->hasAnyPermission('invoices.view.my', 'invoices.view.children') && $invoice->finalized) {
             $accountRepo = new Repos\AccountRepo();

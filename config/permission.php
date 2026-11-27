@@ -106,6 +106,12 @@ return [
 
     'enable_wildcard_permission' => true,
 
+    /*
+     * Keeps 5.x wildcard matching (a held *.* also satisfies shorter checks) - see the class for why.
+     */
+
+    'wildcard_permission' => App\Permissions\WildcardPermission::class,
+
     'cache' => [
 
         /*
