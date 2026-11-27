@@ -22,8 +22,8 @@ request_password
 # Pull the latest changes from the master branch
 git pull origin master
 
-# Install/update PHP dependencies
-composer update
+# Install PHP dependencies exactly as locked in composer.lock (update would re-resolve versions on the server)
+composer install --no-dev --optimize-autoloader
 
 # Install/update Node.js dependencies
 npm install

@@ -10,8 +10,6 @@
         "spatie/laravel-activitylog": "^4.0",
         "laravel/ui": "^4.0",
         "pusher/pusher-php-server": "^7.2",
-        "tecnickcom/tcpdf": "^6.4",
-        "aws/aws-sdk-php": "^3.198",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.7",
         "stripe/stripe-php": "^16.2",
@@ -37,7 +35,6 @@
     "require-dev": {
         "mockery/mockery": "^1.4.4",
         "symfony/css-selector": "5.0.*",
-        "symfony/dom-crawler": "5.0.*",
         "filp/whoops": "~2.0",
         "phpunit/phpunit": "^10.1"
     },
