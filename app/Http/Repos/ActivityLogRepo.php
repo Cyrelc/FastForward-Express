@@ -38,9 +38,12 @@ class ActivityLogRepo {
         $phoneNumberIds = PhoneNumber::where('contact_id', $contactId)->pluck('phone_number_id');
         $emailAddressIds = EmailAddress::where('contact_id', $contactId)->pluck('email_address_id');
 
+        // Closures, not orWhere([[...], [...]]): since Laravel 11 an array passed to orWhere joins its own conditions
+        // with OR, so `subject_type = User OR subject_id = X` matched every user's entries
         $activity = ActivityLog::where([['subject_type', 'App\Models\Contact'], ['subject_id', $contactId]])
-            ->orWhere([['subject_type', 'App\Models\Contact'], ['subject_id', $contactId]])
-            ->orWhere([['subject_type', 'App\Models\User'], ['subject_id', $userId[0]]])
+            ->orWhere(function($user) use ($userId) {
+                $user->where('subject_type', 'App\Models\User')->where('subject_id', $userId[0]);
+            })
             ->orWhere(function($phones) use ($phoneNumberIds) {
                 $phones->where('subject_type', 'App\Models\PhoneNumber');
                 $phones->whereIn('subject_id', $phoneNumberIds->toArray());
@@ -68,17 +71,27 @@ class ActivityLogRepo {
         $bill = $billRepo->GetById($billId);
         $charges = $chargeRepo->GetByBillId($billId);
 
+        // Each subject in a closure of its own. Since Laravel 11, orWhere([[...], [...]]) joins the array's conditions
+        // with OR, so `subject_type = Address OR subject_id = X` returned every address, charge and line item ever
+        // logged - hundreds of thousands of rows, exhausting memory on every bill load.
+        // An ID in properties must end at , or } so that bill 123 doesn't also match bill 1234.
+        $hasId = fn($query, $key, $id) => $query->where(function($id_) use ($key, $id) {
+            $id_->where('properties', 'like', '%"' . $key . '":' . $id . ',%')
+                ->orWhere('properties', 'like', '%"' . $key . '":' . $id . '}%');
+        });
+
         $activity = ActivityLog::leftJoin('users', 'users.id', '=', 'activity_log.causer_id')
             ->where('log_name', '!=', 'system_debug')
-            ->where([['subject_type', 'App\Models\Bill'], ['subject_id', $billId]])
-            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->pickup_address_id]])
-            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->delivery_address_id]])
-            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->delivery_address_id]])
-            ->orWhere([['subject_type', 'App\Models\Address'], ['subject_id', $bill->pickup_address_id]])
-            ->orWhere([['subject_type', '=', 'App\Models\Charge'], ['properties', 'like', '%"bill_id":' . $bill->bill_id . '%']]);
+            // Nested so the log_name filter applies to every subject, not only the bill's own entries
+            ->where(function($subjects) use ($billId, $bill, $charges, $hasId) {
+                $subjects->where(fn($q) => $q->where('subject_type', 'App\Models\Bill')->where('subject_id', $billId))
+                    ->orWhere(fn($q) => $q->where('subject_type', 'App\Models\Address')
+                        ->whereIn('subject_id', array_filter([$bill->pickup_address_id, $bill->delivery_address_id])))
+                    ->orWhere(fn($q) => $hasId($q->where('subject_type', 'App\Models\Charge'), 'bill_id', (int)$billId));
 
-        foreach($charges as $charge)
-            $activity->orWhere([['subject_type', 'App\Models\LineItem'], ['properties', 'like', '%"charge_id":' . $charge->charge_id . '%']]);
+                foreach($charges as $charge)
+                    $subjects->orWhere(fn($q) => $hasId($q->where('subject_type', 'App\Models\LineItem'), 'charge_id', (int)$charge->charge_id));
+            });
 
         $activity->select(
             'activity_log.updated_at',
