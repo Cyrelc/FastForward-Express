@@ -31,11 +31,8 @@ class ManifestController extends Controller {
         if($req->user()->cannot('delete', $manifest))
             abort(403);
 
-        DB::beginTransaction();
-
-        $manifestRepo->delete($manifestId);
-
-        DB::commit();
+        // Rolls back on any failure, including a refusal to forgive untraceable chargebacks
+        DB::transaction(fn() => $manifestRepo->delete($manifestId));
 
         return response()->json([
             'success' => true

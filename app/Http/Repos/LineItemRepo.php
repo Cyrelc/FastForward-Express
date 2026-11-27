@@ -20,8 +20,9 @@ class LineItemRepo {
 
     public function Delete($lineItemId) {
         $lineItem = LineItem::find($lineItemId);
-        if($lineItem->pickup_manifest_id || $lineItem->delivery_manifest_id || $lineItem->invoice_id) {
-            abort(403, 'Unable to delete line item after it has been invoiced or manifested');
+        // A chargeback_id means the charge has been (or is being) deducted from an employee's pay
+        if($lineItem->pickup_manifest_id || $lineItem->delivery_manifest_id || $lineItem->invoice_id || $lineItem->chargeback_id) {
+            abort(403, 'Unable to delete line item after it has been invoiced, manifested or charged back');
         }
 
         $lineItem->delete();
@@ -58,20 +59,36 @@ class LineItemRepo {
         $lineItems = LineItem::where('charge_id', $chargeId)
             ->leftJoin('invoices', 'invoices.invoice_id', 'line_items.invoice_id')
             ->leftJoin('selections', 'selections.value', 'line_items.type')
+            ->leftJoin('chargebacks', 'chargebacks.chargeback_id', 'line_items.chargeback_id')
             ->select(
                 'amendment_number',
-                'charge_id',
-                'delivery_driver_id',
-                'delivery_manifest_id',
-                'driver_amount',
+                'line_items.charge_id',
+                // Employee charges settle through a chargeback rather than an invoice. The chargeback the line item
+                // links to is the schedule; each deduction is a copy carrying the manifest it was taken on, linked
+                // back by source_chargeback_id. Older copies have no such link, so they are matched by bill and
+                // employee instead (a bill can be charged back to several employees, each for their own part).
+                'line_items.chargeback_id',
+                'chargebacks.count_remaining as chargeback_count_remaining',
+                'chargebacks.continuous as chargeback_continuous',
+                DB::raw('(select group_concat(distinct deductions.manifest_id order by deductions.manifest_id)
+                    from chargebacks as deductions
+                    where deductions.manifest_id is not null
+                    and (deductions.source_chargeback_id = line_items.chargeback_id
+                        or (deductions.source_chargeback_id is null
+                            and deductions.employee_id = chargebacks.employee_id
+                            and deductions.bill_id = (select charges.bill_id from charges where charges.charge_id = line_items.charge_id)))
+                ) as chargeback_manifest_ids'),
+                'line_items.delivery_driver_id',
+                'line_items.delivery_manifest_id',
+                'line_items.driver_amount',
                 'finalized as invoice_is_finalized',
                 'invoices.invoice_id',
                 'line_item_id',
                 'line_items.name',
                 'line_items.type',
-                'pickup_driver_id',
-                'pickup_manifest_id',
-                'price',
+                'line_items.pickup_driver_id',
+                'line_items.pickup_manifest_id',
+                'line_items.price',
                 'selections.name as friendly_type_name'
             );
 

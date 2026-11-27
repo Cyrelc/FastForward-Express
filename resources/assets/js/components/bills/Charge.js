@@ -11,14 +11,15 @@ import {useAPI} from '../../contexts/APIContext'
 
 function canLineItemBeDeleted(row) {
     const rowData = row.getData()
-    if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id)
+    if(!rowData.invoice_id && !rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.chargeback_id)
         return true
     return false
 }
 
 function canLineItemBeEdited(row) {
     const rowData = row.getData()
-    if(!rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.invoice_is_finalized)
+    // A charged back line item has been (or is being) deducted from an employee's pay at its current price
+    if(!rowData.pickup_manifest_id && !rowData.delivery_manifest_id && !rowData.invoice_is_finalized && !rowData.chargeback_id)
         return true
     return false
 }
@@ -44,7 +45,7 @@ function deleteLineItem(cell) {
     const row = cell.getRow()
     const rowData = row.getData()
     if(!canLineItemBeDeleted(row)) {
-        console.log(`Unable to delete line item\t${rowData.invoice_id}\t${rowData.pickup_manifest_id}\t${rowData.delivery_manifest_id}`)
+        console.log(`Unable to delete line item\t${rowData.invoice_id}\t${rowData.pickup_manifest_id}\t${rowData.delivery_manifest_id}\t${rowData.chargeback_id}`)
         return
     }
     if(rowData.line_item_id != null) {
@@ -54,15 +55,33 @@ function deleteLineItem(cell) {
         row.delete()
 }
 
+// The group "key" names the field the header reports on; every row in a charge shares the one group
 const groupBy = (data, charge) => {
     const value = charge.chargeType.name
     switch(value) {
         case 'Employee':
+            return 'chargeback_id'
         case 'Accounts Payable':
-            return 'manifest_id'
+            return 'accounts_payable'
         default:
             return 'invoice_id'
     }
+}
+
+/**
+ * Employee charges settle by chargeback: the line item links to the chargeback schedule, and each deduction is
+ * recorded against a manifest (chargeback_manifest_ids, from the backend).
+ */
+function chargebackStatus(row) {
+    if(!row.chargeback_id)
+        return 'Not Yet Charged Back'
+    if(row.chargeback_continuous || row.chargeback_count_remaining > 0)
+        return `Chargeback #${row.chargeback_id} - Pending Deduction`
+    if(row.chargeback_manifest_ids) {
+        const manifestIds = String(row.chargeback_manifest_ids).split(',')
+        return `Charged Back on Manifest${manifestIds.length > 1 ? 's' : ''} ${manifestIds.map(id => `#${parseInt(id)}`).join(', ')}`
+    }
+    return `Chargeback #${row.chargeback_id} - Deducted`
 }
 
 function groupHeaderFormatter(key, count, data, group) {
@@ -70,8 +89,11 @@ function groupHeaderFormatter(key, count, data, group) {
     const value = data[0][key]
     if(key === 'invoice_id')
         return `${value ? `Invoice #${value}` : 'Not Yet Invoiced'}${styledCount}`
-    else if(key === 'manifest_id')
-        return `${value ? `Manifest #${value}` : 'Not Yet Manifested'}${styledCount}`
+    else if(key === 'chargeback_id')
+        return `${chargebackStatus(data[0])}${styledCount}`
+    else if(key === 'accounts_payable')
+        // Reported by date range on the Accounts Payable page; there is no settled state to show per bill
+        return `Accounts Payable${styledCount}`
     return false
 }
 
@@ -197,7 +219,7 @@ export default function Charge(props) {
     function canChargeTableBeDeleted(charge) {
         if(!charge || !!props.readOnly)
             return false
-        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id) ? true : false)
+        return !charge.lineItems.some(lineItem => (lineItem.invoice_id || lineItem.pickup_manifest_id || lineItem.delivery_manifest_id || lineItem.chargeback_id) ? true : false)
     }
 
     const chargeTableColumns = chargeType => {
@@ -261,7 +283,7 @@ export default function Charge(props) {
 
     const deleteChargeTable = charge => {
         if(!canChargeTableBeDeleted(charge)) {
-            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced or manifested'
+            const errorMessage = 'ERROR - charge table cannot be deleted - at least one item has been invoiced, manifested or charged back'
             toast.error(errorMessage)
             console.log(errorMessage)
             return

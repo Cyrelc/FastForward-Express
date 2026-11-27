@@ -27,11 +27,24 @@ class ManifestRepo {
         return $manifests;
     }
 
+    /**
+     * Undoes a manifest: frees its line items to be manifested again, and hands each chargeback deduction it took
+     * back to the chargeback it came from, so the next manifest takes it again. Run inside a transaction.
+     */
     public function delete($manifestId) {
         $pickupLineItems = LineItem::where('pickup_manifest_id', $manifestId)->get();
         $deliveryLineItems = LineItem::where('delivery_manifest_id', $manifestId)->get();
-        $chargebacks = Chargeback::where('manifest_id', $manifestId)->get();
+        $deductions = Chargeback::where('manifest_id', $manifestId)->get();
         $manifest = Manifest::where('manifest_id', $manifestId);
+
+        // Deductions taken before source_chargeback_id existed can't be traced to their chargeback, so deleting
+        // the manifest would forgive them for good. Refuse rather than lose them quietly.
+        $untraceable = $deductions->whereNull('source_chargeback_id');
+        // Only a few manifests from mid-2023 and earlier, which the backfill migration couldn't match; fix by hand.
+        if($untraceable->isNotEmpty())
+            abort(409, 'Manifest ' . $manifestId . ' can\'t be deleted: chargeback deduction(s) #'
+                . $untraceable->pluck('chargeback_id')->join(', #')
+                . ' have no source chargeback recorded (source_chargeback_id), so deleting it would forgive them.');
 
         foreach($pickupLineItems as $lineItem) {
             $lineItem->pickup_manifest_id = null;
@@ -43,14 +56,16 @@ class ManifestRepo {
 
             $lineItem->save();
         }
-        foreach($chargebacks as $chargeback) {
-            if($chargeback->continuous == 0) {
-                $temp = Chargeback::where('chargeback_id', $chargeback->chargeback_id)->first();
-                $temp->count_remaining++;
-                $temp->save();
+        foreach($deductions as $deduction) {
+            // Continuous chargebacks have nothing to hand back. A source that has since been deleted has nothing
+            // to receive it. Bill chargebacks stay linked to their line items, so they are deducted again rather
+            // than swept up a second time.
+            $source = Chargeback::lockForUpdate()->find($deduction->source_chargeback_id);
+            if($source && !$source->continuous) {
+                $source->count_remaining++;
+                $source->save();
             }
-            $chargebackLineItems = LineItem::where('chargeback_id', $chargeback->chargeback_id)->update(['chargeback_id' => null]);
-            $chargeback->delete();
+            $deduction->delete();
         }
         $manifest->delete();
         return;
@@ -156,7 +171,10 @@ class ManifestRepo {
             ->where('percentage_complete', 100)
             ->update(['delivery_manifest_id' => $manifestId, 'line_items.delivery_driver_id' => $driverId]);
 
-        $chargebackBills = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
+        // Employee charges not yet charged back: one chargeback per bill, linked to exactly the line items it
+        // covers. (Grouping in SQL linked only one charge's line items when a bill had several, so the rest were
+        // charged back again on the next manifest.)
+        $unchargedLineItems = LineItem::leftJoin('charges', 'charges.charge_id', '=', 'line_items.charge_id')
             ->leftJoin('bills', 'bills.bill_id', '=', 'charges.bill_id')
             ->whereBetween(DB::raw('date(time_pickup_scheduled)'), [$startDate, $endDate])
             ->where('charge_employee_id', $driverId)
@@ -165,30 +183,29 @@ class ManifestRepo {
             ->where('percentage_complete', 100)
             ->where('line_items.chargeback_id', null)
             ->select(
-                DB::raw('sum(price) as price'),
+                'line_items.line_item_id',
+                'line_items.price',
                 'charges.bill_id as bill_id',
-                'charges.charge_id as charge_id',
                 DB::raw('date(time_pickup_scheduled) as date_pickup_scheduled')
-            )->groupBy('charges.bill_id')
-            ->get();
+            )->get();
 
-        foreach($chargebackBills as $chargeback) {
+        foreach($unchargedLineItems->groupBy('bill_id') as $billId => $lineItems) {
             $billChargeback = [
-                'bill_id' => $chargeback->bill_id,
+                'bill_id' => $billId,
                 'employee_id' => $driverId,
                 'manifest_id' => null,
-                'amount' => $chargeback->price,
+                'amount' => round($lineItems->sum('price'), 2),
                 'gl_code' => null,
-                'name' => 'Chargeback for bill ' . $chargeback->bill_id,
+                'name' => 'Chargeback for bill ' . $billId,
                 'description' => '',
                 'continuous' => false,
                 'count_remaining' => 1,
-                'start_date' => $chargeback->date_pickup_scheduled
+                'start_date' => $lineItems->first()->date_pickup_scheduled
             ];
 
             $newChargeback = $chargebackRepo->CreateBillChargeback($billChargeback);
 
-            $chargebackLineItems = LineItem::where('charge_id', $chargeback->charge_id)
+            LineItem::whereIn('line_item_id', $lineItems->pluck('line_item_id'))
                 ->update(['chargeback_id' => $newChargeback->chargeback_id]);
         }
     }
