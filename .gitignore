@@ -9,7 +9,6 @@ Homestead.yaml
 Homestead.json
 .env
 /.idea
-package-lock.json
 resources/assets/passwordSeed.txt
 /storage/bills
 /storage/invoices
