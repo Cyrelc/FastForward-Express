@@ -248,6 +248,19 @@ export default function Table(props) {
         history.push({search: defaultQuery, state: tableNavigationState})
     }
 
+    // Show or hide every group (and nested subgroup), redrawing once at the end rather than once per group
+    const setAllGroupsOpen = open => {
+        if(!table)
+            return
+        const toggleGroups = groups => groups.forEach(group => {
+            open ? group.show() : group.hide()
+            toggleGroups(group.getSubGroups())
+        })
+        table.blockRedraw()
+        toggleGroups(table.getGroups())
+        table.restoreRedraw()
+    }
+
     const handleActiveFiltersChange = activeFilters => {
         setFilters(current => current.map(filter => {
             const isActive = (activeFilters ?? []).some(activeFilter => activeFilter.db_field == filter.db_field)
@@ -412,6 +425,16 @@ export default function Table(props) {
                                                 onClick={table?.print}
                                             ><h6><i className='fas fa-print' style={{paddingRight: '5px'}}></i>Print Table</h6>
                                             </Dropdown.Item>
+                                            {groupBy?.value &&
+                                                <Fragment>
+                                                    <Dropdown.Item onClick={() => setAllGroupsOpen(true)}>
+                                                        <h6><i className='fas fa-expand-alt' style={{paddingRight: '5px'}}></i>Expand All Groups</h6>
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => setAllGroupsOpen(false)}>
+                                                        <h6><i className='fas fa-compress-alt' style={{paddingRight: '5px'}}></i>Collapse All Groups</h6>
+                                                    </Dropdown.Item>
+                                                </Fragment>
+                                            }
                                             {props.withSelected &&
                                                 <Dropdown.Item>
                                                     <h6><i className='fas fa-caret-left'></i> With Selected</h6>
