@@ -8,6 +8,7 @@ use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
 use App\Http\Filters\BillFilters\Invoiced;
+use App\Http\Filters\BillFilters\ParentAccount;
 use App\Http\Filters\IsNull;
 
 use App\Models\Account;
@@ -690,7 +691,7 @@ class BillRepo {
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
                 AllowedFilter::custom('is_invoiced', new Invoiced),
                 AllowedFilter::exact('is_template'),
-                AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
+                AllowedFilter::custom('parent_account_id', new ParentAccount),
                 AllowedFilter::exact('skip_invoicing'),
                 AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
                 AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
@@ -701,9 +702,9 @@ class BillRepo {
                 AllowedFilter::exact('repeat_interval')
             ]);
 
-        // Ordered so the same filters always return rows in the same order (the table sorts client-side, and ties keep this order).
+        // Newest first, so a result over the limit keeps the most recent bills (the table sorts client-side, and ties keep this order).
         // One past the limit so BuildTable can tell the result was truncated.
-        return $filteredBills->groupBy('bill_id')->orderBy('bills.bill_id')->limit(self::LIST_LIMIT + 1)->get();
+        return $filteredBills->groupBy('bill_id')->orderBy('bills.bill_id', 'desc')->limit(self::LIST_LIMIT + 1)->get();
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {

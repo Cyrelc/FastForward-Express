@@ -8,14 +8,14 @@ import SelectFilter from '../tableFilters/SelectFilter'
 import StringFilter from '../tableFilters/StringFilter'
 
 export default function TableFilters(props) {
+    // Use the functional form so several filters updating in the same render can't overwrite each other with a stale list
     function handleFilterValueChange(updatedFilter) {
         const {db_field, value} = updatedFilter
-        const filters = props.filters.map(filter => {
+        props.setFilters(current => current.map(filter => {
             if(filter.db_field === db_field)
                 return {...filter, value: value}
             return filter
-        })
-        props.setFilters(filters)
+        }))
     }
 
     return (

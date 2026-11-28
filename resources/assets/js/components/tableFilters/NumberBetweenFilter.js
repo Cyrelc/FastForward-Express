@@ -1,24 +1,14 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {Col, InputGroup, FormControl} from 'react-bootstrap'
 
+// Value format (parsed by App\Http\Filters\NumberBetween): "lower,upper", where either side may be empty
 export default function NumberBetween(props) {
-    const [lowerBound, setLowerBound] = useState('')
-    const [upperBound, setUpperBound] = useState('')
-    const [filter, setFilter] = useState('')
+    const [lowerBound = '', upperBound = ''] = props.filter.value ? props.filter.value.split(',') : []
 
-    useEffect(() => {
-        const bounds = props.filter.value?.split(',') ?? []
-        setLowerBound(bounds[0] || props.filter.defaultLowerBound || '')
-        setUpperBound(bounds[1] || props.filter.defaultUpperBound || '')
-    }, [props.filter.value])
-
-    useEffect(() => {
-        const value = (lowerBound || upperBound) ? `${lowerBound},${upperBound}` : ''
-        if(value != filter) {
-            setFilter(value)
-            props.handleFilterValueChange({...props.filter, value: value})
-        }
-    }, [lowerBound, upperBound])
+    const setBounds = (lower, upper) => {
+        const value = (lower || upper) ? `${lower},${upper}` : ''
+        props.handleFilterValueChange({...props.filter, value})
+    }
 
     return(
         <Col md={6}>
@@ -29,10 +19,10 @@ export default function NumberBetween(props) {
                     step={props.filter.step}
                     value={lowerBound}
                     name='lowerBound'
-                    onChange={event => setLowerBound(event.target.value)}
+                    onChange={event => setBounds(event.target.value, upperBound)}
                     placeholder='More than'
-                    min={props.filter.min ? props.filter.min : null}
-                    max={props.filter.max ? props.filter.max : null}
+                    min={props.filter.min ?? null}
+                    max={props.filter.max ?? null}
                 />
                 <InputGroup.Text> and </InputGroup.Text>
                 <FormControl
@@ -40,14 +30,12 @@ export default function NumberBetween(props) {
                     step={props.filter.step}
                     value={upperBound}
                     name='upperBound'
-                    onChange={event => setUpperBound(event.target.value)}
+                    onChange={event => setBounds(lowerBound, event.target.value)}
                     placeholder='Less than'
-                    min={props.filter.min ? props.filter.min : null}
-                    max={props.filter.max ? props.filter.max : null}
+                    min={props.filter.min ?? null}
+                    max={props.filter.max ?? null}
                 />
             </InputGroup>
         </Col>
     )
 }
-
-

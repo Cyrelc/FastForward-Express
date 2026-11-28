@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
-import {Button, ButtonGroup, Card, Col, Container, FormControl, InputGroup, Row, Modal} from 'react-bootstrap'
+import {Alert, Button, ButtonGroup, Card, Col, Container, FormControl, InputGroup, Row, Modal} from 'react-bootstrap'
 import Select from 'react-select'
 import {useHistory, useLocation} from 'react-router-dom'
 import queryString from 'query-string'
@@ -8,15 +8,66 @@ import Dropdown from 'react-multilevel-dropdown'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem, removeUserStorageItem, setUserStorageItem} from '../../utils/userStorage'
 import TableFilters from './TableFilters'
 
-const localFilterQueryGet = (pageTitle) => {
-    const value = localStorage.getItem(`${pageTitle}.queryString`)
-    return value ?? null
+/**
+ * Everything the table remembers is stored per logged in user (see utils/userStorage), under these keys.
+ * sortedList is also read by the record pages (Bill, Invoice, ...) for their previous/next buttons.
+ */
+const storageKeys = tableName => ({
+    columnVisibility: `${tableName}.columnVisibility`,
+    groupBy: `${tableName}.groupBy`,
+    queryString: `${tableName}.queryString`,
+    sort: `${tableName}.sort`,
+    sortedList: `${tableName}.sortedList`,
+})
+
+/**
+ * The URL is the single source of truth for which filters are applied. Navigations made by the table itself (apply, clear,
+ * load a saved query) carry this history state marker, so an empty query string from them means "no filters" rather than
+ * "fresh visit, restore the last used (or default) query"
+ */
+const tableNavigationState = {fromTableFilters: true}
+
+const filterKey = filter => `filter[${filter.db_field}]`
+
+// Only the filter params, in a stable (sorted) order, so draft and applied queries can be compared
+const normalizeFilterQuery = query => {
+    const parsed = queryString.parse(query ?? '')
+    const filterParams = {}
+    Object.keys(parsed).forEach(key => {
+        if(key.startsWith('filter['))
+            filterParams[key] = Array.isArray(parsed[key]) ? parsed[key].join(',') : parsed[key]
+    })
+    return queryString.stringify(filterParams)
 }
 
-const localFilterQuerySet = (pageTitle, filterQuery) => {
-    localStorage.setItem(`${pageTitle}.queryString`, filterQuery)
+const filtersFromQuery = (filterDefinitions, query) => {
+    const parsed = queryString.parse(query ?? '')
+    return filterDefinitions.map(filter => {
+        const value = parsed[filterKey(filter)]
+        return {
+            ...filter,
+            active: value !== undefined,
+            value: Array.isArray(value) ? value.join(',') : (value ?? ''),
+        }
+    })
+}
+
+// The value a filter starts with when the user adds it, so what the filter shows is what gets applied
+const defaultFilterValue = filter => {
+    switch(filter.type) {
+        case 'BooleanFilter':
+            return String(filter.default ?? false)
+        case 'NumberBetweenFilter':
+            if(filter.defaultLowerBound == undefined && filter.defaultUpperBound == undefined)
+                return ''
+            return `${filter.defaultLowerBound ?? ''},${filter.defaultUpperBound ?? ''}`
+        default:
+            return ''
+    }
 }
 
 export default function Table(props) {
@@ -24,65 +75,97 @@ export default function Table(props) {
     const history = useHistory()
     const location = useLocation()
     const tableRef = useRef(null)
+    const {authenticatedUser} = useUser()
+
+    const userId = authenticatedUser.user_id
+    const keys = storageKeys(props.tableName)
+    const defaultGroupBy = props.groupBy || null
+
+    // Group by options can hold functions, so the choice is stored by its label and looked up again on load
+    const getStoredGroupBy = () => {
+        const label = getUserStorageItem(userId, keys.groupBy)
+        if(label === null)
+            return defaultGroupBy
+        if(defaultGroupBy?.label === label)
+            return defaultGroupBy
+        return props.groupByOptions.find(option => option.label === label) ?? defaultGroupBy
+    }
+
+    // Only restore a stored sort for columns that still exist
+    const getStoredSort = () => {
+        try {
+            const stored = JSON.parse(getUserStorageItem(userId, keys.sort))
+            const fields = props.columns.map(column => column.field)
+            const sort = Array.isArray(stored) ? stored.filter(sorter => fields.includes(sorter.column)) : []
+            return sort.length ? sort : props.initialSort
+        } catch(error) {
+            return props.initialSort
+        }
+    }
 
     const [columns, setColumns] = useState([])
     const [filters, setFilters] = useState([])
-    const [groupBy, setGroupBy] = useState(props.groupBy ?? null)
+    const [groupBy, setGroupBy] = useState(getStoredGroupBy)
     const [isLoading, setIsLoading] = useState(true)
     const [queries, setQueries] = useState([])
     const [queryName, setQueryName] = useState('')
+    // Set to the server's row limit when the result was cut off at it (see BillModelFactory::BuildTable), otherwise null
+    const [resultLimit, setResultLimit] = useState(null)
     const [table, setTable] = useState(null)
     const [tableData, setTableData] = useState([])
     const [tableBuilt, setTableBuilt] = useState(false)
 
-    // Initial setup, set document title, get initial searchQuery
+    // Whenever the applied query (the URL) changes: restore a saved/default query on a fresh visit, otherwise sync the
+    // filter inputs to the URL and fetch the matching data
     useEffect(() => {
-        setIsLoading(true)
         if(props.triggerReload)
             props.setTriggerReload(false)
 
         document.title = `${props.pageTitle} - Fast Forward Express`
 
-        const query = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
-
-        if(location.search != query) {
-            history.push({search: query})
-        }
-        const queryStrings = queryString.parse(query)
-        const filters = props.filters.map(filter => {
-            const value = queryStrings[`filter[${filter.db_field}]`]
-            return {
-                ...filter,
-                active: value != undefined,
-                value: value,
+        if(!location.search && !location.state?.fromTableFilters) {
+            const restoredQuery = getUserStorageItem(userId, keys.queryString) ?? props.defaultFilterQuery ?? ''
+            if(normalizeFilterQuery(restoredQuery)) {
+                history.replace({search: restoredQuery, state: tableNavigationState})
+                return
             }
-        })
-        setFilters(filters)
+        }
 
-        localFilterQuerySet(props.tableName, query)
+        setFilters(filtersFromQuery(props.filters, location.search))
+        setUserStorageItem(userId, keys.queryString, location.search)
 
-        api.get(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`).then(response => {
+        // Ignore the response if the query changes again before it arrives, so a slow request can't overwrite newer results
+        let isCurrentRequest = true
+        setIsLoading(true)
+        api.get(`${props.baseRoute}${location.search}`).then(response => {
+            if(!isCurrentRequest)
+                return
+            // Read before transformResponse, which may only pass through data and queries
+            setResultLimit(response.result_limit?.truncated ? response.result_limit.limit : null)
             if(props.transformResponse)
                 response = props.transformResponse(response)
             setTableData(response.data)
             setQueries(response.queries ?? [])
             setIsLoading(false)
-        }, () => {setIsLoading(false)})
+        }, () => {
+            if(isCurrentRequest)
+                setIsLoading(false)
+        })
+
+        return () => {isCurrentRequest = false}
     }, [location.search, props.triggerReload])
 
-    // Filter definitions can arrive/change after the initial setup effect has run (e.g. a
-    // SelectFilter whose selections are loaded asynchronously from a context). Merge the latest
-    // definitions in, preserving the active/value state of filters that are already present so we
-    // don't clobber the user's current selections.
+    // Filter definitions can arrive/change after the URL sync above has run (e.g. a SelectFilter whose selections are
+    // loaded asynchronously from a context). Merge the latest definitions in, preserving the active/value state of
+    // filters that are already present so we don't clobber the user's unapplied edits.
     useEffect(() => {
-        const queryStrings = queryString.parse(location.search)
-        setFilters(current => props.filters.map(filter => {
-            const existing = current.find(existingFilter => existingFilter.db_field == filter.db_field)
-            if(existing)
-                return {...filter, active: existing.active, value: existing.value}
-            const value = queryStrings[`filter[${filter.db_field}]`]
-            return {...filter, active: value != undefined, value: value}
-        }))
+        setFilters(current => {
+            const fromQuery = filtersFromQuery(props.filters, location.search)
+            return fromQuery.map(filter => {
+                const existing = current.find(existingFilter => existingFilter.db_field == filter.db_field)
+                return existing ? {...filter, active: existing.active, value: existing.value} : filter
+            })
+        })
     }, [props.filters])
 
     // Initialize datatable
@@ -98,18 +181,18 @@ export default function Table(props) {
                 paginationSize: 20,
                 printAsHtml: true,
                 printStyled: true,
-                initialSort: props.initialSort,
+                initialSort: getStoredSort(),
                 rowFormatter: props.rowFormatter ?? null,
                 selectableRows: props.selectableRows ?? false,
                 selectableRowsCheck: () => {return props.selectableRows ? true : false}
             })
 
             newTabulator.on('tableBuilt', () => setTableBuilt(true))
-            newTabulator.on('dataSorted', (column, data) => {
-                if(data && props.indexName)
-                    localStorage.setItem(`${props.tableName}.sortedList`, data.map(row => row.getData()[props.indexName]))
-            }
-        )
+            newTabulator.on('dataSorted', (sorters, rows) => {
+                setUserStorageItem(userId, keys.sort, JSON.stringify(sorters.map(sorter => ({column: sorter.field, dir: sorter.dir}))))
+                if(rows && props.indexName)
+                    setUserStorageItem(userId, keys.sortedList, rows.map(row => row.getData()[props.indexName]))
+            })
 
             setTable(newTabulator)
         }
@@ -122,12 +205,12 @@ export default function Table(props) {
     }, [tableData])
 
     useEffect(() => {
-        let localStorageColumnVisibility = localStorage.getItem(`${props.tableName}.columnVisibility`)
+        let localStorageColumnVisibility = getUserStorageItem(userId, keys.columnVisibility)
         let columnsWithVisibilityParsed = null
         if(localStorageColumnVisibility) {
             localStorageColumnVisibility = JSON.parse(localStorageColumnVisibility)
             columnsWithVisibilityParsed = props.columns.map(column => {
-                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && column.title == column.title)
+                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && columnVisibility.title == column.title)
                 if(visible)
                     return {...column, visible: visible.visible}
                 return column
@@ -177,18 +260,63 @@ export default function Table(props) {
         const activeFilters = {}
         filters.forEach(filter => {
             if(filter.active && filter.value)
-                activeFilters[`filter[${filter.db_field}]`] = filter.value
+                activeFilters[filterKey(filter)] = filter.value
         })
         return queryString.stringify(activeFilters)
     }
 
-    const handleActiveFiltersChange = activeFilters => {
-        const newFilters = filters.map(filter => {
-            if(activeFilters && activeFilters.find(activeFilter => activeFilter.db_field == filter.db_field))
-                return {...filter, active: true}
-            return {...filter, active: false}
+    const appliedQuery = normalizeFilterQuery(location.search)
+    const hasUnappliedChanges = getQueryFromFilters() !== appliedQuery
+
+    const applyFilters = () => {
+        history.push({search: getQueryFromFilters(), state: tableNavigationState})
+    }
+
+    // Back to the page's default filters (computed fresh, so date-relative defaults roll forward), not to no filters at all
+    const defaultQuery = normalizeFilterQuery(props.defaultFilterQuery)
+    const isDefaultApplied = appliedQuery === defaultQuery && !hasUnappliedChanges
+
+    const resetFilters = () => {
+        history.push({search: defaultQuery, state: tableNavigationState})
+    }
+
+    const selectGroupBy = option => {
+        setGroupBy(option)
+        setUserStorageItem(userId, keys.groupBy, option.label)
+    }
+
+    // Back to the page's default columns, grouping and sort. Filters are left alone (that's what Reset is for)
+    const resetView = () => {
+        removeUserStorageItem(userId, keys.columnVisibility)
+        removeUserStorageItem(userId, keys.groupBy)
+        removeUserStorageItem(userId, keys.sort)
+        setColumns(props.columns)
+        setGroupBy(defaultGroupBy)
+        table?.setSort(props.initialSort ?? [])
+    }
+
+    // Show or hide every group (and nested subgroup), redrawing once at the end rather than once per group
+    const setAllGroupsOpen = open => {
+        if(!table)
+            return
+        const toggleGroups = groups => groups.forEach(group => {
+            open ? group.show() : group.hide()
+            toggleGroups(group.getSubGroups())
         })
-        setFilters(newFilters)
+        table.blockRedraw()
+        toggleGroups(table.getGroups())
+        table.restoreRedraw()
+    }
+
+    const handleActiveFiltersChange = activeFilters => {
+        setFilters(current => current.map(filter => {
+            const isActive = (activeFilters ?? []).some(activeFilter => activeFilter.db_field == filter.db_field)
+            if(isActive && !filter.active)
+                return {...filter, active: true, value: filter.value || defaultFilterValue(filter)}
+            if(!isActive && filter.active)
+                return {...filter, active: false}
+            return filter
+        }))
     }
 
     const saveCurrentQuery = () => {
@@ -224,7 +352,7 @@ export default function Table(props) {
         const columnVisibility = newColumns.filter(column => !!column.field).map(column => {
             return {field: column.field, title: column.title, visible: column.visible != false}
         })
-        localStorage.setItem(`${props.tableName}.columnVisibility`, JSON.stringify(columnVisibility))
+        setUserStorageItem(userId, keys.columnVisibility, JSON.stringify(columnVisibility))
         setColumns(newColumns)
     }
 
@@ -279,7 +407,17 @@ export default function Table(props) {
                                                 })
                                             }}
                                         />
-                                        <Button variant='success' onClick={() => history.push({search: getQueryFromFilters()})}>Apply Filters</Button>
+                                        <Button
+                                            variant={hasUnappliedChanges ? 'warning' : 'success'}
+                                            onClick={applyFilters}
+                                            title={hasUnappliedChanges ? 'The filters shown have changed and have not been applied yet' : ''}
+                                        >Apply Filters{hasUnappliedChanges ? ' *' : ''}</Button>
+                                        <Button
+                                            variant='secondary'
+                                            onClick={resetFilters}
+                                            disabled={isDefaultApplied}
+                                            title="Reset the filters to this page's default"
+                                        >Reset</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col style={{textAlign: 'right'}}>
@@ -301,7 +439,7 @@ export default function Table(props) {
                                                             return 0
                                                         }).map(column =>
                                                             <Dropdown.Item
-                                                                key={column.field}
+                                                                key={`${column.field}.${column.title}`}
                                                                 style={{color: column.visible === false  ? 'red' : 'black'}}
                                                                 onClick={() => toggleColumnVisibility(column)}
                                                             >{column.title}</Dropdown.Item>
@@ -314,17 +452,20 @@ export default function Table(props) {
                                                     <Dropdown.Submenu>
                                                         {props.groupByOptions.map(option =>
                                                             <Dropdown.Item
-                                                                key={option.value}
+                                                                key={option.label}
                                                                 style={{
                                                                     background: option.value == groupBy?.value ? 'green' : 'none',
                                                                     color: option.value == groupBy?.value ? 'white' : 'black'
                                                                 }}
-                                                                onClick={() => setGroupBy(option)}
+                                                                onClick={() => selectGroupBy(option)}
                                                             >{option.label}</Dropdown.Item>
                                                         )}
                                                     </Dropdown.Submenu>
                                                 </Dropdown.Item>
                                             }
+                                            <Dropdown.Item onClick={resetView}>
+                                                <h6><i className='fas fa-undo' style={{paddingRight: '5px'}}></i>Reset View</h6>
+                                            </Dropdown.Item>
                                         </Dropdown>
                                         <Dropdown
                                             className='btn btn-secondary'
@@ -334,6 +475,16 @@ export default function Table(props) {
                                                 onClick={table?.print}
                                             ><h6><i className='fas fa-print' style={{paddingRight: '5px'}}></i>Print Table</h6>
                                             </Dropdown.Item>
+                                            {groupBy?.value &&
+                                                <Fragment>
+                                                    <Dropdown.Item onClick={() => setAllGroupsOpen(true)}>
+                                                        <h6><i className='fas fa-expand-alt' style={{paddingRight: '5px'}}></i>Expand All Groups</h6>
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => setAllGroupsOpen(false)}>
+                                                        <h6><i className='fas fa-compress-alt' style={{paddingRight: '5px'}}></i>Collapse All Groups</h6>
+                                                    </Dropdown.Item>
+                                                </Fragment>
+                                            }
                                             {props.withSelected &&
                                                 <Dropdown.Item>
                                                     <h6><i className='fas fa-caret-left'></i> With Selected</h6>
@@ -383,10 +534,7 @@ export default function Table(props) {
                                                                         ><i className='fas fa-trash'></i></Button>
                                                                         <Button
                                                                             key={query.id + '.load'}
-                                                                            onClick={() => {
-                                                                                history.push(location.pathname + query.query_string)
-                                                                                // fetchTableData(query.query_string)
-                                                                            }}
+                                                                            onClick={() => history.push({search: query.query_string, state: tableNavigationState})}
                                                                             size='sm'
                                                                             style={{flex: 1}}
                                                                         >{query.name}</Button>
@@ -421,6 +569,11 @@ export default function Table(props) {
                                 </Col>
                             </Row>
                         </Card.Body>
+                    }
+                    {resultLimit &&
+                        <Alert variant='warning' className='mb-0 rounded-0'>
+                            <i className='fas fa-exclamation-triangle'></i> Showing the {resultLimit.toLocaleString()} most recent results only - older results matching these filters are hidden. Narrow your filters (for example, by date) to see them.
+                        </Alert>
                     }
                     <Card.Footer>
                         <div ref={tableRef} style={{ fontSize: '0.85rem' }}></div>

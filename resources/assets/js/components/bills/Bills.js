@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useCallback, useRef, useState} from 'react'
 import {useHistory} from 'react-router-dom'
 import {DateTime} from 'luxon'
 
@@ -6,7 +6,7 @@ import Table from '../partials/Table'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
-import {formatInstant} from '../../utils/dates'
+import {formatInstant, formatMonthKey, toMonthKey} from '../../utils/dates'
 
 const baseGroupByOptions = [
     {
@@ -27,11 +27,15 @@ const baseGroupByOptions = [
             return `${escapeHtml(data[0].delivery_address_name ? data[0].delivery_address_name : value)} <span style="color: red">\t(${count})</span>`}
     },
     {
+        label: 'Month (Scheduled Pickup)',
+        // Group key is "yyyy-MM" in the user's local time, matching the Scheduled Pickup column
+        value: data => toMonthKey(data.time_pickup_scheduled),
+        groupHeader: (value, count) => `${formatMonthKey(value, 'No Scheduled Pickup')} <span style="color: red">\t(${count})</span>`
+    },
+    {
+        // groupHeader is added in the component, as parent account names come from the accounts list rather than the bill rows
         label: 'Parent Account',
-        value: 'parent_account',
-        groupHeader: (value, count, data, group) =>{
-            return `${data[0]}`
-        }
+        value: 'parent_account_id',
     },
     {
         label: 'Payment Type',
@@ -251,7 +255,20 @@ export default function Bills(props) {
 
     const groupBy = ''
 
-    const groupByOptions = baseGroupByOptions.concat(...frontEndPermissions.employees.viewAll ? [
+    // The table may restore this grouping before the accounts list has loaded, so the header reads the current list
+    // through a ref each time it draws (Tabulator redraws headers whenever it regroups) rather than the list it was made with
+    const accountsRef = useRef(lists.accounts)
+    accountsRef.current = lists.accounts
+
+    const parentAccountGroupHeader = useCallback((value, count) => {
+        const parentAccount = value ? accountsRef.current.find(account => account.value == value) : null
+        const label = !value ? 'No Parent Account' : (parentAccount?.label ?? `Parent Account #${value}`)
+        return `${escapeHtml(label)} <span style="color: red">\t(${count})</span>`
+    }, [])
+
+    const groupByOptions = baseGroupByOptions.map(option =>
+        option.value === 'parent_account_id' ? {...option, groupHeader: parentAccountGroupHeader} : option
+    ).concat(...frontEndPermissions.employees.viewAll ? [
             {
                 label: 'Pickup Employee',
                 value: 'pickup_driver_id',
@@ -326,7 +343,7 @@ export default function Bills(props) {
         const billsPermissions = frontEndPermissions.bills
         if(billsPermissions.delete || billsPermissions.billing || billsPermissions.dispatch)
             return '?filter[percentage_complete]=,100'
-        const billsSinceDate = DateTime.now().minus({months: 4})
+        const billsSinceDate = DateTime.now().minus({months: 12})
         return `?filter[time_pickup_scheduled]=${billsSinceDate.toFormat('yyyy-MM-dd')}`
     }
 

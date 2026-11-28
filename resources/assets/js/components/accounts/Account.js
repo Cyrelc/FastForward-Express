@@ -16,6 +16,7 @@ import BillingTab from './billing/BillingTab'
 import useAddress from '../partials/Hooks/useAddress'
 import {useAPI} from '../../contexts/APIContext'
 import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem} from '../../utils/userStorage'
 import {formatCalendarDate, parseCalendarDate} from '../../utils/dates'
 
 export default function Account(props) {
@@ -102,7 +103,7 @@ export default function Account(props) {
                 setKey(window.location.hash?.substr(1) || 'basic')
 
                 if(params.accountId) {
-                    let sortedAccounts = localStorage.getItem('accounts.sortedList')
+                    let sortedAccounts = getUserStorageItem(authenticatedUser.user_id, 'accounts.sortedList')
                     if(sortedAccounts) {
                         sortedAccounts = sortedAccounts.split(',').map(index => parseInt(index))
                         const thisAccountIndex = sortedAccounts.findIndex(account_id => account_id === response.account.account_id)

@@ -1,33 +1,29 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import {Col, InputGroup} from 'react-bootstrap'
 import DatePicker from 'react-datepicker'
 import {DateTime} from 'luxon'
-import {useLocation} from 'react-router-dom'
 
+const DATE_FORMAT = 'yyyy-MM-dd'
+
+const parseDate = value => {
+    if(!value)
+        return null
+    const date = DateTime.fromFormat(value, DATE_FORMAT)
+    return date.isValid ? date.toJSDate() : null
+}
+
+const formatDate = date => date ? DateTime.fromJSDate(date).toFormat(DATE_FORMAT) : ''
+
+// Value format (parsed by App\Http\Filters\DateBetween): "start", "start,end" or ",end"
 const DateBetweenFilter = (props) => {
-    const [endDate, setEndDate] = useState(null)
-    const [startDate, setStartDate] = useState(null)
+    const [start, end] = props.filter.value ? props.filter.value.split(',') : []
+    const startDate = parseDate(start)
+    const endDate = parseDate(end)
 
-    const location = useLocation()
-
-    useEffect(() => {
-        var dates = null
-        if(props.filter.value) {
-            dates = props.filter.value.split(',')
-        }
-        if(dates) {
-            setStartDate(dates[0] ? DateTime.fromFormat(dates[0], 'yyyy-MM-dd').toJSDate() : null)
-            setEndDate(dates[1] ? DateTime.fromFormat(dates[1], 'yyyy-MM-dd').toJSDate() : null)
-        }
-    }, [props.filter.value])
-
-    useEffect(() => {
-        const formattedStartDate = startDate ? DateTime.fromJSDate(startDate).toFormat('yyyy-MM-dd') : ''
-        const formattedEndDate = endDate ? DateTime.fromJSDate(endDate).toFormat('yyyy-MM-dd') : ''
-        const value = `${formattedStartDate}${endDate ? `,${formattedEndDate}` : ''}`
-
-        props.handleFilterValueChange({...props.filter, value: value})
-    }, [startDate, endDate])
+    const setDates = (newStartDate, newEndDate) => {
+        const value = `${formatDate(newStartDate)}${newEndDate ? `,${formatDate(newEndDate)}` : ''}`
+        props.handleFilterValueChange({...props.filter, value})
+    }
 
     return(
         <Col md={6}>
@@ -42,26 +38,26 @@ const DateBetweenFilter = (props) => {
                     placeholderText='After'
                     selectsStart
                     selected={startDate}
-                    onChange={setStartDate}
-                    wrapperClassName='form-control'
+                    startDate={startDate}
+                    onChange={date => setDates(date, endDate)}
                 />
                 <InputGroup.Text>And</InputGroup.Text>
                 <DatePicker
                     wrapperClassName='form-control'
                     className='form-control'
                     dateFormat='MMMM d, yyyy'
+                    endDate={endDate}
                     isClearable
                     placeholderText='Before'
                     minDate={startDate}
                     selected={endDate}
                     selectsEnd
                     startDate={startDate}
-                    onChange={setEndDate}
-                    wrapperClassName='form-control'
+                    onChange={date => setDates(startDate, date)}
                 />
             </InputGroup>
         </Col>
     )
 }
 
-export default DateBetweenFilter;
+export default DateBetweenFilter

@@ -24,6 +24,18 @@ export const formatCalendarDate = date => date ? DateTime.fromJSDate(date).toISO
 /** Server instant (ISO 8601 with offset) -> Luxon DateTime in the user's local time */
 export const parseInstant = value => value ? DateTime.fromISO(value) : null
 
+/**
+ * Server instant or calendar date ('yyyy-MM-dd') -> 'yyyy-MM' month key, for grouping tables by month.
+ * Instants are converted to the user's local time; calendar dates are taken as-is. Empty or invalid -> ''
+ */
+export const toMonthKey = value => {
+    const date = parseInstant(value)
+    return date?.isValid ? date.toFormat('yyyy-MM') : ''
+}
+
+/** 'yyyy-MM' month key -> display label, e.g. 'Nov 2026' */
+export const formatMonthKey = (monthKey, emptyLabel = 'No Date') => monthKey ? DateTime.fromFormat(monthKey, 'yyyy-MM').toFormat('LLL yyyy') : emptyLabel
+
 /** Server instant (ISO 8601 with offset) -> display string in the user's local time */
 export const formatInstant = (value, format = 'yyyy-MM-dd HH:mm') => {
     const instant = parseInstant(value)

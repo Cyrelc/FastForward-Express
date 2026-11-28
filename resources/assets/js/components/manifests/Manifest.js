@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {Button, ButtonGroup, Col, Row, Table} from 'react-bootstrap'
 import { LinkContainer } from 'react-router-bootstrap'
 import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem} from '../../utils/userStorage'
 
 import {useAPI} from '../../contexts/APIContext'
 
@@ -17,7 +18,7 @@ export default function Manifest(props) {
     const {manifestId} = props.match.params
     const {bills, chargebacks, manifest, overview, employee} = data
     const {contact, warnings} = data?.employee || {}
-    const {frontEndPermissions} = useUser()
+    const {authenticatedUser, frontEndPermissions} = useUser()
 
     useEffect(() => {
         getManifest(manifestId)
@@ -27,7 +28,7 @@ export default function Manifest(props) {
         setIsLoading(true)
         api.get(`/manifests/${manifestId}`).then(response => {
             document.title = `View Manifest - ${response.manifest.manifest_id}`
-            let sortedManifests = localStorage.getItem('manifests.sortedList')
+            let sortedManifests = getUserStorageItem(authenticatedUser.user_id, 'manifests.sortedList')
             if(sortedManifests) {
                 sortedManifests = sortedManifests.split(',').map(index => parseInt(index))
                 const thisManifestIndex = sortedManifests.findIndex(manifest_id => response.manifest.manifest_id === manifest_id)
