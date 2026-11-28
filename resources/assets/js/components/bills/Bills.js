@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useCallback, useRef, useState} from 'react'
 import {useHistory} from 'react-router-dom'
 import {DateTime} from 'luxon'
 
@@ -255,11 +255,16 @@ export default function Bills(props) {
 
     const groupBy = ''
 
-    const parentAccountGroupHeader = (value, count) => {
-        const parentAccount = value ? lists.accounts.find(account => account.value == value) : null
+    // The table may restore this grouping before the accounts list has loaded, so the header reads the current list
+    // through a ref each time it draws (Tabulator redraws headers whenever it regroups) rather than the list it was made with
+    const accountsRef = useRef(lists.accounts)
+    accountsRef.current = lists.accounts
+
+    const parentAccountGroupHeader = useCallback((value, count) => {
+        const parentAccount = value ? accountsRef.current.find(account => account.value == value) : null
         const label = !value ? 'No Parent Account' : (parentAccount?.label ?? `Parent Account #${value}`)
         return `${escapeHtml(label)} <span style="color: red">\t(${count})</span>`
-    }
+    }, [])
 
     const groupByOptions = baseGroupByOptions.map(option =>
         option.value === 'parent_account_id' ? {...option, groupHeader: parentAccountGroupHeader} : option

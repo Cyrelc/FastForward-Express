@@ -8,16 +8,21 @@ import Dropdown from 'react-multilevel-dropdown'
 import {toast} from 'react-toastify'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem, removeUserStorageItem, setUserStorageItem} from '../../utils/userStorage'
 import TableFilters from './TableFilters'
 
-const localFilterQueryGet = (pageTitle) => {
-    const value = localStorage.getItem(`${pageTitle}.queryString`)
-    return value ?? null
-}
-
-const localFilterQuerySet = (pageTitle, filterQuery) => {
-    localStorage.setItem(`${pageTitle}.queryString`, filterQuery)
-}
+/**
+ * Everything the table remembers is stored per logged in user (see utils/userStorage), under these keys.
+ * sortedList is also read by the record pages (Bill, Invoice, ...) for their previous/next buttons.
+ */
+const storageKeys = tableName => ({
+    columnVisibility: `${tableName}.columnVisibility`,
+    groupBy: `${tableName}.groupBy`,
+    queryString: `${tableName}.queryString`,
+    sort: `${tableName}.sort`,
+    sortedList: `${tableName}.sortedList`,
+})
 
 /**
  * The URL is the single source of truth for which filters are applied. Navigations made by the table itself (apply, clear,
@@ -70,10 +75,37 @@ export default function Table(props) {
     const history = useHistory()
     const location = useLocation()
     const tableRef = useRef(null)
+    const {authenticatedUser} = useUser()
+
+    const userId = authenticatedUser.user_id
+    const keys = storageKeys(props.tableName)
+    const defaultGroupBy = props.groupBy || null
+
+    // Group by options can hold functions, so the choice is stored by its label and looked up again on load
+    const getStoredGroupBy = () => {
+        const label = getUserStorageItem(userId, keys.groupBy)
+        if(label === null)
+            return defaultGroupBy
+        if(defaultGroupBy?.label === label)
+            return defaultGroupBy
+        return props.groupByOptions.find(option => option.label === label) ?? defaultGroupBy
+    }
+
+    // Only restore a stored sort for columns that still exist
+    const getStoredSort = () => {
+        try {
+            const stored = JSON.parse(getUserStorageItem(userId, keys.sort))
+            const fields = props.columns.map(column => column.field)
+            const sort = Array.isArray(stored) ? stored.filter(sorter => fields.includes(sorter.column)) : []
+            return sort.length ? sort : props.initialSort
+        } catch(error) {
+            return props.initialSort
+        }
+    }
 
     const [columns, setColumns] = useState([])
     const [filters, setFilters] = useState([])
-    const [groupBy, setGroupBy] = useState(props.groupBy ?? null)
+    const [groupBy, setGroupBy] = useState(getStoredGroupBy)
     const [isLoading, setIsLoading] = useState(true)
     const [queries, setQueries] = useState([])
     const [queryName, setQueryName] = useState('')
@@ -92,7 +124,7 @@ export default function Table(props) {
         document.title = `${props.pageTitle} - Fast Forward Express`
 
         if(!location.search && !location.state?.fromTableFilters) {
-            const restoredQuery = localFilterQueryGet(props.tableName) ?? props.defaultFilterQuery ?? ''
+            const restoredQuery = getUserStorageItem(userId, keys.queryString) ?? props.defaultFilterQuery ?? ''
             if(normalizeFilterQuery(restoredQuery)) {
                 history.replace({search: restoredQuery, state: tableNavigationState})
                 return
@@ -100,7 +132,7 @@ export default function Table(props) {
         }
 
         setFilters(filtersFromQuery(props.filters, location.search))
-        localFilterQuerySet(props.tableName, location.search)
+        setUserStorageItem(userId, keys.queryString, location.search)
 
         // Ignore the response if the query changes again before it arrives, so a slow request can't overwrite newer results
         let isCurrentRequest = true
@@ -149,18 +181,18 @@ export default function Table(props) {
                 paginationSize: 20,
                 printAsHtml: true,
                 printStyled: true,
-                initialSort: props.initialSort,
+                initialSort: getStoredSort(),
                 rowFormatter: props.rowFormatter ?? null,
                 selectableRows: props.selectableRows ?? false,
                 selectableRowsCheck: () => {return props.selectableRows ? true : false}
             })
 
             newTabulator.on('tableBuilt', () => setTableBuilt(true))
-            newTabulator.on('dataSorted', (column, data) => {
-                if(data && props.indexName)
-                    localStorage.setItem(`${props.tableName}.sortedList`, data.map(row => row.getData()[props.indexName]))
-            }
-        )
+            newTabulator.on('dataSorted', (sorters, rows) => {
+                setUserStorageItem(userId, keys.sort, JSON.stringify(sorters.map(sorter => ({column: sorter.field, dir: sorter.dir}))))
+                if(rows && props.indexName)
+                    setUserStorageItem(userId, keys.sortedList, rows.map(row => row.getData()[props.indexName]))
+            })
 
             setTable(newTabulator)
         }
@@ -173,7 +205,7 @@ export default function Table(props) {
     }, [tableData])
 
     useEffect(() => {
-        let localStorageColumnVisibility = localStorage.getItem(`${props.tableName}.columnVisibility`)
+        let localStorageColumnVisibility = getUserStorageItem(userId, keys.columnVisibility)
         let columnsWithVisibilityParsed = null
         if(localStorageColumnVisibility) {
             localStorageColumnVisibility = JSON.parse(localStorageColumnVisibility)
@@ -248,6 +280,21 @@ export default function Table(props) {
         history.push({search: defaultQuery, state: tableNavigationState})
     }
 
+    const selectGroupBy = option => {
+        setGroupBy(option)
+        setUserStorageItem(userId, keys.groupBy, option.label)
+    }
+
+    // Back to the page's default columns, grouping and sort. Filters are left alone (that's what Reset is for)
+    const resetView = () => {
+        removeUserStorageItem(userId, keys.columnVisibility)
+        removeUserStorageItem(userId, keys.groupBy)
+        removeUserStorageItem(userId, keys.sort)
+        setColumns(props.columns)
+        setGroupBy(defaultGroupBy)
+        table?.setSort(props.initialSort ?? [])
+    }
+
     // Show or hide every group (and nested subgroup), redrawing once at the end rather than once per group
     const setAllGroupsOpen = open => {
         if(!table)
@@ -305,7 +352,7 @@ export default function Table(props) {
         const columnVisibility = newColumns.filter(column => !!column.field).map(column => {
             return {field: column.field, title: column.title, visible: column.visible != false}
         })
-        localStorage.setItem(`${props.tableName}.columnVisibility`, JSON.stringify(columnVisibility))
+        setUserStorageItem(userId, keys.columnVisibility, JSON.stringify(columnVisibility))
         setColumns(newColumns)
     }
 
@@ -405,17 +452,20 @@ export default function Table(props) {
                                                     <Dropdown.Submenu>
                                                         {props.groupByOptions.map(option =>
                                                             <Dropdown.Item
-                                                                key={option.value}
+                                                                key={option.label}
                                                                 style={{
                                                                     background: option.value == groupBy?.value ? 'green' : 'none',
                                                                     color: option.value == groupBy?.value ? 'white' : 'black'
                                                                 }}
-                                                                onClick={() => setGroupBy(option)}
+                                                                onClick={() => selectGroupBy(option)}
                                                             >{option.label}</Dropdown.Item>
                                                         )}
                                                     </Dropdown.Submenu>
                                                 </Dropdown.Item>
                                             }
+                                            <Dropdown.Item onClick={resetView}>
+                                                <h6><i className='fas fa-undo' style={{paddingRight: '5px'}}></i>Reset View</h6>
+                                            </Dropdown.Item>
                                         </Dropdown>
                                         <Dropdown
                                             className='btn btn-secondary'

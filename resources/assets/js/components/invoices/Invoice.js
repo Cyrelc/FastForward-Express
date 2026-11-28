@@ -8,6 +8,8 @@ import PaymentTable from '../partials/Payments/PaymentTable'
 import LoadingSpinner from '../partials/LoadingSpinner'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem} from '../../utils/userStorage'
 
 const headerTDStyle = {width: '20%', textAlign: 'center', border: 'grey solid', whiteSpace: 'pre', paddingTop: '10px', paddingBottom: '10px'}
 const invoiceTotalsStyle = {backgroundColor: 'orange', border: 'orange solid'}
@@ -41,6 +43,7 @@ export default function Invoice(props) {
     const [unpaidInvoices, setUnpaidInvoices] = useState([])
 
     const api = useAPI()
+    const {authenticatedUser} = useUser()
     const {match: {params}} = props
 
     useEffect(() => {
@@ -55,7 +58,7 @@ export default function Invoice(props) {
         setIsLoading(true)
         api.get(`/invoices/getModel/${params.invoiceId}`).then(response => {
             document.title = `View Invoice ${response.invoice.invoice_id}`
-            let sortedInvoices = localStorage.getItem('invoices.sortedList')
+            let sortedInvoices = getUserStorageItem(authenticatedUser.user_id, 'invoices.sortedList')
             if(sortedInvoices) {
                 sortedInvoices = sortedInvoices.split(',').map(index => parseInt(index))
                 const thisInvoiceIndex = sortedInvoices.findIndex(invoice_id => invoice_id === response.invoice.invoice_id)

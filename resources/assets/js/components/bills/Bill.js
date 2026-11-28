@@ -16,6 +16,7 @@ import DispatchTab from './DispatchTab'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem} from '../../utils/userStorage'
 
 const unmanifestedDriverMismatchMessage = (
 `------------------PLEASE READ CAREFULLY------------------
@@ -85,7 +86,7 @@ export default function Bill(props) {
                     billDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     chargeDispatch({type: 'CONFIGURE_EXISTING', payload: data})
                     packages.setup(data.bill)
-                    let sortedBills = localStorage.getItem('bills.sortedList')
+                    let sortedBills = getUserStorageItem(authenticatedUser.user_id, 'bills.sortedList')
                     if(sortedBills) {
                         sortedBills = sortedBills.split(',').map(index => parseInt(index))
                         const currentBillIndex = sortedBills.findIndex(bill_id => bill_id === data.bill.bill_id)

@@ -12,6 +12,8 @@ import DriverTab from './DriverTab'
 import LoadingSpinner from '../partials/LoadingSpinner'
 
 import {useAPI} from '../../contexts/APIContext'
+import {useUser} from '../../contexts/UserContext'
+import {getUserStorageItem} from '../../utils/userStorage'
 import useAddress from '../partials/Hooks/useAddress'
 import useContact from '../partials/Hooks/useContact'
 import useEmployee from './useEmployee'
@@ -27,6 +29,7 @@ export default function Employee(props) {
 
     const address = useAddress()
     const api = useAPI()
+    const {authenticatedUser} = useUser()
     const contact = useContact()
     const employee = useEmployee()
     const history = useHistory()
@@ -78,7 +81,7 @@ export default function Employee(props) {
 
         if(params.employeeId) {
             document.title = `Edit Employee - ${params.employeeId}`
-            let sortedEmployees = localStorage.getItem('employees.sortedList') ?? ''
+            let sortedEmployees = getUserStorageItem(authenticatedUser.user_id, 'employees.sortedList') ?? ''
             sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
 
             const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === params.employeeId)
