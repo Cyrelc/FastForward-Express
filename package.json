@@ -71,7 +71,7 @@
         "polylabel": "^1.1.0",
         "puppeteer": "^18.0.0",
         "pusher-js": "^6.0.3",
-        "query-string": "^7.1.2",
+        "query-string": "^10.0.0",
         "rbush": "^3.0.1",
         "react-bootstrap": "^2.1.0",
         "react-bootstrap-typeahead": "^6.0.0",
