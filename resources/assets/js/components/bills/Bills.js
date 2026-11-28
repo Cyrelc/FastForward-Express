@@ -326,7 +326,7 @@ export default function Bills(props) {
         const billsPermissions = frontEndPermissions.bills
         if(billsPermissions.delete || billsPermissions.billing || billsPermissions.dispatch)
             return '?filter[percentage_complete]=,100'
-        const billsSinceDate = DateTime.now().minus({months: 4})
+        const billsSinceDate = DateTime.now().minus({months: 12})
         return `?filter[time_pickup_scheduled]=${billsSinceDate.toFormat('yyyy-MM-dd')}`
     }
 
