@@ -33,11 +33,9 @@ const baseGroupByOptions = [
         groupHeader: (value, count) => `${formatMonthKey(value, 'No Scheduled Pickup')} <span style="color: red">\t(${count})</span>`
     },
     {
+        // groupHeader is added in the component, as parent account names come from the accounts list rather than the bill rows
         label: 'Parent Account',
-        value: 'parent_account',
-        groupHeader: (value, count, data, group) =>{
-            return `${data[0]}`
-        }
+        value: 'parent_account_id',
     },
     {
         label: 'Payment Type',
@@ -257,7 +255,15 @@ export default function Bills(props) {
 
     const groupBy = ''
 
-    const groupByOptions = baseGroupByOptions.concat(...frontEndPermissions.employees.viewAll ? [
+    const parentAccountGroupHeader = (value, count) => {
+        const parentAccount = value ? lists.accounts.find(account => account.value == value) : null
+        const label = !value ? 'No Parent Account' : (parentAccount?.label ?? `Parent Account #${value}`)
+        return `${escapeHtml(label)} <span style="color: red">\t(${count})</span>`
+    }
+
+    const groupByOptions = baseGroupByOptions.map(option =>
+        option.value === 'parent_account_id' ? {...option, groupHeader: parentAccountGroupHeader} : option
+    ).concat(...frontEndPermissions.employees.viewAll ? [
             {
                 label: 'Pickup Employee',
                 value: 'pickup_driver_id',
