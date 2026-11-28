@@ -135,8 +135,9 @@ export default function Invoices(props) {
         {formatter: 'rowSelection', titleFormatter: 'rowSelection', hozAlign:'center', headerHozAlign: 'center', headerSort: false, print: false, width: 50},
         {title: 'Invoice ID', field: 'invoice_id', ...configureFakeLink('/invoices/', history.push), sorter: 'number'},
         {title: 'Account ID', field: 'account_id', ...configureFakeLink('/accounts/', history.push), sorter: 'number'},
-        {title: 'Account Number', field: 'account_id', ...configureFakeLink('/accounts/', history.push), visible: false, formatter: cell => {return escapeHtml(cell.getRow().getData().account_number)}},
-        {title: 'Account', field: 'account_id', ...configureFakeLink('/accounts/', history.push), formatter: cell => {return escapeHtml(cell.getRow().getData().account_name)}},
+        // These show (and so sort by) the account number and name, while still linking to the account by its ID
+        {title: 'Account Number', field: 'account_number', ...configureFakeLink('/accounts/', history.push, null, 'account_id'), visible: false},
+        {title: 'Account', field: 'account_name', ...configureFakeLink('/accounts/', history.push, null, 'account_id')},
         {title: 'First Bill Date', field: 'bill_start_date', visible: false},
         {title: 'Last Bill Date', field: 'bill_end_date'},
         {title: 'Payment Types', field: 'payment_type_list', visible: false},
