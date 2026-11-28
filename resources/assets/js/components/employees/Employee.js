@@ -84,7 +84,8 @@ export default function Employee(props) {
             let sortedEmployees = getUserStorageItem(authenticatedUser.user_id, 'employees.sortedList') ?? ''
             sortedEmployees = sortedEmployees.split(',').map(index => parseInt(index))
 
-            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === params.employeeId)
+            // The route param is a string and the stored IDs are parsed to numbers
+            const thisEmployeeIndex = sortedEmployees.findIndex(employee_id => employee_id === parseInt(params.employeeId))
             const prevEmployeeId = thisEmployeeIndex <= 0 ? null : sortedEmployees[thisEmployeeIndex - 1]
             const nextEmployeeId = (thisEmployeeIndex < 0 || thisEmployeeIndex === sortedEmployees.length - 1) ? null : sortedEmployees[thisEmployeeIndex + 1]
             setNextEmployeeId(nextEmployeeId)
