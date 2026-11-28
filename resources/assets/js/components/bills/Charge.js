@@ -104,7 +104,6 @@ export default function Charge(props) {
     const [showDetails, setShowDetails] = useState(false)
     const [showLinkLineItemModal, setShowLinkLineItemModal] = useState(false)
     const [showPriceAdjustModal, setShowPriceAdjustModal] = useState(false)
-    const [table, setTable] = useState()
 
     const api = useAPI()
     const tableRef = useRef(null)
@@ -178,12 +177,16 @@ export default function Charge(props) {
         tabulatorRef.current.replaceData(charge.lineItems)
     }, [charge.lineItems, isTableReady])
 
+    // The column definitions close over showDetails, drivers and readOnly, so rebuild them whenever any of those change
     useEffect(() => {
-        if(table) {
-            table.setColumns(chargeTableColumns(charge.chargeType))
-            table.setGroupHeader(groupHeaderFormatter)
-        }
-    }, [showDetails])
+        if(!tabulatorRef.current)
+            return
+        if(!tableReadyRef.current)
+            return
+
+        tabulatorRef.current.setColumns(chargeTableColumns(charge.chargeType))
+        tabulatorRef.current.setGroupHeader(groupHeaderFormatter)
+    }, [showDetails, drivers, readOnly, isTableReady])
 
     const actionCellContextMenu = cell => {
         const data = cell.getRow().getData()
@@ -244,13 +247,12 @@ export default function Charge(props) {
             ] : [],
             {title: 'Invoice Is Finalized', field: 'invoice_is_finalized', visible: showDetails, formatter: 'tickCross'},
             {
-                editor:'select',
+                editor: 'list',
                 editorParams: {
-                    listItemFormatter: (value, title) => {
-                        return escapeHtml(title)
-                    },
+                    itemFormatter: label => escapeHtml(label),
                     values: drivers
                 },
+                editable: cell => !readOnly && !cell.getRow().getData().pickup_manifest_id,
                 field: 'pickup_driver_id',
                 formatter: cell => {
                     const driver = drivers.find(driver => driver.value === cell.getValue())
@@ -261,13 +263,12 @@ export default function Charge(props) {
             },
             {title: 'Pickup Manifest ID', field: 'pickup_manifest_id', visible: showDetails, cellClick: (e, cell) => redirectToCellValue('manifests', cell)},
             {
-                editor:'select',
+                editor: 'list',
                 editorParams: {
-                    listItemFormatter: (value, title) => {
-                        return escapeHtml(title)
-                    },
+                    itemFormatter: label => escapeHtml(label),
                     values: drivers
                 },
+                editable: cell => !readOnly && !cell.getRow().getData().delivery_manifest_id,
                 field: 'delivery_driver_id',
                 formatter: cell => {
                     const driver = drivers.find(driver => driver.value === cell.getValue())
