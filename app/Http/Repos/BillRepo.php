@@ -8,6 +8,7 @@ use App\Http\Filters\DateBetween;
 use App\Http\Filters\NumberBetween;
 use App\Http\Filters\BillFilters\Dispatch;
 use App\Http\Filters\BillFilters\Invoiced;
+use App\Http\Filters\BillFilters\ParentAccount;
 use App\Http\Filters\IsNull;
 
 use App\Models\Account;
@@ -690,7 +691,7 @@ class BillRepo {
                 AllowedFilter::exact('invoice_id', 'charges.lineItems.invoice_id'),
                 AllowedFilter::custom('is_invoiced', new Invoiced),
                 AllowedFilter::exact('is_template'),
-                AllowedFilter::exact('parent_account_id', 'charge_account.parent_account_id'),
+                AllowedFilter::custom('parent_account_id', new ParentAccount),
                 AllowedFilter::exact('skip_invoicing'),
                 AllowedFilter::custom('time_pickup_scheduled', new DateBetween),
                 AllowedFilter::custom('time_delivery_scheduled', new DateBetween),
