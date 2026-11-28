@@ -19,6 +19,52 @@ const localFilterQuerySet = (pageTitle, filterQuery) => {
     localStorage.setItem(`${pageTitle}.queryString`, filterQuery)
 }
 
+/**
+ * The URL is the single source of truth for which filters are applied. Navigations made by the table itself (apply, clear,
+ * load a saved query) carry this history state marker, so an empty query string from them means "no filters" rather than
+ * "fresh visit, restore the last used (or default) query"
+ */
+const tableNavigationState = {fromTableFilters: true}
+
+const filterKey = filter => `filter[${filter.db_field}]`
+
+// Only the filter params, in a stable (sorted) order, so draft and applied queries can be compared
+const normalizeFilterQuery = query => {
+    const parsed = queryString.parse(query ?? '')
+    const filterParams = {}
+    Object.keys(parsed).forEach(key => {
+        if(key.startsWith('filter['))
+            filterParams[key] = Array.isArray(parsed[key]) ? parsed[key].join(',') : parsed[key]
+    })
+    return queryString.stringify(filterParams)
+}
+
+const filtersFromQuery = (filterDefinitions, query) => {
+    const parsed = queryString.parse(query ?? '')
+    return filterDefinitions.map(filter => {
+        const value = parsed[filterKey(filter)]
+        return {
+            ...filter,
+            active: value !== undefined,
+            value: Array.isArray(value) ? value.join(',') : (value ?? ''),
+        }
+    })
+}
+
+// The value a filter starts with when the user adds it, so what the filter shows is what gets applied
+const defaultFilterValue = filter => {
+    switch(filter.type) {
+        case 'BooleanFilter':
+            return String(filter.default ?? false)
+        case 'NumberBetweenFilter':
+            if(filter.defaultLowerBound == undefined && filter.defaultUpperBound == undefined)
+                return ''
+            return `${filter.defaultLowerBound ?? ''},${filter.defaultUpperBound ?? ''}`
+        default:
+            return ''
+    }
+}
+
 export default function Table(props) {
     const api = useAPI()
     const history = useHistory()
@@ -35,54 +81,55 @@ export default function Table(props) {
     const [tableData, setTableData] = useState([])
     const [tableBuilt, setTableBuilt] = useState(false)
 
-    // Initial setup, set document title, get initial searchQuery
+    // Whenever the applied query (the URL) changes: restore a saved/default query on a fresh visit, otherwise sync the
+    // filter inputs to the URL and fetch the matching data
     useEffect(() => {
-        setIsLoading(true)
         if(props.triggerReload)
             props.setTriggerReload(false)
 
         document.title = `${props.pageTitle} - Fast Forward Express`
 
-        const query = location.search || localFilterQueryGet(props.tableName) || props.defaultFilterQuery || ''
-
-        if(location.search != query) {
-            history.push({search: query})
-        }
-        const queryStrings = queryString.parse(query)
-        const filters = props.filters.map(filter => {
-            const value = queryStrings[`filter[${filter.db_field}]`]
-            return {
-                ...filter,
-                active: value != undefined,
-                value: value,
+        if(!location.search && !location.state?.fromTableFilters) {
+            const restoredQuery = localFilterQueryGet(props.tableName) ?? props.defaultFilterQuery ?? ''
+            if(normalizeFilterQuery(restoredQuery)) {
+                history.replace({search: restoredQuery, state: tableNavigationState})
+                return
             }
-        })
-        setFilters(filters)
+        }
 
-        localFilterQuerySet(props.tableName, query)
+        setFilters(filtersFromQuery(props.filters, location.search))
+        localFilterQuerySet(props.tableName, location.search)
 
-        api.get(`${props.baseRoute}${query[0] == '?' ? '' : '?'}${query}`).then(response => {
+        // Ignore the response if the query changes again before it arrives, so a slow request can't overwrite newer results
+        let isCurrentRequest = true
+        setIsLoading(true)
+        api.get(`${props.baseRoute}${location.search}`).then(response => {
+            if(!isCurrentRequest)
+                return
             if(props.transformResponse)
                 response = props.transformResponse(response)
             setTableData(response.data)
             setQueries(response.queries ?? [])
             setIsLoading(false)
-        }, () => {setIsLoading(false)})
+        }, () => {
+            if(isCurrentRequest)
+                setIsLoading(false)
+        })
+
+        return () => {isCurrentRequest = false}
     }, [location.search, props.triggerReload])
 
-    // Filter definitions can arrive/change after the initial setup effect has run (e.g. a
-    // SelectFilter whose selections are loaded asynchronously from a context). Merge the latest
-    // definitions in, preserving the active/value state of filters that are already present so we
-    // don't clobber the user's current selections.
+    // Filter definitions can arrive/change after the URL sync above has run (e.g. a SelectFilter whose selections are
+    // loaded asynchronously from a context). Merge the latest definitions in, preserving the active/value state of
+    // filters that are already present so we don't clobber the user's unapplied edits.
     useEffect(() => {
-        const queryStrings = queryString.parse(location.search)
-        setFilters(current => props.filters.map(filter => {
-            const existing = current.find(existingFilter => existingFilter.db_field == filter.db_field)
-            if(existing)
-                return {...filter, active: existing.active, value: existing.value}
-            const value = queryStrings[`filter[${filter.db_field}]`]
-            return {...filter, active: value != undefined, value: value}
-        }))
+        setFilters(current => {
+            const fromQuery = filtersFromQuery(props.filters, location.search)
+            return fromQuery.map(filter => {
+                const existing = current.find(existingFilter => existingFilter.db_field == filter.db_field)
+                return existing ? {...filter, active: existing.active, value: existing.value} : filter
+            })
+        })
     }, [props.filters])
 
     // Initialize datatable
@@ -177,18 +224,31 @@ export default function Table(props) {
         const activeFilters = {}
         filters.forEach(filter => {
             if(filter.active && filter.value)
-                activeFilters[`filter[${filter.db_field}]`] = filter.value
+                activeFilters[filterKey(filter)] = filter.value
         })
         return queryString.stringify(activeFilters)
     }
 
+    const appliedQuery = normalizeFilterQuery(location.search)
+    const hasUnappliedChanges = getQueryFromFilters() !== appliedQuery
+
+    const applyFilters = () => {
+        history.push({search: getQueryFromFilters(), state: tableNavigationState})
+    }
+
+    const clearFilters = () => {
+        history.push({search: '', state: tableNavigationState})
+    }
+
     const handleActiveFiltersChange = activeFilters => {
-        const newFilters = filters.map(filter => {
-            if(activeFilters && activeFilters.find(activeFilter => activeFilter.db_field == filter.db_field))
-                return {...filter, active: true}
-            return {...filter, active: false}
-        })
-        setFilters(newFilters)
+        setFilters(current => current.map(filter => {
+            const isActive = (activeFilters ?? []).some(activeFilter => activeFilter.db_field == filter.db_field)
+            if(isActive && !filter.active)
+                return {...filter, active: true, value: filter.value || defaultFilterValue(filter)}
+            if(!isActive && filter.active)
+                return {...filter, active: false}
+            return filter
+        }))
     }
 
     const saveCurrentQuery = () => {
@@ -279,7 +339,16 @@ export default function Table(props) {
                                                 })
                                             }}
                                         />
-                                        <Button variant='success' onClick={() => history.push({search: getQueryFromFilters()})}>Apply Filters</Button>
+                                        <Button
+                                            variant={hasUnappliedChanges ? 'warning' : 'success'}
+                                            onClick={applyFilters}
+                                            title={hasUnappliedChanges ? 'The filters shown have changed and have not been applied yet' : ''}
+                                        >Apply Filters{hasUnappliedChanges ? ' *' : ''}</Button>
+                                        <Button
+                                            variant='secondary'
+                                            onClick={clearFilters}
+                                            disabled={!appliedQuery && !filters.some(filter => filter.active)}
+                                        >Clear</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col style={{textAlign: 'right'}}>
@@ -383,10 +452,7 @@ export default function Table(props) {
                                                                         ><i className='fas fa-trash'></i></Button>
                                                                         <Button
                                                                             key={query.id + '.load'}
-                                                                            onClick={() => {
-                                                                                history.push(location.pathname + query.query_string)
-                                                                                // fetchTableData(query.query_string)
-                                                                            }}
+                                                                            onClick={() => history.push({search: query.query_string, state: tableNavigationState})}
                                                                             size='sm'
                                                                             style={{flex: 1}}
                                                                         >{query.name}</Button>
