@@ -7,6 +7,7 @@ import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
+import {formatMonthKey, toMonthKey} from '../../utils/dates'
 
 function printManifests(selectedRows, options = null) {
     if(!selectedRows || selectedRows.length === 0) {
@@ -27,6 +28,11 @@ const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Driver', value: 'employee_id', groupHeader: (value, count, data, group) => {return (escapeHtml(value) + ' - ' + escapeHtml(data[0].employee_name))}},
     {label: 'Bill End Date', value: 'end_date'},
+    {
+        label: 'Month (Bill End Date)',
+        value: data => toMonthKey(data.end_date),
+        groupHeader: (value, count) => `${formatMonthKey(value)} <span style="color: red">\t(${count})</span>`
+    },
     {label: 'Year', value: 'year'}
 ]
 

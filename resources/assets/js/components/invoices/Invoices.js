@@ -7,6 +7,7 @@ import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
 
 import Table from '../partials/Table'
+import {formatMonthKey, toMonthKey} from '../../utils/dates'
 
 /**
  * Table functions
@@ -39,7 +40,12 @@ function printInvoices(selectedRows, options) {
 const groupByOptions = [
     {label: 'None', value: null},
     {label: 'Account', value: 'account_number', groupHeader: (value, count, data, group) => {return escapeHtml(value) + ' - ' + escapeHtml(data[0].account_name)}},
-    {label: 'Last Bill Date', value: 'bill_end_date'}
+    {label: 'Last Bill Date', value: 'bill_end_date'},
+    {
+        label: 'Month (Last Bill Date)',
+        value: data => toMonthKey(data.bill_end_date),
+        groupHeader: (value, count) => `${formatMonthKey(value)} <span style="color: red">\t(${count})</span>`
+    }
 ]
 
 const initialSort = [{column:'bill_end_date', dir: 'desc'}, {column:'account_number', dir:'asc'}]
