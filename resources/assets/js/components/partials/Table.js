@@ -174,7 +174,7 @@ export default function Table(props) {
         if(localStorageColumnVisibility) {
             localStorageColumnVisibility = JSON.parse(localStorageColumnVisibility)
             columnsWithVisibilityParsed = props.columns.map(column => {
-                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && column.title == column.title)
+                const visible = localStorageColumnVisibility.find(columnVisibility => columnVisibility.field == column.field && columnVisibility.title == column.title)
                 if(visible)
                     return {...column, visible: visible.visible}
                 return column
@@ -370,7 +370,7 @@ export default function Table(props) {
                                                             return 0
                                                         }).map(column =>
                                                             <Dropdown.Item
-                                                                key={column.field}
+                                                                key={`${column.field}.${column.title}`}
                                                                 style={{color: column.visible === false  ? 'red' : 'black'}}
                                                                 onClick={() => toggleColumnVisibility(column)}
                                                             >{column.title}</Dropdown.Item>
