@@ -1,5 +1,5 @@
 import React, {Fragment, useEffect, useRef, useState} from 'react'
-import {Button, ButtonGroup, Card, Col, Container, FormControl, InputGroup, Row, Modal} from 'react-bootstrap'
+import {Alert, Button, ButtonGroup, Card, Col, Container, FormControl, InputGroup, Row, Modal} from 'react-bootstrap'
 import Select from 'react-select'
 import {useHistory, useLocation} from 'react-router-dom'
 import queryString from 'query-string'
@@ -77,6 +77,8 @@ export default function Table(props) {
     const [isLoading, setIsLoading] = useState(true)
     const [queries, setQueries] = useState([])
     const [queryName, setQueryName] = useState('')
+    // Set to the server's row limit when the result was cut off at it (see BillModelFactory::BuildTable), otherwise null
+    const [resultLimit, setResultLimit] = useState(null)
     const [table, setTable] = useState(null)
     const [tableData, setTableData] = useState([])
     const [tableBuilt, setTableBuilt] = useState(false)
@@ -106,6 +108,8 @@ export default function Table(props) {
         api.get(`${props.baseRoute}${location.search}`).then(response => {
             if(!isCurrentRequest)
                 return
+            // Read before transformResponse, which may only pass through data and queries
+            setResultLimit(response.result_limit?.truncated ? response.result_limit.limit : null)
             if(props.transformResponse)
                 response = props.transformResponse(response)
             setTableData(response.data)
@@ -236,8 +240,12 @@ export default function Table(props) {
         history.push({search: getQueryFromFilters(), state: tableNavigationState})
     }
 
-    const clearFilters = () => {
-        history.push({search: '', state: tableNavigationState})
+    // Back to the page's default filters (computed fresh, so date-relative defaults roll forward), not to no filters at all
+    const defaultQuery = normalizeFilterQuery(props.defaultFilterQuery)
+    const isDefaultApplied = appliedQuery === defaultQuery && !hasUnappliedChanges
+
+    const resetFilters = () => {
+        history.push({search: defaultQuery, state: tableNavigationState})
     }
 
     const handleActiveFiltersChange = activeFilters => {
@@ -346,9 +354,10 @@ export default function Table(props) {
                                         >Apply Filters{hasUnappliedChanges ? ' *' : ''}</Button>
                                         <Button
                                             variant='secondary'
-                                            onClick={clearFilters}
-                                            disabled={!appliedQuery && !filters.some(filter => filter.active)}
-                                        >Clear</Button>
+                                            onClick={resetFilters}
+                                            disabled={isDefaultApplied}
+                                            title="Reset the filters to this page's default"
+                                        >Reset</Button>
                                     </InputGroup>
                                 </Col>
                                 <Col style={{textAlign: 'right'}}>
@@ -487,6 +496,11 @@ export default function Table(props) {
                                 </Col>
                             </Row>
                         </Card.Body>
+                    }
+                    {resultLimit &&
+                        <Alert variant='warning' className='mb-0 rounded-0'>
+                            <i className='fas fa-exclamation-triangle'></i> Showing the {resultLimit.toLocaleString()} most recent results only - older results matching these filters are hidden. Narrow your filters (for example, by date) to see them.
+                        </Alert>
                     }
                     <Card.Footer>
                         <div ref={tableRef} style={{ fontSize: '0.85rem' }}></div>

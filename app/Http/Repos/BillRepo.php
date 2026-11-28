@@ -701,9 +701,9 @@ class BillRepo {
                 AllowedFilter::exact('repeat_interval')
             ]);
 
-        // Ordered so the same filters always return rows in the same order (the table sorts client-side, and ties keep this order).
+        // Newest first, so a result over the limit keeps the most recent bills (the table sorts client-side, and ties keep this order).
         // One past the limit so BuildTable can tell the result was truncated.
-        return $filteredBills->groupBy('bill_id')->orderBy('bills.bill_id')->limit(self::LIST_LIMIT + 1)->get();
+        return $filteredBills->groupBy('bill_id')->orderBy('bills.bill_id', 'desc')->limit(self::LIST_LIMIT + 1)->get();
     }
 
     public function SetBillPickupOrDeliveryTime($billId, $type, $time) {

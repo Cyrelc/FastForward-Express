@@ -16,9 +16,12 @@ class BillModelFactory{
 		$billRepo = new Repos\BillRepo();
 		$chargeRepo = new Repos\ChargeRepo();
 
+		// Over the limit, return the most recent bills and flag the result as truncated rather than refusing the request,
+		// so an unfiltered (or too broad) search still shows something and the page can tell the user to narrow it
 		$bills = $billRepo->ListAll($req);
-		if(count($bills) > Repos\BillRepo::LIST_LIMIT)
-			abort(413, 'Maximum result limit exceeded. Please limit your search and try again');
+		$truncated = $bills->count() > Repos\BillRepo::LIST_LIMIT;
+		if($truncated)
+			$bills = $bills->take(Repos\BillRepo::LIST_LIMIT);
 
 		$chargesByBill = $chargeRepo->GetByBillIds($bills->pluck('bill_id')->all());
 
@@ -28,7 +31,10 @@ class BillModelFactory{
 			$model[] = $bill;
 		}
 
-		return $model;
+		return [
+			'bills' => $model,
+			'result_limit' => ['limit' => Repos\BillRepo::LIST_LIMIT, 'truncated' => $truncated],
+		];
 	}
 
 	public function GetCreateModel($req, $permissions) {

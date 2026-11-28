@@ -164,7 +164,7 @@ class BillController extends Controller {
 
         $billModelFactory = new \App\Http\Models\Bill\BillModelFactory();
 
-        $bills = $billModelFactory->BuildTable($req);
+        $table = $billModelFactory->BuildTable($req);
 
         $customFieldNames = [];
         if($req->user()->accountUsers()) {
@@ -179,8 +179,9 @@ class BillController extends Controller {
         return response()->json([
             'success' => true,
             'custom_field_name' => sizeof($customFieldNames) > 0 ? implode(',', array_unique($customFieldNames)) : 'Custom Tracking Field',
-            'data' => $bills,
-            'queries' => $queries
+            'data' => $table['bills'],
+            'queries' => $queries,
+            'result_limit' => $table['result_limit'],
         ]);
     }
 
