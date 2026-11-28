@@ -6,7 +6,7 @@ import Table from '../partials/Table'
 import {useAPI} from '../../contexts/APIContext'
 import {useLists} from '../../contexts/ListsContext'
 import {useUser} from '../../contexts/UserContext'
-import {formatInstant} from '../../utils/dates'
+import {formatInstant, parseInstant} from '../../utils/dates'
 
 const baseGroupByOptions = [
     {
@@ -25,6 +25,15 @@ const baseGroupByOptions = [
         value: 'delivery_address_formatted',
         groupHeader: (value, count, data, group) => {
             return `${escapeHtml(data[0].delivery_address_name ? data[0].delivery_address_name : value)} <span style="color: red">\t(${count})</span>`}
+    },
+    {
+        label: 'Month (Scheduled Pickup)',
+        // Group key is "yyyy-MM" in the user's local time, matching the Scheduled Pickup column
+        value: data => parseInstant(data.time_pickup_scheduled)?.toFormat('yyyy-MM') ?? '',
+        groupHeader: (value, count, data, group) => {
+            const month = value ? DateTime.fromFormat(value, 'yyyy-MM').toFormat('LLL yyyy') : 'No Scheduled Pickup'
+            return `${month} <span style="color: red">\t(${count})</span>`
+        }
     },
     {
         label: 'Parent Account',
